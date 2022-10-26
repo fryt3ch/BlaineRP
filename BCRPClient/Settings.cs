@@ -1,0 +1,310 @@
+﻿using RAGE;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Globalization;
+using System.Text;
+
+namespace BCRPClient
+{
+    class Settings : Events.Script
+    {
+        public static float STREAM_DISTANCE = 0f;
+
+        public static float ENTITY_INTERACTION_MAX_DISTANCE = 0f;
+        public static float ENTITY_INTERACTION_MAX_DISTANCE_RENDER = 0f;
+
+        public static float MIN_CRUISE_CONTROL_SPEED = 0f;
+        public static float MAX_CRUISE_CONTROL_SPEED = 0f;
+
+        public static float MAX_INVENTORY_WEIGHT = 0f;
+
+        public static CultureInfo CultureInfo = CultureInfo.GetCultureInfo("en-US");
+
+        public const uint MAIN_DIMENSION = 0;
+        public const uint STUFF_DIMENSION = 1;
+
+        public const float FINGER_POINT_ENTITY_MAX_DISTANCE = 10f;
+
+        public const int SPEEDOMETER_UPDATE_SPEED = 10;
+
+        public const int MAX_PLAYER_HEALTH = 100 + 100;
+
+        public static readonly Color HUD_COLOUR = Color.FromArgb(255, 255, 0, 0);
+        public const string HUD_MAIN_TEXT = "Blaine RP";
+
+        public const bool DISABLE_IDLE_CAM = true;
+        public const int DISABLE_IDLE_CAM_TIMEOUT = 25000;
+
+        public const int SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT = 2500;
+        public const int WORLD_POSITION_OF_SCREEN_CENTER_CHECK_TIMEOUT = 250;
+
+        public const int DEFAULT_FADE_IN_OUT_SPEED = 500;
+
+        public Settings()
+        {
+
+        }
+
+        #region Classes
+        #region Interface
+        public class Interface
+        {
+            public class Default
+            {
+                public static bool UseServerTime = true;
+                public static bool HideHints = false;
+                public static bool HideNames = false;
+                public static bool HideCID = false;
+                public static bool HideHUD = false;
+                public static bool HideQuest = false;
+
+                public static bool HideInteractionBtn = false;
+                public static bool HideIOGNames = false;
+                public static bool AutoReload = true;
+                public static bool FingerOn = true;
+            }
+
+            private static bool _UseServerTime;
+            private static bool _HideHints;
+            private static bool _HideNames;
+            private static bool _HideCID;
+            private static bool _HideHUD;
+            private static bool _HideQuest;
+
+            private static bool _HideInteractionBtn;
+            private static bool _HideIOGNames;
+            private static bool _AutoReload;
+            private static bool _FingerOn;
+
+            public static bool UseServerTime { get => _UseServerTime; set { if (value != _UseServerTime) Additional.Storage.SetData("Settings::Interface::UseServerTime", value); _UseServerTime = value; CEF.Menu.UpdateToggle("sett-time", value); CEF.HUD.SetTime(value); } }
+            public static bool HideHints { get => _HideHints; set { if (value != _HideHints) Additional.Storage.SetData("Settings::Interface::HideHints", value); _HideHints = value; CEF.Menu.UpdateToggle("sett-help", value); CEF.HUD.ToggleHints(!value); CEF.Inventory.SwitchHint(!value); } }
+            public static bool HideNames { get => _HideNames; set { if (value != _HideNames) Additional.Storage.SetData("Settings::Interface::HideNames", value); _HideNames = value; CEF.Menu.UpdateToggle("sett-names", value); NameTags.Enabled = !value; } }
+            public static bool HideCID { get => _HideCID; set { if (value != _HideCID) Additional.Storage.SetData("Settings::Interface::HideCID", value); _HideCID = value; CEF.Menu.UpdateToggle("sett-cid", value); } }
+            public static bool HideHUD { get => _HideHUD; set { if (value != _HideHUD) Additional.Storage.SetData("Settings::Interface::HideHUD", value); _HideHUD = value; CEF.Menu.UpdateToggle("sett-hud", value); CEF.HUD.ShowHUD(!value); } }
+            public static bool HideQuest { get => _HideQuest; set { if (value != _HideQuest) Additional.Storage.SetData("Settings::Interface::HideQuest", value); CEF.Menu.UpdateToggle("sett-quest", value); _HideQuest = value; } }
+
+            public static bool HideInteractionBtn { get => _HideInteractionBtn; set { if (value != _HideInteractionBtn) Additional.Storage.SetData("Settings::Interface::HideInteractionBtn", value); _HideInteractionBtn = value; CEF.Menu.UpdateToggle("sett-interact", value); Interaction.EnabledVisual = !value; } }
+            public static bool HideIOGNames { get => _HideIOGNames; set { if (value != _HideIOGNames) Additional.Storage.SetData("Settings::Interface::HideIOGNames", value); _HideIOGNames = value; CEF.Menu.UpdateToggle("sett-items", value); } }
+            public static bool AutoReload { get => _AutoReload; set { if (value != _AutoReload) Additional.Storage.SetData("Settings::Interface::AutoReload", value); _AutoReload = value; CEF.Menu.UpdateToggle("sett-reload", value); } }
+            public static bool FingerOn { get => _FingerOn; set { if (value != _FingerOn) Additional.Storage.SetData("Settings::Interface::FingerOn", value); _FingerOn = value; CEF.Menu.UpdateToggle("sett-finger", value); } }
+        }
+        #endregion
+
+        #region Aim
+        public class Aim
+        {
+            public enum Types
+            {
+                Default = 1, Dot, Cross
+            }
+
+            public class Default
+            {
+                public static Types Type = Types.Default;
+                public static Color Color = Color.FromArgb(255, 255, 255);
+            }
+
+            public static Types _Type;
+            public static Color _Color;
+
+            public static Types Type { get => _Type; set { if (value != _Type) Additional.Storage.SetData("Settings::Interface::Aim::Type", value); _Type = value; } }
+            public static Color Color { get => _Color; set { if (value != _Color) Additional.Storage.SetData("Settings::Interface::Aim::Color", value); _Color = value; } }
+        }
+        #endregion
+
+        #region Chat
+        public class Chat
+        {
+            public class Default
+            {
+                public static bool UseFilter = true;
+                public static bool ShowTime = false;
+                public static int Height = 276;
+                public static int FontSize = 14;
+            }
+
+            private static bool _UseFilter;
+            private static bool _ShowTime;
+            private static int _Height;
+            private static int _FontSize;
+
+            public static bool UseFilter { get => _UseFilter; set { if (value != _UseFilter) Additional.Storage.SetData("Settings::Chat::UseFilter", value); _UseFilter = value; CEF.Menu.UpdateToggle("sett-filter", value); if (value) Additional.StringFilter.Load(); else Additional.StringFilter.Unload(); } }
+            public static bool ShowTime { get => _ShowTime; set { if (value != _ShowTime) Additional.Storage.SetData("Settings::Chat::ShowTime", value); _ShowTime = value; CEF.Menu.UpdateToggle("sett-timestamp", value); } }
+            public static int Height { get => _Height; set { if (value != _Height) Additional.Storage.SetData("Settings::Chat::Height", value); _Height = value; CEF.Chat.SetHeight(value); } }
+            public static int FontSize { get => _FontSize; set { if (value != _FontSize) Additional.Storage.SetData("Settings::Chat::FontSize", value); _FontSize = value; CEF.Chat.SetFontSize(value); } }
+        }
+        #endregion
+
+        #region Audio
+        public class Audio
+        {
+            public class Default
+            {
+                public static int VoiceVolume = 100;
+                public static int SoundVolume = 75;
+            }
+
+            private static int _VoiceVolume;
+            private static int _SoundVolume;
+
+            public static int VoiceVolume { get => _VoiceVolume; set { if (value != _VoiceVolume) Additional.Storage.SetData("Settings::Audio::VoiceVolume", value); _VoiceVolume = value; } }
+            public static int SoundVolume { get => _SoundVolume; set { if (value != _SoundVolume) Additional.Storage.SetData("Settings::Audio::SoundVolume", value); _SoundVolume = value; } }
+        }
+        #endregion
+
+        #region Special
+        public class Special
+        {
+            public class Default
+            {
+                public static bool DisabledPerson = false;
+            }
+
+            private static bool _DisabledPerson;
+
+            public static bool DisabledPerson { get => _DisabledPerson; set { if (value != _DisabledPerson) Additional.Storage.SetData("Settings::Special::DisabledPerson", value); _DisabledPerson = value; CEF.Menu.UpdateToggle("sett-special", value); } }
+        }
+        #endregion
+
+        #region Other Settings
+        public class Other
+        {
+            public class Default
+            {
+                public static bool AutoTeleportMarker = false;
+                public static bool DebugLabels = false;
+                public static bool HighPolygonsMode = false;
+                public static bool ColshapesVisible = false;
+
+                public static HashSet<string> FavoriteAnimations = new HashSet<string>();
+                public static Sync.Animations.EmotionTypes CurrentEmotion = Sync.Animations.EmotionTypes.None;
+                public static Sync.Animations.WalkstyleTypes CurrentWalkstyle = Sync.Animations.WalkstyleTypes.None;
+
+                public static List<string> FamiliarNPCs = new List<string>();
+            }
+
+            private static HashSet<string> _FavoriteAnimations;
+            private static Sync.Animations.EmotionTypes _CurrentEmotion;
+            private static Sync.Animations.WalkstyleTypes _CurrentWalkstyle;
+
+            private static List<string> _FamiliarNPCs;
+
+            private static bool _AutoTeleportMarker;
+            private static bool _DebugLabels;
+            private static bool _HighPolygonsMode;
+            private static bool _ColshapesVisible;
+
+            public static bool AutoTeleportMarker { get => _AutoTeleportMarker; set { if (value != _AutoTeleportMarker) Additional.Storage.SetData("Settings::Other::AutoTeleportMarker", value); _AutoTeleportMarker = value; } }
+            public static bool DebugLabels { get => _DebugLabels; set { if (value != _DebugLabels) Additional.Storage.SetData("Settings::Other::DebugLabels", value); _DebugLabels = value; Interaction.EnabledDL = value; } }
+            public static bool HighPolygonsMode { get => _HighPolygonsMode; set { if (value != _HighPolygonsMode) Additional.Storage.SetData("Settings::Other::HighPolygonsMode", value); _HighPolygonsMode = value; } }
+            public static bool ColshapesVisible { get => _ColshapesVisible; set { if (value != _ColshapesVisible) Additional.Storage.SetData("Settings::Other::ColshapesVisible", value); _ColshapesVisible = value;  Additional.ExtraColshape.RenderActive = value; } }
+
+            public static HashSet<string> FavoriteAnimations { get => _FavoriteAnimations; set { Additional.Storage.SetData("Settings::Animations::Favorites", value); _FavoriteAnimations = value; } }
+            public static Sync.Animations.EmotionTypes CurrentEmotion { get => _CurrentEmotion; set { if (value != _CurrentEmotion) Additional.Storage.SetData("Settings::Animations::Emotion", value.ToString()); _CurrentEmotion = value; } }
+            public static Sync.Animations.WalkstyleTypes CurrentWalkstyle { get => _CurrentWalkstyle; set { if (value != _CurrentWalkstyle) Additional.Storage.SetData("Settings::Animations::Walkstyle", value.ToString()); _CurrentWalkstyle = value; } }
+
+            public static List<string> FamiliarNPCs { get => _FamiliarNPCs; set { Additional.Storage.SetData("Settings::FamiliarNPCs", value); _FamiliarNPCs = value; } }
+        }
+        #endregion
+        #endregion
+
+        #region Loaders
+        public static void Load()
+        {
+            Interface.UseServerTime = Additional.Storage.GetData<bool?>("Settings::Interface::UseServerTime") ?? Interface.Default.UseServerTime;
+            Interface.HideHints = Additional.Storage.GetData<bool?>("Settings::Interface::HideHints") ?? Interface.Default.HideHints;
+            Interface.HideNames = Additional.Storage.GetData<bool?>("Settings::Interface::HideNames") ?? Interface.Default.HideNames;
+            Interface.HideCID = Additional.Storage.GetData<bool?>("Settings::Interface::HideCID") ?? Interface.Default.HideCID;
+            Interface.HideHUD = Additional.Storage.GetData<bool?>("Settings::Interface::HideHUD") ?? Interface.Default.HideHUD;
+            Interface.HideQuest = Additional.Storage.GetData<bool?>("Settings::Interface::HideQuest") ?? Interface.Default.HideQuest;
+
+            Interface.HideInteractionBtn = Additional.Storage.GetData<bool?>("Settings::Interface::HideInteractionBtn") ?? Interface.Default.HideInteractionBtn;
+            Interface.HideIOGNames = Additional.Storage.GetData<bool?>("Settings::Interface::HideIOGNames") ?? Interface.Default.HideIOGNames;
+            Interface.AutoReload = Additional.Storage.GetData<bool?>("Settings::Interface::AutoReload") ?? Interface.Default.AutoReload;
+            Interface.FingerOn = Additional.Storage.GetData<bool?>("Settings::Interface::FingerOn") ?? Interface.Default.FingerOn;
+
+            Aim.Type = Additional.Storage.GetData<Aim.Types?>("Settings::Interface::Aim::Type") ?? Aim.Default.Type;
+            Aim.Color = Additional.Storage.GetData<Color?>("Settings::Interface::Aim::Color") ?? Aim.Default.Color;
+
+            Chat.UseFilter = Additional.Storage.GetData<bool?>("Settings::Chat::UseFilter") ?? Chat.Default.UseFilter;
+            Chat.ShowTime = Additional.Storage.GetData<bool?>("Settings::Chat::ShowTime") ?? Chat.Default.ShowTime;
+            Chat.Height = Additional.Storage.GetData<int?>("Settings::Chat::Height") ?? Chat.Default.Height;
+            Chat.FontSize = Additional.Storage.GetData<int?>("Settings::Chat::FontSize") ?? Chat.Default.FontSize;
+
+            Audio.VoiceVolume = Additional.Storage.GetData<int?>("Settings::Audio::VoiceVolume") ?? Audio.Default.VoiceVolume;
+            Audio.SoundVolume = Additional.Storage.GetData<int?>("Settings::Audio::SoundVolume") ?? Audio.Default.SoundVolume;
+
+            Special.DisabledPerson = Additional.Storage.GetData<bool?>("Settings::Special::DisabledPerson") ?? Special.Default.DisabledPerson;
+
+            Other.AutoTeleportMarker = Additional.Storage.GetData<bool?>("Settings::Other::AutoTeleportMarker") ?? Other.Default.AutoTeleportMarker;
+            Other.DebugLabels = Additional.Storage.GetData<bool?>("Settings::Other::DebugLabels") ?? Other.Default.DebugLabels;
+            Other.HighPolygonsMode = Additional.Storage.GetData<bool?>("Settings::Other::HighPolygonsMode") ?? Other.Default.HighPolygonsMode;
+            Other.ColshapesVisible = Additional.Storage.GetData<bool?>("Settings::Other::ColshapesVisible") ?? Other.Default.ColshapesVisible;
+
+            Other.FavoriteAnimations = Additional.Storage.GetData<HashSet<string>>("Settings::Animations::Favorites") ?? Other.Default.FavoriteAnimations;
+
+            var tStr = Additional.Storage.GetData<string>("Settings::Animations::Emotion") ?? Other.Default.CurrentEmotion.ToString();
+            Sync.Animations.EmotionTypes emotion = Sync.Animations.EmotionTypes.None;
+
+            if (!Enum.TryParse<Sync.Animations.EmotionTypes>(tStr, out emotion))
+                Other.CurrentEmotion = Other.Default.CurrentEmotion;
+            else
+                Other.CurrentEmotion = emotion;
+
+            tStr = Additional.Storage.GetData<string>("Settings::Animations::Walkstyle") ?? Other.Default.CurrentWalkstyle.ToString();
+            Sync.Animations.WalkstyleTypes walkstyle = Sync.Animations.WalkstyleTypes.None;
+
+            if (!Enum.TryParse<Sync.Animations.WalkstyleTypes>(tStr, out walkstyle))
+                Other.CurrentWalkstyle = Other.Default.CurrentWalkstyle;
+            else
+                Other.CurrentWalkstyle = walkstyle;
+
+            Other.FamiliarNPCs = Additional.Storage.GetData<List<string>>("Settings::FamiliarNPCs") ?? Other.Default.FamiliarNPCs;
+
+            foreach (var x in Other.FamiliarNPCs)
+            {
+                var data = Data.NPC.GetData(x);
+
+                if (data != null)
+                    data.IsFamiliar = true;
+            }
+        }
+        #endregion
+
+        #region Defaulters
+        public static void DefaultAll()
+        {
+            Interface.UseServerTime = Interface.Default.UseServerTime;
+            Interface.HideHints = Interface.Default.HideHints;
+            Interface.HideNames = Interface.Default.HideNames;
+            Interface.HideCID = Interface.Default.HideCID;
+            Interface.HideHUD = Interface.Default.HideHUD;
+            Interface.HideQuest = Interface.Default.HideQuest;
+
+            Interface.HideInteractionBtn = Interface.Default.HideInteractionBtn;
+            Interface.HideIOGNames = Interface.Default.HideIOGNames;
+            Interface.AutoReload = Interface.Default.AutoReload;
+            Interface.FingerOn = Interface.Default.FingerOn;
+
+            Aim.Type = Aim.Default.Type;
+            Aim.Color = Aim.Default.Color;
+
+            Chat.UseFilter = Chat.Default.UseFilter;
+            Chat.ShowTime = Chat.Default.ShowTime;
+            Chat.Height = Chat.Default.Height;
+            Chat.FontSize = Chat.Default.FontSize;
+
+            Audio.VoiceVolume = Audio.Default.VoiceVolume;
+            Audio.SoundVolume = Audio.Default.SoundVolume;
+
+            Special.DisabledPerson = Special.Default.DisabledPerson;
+
+            Other.AutoTeleportMarker = Other.Default.AutoTeleportMarker;
+            Other.DebugLabels = Other.Default.DebugLabels;
+            Other.HighPolygonsMode = Other.Default.HighPolygonsMode;
+            Other.ColshapesVisible = Other.Default.ColshapesVisible;
+        }
+        #endregion
+    }
+}

@@ -1,0 +1,654 @@
+﻿using RAGE;
+using RAGE.Elements;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace BCRPClient.CEF
+{
+    public class HUD : Events.Script
+    {
+        #region HUD Menu
+        public class Menu : Events.Script
+        {
+            public static bool IsActive { get => CEF.Browser.IsActive(CEF.Browser.IntTypes.HUD_Menu); }
+
+            /// <summary>Все возможные типы выбора в меню</summary>
+            /// <remarks>Порядок влияет на порядок отображения!</remarks>
+            public enum Types
+            {
+                /// <summary>Меню</summary>
+                Menu = 0,
+                /// <summary>Документы</summary>
+                Documents,
+                /// <summary>Инвентарь</summary>
+                Inventory,
+                /// <summary>Телефон</summary>
+                Phone,
+                /// <summary>Меню дома</summary>
+                Menu_House,
+                /// <summary>Меню квартиры</summary>
+                Menu_Apartments,
+                /// <summary>Анимации</summary>
+                Animations,
+            }
+
+            public static List<Types> CurrentTypes { get; private set; }
+
+            private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
+            {
+            Utils.Actions.Knocked,
+            //Utils.Actions.Frozen,
+            //Utils.Actions.Cuffed,
+
+            //Utils.Actions.Crouch,
+            //Utils.Actions.Crawl,
+            //Utils.Actions.Finger,
+            //Utils.Actions.PushingVehicle,
+
+            //Utils.Actions.Animation,
+            //Utils.Actions.CustomAnimation,
+            //Utils.Actions.Scenario,
+
+            //Utils.Actions.InVehicle,
+            //Utils.Actions.InWater,
+            Utils.Actions.Shooting, //Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
+                                                             //Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
+            };
+
+            private static List<int> TempBinds { get; set; }
+
+            public Menu()
+            {
+                CurrentTypes = new List<Types>();
+
+                TempBinds = new List<int>();
+
+                Events.Add("HUD::Menu::Action", (object[] args) =>
+                {
+                    Switch(false);
+
+                    Types type = (Types)args[0];
+
+                    var kbAction = KeyBinds.HudMenuBinds.Where(x => x.Value == type).Select(x => KeyBinds.Get(x.Key).Action).FirstOrDefault();
+
+                    if (kbAction != null)
+                    {
+                        kbAction.Invoke();
+
+                        return;
+                    }
+
+                    switch (type)
+                    {
+                        case Types.Menu:
+                            CEF.Menu.Show(CEF.Menu.SectionTypes.Last);
+                            break;
+
+                        case Types.Documents:
+                            CEF.Documents.Show();
+                            break;
+                    }
+                });
+            }
+
+            public static void UpdateCurrentTypes(bool add, params Types[] types)
+            {
+                if (add)
+                {
+                    foreach (var x in types)
+                    {
+                        if (!CurrentTypes.Contains(x))
+                            CurrentTypes.Add(x);
+                    }
+                }
+                else
+                {
+                    foreach (var x in types)
+                        CurrentTypes.Remove(x);
+                }
+
+                CurrentTypes = CurrentTypes.OrderBy(x => x).ToList();
+            }
+
+            public static void SetCurrentTypes(params Types[] types) { CurrentTypes.Clear(); UpdateCurrentTypes(true, types); }
+
+            public static void Switch(bool state, List<Types> types = null)
+            {
+                if (state)
+                {
+                    if (IsActive || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+                        return;
+
+                    if (types == null)
+                        types = CurrentTypes;
+                    else
+                        types = types.OrderBy(x => x).ToList();
+
+                    if ((types?.Count ?? 0) == 0)
+                        return;
+
+                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
+
+                    CEF.Browser.Switch(CEF.Browser.IntTypes.HUD_Menu, true);
+
+                    Cursor.Show(true, true);
+
+                    KeyBinds.Get(KeyBinds.Types.Menu).Disable();
+
+                    CEF.Browser.Window.ExecuteJs("Hud.drawMenu", new object[] { types.Select(x => new object[] { x, Locale.HudMenu.Names[x] }) });
+
+                    var cPos = RAGE.Ui.Cursor.Position;
+
+                    if (cPos.X + 50 > GameEvents.ScreenResolution.X || cPos.Y + 50 > GameEvents.ScreenResolution.Y)
+                    {
+                        cPos.X = GameEvents.ScreenResolution.X / 2;
+                        cPos.Y = GameEvents.ScreenResolution.Y / 2;
+                    }
+
+                    CEF.Browser.Window.ExecuteJs("Hud.positionMenu", cPos.X, cPos.Y);
+                }
+                else
+                {
+                    if (!IsActive)
+                        return;
+
+                    foreach (var x in TempBinds.ToList())
+                        RAGE.Input.Unbind(x);
+
+                    TempBinds.Clear();
+
+                    CEF.Browser.Switch(CEF.Browser.IntTypes.HUD_Menu, false);
+
+                    Cursor.Show(false, false);
+
+                    KeyBinds.Get(KeyBinds.Types.Menu).Enable();
+                }
+            }
+        }
+        #endregion
+
+        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.HUD_Top, Browser.IntTypes.HUD_Left); }
+
+        private static bool SpeedometerEnabled { get => Browser.IsActive(Browser.IntTypes.HUD_Speedometer); }
+        private static bool SpeedometerMustBeEnabled { get; set; }
+
+        private static bool BeltOffSoundOn = false;
+
+        public static int LastAmmo { get; private set; }
+        public static int LastSpeed { get; private set; }
+
+        public static GameEvents.UpdateHandler Update;
+        private static AsyncTask Loop;
+
+        public static Func<bool> InteractionAction = null;
+        private static int InteractionBind = -1;
+
+        public enum StatusTypes
+        {
+            /// <summary>Голод</summary>
+            Food = 0,
+            /// <summary>Настроение</summary>
+            Mood,
+            /// <summary>Плохое самочувствие</summary>
+            Sick,
+            /// <summary>Ранение</summary>
+            Wounded,
+            /// <summary>Дайвинг</summary>
+            Diving,
+            /// <summary>Зеленая зона</summary>
+            GreenZone,
+            /// <summary>Зона для рыбалки</summary>
+            FishingZone,
+        }
+
+        public enum SpeedometerTypes
+        {
+            /// <summary>Левый поворотник</summary>
+            LeftArrow = 0,
+            /// <summary>Правый поворотник</summary>
+            RightArrow,
+            /// <summary>Блокировка дверей</summary>
+            Doors,
+            /// <summary>Фары</summary>
+            Lights,
+            /// <summary>Ремень</summary>
+            Belt,
+            /// <summary>Двигатель</summary>
+            Engine
+        }
+
+        public HUD()
+        {
+            SpeedometerMustBeEnabled = false;
+            LastAmmo = -1;
+            LastSpeed = -1;
+
+            Loop = new AsyncTask(() => Update?.Invoke(), 5000, true);
+            Loop.Run();
+        }
+
+        public static void ShowHUD(bool value)
+        {
+            if (!Sync.Players.CharacterLoaded)
+                return;
+
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (value)
+            {
+                UpdateLeftHUDPos();
+
+                Browser.Switch(Browser.IntTypes.HUD_Top, true);
+                Browser.Switch(Browser.IntTypes.HUD_Left, true);
+                Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.Interface.HideHints);
+
+                if (SpeedometerMustBeEnabled)
+                    Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
+            }
+            else
+            {
+                Browser.Switch(Browser.IntTypes.HUD_Top, false);
+                Browser.Switch(Browser.IntTypes.HUD_Left, false);
+                Browser.Switch(Browser.IntTypes.HUD_Help, false);
+
+                Browser.Switch(Browser.IntTypes.HUD_Speedometer, false);
+            }
+
+            RAGE.Game.Ui.DisplayRadar(value);
+        }
+
+        #region JS Stuff
+        /// <summary>Установить кол-во наличных</summary>
+        public static void SetCash(int value)
+        {
+            Browser.Window.ExecuteJs("Hud.setCash", value);
+        }
+        /// <summary>Установить кол-во денег в банке</summary>
+        public static void SetBank(int value)
+        {
+            Browser.Window.ExecuteJs("Hud.setBank", value);
+        }
+        /// <summary>Переключить подсказки справа</summary>
+        /// <param name="state">true - показать, false - скрыть</param>
+        public static void ToggleHints(bool state)
+        {
+            Browser.Switch(Browser.IntTypes.HUD_Help, state);
+        }
+
+        /// <summary>Переключить время</summary>
+        /// <param name="state">true - серверное время, false - локальное время</param>
+        public static void SetTime(bool state)
+        {
+
+            Browser.Window.ExecuteJs("Hud.setTime", state);
+        }
+
+        /// <summary>Переключить иконку микрофона</summary>
+        /// <param name="value">true - включён, false - выключен, null - недоступен</param>
+        public static void SwitchMicroIcon(bool? state)
+        {
+            Browser.Window.ExecuteJs("Hud.switchMicro", state);
+        }
+
+        /// <summary>Переключить иконку настроения</summary>
+        /// <param name="state">true - показать, false - скрыть</param>
+        public static void SwitchMood(bool state)
+        {
+            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Mood, state);
+        }
+        /// <summary>Переключить иконку голода</summary>
+        /// <param name="state">true - показать, false - скрыть</param>
+        public static void SwitchFood(bool state)
+        {
+            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Food, state);
+        }
+        /// <summary>Переключить иконку плохого самочувствия</summary>
+        /// <param name="state">true - показать, false - скрыть</param>
+        public static void SwitchSeek(bool state)
+        {
+            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Sick, state);
+        }
+        /// <summary>Переключить иконку ранения</summary>
+        /// <param name="state">true - показать, false - скрыть</param>
+        public static void SwitchWounded(bool state)
+        {
+            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Wounded, state);
+        }
+
+        /// <summary>Переключить иконку патронов</summary>
+        /// <param name="state">true - показать, false - скрыть</param>
+        public static void SwitchAmmo(bool state)
+        {
+            Browser.Window.ExecuteJs("Hud.switchAmmo", state);
+        }
+
+        /// <summary>Задать кол-во патронов</summary>
+        public static void SetAmmo(int value = 0)
+        {
+            if (value != LastAmmo)
+                Browser.Window.ExecuteJs("Hud.setAmmo", LastAmmo = value);
+        }
+
+        private static void PlayBeltOffSound(bool value, bool isElectricCar = false)
+        {
+            Browser.Window.ExecuteJs("Hud.playBeltOff", value, isElectricCar);
+            BeltOffSoundOn = value;
+        }
+
+        public static void SwitchEngineIcon(bool value)
+        {
+            Browser.Window.ExecuteJs("Hud.setSpdmtrState", SpeedometerTypes.Engine, value);
+        }
+
+        public static void SwitchBeltIcon(bool value)
+        {
+            Browser.Window.ExecuteJs("Hud.setSpdmtrState", SpeedometerTypes.Belt, value);
+
+            if (value && BeltOffSoundOn)
+                PlayBeltOffSound(false);
+        }
+
+        public static void SwitchLightsIcon(bool value)
+        {
+            Browser.Window.ExecuteJs("Hud.setSpdmtrState", SpeedometerTypes.Lights, value);
+        }
+
+        public static void SwitchDoorsIcon(bool value)
+        {
+            Browser.Window.ExecuteJs("Hud.setSpdmtrState", SpeedometerTypes.Doors, value);
+        }
+
+        public static void SwitchArrowIcon(bool left, bool value)
+        {
+            Browser.Window.ExecuteJs("Hud.setSpdmtrState", left ? SpeedometerTypes.LeftArrow : SpeedometerTypes.RightArrow, value);
+        }
+
+        public static void SwitchCruiseControlIcon(bool? value)
+        {
+            Browser.Window.ExecuteJs("Hud.switchCruiseControl", value);
+        }
+
+        public static void SwitchInteractionText(bool state, string text = null)
+        {
+            if (text != null)
+                Browser.Window.ExecuteJs("Hud.drawInteract", text, KeyBinds.Bind.GetKeyString(RAGE.Ui.VirtualKeys.E));
+
+            Browser.Switch(Browser.IntTypes.HUD_Interact, state);
+
+            if (state)
+            {
+                //RAGE.Game.Audio.PlaySoundFrontend(-1, "Enter_Area", "DLC_Lowrider_Relay_Race_Sounds", true);
+
+                if (InteractionBind != -1)
+                    RAGE.Input.Unbind(InteractionBind);
+
+                InteractionBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.E, true, () =>
+                {
+                    InteractionAction?.Invoke();
+                });
+            }
+            else
+            {
+                if (InteractionBind != -1)
+                {
+                    RAGE.Input.Unbind(InteractionBind);
+
+                    InteractionBind = -1;
+                }
+            }
+        }
+
+        #endregion
+
+        #region HUD Stuff
+        public static void UpdateHUD()
+        {
+            var playerPosition = Player.LocalPlayer.Position;
+            int streetNameHash = 0, crossingRoadNameHash = 0;
+
+            RAGE.Game.Pathfind.GetStreetNameAtCoord(playerPosition.X, playerPosition.Y, playerPosition.Z, ref streetNameHash, ref crossingRoadNameHash);
+
+            string zone = RAGE.Game.Zone.GetNameOfZone(playerPosition.X, playerPosition.Y, playerPosition.Z).ToUpper();
+
+            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.ContainsKey(zone) ? ZoneNames[zone] : zone, RAGE.Game.Ui.GetStreetNameFromHashKey((uint)streetNameHash));
+            Browser.Window.ExecuteJs("Hud.setOnline", Entities.Players.Count);
+        }
+
+        public static void UpdateLeftHUDPos()
+        {
+            float sfX = 1.0f / 20.0f;
+            float sfY = 1.0f / 20.0f;
+
+            float safezone = RAGE.Game.Graphics.GetSafeZoneSize();
+            float aspectratio = RAGE.Game.Graphics.GetAspectRatio(false);
+
+            float scaleX = 1.0f / GameEvents.ScreenResolution.X, scaleY = 1.0f / GameEvents.ScreenResolution.Y;
+
+            float minimapWidth = scaleX * (GameEvents.ScreenResolution.X / (4 * aspectratio)) * (Minimap.MinimapZoomState == 2 ? 1.6f : 1f);
+            float minimapRigthX = minimapWidth + (scaleX * (GameEvents.ScreenResolution.X * (sfX * (Math.Abs(safezone - 1.0f) * 10f))));
+            float minimapBottomY = 1.0f - scaleY * (GameEvents.ScreenResolution.Y * (sfY * (Math.Abs(safezone - 1.0f) * 10f)));
+
+            Browser.Window.ExecuteJs("Hud.changeLBHpos", ((minimapRigthX * 100f) + 0.5f).ToString().Replace(',', '.') + "vw", (((1.0f - minimapBottomY) * 100f) + 0f).ToString().Replace(',', '.') + "vh");
+        }
+        #endregion
+
+        #region Speedometer Stuff
+        public static void SwitchSpeedometer(bool value)
+        {
+            if (SpeedometerEnabled == value)
+                return;
+
+            var veh = Player.LocalPlayer.Vehicle;
+
+            if (!value)
+            {
+                Browser.Switch(Browser.IntTypes.HUD_Speedometer, false);
+
+                PlayBeltOffSound(false);
+
+                SpeedometerMustBeEnabled = false;
+
+                return;
+            }
+
+            if (veh == null)
+                return;
+
+            var data = Sync.Vehicles.GetData(veh);
+
+            if (data == null)
+                return;
+
+            SpeedometerMustBeEnabled = true;
+
+            SwitchEngineIcon(data.EngineOn);
+            SwitchDoorsIcon(data.DoorsLocked);
+            SwitchBeltIcon(Sync.Players.GetData(Player.LocalPlayer).BeltOn);
+
+            StartUpdateSpeedometerInfo();
+
+            Browser.Window.ExecuteJs("Hud.updateSpeedometer", (int)Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
+            Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
+
+            Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
+
+            StartUpdateSpeedometerSpeed();
+        }
+
+        private static async void StartUpdateSpeedometerSpeed()
+        {
+            while (Player.LocalPlayer.Vehicle != null)
+            {
+                var spd = (int)(Player.LocalPlayer.Vehicle.GetSpeedKm());
+
+                if (spd != LastSpeed)
+                    Browser.Window.ExecuteJs("Hud.updateSpeed", LastSpeed = spd);
+
+                await RAGE.Game.Invoker.WaitAsync(Settings.SPEEDOMETER_UPDATE_SPEED);
+            }
+        }
+
+        private static async void StartUpdateSpeedometerInfo()
+        {
+            var data = Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle);
+
+            while (Player.LocalPlayer.Vehicle != null)
+            {
+                Browser.Window.ExecuteJs("Hud.setFuel", Convert.ToInt32(data.FuelLevel));
+                Browser.Window.ExecuteJs("Hud.setMileage", Convert.ToInt32(data.Mileage) / 1000);
+
+                Player driver = Utils.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0));
+
+                bool isCruiseControlOn = driver != null ? data.ForcedSpeed >= 8.3f : false;
+
+                float currentSpeed = Player.LocalPlayer.Vehicle.GetSpeedKm();
+
+                if (currentSpeed > 30 && Player.LocalPlayer.Vehicle.GetSpeedVector(true).Y > 0)
+                    SwitchCruiseControlIcon(isCruiseControlOn);
+                else
+                    SwitchCruiseControlIcon(null);
+
+                if (data.EngineOn)
+                {
+                    SwitchArrowIcon(true, data.LeftIndicatorOn);
+                    SwitchArrowIcon(false, data.RightIndicatorOn);
+                    SwitchLightsIcon(data.LightsOn);
+
+                    if (!BeltOffSoundOn)
+                    {
+                        if (currentSpeed >= 100 && !Sync.Players.GetData(Player.LocalPlayer).BeltOn)
+                            PlayBeltOffSound(true);
+                    }
+                    else if (currentSpeed < 100)
+                        PlayBeltOffSound(false);
+
+                    await RAGE.Game.Invoker.WaitAsync(500);
+
+                    if (data.LeftIndicatorOn)
+                        SwitchArrowIcon(true, false);
+
+                    if (data.RightIndicatorOn)
+                        SwitchArrowIcon(false, false);
+
+                    await RAGE.Game.Invoker.WaitAsync(500);
+                }
+                else
+                {
+                    PlayBeltOffSound(false);
+
+                    SwitchArrowIcon(true, false);
+                    SwitchArrowIcon(false, false);
+
+                    SwitchLightsIcon(false);
+
+                    await RAGE.Game.Invoker.WaitAsync(1000);
+                }
+            }
+        }
+        #endregion
+
+        #region ZoneNames
+        public static Dictionary<string, string> ZoneNames = new Dictionary<string, string>()
+        {
+            {"GALLI", "Галли"},
+            {"OBSERV", "Обсерватория"},
+
+            {"AIRP", "Аэропорт"},
+            {"ALAMO", "Аламо-си"},
+            {"ALTA", "Альта"},
+            {"ARMYB", "Форт Занкудо"},
+            {"BANHAMC", "Каньон Бэнхам"},
+            {"BANNING", "Бэннинг"},
+            {"BEACH", "Пляж Веспуччи"},
+            {"BHAMCA", "Каньон Бэнхам"},
+            {"BRADP", "Брэддок"},
+            {"BRADT", "Туннель Брэддок"},
+            {"BURTON", "Бёртон"},
+            {"CALAFB", "Мост Калафия"},
+            {"CANNY", "Каньон Рэйтон"},
+            {"CCREAK", "Ручей Кэссиди"},
+            {"CHAMH", "Чемберлейн-Хиллс"},
+            {"CHIL", "Вайнвуд-Хиллс"},
+            {"CHU", "Чумаш"},
+            {"CMSW", "Окрестности Чилиад"},
+            {"CYPRE", "Сайпресс-Флэтс" },
+            {"DAVIS", "Дэвис"},
+            {"DELBE", "Пляж Дель-Перро"},
+            {"DELPE", "Дель-Перро"},
+            {"DELSOL", "Ла Пуэрта"},
+            {"DESRT", "Пустыня Гранд-Сенора"},
+            {"DOWNT", "Даунтаун"},
+            {"DTVINE", "Даунтаун-Вайнвуд"},
+            {"EAST_V", "Восточный Вайнвуд"},
+            {"EBURO", "Эль Бурро"},
+            {"ELGORL", "Маяк Эль Гордо"},
+            {"ELYSIAN", "Остров Элизиан"},
+            {"GALFISH", "Галилея"},
+            {"GOLF", "Гольф"},
+            {"GRAPES", "Грэйпсид"},
+            {"GREATC", "Грейт-Чаперрэл"},
+            {"HARMO", "Гармони"},
+            {"HAWICK", "Хавик"},
+            {"HORS", "Трасса Вайнвуд"},
+            {"HUMLAB", "Лаборатория"},
+            {"JAIL", "Тюрьма Болингброук"},
+            {"KOREAT", "Маленький Сеул"},
+            {"LACT", "Водохранилище"},
+            {"LAGO", "Болото Занкудо"},
+            {"LDAM", "Плотина Лэнд-Экт"},
+            {"LEGSQU", "Легион-Сквер"},
+            {"LMESA", "Ла Меса"},
+            {"LOSPUER", "Ла Пуэрта"},
+            {"MIRR", "Миррор Парк"},
+            {"MORN", "Морнинвуд"},
+            {"MOVIE", "Ричардс-Маджестик"},
+            {"MTCHIL", "Гора Чилиад"},
+            {"MTGORDO", "Гора Гордо"},
+            {"MTJOSE", "Гора Джосайя"},
+            {"MURRI", "Муррьета"},
+            {"NCHU", "Северный Чумаш"},
+            {"NOOSE", "N.O.O.S.E"},
+            {"OCEANA", "Тихий Океан"},
+            {"PALCOV", "Бухта Палето"},
+            {"PALETO", "Палето-Бэй"},
+            {"PALFOR", "Лес Палето"},
+            {"PALHIGH", "Нагорье Паломино"},
+            {"PALMPOW", "Энергостанция"},
+            {"PBLUFF", "Пасифик-Блаффс"},
+            {"PBOX", "Пиллбокс-Хилл"},
+            {"PROCOB", "Пляж Прокопио"},
+            {"PROL", "Пролог"},
+            {"RANCHO", "Ранчо"},
+            {"RGLEN", "Ричман-Глен"},
+            {"RICHM", "Ричман"},
+            {"ROCKF", "Рокфорд-Хиллс"},
+            {"RTRAK", "Рэдвуд"},
+            {"SANAND", "Сан-Андрэас"},
+            {"SANCHIA", "Сан-Шаньский Хребет"},
+            {"SANDY", "Сэнди-Шорс"},
+            {"SKID", "Мишн-Роу"},
+            {"SLAB", "Трэйлер-парк"},
+            {"STAD", "Арена Мэйз-Банк"},
+            {"STRAW", "Строуберри"},
+            {"TATAMO", "Татавиамские горы"},
+            {"TERMINA", "Терминал"},
+            {"TEXTI", "Текстиль-Сити"},
+            {"TONGVAH", "Тонгва-Хиллс"},
+            {"TONGVAV", "Долина Тонгва"},
+            {"VCANA", "Каналы Веспуччи"},
+            {"VESP", "Веспуччи"},
+            {"VINE", "Вайнвуд"},
+            {"WINDF", "Ветряные мельницы"},
+            {"WVINE", "Западный Вайнвуд"},
+            {"ZANCUDO", "Река Занкудо"},
+            {"ZP_ORT", "Порт Лос-Сантоса"},
+            {"ZQ_UAR", "Карьер Дэвис-Кварц"}
+        };
+        #endregion
+    }
+}

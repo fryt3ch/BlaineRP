@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "BCRPMode": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\fryte\\OneDrive\\Documents\\My Projects\\BlaineRP\\ragemp-server.exe",
+      "workingDirectory": "C:\\Users\\fryte\\OneDrive\\Documents\\My Projects\\BlaineRP"
+    }
+  }
+}
