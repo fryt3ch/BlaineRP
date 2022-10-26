@@ -35,6 +35,13 @@ namespace BCRPClient
             if (nametags == null)
                 return;
 
+            var data = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
+
+            if (data == null)
+                return;
+
+            float screenX = 0f, screenY = 0f;
+
             for (int i = 0; i < nametags.Count; i++)
             {
                 var nametag = nametags[i];
@@ -43,9 +50,34 @@ namespace BCRPClient
                     continue;
 
                 var player = nametag.Player;
+
+                if (player?.Exists != true)
+                    continue;
+
                 var pData = Sync.Players.GetData(player);
 
-                if (player?.Exists != true || pData == null || player.GetAlpha() != 255)
+                if (Settings.Other.DebugLabels && data.AdminLevel > -1)
+                {
+                    if (Utils.GetScreenCoordFromWorldCoord(player.Position, ref screenX, ref screenY))
+                    {
+                        if (data == null)
+                        {
+                            Utils.DrawText($"ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+
+                            continue;
+                        }
+
+                        Utils.DrawText($"ID: {player.RemoteId} | CID: {data.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"HP: {player.GetRealHealth()} | Arm: {player.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+
+                        Utils.DrawText($"IsInvincible: {data.IsInvincible} | IsFrozen: {data.IsFrozen} | IsKnocked: {data.Knocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"Voice: {(data.VoiceRange < 0f ? "muted" : (data.VoiceRange == 0f ? "off" : $"{data.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+
+                        Utils.DrawText($"Fraction: {data.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    }
+                }
+
+                if (pData == null || player.GetAlpha() != 255)
                     continue;
 
                 float x = nametag.ScreenX;

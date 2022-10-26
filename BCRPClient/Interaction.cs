@@ -11,7 +11,6 @@ namespace BCRPClient
     {
         public const float DLRange = 15f;
 
-        private static Dictionary<Player, float> DistancesPlayers;
         private static Dictionary<Vehicle, float> DistancesVehicles;
 
         private static bool _Enabled = false;
@@ -28,7 +27,6 @@ namespace BCRPClient
 
         public Interaction()
         {
-            DistancesPlayers = new Dictionary<Player, float>();
             DistancesVehicles = new Dictionary<Vehicle, float>();
         }
 
@@ -56,7 +54,6 @@ namespace BCRPClient
 
         private static void RenderDL()
         {
-            DistancesPlayers.Clear();
             DistancesVehicles.Clear();
 
             var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -65,46 +62,6 @@ namespace BCRPClient
                 return;
 
             float screenX = 0f, screenY = 0f;
-
-            if (pData.AdminLevel > -1)
-            {
-                foreach (var x in RAGE.Elements.Entities.Players.Streamed.ToList())
-                {
-                    if (x.Handle == Player.LocalPlayer.Handle || !x.IsOnScreen())
-                        continue;
-
-                    var dist = Vector3.Distance(Player.LocalPlayer.Position, x.Position);
-
-                    if (dist <= DLRange)
-                        DistancesPlayers.Add(x, dist);
-                }
-
-                foreach (var x in DistancesPlayers.OrderBy(x => x.Value).Select(x => x.Key).Take(5))
-                {
-                    if (x?.Exists != true)
-                        continue;
-
-                    if (!x.GetScreenPosition(ref screenX, ref screenY))
-                        continue;
-
-                    var data = Sync.Players.GetData(x);
-
-                    if (data == null)
-                    {
-                        Utils.DrawText($"ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-
-                        continue;
-                    }
-
-                    Utils.DrawText($"ID: {x.RemoteId} | CID: {data.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"HP: {x.GetRealHealth()} | Arm: {x.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-
-                    Utils.DrawText($"IsInvincible: {data.IsInvincible} | IsFrozen: {data.IsFrozen} | IsKnocked: {data.Knocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"Voice: {(data.VoiceRange < 0f ? "muted" : (data.VoiceRange == 0f ? "off" : $"{data.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-
-                    Utils.DrawText($"Fraction: {data.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                }
-            }
 
             foreach (var x in RAGE.Elements.Entities.Vehicles.Streamed.ToList())
             {

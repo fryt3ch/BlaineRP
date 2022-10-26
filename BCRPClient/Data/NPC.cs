@@ -117,6 +117,11 @@ namespace BCRPClient.Data
             {
                 float screenX = 0f, screenY = 0f;
 
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 foreach (var x in Utils.GetPedsOnScreen(5))
                 {
                     var data = GetData(x);
@@ -128,6 +133,15 @@ namespace BCRPClient.Data
 
                     if (Vector3.Distance(pos, Player.LocalPlayer.Position) > 10f)
                         continue;
+
+                    if (Settings.Other.DebugLabels && pData.AdminLevel > -1)
+                    {
+                        if (Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
+                        {
+                            Utils.DrawText($"ID: {data.Id} | Type: {data.Type}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"Data: {data.Data}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        }
+                    }
 
                     pos.Z += 1.1f;
 
