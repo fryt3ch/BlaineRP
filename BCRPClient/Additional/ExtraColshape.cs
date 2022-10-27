@@ -420,7 +420,22 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.NpcDialogue, Sync.House.Exit
+                InteractionTypes.NpcDialogue, () =>
+                {
+                    if (!Player.LocalPlayer.HasData("CurrentNPC"))
+                        return false;
+
+                    var npc = Player.LocalPlayer.GetData<Data.NPC>("CurrentNPC");
+
+                    if (npc == null)
+                        return false;
+
+                    npc.SwitchDialogue(true);
+
+                    npc.ShowDialogue(npc.DefaultDialogueId, false);
+
+                    return true;
+                }
             },
         };
 
@@ -636,6 +651,36 @@ namespace BCRPClient.Additional
                         (cs) =>
                         {
                             Player.LocalPlayer.ResetData("CurrentHouse");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.NpcDialogue,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (!(cs.Data is Data.NPC))
+                                return;
+
+                            var npc = (Data.NPC)cs.Data;
+
+                            Player.LocalPlayer.SetData("CurrentNPC", npc);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentNPC");
                         }
                     },
                 }

@@ -26,6 +26,8 @@ namespace BCRPServer.Sync
             WeaponLeftBack,
 
             Carry,
+            PiggyBack,
+            Hostage,
 
             VehicleTrunk, VehicleTrunkForced,
         }
@@ -139,7 +141,128 @@ namespace BCRPServer.Sync
                         vData.Release();
                     });
                 })
-            }
+            },
+
+            {
+                new Types[] {Types.VehicleTrunk },
+
+                ((Entity root, Entity target, Types type) =>
+                {
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        var pData = (target as Player).GetMainData();
+
+                        if (!await pData.WaitAsync())
+                            return;
+
+                        await NAPI.Task.RunAsync(() =>
+                        {
+                            if (root?.Exists != true || target?.Exists != true)
+                                return;
+
+                            pData.PlayAnim(Animations.GeneralTypes.LieInTrunk);
+                        });
+
+                        pData.Release();
+                    });
+                },
+
+                (Entity root, Entity target, Types type) =>
+                {
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        var pData = (target as Player).GetMainData();
+
+                        if (!await pData.WaitAsync())
+                            return;
+
+                        await NAPI.Task.RunAsync(() =>
+                        {
+                            if (target?.Exists != true)
+                                return;
+
+                            pData.StopAnim();
+                        });
+
+                        pData.Release();
+                    });
+                })
+            },
+
+            {
+                new Types[] {Types.Carry },
+
+                ((Entity root, Entity target, Types type) =>
+                {
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        var pData = (target as Player).GetMainData();
+
+                        if (!await pData.WaitAsync())
+                            return;
+
+                        await System.Threading.Tasks.Task.Run(async () =>
+                        {
+                            var tData = (root as Player).GetMainData();
+
+                            if (!await tData.WaitAsync())
+                                return;
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (root?.Exists != true || target?.Exists != true)
+                                    return;
+
+                                pData.PlayAnim(Animations.GeneralTypes.CarryB);
+                                tData.PlayAnim(Animations.GeneralTypes.CarryA);
+                            });
+
+                            tData.Release();
+                        });
+
+                        pData.Release();
+                    });
+                },
+
+                (Entity root, Entity target, Types type) =>
+                {
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        var pData = (target as Player).GetMainData();
+
+                        if (!await pData.WaitAsync())
+                            return;
+
+                        await NAPI.Task.RunAsync(() =>
+                        {
+                            if (target?.Exists != true)
+                                return;
+
+                            pData.StopAnim();
+                        });
+
+                        pData.Release();
+                    });
+
+                    System.Threading.Tasks.Task.Run(async () =>
+                    {
+                        var tData = (root as Player).GetMainData();
+
+                        if (!await tData.WaitAsync())
+                            return;
+
+                        await NAPI.Task.RunAsync(() =>
+                        {
+                            if (root?.Exists != true)
+                                return;
+
+                            tData.StopAnim();
+                        });
+
+                        tData.Release();
+                    });
+                })
+            },
         };
 
         private static Action<Entity, Entity, Types> GetOffAction(Types type) => Actions.Where(x => x.Key.Contains(type)).Select(x => x.Value.Off).FirstOrDefault();

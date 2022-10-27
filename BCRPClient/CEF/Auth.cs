@@ -54,6 +54,8 @@ namespace BCRPClient.CEF
                 await Browser.Switch(Browser.IntTypes.Login, true);
 
                 Cursor.Show(true, true);
+
+                Additional.Discord.SetStatus(Additional.Discord.Types.Login);
             });
 
             Events.Add("Auth::ShowRegistrationPage", async (object[] args) =>
@@ -69,6 +71,8 @@ namespace BCRPClient.CEF
                 Browser.Switch(Browser.IntTypes.Registration, true);
 
                 Cursor.Show(true, true);
+
+                Additional.Discord.SetStatus(Additional.Discord.Types.Registration);
             });
 
             Events.Add("Auth::ShowCharacterChoosePage", async (object[] args) =>
@@ -93,6 +97,8 @@ namespace BCRPClient.CEF
                 }
 
                 Cursor.Show(true, true);
+
+                Additional.Discord.SetStatus(Additional.Discord.Types.CharacterSelect);
             });
             #endregion
 

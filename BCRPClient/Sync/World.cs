@@ -66,6 +66,11 @@ namespace BCRPClient.Sync
             return true;
         }
 
+        public static void BusinessEnter(int id)
+        {
+            Events.CallRemote("Business::Enter", id);
+        }
+
         public static bool BusinessEnter()
         {
             if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))

@@ -397,6 +397,32 @@ namespace BCRPClient
             /// <summary>Бинд для инвентаря?</summary>
             public bool InvOnly { get; private set; }
 
+            public bool IsPressed
+            {
+                get
+                {
+                    if (Keys.Length == 0)
+                        return false;
+
+                    if (IsDown)
+                    {
+                        for (int i = 0; i < Keys.Length; i++)
+                            if (!RAGE.Input.IsDown(Keys[i]))
+                                return false;
+
+                        return true;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Keys.Length; i++)
+                            if (!RAGE.Input.IsUp(Keys[i]))
+                                return false;
+
+                        return true;
+                    }
+                }
+            }
+
             public Bind(Types Type, Action Action, bool IsDown, bool Changeable, Types Familiar = Types.None, bool InvOnly = false)
             {
                 BindIndex = -1;

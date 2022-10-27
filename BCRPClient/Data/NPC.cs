@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
@@ -20,6 +21,8 @@ namespace BCRPClient.Data
         public static NPC GetData(Ped ped) => ped == null ? null : (AllNPCs.ContainsKey(ped) ? AllNPCs[ped] : null);
 
         public static DateTime LastSent;
+
+        private static List<int> TempBinds { get; set; }
 
         public enum Types
         {
@@ -94,6 +97,8 @@ namespace BCRPClient.Data
 
             LastSent = DateTime.MinValue;
 
+            TempBinds = new List<int>();
+
             Events.OnEntityStreamIn += (Entity entity) =>
             {
                 if (entity?.Type != RAGE.Elements.Type.Ped)
@@ -165,7 +170,7 @@ namespace BCRPClient.Data
 
         public void Interact(bool state = true)
         {
-            if (state)
+/*            if (state)
             {
                 if (Type == Types.Static)
                     return;
@@ -199,6 +204,52 @@ namespace BCRPClient.Data
                 CurrentDialogue = null;
 
                 CEF.NPC.Close();
+            }*/
+        }
+
+        public void SwitchDialogue(bool state = true)
+        {
+            if (state)
+            {
+                CEF.Notification.ClearAll();
+
+                CurrentNPC = this;
+
+                SetFamiliar(true);
+
+                var pedPos = Ped.GetRealPosition();
+                var playerPos = Player.LocalPlayer.GetRealPosition();
+
+                var t = Utils.RadiansToDegrees((float)Math.Atan2(pedPos.Y - playerPos.Y, pedPos.X - playerPos.X)) - 90f;
+
+                Player.LocalPlayer.SetHeading(t);
+                Ped.SetHeading(t + 180f);
+
+                Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
+
+                CEF.NPC.Show();
+
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
+            }
+            else
+            {
+                if (CurrentDialogue == null)
+                    return;
+
+                foreach (var x in TempBinds)
+                    RAGE.Input.Unbind(x);
+
+                TempBinds.Clear();
+
+                Additional.Camera.Disable(750);
+
+                Ped.SetHeading(DefaultHeading);
+
+                CurrentNPC = null;
+
+                CurrentDialogue = null;
+
+                CEF.NPC.Close();
             }
         }
 
@@ -213,6 +264,27 @@ namespace BCRPClient.Data
 
             CurrentDialogue = dialogue;
         }
+
+        public void SetFamiliar(bool state)
+        {
+            if (IsFamiliar == state)
+                return;
+
+            var familiars = Settings.Other.FamiliarNPCs;
+
+            if (state)
+            {
+                familiars.Add(Id);
+            }
+            else
+            {
+                familiars.Remove(Id);
+            }
+
+            IsFamiliar = state;
+
+            Settings.Other.FamiliarNPCs = familiars;
+        }
     }
 
     public class Dialogue : Events.Script
@@ -226,11 +298,11 @@ namespace BCRPClient.Data
                     
                     null,
 
-                    new Button("[Смотреть товары]", () => { }, true),
+                    new Button("[Смотреть товары]", () => { Sync.World.BusinessEnter(((Data.Locations.Business)NPC.CurrentNPC.Data).Id); }, true),
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 
-                    new Button("Нет, спасибо", () => { CEF.Interaction.CloseMenu(); }, false)
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
 
                     )
             },
@@ -246,7 +318,7 @@ namespace BCRPClient.Data
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 
-                    new Button("[Выйти]", () => { CEF.Interaction.CloseMenu(); }, false)
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
 
                     )
             },
@@ -274,9 +346,9 @@ namespace BCRPClient.Data
 
                     null,
 
-                    new Button("[Назад]", () => { NPC.CurrentNPC.ShowDialogue("seller_gas_greeting_0", false); }, true),
+                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_gas_greeting_0", false); }, true),
 
-                    new Button("[Выйти]", () => { CEF.Interaction.CloseMenu(); },false)
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
 
                     )
             },
@@ -288,9 +360,9 @@ namespace BCRPClient.Data
 
                     null,
 
-                    new Button("[Назад]", () => { NPC.CurrentNPC.ShowDialogue("seller_greeting_0", false); }, true),
+                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0", false); }, true),
 
-                    new Button("[Выйти]", () => { CEF.Interaction.CloseMenu(); },false)
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
 
                     )
             },

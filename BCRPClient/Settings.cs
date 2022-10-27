@@ -41,6 +41,8 @@ namespace BCRPClient
 
         public const int DEFAULT_FADE_IN_OUT_SPEED = 500;
 
+        public const int DISCORD_STATUS_UPDATE_TIME = 5000;
+
         public Settings()
         {
 

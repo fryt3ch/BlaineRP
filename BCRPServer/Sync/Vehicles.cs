@@ -383,7 +383,13 @@ namespace BCRPServer.Sync
                 if (!await vData.WaitAsync())
                     return;
 
-                vData.Radio = ind;
+                await NAPI.Task.RunAsync(() =>
+                {
+                    if (player?.Exists != true || veh?.Exists != true)
+                        return;
+
+                    vData.Radio = ind;
+                });
 
                 vData.Release();
             });

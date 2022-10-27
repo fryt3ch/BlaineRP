@@ -1165,7 +1165,7 @@ namespace BCRPServer.Sync
 
                     pData.CurrentHouse = id;
 
-                    //player.CloseAll();
+                    player.CloseAll();
 
                     var sData = house.StyleData;
 
@@ -1342,6 +1342,120 @@ namespace BCRPServer.Sync
                 {
                     pData.PlayAnim((Animations.OtherTypes)anim);
                 });
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("Players::StopCarry")]
+        public static async Task StopCarry(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await NAPI.Task.RunAsync(() =>
+            {
+                if (player?.Exists != true)
+                    return;
+
+                var attachData = pData.IsAttachedTo;
+
+                if (attachData == null)
+                {
+                    var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry).FirstOrDefault();
+
+                    if (aData == null || aData.EntityType != EntityType.Player)
+                        return;
+
+                    var target = Utils.FindReadyPlayerOnline(aData.Id);
+
+                    if (target == null || target.Player?.Exists != true)
+                        return;
+
+                    player.DetachEntity(target.Player);
+                }
+                else
+                {
+                    if (attachData.Value.Entity?.Exists != true)
+                        return;
+
+                    attachData.Value.Entity.DetachEntity(player);
+                }
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("Players::GoToTrunk")]
+        public static async Task GoToTrunk(Player player, Vehicle vehicle)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await Task.Run(async () =>
+            {
+                var attachData = pData.IsAttachedTo;
+
+                if (attachData != null)
+                    return;
+
+                var vData = vehicle.GetMainData();
+
+                if (!await vData.WaitAsync())
+                    return;
+
+                await NAPI.Task.RunAsync(() =>
+                {
+                    if (player?.Exists != true || vehicle?.Exists != true)
+                        return;
+
+                    vehicle.AttachEntity(player, AttachSystem.Types.VehicleTrunk);
+                });
+
+                vData.Release();
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("Players::StopInTrunk")]
+        public static async Task StopInTrunk(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await NAPI.Task.RunAsync(() =>
+            {
+                if (player?.Exists != true)
+                    return;
+
+                var attachData = pData.IsAttachedTo;
+
+                if (attachData == null || attachData.Value.Type != AttachSystem.Types.VehicleTrunk || attachData.Value.Entity?.Exists != true)
+                    return;
+
+                attachData.Value.Entity.DetachEntity(player);
             });
 
             pData.Release();

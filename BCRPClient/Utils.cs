@@ -903,16 +903,10 @@ namespace BCRPClient
 
         public static void SetName(this Blip blip, string name)
         {
-            /*            if (blip == null || !blip.IsLocal)
-                            return blip;
+            if (blip == null)
+                return;
 
-                        var alpha = blip.GetAlpha();
-                        var colour = blip.GetColour();
-                        var coords = blip.GetCoords();
-                        var sprite = blip.GetSprite();
-                        var s = blip.AddTextComponentSubstringName
-
-                        blip.SetData("Name", name);*/
+            blip.SetData("Name", name);
 
             RAGE.Game.Ui.BeginTextCommandSetBlipName("STRING");
 

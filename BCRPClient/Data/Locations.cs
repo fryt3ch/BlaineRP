@@ -58,6 +58,8 @@ namespace BCRPClient.Data
             {
                 this.Type = Type;
 
+                this.Id = Id;
+
                 InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.ExtraColour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
 
                 InfoColshape.ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo;

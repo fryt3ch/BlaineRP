@@ -9,6 +9,19 @@ namespace BCRPClient
         #region General
         public static class General
         {
+            public static class Discord
+            {
+                public static string Header = "Играет на Blaine RP";
+
+                public static Dictionary<Additional.Discord.Types, string> Statuses = new Dictionary<Additional.Discord.Types, string>()
+                {
+                    { Additional.Discord.Types.Default, "" },
+                    { Additional.Discord.Types.Login, "Входит в аккаунт" },
+                    { Additional.Discord.Types.Registration, "Проходит регистрацию" },
+                    { Additional.Discord.Types.CharacterSelect, "Выбирает персонажа" },
+                };
+            }
+
             #region Players
             public static class Players
             {
@@ -98,6 +111,8 @@ namespace BCRPClient
                 public static string CancelTextCarryB = "Нажмите {0}, чтобы слезть с человека";
 
                 public static string CancelTextInTrunk= "Нажмите {0}, чтобы вылезти из багажника";
+
+                public static string CancelTextPushVehicle = "Нажмите W/A/S/D, чтобы перестать толкать";
 
                 public static Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<Sync.Animations.OtherTypes, string> Names)> Anims = new Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<Sync.Animations.OtherTypes, string> Names)>
                 {
@@ -1056,7 +1071,6 @@ namespace BCRPClient
                 public static class Push
                 {
                     public static string EngineOn = "Двигатель не заглушен!";
-                    public static string Started = "Для остановки нажмите W/A/S/D";
                 }
 
                 public static class CruiseControl

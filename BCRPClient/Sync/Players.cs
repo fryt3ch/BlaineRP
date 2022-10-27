@@ -647,6 +647,8 @@ namespace BCRPClient.Sync
                 CEF.Chat.Show(true);
 
                 Additional.ExtraColshape.Activate();
+
+                Additional.Discord.SetDefault();
             });
             #endregion
 
@@ -782,6 +784,8 @@ namespace BCRPClient.Sync
                 CEF.Death.Close();
                 CEF.Animations.Close();
                 CEF.ActionBox.Close(true);
+
+                Data.NPC.CurrentNPC?.SwitchDialogue(false);
 
                 Sync.Phone.Off();
                 Sync.PushVehicle.Off();

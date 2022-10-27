@@ -14,7 +14,7 @@ namespace BCRPClient.Sync
 {
     class WeaponSystem : Events.Script
     {
-        private const float InVehicleDamageCoeff = 0.75f;
+        private const float IN_VEHICLE_DAMAGE_COEF = 0.75f;
 
         public const uint UnarmedHash = 0xA2719263;
         public const uint MobileHash = 966099553;
@@ -223,7 +223,24 @@ namespace BCRPClient.Sync
         public static DateTime LastSentPedDamage;
         public static DateTime LastSentVehicleDamage;
 
-        private static bool DisabledFiring;
+        private static int _DisabledFiringCounter { get; set; }
+        public static bool DisabledFiring
+        {
+            get => _DisabledFiringCounter > 0;
+
+            set
+            {
+                if (!value)
+                {
+                    if (_DisabledFiringCounter > 0)
+                        _DisabledFiringCounter--;
+                }
+                else
+                {
+                    _DisabledFiringCounter++;
+                }
+            }
+        }
 
         public delegate void DamageHandler(int healthLoss, int armourLoss);
         public static event DamageHandler OnDamage;
@@ -273,9 +290,14 @@ namespace BCRPClient.Sync
             LastSentPedDamage = DateTime.Now;
             LastSentVehicleDamage = DateTime.Now;
 
+            _DisabledFiringCounter = 0;
+
             #region Render
             GameEvents.Update += () =>
             {
+                if (DisabledFiring)
+                    RAGE.Game.Player.DisablePlayerFiring(true);
+
                 if (Player.LocalPlayer.IsPerformingStealthKill())
                     Player.LocalPlayer.ClearTasksImmediately();
 
@@ -340,8 +362,6 @@ namespace BCRPClient.Sync
                 }
             };
             #endregion
-
-            DisabledFiring = false;
 
             Events.OnPlayerDeath += (Player player, uint reason, Player killer, Events.CancelEventArgs cancel) =>
             {
@@ -541,7 +561,7 @@ namespace BCRPClient.Sync
 
                     float boneRatio = gun.GetBodyRatio(PedParts.ContainsKey(boneIdx) ? PedParts[boneIdx] : PartTypes.Limb);
 
-                    var customDamage = (int)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio * (sourcePlayer.IsSittingInAnyVehicle() ? InVehicleDamageCoeff : 1f)) - (pData.Knocked ? 0 : 1);
+                    var customDamage = (int)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio * (sourcePlayer.IsSittingInAnyVehicle() ? IN_VEHICLE_DAMAGE_COEF : 1f)) - (pData.Knocked ? 0 : 1);
 
                     if (customDamage >= 0)
                     {

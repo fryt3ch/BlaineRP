@@ -115,8 +115,8 @@ namespace BCRPServer.Sync
                                 {
                                     sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
 
-                                    pData.PlayAnim(Animations.GeneralTypes.CarryA);
-                                    tData.PlayAnim(Animations.GeneralTypes.CarryB);
+/*                                    pData.PlayAnim(Animations.GeneralTypes.CarryA);
+                                    tData.PlayAnim(Animations.GeneralTypes.CarryB);*/
                                 }
                             });
                         }

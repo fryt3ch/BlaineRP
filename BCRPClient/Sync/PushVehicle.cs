@@ -110,8 +110,6 @@ namespace BCRPClient.Sync
             {
                 Interaction.Enabled = false;
 
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.Vehicles.Push.Started);
-
                 Toggled = true;
             }
         }

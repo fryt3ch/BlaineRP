@@ -510,37 +510,152 @@ namespace BCRPClient.Sync
                 new Types[] { Types.PushVehicleFront, Types.PushVehicleBack },
 
                 (
-                new Action(() =>
-                {
-                    var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
-
-                    if (veh == null)
-                        return;
-
-                    Sync.PushVehicle.On(true, veh);
-                }),
-
-                new Action(() =>
-                {
-                    Sync.PushVehicle.Off(true);
-                }),
-
-                new Action(() =>
-                {
-                    var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
-
-                    if (veh == null || Utils.AnyOnFootMovingControlPressed() || !Utils.CanDoSomething(Sync.PushVehicle.ActionsToCheckLoop) || !veh.Exists || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                    new Action(() =>
                     {
-                        GameEvents.Update -= GetTargetActions(Types.PushVehicleFront).Value.Loop.Invoke;
+                        var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
-                        Sync.PushVehicle.Off(false);
-                    }
-                })
+                        if (veh == null)
+                            return;
+
+                        Sync.PushVehicle.On(true, veh);
+
+                        Sync.WeaponSystem.DisabledFiring = true;
+                    }),
+
+                    new Action(() =>
+                    {
+                        Sync.PushVehicle.Off(true);
+
+                        Sync.WeaponSystem.DisabledFiring = false;
+                    }),
+
+                    new Action(() =>
+                    {
+                        var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
+
+                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlPressed() || !Utils.CanDoSomething(Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        {
+                            GameEvents.Update -= GetTargetActions(Types.PushVehicleFront).Value.Loop.Invoke;
+
+                            Sync.PushVehicle.Off(false);
+                        }
+                        else
+                        {
+                            Utils.DrawText(Locale.General.Animations.CancelTextPushVehicle, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
                 )
-            }
+            },
+
+            {
+                new Types[] { Types.VehicleTrunk },
+
+                (
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+                    }),
+
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+                    }),
+
+                    new Action(() =>
+                    {
+                        var root = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
+
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        {
+                            GameEvents.Update -= GetTargetActions(Types.Carry).Value.Loop.Invoke;
+
+                            Events.CallRemote("Players::StopInTrunk");
+                        }
+                        else
+                        {
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+
+            {
+                new Types[] { Types.Carry },
+
+                (
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+                    }),
+
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+                    }),
+
+                    new Action(() =>
+                    {
+                        var root = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Player;
+
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        {
+                            GameEvents.Update -= GetTargetActions(Types.Carry).Value.Loop.Invoke;
+
+                            Events.CallRemote("Players::StopCarry");
+                        }
+                        else
+                        {
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+        };
+
+        private static Dictionary<Types[], (Action On, Action Off, Action Loop)?> RootActions = new Dictionary<Types[], (Action On, Action Off, Action Loop)?>()
+        {
+            {
+                new Types[] { Types.Carry },
+
+                (
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+                    }),
+
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+                    }),
+
+                    new Action(() =>
+                    {
+                        var target = Player.LocalPlayer.GetData<List<AttachmentEntity>>(AttachedEntitiesKey).Where(x => x.Type == Types.Carry).Select(x => Utils.GetPlayerByRemoteId(x.RemoteID, true)).FirstOrDefault();
+
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (target?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, target.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        {
+                            GameEvents.Update -= GetRootActions(Types.Carry).Value.Loop.Invoke;
+
+                            Events.CallRemote("Players::StopCarry");
+                        }
+                        else
+                        {
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
         };
 
         private static (Action On, Action Off, Action Loop)? GetTargetActions(Types type) => TargetActions.Where(x => x.Key.Contains(type)).Select(x => x.Value).FirstOrDefault();
+
+        private static (Action On, Action Off, Action Loop)? GetRootActions(Types type) => RootActions.Where(x => x.Key.Contains(type)).Select(x => x.Value).FirstOrDefault();
 
         public static void TargetAction(Types type, Entity root)
         {
@@ -581,6 +696,29 @@ namespace BCRPClient.Sync
 
             if (data == null)
                 return;
+
+            var actions = GetRootActions(type);
+
+            if (actions == null)
+                return;
+
+            if (target == null)
+            {
+                if (actions.Value.Loop != null)
+                    GameEvents.Update -= actions.Value.Loop.Invoke;
+
+                actions.Value.Off?.Invoke();
+            }
+            else
+            {
+                actions.Value.On?.Invoke();
+
+                if (actions.Value.Loop != null)
+                {
+                    GameEvents.Update -= actions.Value.Loop.Invoke;
+                    GameEvents.Update += actions.Value.Loop.Invoke;
+                }
+            }
         }
         #endregion
     }

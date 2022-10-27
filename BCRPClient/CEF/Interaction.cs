@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
-using static BCRPClient.Locale.Notifications.Vehicles;
 
 namespace BCRPClient.CEF
 {
@@ -15,7 +14,7 @@ namespace BCRPClient.CEF
 
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Interaction_Character, Browser.IntTypes.Interaction_Vehicle_In, Browser.IntTypes.Interaction_Vehicle_Out, Browser.IntTypes.Interaction_Passengers); }
 
-        private static Type CurrentType = Type.None;
+        private static Types CurrentType = Types.None;
 
         private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
         {
@@ -41,12 +40,12 @@ namespace BCRPClient.CEF
         private static List<int> TempBinds { get; set; }
 
         #region Enums
-        private enum Type
+        private enum Types
         {
             None = -1, PlayerMenu, InVehicle, OutVehicle
         }
 
-        public enum PlayerAction
+        public enum PlayerActions
         {
             Interact = 0, Carry, Coin, Handshake, Kiss,
             Trade,
@@ -58,7 +57,7 @@ namespace BCRPClient.CEF
             Close
         }
 
-        public enum InVehicleAction
+        public enum InVehicleActions
         {
             Doors = 0, DoorsOpen, DoorsClose,
             Seat, SeatOne, SeatTwo, SeatThree, SeatFour, SeatTrunk,
@@ -73,7 +72,7 @@ namespace BCRPClient.CEF
             Close
         }
 
-        public enum OutVehicleAction
+        public enum OutVehicleActions
         {
             Doors = 0, DoorsOpen, DoorsClose,
             Seat, SeatOne, SeatTwo, SeatThree, SeatFour, SeatTrunk,
@@ -88,7 +87,7 @@ namespace BCRPClient.CEF
             Close
         }
 
-        public enum PassengersMenuAction
+        public enum PassengersMenuActions
         {
             Interact = 0, Kick,
         }
@@ -98,7 +97,7 @@ namespace BCRPClient.CEF
         {
             TempBinds = new List<int>();
 
-            CurrentType = Type.None;
+            CurrentType = Types.None;
 
             LastSwitched = DateTime.Now;
 
@@ -106,72 +105,72 @@ namespace BCRPClient.CEF
             #region OutVehicle Select
             Events.Add("Interaction::OutVehicleSelect", (object[] args) =>
             {
-                OutVehicleAction action = (OutVehicleAction)(int)args[0];
+                OutVehicleActions action = (OutVehicleActions)(int)args[0];
 
                 CloseMenu();
 
                 switch (action)
                 {
-                    case OutVehicleAction.Doors:
+                    case OutVehicleActions.Doors:
                         Sync.Vehicles.Lock(null, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.DoorsOpen:
+                    case OutVehicleActions.DoorsOpen:
                         Sync.Vehicles.Lock(false, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.DoorsClose:
+                    case OutVehicleActions.DoorsClose:
                         Sync.Vehicles.Lock(true, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.Push:
+                    case OutVehicleActions.Push:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Vehicle)
                             Sync.PushVehicle.Toggle(BCRPClient.Interaction.CurrentEntity as Vehicle);
                     break;
 
-                    case OutVehicleAction.Trunk:
+                    case OutVehicleActions.Trunk:
                         CEF.Inventory.Show(Inventory.Types.Container);
                     break;
 
-                    case OutVehicleAction.TrunkOpen:
+                    case OutVehicleActions.TrunkOpen:
                         Sync.Vehicles.ToggleTrunkLock(false, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.TrunkLook:
+                    case OutVehicleActions.TrunkLook:
                         CEF.Inventory.Show(Inventory.Types.Container);
                     break;
 
-                    case OutVehicleAction.TrunkClose:
+                    case OutVehicleActions.TrunkClose:
                         Sync.Vehicles.ToggleTrunkLock(true, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.HoodOpen:
+                    case OutVehicleActions.HoodOpen:
                         Sync.Vehicles.ToggleHoodLock(false, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.HoodClose:
+                    case OutVehicleActions.HoodClose:
                         Sync.Vehicles.ToggleHoodLock(true, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.SeatOne:
+                    case OutVehicleActions.SeatOne:
                         Sync.Vehicles.SeatTo(0, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.SeatTwo:
+                    case OutVehicleActions.SeatTwo:
                         Sync.Vehicles.SeatTo(1, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.SeatThree:
+                    case OutVehicleActions.SeatThree:
                         Sync.Vehicles.SeatTo(2, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.SeatFour:
+                    case OutVehicleActions.SeatFour:
                         Sync.Vehicles.SeatTo(3, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case OutVehicleAction.SeatTrunk:
-                        //Sync.AttachSystem.AttachEntity(BCRPClient.Interaction.CurrentEntity, Sync.AttachSystem.Types.VehicleTrunk, Player.LocalPlayer.RemoteId, RAGE.Elements.Type.Player, false);
-                        //Sync.Animations.Play(Player.LocalPlayer, Sync.Animations.GeneralTypes.LieInTrunk);
+                    case OutVehicleActions.SeatTrunk:
+                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Vehicle)
+                            Events.CallRemote("Players::GoToTrunk", BCRPClient.Interaction.CurrentEntity as Vehicle);
                     break;
                 }
             });
@@ -180,62 +179,62 @@ namespace BCRPClient.CEF
             #region InVehicle Select
             Events.Add("Interaction::InVehicleSelect", (object[] args) =>
             {
-                InVehicleAction action = (InVehicleAction)(int)args[0];
+                InVehicleActions action = (InVehicleActions)(int)args[0];
 
-                if (action != InVehicleAction.Passengers)
+                if (action != InVehicleActions.Passengers)
                     CloseMenu();
 
                 switch (action)
                 {
-                    case InVehicleAction.Doors:
+                    case InVehicleActions.Doors:
                         Sync.Vehicles.Lock(null, BCRPClient.Interaction.CurrentEntity);
                         break;
 
-                    case InVehicleAction.DoorsOpen:
+                    case InVehicleActions.DoorsOpen:
                         Sync.Vehicles.Lock(false, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.DoorsClose:
+                    case InVehicleActions.DoorsClose:
                         Sync.Vehicles.Lock(true, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.TrunkOpen:
+                    case InVehicleActions.TrunkOpen:
                         Sync.Vehicles.ToggleTrunkLock(false, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.TrunkClose:
+                    case InVehicleActions.TrunkClose:
                         Sync.Vehicles.ToggleTrunkLock(true, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.HoodOpen:
+                    case InVehicleActions.HoodOpen:
                         Sync.Vehicles.ToggleHoodLock(false, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.HoodClose:
+                    case InVehicleActions.HoodClose:
                         Sync.Vehicles.ToggleHoodLock(true, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.SeatOne:
+                    case InVehicleActions.SeatOne:
                         Sync.Vehicles.SeatTo(0, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.SeatTwo:
+                    case InVehicleActions.SeatTwo:
                         Sync.Vehicles.SeatTo(1, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.SeatThree:
+                    case InVehicleActions.SeatThree:
                         Sync.Vehicles.SeatTo(2, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.SeatFour:
+                    case InVehicleActions.SeatFour:
                         Sync.Vehicles.SeatTo(3, BCRPClient.Interaction.CurrentEntity);
                     break;
 
-                    case InVehicleAction.Passengers:
+                    case InVehicleActions.Passengers:
                         ShowPassengers();
                     break;
 
-                    case InVehicleAction.Park:
+                    case InVehicleActions.Park:
 
                     break;
                 }
@@ -245,18 +244,18 @@ namespace BCRPClient.CEF
             #region PassangersMenu Select
             Events.Add("Interaction::PassengersMenuSelect", (object[] args) =>
             {
-                PassengersMenuAction action = (PassengersMenuAction)(int)args[0];
+                PassengersMenuActions action = (PassengersMenuActions)(int)args[0];
                 int id = (int)args[1];
 
                 CloseMenu();
 
-                CurrentType = Type.InVehicle;
+                CurrentType = Types.InVehicle;
 
-                if (action == PassengersMenuAction.Interact)
+                if (action == PassengersMenuActions.Interact)
                 {
                     PlayerInteraction(id);
                 }
-                else if (action == PassengersMenuAction.Kick)
+                else if (action == PassengersMenuActions.Kick)
                 {
                     PlayerKick(id);
                 }
@@ -268,7 +267,7 @@ namespace BCRPClient.CEF
             #region PlayerMenu Select
             Events.Add("Interaction::PlayerMenuSelect", async (object[] args) =>
             {
-                PlayerAction action = (PlayerAction)(int)args[0];
+                PlayerActions action = (PlayerActions)(int)args[0];
 
                 CloseMenu();
 
@@ -279,22 +278,22 @@ namespace BCRPClient.CEF
 
                 switch (action)
                 {
-                    case PlayerAction.Handshake:
+                    case PlayerActions.Handshake:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                             Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Handshake);
                     break;
 
-                    case PlayerAction.Trade:
+                    case PlayerActions.Trade:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                             Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Exchange);
                         break;
 
-                    case PlayerAction.Carry:
+                    case PlayerActions.Carry:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                             Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Carry);
                         break;
 
-                    case PlayerAction.Money:
+                    case PlayerActions.Money:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                         {
                             if (pData.Cash <= 0)
@@ -308,7 +307,7 @@ namespace BCRPClient.CEF
                         }
                         break;
 
-                    case PlayerAction.Money_50:
+                    case PlayerActions.Money_50:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                         {
                             if (pData.Cash < 50)
@@ -322,7 +321,7 @@ namespace BCRPClient.CEF
                         }
                         break;
 
-                    case PlayerAction.Money_150:
+                    case PlayerActions.Money_150:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                         {
                             if (pData.Cash < 150)
@@ -336,7 +335,7 @@ namespace BCRPClient.CEF
                         }
                         break;
 
-                    case PlayerAction.Money_300:
+                    case PlayerActions.Money_300:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                         {
                             if (pData.Cash < 300)
@@ -350,7 +349,7 @@ namespace BCRPClient.CEF
                         }
                         break;
 
-                    case PlayerAction.Money_1000:
+                    case PlayerActions.Money_1000:
                         if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
                         {
                             if (pData.Cash < 1000)
@@ -372,7 +371,7 @@ namespace BCRPClient.CEF
         #region Showers
         public static bool TryShowMenu(bool ignoreTimeout = false)
         {
-            if (BCRPClient.Interaction.CurrentEntity == null || CurrentType != Type.None || IsActive || Data.NPC.CurrentNPC != null)
+            if (BCRPClient.Interaction.CurrentEntity == null || CurrentType != Types.None || IsActive)
                 return false;
 
             if (!ignoreTimeout && LastSwitched.IsSpam(500, false, false))
@@ -411,21 +410,7 @@ namespace BCRPClient.CEF
             }
             else if (entity.Type == RAGE.Elements.Type.Ped)
             {
-                var data = Data.NPC.GetData(entity as Ped);
-
-                if (data != null)
-                {
-                    GameEvents.Render -= CheckEntityDistance;
-                    GameEvents.Render += CheckEntityDistance;
-
-                    KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
-
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
-
-                    data.Interact(true);
-
-                    return true;
-                }
+                // todo, if needed
             }
 
             BCRPClient.Interaction.Enabled = true;
@@ -435,12 +420,12 @@ namespace BCRPClient.CEF
 
         public static void ShowOutVehicleMenu()
         {
-            if (CurrentType != Type.None)
+            if (CurrentType != Types.None)
                 return;
 
             LastSwitched = DateTime.Now;
 
-            CurrentType = Type.OutVehicle;
+            CurrentType = Types.OutVehicle;
 
             Browser.Switch(Browser.IntTypes.Interaction_Vehicle_Out, true);
 
@@ -453,12 +438,12 @@ namespace BCRPClient.CEF
 
         public static void ShowPlayerMenu()
         {
-            if (CurrentType != Type.None)
+            if (CurrentType != Types.None)
                 return;
 
             LastSwitched = DateTime.Now;
 
-            CurrentType = Type.PlayerMenu;
+            CurrentType = Types.PlayerMenu;
 
             Browser.Switch(Browser.IntTypes.Interaction_Character, true);
 
@@ -471,12 +456,12 @@ namespace BCRPClient.CEF
 
         public static void ShowInVehicleMenu()
         {
-            if (CurrentType != Type.None)
+            if (CurrentType != Types.None)
                 return;
 
             LastSwitched = DateTime.Now;
 
-            CurrentType = Type.InVehicle;
+            CurrentType = Types.InVehicle;
 
             Browser.Switch(Browser.IntTypes.Interaction_Vehicle_In, true);
 
@@ -489,7 +474,7 @@ namespace BCRPClient.CEF
 
         private static void ShowPassengers()
         {
-            if (!IsActive || CurrentType != Type.InVehicle)
+            if (!IsActive || CurrentType != Types.InVehicle)
                 return;
 
             Browser.Switch(Browser.IntTypes.Interaction_Vehicle_In, false);
@@ -548,7 +533,7 @@ namespace BCRPClient.CEF
         #region PassangersMenu Select
         public static void PlayerInteraction(int id)
         {
-            if (CurrentType != Type.InVehicle)
+            if (CurrentType != Types.InVehicle)
                 return;
 
             if (Player.LocalPlayer.Vehicle == null)
@@ -570,7 +555,7 @@ namespace BCRPClient.CEF
 
         public static void PlayerKick(int id)
         {
-            if (CurrentType != Type.InVehicle)
+            if (CurrentType != Types.InVehicle)
                 return;
 
             if (Player.LocalPlayer.Vehicle == null)
@@ -589,37 +574,34 @@ namespace BCRPClient.CEF
 
         public static void CloseMenu()
         {
-            if (!IsActive && Data.NPC.CurrentNPC == null)
+            if (CurrentType == Types.None)
                 return;
 
             switch (CurrentType)
             {
-                case Type.OutVehicle:
+                case Types.OutVehicle:
                     Browser.Switch(Browser.IntTypes.Interaction_Vehicle_Out, false);
                     break;
 
-                case Type.InVehicle:
+                case Types.InVehicle:
                     Browser.Switch(Browser.IntTypes.Interaction_Vehicle_In, false);
                     Browser.Switch(Browser.IntTypes.Interaction_Passengers, false);
                     break;
 
-                case Type.PlayerMenu:
+                case Types.PlayerMenu:
                     Browser.Switch(Browser.IntTypes.Interaction_Character, false);
                     break;
             }
-
-            if (Data.NPC.CurrentNPC != null)
-                Data.NPC.CurrentNPC.Interact(false);
 
             GameEvents.Render -= CheckEntityDistance;
 
             LastSwitched = DateTime.Now;
 
-            CurrentType = Type.None;
+            CurrentType = Types.None;
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Enable();
 
-            foreach (var x in TempBinds.ToList())
+            foreach (var x in TempBinds)
                 RAGE.Input.Unbind(x);
 
             TempBinds.Clear();
