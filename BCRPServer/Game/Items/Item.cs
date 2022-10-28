@@ -96,7 +96,23 @@ namespace BCRPServer.Game.Items
             Numberplate0, Numberplate1, Numberplate2, Numberplate3, Numberplate4, Numberplate5,
 
             VehKey,
-            #endregion
+            #endregion,
+
+            Burger,
+            Chips,
+            Hotdog,
+            Chocolate,
+            Pizza,
+            Cola,
+            Cigarettes,
+            Joint,
+            Beer,
+            Vodka,
+            Rum,
+            Smoothie,
+            VegSmoothie,
+            Milkshake,
+            Milk,
         }
         #endregion
 
@@ -203,6 +219,21 @@ namespace BCRPServer.Game.Items
             { Types.Numberplate4, new ItemData(0.15f, NAPI.Util.GetHashKey("p_num_plate_01")) },
 
             { Types.VehKey, new ItemData(0.05f, NAPI.Util.GetHashKey("p_car_keys_01")) },
+
+            { Types.Burger, new ItemData(0.15f, NAPI.Util.GetHashKey("prop_cs_burger_01")) },
+            { Types.Chips, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_food_bs_chips")) },
+            { Types.Hotdog, new ItemData(0.15f, NAPI.Util.GetHashKey("prop_cs_hotdog_01")) },
+            { Types.Chocolate, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_candy_pqs")) },
+            { Types.Pizza, new ItemData(0.25f, NAPI.Util.GetHashKey("v_res_tt_pizzaplate")) },
+            { Types.Cola, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_food_juice01")) },
+            { Types.Cigarettes, new ItemData(0.01f, NAPI.Util.GetHashKey("ng_proc_cigarette01a")) },
+            { Types.Joint, new ItemData(0.01f, NAPI.Util.GetHashKey("p_amb_joint_01")) },
+            { Types.Beer, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_sh_beer_pissh_01")) },
+            { Types.Rum, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_rum_bottle")) },
+            { Types.Vodka, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_vodka_bottle")) },
+            { Types.VegSmoothie, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_wheat_grass_glass")) },
+            { Types.Smoothie, new ItemData(0.25f, NAPI.Util.GetHashKey("p_cs_shot_glass_2_s")) },
+            { Types.Milkshake, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_drink_whtwine")) },
         };
 
         public static float GetWeight(Types type) => AllData[type].Weight;
@@ -522,9 +553,9 @@ namespace BCRPServer.Game.Items
                 return;
 
             if (pData.AttachedObjects.Where(x => x.Type == attachTypes[0]).Any())
-                AttachID = player.AttachObject(ID, attachTypes[1], -1);
+                AttachID = player.AttachObject(Model, attachTypes[1], -1);
             else
-                AttachID = player.AttachObject(ID, attachTypes[0], -1);
+                AttachID = player.AttachObject(Model, attachTypes[0], -1);
         }
 
         public void Unwear(Player player)
@@ -574,8 +605,9 @@ namespace BCRPServer.Game.Items
 
         [JsonIgnore]
         public float Weight { get => Amount * base.Weight; }
+
         [JsonIgnore]
-        public int MaxAmount { get => 999; }
+        public int MaxAmount => 999;
 
         public int Amount { get; set; }
 
@@ -1049,7 +1081,7 @@ namespace BCRPServer.Game.Items
         /// <summary>Итоговый вес</summary>
         /// <remarks>Включает в себя вес самой сумки!</remarks>
         [JsonIgnore]
-        public float Weight { get => (this as Item).Weight + Items.Sum(x => (x == null ? 0 : (x is Weapon ? (x as Weapon).Weight : (x is IContainer ? (x as IContainer).Weight : (x is IStackable ? (x as IStackable).Weight : x.Weight))))); }
+        public float Weight { get => base.Weight + Items.Sum(x => (x == null ? 0 : (x is Weapon ? (x as Weapon).Weight : (x is IContainer ? (x as IContainer).Weight : (x is IStackable ? (x as IStackable).Weight : x.Weight))))); }
 
         public int Var { get; set; }
 
@@ -1284,6 +1316,107 @@ namespace BCRPServer.Game.Items
         }
     }
     #endregion
+
+    public class StatusChanger : Item, IStackable, IActionable
+    {
+        public class ItemData
+        {
+            public enum SubTypes
+            {
+                Food = 0,
+                Drink,
+            }
+            public Types ItemType { get; set; }
+
+            public int Satiety { get; set; }
+
+            public int Mood { get; set; }
+
+            public int EffectTime { get; set; }
+
+            public Sync.Animations.FastTypes Animation { get; set; }
+
+            public Sync.AttachSystem.Types? AttachType { get; set; }
+            public int AttachTime { get; set; }
+
+            public ItemData(Types ItemType, int Satiety = 0, int Mood = 0, int EffectTime = 0, Sync.Animations.FastTypes Animation = Sync.Animations.FastTypes.None, Sync.AttachSystem.Types? AttachType = null, int AttachTime = 0)
+            {
+                this.ItemType = ItemType;
+
+                this.Satiety = Satiety;
+                this.Mood = Mood;
+
+                this.EffectTime = EffectTime;
+
+                this.Animation = Animation;
+
+                this.AttachType = AttachType;
+                this.AttachTime = AttachTime;
+            }
+        }
+
+        public static Dictionary<string, ItemData> IDList;
+
+        [JsonIgnore]
+        public ItemData Data { get; set; }
+
+        [JsonIgnore]
+        public float Weight { get => Amount * base.Weight; }
+
+        [JsonIgnore]
+        public int MaxAmount => 999;
+
+        public int Amount { get; set; }
+
+        public void Apply(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            if (player?.Exists != true)
+                return;
+
+            if (Data.Satiety > 0)
+            {
+                var satietyDiff = Utils.GetCorrectDiff(pData.Satiety, Data.Satiety, 0, 100);
+
+                if (satietyDiff != 0)
+                {
+                    pData.Satiety += satietyDiff;
+                }
+            }
+
+            if (Data.Mood > 0)
+            {
+                var moodDiff = Utils.GetCorrectDiff(pData.Mood, Data.Mood, 0, 100);
+
+                if (moodDiff != 0)
+                {
+                    pData.Mood += moodDiff;
+                }
+            }
+
+            if (Data.AttachType != null)
+            {
+                player.AttachObject(Model, (Sync.AttachSystem.Types)Data.AttachType, Data.AttachTime);
+            }
+
+            if (Data.Animation != Sync.Animations.FastTypes.None)
+            {
+                pData.PlayAnim(Data.Animation);
+            }
+        }
+
+        public StatusChanger(string ID)
+        {
+            this.ID = ID;
+
+            this.Data = IDList[ID];
+
+            this.Type = Data.ItemType;
+
+            base.Data = Item.GetData(Type);
+        }
+    }
 
     public class Items : Script
     {
@@ -1542,6 +1675,9 @@ namespace BCRPServer.Game.Items
                 case "vehkey":
                     return VehicleKey.IDList.ContainsKey(id) ? VehicleKey.IDList[id] : Item.Types.NotAssigned;
 
+                case "sc":
+                    return StatusChanger.IDList.ContainsKey(id) ? StatusChanger.IDList[id].ItemType : Item.Types.NotAssigned;
+
                 default:
                     return Item.Types.NotAssigned;
             }
@@ -1586,6 +1722,9 @@ namespace BCRPServer.Game.Items
 
                 case "vehkey":
                     return VehicleKey.IDList.ContainsKey(id) ? typeof(VehicleKey) : null;
+
+                case "sc":
+                    return StatusChanger.IDList.ContainsKey(id) ? typeof(StatusChanger) : null;
 
                 default:
                     return null;
@@ -1710,6 +1849,22 @@ namespace BCRPServer.Game.Items
                 { "vehkey", Item.Types.VehKey },
             };
             #endregion
+
+            StatusChanger.IDList = new Dictionary<string, StatusChanger.ItemData>()
+            {
+                { "sc_burger", new StatusChanger.ItemData(Item.Types.Burger, 25, 0, 0, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger, 6000) },
+                { "sc_chips", new StatusChanger.ItemData(Item.Types.Chips, 15, 0, 0, Sync.Animations.FastTypes.ItemChips, Sync.AttachSystem.Types.ItemChips, 6000) },
+                { "sc_pizza", new StatusChanger.ItemData(Item.Types.Pizza, 50, 15, 0, Sync.Animations.FastTypes.ItemPizza, Sync.AttachSystem.Types.ItemPizza, 6000) },
+                { "sc_chocolate", new StatusChanger.ItemData(Item.Types.Chocolate, 10, 20, 0, Sync.Animations.FastTypes.ItemChocolate, Sync.AttachSystem.Types.ItemChocolate, 6000) },
+                { "sc_hotdog", new StatusChanger.ItemData(Item.Types.Hotdog, 10, 20, 0, Sync.Animations.FastTypes.ItemChocolate, Sync.AttachSystem.Types.ItemChocolate, 6000) },
+
+                { "sc_cola", new StatusChanger.ItemData(Item.Types.Cola, 5, 20, 0, Sync.Animations.FastTypes.ItemCola, Sync.AttachSystem.Types.ItemCola, 6000) },
+
+                { "sc_cigs", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 25, 0, Sync.Animations.FastTypes.ItemJoint, Sync.AttachSystem.Types.ItemJoint, 6000) },
+                { "sc_joint", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 50, 0, Sync.Animations.FastTypes.ItemJoint, Sync.AttachSystem.Types.ItemJoint, 6000) },
+
+                { "sc_beer", new StatusChanger.ItemData(Item.Types.Beer, 5, 50, 0, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer, 6000) },
+            };
 
             counter += Game.Data.Clothes.AllClothes.Count;
             counter += Bag.IDList.Count;

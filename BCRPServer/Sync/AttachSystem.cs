@@ -30,16 +30,37 @@ namespace BCRPServer.Sync
             Hostage,
 
             VehicleTrunk, VehicleTrunkForced,
+
+            ItemBurger,
+            ItemChips,
+            ItemHotdog,
+            ItemChocolate,
+            ItemPizza,
+            ItemCola,
+            ItemJoint,
+            ItemBeer,
+            ItemVodka,
+            ItemRum,
+            ItemVegSmoothie,
+            ItemSmoothie,
+            ItemMilkshake,
+            ItemMilk,
         }
         #endregion
 
+        public static class Models
+        {
+            public static uint Phone = NAPI.Util.GetHashKey("prop_phone_ing");
+            public static uint VehicleRemoteFob = NAPI.Util.GetHashKey("lr_prop_carkey_fob");
+        }
+
         public class AttachmentObjectNet
         {
-            public string Model { get; set; }
+            public uint Model { get; set; }
             public int Id { get; set; }
             public Types Type { get; set; }
 
-            public AttachmentObjectNet(int Id, string Model, Types Type)
+            public AttachmentObjectNet(int Id, uint Model, Types Type)
             {
                 this.Id = Id;
                 this.Model = Model;
@@ -384,7 +405,7 @@ namespace BCRPServer.Sync
         /// <param name="type">Тип прикрепления</param>
         /// <param name="detachAfter">Открепить после (время в мс.), -1 - если не требуется</param>
         /// <returns>-1, если произошла ошибка, число > 0 - ID привязки в противном случае</returns>
-        public static int AttachObject(Entity entity, string model, Types type, int detachAfter = -1)
+        public static int AttachObject(Entity entity, uint model, Types type, int detachAfter = -1)
         {
             if (entity?.Exists != true)
                 return - 1;

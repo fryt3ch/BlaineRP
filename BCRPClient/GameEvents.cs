@@ -65,6 +65,8 @@ namespace BCRPClient
                 RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0);
 
                 Sync.AttachSystem.ReattachObjects(Player.LocalPlayer, true);
+
+                Additional.ExtraColshape.UpdateStreamed();
             };
 
             Player.LocalPlayer.SetInvincible(true);

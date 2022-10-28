@@ -2545,21 +2545,17 @@ namespace BCRPServer.CEF
 
                     if (slotStr == Groups.Items)
                     {
-                        var items = pData.Items;
-
-                        if (slot >= items.Length)
+                        if (slot >= pData.Items.Length)
                             return;
 
-                        item = items[slot];
+                        item = pData.Items[slot];
                     }
                     else
                     {
-                        var items = pData.Bag?.Items;
-
-                        if (items == null || slot >= items.Length)
+                        if (pData.Bag == null || slot >= pData.Bag.Items.Length)
                             return;
 
-                        item = items[slot];
+                        item = pData.Bag.Items[slot];
                     }
 
                     if (item == null || !(item is Game.Items.IActionable))
@@ -2619,6 +2615,59 @@ namespace BCRPServer.CEF
                         await Replace(pData, Groups.Armour, 0, slotStr, slot, -1);
 
                         return;
+                    }
+                    else if (item is Game.Items.StatusChanger)
+                    {
+                        await NAPI.Task.RunAsync(() =>
+                        {
+                            (item as Game.Items.StatusChanger).Apply(pData);
+                        });
+
+                        if ((item as Game.Items.IStackable).Amount == 1)
+                        {
+                            item.Delete();
+
+                            item = null;
+                        }
+                        else
+                            (item as Game.Items.IStackable).Amount -= 1;
+
+                        if (slotStr == Groups.Bag)
+                        {
+                            if (item == null)
+                            {
+                                pData.Bag.Items[slot] = null;
+
+                                pData.Bag.Update();
+                            }
+                            else
+                            {
+                                item.Update();
+                            }
+                        }
+                        else
+                        {
+                            if (item == null)
+                            {
+                                pData.Items[slot] = null;
+
+                                MySQL.UpdatePlayerInventory(pData, true);
+                            }
+                            else
+                            {
+                                item.Update();
+                            }
+                        }
+
+                        var upd = item == null ? "null" : (((string, int, float))(item.ID, Game.Items.Items.GetItemAmount(item), Game.Items.Items.GetItemWeight(item))).SerializeToJson();
+
+                        NAPI.Task.RunSafe(() =>
+                        {
+                            if (player?.Exists != true)
+                                return;
+
+                            player.TriggerEvent("Inventory::Update", (int)slotStr, slot, upd);
+                        });
                     }
                 }
                 #endregion

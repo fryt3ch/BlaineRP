@@ -749,6 +749,7 @@ namespace BCRPClient.Additional
 
             if (Colshape != null)
             {
+                Streamed.Remove(this);
                 All.Remove(Colshape);
 
                 if (IsInside)
@@ -797,69 +798,82 @@ namespace BCRPClient.Additional
 
         public static void Activate()
         {
-            (new AsyncTask(() =>
+            (new AsyncTask(() => UpdateInside(), 200, true, 0)).Run();
+
+            (new AsyncTask(() => UpdateStreamed(), 1000, true, 0)).Run();
+        }
+
+        public static void UpdateStreamed()
+        {
+            foreach (var x in All.Keys)
             {
-                bool interactionAllowed = InteractionColshapesAllowed;
+                var cs = All[x];
 
-                foreach (var x in All.Keys)
+                var state = cs?.IsStreamed();
+
+                if (state == null)
+                    continue;
+
+                if (state == true)
                 {
-                    var curPoly = All[x];
-
-                    if (curPoly?.Colshape?.IsNull != false)
-                    {
-                        All.Remove(x);
-
+                    if (Streamed.Contains(cs))
                         continue;
-                    }
 
-                    if (curPoly.IsInside)
+                    Streamed.Add(cs);
+                }
+                else
+                {
+                    if (Streamed.Remove(cs))
                     {
-                        if ((curPoly.IsInteraction && !interactionAllowed) || !Streamed.Contains(curPoly) || !curPoly.IsPointInside(RAGE.Elements.Player.LocalPlayer.Position))
+                        if (cs.IsInside)
                         {
-                            curPoly.IsInside = false;
+                            cs.IsInside = false;
 
-                            Events.OnPlayerExitColshape?.Invoke(curPoly.Colshape, null);
-                        }
-                    }
-                    else
-                    {
-                        if (curPoly.IsInteraction && !interactionAllowed)
-                            continue;
-
-                        if (Streamed.Contains(curPoly) && curPoly.IsPointInside(RAGE.Elements.Player.LocalPlayer.Position))
-                        {
-                            curPoly.IsInside = true;
-
-                            Events.OnPlayerEnterColshape?.Invoke(curPoly.Colshape, null);
+                            Events.OnPlayerExitColshape?.Invoke(cs.Colshape, null);
                         }
                     }
                 }
-            }, 250, true, 0)).Run();
+            }
+        }
 
-            (new AsyncTask(() =>
+        public static void UpdateInside()
+        {
+            bool interactionAllowed = InteractionColshapesAllowed;
+
+            for (int i = 0; i < Streamed.Count; i++)
             {
-                foreach (var x in All.Keys)
+                var curPoly = Streamed[i];
+
+                if (curPoly?.Colshape?.IsNull != false)
                 {
-                    var cs = All[x];
+                    if (curPoly?.Colshape != null)
+                        All.Remove(curPoly.Colshape);
 
-                    var state = cs?.IsStreamed();
+                    continue;
+                }
 
-                    if (state == null)
-                        continue;
-
-                    if (state == true)
+                if (curPoly.IsInside)
+                {
+                    if ((curPoly.IsInteraction && !interactionAllowed) || !curPoly.IsPointInside(RAGE.Elements.Player.LocalPlayer.Position))
                     {
-                        if (Streamed.Contains(cs))
-                            continue;
+                        curPoly.IsInside = false;
 
-                        Streamed.Add(cs);
-                    }
-                    else
-                    {
-                        Streamed.Remove(cs);
+                        Events.OnPlayerExitColshape?.Invoke(curPoly.Colshape, null);
                     }
                 }
-            }, 1000, true, 0)).Run();
+                else
+                {
+                    if (curPoly.IsInteraction && !interactionAllowed)
+                        continue;
+
+                    if (curPoly.IsPointInside(RAGE.Elements.Player.LocalPlayer.Position))
+                    {
+                        curPoly.IsInside = true;
+
+                        Events.OnPlayerEnterColshape?.Invoke(curPoly.Colshape, null);
+                    }
+                }
+            }
         }
     }
 

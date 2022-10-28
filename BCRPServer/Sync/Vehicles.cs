@@ -226,7 +226,7 @@ namespace BCRPServer.Sync
 
                     if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
                     {
-                        player.AttachObject("veh_key", AttachSystem.Types.VehKey, 1250);
+                        player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
                         pData.PlayAnim(Animations.FastTypes.VehLocking);
                     }
@@ -439,7 +439,7 @@ namespace BCRPServer.Sync
 
                     if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
                     {
-                        player.AttachObject("veh_key", AttachSystem.Types.VehKey, 1250);
+                        player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
                         pData.PlayAnim(Animations.FastTypes.VehLocking);
                     }
@@ -522,7 +522,7 @@ namespace BCRPServer.Sync
 
                     if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
                     {
-                        player.AttachObject("veh_key", AttachSystem.Types.VehKey, 1250);
+                        player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
                         pData.PlayAnim(Animations.FastTypes.VehLocking);
                     }

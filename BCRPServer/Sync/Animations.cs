@@ -24,6 +24,21 @@ namespace BCRPServer.Sync
             Putdown,
             /// <summary>Свист</summary>
             Whistle,
+
+            ItemBurger,
+            ItemChips,
+            ItemHotdog,
+            ItemChocolate,
+            ItemPizza,
+            ItemCola,
+            ItemJoint,
+            ItemBeer,
+            ItemVodka,
+            ItemRum,
+            ItemVegSmoothie,
+            ItemSmoothie,
+            ItemMilkshake,
+            ItemMilk,
         }
 
         public enum GeneralTypes
@@ -284,6 +299,8 @@ namespace BCRPServer.Sync
             { FastTypes.Handshake, 4000 },
             { FastTypes.Pickup, 1500 }, { FastTypes.Putdown, 1500 },
             { FastTypes.Whistle, 2500 },
+
+            { FastTypes.ItemBurger, 6000 },
         };
 
         /// <summary>Проиграть быструю анимацию на игроке</summary>

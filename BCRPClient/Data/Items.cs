@@ -13,7 +13,6 @@ namespace BCRPClient.Data
             Split = 1,
             Throw = 2,
             Use = 3,
-
         }
 
         // Типы всех предметов
@@ -36,7 +35,8 @@ namespace BCRPClient.Data
             Ring,
 
             BArmShop,
-            Bag, Holster,
+            Bag,
+            Holster,
 
             // Оружие
             Stungun,
@@ -94,13 +94,30 @@ namespace BCRPClient.Data
             Numberplate0, Numberplate1, Numberplate2, Numberplate3, Numberplate4, Numberplate5,
 
             VehKey,
+
+            Burger,
+            Chips,
+            Hotdog,
+            Chocolate,
+            Pizza,
+            Cola,
+            Cigarettes,
+            Joint,
+            Beer,
+            Vodka,
+            Rum,
+            Smoothie,
+            VegSmoothie,
+            Milkshake,
+            Milk,
         }
 
         public enum TopTypes
         {
             Wearable = 0,
             Weapon,
-            Default
+            Default,
+            StatusChanger,
         }
         #endregion
 
@@ -110,6 +127,8 @@ namespace BCRPClient.Data
 
             { "holster_0", Types.Holster },
             { "holster_1", Types.Holster },
+
+            { "sc_burger", Types.Burger },
         };
 
         public static List<string> AllBags = new List<string>()
@@ -153,13 +172,14 @@ namespace BCRPClient.Data
 
         public static TopTypes GetTopType(Types type)
         {
-            int num = (int)type;
-
-            if (num >= 0 && num <= 15)
+            if (type >= Types.Hat && type <= Types.Holster)
                 return TopTypes.Wearable;
 
-            if (num >= 16 && num <= 63)
+            if (type >= Types.Stungun && type <= Types.Wrench)
                 return TopTypes.Weapon;
+
+            if (type >= Types.Burger && type <= Types.Milk)
+                return TopTypes.StatusChanger;
 
             return TopTypes.Default;
         }
@@ -200,6 +220,7 @@ namespace BCRPClient.Data
         {
             { TopTypes.Wearable, new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
             { TopTypes.Weapon, new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+            { TopTypes.StatusChanger, new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
         };
         #endregion
 
@@ -267,6 +288,19 @@ namespace BCRPClient.Data
             {"am_12.7", "Патроны 12.7мм"},
 
             {"arm_shop", "Обычный бронежилет"},
+
+            {"sc_burger", "Бургер"},
+            {"sc_chips", "Чипсы"},
+            {"sc_pizza", "Пицца"},
+            {"sc_chocolate", "Шоколад"},
+            {"sc_hotdog", "Хот-дог"},
+
+            {"sc_cola", "Кола"},
+
+            {"sc_cigs", "Сигареты"},
+            {"sc_joint", "Косяк"},
+
+            {"sc_beer", "Пиво"},
 
             {"top_m_0", "Олимпийка"},
             {"top_m_1", "Куртка рейсера"},

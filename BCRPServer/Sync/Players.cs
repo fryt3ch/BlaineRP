@@ -815,7 +815,7 @@ namespace BCRPServer.Sync
                             {
                                 pData.PhoneOn = true;
 
-                                player.AttachObject("phone", AttachSystem.Types.Phone);
+                                player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
 
                                 Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Player.PhoneOn);
                             }, 250);
@@ -824,7 +824,7 @@ namespace BCRPServer.Sync
                         {
                             pData.PhoneOn = true;
 
-                            player.AttachObject("phone", AttachSystem.Types.Phone);
+                            player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
 
                             Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Player.PhoneOn);
                         }
@@ -851,7 +851,7 @@ namespace BCRPServer.Sync
 
             data.PhoneOn = false;
 
-            var attachedPhone = data.AttachedObjects.Where(x => x.Model == "phone").FirstOrDefault();
+            var attachedPhone = data.AttachedObjects.Where(x => x.Type == AttachSystem.Types.Phone).FirstOrDefault();
 
             if (attachedPhone != null)
                 player.DetachObject(attachedPhone.Id);

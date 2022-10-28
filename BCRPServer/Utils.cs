@@ -865,7 +865,7 @@ namespace BCRPServer
         public static float DistanceXY(this Vector3 pos1, Vector3 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
 
         /// <inheritdoc cref="Sync.AttachSystem.AttachObject(Entity, string, Sync.AttachSystem.Types, int)"/>
-        public static int AttachObject(this Entity entity, string model, Sync.AttachSystem.Types type, int detachAfter = -1) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter);
+        public static int AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter = -1) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter);
         /// <inheritdoc cref="Sync.AttachSystem.DetachObject(Entity, string)"/>
         public static void DetachObject(this Entity entity, int id) => Sync.AttachSystem.DetachObject(entity, id);
         /// <inheritdoc cref="Sync.AttachSystem.AttachEntity(Entity, int, Sync.AttachSystem.Types)"/>
@@ -959,5 +959,15 @@ namespace BCRPServer
         public static void UpdateOnEnter(this AccountData aData) => MySQL.UpdateAccountOnEnter(aData);
 
         public static T GetRandom<T>(this List<T> list) => list.Count == 0 ? default(T) : list[(new Random()).Next(0, list.Count - 1)];
+
+        public static int GetCorrectDiff(int currentValue, int diff, int minValue = 0, int maxValue = 100)
+        {
+            if (currentValue + diff > maxValue)
+                diff = maxValue - currentValue;
+            else if (currentValue + diff < minValue)
+                diff = -currentValue;
+
+            return diff;
+        }
     }
 }

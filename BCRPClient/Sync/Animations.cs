@@ -61,7 +61,22 @@ namespace BCRPClient.Sync
             VehLocking = 0,
             Handshake,
             Pickup, Putdown,
-            Whistle
+            Whistle,
+
+            ItemBurger,
+            ItemChips,
+            ItemHotdog,
+            ItemChocolate,
+            ItemPizza,
+            ItemCola,
+            ItemJoint,
+            ItemBeer,
+            ItemVodka,
+            ItemRum,
+            ItemVegSmoothie,
+            ItemSmoothie,
+            ItemMilkshake,
+            ItemMilk,
         }
 
         public enum GeneralTypes
@@ -328,6 +343,15 @@ namespace BCRPClient.Sync
             { FastTypes.Putdown, new Animation("pickup_object", "putdown_low", 8f, 1f, 750, 48, 0f, false, false, false) },
             { FastTypes.Handshake, new Animation("mp_ped_interaction", "handshake_guy_a", 8f, 1f, 4000, 16, 0f, false, false, false) },
             { FastTypes.Whistle, new Animation("rcmnigel1c", "hailing_whistle_waive_a", 2.7f, 2.7f, 2000, 49, 0f, false, false, false) },
+
+            { FastTypes.ItemChips, new Animation("amb@code_human_wander_eating_donut@female@idle_a", "idle_c", 8f, 1f, 6000, 49, 0f, false, false, false) },
+            { FastTypes.ItemBurger, new Animation("amb@code_human_wander_eating_donut@female@idle_a", "idle_b", 8f, 1f, 6000, 49, 0f, false, false, false) },
+            { FastTypes.ItemHotdog, new Animation("mp_player_inteat@burger", "mp_player_int_eat_burger", 8f, 1f, 10000, 49, 0f, false, false, false) },
+            { FastTypes.ItemChocolate, new Animation("amb@world_human_seat_wall_eating@male@both_hands@base", "idle_b", 8f, 1f, 6000, 49, 0f, false, false, false) },
+            { FastTypes.ItemPizza, new Animation("amb@code_human_wander_eating_donut_fat@male@idle_a", "idle_a", 8f, 1f, 6000, 49, 0f, false, false, false) },
+            { FastTypes.ItemCola, new Animation("amb@world_human_drinking@coffee@female@idle_a", "idle_a", 8f, 1f, 6000, 49, 0f, false, false, false) },
+            { FastTypes.ItemJoint, new Animation("amb@world_human_smoking_fat@male@male_b@idle_a", "idle_a", 8f, 1f, 7000, 49, 0f, false, false, false) },
+            { FastTypes.ItemBeer, new Animation("amb@world_human_drinking@beer@male@idle_a", "idle_b", 8f, 1f, 6000, 49, 0f, false, false, false) },
         };
 
         private static Dictionary<GeneralTypes, Animation> GeneralAnimsList = new Dictionary<GeneralTypes, Animation>()
@@ -920,7 +944,7 @@ namespace BCRPClient.Sync
             Play(player, OtherAnimsList[type]);
         }
 
-        private static void Play(Player player, Animation anim)
+        private static void Play(Player player, Animation anim, int customTime = -1)
         {
             if (player == null)
                 return;
@@ -930,9 +954,9 @@ namespace BCRPClient.Sync
             Utils.RequestAnimDict(anim.Dict);
 
             if (player.Handle != Player.LocalPlayer.Handle)
-                player.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, anim.Duration, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
+                player.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
             else
-                player.TaskPlayAnim(anim.Dict, Utils.IsFirstPersonActive() ? (anim.NameFP ?? anim.Name) : anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, anim.Duration, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
+                player.TaskPlayAnim(anim.Dict, Utils.IsFirstPersonActive() ? (anim.NameFP ?? anim.Name) : anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
         }
 
         public static void Stop(Player player)

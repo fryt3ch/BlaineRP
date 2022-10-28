@@ -30,6 +30,21 @@ namespace BCRPClient.Sync
             Hostage,
 
             VehicleTrunk, VehicleTrunkForced,
+
+            ItemBurger,
+            ItemChips,
+            ItemHotdog,
+            ItemChocolate,
+            ItemPizza,
+            ItemCola,
+            ItemJoint,
+            ItemBeer,
+            ItemVodka,
+            ItemRum,
+            ItemVegSmoothie,
+            ItemSmoothie,
+            ItemMilkshake,
+            ItemMilk,
         }
 
         #region Classes
@@ -63,10 +78,10 @@ namespace BCRPClient.Sync
         public class AttachmentObjectNet
         {
             public int Id;
-            public string Model;
+            public uint Model;
             public Types Type;
 
-            public AttachmentObjectNet(int Id, string Model, Types Type)
+            public AttachmentObjectNet(int Id, uint Model, Types Type)
             {
                 this.Id = Id;
                 this.Model = Model;
@@ -153,14 +168,14 @@ namespace BCRPClient.Sync
 
             { Types.VehicleTrunk, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
             { Types.VehicleTrunkForced, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
-        };
 
-        private static Dictionary<string, uint> Models = new Dictionary<string, uint>()
-        {
-            { "phone", RAGE.Util.Joaat.Hash("prop_phone_ing") },
-            { "veh_key", RAGE.Util.Joaat.Hash("lr_prop_carkey_fob") },
-
-            { "w_asrifle", RAGE.Util.Joaat.Hash("w_ar_assaultrifle") },
+            { Types.ItemChips, new AttachmentData(28422, new Vector3(-0.04f, 0.02f, -0.04f), new Vector3(15f, 20f, 10f), false, false, false, 2, true) },
+            { Types.ItemBurger, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
+            { Types.ItemHotdog, new AttachmentData(60309, new Vector3(0.05f, 0.02f, -0.01f), new Vector3(0f, 0f, 90f), false, false, false, 2, true) },
+            { Types.ItemChocolate, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
+            { Types.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
+            { Types.ItemJoint, new AttachmentData(28422, new Vector3(0f, 0f, 0.01f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+            { Types.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
         };
 
         public AttachSystem()
@@ -386,13 +401,8 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Object Methods
-        public static void AttachObject(int id, string name, Entity target, Types type, bool streamIn = false)
+        public static void AttachObject(int id, uint hash, Entity target, Types type, bool streamIn = false)
         {
-            if (!Models.ContainsKey(name))
-                return;
-
-            var hash = Models[name];
-
             Utils.RequestModel(hash);
 
             GameEntity gTarget = Utils.GetGameEntity(target);
@@ -489,18 +499,15 @@ namespace BCRPClient.Sync
 
             list = list.ToList();
 
-            if (list == null)
-                return;
-
             foreach (var x in list)
             {
-                var name = Models.Where(y => y.Value == x.Object.Model).Select(x => x.Key).FirstOrDefault();
+                var model = x?.Object?.Model;
 
-                if (name == null)
+                if (model == null)
                     continue;
 
                 DetachObject(target, x.Id);
-                AttachObject(x.Id, name, target, x.Type, streamIn);
+                AttachObject(x.Id, (uint)model, target, x.Type, streamIn);
             }
         }
 
