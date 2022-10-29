@@ -118,16 +118,28 @@ namespace BCRPServer.Game.Items
 
         public class ItemData
         {
+            /// <summary>Стандартная модель</summary>
             public static uint DefaultModel = NAPI.Util.GetHashKey("prop_drug_package_02");
 
+            /// <summary>Вес единицы предмета</summary>
             public float Weight { get; set; }
-            public uint Model { get; set; }
 
-            public ItemData(float Weight, uint Model)
+            /// <summary>Основная модель</summary>
+            public uint Model { get => Models[0]; }
+
+            /// <summary>Все модели</summary>
+            private uint[] Models { get; set; }
+
+            public ItemData(float Weight, params uint[] Models)
             {
                 this.Weight = Weight;
-                this.Model = Model;
+
+                this.Models = Models.Length > 0 ? Models : new uint[] { DefaultModel };
             }
+
+            public ItemData(float Weight, params string[] Models) : this(Weight, Models.Select(x => NAPI.Util.GetHashKey(x)).ToArray()) { }
+
+            public uint GetModelAt(int idx) => idx < 0 || idx >= Models.Length ? Model : Models[idx];
         }
 
         private static Dictionary<Types, ItemData> AllData = new Dictionary<Types, ItemData>()
@@ -135,105 +147,106 @@ namespace BCRPServer.Game.Items
             { Types.NotAssigned, new ItemData(0f, ItemData.DefaultModel) },
 
             #region Clothes
-            { Types.Hat, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_proxy_hat_01")) },
-            { Types.Top, new ItemData(0.3f, NAPI.Util.GetHashKey("prop_ld_shirt_01")) },
-            { Types.Under, new ItemData(0.2f, NAPI.Util.GetHashKey("prop_ld_tshirt_02")) },
+            { Types.Hat, new ItemData(0.1f, "prop_proxy_hat_01") },
+            { Types.Top, new ItemData(0.3f, "prop_ld_shirt_01") },
+            { Types.Under, new ItemData(0.2f, "prop_ld_tshirt_02") },
             { Types.Gloves, new ItemData(0.1f, ItemData.DefaultModel) },
-            { Types.Pants, new ItemData(0.4f, NAPI.Util.GetHashKey("p_laz_j02_s")) },
-            { Types.Shoes, new ItemData(0.3f, NAPI.Util.GetHashKey("prop_ld_shoe_01")) },
-            { Types.Mask, new ItemData(0.2f, NAPI.Util.GetHashKey("p_trev_ski_mask_s")) },
-            { Types.Accessory, new ItemData(0.2f, NAPI.Util.GetHashKey("p_jewel_necklace_02")) },
-            { Types.Glasses, new ItemData(0.2f, NAPI.Util.GetHashKey("prop_cs_sol_glasses")) },
-            { Types.Ears, new ItemData(0.1f, NAPI.Util.GetHashKey("p_tmom_earrings_s")) },
-            { Types.Watches, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_jewel_02b")) },
-            { Types.Bracelet, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_jewel_02b")) },
+            { Types.Pants, new ItemData(0.4f, "p_laz_j02_s") },
+            { Types.Shoes, new ItemData(0.3f, "prop_ld_shoe_01") },
+            { Types.Mask, new ItemData(0.2f, "p_trev_ski_mask_s") },
+            { Types.Accessory, new ItemData(0.2f, "p_jewel_necklace_02") },
+            { Types.Glasses, new ItemData(0.2f, "prop_cs_sol_glasses") },
+            { Types.Ears, new ItemData(0.1f, "p_tmom_earrings_s") },
+            { Types.Watches, new ItemData(0.1f, "prop_jewel_02b") },
+            { Types.Bracelet, new ItemData(0.1f, "prop_jewel_02b") },
             #endregion
 
-            { Types.BArmShop, new ItemData(0.5f, NAPI.Util.GetHashKey("prop_armour_pickup")) },
-            { Types.Bag, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_cs_heist_bag_01")) },
-            { Types.Holster, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_holster_01")) },
+            { Types.BArmShop, new ItemData(0.5f, "prop_armour_pickup") },
+            { Types.Bag, new ItemData(0.25f, "prop_cs_heist_bag_01") },
+            { Types.Holster, new ItemData(0.1f, "prop_holster_01") },
 
             #region Weapons
-            { Types.Stungun, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_stungun")) },
-            { Types.Pistol,  new ItemData(0.5f, NAPI.Util.GetHashKey("w_pi_pistol")) },
-            { Types.CombatPistol, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_combatpistol")) },
-            { Types.HeavyPistol, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_heavypistol")) },
-            { Types.VintagePistol, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_vintage_pistol")) },
-            { Types.MarksmanPistol, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_singleshot")) },
-            { Types.Revolver, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_revolver")) },
-            { Types.APPistol, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_appistol")) },
-            { Types.PistolMk2, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_pistolmk2")) },
-            { Types.RevolverMk2, new ItemData(1f, NAPI.Util.GetHashKey("w_pi_revolvermk2")) },
-            { Types.MicroSMG, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_microsmg")) },
-            { Types.SMG, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_smg")) },
-            { Types.AssaultSMG, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_assaultsmg")) },
-            { Types.CombatPDW, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_pdw")) },
-            { Types.Gusenberg, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_gusenberg")) },
-            { Types.MiniSMG, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_minismg")) },
-            { Types.SMGMk2, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_smgmk2")) },
-            { Types.CombatMG, new ItemData(1f, NAPI.Util.GetHashKey("w_mg_combatmg")) },
-            { Types.MachinePistol, new ItemData(1f, NAPI.Util.GetHashKey("w_sb_smgmk2")) }, // ?
-            { Types.AssaultRifle, new ItemData(1.5f, NAPI.Util.GetHashKey("w_ar_assaultrifle")) },
-            { Types.CarbineRifle, new ItemData(1f, NAPI.Util.GetHashKey("w_ar_carbinerifle")) },
-            { Types.AdvancedRifle, new ItemData(1f, NAPI.Util.GetHashKey("w_ar_advancedrifle")) },
-            { Types.CompactRifle, new ItemData(1f, NAPI.Util.GetHashKey("w_ar_assaultrifle_smg")) },
-            { Types.AssaultRifleMk2, new ItemData(1.5f, NAPI.Util.GetHashKey("w_ar_assaultriflemk2")) },
-            { Types.HeavyRifle, new ItemData(1f, NAPI.Util.GetHashKey("w_ar_heavyrifle")) },
-            { Types.HeavySniper, new ItemData(1f, NAPI.Util.GetHashKey("w_sr_heavysniper")) },
-            { Types.MarksmanRifle, new ItemData(1f, NAPI.Util.GetHashKey("w_sr_marksmanrifle")) },
-            { Types.PumpShotgun, new ItemData(1f, NAPI.Util.GetHashKey("w_sg_pumpshotgun")) },
-            { Types.SawnOffShotgun, new ItemData(1f, NAPI.Util.GetHashKey("w_sg_sawnoff")) },
-            { Types.AssaultShotgun, new ItemData(1f, NAPI.Util.GetHashKey("w_sg_assaultshotgun")) },
-            { Types.Musket, new ItemData(1f, NAPI.Util.GetHashKey("w_ar_musket")) },
-            { Types.HeavyShotgun, new ItemData(1f, NAPI.Util.GetHashKey("w_sg_heavyshotgun")) },
-            { Types.PumpShotgunMk2, new ItemData(1f, NAPI.Util.GetHashKey("w_sg_pumpshotgunmk2")) },
-            { Types.Knife, new ItemData(1f, NAPI.Util.GetHashKey("w_me_knife_01")) },
-            { Types.Nightstick, new ItemData(1f, NAPI.Util.GetHashKey("w_me_nightstick")) },
-            { Types.Hammer, new ItemData(1f, NAPI.Util.GetHashKey("w_me_hammer")) },
-            { Types.Bat, new ItemData(1f, NAPI.Util.GetHashKey("w_me_bat")) },
-            { Types.Crowbar, new ItemData(1f, NAPI.Util.GetHashKey("w_me_crowbar")) },
-            { Types.GolfClub, new ItemData(1f, NAPI.Util.GetHashKey("w_me_gclub")) },
-            { Types.Bottle, new ItemData(1f, NAPI.Util.GetHashKey("w_me_bottle")) },
-            { Types.Dagger, new ItemData(1f, NAPI.Util.GetHashKey("w_me_dagger")) },
-            { Types.Hatchet, new ItemData(1f, NAPI.Util.GetHashKey("w_me_hatchet")) },
-            { Types.Knuckles, new ItemData(1f, NAPI.Util.GetHashKey("w_me_knuckle")) },
-            { Types.Machete, new ItemData(1f, NAPI.Util.GetHashKey("prop_ld_w_me_machette")) },
-            { Types.Flashlight, new ItemData(1f, NAPI.Util.GetHashKey("w_me_flashlight")) },
-            { Types.SwitchBlade, new ItemData(1f, NAPI.Util.GetHashKey("w_me_switchblade")) },
-            { Types.PoolCue, new ItemData(1f, NAPI.Util.GetHashKey("prop_pool_cue")) },
-            { Types.Wrench, new ItemData(0.75f, NAPI.Util.GetHashKey("prop_cs_wrench")) },
+            { Types.Stungun, new ItemData(1f, "w_pi_stungun") },
+            { Types.Pistol,  new ItemData(0.5f, "w_pi_pistol") },
+            { Types.CombatPistol, new ItemData(1f, "w_pi_combatpistol") },
+            { Types.HeavyPistol, new ItemData(1f, "w_pi_heavypistol") },
+            { Types.VintagePistol, new ItemData(1f, "w_pi_vintage_pistol") },
+            { Types.MarksmanPistol, new ItemData(1f, "w_pi_singleshot") },
+            { Types.Revolver, new ItemData(1f, "w_pi_revolver") },
+            { Types.APPistol, new ItemData(1f, "w_pi_appistol") },
+            { Types.PistolMk2, new ItemData(1f, "w_pi_pistolmk2") },
+            { Types.RevolverMk2, new ItemData(1f, "w_pi_revolvermk2") },
+            { Types.MicroSMG, new ItemData(1f, "w_sb_microsmg") },
+            { Types.SMG, new ItemData(1f, "w_sb_smg") },
+            { Types.AssaultSMG, new ItemData(1f, "w_sb_assaultsmg") },
+            { Types.CombatPDW, new ItemData(1f, "w_sb_pdw") },
+            { Types.Gusenberg, new ItemData(1f, "w_sb_gusenberg") },
+            { Types.MiniSMG, new ItemData(1f, "w_sb_minismg") },
+            { Types.SMGMk2, new ItemData(1f, "w_sb_smgmk2") },
+            { Types.CombatMG, new ItemData(1f, "w_mg_combatmg") },
+            { Types.MachinePistol, new ItemData(1f, "w_sb_smgmk2") }, // ?
+            { Types.AssaultRifle, new ItemData(1.5f, "w_ar_assaultrifle") },
+            { Types.CarbineRifle, new ItemData(1f, "w_ar_carbinerifle") },
+            { Types.AdvancedRifle, new ItemData(1f, "w_ar_advancedrifle") },
+            { Types.CompactRifle, new ItemData(1f, "w_ar_assaultrifle_smg") },
+            { Types.AssaultRifleMk2, new ItemData(1.5f, "w_ar_assaultriflemk2") },
+            { Types.HeavyRifle, new ItemData(1f, "w_ar_heavyrifle") },
+            { Types.HeavySniper, new ItemData(1f, "w_sr_heavysniper") },
+            { Types.MarksmanRifle, new ItemData(1f, "w_sr_marksmanrifle") },
+            { Types.PumpShotgun, new ItemData(1f, "w_sg_pumpshotgun") },
+            { Types.SawnOffShotgun, new ItemData(1f, "w_sg_sawnoff") },
+            { Types.AssaultShotgun, new ItemData(1f, "w_sg_assaultshotgun") },
+            { Types.Musket, new ItemData(1f, "w_ar_musket") },
+            { Types.HeavyShotgun, new ItemData(1f, "w_sg_heavyshotgun") },
+            { Types.PumpShotgunMk2, new ItemData(1f, "w_sg_pumpshotgunmk2") },
+            { Types.Knife, new ItemData(1f, "w_me_knife_01") },
+            { Types.Nightstick, new ItemData(1f, "w_me_nightstick") },
+            { Types.Hammer, new ItemData(1f, "w_me_hammer") },
+            { Types.Bat, new ItemData(1f, "w_me_bat") },
+            { Types.Crowbar, new ItemData(1f, "w_me_crowbar") },
+            { Types.GolfClub, new ItemData(1f, "w_me_gclub") },
+            { Types.Bottle, new ItemData(1f, "w_me_bottle") },
+            { Types.Dagger, new ItemData(1f, "w_me_dagger") },
+            { Types.Hatchet, new ItemData(1f, "w_me_hatchet") },
+            { Types.Knuckles, new ItemData(1f, "w_me_knuckle") },
+            { Types.Machete, new ItemData(1f, "prop_ld_w_me_machette") },
+            { Types.Flashlight, new ItemData(1f, "w_me_flashlight") },
+            { Types.SwitchBlade, new ItemData(1f, "w_me_switchblade") },
+            { Types.PoolCue, new ItemData(1f, "prop_pool_cue") },
+            { Types.Wrench, new ItemData(0.75f, "prop_cs_wrench") },
             #endregion
 
             // Патроны
-            { Types.Ammo5_56, new ItemData(0.01f, NAPI.Util.GetHashKey("w_am_case")) },
-            { Types.Ammo7_62, new ItemData(0.01f, NAPI.Util.GetHashKey("w_am_case")) },
-            { Types.Ammo9, new ItemData(0.01f, NAPI.Util.GetHashKey("w_am_case")) },
-            { Types.Ammo11_43, new ItemData(0.015f, NAPI.Util.GetHashKey("w_am_case")) },
-            { Types.Ammo12, new ItemData(0.015f, NAPI.Util.GetHashKey("w_am_case")) },
-            { Types.Ammo12_7, new ItemData(0.015f, NAPI.Util.GetHashKey("w_am_case")) },
+            { Types.Ammo5_56, new ItemData(0.01f, "w_am_case") },
+            { Types.Ammo7_62, new ItemData(0.01f, "w_am_case") },
+            { Types.Ammo9, new ItemData(0.01f, "w_am_case") },
+            { Types.Ammo11_43, new ItemData(0.015f, "w_am_case") },
+            { Types.Ammo12, new ItemData(0.015f, "w_am_case") },
+            { Types.Ammo12_7, new ItemData(0.015f, "w_am_case") },
 
-            { Types.Numberplate0, new ItemData(0.15f, NAPI.Util.GetHashKey("p_num_plate_01")) },
-            { Types.Numberplate1, new ItemData(0.15f, NAPI.Util.GetHashKey("p_num_plate_04")) },
-            { Types.Numberplate2, new ItemData(0.15f, NAPI.Util.GetHashKey("p_num_plate_02")) },
-            { Types.Numberplate3, new ItemData(0.15f, NAPI.Util.GetHashKey("p_num_plate_02")) },
-            { Types.Numberplate4, new ItemData(0.15f, NAPI.Util.GetHashKey("p_num_plate_01")) },
+            { Types.Numberplate0, new ItemData(0.15f, "p_num_plate_01") },
+            { Types.Numberplate1, new ItemData(0.15f, "p_num_plate_04") },
+            { Types.Numberplate2, new ItemData(0.15f, "p_num_plate_02") },
+            { Types.Numberplate3, new ItemData(0.15f, "p_num_plate_02") },
+            { Types.Numberplate4, new ItemData(0.15f, "p_num_plate_01") },
 
-            { Types.VehKey, new ItemData(0.05f, NAPI.Util.GetHashKey("p_car_keys_01")) },
+            { Types.VehKey, new ItemData(0.05f, "p_car_keys_01") },
 
-            { Types.Burger, new ItemData(0.15f, NAPI.Util.GetHashKey("prop_cs_burger_01")) },
-            { Types.Chips, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_food_bs_chips")) },
-            { Types.Hotdog, new ItemData(0.15f, NAPI.Util.GetHashKey("prop_cs_hotdog_01")) },
-            { Types.Chocolate, new ItemData(0.1f, NAPI.Util.GetHashKey("prop_candy_pqs")) },
-            { Types.Pizza, new ItemData(0.25f, NAPI.Util.GetHashKey("v_res_tt_pizzaplate")) },
-            { Types.Cola, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_food_juice01")) },
-            { Types.Cigarettes, new ItemData(0.01f, NAPI.Util.GetHashKey("ng_proc_cigarette01a")) },
-            { Types.Joint, new ItemData(0.01f, NAPI.Util.GetHashKey("p_amb_joint_01")) },
-            { Types.Beer, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_sh_beer_pissh_01")) },
-            { Types.Rum, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_rum_bottle")) },
-            { Types.Vodka, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_vodka_bottle")) },
-            { Types.VegSmoothie, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_wheat_grass_glass")) },
-            { Types.Smoothie, new ItemData(0.25f, NAPI.Util.GetHashKey("p_cs_shot_glass_2_s")) },
-            { Types.Milkshake, new ItemData(0.25f, NAPI.Util.GetHashKey("prop_drink_whtwine")) },
+            { Types.Cigarettes, new ItemData(0.01f, "prop_cigar_pack_01", "prop_amb_ciggy_01", "ng_proc_cigarette01a") },
+
+            { Types.Burger, new ItemData(0.15f, "prop_cs_burger_01") },
+            { Types.Chips, new ItemData(0.1f, "prop_food_bs_chips") },
+            { Types.Hotdog, new ItemData(0.15f, "prop_cs_hotdog_01") },
+            { Types.Chocolate, new ItemData(0.1f, "prop_candy_pqs") },
+            { Types.Pizza, new ItemData(0.25f, "v_res_tt_pizzaplate") },
+            { Types.Cola, new ItemData(0.25f, "prop_food_juice01") },
+            { Types.Joint, new ItemData(0.01f, "p_amb_joint_01") },
+            { Types.Beer, new ItemData(0.25f, "prop_sh_beer_pissh_01") },
+            { Types.Rum, new ItemData(0.25f, "prop_rum_bottle") },
+            { Types.Vodka, new ItemData(0.25f, "prop_vodka_bottle") },
+            { Types.VegSmoothie, new ItemData(0.25f, "prop_wheat_grass_glass") },
+            { Types.Smoothie, new ItemData(0.25f, "p_cs_shot_glass_2_s") },
+            { Types.Milkshake, new ItemData(0.25f, "prop_drink_whtwine") },
         };
 
         public static float GetWeight(Types type) => AllData[type].Weight;
@@ -1337,9 +1350,12 @@ namespace BCRPServer.Game.Items
             public Sync.Animations.FastTypes Animation { get; set; }
 
             public Sync.AttachSystem.Types? AttachType { get; set; }
+
             public int AttachTime { get; set; }
 
-            public ItemData(Types ItemType, int Satiety = 0, int Mood = 0, int EffectTime = 0, Sync.Animations.FastTypes Animation = Sync.Animations.FastTypes.None, Sync.AttachSystem.Types? AttachType = null, int AttachTime = 0)
+            public int AttachModelIdx { get; set; }
+
+            public ItemData(Types ItemType, int Satiety = 0, int Mood = 0, int EffectTime = 0, Sync.Animations.FastTypes Animation = Sync.Animations.FastTypes.None, Sync.AttachSystem.Types? AttachType = null, int AttachTime = -1, int AttachModelIdx = 0)
             {
                 this.ItemType = ItemType;
 
@@ -1352,6 +1368,8 @@ namespace BCRPServer.Game.Items
 
                 this.AttachType = AttachType;
                 this.AttachTime = AttachTime;
+
+                this.AttachModelIdx = AttachModelIdx;
             }
         }
 
@@ -1397,7 +1415,7 @@ namespace BCRPServer.Game.Items
 
             if (Data.AttachType != null)
             {
-                player.AttachObject(Model, (Sync.AttachSystem.Types)Data.AttachType, Data.AttachTime);
+                player.AttachObject(base.Data.GetModelAt(Data.AttachModelIdx), (Sync.AttachSystem.Types)Data.AttachType, Data.AttachTime);
             }
 
             if (Data.Animation != Sync.Animations.FastTypes.None)
@@ -1860,8 +1878,8 @@ namespace BCRPServer.Game.Items
 
                 { "sc_cola", new StatusChanger.ItemData(Item.Types.Cola, 5, 20, 0, Sync.Animations.FastTypes.ItemCola, Sync.AttachSystem.Types.ItemCola, 6000) },
 
-                { "sc_cigs", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 25, 0, Sync.Animations.FastTypes.ItemJoint, Sync.AttachSystem.Types.ItemJoint, 6000) },
-                { "sc_joint", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 50, 0, Sync.Animations.FastTypes.ItemJoint, Sync.AttachSystem.Types.ItemJoint, 6000) },
+                { "sc_cigs", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 25, 0, Sync.Animations.FastTypes.None, Sync.AttachSystem.Types.ItemCigHand, -1, 2) },
+                //{ "sc_joint", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 50, 0, Sync.Animations.FastTypes.None, Sync.AttachSystem.Types.ItemJoint, 6000) },
 
                 { "sc_beer", new StatusChanger.ItemData(Item.Types.Beer, 5, 50, 0, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer, 6000) },
             };

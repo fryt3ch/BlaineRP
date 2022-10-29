@@ -178,6 +178,7 @@ namespace BCRPClient
                 public static bool DebugLabels = false;
                 public static bool HighPolygonsMode = false;
                 public static bool ColshapesVisible = false;
+                public static bool RaytraceEnabled = false;
 
                 public static HashSet<string> FavoriteAnimations = new HashSet<string>();
                 public static Sync.Animations.EmotionTypes CurrentEmotion = Sync.Animations.EmotionTypes.None;
@@ -196,11 +197,13 @@ namespace BCRPClient
             private static bool _DebugLabels;
             private static bool _HighPolygonsMode;
             private static bool _ColshapesVisible;
+            private static bool _RaytraceEnabled;
 
             public static bool AutoTeleportMarker { get => _AutoTeleportMarker; set { if (value != _AutoTeleportMarker) Additional.Storage.SetData("Settings::Other::AutoTeleportMarker", value); _AutoTeleportMarker = value; } }
-            public static bool DebugLabels { get => _DebugLabels; set { if (value != _DebugLabels) Additional.Storage.SetData("Settings::Other::DebugLabels", value); _DebugLabels = value; Interaction.EnabledDL = value; } }
+            public static bool DebugLabels { get => _DebugLabels; set { if (value != _DebugLabels) Additional.Storage.SetData("Settings::Other::DebugLabels", value); _DebugLabels = value; } }
             public static bool HighPolygonsMode { get => _HighPolygonsMode; set { if (value != _HighPolygonsMode) Additional.Storage.SetData("Settings::Other::HighPolygonsMode", value); _HighPolygonsMode = value; } }
             public static bool ColshapesVisible { get => _ColshapesVisible; set { if (value != _ColshapesVisible) Additional.Storage.SetData("Settings::Other::ColshapesVisible", value); _ColshapesVisible = value;  Additional.ExtraColshape.RenderActive = value; } }
+            public static bool RaytraceEnabled { get => _RaytraceEnabled; set { if (value != _RaytraceEnabled) Additional.Storage.SetData("Settings::Other::RaytraceEnabled", value); _RaytraceEnabled = value; } }
 
             public static HashSet<string> FavoriteAnimations { get => _FavoriteAnimations; set { Additional.Storage.SetData("Settings::Animations::Favorites", value); _FavoriteAnimations = value; } }
             public static Sync.Animations.EmotionTypes CurrentEmotion { get => _CurrentEmotion; set { if (value != _CurrentEmotion) Additional.Storage.SetData("Settings::Animations::Emotion", value.ToString()); _CurrentEmotion = value; } }
@@ -243,6 +246,7 @@ namespace BCRPClient
             Other.DebugLabels = Additional.Storage.GetData<bool?>("Settings::Other::DebugLabels") ?? Other.Default.DebugLabels;
             Other.HighPolygonsMode = Additional.Storage.GetData<bool?>("Settings::Other::HighPolygonsMode") ?? Other.Default.HighPolygonsMode;
             Other.ColshapesVisible = Additional.Storage.GetData<bool?>("Settings::Other::ColshapesVisible") ?? Other.Default.ColshapesVisible;
+            Other.RaytraceEnabled = Additional.Storage.GetData<bool?>("Settings::Other::RaytraceEnabled") ?? Other.Default.RaytraceEnabled;
 
             Other.FavoriteAnimations = Additional.Storage.GetData<HashSet<string>>("Settings::Animations::Favorites") ?? Other.Default.FavoriteAnimations;
 
@@ -302,10 +306,10 @@ namespace BCRPClient
 
             Special.DisabledPerson = Special.Default.DisabledPerson;
 
-            Other.AutoTeleportMarker = Other.Default.AutoTeleportMarker;
+/*            Other.AutoTeleportMarker = Other.Default.AutoTeleportMarker;
             Other.DebugLabels = Other.Default.DebugLabels;
             Other.HighPolygonsMode = Other.Default.HighPolygonsMode;
-            Other.ColshapesVisible = Other.Default.ColshapesVisible;
+            Other.ColshapesVisible = Other.Default.ColshapesVisible;*/
         }
         #endregion
     }

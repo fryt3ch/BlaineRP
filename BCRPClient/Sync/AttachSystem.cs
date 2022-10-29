@@ -31,13 +31,15 @@ namespace BCRPClient.Sync
 
             VehicleTrunk, VehicleTrunkForced,
 
+            ItemCigHand,
+            ItemCigMouth,
+
             ItemBurger,
             ItemChips,
             ItemHotdog,
             ItemChocolate,
             ItemPizza,
             ItemCola,
-            ItemJoint,
             ItemBeer,
             ItemVodka,
             ItemRum,
@@ -52,16 +54,22 @@ namespace BCRPClient.Sync
         {
             public int BoneID;
 
-            public Vector3 PositionOffset = null;
-            public Vector3 Rotation = null;
+            public Vector3 PositionOffset { get; set; }
+            public Vector3 Rotation { get; set; }
 
-            public bool UseSoftPinning;
-            public bool Collision;
-            public bool IsPed;
-            public int VertexIndex;
-            public bool FixedRot;
+            public bool UseSoftPinning { get; set; }
 
-            public AttachmentData(int BoneID, Vector3 PositionOffset, Vector3 Rotation, bool UseSoftPinning, bool Collision, bool IsPed, int VertexIndex, bool FixedRot)
+            public bool Collision { get; set; }
+
+            public bool IsPed { get; set; }
+
+            public int VertexIndex { get; set; }
+
+            public bool FixedRot { get; set; }
+
+            public Action<object[]> EntityAction;
+
+            public AttachmentData(int BoneID, Vector3 PositionOffset, Vector3 Rotation, bool UseSoftPinning, bool Collision, bool IsPed, int VertexIndex, bool FixedRot, Action<object[]> EntityAction = null)
             {
                 this.BoneID = BoneID;
                 this.PositionOffset = PositionOffset;
@@ -72,6 +80,8 @@ namespace BCRPClient.Sync
                 this.IsPed = IsPed;
                 this.VertexIndex = VertexIndex;
                 this.FixedRot = FixedRot;
+
+                this.EntityAction = EntityAction;
             }
         }
 
@@ -169,12 +179,37 @@ namespace BCRPClient.Sync
             { Types.VehicleTrunk, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
             { Types.VehicleTrunkForced, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
+            {
+                Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.020f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    var ptfxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.050f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false);
+
+                    gEntity.SetData("PtfxHandle", ptfxHandle);
+                })
+            },
+
+            {
+                Types.ItemCigMouth, new AttachmentData(47419, new Vector3(0.015f, -0.009f, 0.003f), new Vector3(55f, 0f, 110f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    var ptfxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.050f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false);
+
+                    gEntity.SetData("PtfxHandle", ptfxHandle);
+                })
+            },
+
             { Types.ItemChips, new AttachmentData(28422, new Vector3(-0.04f, 0.02f, -0.04f), new Vector3(15f, 20f, 10f), false, false, false, 2, true) },
             { Types.ItemBurger, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemHotdog, new AttachmentData(60309, new Vector3(0.05f, 0.02f, -0.01f), new Vector3(0f, 0f, 90f), false, false, false, 2, true) },
             { Types.ItemChocolate, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
-            { Types.ItemJoint, new AttachmentData(28422, new Vector3(0f, 0f, 0.01f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
         };
 
@@ -447,7 +482,12 @@ namespace BCRPClient.Sync
 
                     (gEntity as MapObject).Hidden = false;
 
-                    //Utils.ConsoleOutput(streamIn);
+                    props.EntityAction?.Invoke(new object[] { gEntity });
+
+                    if (gTarget?.Type == RAGE.Elements.Type.Player && (gTarget as Player).Handle == Player.LocalPlayer.Handle)
+                    {
+                        RootAction(type, gEntity);
+                    }
 
                     return true;
                 }
@@ -474,6 +514,11 @@ namespace BCRPClient.Sync
 
             RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props.Collision);
 
+            if (gEntity.HasData("PtfxHandle"))
+            {
+                RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
+            }
+
             if (gEntity.Type == RAGE.Elements.Type.Object)
                 gEntity.Destroy();
 
@@ -482,6 +527,11 @@ namespace BCRPClient.Sync
             list.Remove(item);
 
             target.SetData(AttachedObjectsKey, list);
+
+            if (target?.Type == RAGE.Elements.Type.Player && (target as Player).Handle == Player.LocalPlayer.Handle)
+            {
+                RootAction(item.Type, null);
+            }
         }
 
         public static void ReattachObjects(Entity target, bool streamIn)
@@ -654,6 +704,122 @@ namespace BCRPClient.Sync
                         else
                         {
                             Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+
+            {
+                new Types[] { Types.ItemCigHand },
+
+                (
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+
+                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.MinValue);
+                    }),
+
+                    new Action(() =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+
+                        Player.LocalPlayer.ResetData("Temp::Smoke::LastSent");
+                    }),
+
+                    new Action(() =>
+                    {
+                        var target = Player.LocalPlayer.GetData<List<AttachmentObject>>(AttachedObjectsKey).Where(x => x.Type == Types.ItemCigHand).Select(x => x.Object).FirstOrDefault();
+
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (target?.Exists != true || bind.IsPressed || Player.LocalPlayer.IsInWater())
+                        {
+                            GameEvents.Update -= GetRootActions(Types.ItemCigHand).Value.Loop.Invoke;
+
+                            Events.CallRemote("Players::Smoke::Stop");
+                        }
+                        else
+                        {
+
+                            var lastSent = Player.LocalPlayer.GetData<DateTime>("Temp::Smoke::LastSent");
+
+                            // lmb - do puff
+                            if (!CEF.Cursor.Visible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24))
+                            {
+                                if (!lastSent.IsSpam(1000, false, false))
+                                {
+                                    Events.CallRemote("Players::Smoke::Puff");
+
+                                    Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                                }
+                            }
+                            // rmb - to mouth
+                            else if ((!CEF.Cursor.Visible && RAGE.Game.Pad.IsControlJustPressed(0, 25)) || Player.LocalPlayer.Vehicle != null)
+                            {
+                                if (!lastSent.IsSpam(1000, false, false))
+                                {
+                                    Events.CallRemote("Players::Smoke::State", true);
+
+                                    Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                                }
+                            }
+
+                            Utils.DrawText(Locale.General.Animations.TextDoPuffSmoke, 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(Locale.General.Animations.TextToMouthSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+
+            {
+                new Types[] { Types.ItemCigMouth },
+
+                (
+                    new Action(() =>
+                    {
+                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.MinValue);
+                    }),
+
+                    new Action(() =>
+                    {
+                        Player.LocalPlayer.ResetData("Temp::Smoke::LastSent");
+                    }),
+
+                    new Action(() =>
+                    {
+                        var target = Player.LocalPlayer.GetData<List<AttachmentObject>>(AttachedObjectsKey).Where(x => x.Type == Types.ItemCigMouth).Select(x => x.Object).FirstOrDefault();
+
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (target?.Exists != true || bind.IsPressed || Player.LocalPlayer.IsInWater())
+                        {
+                            GameEvents.Update -= GetRootActions(Types.ItemCigMouth).Value.Loop.Invoke;
+
+                            Events.CallRemote("Players::Smoke::Stop");
+                        }
+                        else
+                        {
+                            var lastSent = Player.LocalPlayer.GetData<DateTime>("Temp::Smoke::LastSent");
+
+                            if (Player.LocalPlayer.Vehicle == null)
+                            {
+                                // rmb - to hand
+                                if (!CEF.Cursor.Visible && RAGE.Game.Pad.IsControlJustPressed(0, 25))
+                                {
+                                    if (!lastSent.IsSpam(1000, false, false))
+                                    {
+                                        Events.CallRemote("Players::Smoke::State", false);
+
+                                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                                    }
+                                }
+
+                                Utils.DrawText(Locale.General.Animations.TextToHandSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            }
+
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
                         }
                     })
                 )

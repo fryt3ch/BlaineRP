@@ -114,6 +114,11 @@ namespace BCRPClient
 
                 public static string CancelTextPushVehicle = "Нажмите W/A/S/D, чтобы перестать толкать";
 
+                public static string TextDoPuffSmoke = "Нажмите ЛКМ, чтобы сделать затяжку";
+                public static string TextToMouthSmoke = "Нажмите ПКМ, чтобы зажать зубами";
+                public static string TextToHandSmoke = "Нажмите ПКМ, чтобы взять в руку";
+                public static string CancelTextSmoke = "Нажмите {0}, чтобы перестать курить";
+
                 public static Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<Sync.Animations.OtherTypes, string> Names)> Anims = new Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<Sync.Animations.OtherTypes, string> Names)>
                 {
                     {

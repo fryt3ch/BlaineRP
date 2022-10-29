@@ -169,8 +169,7 @@ namespace BCRPClient.CEF
                     break;
 
                     case OutVehicleActions.SeatTrunk:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Vehicle)
-                            Events.CallRemote("Players::GoToTrunk", BCRPClient.Interaction.CurrentEntity as Vehicle);
+                        Sync.Vehicles.SeatTo(int.MaxValue, BCRPClient.Interaction.CurrentEntity);
                     break;
                 }
             });

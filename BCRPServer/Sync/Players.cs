@@ -1460,5 +1460,126 @@ namespace BCRPServer.Sync
 
             pData.Release();
         }
+
+        [RemoteEvent("Players::Smoke::Stop")]
+        public static async Task StopSmoke(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await NAPI.Task.RunAsync(() =>
+            {
+                if (player?.Exists != true)
+                    return;
+
+                var attachData = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.ItemCigHand || x.Type == AttachSystem.Types.ItemCigMouth).FirstOrDefault();
+
+                if (attachData == null)
+                    return;
+
+                player.DetachObject(attachData.Id);
+
+                pData.StopAnim();
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("Players::Smoke::Puff")]
+        public static async Task SmokeDoPuff(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await NAPI.Task.RunAsync(() =>
+            {
+                if (player?.Exists != true)
+                    return;
+
+                var attachData = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.ItemCigHand || x.Type == AttachSystem.Types.ItemCigMouth).FirstOrDefault();
+
+                if (attachData == null)
+                    return;
+
+                pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("Players::Smoke::State")]
+        public static async Task SmokeSetState(Player player, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            var attachData = await NAPI.Task.RunAsync(() =>
+            {
+                if (player?.Exists != true)
+                    return null;
+
+                var attachData = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.ItemCigHand || x.Type == AttachSystem.Types.ItemCigMouth).FirstOrDefault();
+
+                if (attachData == null)
+                    return null;
+
+                pData.PlayAnim(Animations.FastTypes.SmokeTransitionCig);
+
+                return attachData;
+            });
+
+            if (attachData == null)
+            {
+                pData.Release();
+
+                return;
+            }
+
+            if (attachData.Type == AttachSystem.Types.ItemCigHand)
+            {
+                await NAPI.Task.RunAsync(() =>
+                {
+                    if (player?.Exists != true)
+                        return;
+
+                    player.DetachObject(attachData.Id);
+                    player.AttachObject(attachData.Model, AttachSystem.Types.ItemCigMouth);
+                }, 500);
+            }
+            else
+            {
+                await NAPI.Task.RunAsync(() =>
+                {
+                    if (player?.Exists != true)
+                        return;
+
+                    player.DetachObject(attachData.Id);
+                    player.AttachObject(attachData.Model, AttachSystem.Types.ItemCigHand);
+                }, 500);
+            }
+
+            pData.Release();
+        }
     }
 }

@@ -129,6 +129,7 @@ namespace BCRPClient.Data
             { "holster_1", Types.Holster },
 
             { "sc_burger", Types.Burger },
+            { "sc_cigs", Types.Cigarettes },
         };
 
         public static List<string> AllBags = new List<string>()

@@ -355,7 +355,7 @@ namespace BCRPServer
         #region Main Thread Help
         public static async Task<T> RunAsync<T>(this GTANetworkMethods.Task task, Func<T> func, long delay = 0)
         {
-            if (IsMainThread())
+            if (delay <= 0 && IsMainThread())
             {
                 return func.Invoke();
             }
@@ -369,7 +369,7 @@ namespace BCRPServer
 
         public static async Task RunAsync(this GTANetworkMethods.Task task, Action action, long delay = 0)
         {
-            if (IsMainThread())
+            if (delay <= 0 && IsMainThread())
             {
                 action.Invoke();
 
@@ -385,7 +385,7 @@ namespace BCRPServer
 
         public static void RunSafe(this GTANetworkMethods.Task task, Action action, long delay = 0)
         {
-            if (IsMainThread())
+            if (delay <= 0 && IsMainThread())
             {
                 action.Invoke();
 

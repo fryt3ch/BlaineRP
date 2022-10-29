@@ -141,6 +141,7 @@ namespace BCRPClient
         }
 
         public static List<Ped> GetPedsOnScreen(int maxCount = 5) => RAGE.Elements.Entities.Peds.Streamed.Where(x => x.IsOnScreen()).OrderBy(x => Vector3.Distance(x.Position, Player.LocalPlayer.Position)).Take(maxCount).ToList();
+        public static List<Vehicle> GetVehiclesOnScreen(int maxCount = 5) => RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.IsOnScreen()).OrderBy(x => Vector3.Distance(x.Position, Player.LocalPlayer.Position)).Take(maxCount).ToList();
 
         public static RAGE.Elements.Vehicle GetClosestVehicle(Vector3 position, float radius)
         {
@@ -226,7 +227,8 @@ namespace BCRPClient
             var headCoord = RAGE.Elements.Player.LocalPlayer.GetBoneCoords(12844, 0f, 0f, 0f);
             var screenCenterCoord = headCoord.MinimizeDistance(GetWorldCoordFromScreenCoord(0.5f, 0.5f), distance);
 
-            //RAGE.Game.Graphics.DrawLine(headCoord.X, headCoord.Y, headCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 255, 0, 0, 255);
+            if (Settings.Other.RaytraceEnabled)
+                RAGE.Game.Graphics.DrawLine(headCoord.X, headCoord.Y, headCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 255, 0, 0, 255);
 
             return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 14);
         }
@@ -235,7 +237,8 @@ namespace BCRPClient
             var fingerCoord = RAGE.Elements.Player.LocalPlayer.GetBoneCoords(26613, 0f, 0f, 0f);
             var screenCenterCoord = fingerCoord.MinimizeDistance(GetWorldCoordFromScreenCoord(0.5f, 0.5f), distance);
 
-            //RAGE.Game.Graphics.DrawLine(fingerCoord.X, fingerCoord.Y, fingerCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 0, 255, 0, 255);
+            if (Settings.Other.RaytraceEnabled)
+                RAGE.Game.Graphics.DrawLine(fingerCoord.X, fingerCoord.Y, fingerCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 0, 255, 0, 255);
 
             return GetEntityByRaycast(fingerCoord, screenCenterCoord, Player.LocalPlayer.Handle, 14);
         }
@@ -362,6 +365,23 @@ namespace BCRPClient
 
             while (!RAGE.Game.Streaming.HasModelLoaded(hash))
                 RAGE.Game.Invoker.Wait(0);
+        }
+
+        public static void RequestPtfx(string name)
+        {
+            if (RAGE.Game.Streaming.HasNamedPtfxAssetLoaded(name))
+            {
+                RAGE.Game.Graphics.UseParticleFxAssetNextCall(name);
+
+                return;
+            }
+
+            RAGE.Game.Streaming.RequestNamedPtfxAsset(name);
+
+            while (!RAGE.Game.Streaming.HasNamedPtfxAssetLoaded(name))
+                RAGE.Game.Invoker.Wait(0);
+
+            RAGE.Game.Graphics.UseParticleFxAssetNextCall(name);
         }
 
         /// <summary>Метод проверяет, активен ли у локального игрока вид от первого лица</summary>

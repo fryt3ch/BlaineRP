@@ -31,13 +31,15 @@ namespace BCRPServer.Sync
 
             VehicleTrunk, VehicleTrunkForced,
 
+            ItemCigHand,
+            ItemCigMouth,
+
             ItemBurger,
             ItemChips,
             ItemHotdog,
             ItemChocolate,
             ItemPizza,
             ItemCola,
-            ItemJoint,
             ItemBeer,
             ItemVodka,
             ItemRum,

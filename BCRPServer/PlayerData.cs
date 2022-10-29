@@ -593,6 +593,17 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
         public List<Sync.AttachSystem.AttachmentEntityNet> AttachedEntities { get => Player.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedEntitiesKey).ToList<Sync.AttachSystem.AttachmentEntityNet>(); set { Player.SetSharedData(Sync.AttachSystem.AttachedEntitiesKey, value); } }
+
+        /// <summary>Прикрепленные объекты к игроку, которые находятся в руках</summary>
+        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
+        /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
+        public List<Sync.AttachSystem.AttachmentObjectNet> ObjectsInHand
+        {
+            get
+            {
+                return AttachedObjects.Where(x => x.Type != Sync.AttachSystem.Types.WeaponRightTight && x.Type != Sync.AttachSystem.Types.WeaponLeftTight && x.Type != Sync.AttachSystem.Types.WeaponRightBack && x.Type != Sync.AttachSystem.Types.WeaponLeftBack).ToList();
+            }
+        }
         #endregion
 
         #region Stuff

@@ -25,13 +25,15 @@ namespace BCRPServer.Sync
             /// <summary>Свист</summary>
             Whistle,
 
+            SmokePuffCig,
+            SmokeTransitionCig,
+
             ItemBurger,
             ItemChips,
             ItemHotdog,
             ItemChocolate,
             ItemPizza,
             ItemCola,
-            ItemJoint,
             ItemBeer,
             ItemVodka,
             ItemRum,
@@ -301,6 +303,9 @@ namespace BCRPServer.Sync
             { FastTypes.Whistle, 2500 },
 
             { FastTypes.ItemBurger, 6000 },
+
+            { FastTypes.SmokePuffCig, 3000 },
+            { FastTypes.SmokeTransitionCig, 1000 },
         };
 
         /// <summary>Проиграть быструю анимацию на игроке</summary>

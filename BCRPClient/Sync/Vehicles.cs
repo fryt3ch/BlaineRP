@@ -143,6 +143,49 @@ namespace BCRPClient.Sync
 
             GameEvents.Update += ControlledTick;
 
+            GameEvents.Render += () =>
+            {
+                float screenX = 0f, screenY = 0f;
+
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                foreach (var x in Utils.GetVehiclesOnScreen(5))
+                {
+                    var data = GetData(x);
+
+                    if (data == null)
+                        continue;
+
+                    var pos = x.GetRealPosition();
+
+                    if (Vector3.Distance(pos, Player.LocalPlayer.Position) > 10f)
+                        continue;
+
+                    if (!Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
+                        continue;
+
+                    if (Settings.Other.DebugLabels)
+                    {
+                        if (pData.AdminLevel > -1)
+                        {
+                            Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == null ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"EngineOn: {data.EngineOn} | Locked: {data.DoorsLocked} | TrunkLocked: {data.TrunkLocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"Fuel: {data.FuelLevel.ToString("0.00")} | Mileage: {data.Mileage.ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"EngineHP: {x.GetEngineHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"Speed: {x.GetSpeedKm().ToString("0.00")} | ForcedSpeed: {(data.ForcedSpeed * 3.6f).ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        }
+                        else
+                        {
+                            Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"EngineHP: {x.GetEngineHealth()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        }
+                    }
+                }
+            };
+
             Events.OnEntityControllerChange += (Entity entity, Player newController) =>
             {
                 if (entity.Type != RAGE.Elements.Type.Vehicle)
@@ -1021,6 +1064,14 @@ namespace BCRPClient.Sync
 
             if (data == null || vehData == null)
                 return;
+
+            // to trunk
+            if (seatId == int.MaxValue)
+            {
+                Events.CallRemote("Players::GoToTrunk", BCRPClient.Interaction.CurrentEntity as Vehicle);
+
+                return;
+            }
 
             if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
             {

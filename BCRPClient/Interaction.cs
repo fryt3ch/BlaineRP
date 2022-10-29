@@ -9,25 +9,17 @@ namespace BCRPClient
 {
     class Interaction : Events.Script
     {
-        public const float DLRange = 15f;
-
-        private static Dictionary<Vehicle, float> DistancesVehicles;
-
         private static bool _Enabled = false;
-        private static bool _EnabledVisual = false;
-
-        private static bool _EnabledDL = false;
 
         public static bool Enabled { get => _Enabled; set { if (!_Enabled && value) { GameEvents.Render -= Render; GameEvents.Render += Render; _Enabled = value; } else if (_Enabled && !value) { GameEvents.Render -= Render; _Enabled = value; CurrentEntity = null; } } }
-        public static bool EnabledVisual { get => _EnabledVisual; set => _EnabledVisual = value; }
-
-        public static bool EnabledDL { get => _EnabledDL; set { if (!_EnabledDL && value) { GameEvents.Render -= RenderDL; GameEvents.Render += RenderDL; } else if (_EnabledDL && !value) GameEvents.Render -= RenderDL; _EnabledDL = value; } }
+       
+        public static bool EnabledVisual { get; set; }
 
         public static RAGE.Elements.Entity CurrentEntity { get; set; }
 
         public Interaction()
         {
-            DistancesVehicles = new Dictionary<Vehicle, float>();
+
         }
 
         private static void Render()
@@ -50,60 +42,6 @@ namespace BCRPClient
                 return;
 
             Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-        }
-
-        private static void RenderDL()
-        {
-            DistancesVehicles.Clear();
-
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-            if (pData == null)
-                return;
-
-            float screenX = 0f, screenY = 0f;
-
-            foreach (var x in RAGE.Elements.Entities.Vehicles.Streamed.ToList())
-            {
-                if (x?.Exists != true)
-                    continue;
-
-                if (!x.IsOnScreen())
-                    continue;
-
-                var dist = Vector3.Distance(Player.LocalPlayer.Position, x.Position);
-
-                if (dist <= DLRange)
-                    DistancesVehicles.Add(x, dist);
-            }
-
-            foreach (var x in DistancesVehicles.OrderBy(x => x.Value).Select(x => x.Key).Take(5))
-            {
-                if (x?.Exists != true)
-                    continue;
-
-                var data = Sync.Vehicles.GetData(x);
-
-                if (x == null)
-                    continue;
-
-                if (!x.GetScreenPosition(ref screenX, ref screenY))
-                    continue;
-
-                if (pData.AdminLevel > -1)
-                {
-                    Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == null ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"EngineOn: {data.EngineOn} | Locked: {data.DoorsLocked} | TrunkLocked: {data.TrunkLocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"Fuel: {data.FuelLevel.ToString("0.00")} | Mileage: {data.Mileage.ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"EngineHP: {x.GetEngineHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"Speed: {x.GetSpeedKm().ToString("0.00")} | ForcedSpeed: {(data.ForcedSpeed * 3.6f).ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                }
-                else
-                {
-                    Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    Utils.DrawText($"EngineHP: {x.GetEngineHealth()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                }
-            }
         }
     }
 }

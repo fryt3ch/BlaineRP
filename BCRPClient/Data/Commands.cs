@@ -695,6 +695,17 @@ namespace BCRPClient.Data
 
             CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.DebugLabels ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "DL"));
         }
+
+        [Command("raytrace", false, "Показ дополнительных сведений о всех сущностях")]
+        public static void Raytrace(bool? state = null)
+        {
+            if (state == null)
+                Settings.Other.RaytraceEnabled = !Settings.Other.RaytraceEnabled;
+            else
+                Settings.Other.RaytraceEnabled = (bool)state;
+
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Commands.Header, string.Format(Settings.Other.RaytraceEnabled ? Locale.Notifications.Commands.Enabled : Locale.Notifications.Commands.Disabled, "Raytace"));
+        }
         #endregion
 
         #region Chat
