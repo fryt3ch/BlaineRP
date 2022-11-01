@@ -367,13 +367,16 @@ namespace BCRPServer.CEF
                             }
                             else if (group == Groups.Clothes || group == Groups.Accessories)
                             {
-                                NAPI.Task.Run(() =>
+                                if ((item is Game.Items.Clothes.IToggleable tItem))
                                 {
-                                    if (player?.Exists != true)
-                                        return;
+                                    NAPI.Task.Run(() =>
+                                    {
+                                        if (player?.Exists != true)
+                                            return;
 
-                                    ((Game.Items.Clothes)item)?.Action(player);
-                                });
+                                        tItem?.Action(player);
+                                    });
+                                }
 
                                 return Results.Success;
                             }
@@ -1874,7 +1877,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 pData.Weapons[slotFrom].Ammo -= amount;
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value == (Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType).Key, 0, amount);
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType).Key, 0, amount);
 
                                 pData.Weapons[slotFrom].Update();
 
@@ -2010,7 +2013,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 pData.Weapons[slotFrom].Ammo -= amount;
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value == (Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType).Key, 0, amount);
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType).Key, 0, amount);
 
                                 pData.Weapons[slotFrom].Update();
 
@@ -2248,7 +2251,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value == (Game.Items.Item.Types)((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)).Key, 0, amount);
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)).Key, 0, amount);
 
                                 wasCreated = true;
 
@@ -2380,7 +2383,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value == (Game.Items.Item.Types)((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)).Key, 0, amount);
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)).Key, 0, amount);
 
                                 wasCreated = true;
 
@@ -2935,6 +2938,11 @@ namespace BCRPServer.CEF
                     return Results.Error;
 
                 var type = item.GetType();
+
+                var bType = type.BaseType;
+
+                if (bType != null && bType != typeof(Game.Items.Item))
+                    type = bType;
 
                 var a1 = Actions.GetValueOrDefault(type);
 

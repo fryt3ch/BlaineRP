@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Org.BouncyCastle.Asn1.X509;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace BCRPServer.Game.Items
 {
+
     #region Item Class
 
     [JsonConverter(typeof(ItemConverter))]
@@ -148,115 +150,8 @@ namespace BCRPServer.Game.Items
             public uint GetModelAt(int idx) => idx < 0 || idx >= Models.Length ? Model : Models[idx];
         }
 
-        private static Dictionary<Types, ItemData> AllData = new Dictionary<Types, ItemData>()
-        {
-            { Types.NotAssigned, new ItemData(0f, ItemData.DefaultModel) },
-
-            #region Clothes
-            { Types.Hat, new ItemData(0.1f, "prop_proxy_hat_01") },
-            { Types.Top, new ItemData(0.3f, "prop_ld_shirt_01") },
-            { Types.Under, new ItemData(0.2f, "prop_ld_tshirt_02") },
-            { Types.Gloves, new ItemData(0.1f, ItemData.DefaultModel) },
-            { Types.Pants, new ItemData(0.4f, "p_laz_j02_s") },
-            { Types.Shoes, new ItemData(0.3f, "prop_ld_shoe_01") },
-            { Types.Mask, new ItemData(0.2f, "p_trev_ski_mask_s") },
-            { Types.Accessory, new ItemData(0.2f, "p_jewel_necklace_02") },
-            { Types.Glasses, new ItemData(0.2f, "prop_cs_sol_glasses") },
-            { Types.Ears, new ItemData(0.1f, "p_tmom_earrings_s") },
-            { Types.Watches, new ItemData(0.1f, "prop_jewel_02b") },
-            { Types.Bracelet, new ItemData(0.1f, "prop_jewel_02b") },
-            #endregion
-
-            { Types.BArmShop, new ItemData(0.5f, "prop_armour_pickup") },
-            { Types.Bag, new ItemData(0.25f, "prop_cs_heist_bag_01") },
-            { Types.Holster, new ItemData(0.1f, "prop_holster_01") },
-
-            #region Weapons
-            { Types.Stungun, new ItemData(1f, "w_pi_stungun") },
-            { Types.Pistol,  new ItemData(0.5f, "w_pi_pistol") },
-            { Types.CombatPistol, new ItemData(1f, "w_pi_combatpistol") },
-            { Types.HeavyPistol, new ItemData(1f, "w_pi_heavypistol") },
-            { Types.VintagePistol, new ItemData(1f, "w_pi_vintage_pistol") },
-            { Types.MarksmanPistol, new ItemData(1f, "w_pi_singleshot") },
-            { Types.Revolver, new ItemData(1f, "w_pi_revolver") },
-            { Types.APPistol, new ItemData(1f, "w_pi_appistol") },
-            { Types.PistolMk2, new ItemData(1f, "w_pi_pistolmk2") },
-            { Types.RevolverMk2, new ItemData(1f, "w_pi_revolvermk2") },
-            { Types.MicroSMG, new ItemData(1f, "w_sb_microsmg") },
-            { Types.SMG, new ItemData(1f, "w_sb_smg") },
-            { Types.AssaultSMG, new ItemData(1f, "w_sb_assaultsmg") },
-            { Types.CombatPDW, new ItemData(1f, "w_sb_pdw") },
-            { Types.Gusenberg, new ItemData(1f, "w_sb_gusenberg") },
-            { Types.MiniSMG, new ItemData(1f, "w_sb_minismg") },
-            { Types.SMGMk2, new ItemData(1f, "w_sb_smgmk2") },
-            { Types.CombatMG, new ItemData(1f, "w_mg_combatmg") },
-            { Types.MachinePistol, new ItemData(1f, "w_sb_smgmk2") }, // ?
-            { Types.AssaultRifle, new ItemData(1.5f, "w_ar_assaultrifle") },
-            { Types.CarbineRifle, new ItemData(1f, "w_ar_carbinerifle") },
-            { Types.AdvancedRifle, new ItemData(1f, "w_ar_advancedrifle") },
-            { Types.CompactRifle, new ItemData(1f, "w_ar_assaultrifle_smg") },
-            { Types.AssaultRifleMk2, new ItemData(1.5f, "w_ar_assaultriflemk2") },
-            { Types.HeavyRifle, new ItemData(1f, "w_ar_heavyrifle") },
-            { Types.HeavySniper, new ItemData(1f, "w_sr_heavysniper") },
-            { Types.MarksmanRifle, new ItemData(1f, "w_sr_marksmanrifle") },
-            { Types.PumpShotgun, new ItemData(1f, "w_sg_pumpshotgun") },
-            { Types.SawnOffShotgun, new ItemData(1f, "w_sg_sawnoff") },
-            { Types.AssaultShotgun, new ItemData(1f, "w_sg_assaultshotgun") },
-            { Types.Musket, new ItemData(1f, "w_ar_musket") },
-            { Types.HeavyShotgun, new ItemData(1f, "w_sg_heavyshotgun") },
-            { Types.PumpShotgunMk2, new ItemData(1f, "w_sg_pumpshotgunmk2") },
-            { Types.Knife, new ItemData(1f, "w_me_knife_01") },
-            { Types.Nightstick, new ItemData(1f, "w_me_nightstick") },
-            { Types.Hammer, new ItemData(1f, "w_me_hammer") },
-            { Types.Bat, new ItemData(1f, "w_me_bat") },
-            { Types.Crowbar, new ItemData(1f, "w_me_crowbar") },
-            { Types.GolfClub, new ItemData(1f, "w_me_gclub") },
-            { Types.Bottle, new ItemData(1f, "w_me_bottle") },
-            { Types.Dagger, new ItemData(1f, "w_me_dagger") },
-            { Types.Hatchet, new ItemData(1f, "w_me_hatchet") },
-            { Types.Knuckles, new ItemData(1f, "w_me_knuckle") },
-            { Types.Machete, new ItemData(1f, "prop_ld_w_me_machette") },
-            { Types.Flashlight, new ItemData(1f, "w_me_flashlight") },
-            { Types.SwitchBlade, new ItemData(1f, "w_me_switchblade") },
-            { Types.PoolCue, new ItemData(1f, "prop_pool_cue") },
-            { Types.Wrench, new ItemData(0.75f, "prop_cs_wrench") },
-            #endregion
-
-            // Патроны
-            { Types.Ammo5_56, new ItemData(0.01f, "w_am_case") },
-            { Types.Ammo7_62, new ItemData(0.01f, "w_am_case") },
-            { Types.Ammo9, new ItemData(0.01f, "w_am_case") },
-            { Types.Ammo11_43, new ItemData(0.015f, "w_am_case") },
-            { Types.Ammo12, new ItemData(0.015f, "w_am_case") },
-            { Types.Ammo12_7, new ItemData(0.015f, "w_am_case") },
-
-            { Types.Numberplate0, new ItemData(0.15f, "p_num_plate_01") },
-            { Types.Numberplate1, new ItemData(0.15f, "p_num_plate_04") },
-            { Types.Numberplate2, new ItemData(0.15f, "p_num_plate_02") },
-            { Types.Numberplate3, new ItemData(0.15f, "p_num_plate_02") },
-            { Types.Numberplate4, new ItemData(0.15f, "p_num_plate_01") },
-
-            { Types.VehKey, new ItemData(0.05f, "p_car_keys_01") },
-
-            { Types.Cigarettes, new ItemData(0.01f, "prop_cigar_pack_01", "prop_amb_ciggy_01", "ng_proc_cigarette01a") },
-
-            { Types.Burger, new ItemData(0.15f, "prop_cs_burger_01") },
-            { Types.Chips, new ItemData(0.1f, "prop_food_bs_chips") },
-            { Types.Hotdog, new ItemData(0.15f, "prop_cs_hotdog_01") },
-            { Types.Chocolate, new ItemData(0.1f, "prop_candy_pqs") },
-            { Types.Pizza, new ItemData(0.25f, "v_res_tt_pizzaplate") },
-            { Types.Cola, new ItemData(0.25f, "prop_food_juice01") },
-            { Types.Joint, new ItemData(0.01f, "p_amb_joint_01") },
-            { Types.Beer, new ItemData(0.25f, "prop_sh_beer_pissh_01") },
-            { Types.Rum, new ItemData(0.25f, "prop_rum_bottle") },
-            { Types.Vodka, new ItemData(0.25f, "prop_vodka_bottle") },
-            { Types.VegSmoothie, new ItemData(0.25f, "prop_wheat_grass_glass") },
-            { Types.Smoothie, new ItemData(0.25f, "p_cs_shot_glass_2_s") },
-            { Types.Milkshake, new ItemData(0.25f, "prop_drink_whtwine") },
-        };
-
-        public static float GetWeight(Types type) => AllData[type].Weight;
-        public static ItemData GetData(Types type) => AllData[type];
+        public static float GetWeight(Types type) => 0.1f;
+        //public static ItemData GetData(Types type) => AllData[type];
 
         [JsonIgnore]
         public ItemData Data { get; set; }
@@ -272,6 +167,7 @@ namespace BCRPServer.Game.Items
         /// <summary>Тип предмета (см. Game.Items.Item -> Types enum)</summary>
         [JsonIgnore]
         public Types Type { get; set; }
+
         /// <summary>Является ли предмет временным?</summary>
         [JsonIgnore]
         public bool IsTemp { get => UID == 0; }
@@ -475,7 +371,7 @@ namespace BCRPServer.Game.Items
             public ItemData(Types ItemType, float Weight, string Model, TopTypes TopType, Types? AmmoType, WeaponHash Hash, int MaxAmmo, bool CanUseInVehicle = false) : this(ItemType, Weight, Model, TopType, AmmoType, (uint)Hash, MaxAmmo, CanUseInVehicle) { }
         }
 
-        public static Dictionary<string, ItemData> IDList = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
             { "w_asrifle", new ItemData(Types.AssaultRifle, 1.5f, "w_ar_assaultrifle", ItemData.TopTypes.AssaultRifle, Types.Ammo7_62, WeaponHash.Assaultrifle, 30, false) },
             { "w_asrifle_mk2", new ItemData(Types.AssaultRifleMk2, 1.5f, "w_ar_assaultriflemk2", ItemData.TopTypes.AssaultRifle, Types.Ammo7_62, WeaponHash.Assaultrifle_mk2, 35, false) },
@@ -533,11 +429,11 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public ItemData Data { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         /// <summary>Обший вес оружия (вместе с патронами в обойме)</summary>
         [JsonIgnore]
-        public float Weight { get => Data.AmmoType == null ? (this as Item).Weight : (this as Item).Weight + Ammo * Item.GetWeight((Types)Data.AmmoType); }
+        public float Weight { get => Data.AmmoType == null ? base.Weight : base.Weight + Ammo * Item.GetWeight((Types)Data.AmmoType); }
 
         public string Tag { get; set; }
 
@@ -685,10 +581,8 @@ namespace BCRPServer.Game.Items
         {
             this.ID = ID;
 
-            this.Data = IDList[ID];
-            this.Type = Data.ItemType;
-
-            base.Data = Item.GetData(Type);
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
 
             this.Tag = "";
             this.Ammo = 0;
@@ -711,15 +605,18 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public static Dictionary<string, ItemData> IDList = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "am_5.56", new ItemData(Item.Types.Ammo5_56, 0.01f, "w_am_case") },
-            { "am_7.62", new ItemData(Item.Types.Ammo7_62, 0.01f, "w_am_case") },
-            { "am_9", new ItemData(Item.Types.Ammo9, 0.01f, "w_am_case") },
-            { "am_11.43", new ItemData(Item.Types.Ammo11_43, 0.015f, "w_am_case") },
-            { "am_12", new ItemData(Item.Types.Ammo12 , 0.015f, "w_am_case") },
-            { "am_12.7", new ItemData(Item.Types.Ammo12_7, 0.015f, "w_am_case") },
+            { "am_5.56", new ItemData(Types.Ammo5_56, 0.01f, "w_am_case") },
+            { "am_7.62", new ItemData(Types.Ammo7_62, 0.01f, "w_am_case") },
+            { "am_9", new ItemData(Types.Ammo9, 0.01f, "w_am_case") },
+            { "am_11.43", new ItemData(Types.Ammo11_43, 0.015f, "w_am_case") },
+            { "am_12", new ItemData(Types.Ammo12 , 0.015f, "w_am_case") },
+            { "am_12.7", new ItemData(Types.Ammo12_7, 0.015f, "w_am_case") },
         };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
         public float Weight { get => Amount * base.Weight; }
@@ -734,36 +631,223 @@ namespace BCRPServer.Game.Items
             this.Amount = 0;
             this.ID = ID;
 
-            this.Type = IDList[ID];
-
-            base.Data = Item.GetData(Type);
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
         }
     }
     #endregion
 
     #region Clothes
-    public class Clothes : Item, IWearable
+    public abstract class Clothes : Item, IWearable
     {
-        [JsonIgnore]
-        public Game.Data.Clothes.Data Data { get; set; }
+        public interface IToggleable
+        {
+            public bool Toggled { get; set; }
+
+            public void Action(Player player);
+        }
+
+        public abstract class ItemData : Item.ItemData
+        {
+            public class ExtraData
+            {
+                public int Drawable { get; set; }
+
+                public int BestTorso { get; set; }
+
+                public ExtraData(int Drawable, int BestTorso)
+                {
+                    this.Drawable = Drawable;
+                    this.BestTorso = BestTorso;
+                }
+            }
+
+            public bool Sex { get; set; }
+
+            public int Drawable { get; set; }
+
+            public int[] Textures { get; set; }
+
+            public string SexAlternativeID { get; set; }
+
+            public ItemData(Types ItemType, float Weight, string Model, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(ItemType, Weight, Model)
+            {
+                this.Drawable = Drawable;
+                this.Textures = Textures;
+
+                this.Sex = Sex;
+
+                this.SexAlternativeID = SexAlternativeID;
+            }
+        }
+
+        public abstract void Wear(Player player);
+
+        public abstract void Unwear(Player player);
 
         [JsonIgnore]
-        public Game.Data.Clothes.Data SexAlternativeData { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
-        #region Wear
-        public void Wear(Player player)
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get; set; }
+
+        /// <summary>Вариация одежды</summary>
+        public int Var { get; set; }
+
+        public Clothes(string ID, int Var)
+        {
+            this.ID = ID;
+
+            this.Var = Var;
+        }
+    }
+
+    public class Hat : Clothes, Clothes.IToggleable
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ExtraData ExtraData { get; set; }
+
+            public ItemData(bool Sex, int Drawable, int[] Textures, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Types.Hat, 0.1f, "prop_proxy_hat_01", Sex, Drawable, Textures, SexAlternativeID)
+            {
+                this.ExtraData = ExtraData;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region Hats Male
+            { "hat_m_0", new ItemData(true, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_1", new ItemData(true, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_2", new ItemData(true, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_3", new ItemData(true, 28, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "hat_m_4", new ItemData(true, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_5", new ItemData(true, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_6", new ItemData(true, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_7", new ItemData(true, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_8", new ItemData(true, 20, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "hat_m_9", new ItemData(true, 31, new int[] { 0 }) },
+            { "hat_m_10", new ItemData(true, 32, new int[] { 0 }) },
+            { "hat_m_11", new ItemData(true, 34, new int[] { 0 }) },
+            { "hat_m_12", new ItemData(true, 37, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "hat_m_13", new ItemData(true, 54, new int[] { 0, 1 }) },
+            { "hat_m_14", new ItemData(true, 56, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_m_15", new ItemData(true, 63, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_m_16", new ItemData(true, 65, new int[] { 0 }) },
+            { "hat_m_17", new ItemData(true, 83, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "hat_m_18", new ItemData(true, 94, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_m_19", new ItemData(true, 120, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "hat_m_20", new ItemData(true, 135, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }) },
+            { "hat_m_21", new ItemData(true, 16, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_22", new ItemData(true, 50, new int[] { 0 }) },
+            { "hat_m_23", new ItemData(true, 51, new int[] { 0 }) },
+            { "hat_m_24", new ItemData(true, 73, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "hat_m_25", new ItemData(true, 78, new int[] { 0, 1, 2, 3, 4 }) },
+            { "hat_m_26", new ItemData(true, 80, new int[] { 0, 1, 2, 3 }) },
+            { "hat_m_27", new ItemData(true, 82, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }) },
+            { "hat_m_28", new ItemData(true, 85, new int[] { 0 }) },
+            { "hat_m_29", new ItemData(true, 86, new int[] { 0 }) },
+            { "hat_m_30", new ItemData(true, 87, new int[] { 0 }) },
+            { "hat_m_31", new ItemData(true, 88, new int[] { 0 }) },
+            { "hat_m_32", new ItemData(true, 76, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }) },
+            { "hat_m_33", new ItemData(true, 109, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "hat_m_34", new ItemData(true, 130, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 }) },
+            { "hat_m_35", new ItemData(true, 139, new int[] { 0, 1, 2 }) },
+            { "hat_m_36", new ItemData(true, 142, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "hat_m_37", new ItemData(true, 151, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_38", new ItemData(true, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_39", new ItemData(true, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_40", new ItemData(true, 21, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_41", new ItemData(true, 25, new int[] { 0, 1, 2 }) },
+            { "hat_m_42", new ItemData(true, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "hat_m_43", new ItemData(true, 27, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "hat_m_44", new ItemData(true, 29, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_m_45", new ItemData(true, 30, new int[] { 0, 1 }) },
+            { "hat_m_46", new ItemData(true, 33, new int[] { 0, 1 }) },
+            { "hat_m_47", new ItemData(true, 55, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "hat_m_48", new ItemData(true, 61, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_m_49", new ItemData(true, 64, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "hat_m_50", new ItemData(true, 84, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_m_51", new ItemData(true, 89, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_m_52", new ItemData(true, 90, new int[] { 0 }) },
+            { "hat_m_53", new ItemData(true, 96, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "hat_m_54", new ItemData(true, 154, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            #endregion
+
+            #region Hats Female
+            { "hat_f_0", new ItemData(false, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_1", new ItemData(false, 5, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_2", new ItemData(false, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_3", new ItemData(false, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_4", new ItemData(false, 20, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "hat_f_5", new ItemData(false, 21, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "hat_f_6", new ItemData(false, 22, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "hat_f_7", new ItemData(false, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_8", new ItemData(false, 30, new int[] { 0 }) },
+            { "hat_f_9", new ItemData(false, 31, new int[] { 0 }) },
+            { "hat_f_10", new ItemData(false, 33, new int[] { 0 }) },
+            { "hat_f_11", new ItemData(false, 36, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "hat_f_12", new ItemData(false, 53, new int[] { 0, 1 }) },
+            { "hat_f_13", new ItemData(false, 56, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_f_14", new ItemData(false, 63, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_f_15", new ItemData(false, 64, new int[] { 0 }) },
+            { "hat_f_16", new ItemData(false, 82, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "hat_f_17", new ItemData(false, 131, new int[] { 0, 1, 2, 3 }) },
+            { "hat_f_18", new ItemData(false, 55, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "hat_f_19", new ItemData(false, 134, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }) },
+            { "hat_f_20", new ItemData(false, 16, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_21", new ItemData(false, 50, new int[] { 0 }) },
+            { "hat_f_22", new ItemData(false, 49, new int[] { 0 }) },
+            { "hat_f_23", new ItemData(false, 72, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "hat_f_24", new ItemData(false, 77, new int[] { 0, 1, 2, 3, 4 }) },
+            { "hat_f_25", new ItemData(false, 79, new int[] { 0, 1, 2, 3 }) },
+            { "hat_f_26", new ItemData(false, 81, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }) },
+            { "hat_f_27", new ItemData(false, 84, new int[] { 0 }) },
+            { "hat_f_28", new ItemData(false, 85, new int[] { 0 }) },
+            { "hat_f_29", new ItemData(false, 86, new int[] { 0 }) },
+            { "hat_f_30", new ItemData(false, 87, new int[] { 0 }) },
+            { "hat_f_31", new ItemData(false, 75, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }) },
+            { "hat_f_32", new ItemData(false, 108, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "hat_f_33", new ItemData(false, 129, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 }) },
+            { "hat_f_34", new ItemData(false, 141, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "hat_f_35", new ItemData(false, 93, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_f_36", new ItemData(false, 150, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_37", new ItemData(false, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_38", new ItemData(false, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_39", new ItemData(false, 28, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_40", new ItemData(false, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "hat_f_41", new ItemData(false, 27, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "hat_f_42", new ItemData(false, 54, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "hat_f_43", new ItemData(false, 32, new int[] { 0, 1 }) },
+            { "hat_f_44", new ItemData(false, 95, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "hat_f_45", new ItemData(false, 61, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_f_46", new ItemData(false, 83, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_f_47", new ItemData(false, 88, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "hat_f_48", new ItemData(false, 89, new int[] { 0 }) },
+            { "hat_f_49", new ItemData(false, 153, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        /// <summary>Переключено ли состояние</summary>
+        public bool Toggled { get; set; }
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
         {
             if (player?.Exists != true)
                 return;
 
             var pData = player.GetMainData();
 
-            if (pData == null)
-                return;
-
             var data = Data;
 
-            if (data.Sex != pData.Sex)
+            if (Data.Sex != player.GetSex())
                 data = SexAlternativeData;
 
             if (data == null)
@@ -771,240 +855,1878 @@ namespace BCRPServer.Game.Items
 
             var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
 
-            var slot = Game.Data.Clothes.GetSlot(Type);
-
-            if (!data.IsProp)
-            {
-                if (data.ItemType == Types.Top)
-                {
-                    var tData = data as Game.Data.Clothes.Top;
-
-                    if (Toggled)
-                    {
-                        player.SetClothes(slot, tData.ExtraData.Drawable, variation);
-                        player.SetClothes(3, tData.ExtraData.BestTorso, 0);
-                    }
-                    else
-                    {
-                        player.SetClothes(slot, data.Drawable, variation);
-                        player.SetClothes(3, tData.BestTorso, 0);
-                    }
-
-                    if (pData.Armour != null)
-                    {
-                        var aData = pData.Armour.Data;
-
-                        player.SetClothes(9, aData.Drawables[pData.Sex].DrawableTop, aData.Texture);
-                    }
-
-                    if (pData.Clothes[2] != null)
-                        pData.Clothes[2].Wear(player);
-                    else
-                        pData.Accessories[7]?.Wear(player);
-                }
-                else if (data.ItemType == Types.Under)
-                {
-                    var uData = data as Game.Data.Clothes.Under;
-
-                    if (pData.Clothes[1] == null && uData.BestTop != null)
-                    {
-                        if (Toggled && uData.BestTop.ExtraData != null)
-                        {
-                            player.SetClothes(11, uData.BestTop.ExtraData.Drawable, variation);
-                            player.SetClothes(3, uData.BestTop.ExtraData.BestTorso, 0);
-                        }
-                        else
-                        {
-                            player.SetClothes(11, uData.BestTop.Drawable, variation);
-                            player.SetClothes(3, uData.BestTop.BestTorso, 0);
-                        }
-                    }
-                    else
-                    {
-                        if (Toggled && uData.ExtraData != null)
-                        {
-                            player.SetClothes(slot, uData.ExtraData.Drawable, variation);
-                            player.SetClothes(3, uData.ExtraData.BestTorso, 0);
-                        }
-                        else
-                        {
-                            player.SetClothes(slot, data.Drawable, variation);
-                            player.SetClothes(3, uData.BestTorso, 0);
-                        }
-                    }
-
-                    pData.Accessories[7]?.Wear(player);
-                }
-                else if (data.ItemType == Types.Gloves)
-                {
-                    var gData = data as Game.Data.Clothes.Gloves;
-
-                    int curTorso = player.GetClothesDrawable(slot);
-
-                    if (gData.BestTorsos.ContainsKey(curTorso))
-                        player.SetClothes(slot, gData.BestTorsos[curTorso], variation);
-                }
-                else
-                    player.SetClothes(slot, data.Drawable, variation);
-            }
+            if (data.ExtraData != null)
+                player.SetAccessories(0, Toggled ? data.ExtraData.Drawable : data.Drawable, variation);
             else
-            {
-                if (data.ItemType == Types.Hat)
-                {
-                    var hData = data as Game.Data.Clothes.Hat;
+                player.SetAccessories(0, data.Drawable, variation);
 
-                    if (hData.ExtraData != null)
-                        player.SetAccessories(slot, Toggled ? hData.ExtraData.Drawable : data.Drawable, variation);
-                    else
-                        player.SetAccessories(slot, data.Drawable, variation);
-
-                    pData.Hat = $"{this.ID}|{variation}|{(Toggled ? 1 : 0)}";
-                }
-                else
-                    player.SetAccessories(slot, data.Drawable, variation);
-            }
+            pData.Hat = $"{this.ID}|{variation}|{(Toggled ? 1 : 0)}";
         }
-        #endregion
 
-        #region Unwear
-        public void Unwear(Player player)
+        public override void Unwear(Player player)
         {
             if (player?.Exists != true)
                 return;
 
             var pData = player.GetMainData();
 
-            if (pData == null)
+            player.ClearAccessory(0);
+
+            pData.Hat = null;
+        }
+
+        public void Action(Player player)
+        {
+            if (Data.ExtraData == null)
                 return;
+
+            Toggled = !Toggled;
+
+            Wear(player);
+        }
+
+        public Hat(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Top : Clothes, Clothes.IToggleable
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public int BestTorso { get; set; }
+
+            public ExtraData ExtraData { get; set; }
+
+            public ItemData(bool Sex, int Drawable, int[] Textures, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Types.Top, 0.3f, "prop_ld_shirt_01", Sex, Drawable, Textures, SexAlternativeID)
+            {
+                this.BestTorso = BestTorso;
+                this.ExtraData = ExtraData;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region Tops Male
+            { "top_m_0", new ItemData(true, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_m_1", new ItemData(true, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14) },
+            { "top_m_3", new ItemData(true, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_m_4", new ItemData(true, 37, new int[] { 0, 1, 2 }, 14) },
+            { "top_m_5", new ItemData(true, 57, new int[] { 0 }, 4) },
+            { "top_m_6", new ItemData(true, 105, new int[] { 0 }, 0) },
+            { "top_m_7", new ItemData(true, 81, new int[] { 0, 1, 2 }, 0) },
+            { "top_m_8", new ItemData(true, 123, new int[] { 0, 1, 2 }, 0) },
+            { "top_m_9", new ItemData(true, 128, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 0) },
+            { "top_m_10", new ItemData(true, 83, new int[] { 0, 1, 2, 3, 4 }, 0) },
+            { "top_m_11", new ItemData(true, 82, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 0) },
+            { "top_m_12", new ItemData(true, 84, new int[] { 0, 1, 2, 3, 4, 5 }, 4) },
+            { "top_m_13", new ItemData(true, 61, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_14", new ItemData(true, 62, new int[] { 0 }, 14) },
+            { "top_m_15", new ItemData(true, 64, new int[] { 0 }, 14) },
+            { "top_m_16", new ItemData(true, 141, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 6) },
+            { "top_m_17", new ItemData(true, 69, new int[] { 0, 1, 2, 3, 4, 5 }, 14, new ItemData.ExtraData(68, 14)) },
+            { "top_m_18", new ItemData(true, 79, new int[] { 0 }, 6) },
+            { "top_m_19", new ItemData(true, 235, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 0, new ItemData.ExtraData(236, 0)) },
+            { "top_m_20", new ItemData(true, 86, new int[] { 0, 1, 2, 3, 4 }, 4) },
+            { "top_m_22", new ItemData(true, 88, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14, new ItemData.ExtraData(87, 14)) },
+            { "top_m_23", new ItemData(true, 106, new int[] { 0 }, 14) },
+            { "top_m_24", new ItemData(true, 234, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 11) },
+            { "top_m_25", new ItemData(true, 107, new int[] { 0, 1, 2, 3, 4 }, 4) },
+            { "top_m_26", new ItemData(true, 110, new int[] { 0 }, 4) },
+            { "top_m_27", new ItemData(true, 113, new int[] { 0, 1, 2, 3 }, 6) },
+            { "top_m_28", new ItemData(true, 114, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 14) },
+            { "top_m_29", new ItemData(true, 118, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 14) },
+            { "top_m_30", new ItemData(true, 121, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 4) },
+            { "top_m_31", new ItemData(true, 122, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 14) },
+            { "top_m_32", new ItemData(true, 126, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 4, new ItemData.ExtraData(127, 14)) },
+            { "top_m_33", new ItemData(true, 130, new int[] { 0 }, 14) },
+            { "top_m_34", new ItemData(true, 164, new int[] { 0, 1, 2 }, 0) },
+            { "top_m_35", new ItemData(true, 136, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 14) },
+            { "top_m_36", new ItemData(true, 137, new int[] { 0, 1, 2 }, 15) },
+            { "top_m_37", new ItemData(true, 143, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 4) },
+            { "top_m_38", new ItemData(true, 147, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 4) },
+            { "top_m_39", new ItemData(true, 148, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 4) },
+            { "top_m_40", new ItemData(true, 149, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 14) },
+            { "top_m_41", new ItemData(true, 150, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 4) },
+            { "top_m_42", new ItemData(true, 151, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_m_43", new ItemData(true, 153, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4) },
+            { "top_m_44", new ItemData(true, 154, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 12) },
+            { "top_m_45", new ItemData(true, 157, new int[] { 0, 1, 2, 3 }, 112) },
+            { "top_m_46", new ItemData(true, 160, new int[] { 0, 1 }, 112) },
+            { "top_m_47", new ItemData(true, 162, new int[] { 0, 1, 2, 3 }, 114) },
+            { "top_m_48", new ItemData(true, 163, new int[] { 0 }, 14) },
+            { "top_m_49", new ItemData(true, 166, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_m_50", new ItemData(true, 167, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_m_51", new ItemData(true, 169, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_52", new ItemData(true, 170, new int[] { 0, 1, 2, 3 }, 112) },
+            { "top_m_53", new ItemData(true, 172, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_54", new ItemData(true, 173, new int[] { 0, 1, 2, 3 }, 112) },
+            { "top_m_55", new ItemData(true, 174, new int[] { 0, 1, 2, 3 }, 6) },
+            { "top_m_56", new ItemData(true, 175, new int[] { 0, 1, 2, 3 }, 114) },
+            { "top_m_57", new ItemData(true, 184, new int[] { 0, 1, 2, 3 }, 6, new ItemData.ExtraData(185, 14)) },
+            { "top_m_58", new ItemData(true, 187, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, 6, new ItemData.ExtraData(204, 6)) },
+            { "top_m_59", new ItemData(true, 200, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4, new ItemData.ExtraData(203, 4)) },
+            { "top_m_60", new ItemData(true, 205, new int[] { 0, 1, 2, 3, 4 }, 114, new ItemData.ExtraData(202, 114)) },
+            { "top_m_61", new ItemData(true, 230, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14, new ItemData.ExtraData(229, 14)) },
+            { "top_m_62", new ItemData(true, 251, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4, new ItemData.ExtraData(253, 4)) },
+            { "top_m_63", new ItemData(true, 193, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 0) },
+            { "top_m_64", new ItemData(true, 258, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 6) },
+            { "top_m_65", new ItemData(true, 261, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_m_66", new ItemData(true, 255, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4) },
+            { "top_m_67", new ItemData(true, 257, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 6) },
+            { "top_m_68", new ItemData(true, 259, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 6) },
+            { "top_m_69", new ItemData(true, 262, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 4, new ItemData.ExtraData(263, 4)) },
+            { "top_m_70", new ItemData(true, 264, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 6) },
+            { "top_m_71", new ItemData(true, 271, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 0) },
+            { "top_m_72", new ItemData(true, 273, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }, 0) },
+            { "top_m_73", new ItemData(true, 279, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }, 4, new ItemData.ExtraData(280, 4)) },
+            { "top_m_74", new ItemData(true, 281, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 6) },
+            { "top_m_75", new ItemData(true, 282, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 0) },
+            { "top_m_76", new ItemData(true, 296, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4, new ItemData.ExtraData(297, 4)) },
+            { "top_m_77", new ItemData(true, 308, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 4) },
+            { "top_m_78", new ItemData(true, 313, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 0) },
+            { "top_m_79", new ItemData(true, 325, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 0) },
+            { "top_m_80", new ItemData(true, 323, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 0) },
+            { "top_m_81", new ItemData(true, 50, new int[] { 0, 1, 2, 3, 4 }, 4) },
+            { "top_m_82", new ItemData(true, 59, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_83", new ItemData(true, 67, new int[] { 0, 1, 2, 3 }, 4) },
+            { "top_m_84", new ItemData(true, 85, new int[] { 0 }, 1) },
+            { "top_m_85", new ItemData(true, 89, new int[] { 0, 1, 2, 3 }, 6) },
+            { "top_m_86", new ItemData(true, 109, new int[] { 0 }, 15) },
+            { "top_m_87", new ItemData(true, 111, new int[] { 0, 1, 2, 3, 4, 5 }, 4) },
+            { "top_m_88", new ItemData(true, 124, new int[] { 0 }, 14) },
+            { "top_m_89", new ItemData(true, 125, new int[] { 0 }, 4) },
+            { "top_m_90", new ItemData(true, 131, new int[] { 0 }, 0, new ItemData.ExtraData(132, 0)) },
+            { "top_m_92", new ItemData(true, 134, new int[] { 0, 1, 2 }, 4) },
+            { "top_m_93", new ItemData(true, 135, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 0) },
+            { "top_m_94", new ItemData(true, 138, new int[] { 0, 1, 2 }, 4) },
+            { "top_m_97", new ItemData(true, 155, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_98", new ItemData(true, 158, new int[] { 0, 1, 2 }, 113) },
+            { "top_m_99", new ItemData(true, 159, new int[] { 0, 1 }, 114) },
+            { "top_m_100", new ItemData(true, 165, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 6) },
+            { "top_m_101", new ItemData(true, 168, new int[] { 0, 1, 2 }, 12) },
+            { "top_m_102", new ItemData(true, 171, new int[] { 0, 1 }, 4) },
+            { "top_m_103", new ItemData(true, 176, new int[] { 0 }, 114) },
+            { "top_m_104", new ItemData(true, 177, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 2) },
+            { "top_m_105", new ItemData(true, 181, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_m_106", new ItemData(true, 189, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 14, new ItemData.ExtraData(188, 14)) },
+            { "top_m_107", new ItemData(true, 190, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 6) },
+            { "top_m_108", new ItemData(true, 223, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 2) },
+            { "top_m_109", new ItemData(true, 224, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 12) },
+            { "top_m_110", new ItemData(true, 225, new int[] { 0, 1 }, 8) },
+            { "top_m_112", new ItemData(true, 237, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 5) },
+            { "top_m_113", new ItemData(true, 238, new int[] { 0, 1, 2, 3, 4, 5 }, 2) },
+            { "top_m_114", new ItemData(true, 241, new int[] { 0, 1, 2, 3, 4, 5 }, 0, new ItemData.ExtraData(242, 0)) },
+            { "top_m_116", new ItemData(true, 329, new int[] { 0 }, 4) },
+            { "top_m_117", new ItemData(true, 330, new int[] { 0 }, 4, new ItemData.ExtraData(331, 4)) },
+            { "top_m_118", new ItemData(true, 332, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4) },
+            { "top_m_119", new ItemData(true, 334, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 0) },
+            { "top_m_120", new ItemData(true, 335, new int[] { 0, 1, 2, 3, 4, 5 }, 8) },
+            { "top_m_121", new ItemData(true, 340, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 14, new ItemData.ExtraData(341, 1)) },
+            { "top_m_122", new ItemData(true, 342, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 4) },
+            { "top_m_123", new ItemData(true, 344, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 14, new ItemData.ExtraData(343, 14)) },
+            { "top_m_124", new ItemData(true, 350, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 0) },
+            { "top_m_126", new ItemData(true, 217, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 6) },
+            { "top_m_127", new ItemData(true, 233, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 14, new ItemData.ExtraData(232, 14)) },
+            { "top_m_128", new ItemData(true, 351, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 0) },
+            { "top_m_129", new ItemData(true, 352, new int[] { 0, 1, 2 }, 4, new ItemData.ExtraData(353, 4)) },
+            { "top_m_130", new ItemData(true, 357, new int[] { 0, 1 }, 2) },
+            { "top_m_132", new ItemData(true, 382, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 0, new ItemData.ExtraData(383, 0)) },
+            { "top_m_133", new ItemData(true, 384, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4, new ItemData.ExtraData(385, 4)) },
+            { "top_m_134", new ItemData(true, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14, new ItemData.ExtraData(10, 14)) },
+            { "top_m_135", new ItemData(true, 119, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14) },
+            { "top_m_136", new ItemData(true, 21, new int[] { 0, 1, 2, 3 }, 15) },
+            { "top_m_137", new ItemData(true, 25, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 15) },
+            { "top_m_138", new ItemData(true, 24, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, 14) },
+            { "top_m_139", new ItemData(true, 27, new int[] { 0, 1, 2 }, 14) },
+            { "top_m_140", new ItemData(true, 28, new int[] { 0, 1, 2 }, 14) },
+            { "top_m_141", new ItemData(true, 35, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 14) },
+            { "top_m_142", new ItemData(true, 45, new int[] { 0, 1, 2 }, 15) },
+            { "top_m_143", new ItemData(true, 46, new int[] { 0, 1, 2 }, 14) },
+            { "top_m_144", new ItemData(true, 58, new int[] { 0 }, 14) },
+            { "top_m_145", new ItemData(true, 70, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14) },
+            { "top_m_146", new ItemData(true, 72, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_147", new ItemData(true, 74, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 14, new ItemData.ExtraData(75, 14)) },
+            { "top_m_148", new ItemData(true, 76, new int[] { 0, 1, 2, 3, 4 }, 14) },
+            { "top_m_149", new ItemData(true, 77, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_150", new ItemData(true, 99, new int[] { 0, 1, 2, 3, 4 }, 14, new ItemData.ExtraData(100, 14)) },
+            { "top_m_151", new ItemData(true, 108, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 14) },
+            { "top_m_152", new ItemData(true, 142, new int[] { 0, 1, 2 }, 14) },
+            { "top_m_153", new ItemData(true, 140, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 14) },
+            { "top_m_154", new ItemData(true, 145, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 14) },
+            { "top_m_155", new ItemData(true, 183, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_m_156", new ItemData(true, 191, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 14) },
+            { "top_m_157", new ItemData(true, 192, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14) },
+            { "top_m_158", new ItemData(true, 269, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_m_159", new ItemData(true, 266, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }, 14, new ItemData.ExtraData(265, 14)) },
+            { "top_m_160", new ItemData(true, 260, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 11) },
+            { "top_m_161", new ItemData(true, 298, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 }, 4) },
+            { "top_m_162", new ItemData(true, 299, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 0) },
+            { "top_m_163", new ItemData(true, 303, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 14, new ItemData.ExtraData(300, 6)) },
+            { "top_m_164", new ItemData(true, 301, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 14, new ItemData.ExtraData(302, 14)) },
+            { "top_m_165", new ItemData(true, 304, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 14) },
+            { "top_m_166", new ItemData(true, 305, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4, new ItemData.ExtraData(306, 4)) },
+            { "top_m_167", new ItemData(true, 307, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 6) },
+            { "top_m_168", new ItemData(true, 309, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 14) },
+            { "top_m_170", new ItemData(true, 11, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 15) },
+            { "top_m_171", new ItemData(true, 20, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_172", new ItemData(true, 23, new int[] { 0, 1, 2, 3 }, 14) },
+            { "top_m_173", new ItemData(true, 40, new int[] { 0, 1 }, 15) },
+            { "top_m_174", new ItemData(true, 103, new int[] { 0 }, 14) },
+            { "top_m_175", new ItemData(true, 112, new int[] { 0 }, 14) },
+            { "top_m_176", new ItemData(true, 115, new int[] { 0 }, 14) },
+            { "top_m_177", new ItemData(true, 120, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 15) },
+            { "top_m_178", new ItemData(true, 161, new int[] { 0, 1, 2, 3 }, 6) },
+            { "top_m_179", new ItemData(true, 240, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_m_180", new ItemData(true, 310, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 14) },
+            { "top_m_181", new ItemData(true, 338, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_m_182", new ItemData(true, 348, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }, 1, new ItemData.ExtraData(349, 1)) },
+            { "top_m_183", new ItemData(true, 78, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 6) },
+            { "top_m_184", new ItemData(true, 355, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 184, new ItemData.ExtraData(354, 184)) },
+            { "top_m_185", new ItemData(true, 358, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 6) },
+            { "top_m_186", new ItemData(true, 360, new int[] { 0 }, 14, new ItemData.ExtraData(359, 14)) },
+            { "top_m_187", new ItemData(true, 361, new int[] { 0 }, 4) },
+            { "top_m_188", new ItemData(true, 369, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 2) },
+            { "top_m_189", new ItemData(true, 370, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 12) },
+            { "top_m_190", new ItemData(true, 371, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 4) },
+            { "top_m_191", new ItemData(true, 374, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 4, new ItemData.ExtraData(373, 4)) },
+            { "top_m_192", new ItemData(true, 376, new int[] { 0, 1, 2 }, 14, new ItemData.ExtraData(375, 14)) },
+            { "top_m_193", new ItemData(true, 377, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 0) },
+            { "top_m_194", new ItemData(true, 378, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 12) },
+            { "top_m_195", new ItemData(true, 381, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14, new ItemData.ExtraData(379, 14)) },
+            { "top_m_196", new ItemData(true, 387, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 14, new ItemData.ExtraData(386, 14)) },
+            { "top_m_197", new ItemData(true, 390, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 14, new ItemData.ExtraData(388, 14)) },
+            { "top_m_198", new ItemData(true, 391, new int[] { 0, 1, 2 }, 14, new ItemData.ExtraData(389, 14)) },
+
+            { "top_m_199", new ItemData(true, 29, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 14, new ItemData.ExtraData(30, 14)) },
+            { "top_m_200", new ItemData(true, 31, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 14, new ItemData.ExtraData(32, 14)) },
+            #endregion
+
+            #region Tops Female
+            { "top_f_1", new ItemData(false, 161, new int[] { 0, 1, 2 }, 9) },
+            { "top_f_2", new ItemData(false, 16, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 4) },
+            { "top_f_3", new ItemData(false, 1, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_4", new ItemData(false, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_5", new ItemData(false, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 7) },
+            { "top_f_6", new ItemData(false, 17, new int[] { 0 }, 9) },
+            { "top_f_8", new ItemData(false, 31, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 5) },
+            { "top_f_10", new ItemData(false, 33, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 4) },
+            { "top_f_11", new ItemData(false, 37, new int[] { 0, 1, 2, 3, 4, 5 }, 4) },
+            { "top_f_12", new ItemData(false, 43, new int[] { 0, 1, 2, 3, 4 }, 3) },
+            { "top_f_13", new ItemData(false, 50, new int[] { 0 }, 3) },
+            { "top_f_14", new ItemData(false, 54, new int[] { 0, 1, 2, 3 }, 3) },
+            { "top_f_15", new ItemData(false, 55, new int[] { 0 }, 3) },
+            { "top_f_16", new ItemData(false, 63, new int[] { 0, 1, 2, 3, 4, 5 }, 3) },
+            { "top_f_17", new ItemData(false, 69, new int[] { 0 }, 5) },
+            { "top_f_18", new ItemData(false, 71, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 1) },
+            { "top_f_19", new ItemData(false, 72, new int[] { 0 }, 1) },
+            { "top_f_20", new ItemData(false, 76, new int[] { 0, 1, 2, 3, 4 }, 9) },
+            { "top_f_21", new ItemData(false, 78, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 3) },
+            { "top_f_22", new ItemData(false, 79, new int[] { 0, 1, 2, 3 }, 1) },
+            { "top_f_23", new ItemData(false, 81, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 3) },
+            { "top_f_24", new ItemData(false, 86, new int[] { 0, 1, 2 }, 9) },
+            { "top_f_25", new ItemData(false, 96, new int[] { 0 }, 9) },
+            { "top_f_26", new ItemData(false, 97, new int[] { 0 }, 6) },
+            { "top_f_27", new ItemData(false, 98, new int[] { 0, 1, 2, 3, 4 }, 3) },
+            { "top_f_28", new ItemData(false, 121, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }, 3) },
+            { "top_f_29", new ItemData(false, 100, new int[] { 0 }, 6) },
+            { "top_f_30", new ItemData(false, 105, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 0) },
+            { "top_f_31", new ItemData(false, 106, new int[] { 0, 1, 2, 3 }, 6) },
+            { "top_f_32", new ItemData(false, 109, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 0) },
+            { "top_f_33", new ItemData(false, 110, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 3) },
+            { "top_f_34", new ItemData(false, 116, new int[] { 0, 1, 2 }, 11) },
+            { "top_f_35", new ItemData(false, 119, new int[] { 0, 1, 2 }, 14) },
+            { "top_f_36", new ItemData(false, 125, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 14) },
+            { "top_f_37", new ItemData(false, 127, new int[] { 0 }, 3) },
+            { "top_f_38", new ItemData(false, 132, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 9) },
+            { "top_f_39", new ItemData(false, 133, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 6) },
+            { "top_f_40", new ItemData(false, 138, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 6) },
+            { "top_f_41", new ItemData(false, 140, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 3) },
+            { "top_f_42", new ItemData(false, 144, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 3) },
+            { "top_f_43", new ItemData(false, 123, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 3) },
+            { "top_f_44", new ItemData(false, 145, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 3) },
+            { "top_f_45", new ItemData(false, 146, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 7) },
+            { "top_f_46", new ItemData(false, 147, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 3) },
+            { "top_f_47", new ItemData(false, 150, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_48", new ItemData(false, 151, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 1) },
+            { "top_f_49", new ItemData(false, 154, new int[] { 0, 1, 2, 3 }, 129) },
+            { "top_f_50", new ItemData(false, 157, new int[] { 0, 1 }, 132) },
+            { "top_f_51", new ItemData(false, 159, new int[] { 0, 1, 2, 3 }, 131) },
+            { "top_f_52", new ItemData(false, 160, new int[] { 0 }, 5) },
+            { "top_f_53", new ItemData(false, 163, new int[] { 0, 1, 2, 3, 4, 5 }, 5) },
+            { "top_f_54", new ItemData(false, 164, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_55", new ItemData(false, 166, new int[] { 0, 1, 2, 3 }, 5) },
+            { "top_f_56", new ItemData(false, 167, new int[] { 0, 1, 2, 3 }, 129) },
+            { "top_f_57", new ItemData(false, 171, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 153) },
+            { "top_f_58", new ItemData(false, 174, new int[] { 0, 1, 2, 3 }, 5) },
+            { "top_f_59", new ItemData(false, 175, new int[] { 0, 1, 2, 3 }, 129) },
+            { "top_f_60", new ItemData(false, 158, new int[] { 0, 1, 2, 3 }, 7) },
+            { "top_f_61", new ItemData(false, 176, new int[] { 0, 1, 2, 3 }, 7) },
+            { "top_f_62", new ItemData(false, 177, new int[] { 0, 1, 2, 3 }, 131) },
+            { "top_f_63", new ItemData(false, 186, new int[] { 0, 1, 2, 3 }, 3) },
+            { "top_f_64", new ItemData(false, 192, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 1) },
+            { "top_f_65", new ItemData(false, 195, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 153) },
+            { "top_f_66", new ItemData(false, 202, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_68", new ItemData(false, 233, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 11) },
+            { "top_f_69", new ItemData(false, 234, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 6) },
+            { "top_f_70", new ItemData(false, 251, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_71", new ItemData(false, 239, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 3) },
+            { "top_f_72", new ItemData(false, 259, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_73", new ItemData(false, 262, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 7) },
+            { "top_f_74", new ItemData(false, 270, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_75", new ItemData(false, 267, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 1) },
+            { "top_f_76", new ItemData(false, 266, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 6) },
+            { "top_f_77", new ItemData(false, 268, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 1) },
+            { "top_f_78", new ItemData(false, 271, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 3) },
+            { "top_f_79", new ItemData(false, 280, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 14) },
+            { "top_f_80", new ItemData(false, 286, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }, 14) },
+            { "top_f_81", new ItemData(false, 292, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }, 3) },
+            { "top_f_82", new ItemData(false, 294, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 1) },
+            { "top_f_83", new ItemData(false, 295, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_f_84", new ItemData(false, 319, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 3) },
+            { "top_f_85", new ItemData(false, 321, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 0) },
+            { "top_f_86", new ItemData(false, 324, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 14) },
+            { "top_f_87", new ItemData(false, 338, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 14) },
+            { "top_f_88", new ItemData(false, 337, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }, 14) },
+            { "top_f_89", new ItemData(false, 335, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 14) },
+            { "top_f_90", new ItemData(false, 273, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_91", new ItemData(false, 284, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 15) },
+            { "top_f_92", new ItemData(false, 264, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_93", new ItemData(false, 21, new int[] { 0, 1, 2, 3, 4, 5 }, 16) },
+            { "top_f_94", new ItemData(false, 74, new int[] { 0, 1, 2 }, 15) },
+            { "top_f_95", new ItemData(false, 77, new int[] { 0 }, 6) },
+            { "top_f_97", new ItemData(false, 112, new int[] { 0, 1, 2 }, 11) },
+            { "top_f_98", new ItemData(false, 113, new int[] { 0, 1, 2 }, 11) },
+            { "top_f_99", new ItemData(false, 114, new int[] { 0, 1, 2 }, 11) },
+            { "top_f_100", new ItemData(false, 126, new int[] { 0, 1, 2 }, 14) },
+            { "top_f_101", new ItemData(false, 131, new int[] { 0, 1, 2 }, 3) },
+            { "top_f_102", new ItemData(false, 128, new int[] { 0 }, 14) },
+            { "top_f_103", new ItemData(false, 1, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_104", new ItemData(false, 148, new int[] { 0, 1, 2, 3, 4, 5 }, 3) },
+            { "top_f_105", new ItemData(false, 155, new int[] { 0, 1, 2 }, 130) },
+            { "top_f_106", new ItemData(false, 156, new int[] { 0, 1 }, 131) },
+            { "top_f_107", new ItemData(false, 165, new int[] { 0, 1, 2 }, 0) },
+            { "top_f_108", new ItemData(false, 168, new int[] { 0, 1, 2, 3, 4, 5 }, 161) },
+            { "top_f_109", new ItemData(false, 169, new int[] { 0, 1, 2, 3, 4, 5 }, 153) },
+            { "top_f_110", new ItemData(false, 170, new int[] { 0, 1, 2, 3, 4, 5 }, 15) },
+            { "top_f_111", new ItemData(false, 172, new int[] { 0, 1 }, 3) },
+            { "top_f_112", new ItemData(false, 178, new int[] { 0 }, 131) },
+            { "top_f_113", new ItemData(false, 190, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 3) },
+            { "top_f_114", new ItemData(false, 189, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, 7) },
+            { "top_f_115", new ItemData(false, 207, new int[] { 0, 1, 2, 3, 4 }, 131) },
+            { "top_f_117", new ItemData(false, 227, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 3) },
+            { "top_f_118", new ItemData(false, 235, new int[] { 0, 1 }, 9) },
+            { "top_f_119", new ItemData(false, 244, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 9) },
+            { "top_f_120", new ItemData(false, 246, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 14) },
+            { "top_f_121", new ItemData(false, 247, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 4) },
+            { "top_f_122", new ItemData(false, 249, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_f_123", new ItemData(false, 347, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_124", new ItemData(false, 349, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 14) },
+            { "top_f_125", new ItemData(false, 350, new int[] { 0, 1, 2, 3, 4, 5 }, 9) },
+            { "top_f_126", new ItemData(false, 354, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 }, 5) },
+            { "top_f_127", new ItemData(false, 356, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 3) },
+            { "top_f_128", new ItemData(false, 361, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 3) },
+            { "top_f_129", new ItemData(false, 363, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 5) },
+            { "top_f_130", new ItemData(false, 344, new int[] { 0 }, 3) },
+            { "top_f_131", new ItemData(false, 345, new int[] { 0 }, 3) },
+            { "top_f_132", new ItemData(false, 368, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 14) },
+            { "top_f_133", new ItemData(false, 369, new int[] { 0, 1, 2, 3, 4 }, 14) },
+            { "top_f_134", new ItemData(false, 370, new int[] { 0, 1, 2 }, 3) },
+            { "top_f_135", new ItemData(false, 377, new int[] { 0, 1, 2, 3, 4, 5 }, 14) },
+            { "top_f_137", new ItemData(false, 400, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 14) },
+            { "top_f_138", new ItemData(false, 407, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_139", new ItemData(false, 406, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 7) },
+            { "top_f_140", new ItemData(false, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_141", new ItemData(false, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 6) },
+            { "top_f_142", new ItemData(false, 25, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 6) },
+            { "top_f_143", new ItemData(false, 18, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 15) },
+            { "top_f_144", new ItemData(false, 279, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 15) },
+            { "top_f_145", new ItemData(false, 24, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 5) },
+            { "top_f_146", new ItemData(false, 28, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 0) },
+            { "top_f_147", new ItemData(false, 35, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 5) },
+            { "top_f_148", new ItemData(false, 39, new int[] { 0 }, 5) },
+            { "top_f_149", new ItemData(false, 51, new int[] { 0 }, 3) },
+            { "top_f_150", new ItemData(false, 52, new int[] { 0, 1, 2, 3 }, 3) },
+            { "top_f_151", new ItemData(false, 64, new int[] { 0, 1, 2, 3, 4 }, 5) },
+            { "top_f_152", new ItemData(false, 65, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 5) },
+            { "top_f_153", new ItemData(false, 66, new int[] { 0, 1, 2, 3 }, 5) },
+            { "top_f_154", new ItemData(false, 70, new int[] { 0, 1, 2, 3, 4 }, 5) },
+            { "top_f_155", new ItemData(false, 58, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 3) },
+            { "top_f_156", new ItemData(false, 83, new int[] { 0, 1, 2, 3, 4, 5, 6 }, 0) },
+            { "top_f_157", new ItemData(false, 90, new int[] { 0, 1, 2, 3, 4 }, 3) },
+            { "top_f_158", new ItemData(false, 99, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 7) },
+            { "top_f_159", new ItemData(false, 173, new int[] { 0 }, 4) },
+            { "top_f_160", new ItemData(false, 101, new int[] { 0, 1, 2, 3, 4, 5 }, 15) },
+            { "top_f_161", new ItemData(false, 185, new int[] { 0, 1, 2, 3, 4, 5 }, 3) },
+            { "top_f_162", new ItemData(false, 193, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 5) },
+            { "top_f_163", new ItemData(false, 194, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 6) },
+            { "top_f_164", new ItemData(false, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 9) },
+            { "top_f_165", new ItemData(false, 34, new int[] { 0 }, 6) },
+            { "top_f_166", new ItemData(false, 52, new int[] { 0, 1, 2, 3 }, 3) },
+            { "top_f_167", new ItemData(false, 57, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 3) },
+            { "top_f_168", new ItemData(false, 102, new int[] { 0 }, 3) },
+            { "top_f_169", new ItemData(false, 137, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }, 7) },
+            { "top_f_170", new ItemData(false, 139, new int[] { 0, 1, 2 }, 6) },
+            { "top_f_171", new ItemData(false, 142, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 0) },
+            { "top_f_172", new ItemData(false, 143, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 7) },
+            { "top_f_173", new ItemData(false, 65, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 5) },
+            { "top_f_174", new ItemData(false, 305, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 3) },
+            { "top_f_175", new ItemData(false, 307, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_176", new ItemData(false, 318, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }, 1) },
+            { "top_f_177", new ItemData(false, 353, new int[] { 0, 1, 2, 3, 4, 5 }, 3) },
+            { "top_f_178", new ItemData(false, 366, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }, 3) },
+            { "top_f_179", new ItemData(false, 278, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 5) },
+            { "top_f_180", new ItemData(false, 274, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }, 3) },
+            { "top_f_181", new ItemData(false, 269, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 9) },
+            { "top_f_182", new ItemData(false, 309, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 }, 3) },
+            { "top_f_183", new ItemData(false, 310, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 9) },
+            { "top_f_184", new ItemData(false, 311, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_185", new ItemData(false, 314, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 5) },
+            { "top_f_186", new ItemData(false, 315, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 5) },
+            { "top_f_187", new ItemData(false, 316, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 3) },
+            { "top_f_188", new ItemData(false, 320, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 5) },
+            { "top_f_189", new ItemData(false, 332, new int[] { 0 }, 3) },
+            { "top_f_191", new ItemData(false, 322, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 11) },
+            { "top_f_192", new ItemData(false, 323, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 11) },
+            { "top_f_193", new ItemData(false, 339, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, 3) },
+            { "top_f_194", new ItemData(false, 373, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 229) },
+            { "top_f_195", new ItemData(false, 376, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1) },
+            { "top_f_196", new ItemData(false, 379, new int[] { 0 }, 5) },
+            { "top_f_197", new ItemData(false, 380, new int[] { 0 }, 3) },
+            { "top_f_198", new ItemData(false, 388, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 11) },
+            { "top_f_199", new ItemData(false, 389, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 6) },
+            { "top_f_200", new ItemData(false, 390, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 3) },
+            { "top_f_201", new ItemData(false, 392, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 3) },
+            { "top_f_202", new ItemData(false, 394, new int[] { 0, 1, 2 }, 3) },
+            { "top_f_203", new ItemData(false, 395, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, 14) },
+            { "top_f_204", new ItemData(false, 396, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 1) },
+            { "top_f_205", new ItemData(false, 399, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 5) },
+            { "top_f_206", new ItemData(false, 403, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }, 5) },
+            { "top_f_207", new ItemData(false, 411, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 5) },
+            { "top_f_208", new ItemData(false, 412, new int[] { 0, 1, 2 }, 5) },
+            { "top_f_209", new ItemData(false, 404, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }, 12) },
+            { "top_f_210", new ItemData(false, 405, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, 12) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        /// <summary>Переключено ли состояние</summary>
+        public bool Toggled { get; set; }
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
 
             var data = Data;
 
-            var slot = Game.Data.Clothes.GetSlot(Type);
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
 
-            if (!data.IsProp)
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            if (Toggled)
             {
-                if (data.ItemType == Types.Top)
+                player.SetClothes(11, data.ExtraData.Drawable, variation);
+                player.SetClothes(3, data.ExtraData.BestTorso, 0);
+            }
+            else
+            {
+                player.SetClothes(11, data.Drawable, variation);
+                player.SetClothes(3, data.BestTorso, 0);
+            }
+
+            if (pData.Armour != null)
+            {
+                var aData = pData.Armour.Data;
+
+                player.SetClothes(9, aData.Drawables[pData.Sex].DrawableTop, aData.Texture);
+            }
+
+            if (pData.Clothes[2] != null)
+                pData.Clothes[2].Wear(player);
+            else
+                pData.Accessories[7]?.Wear(player);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.SetClothes(11, Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex), 0);
+            player.SetClothes(3, Game.Data.Clothes.GetNudeDrawable(Types.Gloves, pData.Sex), 0);
+
+            if (pData.Armour != null)
+            {
+                var aData = pData.Armour.Data;
+
+                player.SetClothes(9, aData.Drawables[pData.Sex].Drawable, aData.Texture);
+            }
+
+            if (pData.Clothes[2] != null)
+                pData.Clothes[2].Wear(player);
+            else
+                pData.Accessories[7]?.Wear(player);
+        }
+
+        public void Action(Player player)
+        {
+            if (Data.ExtraData == null)
+                return;
+
+            Toggled = !Toggled;
+
+            Wear(player);
+        }
+
+        public Top(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Under : Clothes, Clothes.IToggleable
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public Top.ItemData BestTop { get; set; }
+
+            public int BestTorso { get; set; }
+
+            public ExtraData ExtraData { get; set; }
+
+            public ItemData(bool Sex, int Drawable, int[] Textures, Top.ItemData BestTop, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Types.Under, 0.2f, "prop_ld_tshirt_02", Sex, Drawable, Textures, SexAlternativeID)
+            {
+                this.BestTop = BestTop;
+                this.ExtraData = ExtraData;
+
+                this.BestTorso = BestTorso;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region Unders Male
+            { "under_m_0", new ItemData(true, 0, new int[] { 0, 1, 2, 3, 4, 5, 7, 8, 11 }, new Top.ItemData(true, 0, new int[] { 0, 1, 2, 3, 4, 5, 7, 8, 11 }, 0), 4, new ItemData.ExtraData(2, 4)) },
+            { "under_m_1", new ItemData(true, 5, new int[] { 0, 1, 2, 7 }, new Top.ItemData(true, 5, new int[] { 0, 1, 2, 7 }, 5), 6) },
+            { "under_m_2", new ItemData(true, 1, new int[] { 0, 1, 3, 4, 5, 6, 7, 8, 11, 12, 14 }, new Top.ItemData(true, 1, new int[] { 0, 1, 3, 4, 5, 6, 7, 8, 11, 12, 14 }, 0), 1, new ItemData.ExtraData(14, 1)) },
+            { "under_m_3", new ItemData(true, 8, new int[] { 0, 10, 13, 14 }, new Top.ItemData(true, 8, new int[] { 0, 10, 13, 14 }, 11), 4) },
+            { "under_m_4", new ItemData(true, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, new Top.ItemData(true, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 0), 1) },
+            { "under_m_5", new ItemData(true, 63, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, new Top.ItemData(true, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 1), 1, new ItemData.ExtraData(64, 1)) },
+            { "under_m_6", new ItemData(true, 29, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, new Top.ItemData(true, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 1), 4, new ItemData.ExtraData(30, 4)) },
+            { "under_m_7", new ItemData(true, 17, new int[] { 0, 1, 2, 3, 4, 5 }, new Top.ItemData(true, 17, new int[] { 0, 1, 2, 3, 4, 5 }, 5), 6) },
+            { "under_m_8", new ItemData(true, 41, new int[] { 0, 1, 2, 3, 4 }, new Top.ItemData(true, 38, new int[] { 0, 1, 2, 3, 4 }, 8), 4) },
+            { "under_m_9", new ItemData(true, 42, new int[] { 0, 1 }, new Top.ItemData(true, 39, new int[] { 0, 1 }, 0), 1) },
+            { "under_m_10", new ItemData(true, 43, new int[] { 0, 1, 2, 3 }, new Top.ItemData(true, 41, new int[] { 0, 1, 2, 3 }, 12), 1) },
+            { "under_m_11", new ItemData(true, 45, new int[] { 0 }, new Top.ItemData(true, 42, new int[] { 0 }, 11, new ItemData.ExtraData(43, 11)), 4, new ItemData.ExtraData(46, 4)) },
+            { "under_m_12", new ItemData(true, 53, new int[] { 0, 1, 2, 3 }, new Top.ItemData(true, 47, new int[] { 0, 1, 2, 3 }, 0), 4, new ItemData.ExtraData(54, 4)) },
+            { "under_m_13", new ItemData(true, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, null, 11, new ItemData.ExtraData(7, 11)) },
+            { "under_m_14", new ItemData(true, 27, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new Top.ItemData(true, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, 11), 4) },
+            { "under_m_15", new ItemData(true, 67, new int[] { 0 }, new Top.ItemData(true, 71, new int[] { 0 }, 0), 4) },
+            { "under_m_16", new ItemData(true, 65, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 }, new Top.ItemData(true, 73, new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 }, 0), 4) },
+            { "under_m_17", new ItemData(true, 4, new int[] { 0, 1, 2 }, null, 4, new ItemData.ExtraData(3, 4)) }, // -
+            { "under_m_18", new ItemData(true, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, null, 4, new ItemData.ExtraData(11, 4)) }, // - 
+            { "under_m_19", new ItemData(true, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, null, 4, new ItemData.ExtraData(25, 4)) }, // -
+            { "under_m_20", new ItemData(true, 33, new int[] { 0, 1, 2, 3, 4, 5, 6 }, null, 4, new ItemData.ExtraData(34, 4)) }, // -
+            { "under_m_21", new ItemData(true, 52, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }, null, 4, new ItemData.ExtraData(51, 4)) },
+            { "under_m_22", new ItemData(true, 69, new int[] { 0, 1, 2, 3, 4 }, null, 14) }, // -
+            { "under_m_24", new ItemData(true, 22, new int[] { 0, 1, 2, 3, 4 }, null, 4) }, // -
+            { "under_m_25", new ItemData(true, 93, new int[] { 0, 1 }, null, 11) }, // -
+            { "under_m_26", new ItemData(true, 158, new int[] { 0 }, new Top.ItemData(true, 322, new int[] { 0 }, 1, new ItemData.ExtraData(321, 1)), 4, new ItemData.ExtraData(157, 4)) },
+
+            { "under_m_27", new ItemData(true, 79, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, new Top.ItemData(true, 152, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 1), 4, new ItemData.ExtraData(80, 4)) },
+            { "under_m_28", new ItemData(true, 109, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, new Top.ItemData(true, 235, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 0), 1, new ItemData.ExtraData(110, 1)) },
+            { "under_m_29", new ItemData(true, 187, new int[] { 0, 1, 2, 3, 4 }, new Top.ItemData(true, 392, new int[] { 0, 1, 2, 3, 4 }, 0), 4, new ItemData.ExtraData(188, 4)) },
+            { "under_m_30", new ItemData(true, 168, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, new Top.ItemData(true, 345, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 0), 4, new ItemData.ExtraData(169, 4)) },
+            { "under_m_31", new ItemData(true, 47, new int[] { 0, 1, 2, 3 }, new Top.ItemData(true, 44, new int[] { 0, 1, 2, 3 }, 0), 4, new ItemData.ExtraData(48, 4)) },
+            { "under_m_32", new ItemData(true, 16, new int[] { 0, 1, 2 }, new Top.ItemData(true, 16, new int[] { 0, 1, 2 }, 0), 1, new ItemData.ExtraData(18, 1)) },
+            { "under_m_33", new ItemData(true, 72, new int[] { 0, 1, 2, 3, 4, 5 }, new Top.ItemData(true, 139, new int[] { 0, 1, 2, 3, 4, 5 }, 4), 4, new ItemData.ExtraData(71, 4)) },
+            { "under_m_34", new ItemData(true, 76, new int[] { 0, 1, 2, 3, 4, 5, 7, 8 }, new Top.ItemData(true, 146, new int[] { 0, 1, 2, 3, 4, 5, 7, 8 }, 0), 4, new ItemData.ExtraData(77, 4)) },
+            { "under_m_35", new ItemData(true, 178, new int[] { 0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, null, 4, new ItemData.ExtraData(179, 4)) },
+            #endregion
+
+            #region Unders Female
+            { "under_f_0", new ItemData(false, 23, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, new Top.ItemData(false, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }, 12), 0) }, // 26
+            { "under_f_1", new ItemData(false, 26, new int[] { 0, 1, 2 }, new Top.ItemData(false, 30, new int[] { 0, 1, 2 }, 2), 0) }, // 30
+            { "under_f_2", new ItemData(false, 27, new int[] { 0, 1, 2 }, new Top.ItemData(false, 32, new int[] { 0, 1, 2 }, 4), 0) }, // 32
+            { "under_f_3", new ItemData(false, 71, new int[] { 0, 1, 2 }, new Top.ItemData(false, 73, new int[] { 0, 1, 2 }, 14), 0) }, // 73
+            { "under_f_4", new ItemData(false, 31, new int[] { 0, 1 }, new Top.ItemData(false, 40, new int[] { 0, 1 }, 2), 0) }, // 40
+            { "under_f_5", new ItemData(false, 82, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, new Top.ItemData(false, 149, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 1), 0) }, // 149
+            { "under_f_6", new ItemData(false, 61, new int[] { 0, 1, 2, 3 }, new Top.ItemData(false, 75, new int[] { 0, 1, 2, 3 }, 9), 0) }, // 75
+            { "under_f_7", new ItemData(false, 67, new int[] { 0, 1, 2, 3, 4, 5 }, new Top.ItemData(false, 103, new int[] { 0, 1, 2, 3, 4, 5 }, 3), 0) }, // 103
+            { "under_f_8", new ItemData(false, 78, new int[] { 0, 1, 2, 3, 4, 5 }, new Top.ItemData(false, 141, new int[] { 0, 1, 2, 3, 4, 5 }, 14), 0) }, // 141
+            { "under_f_9", new ItemData(false, 147, new int[] { 0 }, new Top.ItemData(false, 236, new int[] { 0 }, 14), 0) }, // 236
+            { "under_f_10", new ItemData(false, 22, new int[] { 0, 1, 2, 3, 4 }, new Top.ItemData(false, 22, new int[] { 0, 1, 2, 3, 4 }, 4), 0) }, // 22
+            { "under_f_11", new ItemData(false, 29, new int[] { 0, 1, 2, 3, 4 }, new Top.ItemData(false, 36, new int[] { 0, 1, 2, 3, 4 }, 11), 0) }, // 36
+            { "under_f_12", new ItemData(false, 45, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }, new Top.ItemData(false, 68, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }, 14), 0) }, // 68
+            { "under_f_13", new ItemData(false, 49, new int[] { 0 }, new Top.ItemData(false, 67, new int[] { 0 }, 2), 0) }, // 67
+            { "under_f_14", new ItemData(false, 117, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }, new Top.ItemData(false, 209, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }, 12), 0) }, // 209
+            { "under_f_15", new ItemData(false, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, new Top.ItemData(false, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, 4), 0) }, // 13
+            { "under_f_16", new ItemData(false, 38, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }, null, 0) }, // -
+            { "under_f_17", new ItemData(false, 40, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, null, 0) },
+            { "under_f_18", new ItemData(false, 68, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, new Top.ItemData(false, 111, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 4), 0) }, // 111
+            { "under_f_19", new ItemData(false, 176, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, new Top.ItemData(false, 283, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, 12), 0) }, // 283
+
+            { "under_f_20", new ItemData(false, 11, new int[] { 0, 1, 2, 10, 11, 15 }, new Top.ItemData(false, 11, new int[] { 0, 1, 2, 10, 11, 15 }, 11), 0) }, // 11
+            { "under_f_21", new ItemData(false, 24, new int[] { 0, 1, 2, 3, 4, 5 }, new Top.ItemData(false, 27, new int[] { 0, 1, 2, 3, 4, 5 }, 0), 0) }, // 27
+            { "under_f_22", new ItemData(false, 30, new int[] { 0, 1, 2, 3 }, new Top.ItemData(false, 38, new int[] { 0, 1, 2, 3 }, 2), 0) }, // 38
+            { "under_f_23", new ItemData(false, 227, new int[] { 0, 1, 2, 3, 4 }, new Top.ItemData(false, 413, new int[] { 0, 1, 2, 3, 4  }, 14), 0) }, // 413
+            { "under_f_24", new ItemData(false, 217, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }, null, 0) }, // -
+            #endregion
+        };
+
+        [JsonIgnore]
+        /// <summary>Переключено ли состояние</summary>
+        public bool Toggled { get; set; }
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            if (pData.Clothes[1] == null && data.BestTop != null)
+            {
+                if (Toggled && data.BestTop.ExtraData != null)
                 {
-                    player.SetClothes(slot, Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex), 0);
-                    player.SetClothes(3, Game.Data.Clothes.GetNudeDrawable(Types.Gloves, pData.Sex), 0);
-
-                    if (pData.Armour != null)
-                    {
-                        var aData = pData.Armour.Data;
-
-                        player.SetClothes(9, aData.Drawables[pData.Sex].Drawable, aData.Texture);
-                    }
-
-                    if (pData.Clothes[2] != null)
-                        pData.Clothes[2].Wear(player);
-                    else
-                        pData.Accessories[7]?.Wear(player);
-                }
-                else if (data.ItemType == Types.Under)
-                {
-                    if (pData.Clothes[1] == null)
-                    {
-                        player.SetClothes(11, Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex), 0);
-                        player.SetClothes(8, Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex), 0);
-                        player.SetClothes(3, Game.Data.Clothes.GetNudeDrawable(Types.Gloves, pData.Sex), 0);
-
-                        pData.Accessories[7]?.Wear(player);
-                    }
-                    else
-                    {
-                        player.SetClothes(slot, Game.Data.Clothes.GetNudeDrawable(Types.Under, pData.Sex), 0);
-
-                        pData.Clothes[1].Wear(player);
-                    }
-                }
-                else if (data.ItemType == Types.Gloves)
-                {
-                    if (player.GetClothesDrawable(11) == Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex))
-                        player.SetClothes(slot, Game.Data.Clothes.GetNudeDrawable(Types.Gloves, pData.Sex), 0);
-
-                    if (pData.Clothes[1] != null)
-                        pData.Clothes[1].Wear(player);
-                    else
-                        pData.Clothes[2]?.Wear(player);
+                    player.SetClothes(11, data.BestTop.ExtraData.Drawable, variation);
+                    player.SetClothes(3, data.BestTop.ExtraData.BestTorso, 0);
                 }
                 else
                 {
-                    player.SetClothes(slot, Game.Data.Clothes.GetNudeDrawable(Type, pData.Sex), 0);
+                    player.SetClothes(11, data.BestTop.Drawable, variation);
+                    player.SetClothes(3, data.BestTop.BestTorso, 0);
                 }
             }
             else
             {
-                player.ClearAccessory(slot);
+                if (Toggled && data.ExtraData != null)
+                {
+                    player.SetClothes(8, data.ExtraData.Drawable, variation);
+                    player.SetClothes(3, data.ExtraData.BestTorso, 0);
+                }
+                else
+                {
+                    player.SetClothes(8, data.Drawable, variation);
+                    player.SetClothes(3, data.BestTorso, 0);
+                }
+            }
 
-                if (data.ItemType == Types.Hat)
-                    pData.Hat = null;
+            pData.Accessories[7]?.Wear(player);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            if (pData.Clothes[1] == null)
+            {
+                player.SetClothes(11, Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex), 0);
+                player.SetClothes(8, Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex), 0);
+                player.SetClothes(3, Game.Data.Clothes.GetNudeDrawable(Types.Gloves, pData.Sex), 0);
+
+                pData.Accessories[7]?.Wear(player);
+            }
+            else
+            {
+                player.SetClothes(8, Game.Data.Clothes.GetNudeDrawable(Types.Under, pData.Sex), 0);
+
+                pData.Clothes[1].Wear(player);
             }
         }
-        #endregion
-
-        #region Action
 
         public void Action(Player player)
         {
-            if (Type == Types.Hat)
-            {
-                var hData = Data as Game.Data.Clothes.Hat;
+            if (Data.ExtraData == null)
+                return;
 
-                if (hData.ExtraData == null)
-                    return;
+            Toggled = !Toggled;
 
-                Toggled = !Toggled;
-
-                Wear(player);
-            }
-            else if (Type == Types.Top)
-            {
-                var tData = Data as Game.Data.Clothes.Top;
-
-                if (tData.ExtraData == null)
-                    return;
-
-                Toggled = !Toggled;
-
-                Wear(player);
-            }
-            else if (Type == Types.Under)
-            {
-                var uData = Data as Game.Data.Clothes.Under;
-
-                if (uData.ExtraData == null)
-                    return;
-
-                Toggled = !Toggled;
-
-                Wear(player);
-            }
-
-            return;
+            Wear(player);
         }
 
-        #endregion
+        public Under(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
 
-        /// <summary>Вариация одежды</summary>
-        public int Var { get; set; }
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Gloves : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public Dictionary<int, int> BestTorsos { get; set; }
+
+            public ItemData(bool Sex, int Drawable, int[] Textures, Dictionary<int, int> BestTorsos, string SexAlternativeID = null) : base(Types.Gloves, 0.1f, "prop_ld_tshirt_02", Sex, Drawable, Textures, SexAlternativeID)
+            {
+                this.BestTorsos = BestTorsos;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region ItemData Male
+            { "gloves_m_0", new ItemData(true, 51, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 51 }, { 14, 50 }, { 12, 49 }, { 11, 48 }, { 8, 47 }, { 6, 46 }, { 5, 45 }, { 4, 44 }, { 2, 43 }, { 1, 42 }, { 0, 41 }, { 184, 187 }, { 112, 117 }, { 113, 124 }, { 114, 131 }
+                }, "gloves_f_0")
+            },
+            { "gloves_m_1", new ItemData(true, 62, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 62 }, { 14, 61 }, { 12, 60 }, { 11, 59 }, { 8, 58 }, { 6, 57 }, { 5, 56 }, { 4, 55 }, { 2, 54 }, { 1, 53 }, { 0, 52 }, { 184, 188 }, { 112, 118 }, { 113, 125 }, { 114, 132 }
+                }, "gloves_f_1")
+            },
+            { "gloves_m_2", new ItemData(true, 73, new int[] { 0 }, new Dictionary<int, int>()
+                {
+                    { 15, 73 }, { 14, 72 }, { 12, 71 }, { 11, 70 }, { 8, 69 }, { 6, 68 }, { 5, 67 }, { 4, 66 }, { 2, 65 }, { 1, 64 }, { 0, 63 }, { 184, 189 }, { 112, 119 }, { 113, 126 }, { 114, 133 }
+                }, "gloves_f_2")
+            },
+            { "gloves_m_3", new ItemData(true, 109, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new Dictionary<int, int>()
+                {
+                    { 15, 109 }, { 14, 108 }, { 12, 107 }, { 11, 106 }, { 8, 105 }, { 6, 104 }, { 5, 103 }, { 4, 102 }, { 2, 101 }, { 1, 100 }, { 0, 99 }
+                }, "gloves_f_3")
+            },
+            { "gloves_m_4", new ItemData(true, 95, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 95 }, { 14, 94 }, { 12, 93 }, { 11, 92 }, { 8, 91 }, { 6, 90 }, { 5, 89 }, { 4, 88 }, { 2, 87 }, { 1, 86 }, { 0, 85 }, { 184, 191 }, { 112, 121 }, { 113, 128 }, { 114, 135 }
+                }, "gloves_f_4")
+            },
+            { "gloves_m_5", new ItemData(true, 29, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 29 }, { 14, 28 }, { 12, 27 }, { 11, 26 }, { 8, 25 }, { 6, 24 }, { 5, 23 }, { 4, 22 }, { 2, 21 }, { 1, 20 }, { 0, 19 }, { 184, 185 }, { 112, 115 }, { 113, 122 }, { 114, 129 }
+                }, "gloves_f_5")
+            },
+            { "gloves_m_6", new ItemData(true, 40, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 40 }, { 14, 39 }, { 12, 38 }, { 11, 37 }, { 8, 36 }, { 6, 35 }, { 5, 34 }, { 4, 33 }, { 2, 32 }, { 1, 31 }, { 0, 30 }, { 184, 186 }, { 112, 116 }, { 113, 123 }, { 114, 130 }
+                }, "gloves_f_6")
+            },
+            { "gloves_m_7", new ItemData(true, 84, new int[] { 0 }, new Dictionary<int, int>()
+                {
+                    { 15, 84 }, { 14, 83 }, { 12, 82 }, { 11, 81 }, { 8, 80 }, { 6, 79 }, { 5, 78 }, { 4, 77 }, { 2, 76 }, { 1, 75 }, { 0, 74 }, { 184, 190 }, { 112, 120 }, { 113, 127 }, { 114, 134 }
+                }, "gloves_f_7")
+            },
+            { "gloves_m_8", new ItemData(true, 170, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, new Dictionary<int, int>()
+                {
+                    { 15, 170 }, { 14, 180 }, { 12, 179 }, { 11, 178 }, { 8, 177 }, { 6, 176 }, { 5, 175 }, { 4, 174 }, { 2, 173 }, { 1, 172 }, { 0, 171 }, { 184, 194 }, { 112, 181 }, { 113, 182 }, { 114, 183 }
+                }, "gloves_f_8")
+            },
+            #endregion
+
+            #region ItemData Female
+            { "gloves_f_0", new ItemData(false, 58, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 58 }, { 14, 57 }, { 12, 56 }, { 11, 55 }, { 9, 54 }, { 7, 53 }, { 6, 52 }, { 5, 51 }, { 4, 50 }, { 3, 49 }, { 2, 48 }, { 1, 47 }, { 0, 46 }, { 129, 134 }, { 130, 141 }, { 131, 148 }, { 153, 156 }, { 161, 164 }, { 229, 232 }
+                }, "gloves_m_0")
+            },
+            { "gloves_f_1", new ItemData(false, 71, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 71 }, { 14, 70 }, { 12, 69 }, { 11, 68 }, { 9, 67 }, { 7, 66 }, { 6, 65 }, { 5, 64 }, { 4, 63 }, { 3, 62 }, { 2, 61 }, { 1, 60 }, { 0, 59 }, { 129, 135 }, { 130, 142 }, { 131, 149 }, { 153, 157 }, { 161, 165 }, { 229, 233 }
+                }, "gloves_m_1")
+            },
+            { "gloves_f_2", new ItemData(false, 84, new int[] { 0 }, new Dictionary<int, int>()
+                {
+                    { 15, 84 }, { 14, 83 }, { 12, 82 }, { 11, 81 }, { 9, 80 }, { 7, 79 }, { 6, 78 }, { 5, 77 }, { 4, 76 }, { 3, 75 }, { 2, 74 }, { 1, 73 }, { 0, 72 }, { 129, 136 }, { 130, 143 }, { 131, 150 }, { 153, 158 }, { 161, 166 }, { 229, 234 }
+                }, "gloves_m_2")
+            },
+            { "gloves_f_3", new ItemData(false, 126, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new Dictionary<int, int>()
+                {
+                    { 15, 126 }, { 14, 125 }, { 12, 124 }, { 11, 123 }, { 9, 122 }, { 7, 121 }, { 6, 120 }, { 5, 119 }, { 4, 118 }, { 3, 117 }, { 2, 116 }, { 1, 115 }, { 0, 114 }
+                }, "gloves_m_3")
+            },
+            { "gloves_f_4", new ItemData(false, 110, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 110 }, { 14, 109 }, { 12, 108 }, { 11, 107 }, { 9, 106 }, { 7, 105 }, { 6, 104 }, { 5, 103 }, { 4, 102 }, { 3, 101 }, { 2, 100 }, { 1, 99 }, { 0, 98 }, { 129, 138 }, { 130, 145 }, { 131, 152 }, { 153, 160 }, { 161, 168 }, { 229, 236 }
+                }, "gloves_m_4")
+            },
+            { "gloves_f_5", new ItemData(false, 32, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 32 }, { 14, 31 }, { 12, 30 }, { 11, 29 }, { 9, 28 }, { 7, 27 }, { 6, 26 }, { 5, 25 }, { 4, 24 }, { 3, 23 }, { 2, 22 }, { 1, 21 }, { 0, 20 }, { 129, 132 }, { 130, 139 }, { 131, 146 }, { 153, 154 }, { 161, 162 }, { 229, 230 }
+                }, "gloves_m_5")
+            },
+            { "gloves_f_6", new ItemData(false, 45, new int[] { 0, 1 }, new Dictionary<int, int>()
+                {
+                    { 15, 45 }, { 14, 44 }, { 12, 43 }, { 11, 42 }, { 9, 41 }, { 7, 40 }, { 6, 39 }, { 5, 38 }, { 4, 37 }, { 3, 36 }, { 2, 35 }, { 1, 34 }, { 0, 33 }, { 129, 133 }, { 130, 140 }, { 131, 147 }, { 153, 155 }, { 161, 163 }, { 229, 231 }
+                }, "gloves_m_6")
+            },
+            { "gloves_f_7", new ItemData(false, 97, new int[] { 0 }, new Dictionary<int, int>()
+                {
+                    { 15, 97 }, { 14, 96 }, { 12, 95 }, { 11, 94 }, { 9, 93 }, { 7, 92 }, { 6, 91 }, { 5, 90 }, { 4, 89 }, { 3, 88 }, { 2, 87 }, { 1, 86 }, { 0, 85 }, { 129, 137 }, { 130, 144 }, { 131, 151 }, { 153, 159 }, { 161, 167 }, { 229, 235 }
+                }, "gloves_m_7")
+            },
+            { "gloves_f_8", new ItemData(false, 211, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }, new Dictionary<int, int>()
+                {
+                    { 15, 211 }, { 14, 223 }, { 12, 222 }, { 11, 221 }, { 9, 220 }, { 7, 219 }, { 6, 218 }, { 5, 217 }, { 4, 216 }, { 3, 215 }, { 2, 214 }, { 1, 213 }, { 0, 212 }, { 129, 224 }, { 130, 225 }, { 131, 226 }, { 153, 227 }, { 161, 228 }, { 229, 239 }
+                }, "gloves_m_8")
+            },
+            #endregion
+        };
 
         [JsonIgnore]
-        /// <summary>Переключено ли состояние одежды (если поддерживается)</summary>
-        public bool Toggled { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
-        public Clothes(string ID, int Variation)
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
         {
-            this.ID = ID;
+            if (player?.Exists != true)
+                return;
 
-            this.Var = Variation;
-            this.Toggled = false;
+            var pData = player.GetMainData();
 
-            this.Data = Game.Data.Clothes.GetData(ID);
-            this.SexAlternativeData = Game.Data.Clothes.GetSexAlternative(ID);
+            var data = Data;
 
-            this.Type = Data.ItemType;
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
 
-            base.Data = Item.GetData(Type);
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            int curTorso = player.GetClothesDrawable(3);
+
+            int bestTorso;
+
+            if (data.BestTorsos.TryGetValue(curTorso, out bestTorso))
+                player.SetClothes(3, bestTorso, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            if (player.GetClothesDrawable(11) == Game.Data.Clothes.GetNudeDrawable(Types.Top, pData.Sex))
+                player.SetClothes(3, Game.Data.Clothes.GetNudeDrawable(Types.Gloves, pData.Sex), 0);
+
+            if (pData.Clothes[1] != null)
+                pData.Clothes[1].Wear(player);
+            else
+                pData.Clothes[2]?.Wear(player);
+        }
+
+        public Gloves(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Pants : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Pants, 0.4f, "p_laz_j02_s", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region ItemData Male
+            { "pants_m_0", new ItemData(true, 0, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_1", new ItemData(true, 1, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_2", new ItemData(true, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_3", new ItemData(true, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_4", new ItemData(true, 5, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_5", new ItemData(true, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_6", new ItemData(true, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_7", new ItemData(true, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_8", new ItemData(true, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_9", new ItemData(true, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_10", new ItemData(true, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_11", new ItemData(true, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_12", new ItemData(true, 16, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_m_13", new ItemData(true, 17, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_m_14", new ItemData(true, 18, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_m_15", new ItemData(true, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_m_16", new ItemData(true, 27, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_m_17", new ItemData(true, 29, new int[] { 0, 1, 2 }) },
+            { "pants_m_18", new ItemData(true, 32, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_19", new ItemData(true, 42, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_m_20", new ItemData(true, 43, new int[] { 0, 1 }) },
+            { "pants_m_21", new ItemData(true, 64, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_m_22", new ItemData(true, 58, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_23", new ItemData(true, 62, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_24", new ItemData(true, 68, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_m_25", new ItemData(true, 69, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }) },
+            { "pants_m_26", new ItemData(true, 71, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "pants_m_27", new ItemData(true, 73, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "pants_m_28", new ItemData(true, 76, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_m_29", new ItemData(true, 78, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_m_30", new ItemData(true, 83, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_31", new ItemData(true, 80, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_m_32", new ItemData(true, 82, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_m_33", new ItemData(true, 90, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_m_34", new ItemData(true, 98, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_m_35", new ItemData(true, 100, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "pants_m_36", new ItemData(true, 117, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_m_37", new ItemData(true, 55, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_38", new ItemData(true, 56, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_m_39", new ItemData(true, 59, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_m_40", new ItemData(true, 63, new int[] { 0 }) },
+            { "pants_m_41", new ItemData(true, 75, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_m_42", new ItemData(true, 81, new int[] { 0, 1, 2 }) },
+            { "pants_m_43", new ItemData(true, 83, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_44", new ItemData(true, 132, new int[] { 0, 1, 2 }) },
+            { "pants_m_45", new ItemData(true, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_46", new ItemData(true, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_47", new ItemData(true, 20, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_48", new ItemData(true, 22, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "pants_m_49", new ItemData(true, 23, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "pants_m_50", new ItemData(true, 24, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "pants_m_51", new ItemData(true, 25, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "pants_m_52", new ItemData(true, 28, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_m_53", new ItemData(true, 35, new int[] { 0 }) },
+            { "pants_m_54", new ItemData(true, 37, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_55", new ItemData(true, 44, new int[] { 0 }) },
+            { "pants_m_56", new ItemData(true, 49, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_m_57", new ItemData(true, 54, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "pants_m_58", new ItemData(true, 60, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_m_59", new ItemData(true, 61, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "pants_m_60", new ItemData(true, 103, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }) },
+            { "pants_m_61", new ItemData(true, 116, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_m_62", new ItemData(true, 19, new int[] { 0, 1 }) },
+            { "pants_m_63", new ItemData(true, 48, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_m_64", new ItemData(true, 51, new int[] { 0 }) },
+            { "pants_m_65", new ItemData(true, 52, new int[] { 0, 1, 2, 3 }) },
+            { "pants_m_66", new ItemData(true, 53, new int[] { 0 }) },
+            { "pants_m_67", new ItemData(true, 118, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_m_68", new ItemData(true, 119, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_m_69", new ItemData(true, 131, new int[] { 0 }) },
+            { "pants_m_70", new ItemData(true, 138, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_m_71", new ItemData(true, 139, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_m_72", new ItemData(true, 140, new int[] { 0, 1, 2 }) },
+            { "pants_m_73", new ItemData(true, 141, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_m_74", new ItemData(true, 142, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }) },
+            { "pants_m_75", new ItemData(true, 143, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            #endregion
+
+            #region ItemData Female
+            { "pants_f_0", new ItemData(false, 0, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_1", new ItemData(false, 1, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_2", new ItemData(false, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_3", new ItemData(false, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_4", new ItemData(false, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_5", new ItemData(false, 18, new int[] { 0, 1 }) },
+            { "pants_f_6", new ItemData(false, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_7", new ItemData(false, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_8", new ItemData(false, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_9", new ItemData(false, 22, new int[] { 0, 1, 2 }) },
+            { "pants_f_10", new ItemData(false, 11, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_11", new ItemData(false, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_12", new ItemData(false, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_13", new ItemData(false, 16, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_f_14", new ItemData(false, 27, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_15", new ItemData(false, 57, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_f_16", new ItemData(false, 66, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_f_17", new ItemData(false, 60, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_18", new ItemData(false, 67, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "pants_f_19", new ItemData(false, 43, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_f_20", new ItemData(false, 71, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }) },
+            { "pants_f_21", new ItemData(false, 73, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "pants_f_22", new ItemData(false, 74, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "pants_f_23", new ItemData(false, 84, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_f_24", new ItemData(false, 87, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_25", new ItemData(false, 102, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }) },
+            { "pants_f_26", new ItemData(false, 109, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }) },
+            { "pants_f_27", new ItemData(false, 68, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_f_28", new ItemData(false, 80, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_f_29", new ItemData(false, 81, new int[] { 0, 1, 2 }) },
+            { "pants_f_30", new ItemData(false, 92, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_f_31", new ItemData(false, 20, new int[] { 0, 1, 2 }) },
+            { "pants_f_32", new ItemData(false, 26, new int[] { 0 }) },
+            { "pants_f_33", new ItemData(false, 28, new int[] { 0 }) },
+            { "pants_f_34", new ItemData(false, 30, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_f_35", new ItemData(false, 36, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_36", new ItemData(false, 44, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_f_37", new ItemData(false, 45, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_38", new ItemData(false, 52, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_39", new ItemData(false, 54, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_40", new ItemData(false, 58, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_41", new ItemData(false, 61, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_f_42", new ItemData(false, 64, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_43", new ItemData(false, 82, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_f_44", new ItemData(false, 83, new int[] { 0, 1, 2 }) },
+            { "pants_f_45", new ItemData(false, 85, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_46", new ItemData(false, 93, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "pants_f_47", new ItemData(false, 106, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "pants_f_48", new ItemData(false, 139, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_49", new ItemData(false, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_50", new ItemData(false, 19, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_f_51", new ItemData(false, 25, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "pants_f_52", new ItemData(false, 24, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "pants_f_53", new ItemData(false, 23, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 }) },
+            { "pants_f_54", new ItemData(false, 51, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_f_55", new ItemData(false, 50, new int[] { 0, 1, 2, 3, 4 }) },
+            { "pants_f_56", new ItemData(false, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_57", new ItemData(false, 56, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "pants_f_58", new ItemData(false, 62, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_f_59", new ItemData(false, 37, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "pants_f_60", new ItemData(false, 63, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_f_61", new ItemData(false, 75, new int[] { 0, 1, 2 }) },
+            { "pants_f_62", new ItemData(false, 108, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_63", new ItemData(false, 78, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_64", new ItemData(false, 104, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "pants_f_65", new ItemData(false, 112, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_f_66", new ItemData(false, 124, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_f_67", new ItemData(false, 125, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_f_68", new ItemData(false, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "pants_f_69", new ItemData(false, 34, new int[] { 0 }) },
+            { "pants_f_70", new ItemData(false, 41, new int[] { 0, 1, 2, 3 }) },
+            { "pants_f_71", new ItemData(false, 49, new int[] { 0, 1 }) },
+            { "pants_f_72", new ItemData(false, 76, new int[] { 0, 1, 2 }) },
+            { "pants_f_73", new ItemData(false, 77, new int[] { 0, 1, 2 }) },
+            { "pants_f_74", new ItemData(false, 107, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "pants_f_75", new ItemData(false, 123, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "pants_f_76", new ItemData(false, 53, new int[] { 0 }) },
+            { "pants_f_77", new ItemData(false, 55, new int[] { 0 }) },
+            { "pants_f_78", new ItemData(false, 138, new int[] { 0 }) },
+            { "pants_f_79", new ItemData(false, 145, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_f_80", new ItemData(false, 146, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_f_81", new ItemData(false, 147, new int[] { 0, 1, 2 }) },
+            { "pants_f_82", new ItemData(false, 148, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "pants_f_83", new ItemData(false, 149, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 }) },
+            { "pants_f_84", new ItemData(false, 150, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetClothes(4, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.SetClothes(4, Game.Data.Clothes.GetNudeDrawable(Type, pData.Sex), 0);
+        }
+
+        public Pants(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Shoes : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Shoes, 0.3f, "prop_ld_shoe_01", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region ItemData Male
+            { "shoes_m_0", new ItemData(true, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_1", new ItemData(true, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_2", new ItemData(true, 5, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_3", new ItemData(true, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_4", new ItemData(true, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_5", new ItemData(true, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_6", new ItemData(true, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_7", new ItemData(true, 22, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_m_8", new ItemData(true, 24, new int[] { 0 }) },
+            { "shoes_m_9", new ItemData(true, 25, new int[] { 0 }) },
+            { "shoes_m_10", new ItemData(true, 26, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_11", new ItemData(true, 28, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_m_12", new ItemData(true, 31, new int[] { 0, 1, 2, 3, 4 }) },
+            { "shoes_m_13", new ItemData(true, 32, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_14", new ItemData(true, 44, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "shoes_m_15", new ItemData(true, 42, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "shoes_m_16", new ItemData(true, 46, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "shoes_m_17", new ItemData(true, 50, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_m_18", new ItemData(true, 53, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_m_19", new ItemData(true, 57, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_m_20", new ItemData(true, 58, new int[] { 0, 1, 2 }) },
+            { "shoes_m_21", new ItemData(true, 64, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "shoes_m_22", new ItemData(true, 70, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_23", new ItemData(true, 79, new int[] { 0, 1 }) },
+            { "shoes_m_24", new ItemData(true, 80, new int[] { 0, 1 }) },
+            { "shoes_m_25", new ItemData(true, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_26", new ItemData(true, 27, new int[] { 0 }) },
+            { "shoes_m_27", new ItemData(true, 85, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_28", new ItemData(true, 86, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_29", new ItemData(true, 83, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }) },
+            { "shoes_m_30", new ItemData(true, 37, new int[] { 0, 1, 2, 3, 4 }) },
+            { "shoes_m_31", new ItemData(true, 38, new int[] { 0, 1, 2, 3, 4 }) },
+            { "shoes_m_32", new ItemData(true, 43, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_m_33", new ItemData(true, 60, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_m_34", new ItemData(true, 61, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_m_35", new ItemData(true, 62, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_m_36", new ItemData(true, 63, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_m_37", new ItemData(true, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_38", new ItemData(true, 35, new int[] { 0, 1 }) },
+            { "shoes_m_39", new ItemData(true, 52, new int[] { 0, 1 }) },
+            { "shoes_m_40", new ItemData(true, 65, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "shoes_m_41", new ItemData(true, 66, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "shoes_m_42", new ItemData(true, 72, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_43", new ItemData(true, 73, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_44", new ItemData(true, 74, new int[] { 0, 1 }) },
+            { "shoes_m_45", new ItemData(true, 81, new int[] { 0, 1, 2 }) },
+            { "shoes_m_46", new ItemData(true, 82, new int[] { 0, 1, 2 }) },
+            { "shoes_m_47", new ItemData(true, 88, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_m_48", new ItemData(true, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_49", new ItemData(true, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_50", new ItemData(true, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_51", new ItemData(true, 20, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_m_52", new ItemData(true, 21, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_m_53", new ItemData(true, 23, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_m_54", new ItemData(true, 36, new int[] { 0, 1, 2, 3 }) },
+            { "shoes_m_55", new ItemData(true, 55, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "shoes_m_56", new ItemData(true, 75, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_57", new ItemData(true, 76, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_58", new ItemData(true, 93, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }) },
+            { "shoes_m_59", new ItemData(true, 77, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_60", new ItemData(true, 94, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }) },
+            { "shoes_m_61", new ItemData(true, 30, new int[] { 0, 1 }) },
+            { "shoes_m_62", new ItemData(true, 18, new int[] { 0, 1 }) },
+            { "shoes_m_63", new ItemData(true, 40, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_m_64", new ItemData(true, 19, new int[] { 0 }) },
+            { "shoes_m_65", new ItemData(true, 29, new int[] { 0 }) },
+            { "shoes_m_66", new ItemData(true, 41, new int[] { 0 }) },
+            { "shoes_m_67", new ItemData(true, 69, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_m_68", new ItemData(true, 87, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }) },
+            { "shoes_m_69", new ItemData(true, 95, new int[] { 0 }) },
+            { "shoes_m_70", new ItemData(true, 99, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }) },
+            #endregion
+
+            #region ItemData Female
+            { "shoes_f_0", new ItemData(false, 1, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_1", new ItemData(false, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_2", new ItemData(false, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_3", new ItemData(false, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_4", new ItemData(false, 5, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_5", new ItemData(false, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_6", new ItemData(false, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_7", new ItemData(false, 11, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_8", new ItemData(false, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_9", new ItemData(false, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_10", new ItemData(false, 21, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "shoes_f_11", new ItemData(false, 22, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_12", new ItemData(false, 30, new int[] { 0 }) },
+            { "shoes_f_13", new ItemData(false, 33, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_14", new ItemData(false, 29, new int[] { 0, 1, 2 }) },
+            { "shoes_f_15", new ItemData(false, 32, new int[] { 0, 1, 2, 3, 4 }) },
+            { "shoes_f_16", new ItemData(false, 44, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_17", new ItemData(false, 60, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_f_18", new ItemData(false, 61, new int[] { 0, 1, 2 }) },
+            { "shoes_f_19", new ItemData(false, 67, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 }) },
+            { "shoes_f_20", new ItemData(false, 77, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8 }) },
+            { "shoes_f_21", new ItemData(false, 85, new int[] { 0, 1, 2 }) },
+            { "shoes_f_22", new ItemData(false, 26, new int[] { 0 }) },
+            { "shoes_f_23", new ItemData(false, 38, new int[] { 0, 1, 2, 3, 4 }) },
+            { "shoes_f_24", new ItemData(false, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_25", new ItemData(false, 45, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "shoes_f_26", new ItemData(false, 39, new int[] { 0, 1, 2, 3, 4 }) },
+            { "shoes_f_27", new ItemData(false, 46, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "shoes_f_28", new ItemData(false, 51, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_f_29", new ItemData(false, 52, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_f_30", new ItemData(false, 54, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_f_31", new ItemData(false, 55, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "shoes_f_32", new ItemData(false, 63, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_33", new ItemData(false, 64, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_34", new ItemData(false, 65, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_35", new ItemData(false, 66, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_36", new ItemData(false, 83, new int[] { 0, 1 }) },
+            { "shoes_f_37", new ItemData(false, 84, new int[] { 0, 1 }) },
+            { "shoes_f_38", new ItemData(false, 27, new int[] { 0 }) },
+            { "shoes_f_39", new ItemData(false, 28, new int[] { 0 }) },
+            { "shoes_f_40", new ItemData(false, 53, new int[] { 0, 1 }) },
+            { "shoes_f_41", new ItemData(false, 59, new int[] { 0, 1 }) },
+            { "shoes_f_42", new ItemData(false, 87, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }) },
+            { "shoes_f_43", new ItemData(false, 89, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_44", new ItemData(false, 90, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_45", new ItemData(false, 75, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_46", new ItemData(false, 76, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_47", new ItemData(false, 0, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_48", new ItemData(false, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_49", new ItemData(false, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_50", new ItemData(false, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_51", new ItemData(false, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "shoes_f_52", new ItemData(false, 19, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_f_53", new ItemData(false, 20, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_f_54", new ItemData(false, 68, new int[] { 0, 1, 2, 3, 4, 5, 6 }) },
+            { "shoes_f_55", new ItemData(false, 37, new int[] { 0, 1, 2, 3 }) },
+            { "shoes_f_56", new ItemData(false, 42, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_f_57", new ItemData(false, 31, new int[] { 0 }) },
+            { "shoes_f_58", new ItemData(false, 58, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "shoes_f_59", new ItemData(false, 79, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_60", new ItemData(false, 80, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_61", new ItemData(false, 81, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_62", new ItemData(false, 96, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }) },
+            { "shoes_f_63", new ItemData(false, 97, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }) },
+            { "shoes_f_64", new ItemData(false, 73, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_65", new ItemData(false, 74, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 }) },
+            { "shoes_f_66", new ItemData(false, 18, new int[] { 0, 1, 2 }) },
+            { "shoes_f_67", new ItemData(false, 56, new int[] { 0, 1, 2 }) },
+            { "shoes_f_68", new ItemData(false, 57, new int[] { 0, 1, 2 }) },
+            { "shoes_f_69", new ItemData(false, 24, new int[] { 0 }) },
+            { "shoes_f_70", new ItemData(false, 25, new int[] { 0 }) },
+            { "shoes_f_71", new ItemData(false, 36, new int[] { 0, 1 }) },
+            { "shoes_f_72", new ItemData(false, 78, new int[] { 0, 1 }) },
+            { "shoes_f_73", new ItemData(false, 47, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "shoes_f_74", new ItemData(false, 91, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 }) },
+            { "shoes_f_75", new ItemData(false, 92, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "shoes_f_76", new ItemData(false, 98, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "shoes_f_77", new ItemData(false, 99, new int[] { 0 }) },
+            { "shoes_f_78", new ItemData(false, 23, new int[] { 0, 1, 2 }) },
+            { "shoes_f_79", new ItemData(false, 103, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 }) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetClothes(6, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.SetClothes(6, Game.Data.Clothes.GetNudeDrawable(Type, pData.Sex), 0);
+        }
+
+        public Shoes(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Accessory : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Accessory, 0.2f, "p_jewel_necklace_02", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region Accessories Male
+            { "accs_m_0", new ItemData(true, 16, new int[] { 0, 1, 2 }) },
+            { "accs_m_1", new ItemData(true, 17, new int[] { 0, 1, 2 }) },
+            { "accs_m_2", new ItemData(true, 30, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "accs_m_3", new ItemData(true, 44, new int[] { 0 }) },
+            { "accs_m_4", new ItemData(true, 74, new int[] { 0, 1 }) },
+            { "accs_m_5", new ItemData(true, 85, new int[] { 0, 1 }) },
+            { "accs_m_6", new ItemData(true, 87, new int[] { 0, 1 }) },
+            { "accs_m_7", new ItemData(true, 110, new int[] { 0, 1 }) },
+            { "accs_m_8", new ItemData(true, 112, new int[] { 0, 1, 2 }) },
+            { "accs_m_9", new ItemData(true, 114, new int[] { 0 }) },
+            { "accs_m_10", new ItemData(true, 119, new int[] { 0, 1 }) },
+            { "accs_m_11", new ItemData(true, 124, new int[] { 0, 1 }) },
+            { "accs_m_12", new ItemData(true, 151, new int[] { 0 }) },
+            { "accs_m_13", new ItemData(true, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_14", new ItemData(true, 11, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_15", new ItemData(true, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_16", new ItemData(true, 28, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_17", new ItemData(true, 29, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_18", new ItemData(true, 32, new int[] { 0, 1, 2 }) },
+            { "accs_m_19", new ItemData(true, 37, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_20", new ItemData(true, 38, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_21", new ItemData(true, 39, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_m_22", new ItemData(true, 118, new int[] { 0 }) },
+            #endregion
+
+            #region Accessories Female
+            { "accs_f_0", new ItemData(false, 83, new int[] { 0, 1, 2 }) },
+            { "accs_f_1", new ItemData(false, 9, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "accs_f_2", new ItemData(false, 15, new int[] { 0, 1, 2, 3, 4 }) },
+            { "accs_f_3", new ItemData(false, 85, new int[] { 0 }) },
+            { "accs_f_4", new ItemData(false, 94, new int[] { 0, 1 }) },
+            { "accs_f_5", new ItemData(false, 120, new int[] { 0 }) },
+            { "accs_f_6", new ItemData(false, 12, new int[] { 0, 1, 2 }) },
+            { "accs_f_7", new ItemData(false, 13, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "accs_f_8", new ItemData(false, 20, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_f_9", new ItemData(false, 21, new int[] { 0, 1, 2 }) },
+            { "accs_f_10", new ItemData(false, 22, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) },
+            { "accs_f_11", new ItemData(false, 23, new int[] { 0, 1, 2 }) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetClothes(7, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.SetClothes(7, Game.Data.Clothes.GetNudeDrawable(Type, pData.Sex), 0);
+        }
+
+        public Accessory(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Glasses : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Glasses, 0.2f, "prop_cs_sol_glasses", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region ItemData Male
+            { "glasses_m_0", new ItemData(true, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_1", new ItemData(true, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_2", new ItemData(true, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_3", new ItemData(true, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_4", new ItemData(true, 12, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_5", new ItemData(true, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_6", new ItemData(true, 16, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "glasses_m_7", new ItemData(true, 18, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_8", new ItemData(true, 21, new int[] { 0 }) },
+            { "glasses_m_9", new ItemData(true, 22, new int[] { 0 }) },
+            { "glasses_m_10", new ItemData(true, 2, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_11", new ItemData(true, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_12", new ItemData(true, 5, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_13", new ItemData(true, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_14", new ItemData(true, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_15", new ItemData(true, 13, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_16", new ItemData(true, 17, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_17", new ItemData(true, 20, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_m_18", new ItemData(true, 28, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_m_19", new ItemData(true, 29, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }) },
+            { "glasses_m_20", new ItemData(true, 30, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_m_21", new ItemData(true, 31, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_m_22", new ItemData(true, 32, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_m_23", new ItemData(true, 33, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            #endregion
+
+            #region ItemData Female
+            { "glasses_f_0", new ItemData(false, 0, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_1", new ItemData(false, 9, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_2", new ItemData(false, 1, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_3", new ItemData(false, 4, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_4", new ItemData(false, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_5", new ItemData(false, 3, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_6", new ItemData(false, 22, new int[] { 0 }) },
+            { "glasses_f_7", new ItemData(false, 23, new int[] { 0 }) },
+            { "glasses_f_8", new ItemData(false, 7, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_9", new ItemData(false, 18, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_10", new ItemData(false, 19, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_11", new ItemData(false, 6, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_12", new ItemData(false, 16, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "glasses_f_13", new ItemData(false, 11, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "glasses_f_14", new ItemData(false, 14, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_15", new ItemData(false, 20, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "glasses_f_16", new ItemData(false, 21, new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) },
+            { "glasses_f_17", new ItemData(false, 24, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_18", new ItemData(false, 10, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }) },
+            { "glasses_f_19", new ItemData(false, 17, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "glasses_f_20", new ItemData(false, 30, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_f_21", new ItemData(false, 31, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 }) },
+            { "glasses_f_22", new ItemData(false, 32, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_f_23", new ItemData(false, 33, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_f_24", new ItemData(false, 34, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            { "glasses_f_25", new ItemData(false, 35, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetAccessories(1, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.ClearAccessory(1);
+        }
+
+        public Glasses(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Watches : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Watches, 0.1f, "prop_jewel_02b", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region ItemData Male
+            { "watches_m_0", new ItemData(true, 1, new int[] { 0, 1, 2, 3, 4 }) },
+            { "watches_m_1", new ItemData(true, 3, new int[] { 0, 1, 2, 3, 4 }) },
+            { "watches_m_2", new ItemData(true, 5, new int[] { 0, 1, 2, 3 }) },
+            { "watches_m_3", new ItemData(true, 7, new int[] { 0, 1, 2 }) },
+            { "watches_m_4", new ItemData(true, 10, new int[] { 0, 1, 2 }) },
+            { "watches_m_5", new ItemData(true, 12, new int[] { 0, 1, 2 }) },
+            { "watches_m_6", new ItemData(true, 13, new int[] { 0, 1, 2 }) },
+            { "watches_m_7", new ItemData(true, 14, new int[] { 0, 1, 2 }) },
+            { "watches_m_8", new ItemData(true, 15, new int[] { 0, 1, 2 }) },
+            { "watches_m_9", new ItemData(true, 20, new int[] { 0, 1, 2 }) },
+            { "watches_m_10", new ItemData(true, 21, new int[] { 0, 1, 2 }) },
+            { "watches_m_11", new ItemData(true, 36, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_m_12", new ItemData(true, 0, new int[] { 0, 1, 2, 3, 4 }) },
+            { "watches_m_13", new ItemData(true, 6, new int[] { 0, 1, 2 }) },
+            { "watches_m_14", new ItemData(true, 8, new int[] { 0, 1, 2 }) },
+            { "watches_m_15", new ItemData(true, 9, new int[] { 0, 1, 2 }) },
+            { "watches_m_16", new ItemData(true, 11, new int[] { 0, 1, 2 }) },
+            { "watches_m_17", new ItemData(true, 16, new int[] { 0, 1, 2 }) },
+            { "watches_m_18", new ItemData(true, 17, new int[] { 0, 1, 2 }) },
+            { "watches_m_19", new ItemData(true, 18, new int[] { 0, 1, 2 }) },
+            { "watches_m_20", new ItemData(true, 19, new int[] { 0, 1, 2 }) },
+            { "watches_m_21", new ItemData(true, 30, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_m_22", new ItemData(true, 31, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_m_23", new ItemData(true, 32, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "watches_m_24", new ItemData(true, 34, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_m_25", new ItemData(true, 35, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            #endregion
+
+            #region ItemData Female
+            { "watches_f_0", new ItemData(false, 3, new int[] { 0, 1, 2 }) },
+            { "watches_f_1", new ItemData(false, 4, new int[] { 0, 1, 2 }) },
+            { "watches_f_2", new ItemData(false, 5, new int[] { 0, 1, 2 }) },
+            { "watches_f_3", new ItemData(false, 6, new int[] { 0, 1, 2 }) },
+            { "watches_f_4", new ItemData(false, 8, new int[] { 0, 1, 2 }) },
+            { "watches_f_5", new ItemData(false, 24, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_f_6", new ItemData(false, 25, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_f_7", new ItemData(false, 26, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_f_8", new ItemData(false, 2, new int[] { 0, 1, 2, 3 }) },
+            { "watches_f_9", new ItemData(false, 7, new int[] { 0, 1, 2 }) },
+            { "watches_f_10", new ItemData(false, 9, new int[] { 0, 1, 2 }) },
+            { "watches_f_11", new ItemData(false, 19, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_f_12", new ItemData(false, 20, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_f_13", new ItemData(false, 21, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }) },
+            { "watches_f_14", new ItemData(false, 23, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            { "watches_f_15", new ItemData(false, 24, new int[] { 0, 1, 2, 3, 4, 5 }) },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetAccessories(6, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.ClearAccessory(6);
+        }
+
+        public Watches(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Bracelet : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Bracelet, 0.1f, "prop_jewel_02b", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region Bracelets Male
+            { "bracelet_m_0", new ItemData(true, 0, new int[] { 0 }, "bracelet_f_7") },
+            { "bracelet_m_1", new ItemData(true, 1, new int[] { 0 }, "bracelet_f_8") },
+            { "bracelet_m_2", new ItemData(true, 2, new int[] { 0 }, "bracelet_f_9") },
+            { "bracelet_m_3", new ItemData(true, 3, new int[] { 0 }, "bracelet_f_10") },
+            { "bracelet_m_4", new ItemData(true, 4, new int[] { 0 }, "bracelet_f_11") },
+            { "bracelet_m_5", new ItemData(true, 5, new int[] { 0 }, "bracelet_f_12") },
+            { "bracelet_m_6", new ItemData(true, 6, new int[] { 0 }, "bracelet_f_13") },
+            { "bracelet_m_7", new ItemData(true, 7, new int[] { 0, 1, 2, 3 }, "bracelet_f_14") },
+            { "bracelet_m_8", new ItemData(true, 8, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, "bracelet_f_15") },
+            #endregion
+
+            #region Bracelets Female
+            { "bracelet_f_0", new ItemData(false, 0, new int[] { 0 }) },
+            { "bracelet_f_1", new ItemData(false, 1, new int[] { 0 }) },
+            { "bracelet_f_2", new ItemData(false, 2, new int[] { 0 }) },
+            { "bracelet_f_3", new ItemData(false, 3, new int[] { 0 }) },
+            { "bracelet_f_4", new ItemData(false, 4, new int[] { 0 }) },
+            { "bracelet_f_5", new ItemData(false, 5, new int[] { 0 }) },
+            { "bracelet_f_6", new ItemData(false, 6, new int[] { 0 }) },
+            { "bracelet_f_7", new ItemData(false, 7, new int[] { 0 }, "bracelet_m_0") },
+            { "bracelet_f_8", new ItemData(false, 8, new int[] { 0 }, "bracelet_m_1") },
+            { "bracelet_f_9", new ItemData(false, 9, new int[] { 0 }, "bracelet_m_2") },
+            { "bracelet_f_10", new ItemData(false, 10, new int[] { 0 }, "bracelet_m_3") },
+            { "bracelet_f_11", new ItemData(false, 11, new int[] { 0 }, "bracelet_m_4") },
+            { "bracelet_f_12", new ItemData(false, 12, new int[] { 0 }, "bracelet_m_5") },
+            { "bracelet_f_13", new ItemData(false, 13, new int[] { 0 }, "bracelet_m_6") },
+            { "bracelet_f_14", new ItemData(false, 14, new int[] { 0, 1, 2, 3 }, "bracelet_m_7") },
+            { "bracelet_f_15", new ItemData(false, 15, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 }, "bracelet_m_8") },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetAccessories(7, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.ClearAccessory(7);
+        }
+
+        public Bracelet(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
+        }
+    }
+
+    public class Earrings : Clothes
+    {
+        public class ItemData : Clothes.ItemData
+        {
+            public ItemData(bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Types.Ears, 0.1f, "p_tmom_earrings_s", Sex, Drawable, Textures, SexAlternativeID) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            #region ItemData Male
+            { "ears_m_0", new ItemData(true, 3, new int[] { 0, 1, 2 }) },
+            { "ears_m_1", new ItemData(true, 4, new int[] { 0, 1, 2 }) },
+            { "ears_m_2", new ItemData(true, 5, new int[] { 0, 1, 2 }) },
+            { "ears_m_3", new ItemData(true, 6, new int[] { 0, 1 }) },
+            { "ears_m_4", new ItemData(true, 7, new int[] { 0, 1 }) },
+            { "ears_m_5", new ItemData(true, 8, new int[] { 0, 1 }) },
+            { "ears_m_6", new ItemData(true, 9, new int[] { 0, 1, 2 }) },
+            { "ears_m_7", new ItemData(true, 10, new int[] { 0, 1, 2 }) },
+            { "ears_m_8", new ItemData(true, 11, new int[] { 0, 1, 2 }) },
+            { "ears_m_9", new ItemData(true, 12, new int[] { 0, 1, 2 }) },
+            { "ears_m_10", new ItemData(true, 13, new int[] { 0, 1, 2 }) },
+            { "ears_m_11", new ItemData(true, 14, new int[] { 0, 1, 2 }) },
+            { "ears_m_12", new ItemData(true, 15, new int[] { 0, 1, 2 }) },
+            { "ears_m_13", new ItemData(true, 16, new int[] { 0, 1, 2 }) },
+            { "ears_m_14", new ItemData(true, 17, new int[] { 0, 1, 2 }) },
+            { "ears_m_15", new ItemData(true, 18, new int[] { 0, 1, 2, 3, 4 }) },
+            { "ears_m_16", new ItemData(true, 19, new int[] { 0, 1, 2, 3, 4 }) },
+            { "ears_m_17", new ItemData(true, 20, new int[] { 0, 1, 2, 3, 4 }) },
+            { "ears_m_18", new ItemData(true, 21, new int[] { 0, 1 }) },
+            { "ears_m_19", new ItemData(true, 22, new int[] { 0, 1 }) },
+            { "ears_m_20", new ItemData(true, 23, new int[] { 0, 1 }) },
+            { "ears_m_21", new ItemData(true, 24, new int[] { 0, 1, 2, 3 }) },
+            { "ears_m_22", new ItemData(true, 25, new int[] { 0, 1, 2, 3 }) },
+            { "ears_m_23", new ItemData(true, 26, new int[] { 0, 1, 2, 3 }) },
+            { "ears_m_24", new ItemData(true, 27, new int[] { 0, 1 }) },
+            { "ears_m_25", new ItemData(true, 28, new int[] { 0, 1 }) },
+            { "ears_m_26", new ItemData(true, 29, new int[] { 0, 1 }) },
+            { "ears_m_27", new ItemData(true, 30, new int[] { 0, 1, 2 }) },
+            { "ears_m_28", new ItemData(true, 21, new int[] { 0, 1 }) },
+            { "ears_m_29", new ItemData(true, 32, new int[] { 0, 1, 2 }) },
+            { "ears_m_30", new ItemData(true, 33, new int[] { 0 }) },
+            { "ears_m_31", new ItemData(true, 34, new int[] { 0, 1 }) },
+            { "ears_m_32", new ItemData(true, 35, new int[] { 0, 1 }) },
+            { "ears_m_33", new ItemData(true, 37, new int[] { 0, 1 }, "ears_f_14") },
+            { "ears_m_34", new ItemData(true, 38, new int[] { 0, 1, 2, 3 }, "ears_f_15") },
+            { "ears_m_35", new ItemData(true, 39, new int[] { 0, 1, 2, 3 }, "ears_f_16") },
+            { "ears_m_36", new ItemData(true, 40, new int[] { 0, 1, 2, 3 }, "ears_f_17") },
+            #endregion
+
+            #region ItemData Female
+            { "ears_f_0", new ItemData(false, 3, new int[] { 0 }) },
+            { "ears_f_1", new ItemData(false, 4, new int[] { 0 }) },
+            { "ears_f_2", new ItemData(false, 5, new int[] { 0 }) },
+            { "ears_f_3", new ItemData(false, 6, new int[] { 0, 1, 2 }) },
+            { "ears_f_4", new ItemData(false, 7, new int[] { 0, 1, 2 }) },
+            { "ears_f_5", new ItemData(false, 8, new int[] { 0, 1, 2 }) },
+            { "ears_f_6", new ItemData(false, 9, new int[] { 0, 1, 2 }) },
+            { "ears_f_7", new ItemData(false, 10, new int[] { 0, 1, 2 }) },
+            { "ears_f_8", new ItemData(false, 11, new int[] { 0, 1, 2 }) },
+            { "ears_f_9", new ItemData(false, 12, new int[] { 0, 1, 2 }) },
+            { "ears_f_10", new ItemData(false, 13, new int[] { 0 }) },
+            { "ears_f_11", new ItemData(false, 14, new int[] { 0 }) },
+            { "ears_f_12", new ItemData(false, 15, new int[] { 0 }) },
+            { "ears_f_13", new ItemData(false, 16, new int[] { 0 }) },
+            { "ears_f_14", new ItemData(false, 18, new int[] { 0, 1 }, "ears_m_33") },
+            { "ears_f_15", new ItemData(false, 19, new int[] { 0, 1, 2, 3 }, "ears_m_34") },
+            { "ears_f_16", new ItemData(false, 20, new int[] { 0, 1, 2, 3 }, "ears_m_35") },
+            { "ears_f_17", new ItemData(false, 21, new int[] { 0, 1, 2, 3 }, "ears_m_36") },
+            #endregion
+        };
+
+        [JsonIgnore]
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            var data = Data;
+
+            if (Data.Sex != player.GetSex())
+                data = SexAlternativeData;
+
+            if (data == null)
+                return;
+
+            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+
+            player.SetAccessories(2, data.Drawable, variation);
+        }
+
+        public override void Unwear(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = player.GetMainData();
+
+            player.ClearAccessory(2);
+        }
+
+        public Earrings(string ID, int Variation) : base(ID, Variation)
+        {
+            this.Data = (ItemData)IDList[ID];
+
+            this.Type = Data.Type;
+
+            if (Data.SexAlternativeID != null)
+                this.SexAlternativeData = (ItemData)IDList[Data.SexAlternativeID];
         }
     }
     #endregion
@@ -1052,13 +2774,13 @@ namespace BCRPServer.Game.Items
             public ItemData(Types ItemType, float Weight, string Model, int MaxStrength, int DrawableMale, int DrawableMaleTop, int DrawableFemale, int DrawableFemaleTop, Colours Colour) : this(ItemType, Weight, Model, MaxStrength, DrawableMale, DrawableMaleTop, DrawableFemale, DrawableFemaleTop, (int)Colour) { }
         }
 
-        public static Dictionary<string, ItemData> IDList = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "arm_shop", new ItemData(Item.Types.BArmShop, 0.5f, "prop_armour_pickup", 100, 28, 19, 0, 0, BodyArmour.ItemData.Colours.Grey) },
+            { "arm_shop", new ItemData(Types.BArmShop, 0.5f, "prop_armour_pickup", 100, 28, 19, 0, 0, BodyArmour.ItemData.Colours.Grey) },
         };
 
         [JsonIgnore]
-        public ItemData Data { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         public int Strength { get; set; }
 
@@ -1119,12 +2841,11 @@ namespace BCRPServer.Game.Items
         public BodyArmour(string ID)
         {
             this.ID = ID;
-            this.Strength = 100;
 
-            this.Data = IDList[ID];
-            this.Type = Data.ItemType;
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
 
-            base.Data = Item.GetData(Type);
+            this.Strength = Data.MaxStrength;
         }
     }
     #endregion
@@ -1160,14 +2881,14 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public static Dictionary<string, ItemData> IDList = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
             { "bag_0", new ItemData(81, 81, new int[] { 0 }, 10, 5f) },
         };
 
-        /// <summary>Данные предмета</summary>
         [JsonIgnore]
-        public ItemData Data { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
         /// <summary>Предметы внутри</summary>
         [JsonIgnore]
         public Item[] Items { get; set; }
@@ -1212,13 +2933,10 @@ namespace BCRPServer.Game.Items
             this.ID = ID;
             this.Var = Variation;
 
-            this.Data = IDList[ID];
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
 
             this.Items = new Item[Data.MaxSlots];
-
-            this.Type = ItemData.ItemType;
-
-            base.Data = Item.GetData(Type);
         }
     }
     #endregion
@@ -1244,14 +2962,14 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public static Dictionary<string, ItemData> IDList = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
             { "holster_0", new ItemData(136, 134, 0, 0, new int[] { 0, 1 }) },
             { "holster_1", new ItemData(135, 137, 0, 0, new int[] { 0, 1 }) },
         };
 
         [JsonIgnore]
-        public ItemData Data { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
         public Item[] Items { get; set; }
@@ -1309,10 +3027,8 @@ namespace BCRPServer.Game.Items
 
             this.Items = new Item[1];
 
-            this.Data = IDList[ID];
-            this.Type = ItemData.ItemType;
-
-            base.Data = Item.GetData(Type);
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
         }
     }
     #endregion
@@ -1330,7 +3046,7 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public static Dictionary<string, ItemData> IDList { get; set; } = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>()
         {
             { "np_0", new ItemData(Types.Numberplate0, "p_num_plate_01", 0) },
             { "np_1", new ItemData(Types.Numberplate1, "p_num_plate_04", 1) },
@@ -1341,7 +3057,7 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public ItemData Data { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         public string Tag { get; set; }
 
@@ -1388,10 +3104,8 @@ namespace BCRPServer.Game.Items
         {
             this.ID = ID;
 
-            this.Data = IDList[ID];
-            this.Type = Data.ItemType;
-
-            base.Data = Item.GetData(Type);
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
 
             this.Tag = "";
         }
@@ -1401,7 +3115,12 @@ namespace BCRPServer.Game.Items
     #region Vehicle Key
     public class VehicleKey : Item, ITagged
     {
-        public static Dictionary<string, Types> IDList = new Dictionary<string, Types>()
+        public class ItemData : Item.ItemData
+        {
+            public ItemData(Types Type, float Weight, string Model) : base(Type, Weight, Model) { }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
 
         };
@@ -1440,9 +3159,9 @@ namespace BCRPServer.Game.Items
         public VehicleKey(string ID)
         {
             this.ID = ID;
-            this.Type = IDList[ID];
 
-            base.Data = Item.GetData(Type);
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
 
             this.Tag = "";
 
@@ -1485,7 +3204,7 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public static Dictionary<string, ItemData> IDList = new Dictionary<string, ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
             { "sc_burger", new ItemData(Types.Burger, 0.15f, new string[] { "prop_cs_burger_01" }, 25, 0, 0, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger, 6000) },
             { "sc_chips", new ItemData(Types.Chips, 0.15f, new string[] { "prop_food_bs_chips" }, 15, 0, 0, Sync.Animations.FastTypes.ItemChips, Sync.AttachSystem.Types.ItemChips, 6000) },
@@ -1502,7 +3221,7 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public ItemData Data { get; set; }
+        public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
         public float Weight { get => Amount * base.Weight; }
@@ -1554,39 +3273,16 @@ namespace BCRPServer.Game.Items
         {
             this.ID = ID;
 
-            this.Data = IDList[ID];
-
-            this.Type = Data.ItemType;
-
-            base.Data = Item.GetData(Type);
+            this.Data = (ItemData)IDList[ID];
+            this.Type = Data.Type;
         }
     }
 
     public class Items
     {
-        private static Dictionary<string, Type> AllClasses = new Dictionary<string, Type>()
-        {
-            { "sc", typeof(StatusChanger) },
-            { "w", typeof(Weapon) },
-            { "am", typeof(Ammo) },
-            { "bag", typeof(Bag) },
-            { "arm", typeof(BodyArmour) },
-            { "holster", typeof(Holster) },
-            { "np", typeof(Numberplate) },
-            { "vk", typeof(VehicleKey) },
+        private static Dictionary<string, Type> AllClasses = new Dictionary<string, Type>();
 
-            { "top", typeof(Clothes) },
-            { "under", typeof(Clothes) },
-            { "hat", typeof(Clothes) },
-            { "pants", typeof(Clothes) },
-            { "shoes", typeof(Clothes) },
-            { "accs", typeof(Clothes) },
-            { "watches", typeof(Clothes) },
-            { "glasses", typeof(Clothes) },
-            { "bracelet", typeof(Clothes) },
-            { "gloves", typeof(Clothes) },
-            { "ears", typeof(Clothes) },
-        };
+        private static Dictionary<Type, Dictionary<string, Item.ItemData>> AllData= new Dictionary<Type, Dictionary<string, Item.ItemData>>();
 
         #region Give
         /// <summary>Создать и выдать предмет игроку</summary>
@@ -1634,7 +3330,7 @@ namespace BCRPServer.Game.Items
 
                 if (weapon)
                 {
-                    var ammoType = Weapon.IDList[id].AmmoType;
+                    var ammoType = ((Weapon.ItemData)Weapon.IDList[id]).AmmoType;
 
                     weightOk = totalWeight + Item.GetWeight(iType) + (ammoType == null ? 0 : Item.GetWeight((Item.Types)ammoType) * amount) < Settings.MAX_INVENTORY_WEIGHT;
                 }
@@ -1734,7 +3430,7 @@ namespace BCRPServer.Game.Items
                 }
                 else if (type == typeof(Holster))
                 {
-                    var textures = Holster.IDList[id].Textures.Length - 1;
+                    var textures = ((Holster.ItemData)Holster.IDList[id]).Textures.Length - 1;
 
                     if (textures < variation || variation < 0)
                         variation = 0;
@@ -1743,7 +3439,7 @@ namespace BCRPServer.Game.Items
                 }
                 else if (type == typeof(Bag))
                 {
-                    var textures = Bag.IDList[id].Textures.Length - 1;
+                    var textures = ((Bag.ItemData)Bag.IDList[id]).Textures.Length - 1;
 
                     if (textures < variation || variation < 0)
                         variation = 0;
@@ -1823,93 +3519,80 @@ namespace BCRPServer.Game.Items
             switch (data[0])
             {
                 case "w":
-                    return Weapon.IDList.ContainsKey(id) ? Weapon.IDList[id].ItemType : Item.Types.NotAssigned;
+                    return Weapon.IDList.ContainsKey(id) ? Weapon.IDList[id].Type : Item.Types.NotAssigned;
 
                 case "am":
-                    return Ammo.IDList.ContainsKey(id) ? Ammo.IDList[id] : Item.Types.NotAssigned;
+                    return Ammo.IDList.ContainsKey(id) ? Ammo.IDList[id].Type : Item.Types.NotAssigned;
 
                 case "top":
+                    return Item.Types.Top;
                 case "under":
+                    return Item.Types.Under;
                 case "hat":
+                    return Item.Types.Hat;
                 case "pants":
+                    return Item.Types.Pants;
                 case "shoes":
+                    return Item.Types.Shoes;
                 case "accs":
+                    return Item.Types.Accessory;
                 case "watches":
+                    return Item.Types.Watches;
                 case "glasses":
+                    return Item.Types.Glasses;
                 case "bracelet":
+                    return Item.Types.Bracelet;
                 case "gloves":
+                    return Item.Types.Gloves;
                 case "ears":
-                    return Game.Data.Clothes.GetData(id)?.ItemType ?? Item.Types.NotAssigned;
+                    return Item.Types.Ears;
 
                 case "bag":
                     return Bag.IDList.ContainsKey(id) ? Item.Types.Bag : Item.Types.NotAssigned;
 
                 case "arm":
-                    return BodyArmour.IDList.ContainsKey(id) ? BodyArmour.IDList[id].ItemType : Item.Types.NotAssigned;
+                    return BodyArmour.IDList.ContainsKey(id) ? BodyArmour.IDList[id].Type : Item.Types.NotAssigned;
 
                 case "holster":
-                    return Holster.IDList.ContainsKey(id) ? Holster.ItemData.ItemType : Item.Types.NotAssigned;
+                    return Holster.IDList.ContainsKey(id) ? Holster.IDList[id].Type : Item.Types.NotAssigned;
 
                 case "np":
-                    return Numberplate.IDList.ContainsKey(id) ? Numberplate.IDList[id].ItemType : Item.Types.NotAssigned;
+                    return Numberplate.IDList.ContainsKey(id) ? Numberplate.IDList[id].Type : Item.Types.NotAssigned;
 
                 case "vehkey":
-                    return VehicleKey.IDList.ContainsKey(id) ? VehicleKey.IDList[id] : Item.Types.NotAssigned;
+                    return VehicleKey.IDList.ContainsKey(id) ? VehicleKey.IDList[id].Type : Item.Types.NotAssigned;
 
                 case "sc":
-                    return StatusChanger.IDList.ContainsKey(id) ? StatusChanger.IDList[id].ItemType : Item.Types.NotAssigned;
+                    return StatusChanger.IDList.ContainsKey(id) ? StatusChanger.IDList[id].Type : Item.Types.NotAssigned;
 
                 default:
                     return Item.Types.NotAssigned;
             }
         }
 
-        public static Type GetClass(string id)
+        public static Type GetClass(string id, bool checkFullId = true)
         {
             var data = id.Split('_');
 
-            switch (data[0])
+            var type = AllClasses.GetValueOrDefault(data[0]);
+
+            if (type == null || (checkFullId && !AllData[type].ContainsKey(id)))
+                return null;
+
+            return type;
+        }
+
+        public static Item.ItemData GetData(string id, Type type = null)
+        {
+            if (type == null)
             {
-                case "w":
-                    return Weapon.IDList.ContainsKey(id) ? typeof(Weapon) : null;
+                type = GetClass(id, false);
 
-                case "am":
-                    return Ammo.IDList.ContainsKey(id) ? typeof(Ammo) : null;
-
-                case "top":
-                case "under":
-                case "hat":
-                case "pants":
-                case "shoes":
-                case "accs":
-                case "watches":
-                case "glasses":
-                case "bracelet":
-                case "gloves":
-                case "ears":
-                    return Game.Data.Clothes.GetData(id) != null ? typeof(Clothes) : null;
-
-                case "bag":
-                    return Bag.IDList.ContainsKey(id) ? typeof(Bag) : null;
-
-                case "arm":
-                    return BodyArmour.IDList.ContainsKey(id) ? typeof(BodyArmour) : null;
-
-                case "holster":
-                    return Holster.IDList.ContainsKey(id) ? typeof(Holster) : null;
-
-                case "np":
-                    return Numberplate.IDList.ContainsKey(id) ? typeof(Numberplate) : null;
-
-                case "vehkey":
-                    return VehicleKey.IDList.ContainsKey(id) ? typeof(VehicleKey) : null;
-
-                case "sc":
-                    return StatusChanger.IDList.ContainsKey(id) ? typeof(StatusChanger) : null;
-
-                default:
+                if (type == null)
                     return null;
             }
+
+            return AllData[type].GetValueOrDefault(id);
         }
         #endregion
 
@@ -1917,13 +3600,44 @@ namespace BCRPServer.Game.Items
         {
             int counter = 0;
 
-            counter += Game.Data.Clothes.AllClothes.Count;
-            counter += Bag.IDList.Count;
-            counter += Holster.IDList.Count;
-            counter += BodyArmour.IDList.Count;
-            counter += Weapon.IDList.Count;
-            counter += Numberplate.IDList.Count;
-            counter += Ammo.IDList.Count;
+            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == typeof(Item).Namespace && t.IsClass && !t.IsAbstract))
+            {
+                var currentType = x;
+
+                do
+                {
+                    var baseType = currentType.BaseType;
+
+                    if (baseType == typeof(Item))
+                    {
+                        //var idList= (IDictionary)x.GetField("IDList")?.GetValue(null).Cast<dynamic>().ToDictionary(a => (string)a.Key, a => (Item.ItemData)a.Value);
+
+                        var idList = (Dictionary<string, Item.ItemData>)x.GetField("IDList")?.GetValue(null);
+
+                        if (idList == null)
+                            break;
+
+                        AllData.Add(x, idList);
+
+                        counter += idList.Count;
+
+                        foreach (var t in idList)
+                        {
+                            var id = t.Key.Split('_');
+
+                            if (!AllClasses.ContainsKey(id[0]))
+                                AllClasses.Add(id[0], x);
+                        }
+
+                        break;
+                    }
+
+                    currentType = baseType;
+                }
+                while (currentType != null);
+            }
+
+            //Utils.ConsoleOutput(string.Join(", ", AllData));
 
             return counter;
         }
@@ -1960,6 +3674,7 @@ namespace BCRPServer.Game.Items
         }
 
         public override bool CanWrite => false;
+
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {}
     }
     #endregion
