@@ -396,7 +396,7 @@ namespace BCRPServer.Sync
                         }
                     }
 
-                    var upd2 = (iData.ItemRoot.ID, amount, Game.Items.Items.GetItemWeight(iData.ItemRoot)).SerializeToJson();
+                    var upd2 = iData.ToClientJson();
 
                     NAPI.Task.Run(() =>
                     {
@@ -446,7 +446,7 @@ namespace BCRPServer.Sync
                     {
                         iData.Amount -= amount;
 
-                        var upd2 = (iData.ItemRoot.ID, iData.Amount, Game.Items.Items.GetItemWeight(iData.ItemRoot)).SerializeToJson();
+                        var upd2 = iData.ToClientJson();
 
                         NAPI.Task.Run(() =>
                         {

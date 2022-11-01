@@ -300,7 +300,7 @@ namespace BCRPServer.Sync
                     return;
 
                 pData.Armour.Unwear(player);
-                player.TriggerEvent("Inventory::Update", 8, "null");
+                player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, CEF.Inventory.Groups.Armour));
 
                 pData.Armour = null;
 

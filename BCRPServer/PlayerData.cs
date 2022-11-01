@@ -746,13 +746,13 @@ namespace BCRPServer
 
                 string[] inventory = new string[7];
 
-                inventory[0] = Weapons.Select(x => x == null ? null : ((string, int, bool)?)(x.ID, x.Ammo, x.Equiped)).SerializeToJson();
-                inventory[1] = (Armour == null ? null : ((string, int)?)(Armour.ID, Armour.Strength)).SerializeToJson();
-                inventory[2] = Items.Select(x => x == null ? null : ((string, int, float)?)(x.ID, Game.Items.Items.GetItemAmount(x), Game.Items.Items.GetItemWeight(x))).SerializeToJson();
-                inventory[3] = Clothes.Select(x => x?.ID).SerializeToJson();
-                inventory[4] = Accessories.Select(x => x?.ID).SerializeToJson();
-                inventory[5] = (Bag == null ? null : (((string, float, IEnumerable<(string, int, float)?>)?)(Bag.ID, Bag.Data.MaxWeight, Bag.Items.Select(x => x == null ? null : ((string, int, float)?)(x.ID, Game.Items.Items.GetItemAmount(x), Game.Items.Items.GetItemWeight(x)))))).SerializeToJson();
-                inventory[6] = (Holster == null ? null : (((string, (string, int, bool)?)?)(Holster.ID, Holster.Items[0] == null ? null : ((string, int, bool)?)(Holster.Items[0].ID, (Holster.Items[0] as Game.Items.Weapon).Ammo, false)))).SerializeToJson();
+                inventory[0] = Weapons.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Weapons)).SerializeToJson();
+                inventory[1] = Game.Items.Item.ToClientJson(Armour, CEF.Inventory.Groups.Armour);
+                inventory[2] = Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Items)).SerializeToJson();
+                inventory[3] = Clothes.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Clothes)).SerializeToJson();
+                inventory[4] = Accessories.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Accessories)).SerializeToJson();
+                inventory[5] = Game.Items.Item.ToClientJson(Bag, CEF.Inventory.Groups.BagItem);
+                inventory[6] = Game.Items.Item.ToClientJson(Holster, CEF.Inventory.Groups.HolsterItem);
 
                 var licenses = Licenses.SerializeToJson();
                 var skills = Skills.SerializeToJson();

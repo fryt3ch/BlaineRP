@@ -60,12 +60,16 @@ namespace BCRPClient
 
             public static class Containers
             {
-                public static string Trunk = "Багажник";
-                public static string Locker = "Шкаф";
-                public static string Storage = "Склад";
-                public static string Crate = "Ящик";
-                public static string Fridge = "Холодильник";
-                public static string Wardrobe = "Гардероб";
+                public static Dictionary<CEF.Inventory.ContainerTypes, string> Names = new Dictionary<CEF.Inventory.ContainerTypes, string>()
+                {
+                    { CEF.Inventory.ContainerTypes.None, "null" },
+                    { CEF.Inventory.ContainerTypes.Trunk, "Багажник" },
+                    { CEF.Inventory.ContainerTypes.Locker, "Шкаф" },
+                    { CEF.Inventory.ContainerTypes.Storage, "Склад" },
+                    { CEF.Inventory.ContainerTypes.Crate, "Ящик" },
+                    { CEF.Inventory.ContainerTypes.Fridge, "Холодильник" },
+                    { CEF.Inventory.ContainerTypes.Wardrobe, "Гардероб" },
+                };
             }
 
             public static class Inventory
@@ -115,8 +119,8 @@ namespace BCRPClient
                 public static string CancelTextPushVehicle = "Нажмите W/A/S/D, чтобы перестать толкать";
 
                 public static string TextDoPuffSmoke = "Нажмите ЛКМ, чтобы сделать затяжку";
-                public static string TextToMouthSmoke = "Нажмите ПКМ, чтобы зажать зубами";
-                public static string TextToHandSmoke = "Нажмите ПКМ, чтобы взять в руку";
+                public static string TextToMouthSmoke = "Нажмите ALT, чтобы зажать зубами";
+                public static string TextToHandSmoke = "Нажмите ALT, чтобы взять в руку";
                 public static string CancelTextSmoke = "Нажмите {0}, чтобы перестать курить";
 
                 public static Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<Sync.Animations.OtherTypes, string> Names)> Anims = new Dictionary<CEF.Animations.AnimSectionTypes, (string SectionName, Dictionary<Sync.Animations.OtherTypes, string> Names)>

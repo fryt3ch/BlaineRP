@@ -358,7 +358,7 @@ namespace BCRPServer.Game.Items
             if (this.AllowedItemType == typeof(Game.Items.Item))
                 return true;
 
-            return Game.Items.Items.GetClass(item.ID) == this.AllowedItemType;
+            return item.GetType() == this.AllowedItemType;
         }
 
         /// <summary>Метод для обновления сущности держателя контейнера</summary>
@@ -367,6 +367,8 @@ namespace BCRPServer.Game.Items
         {
             this.Entity = owner;
         }
+
+        public string ToClientJson() => (new object[] { ContainerType, MaxWeight, Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Container)) }).SerializeToJson();
 
         #region Show
         [RemoteEvent("Container::Show")]
@@ -426,7 +428,7 @@ namespace BCRPServer.Game.Items
                         return;
                     }
 
-                    string result = (cont.ContainerType, cont.MaxWeight, cont.Items.Select(x => x == null ? null : ((string, int, float)?)(x.ID, Game.Items.Items.GetItemAmount(x), Game.Items.Items.GetItemWeight(x, false)))).SerializeToJson();
+                    string result = cont.ToClientJson();
 
                     await NAPI.Task.RunAsync(() =>
                     {
@@ -609,19 +611,19 @@ namespace BCRPServer.Game.Items
                         }
                         #endregion
 
-                        var upd1 = (pData.Items[slotFrom] == null ? null : ((string, int, float)?)(pData.Items[slotFrom].ID, Game.Items.Items.GetItemAmount(pData.Items[slotFrom]), Game.Items.Items.GetItemWeight(pData.Items[slotFrom]))).SerializeToJson();
-                        var upd2 = (cont.Items[slotTo].ID, Game.Items.Items.GetItemAmount(cont.Items[slotTo]), Game.Items.Items.GetItemWeight(cont.Items[slotTo])).SerializeToJson();
+                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], CEF.Inventory.Groups.Items);
+                        var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
 
                         NAPI.Task.Run(() =>
                         {
-                            player?.TriggerEvent("Inventory::Update", 0, slotFrom, upd1);
+                            player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
 
                             foreach (var x in cont.PlayersObserving.ToList())
                             {
                                 if (x?.Exists != true)
                                     continue;
 
-                                x.TriggerEvent("Inventory::Update", 9, slotTo, upd2);
+                                x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
                             }
                         });
 
@@ -738,19 +740,19 @@ namespace BCRPServer.Game.Items
                         }
                         #endregion
 
-                        var upd1 = (pData.Bag.Items[slotFrom] == null ? null : ((string, int, float)?)(pData.Bag.Items[slotFrom].ID, Game.Items.Items.GetItemAmount(pData.Bag.Items[slotFrom]), Game.Items.Items.GetItemWeight(pData.Bag.Items[slotFrom]))).SerializeToJson();
-                        var upd2 = (cont.Items[slotTo].ID, Game.Items.Items.GetItemAmount(cont.Items[slotTo]), Game.Items.Items.GetItemWeight(cont.Items[slotTo])).SerializeToJson();
+                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], CEF.Inventory.Groups.Bag);
+                        var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
 
                         NAPI.Task.Run(() =>
                         {
-                            player?.TriggerEvent("Inventory::Update", 1, slotFrom, upd1);
+                            player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotFrom, upd1);
 
                             foreach (var x in cont.PlayersObserving.ToList())
                             {
                                 if (x?.Exists != true)
                                     continue;
 
-                                x.TriggerEvent("Inventory::Update", 9, slotTo, upd2);
+                                x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
                             }
                         });
 
@@ -868,19 +870,19 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
 
-                            var upd1 = (cont.Items[slotFrom] == null ? null : ((string, int, float)?)(cont.Items[slotFrom].ID, Game.Items.Items.GetItemAmount(cont.Items[slotFrom]), Game.Items.Items.GetItemWeight(cont.Items[slotFrom]))).SerializeToJson();
-                            var upd2 = (pData.Items[slotTo].ID, Game.Items.Items.GetItemAmount(pData.Items[slotTo]), Game.Items.Items.GetItemWeight(pData.Items[slotTo])).SerializeToJson();
+                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], CEF.Inventory.Groups.Items);
 
                             NAPI.Task.Run(() =>
                             {
-                                player?.TriggerEvent("Inventory::Update", 0, slotTo, upd2);
+                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotTo, upd2);
 
                                 foreach (var x in cont.PlayersObserving.ToList())
                                 {
                                     if (x?.Exists != true)
                                         continue;
 
-                                    x.TriggerEvent("Inventory::Update", 9, slotFrom, upd1);
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
                                 }
                             });
 
@@ -993,19 +995,19 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
 
-                            var upd1 = (cont.Items[slotFrom] == null ? null : ((string, int, float)?)(cont.Items[slotFrom].ID, Game.Items.Items.GetItemAmount(cont.Items[slotFrom]), Game.Items.Items.GetItemWeight(cont.Items[slotFrom]))).SerializeToJson();
-                            var upd2 = (pData.Bag.Items[slotTo].ID, Game.Items.Items.GetItemAmount(pData.Bag.Items[slotTo]), Game.Items.Items.GetItemWeight(pData.Bag.Items[slotTo])).SerializeToJson();
+                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], CEF.Inventory.Groups.Bag);
 
                             NAPI.Task.Run(() =>
                             {
-                                player?.TriggerEvent("Inventory::Update", 1, slotTo, upd2);
+                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotTo, upd2);
 
                                 foreach (var x in cont.PlayersObserving.ToList())
                                 {
                                     if (x?.Exists != true)
                                         continue;
 
-                                    x.TriggerEvent("Inventory::Update", 9, slotFrom, upd1);
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
                                 }
                             });
 
@@ -1091,8 +1093,8 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
 
-                            var upd1 = (cont.Items[slotFrom] == null ? null : ((string, int, float)?)(cont.Items[slotFrom].ID, Game.Items.Items.GetItemAmount(cont.Items[slotFrom]), Game.Items.Items.GetItemWeight(cont.Items[slotFrom]))).SerializeToJson();
-                            var upd2 = (cont.Items[slotTo].ID, Game.Items.Items.GetItemAmount(cont.Items[slotTo]), Game.Items.Items.GetItemWeight(cont.Items[slotTo])).SerializeToJson();
+                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
+                            var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
 
                             NAPI.Task.Run(() =>
                             {
@@ -1101,8 +1103,8 @@ namespace BCRPServer.Game.Items
                                     if (x?.Exists != true)
                                         continue;
 
-                                    x.TriggerEvent("Inventory::Update", 9, slotFrom, upd1);
-                                    x.TriggerEvent("Inventory::Update", 9, slotTo, upd2);
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
                                 }
                             });
 
@@ -1213,7 +1215,7 @@ namespace BCRPServer.Game.Items
                     else
                         items[slot] = null;
 
-                    var upd = (items[slot] == null ? "null" : (items[slot].ID, (items[slot] as Game.Items.IStackable).Amount, items[slot].Weight).SerializeToJson());
+                    var upd = Game.Items.Item.ToClientJson(items[slot], CEF.Inventory.Groups.Container);
 
                     NAPI.Task.Run(() =>
                     {
@@ -1222,7 +1224,7 @@ namespace BCRPServer.Game.Items
                             if (x?.Exists != true)
                                 return;
 
-                            x.TriggerEvent("Inventory::Update", 9, slot, upd);
+                            x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slot, upd);
                         }
                     });
 

@@ -508,8 +508,8 @@ namespace BCRPServer
         /// <inheritdoc cref="CEF.Inventory.Replace(PlayerData, CEF.Inventory.Groups, int, CEF.Inventory.Groups, int, int)"/>
         public static async Task<CEF.Inventory.Results> InventoryReplace(this PlayerData pData, CEF.Inventory.Groups to, int slotTo, CEF.Inventory.Groups from, int slotFrom, int amount = -1) => await CEF.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
 
-        /// <inheritdoc cref="CEF.Inventory.Action(PlayerData, CEF.Inventory.Groups, int, int)"/>
-        public static async Task InventoryAction(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int action) => await CEF.Inventory.Action(pData, slotStr, slot, action);
+        /// <inheritdoc cref="CEF.Inventory.Action(PlayerData, CEF.Inventory.Groups, int, int, object[])"/>
+        public static async Task InventoryAction(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int action = 5, params object[] args) => await CEF.Inventory.Action(pData, slotStr, slot, action, args);
 
         /// <inheritdoc cref="CEF.Inventory.Drop(PlayerData, CEF.Inventory.Groups, int, int)"/>
         public static async Task InventoryDrop(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int amount) => await CEF.Inventory.Drop(pData, slotStr, slot, amount);
@@ -524,27 +524,67 @@ namespace BCRPServer
             if (pData == null)
                 return;
 
+            var player = pData.Player;
+
             await Task.Run(async () =>
             {
                 await pData.UnequipActiveWeapon();
 
-                for (int i = 0; i < pData.Weapons.Length; i++)
-                    pData.Weapons[i]?.Delete();
+                List<(CEF.Inventory.Groups Group, int Slot)> updList = new List<(CEF.Inventory.Groups Group, int Slot)>();
 
-                pData.Holster?.Items[0]?.Delete();
+                for (int i = 0; i < pData.Weapons.Length; i++)
+                {
+                    if (pData.Weapons[i] != null)
+                    {
+                        pData.Weapons[i].Delete();
+
+                        updList.Add((CEF.Inventory.Groups.Weapons, i));
+                    }
+                }
+
+                if (pData.Holster?.Items[0] is Game.Items.Weapon)
+                {
+                    pData.Holster.Items[0].Delete();
+
+                    updList.Add((CEF.Inventory.Groups.Holster, 2));
+                }
 
                 if (fromInventoryToo)
                 {
                     for (int i = 0; i < pData.Items.Length; i++)
+                    {
                         if (pData.Items[i] is Game.Items.Weapon)
+                        {
                             pData.Items[i].Delete();
+
+                            updList.Add((CEF.Inventory.Groups.Items, i));
+                        }
+                    }
                 }
 
                 if (fromBagToo && pData.Bag != null)
                 {
                     for (int i = 0; i < pData.Bag.Items.Length; i++)
+                    {
                         if (pData.Bag.Items[i] is Game.Items.Weapon)
+                        {
                             pData.Bag.Items[i].Delete();
+
+                            updList.Add((CEF.Inventory.Groups.Bag, i));
+                        }
+                    }
+                }
+
+                if (updList.Count > 0)
+                {
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        foreach (var x in updList)
+                            player.TriggerEvent("Inventory::Update", (int)x.Group, x.Slot, "null");
+                    });
                 }
             });
         }

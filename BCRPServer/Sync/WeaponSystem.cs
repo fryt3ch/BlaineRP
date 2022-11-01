@@ -17,15 +17,13 @@ namespace BCRPServer.Sync
         #region Update Ammo
         public static void UpdateAmmo(PlayerData pData, Game.Items.Weapon weapon, bool setUnarmedAfter = false)
         {
-            if (pData == null || weapon == null)
-                return;
-
             var player = pData.Player;
 
             if (setUnarmedAfter)
                 weapon.Equiped = false;
 
             var lastAmmo = weapon.Ammo;
+
             var curAmmo = NAPI.Task.RunAsync(() =>
             {
                 if (player?.Exists != true)
@@ -39,7 +37,7 @@ namespace BCRPServer.Sync
                 return amount;
             }).GetAwaiter().GetResult();
 
-            if (curAmmo == -1)
+            if (curAmmo < 0)
                 return;
 
             if (curAmmo < lastAmmo)

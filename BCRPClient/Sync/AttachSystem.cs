@@ -98,7 +98,7 @@ namespace BCRPClient.Sync
                 this.Type = Type;
             }
 
-            public override bool Equals(object? obj)
+            public override bool Equals(object obj)
             {
                 if (obj is AttachmentObjectNet other)
                     return Id == other.Id && Model == other.Model && Type == other.Type;
@@ -121,7 +121,7 @@ namespace BCRPClient.Sync
                 this.Type = Type;
             }
 
-            public override bool Equals(object? obj)
+            public override bool Equals(object obj)
             {
                 if (obj is AttachmentEntityNet other)
                     return Id == other.Id && EntityType == other.EntityType && Type == other.Type;
@@ -754,8 +754,8 @@ namespace BCRPClient.Sync
                                     Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
                                 }
                             }
-                            // rmb - to mouth
-                            else if ((!CEF.Cursor.Visible && RAGE.Game.Pad.IsControlJustPressed(0, 25)) || Player.LocalPlayer.Vehicle != null)
+                            // alt - to mouth
+                            else if ((!CEF.Cursor.Visible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null)
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -805,8 +805,8 @@ namespace BCRPClient.Sync
 
                             if (Player.LocalPlayer.Vehicle == null)
                             {
-                                // rmb - to hand
-                                if (!CEF.Cursor.Visible && RAGE.Game.Pad.IsControlJustPressed(0, 25))
+                                // alt - to hand
+                                if (!CEF.Cursor.Visible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
                                 {
                                     if (!lastSent.IsSpam(1000, false, false))
                                     {

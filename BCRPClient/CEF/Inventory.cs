@@ -11,7 +11,7 @@ using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.CEF
 {
-    class Inventory : Events.Script
+    public class Inventory : Events.Script
     {
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade) || ActionBox.CurrentContext == ActionBox.Contexts.Inventory; }
 
@@ -34,17 +34,6 @@ namespace BCRPClient.CEF
             Fridge,
             Wardrobe
         }
-
-        private static Dictionary<ContainerTypes, string> ContainerNames = new Dictionary<ContainerTypes, string>()
-        {
-            { ContainerTypes.None, "null" },
-            { ContainerTypes.Trunk, Locale.General.Containers.Trunk },
-            { ContainerTypes.Locker, Locale.General.Containers.Locker },
-            { ContainerTypes.Storage, Locale.General.Containers.Storage },
-            { ContainerTypes.Crate, Locale.General.Containers.Crate },
-            { ContainerTypes.Fridge, Locale.General.Containers.Fridge },
-            { ContainerTypes.Wardrobe, Locale.General.Containers.Wardrobe },
-        };
 
         private static Dictionary<string, int> Groups = new Dictionary<string, int>()
         {
@@ -121,12 +110,14 @@ namespace BCRPClient.CEF
         #endregion
 
         #region Fillers
-        private static object[] FillWeapon(string type, int ammo, bool inUse) => new object[] { Data.Items.GetType(type).ToString(), Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 5, inUse ? Locale.General.Inventory.Actions.FromHands : Locale.General.Inventory.Actions.ToHands }, new object[] { 6, Locale.General.Inventory.Actions.Load }, new object[] { 1, Locale.General.Inventory.Actions.Unload }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, ammo, inUse };
+        private static object[] FillWeapon(string type, int ammo, bool inUse, string tag) => new object[] { Data.Items.GetType(type).ToString(), (tag == null || tag.Length < 1) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]", new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 5, inUse ? Locale.General.Inventory.Actions.FromHands : Locale.General.Inventory.Actions.ToHands }, new object[] { 6, Locale.General.Inventory.Actions.Load }, new object[] { 1, Locale.General.Inventory.Actions.Unload }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, ammo, inUse };
+        
         private static object[] FillArmour(string type, int strength) => new object[] { Data.Items.GetType(type).ToString(), Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
-        private static object[] FillItem(string type, int amount, float weight, bool inBag = false, bool inContainer = false, bool inTrade = false)
+       
+        private static object[] FillItem(string type, int amount, float weight, string tag, bool inBag = false, bool inContainer = false, bool inTrade = false)
         {
             var iType = Data.Items.GetType(type);
-            var name = Data.Items.GetName(type);
+            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]";
 
             if (inContainer)
                 return new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
@@ -356,17 +347,19 @@ namespace BCRPClient.CEF
                         BagSlotsToUpdateCrate.Clear();
                     }
 
-                    (int, float, (string, int, float)?[]) Container = RAGE.Util.Json.Deserialize<(int, float, (string, int, float)?[])>((string)args[1]);
+                    var contData = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[1]);
 
-                    CurrentContainerType = (ContainerTypes)Container.Item1;
+                    var contItems = contData[2].Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)x)).ToArray();
 
-                    ContainerData = new object[Container.Item3.Length][];
+                    CurrentContainerType = (ContainerTypes)(int)contData[0];
+
+                    ContainerData = new object[contItems.Length][];
 
                     for (int i = 0; i < ContainerData.Length; i++)
-                        if (Container.Item3[i] != null)
-                            ContainerData[i] = FillItem(Container.Item3[i].Value.Item1, Container.Item3[i].Value.Item2, Container.Item3[i].Value.Item3, true, true);
+                        if (contItems[i] != null)
+                            ContainerData[i] = FillItem((string)contItems[i][0], (int)contItems[i][1], (float)contItems[i][2], (string)contItems[i][3], true, true);
 
-                    Browser.Window.ExecuteJs("Inventory.fillCrate", new object[] { ContainerNames[CurrentContainerType], ContainerData, Container.Item2 });
+                    Browser.Window.ExecuteJs("Inventory.fillCrate", new object[] { Locale.General.Containers.Names[CurrentContainerType], ContainerData, (float)contData[1] });
                 }
                 else if (CurrentType == Types.Trade)
                 {
@@ -395,9 +388,9 @@ namespace BCRPClient.CEF
                 if (id == 0)
                 {
                     int slot = (int)args[1];
-                    (string, int, float)? data = RAGE.Util.Json.Deserialize<(string, int, float)?>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    ItemsData[slot] = data == null ? null : FillItem(data.Value.Item1, data.Value.Item2, data.Value.Item3, false, false);
+                    ItemsData[slot] = data == null ? null : FillItem((string)data[0], (int)data[1], (float)data[2], (string)data[3], false, false);
 
                     if (CurrentType == Types.Inventory)
                     {
@@ -420,9 +413,9 @@ namespace BCRPClient.CEF
                 else if (id == 1)
                 {
                     int slot = (int)args[1];
-                    (string, int, float)? data = RAGE.Util.Json.Deserialize<(string, int, float)?>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    BagData[slot] = data == null ? null : FillItem(data.Value.Item1, data.Value.Item2, data.Value.Item3, true, false);
+                    BagData[slot] = data == null ? null : FillItem((string)data[0], (int)data[1], (float)data[2], (string)data[3], true, false);
 
                     if (CurrentType == Types.Inventory)
                     {
@@ -445,9 +438,9 @@ namespace BCRPClient.CEF
                 else if (id == 2 || id == 3)
                 {
                     int slot = (int)args[1];
-                    (string, int, bool)? data = RAGE.Util.Json.Deserialize<(string, int, bool)?>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    WeaponsData[slot] = data == null ? null : FillWeapon(data.Value.Item1, data.Value.Item2, data.Value.Item3);
+                    WeaponsData[slot] = data == null ? null : FillWeapon((string)data[0], (int)data[1], (bool)data[2], (string)data[3]);
 
                     if (CurrentType == Types.Inventory)
                         Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { slot, WeaponsData[slot] });
@@ -457,9 +450,9 @@ namespace BCRPClient.CEF
                 else if (id == 4)
                 {
                     int slot = (int)args[1];
-                    string data = RAGE.Util.Json.Deserialize<string>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    ClothesData[slot] = data == null ? null : FillClothes(data);
+                    ClothesData[slot] = data == null ? null : FillClothes((string)data[0]);
 
                     if (CurrentType == Types.Inventory)
                         Browser.Window.ExecuteJs("Inventory.updateClothesSlot", new object[] { slot, ClothesData[slot] });
@@ -469,9 +462,9 @@ namespace BCRPClient.CEF
                 else if (id == 5)
                 {
                     int slot = (int)args[1];
-                    string data = RAGE.Util.Json.Deserialize<string>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    AccessoriesData[slot] = data == null ? null : FillAccessories(data);
+                    AccessoriesData[slot] = data == null ? null : FillAccessories((string)data[0]);
 
                     if (CurrentType == Types.Inventory)
                         Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { slot, AccessoriesData[slot] });
@@ -480,7 +473,7 @@ namespace BCRPClient.CEF
                 }
                 else if (id == 6)
                 {
-                    (string, float, (string, int, float)?[])? data = RAGE.Util.Json.Deserialize<(string, float, (string, int, float)?[])?>((string)args[1]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[1]);
 
                     if (data == null)
                     {
@@ -509,14 +502,16 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        AccessoriesData[8] = FillAccessories(data.Value.Item1);
-                        BagData = new object[data.Value.Item3.Length][];
+                        var items = data[2].Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)x)).ToArray();
+
+                        AccessoriesData[8] = FillAccessories((string)data[0]);
+                        BagData = new object[items.Length][];
 
                         for (int i = 0; i < BagData.Length; i++)
-                            if (data.Value.Item3[i] != null)
-                                BagData[i] = FillItem(data.Value.Item3[i].Value.Item1, data.Value.Item3[i].Value.Item2, data.Value.Item3[i].Value.Item3, true, false);
+                            if (items[i] != null)
+                                BagData[i] = FillItem((string)items[i][0], (int)items[i][1], (float)items[i][2], (string)items[i][3], true, false);
 
-                        BagWeight = data.Value.Item2;
+                        BagWeight = (float)data[1];
 
                         if (CurrentType == Types.Inventory)
                         {
@@ -552,7 +547,7 @@ namespace BCRPClient.CEF
                 }
                 else if (id == 7)
                 {
-                    (string, (string, int, bool)?)? data = RAGE.Util.Json.Deserialize<(string, (string, int, bool)?)?>((string)args[1]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[1]);
 
                     if (data == null)
                     {
@@ -561,10 +556,12 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        AccessoriesData[9] = FillAccessories(data.Value.Item1);
+                        var item = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)data[1]);
 
-                        if (data.Value.Item2 != null)
-                            WeaponsData[2] = FillWeapon(data.Value.Item2.Value.Item1, data.Value.Item2.Value.Item2, data.Value.Item2.Value.Item3);
+                        AccessoriesData[9] = FillAccessories((string)data[0]);
+
+                        if (item != null)
+                            WeaponsData[2] = FillWeapon((string)item[0], (int)item[1], (bool)item[2], (string)item[3]);
                         else
                             WeaponsData[2] = null;
                     }
@@ -584,9 +581,9 @@ namespace BCRPClient.CEF
                 }
                 else if (id == 8)
                 {
-                    (string, int)? data = RAGE.Util.Json.Deserialize<(string, int)?>((string)args[1]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[1]);
 
-                    ArmourData = data == null ? null : FillArmour(data.Value.Item1, data.Value.Item2);
+                    ArmourData = data == null ? null : FillArmour((string)data[0], (int)data[1]);
 
                     if (CurrentType == Types.Inventory)
                         Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
@@ -599,9 +596,9 @@ namespace BCRPClient.CEF
                         return;
 
                     int slot = (int)args[1];
-                    (string, int, float)? data = RAGE.Util.Json.Deserialize<(string, int, float)?>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    ContainerData[slot] = data == null ? null : FillItem(data.Value.Item1, data.Value.Item2, data.Value.Item3, true, true);
+                    ContainerData[slot] = data == null ? null : FillItem((string)data[0], (int)data[1], (float)data[2], (string)data[3], true, true);
 
                     Browser.Window.ExecuteJs("Inventory.updateCrateSlot", new object[] { slot, ContainerData[slot] });
                 }
@@ -613,9 +610,9 @@ namespace BCRPClient.CEF
                     int realSlot = (int)args[1];
                     int slot = (int)args[2];
 
-                    (string, int, float)? data = RAGE.Util.Json.Deserialize<(string, int, float)?>((string)args[3]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[3]);
 
-                    var item = data == null ? null : FillItem(data.Value.Item1, data.Value.Item2, data.Value.Item3, false, false, true);
+                    var item = data == null ? null : FillItem((string)data[0], (int)data[1], (float)data[2], (string)data[3], false, false, true);
 
                     if (item == null)
                     {
@@ -678,9 +675,9 @@ namespace BCRPClient.CEF
                         return;
 
                     int slot = (int)args[1];
-                    (string, int, float)? data = RAGE.Util.Json.Deserialize<(string, int, float)?>((string)args[2]);
+                    var data = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[2]);
 
-                    var item = data == null ? null : FillItem(data.Value.Item1, data.Value.Item2, data.Value.Item3, false, false, true);
+                    var item = data == null ? null : FillItem((string)data[0], (int)data[1], (float)data[2], (string)data[3], false, false, true);
 
                     Browser.Window.ExecuteJs("Inventory.updateReceiveSlot", new object[] { slot, item });
 
@@ -1689,60 +1686,70 @@ namespace BCRPClient.CEF
 
         public static void Load(Newtonsoft.Json.Linq.JArray args)
         {
-            (string, int, bool)?[] Weapons = RAGE.Util.Json.Deserialize<(string, int, bool)?[]>((string)args[0]);
-            (string, int)? Armour = args[1] == null ? null : RAGE.Util.Json.Deserialize<(string, int)?>((string)args[1]);
-            (string, int, float)?[] Items = RAGE.Util.Json.Deserialize<(string, int, float)?[]>((string)args[2]);
-            string[] Clothes = RAGE.Util.Json.Deserialize<string[]>((string)args[3]);
-            string[] Accessories = RAGE.Util.Json.Deserialize<string[]>((string)args[4]);
-            (string, float, (string, int, float)?[])? Bag = args[5] == null ? null : RAGE.Util.Json.Deserialize<(string, float, (string, int, float)?[])?>((string)args[5]);
-            (string, (string, int, bool)?)? Holster = args[6] == null ? null : RAGE.Util.Json.Deserialize<(string, (string, int, bool)?)?>((string)args[6]);
+            var Weapons = RAGE.Util.Json.Deserialize<string[]>((string)args[0]).Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>(x)).ToArray();
+
+            var Armour = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[1]);
+
+            var Items = RAGE.Util.Json.Deserialize<string[]>((string)args[2]).Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>(x)).ToArray();
+
+            var Clothes = RAGE.Util.Json.Deserialize<string[]>((string)args[3]).Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>(x)).ToArray();
+
+            var Accessories = RAGE.Util.Json.Deserialize<string[]>((string)args[4]).Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>(x)).ToArray();
+
+            var Bag = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[5]);
+
+            var Holster = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)args[6]);
 
             WeaponsData = new object[Weapons.Length + 1][];
 
             for (int i = 0; i < WeaponsData.Length - 1; i++)
                 if (Weapons[i] != null)
-                    WeaponsData[i] = FillWeapon(Weapons[i].Value.Item1, Weapons[i].Value.Item2, Weapons[i].Value.Item3);
+                    WeaponsData[i] = FillWeapon((string)Weapons[i][0], (int)Weapons[i][1], (bool)Weapons[i][2], (string)Weapons[i][3]);
 
             if (Armour != null)
-                ArmourData = FillArmour(Armour.Value.Item1, Armour.Value.Item2);
+                ArmourData = FillArmour((string)Armour[0], (int)Armour[1]);
 
             ItemsData = new object[Items.Length][];
 
             for (int i = 0; i < ItemsData.Length; i++)
                 if (Items[i] != null)
-                    ItemsData[i] = FillItem(Items[i].Value.Item1, Items[i].Value.Item2, Items[i].Value.Item3, false, false);
+                    ItemsData[i] = FillItem((string)Items[i][0], (int)Items[i][1], (float)Items[i][2], (string)Items[i][3], false, false);
 
             ClothesData = new object[Clothes.Length][];
 
             for (var i = 0; i < ClothesData.Length; i++)
                 if (Clothes[i] != null)
-                    ClothesData[i] = FillClothes(Clothes[i]);
+                    ClothesData[i] = FillClothes((string)Clothes[i][0]);
 
             AccessoriesData = new object[Accessories.Length + 2][];
 
             for (var i = 0; i < AccessoriesData.Length - 2; i++)
                 if (Accessories[i] != null)
-                    AccessoriesData[i] = FillAccessories(Accessories[i]);
+                    AccessoriesData[i] = FillAccessories((string)Accessories[i][0]);
 
             if (Bag != null)
             {
-                AccessoriesData[AccessoriesData.Length - 2] = FillAccessories(Bag.Value.Item1);
+                var items = Bag[2].Select(x => RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)x)).ToArray();
 
-                BagData = new object[Bag.Value.Item3.Length][];
+                AccessoriesData[AccessoriesData.Length - 2] = FillAccessories((string)Bag[0]);
+
+                BagData = new object[items.Length][];
 
                 for (int i = 0; i < BagData.Length; i++)
-                    if (Bag.Value.Item3[i] != null)
-                        BagData[i] = FillItem(Bag.Value.Item3[i].Value.Item1, Bag.Value.Item3[i].Value.Item2, Bag.Value.Item3[i].Value.Item3, true, false);
+                    if (items[i] != null)
+                        BagData[i] = FillItem((string)items[i][0], (int)items[i][1], (float)items[i][2], (string)items[i][3], true, false);
 
-                BagWeight = Bag.Value.Item2;
+                BagWeight = (float)Bag[1];
             }
 
             if (Holster != null)
             {
-                AccessoriesData[AccessoriesData.Length - 1] = FillAccessories(Holster.Value.Item1);
+                var item = RAGE.Util.Json.Deserialize<Newtonsoft.Json.Linq.JArray>((string)Holster[1]);
 
-                if (Holster.Value.Item2 != null)
-                    WeaponsData[WeaponsData.Length - 1] = FillWeapon(Holster.Value.Item2.Value.Item1, Holster.Value.Item2.Value.Item2, Holster.Value.Item2.Value.Item3);
+                AccessoriesData[AccessoriesData.Length - 1] = FillAccessories((string)Holster[0]);
+
+                if (item != null)
+                    WeaponsData[WeaponsData.Length - 1] = FillWeapon((string)item[0], (int)item[1], (bool)item[2], (string)item[3]);
             }
         }
         #endregion

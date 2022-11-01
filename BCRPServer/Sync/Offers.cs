@@ -269,6 +269,8 @@ namespace BCRPServer.Sync
                         this.ItemRoot = ItemRoot;
                         this.Amount = Amount;
                     }
+
+                    public string ToClientJson() => ItemRoot == null ? "null" : (new object[] { ItemRoot.ID, Amount, Game.Items.Items.GetItemWeight(ItemRoot, false), Game.Items.Items.GetItemTag(ItemRoot) }).SerializeToJson();
                 }
 
                 public TradeItem[] SenderItems { get; set; }
@@ -352,7 +354,7 @@ namespace BCRPServer.Sync
                                 {
                                     (pData.Items[j] as Game.Items.IStackable).Amount -= senderItems[i].Amount;
 
-                                    senderSlotsToUpdate.Add((j, (pData.Items[j].ID, (pData.Items[j] as Game.Items.IStackable).Amount, Game.Items.Items.GetItemWeight(pData.Items[j], false)).SerializeToJson()));
+                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], CEF.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -367,9 +369,9 @@ namespace BCRPServer.Sync
                             for (int j = 0; j < pData.Items.Length; j++)
                                 if (pData.Items[j] == senderItems[i].ItemRoot)
                                 {
-                                    senderSlotsToUpdate.Add((j, "null"));
-
                                     pData.Items[j] = null;
+
+                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], CEF.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -385,7 +387,7 @@ namespace BCRPServer.Sync
                                 {
                                     (tData.Items[j] as Game.Items.IStackable).Amount -= receiverItems[i].Amount;
 
-                                    receiverSlotsToUpdate.Add((j, (tData.Items[j].ID, (tData.Items[j] as Game.Items.IStackable).Amount, Game.Items.Items.GetItemWeight(tData.Items[j], false)).SerializeToJson()));
+                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], CEF.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -400,9 +402,9 @@ namespace BCRPServer.Sync
                             for (int j = 0; j < tData.Items.Length; j++)
                                 if (tData.Items[j] == receiverItems[i].ItemRoot)
                                 {
-                                    receiverSlotsToUpdate.Add((j, "null"));
-
                                     tData.Items[j] = null;
+
+                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], CEF.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -417,7 +419,7 @@ namespace BCRPServer.Sync
                             {
                                 tData.Items[j] = senderItems[i].ItemRoot;
 
-                                receiverSlotsToUpdate.Add((j, (tData.Items[j].ID, senderItems[i].Amount, Game.Items.Items.GetItemWeight(tData.Items[j], false)).SerializeToJson()));
+                                receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], CEF.Inventory.Groups.Items)));
 
                                 break;
                             }
@@ -432,7 +434,7 @@ namespace BCRPServer.Sync
                             {
                                 pData.Items[j] = receiverItems[i].ItemRoot;
 
-                                senderSlotsToUpdate.Add((j, (pData.Items[j].ID, receiverItems[i].Amount, Game.Items.Items.GetItemWeight(pData.Items[j], false)).SerializeToJson()));
+                                senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], CEF.Inventory.Groups.Items)));
 
                                 break;
                             }
@@ -448,10 +450,10 @@ namespace BCRPServer.Sync
                             return;
 
                         for (int i = 0; i < senderSlotsToUpdate.Count; i++)
-                            pData.Player.TriggerEvent("Inventory::Update", 0, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
+                            pData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
 
                         for (int i = 0; i < receiverSlotsToUpdate.Count; i++)
-                            tData.Player.TriggerEvent("Inventory::Update", 0, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
+                            tData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
                     });
 
                     return (CEF.Inventory.Results.Success, null);
