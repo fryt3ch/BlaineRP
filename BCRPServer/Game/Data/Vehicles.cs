@@ -5,7 +5,7 @@ using GTANetworkAPI;
 
 namespace BCRPServer.Game.Data
 {
-    class Vehicles
+    public class Vehicles
     {
         public static Dictionary<string, Vehicle> All; // ID - Data
 

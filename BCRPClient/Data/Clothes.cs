@@ -16,6 +16,77 @@ namespace BCRPClient.Data
             LoadAll();
         }
 
+        public enum Types
+        {
+            Top = 0,
+            Under,
+            Pants,
+            Shoes,
+            Gloves,
+            Mask,
+            Accessory,
+            Bag,
+
+            Hat,
+            Glasses,
+            Ears,
+            Watches,
+            Bracelet,
+        }
+
+        private static Dictionary<Types, int> Slots = new Dictionary<Types, int>()
+        {
+            { Types.Top, 11 },
+            { Types.Under, 8 },
+            { Types.Pants, 4 },
+            { Types.Shoes, 6 },
+            { Types.Gloves, 3 },
+            { Types.Mask, 1 },
+            { Types.Accessory, 7 },
+            { Types.Bag, 5 },
+
+            { Types.Hat, 0 },
+            { Types.Glasses, 1 },
+            { Types.Ears, 2 },
+            { Types.Watches, 6 },
+            { Types.Bracelet, 7 },
+        };
+
+        private static Dictionary<bool, Dictionary<Types, int>> NudeClothes = new Dictionary<bool, Dictionary<Types, int>>()
+        {
+            {
+                true,
+
+                new Dictionary<Types, int>()
+                {
+                    { Types.Top, 15 },
+                    { Types.Under, 15 },
+                    { Types.Gloves, 15 },
+                    { Types.Pants, 21 },
+                    { Types.Shoes, 34 },
+                    { Types.Accessory, 0 },
+                    { Types.Mask, 0 },
+                    { Types.Bag, 0 },
+                }
+            },
+
+            {
+                false,
+
+                new Dictionary<Types, int>()
+                {
+                    { Types.Top, 15 },
+                    { Types.Under, 15 },
+                    { Types.Gloves, 15 },
+                    { Types.Pants, 15 },
+                    { Types.Shoes, 35 },
+                    { Types.Accessory, 0 },
+                    { Types.Mask, 0 },
+                    { Types.Bag, 0 }
+                }
+            },
+        };
+
         #region Classes
         public class TempClothes
         {
@@ -46,7 +117,7 @@ namespace BCRPClient.Data
                 }
             }
 
-            public Items.Types ItemType { get; set; }
+            public Types ItemType { get; set; }
 
             public bool Sex { get; set; }
             public int Drawable { get; set; }
@@ -55,7 +126,7 @@ namespace BCRPClient.Data
 
             public bool IsProp { get; set; }
 
-            public Data(Items.Types ItemType, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null)
+            public Data(Types ItemType, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null)
             {
                 this.ItemType = ItemType;
                 this.Drawable = Drawable;
@@ -65,7 +136,7 @@ namespace BCRPClient.Data
 
                 this.SexAlternativeID = SexAlternativeID;
 
-                this.IsProp = ItemType == Items.Types.Hat || ItemType == Items.Types.Glasses || ItemType == Items.Types.Ears || ItemType == Items.Types.Watches || ItemType == Items.Types.Bracelet;
+                this.IsProp = ItemType == Types.Hat || ItemType == Types.Glasses || ItemType == Types.Ears || ItemType == Types.Watches || ItemType == Types.Bracelet;
             }
         }
 
@@ -74,7 +145,7 @@ namespace BCRPClient.Data
             public int BestTorso { get; set; }
             public ExtraData ExtraData { get; set; }
 
-            public Top(bool Sex, int Drawable, int[] Textures, int BestTorso, ExtraData ExtraData = null, string SexAlternative = null) : base(Items.Types.Top, Sex, Drawable, Textures, SexAlternative)
+            public Top(bool Sex, int Drawable, int[] Textures, int BestTorso, ExtraData ExtraData = null, string SexAlternative = null) : base(Types.Top, Sex, Drawable, Textures, SexAlternative)
             {
                 this.BestTorso = BestTorso;
                 this.ExtraData = ExtraData;
@@ -87,7 +158,7 @@ namespace BCRPClient.Data
             public int BestTorso { get; set; }
             public ExtraData ExtraData { get; set; }
 
-            public Under(bool Sex, int Drawable, int[] Textures, Top BestTop, int BestTorso, ExtraData ExtraData = null, string SexAlternative = null) : base(Items.Types.Under, Sex, Drawable, Textures, SexAlternative)
+            public Under(bool Sex, int Drawable, int[] Textures, Top BestTop, int BestTorso, ExtraData ExtraData = null, string SexAlternative = null) : base(Types.Under, Sex, Drawable, Textures, SexAlternative)
             {
                 this.BestTop = BestTop;
                 this.ExtraData = ExtraData;
@@ -99,7 +170,7 @@ namespace BCRPClient.Data
         {
             public Dictionary<int, int> BestTorsos { get; set; }
 
-            public Gloves(bool Sex, int Drawable, int[] Textures, Dictionary<int, int> BestTorsos, string SexAlternative = null) : base(Items.Types.Gloves, Sex, Drawable, Textures, SexAlternative)
+            public Gloves(bool Sex, int Drawable, int[] Textures, Dictionary<int, int> BestTorsos, string SexAlternative = null) : base(Types.Gloves, Sex, Drawable, Textures, SexAlternative)
             {
                 this.BestTorsos = BestTorsos;
             }
@@ -107,7 +178,7 @@ namespace BCRPClient.Data
 
         public class Pants : Data
         {
-            public Pants(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Pants, Sex, Drawable, Textures, SexAlternative)
+            public Pants(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Pants, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -115,7 +186,7 @@ namespace BCRPClient.Data
 
         public class Shoes : Data
         {
-            public Shoes(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Shoes, Sex, Drawable, Textures, SexAlternative)
+            public Shoes(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Shoes, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -125,7 +196,7 @@ namespace BCRPClient.Data
         {
             public ExtraData ExtraData { get; set; }
 
-            public Hat(bool Sex, int Drawable, int[] Textures, ExtraData ExtraData = null, string SexAlternative = null) : base(Items.Types.Hat, Sex, Drawable, Textures, SexAlternative)
+            public Hat(bool Sex, int Drawable, int[] Textures, ExtraData ExtraData = null, string SexAlternative = null) : base(Types.Hat, Sex, Drawable, Textures, SexAlternative)
             {
                 this.ExtraData = ExtraData;
             }
@@ -133,7 +204,7 @@ namespace BCRPClient.Data
 
         public class Accessory : Data
         {
-            public Accessory(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Accessory, Sex, Drawable, Textures, SexAlternative)
+            public Accessory(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Accessory, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -141,7 +212,7 @@ namespace BCRPClient.Data
 
         public class Glasses : Data
         {
-            public Glasses(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Glasses, Sex, Drawable, Textures, SexAlternative)
+            public Glasses(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Glasses, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -149,7 +220,7 @@ namespace BCRPClient.Data
 
         public class Watches : Data
         {
-            public Watches(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Watches, Sex, Drawable, Textures, SexAlternative)
+            public Watches(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Watches, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -157,7 +228,7 @@ namespace BCRPClient.Data
 
         public class Bracelet : Data
         {
-            public Bracelet(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Bracelet, Sex, Drawable, Textures, SexAlternative)
+            public Bracelet(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Bracelet, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -165,7 +236,7 @@ namespace BCRPClient.Data
 
         public class Ears : Data
         {
-            public Ears(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Items.Types.Ears, Sex, Drawable, Textures, SexAlternative)
+            public Ears(bool Sex, int Drawable, int[] Textures, string SexAlternative = null) : base(Types.Ears, Sex, Drawable, Textures, SexAlternative)
             {
 
             }
@@ -181,38 +252,9 @@ namespace BCRPClient.Data
             return AllClothes[id];
         }
 
-        public static int GetNudeDrawable(Items.Types type, bool sex)
-        {
-            if (!NudeDefault[sex].ContainsKey(type))
-                return -1;
+        public static int GetSlot(Types type) => Slots.GetValueOrDefault(type);
 
-            return NudeDefault[sex][type];
-        }
-
-        public static int GetSlot(Items.Types type)
-        {
-            if (!Slots.ContainsKey(type))
-                return -1;
-
-            return Slots[type];
-        }
-        #endregion
-
-        #region Defaults
-        private static Dictionary<bool, Dictionary<Items.Types, int>> NudeDefault = new Dictionary<bool, Dictionary<Items.Types, int>>()
-        {
-            { true, new Dictionary<Items.Types, int>() { { Items.Types.Top, 15 }, { Items.Types.Under, 15 }, { Items.Types.Gloves, 15 }, { Items.Types.Pants, 21 }, { Items.Types.Shoes, 34 }, { Items.Types.Accessory, 0 }, { Items.Types.Mask, 0 }, { Items.Types.Bag, 0 } } },
-            { false, new Dictionary<Items.Types, int>() { { Items.Types.Top, 15 }, { Items.Types.Under, 15 }, { Items.Types.Gloves, 15 }, { Items.Types.Pants, 15 }, { Items.Types.Shoes, 35 }, { Items.Types.Accessory, 0 }, { Items.Types.Mask, 0 }, { Items.Types.Bag, 0 } } },
-        };
-
-        private static Dictionary<Items.Types, int> Slots = new Dictionary<Items.Types, int>()
-        {
-            // SetClothes
-            { Items.Types.Top, 11 }, { Items.Types.Under, 8 },  { Items.Types.Pants, 4 },  { Items.Types.Shoes, 6 },
-            { Items.Types.Gloves, 3 },  { Items.Types.Mask, 1 },  { Items.Types.Accessory, 7 },  { Items.Types.Bag, 0 },
-            // SetProp
-            { Items.Types.Hat, 0 }, { Items.Types.Glasses, 1 }, { Items.Types.Ears, 2 }, { Items.Types.Watches, 6 }, { Items.Types.Bracelet, 7 },
-        };
+        public static int GetNudeDrawable(Types type, bool sex) => NudeClothes[sex].GetValueOrDefault(type);
         #endregion
 
         #region Client-side Clothes Actions
@@ -234,7 +276,7 @@ namespace BCRPClient.Data
 
             if (data.IsProp)
             {
-                if (data.ItemType == Items.Types.Hat)
+                if (data.ItemType == Types.Hat)
                 {
                     TempClothes currentHatTemp = null;
 
@@ -265,7 +307,7 @@ namespace BCRPClient.Data
             }
             else
             {
-                if (data.ItemType == Items.Types.Top)
+                if (data.ItemType == Types.Top)
                 {
                     TempClothes currentTopTemp = null;
 
@@ -273,7 +315,7 @@ namespace BCRPClient.Data
                     {
                         currentTopTemp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Top");
 
-                        Unwear(Items.Types.Top);
+                        Unwear(Types.Top);
                     }
 
                     var tData = data as Top;
@@ -312,7 +354,7 @@ namespace BCRPClient.Data
 
                     return;
                 }
-                else if (data.ItemType == Items.Types.Under)
+                else if (data.ItemType == Types.Under)
                 {
                     TempClothes currentUnderTemp = null;
 
@@ -320,7 +362,7 @@ namespace BCRPClient.Data
                     {
                         currentUnderTemp = Player.LocalPlayer.GetData<TempClothes>("TempClothes::Under");
 
-                        Unwear(Items.Types.Under);
+                        Unwear(Types.Under);
                     }
 
                     var uData = data as Under;
@@ -375,10 +417,10 @@ namespace BCRPClient.Data
 
                     return;
                 }
-                else if (data.ItemType == Items.Types.Gloves)
+                else if (data.ItemType == Types.Gloves)
                 {
                     if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
-                        Unwear(Items.Types.Gloves);
+                        Unwear(Types.Gloves);
 
                     var gData = data as Gloves;
 
@@ -405,14 +447,14 @@ namespace BCRPClient.Data
 
             var data = GetData(id);
 
-            if (data == null || (data.ItemType != Items.Types.Hat && data.ItemType != Items.Types.Top && data.ItemType != Items.Types.Under))
+            if (data == null || (data.ItemType != Types.Hat && data.ItemType != Types.Top && data.ItemType != Types.Under))
                 return;
 
             var slot = GetSlot(data.ItemType);
 
             var = var < data.Textures.Length && var >= 0 ? data.Textures[var] : 0;
 
-            if (data.ItemType == Items.Types.Hat)
+            if (data.ItemType == Types.Hat)
             {
                 if ((data as Hat).ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Hat"))
                     return;
@@ -436,7 +478,7 @@ namespace BCRPClient.Data
                     Player.LocalPlayer.SetData("TempClothes::Hat", current);
                 }
             }
-            else if (data.ItemType == Items.Types.Top)
+            else if (data.ItemType == Types.Top)
             {
                 if ((data as Top).ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Top"))
                     return;
@@ -494,7 +536,7 @@ namespace BCRPClient.Data
                     }
                 }
             }
-            else if (data.ItemType == Items.Types.Under)
+            else if (data.ItemType == Types.Under)
             {
                 if ((data as Under).ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Under"))
                     return;
@@ -578,7 +620,7 @@ namespace BCRPClient.Data
             }
         }
 
-        public static void Unwear(Items.Types type)
+        public static void Unwear(Types type)
         {
             if (RAGE.Elements.Player.LocalPlayer.Model != 0x705E61F2 && RAGE.Elements.Player.LocalPlayer.Model != 0x9C9EFFD8)
                 return;
@@ -587,27 +629,27 @@ namespace BCRPClient.Data
 
             switch (type)
             {
-                case Items.Types.Hat:
+                case Types.Hat:
                     Player.LocalPlayer.ClearProp(0);
 
                     Player.LocalPlayer.ResetData("TempClothes::Hat");
                 break;
-                case Items.Types.Glasses:
+                case Types.Glasses:
                     Player.LocalPlayer.ClearProp(1);
                 break;
-                case Items.Types.Ears:
+                case Types.Ears:
                     Player.LocalPlayer.ClearProp(2);
                 break;
-                case Items.Types.Watches:
+                case Types.Watches:
                     Player.LocalPlayer.ClearProp(6);
                 break;
-                case Items.Types.Bracelet:
+                case Types.Bracelet:
                     Player.LocalPlayer.ClearProp(7);
                 break;
 
-                case Items.Types.Top:
+                case Types.Top:
                     Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(type, sex), 0, 2);
-                    Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Items.Types.Gloves, sex), 0, 2);
+                    Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Types.Gloves, sex), 0, 2);
 
                     Player.LocalPlayer.ResetData("TempClothes::Top");
 
@@ -628,14 +670,14 @@ namespace BCRPClient.Data
 
                     break;
 
-                case Items.Types.Under:
+                case Types.Under:
                     Player.LocalPlayer.ResetData("TempClothes::Under");
 
                     if (!Player.LocalPlayer.HasData("TempClothes::Top"))
                     {
-                        Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(Items.Types.Top, sex), 0, 2);
+                        Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(Types.Top, sex), 0, 2);
                         Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(type, sex), 0, 2);
-                        Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Items.Types.Gloves, sex), 0, 2);
+                        Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Types.Gloves, sex), 0, 2);
 
                         if (Player.LocalPlayer.HasData("TempClothes::Gloves"))
                         {
@@ -656,11 +698,11 @@ namespace BCRPClient.Data
                     }
                     break;
 
-                case Items.Types.Gloves:
+                case Types.Gloves:
                     Player.LocalPlayer.ResetData("TempClothes::Gloves");
 
-                    if (Player.LocalPlayer.GetDrawableVariation(11) == GetNudeDrawable(Items.Types.Top, sex))
-                       Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Items.Types.Gloves, sex), 0, 2);
+                    if (Player.LocalPlayer.GetDrawableVariation(11) == GetNudeDrawable(Types.Top, sex))
+                       Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Types.Gloves, sex), 0, 2);
 
                     if (Player.LocalPlayer.HasData("TempClothes::Top"))
                     {
@@ -698,14 +740,14 @@ namespace BCRPClient.Data
 
             Player.LocalPlayer.ClearAllProps();
 
-            Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(Items.Types.Top, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(Items.Types.Under, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Items.Types.Gloves, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(4, GetNudeDrawable(Items.Types.Pants, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(6, GetNudeDrawable(Items.Types.Shoes, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(5, GetNudeDrawable(Items.Types.Bag, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(7, GetNudeDrawable(Items.Types.Accessory, sex), 0, 2);
-            Player.LocalPlayer.SetComponentVariation(1, GetNudeDrawable(Items.Types.Mask, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(11, GetNudeDrawable(Types.Top, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(8, GetNudeDrawable(Types.Under, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(3, GetNudeDrawable(Types.Gloves, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(4, GetNudeDrawable(Types.Pants, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(6, GetNudeDrawable(Types.Shoes, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(5, GetNudeDrawable(Types.Bag, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(7, GetNudeDrawable(Types.Accessory, sex), 0, 2);
+            Player.LocalPlayer.SetComponentVariation(1, GetNudeDrawable(Types.Mask, sex), 0, 2);
         }
         #endregion
 

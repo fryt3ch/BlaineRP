@@ -299,7 +299,7 @@ namespace BCRPServer.Sync
                 if (pData.Armour == null)
                     return;
 
-                pData.Armour.Unwear(player);
+                pData.Armour.Unwear(pData);
                 player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, CEF.Inventory.Groups.Armour));
 
                 pData.Armour = null;
@@ -726,7 +726,7 @@ namespace BCRPServer.Sync
                 else
                 {
                     player.SetClothes(5, 0, 0);
-                    pData.Bag?.Wear(player);
+                    pData.Bag?.Wear(pData);
 
                     Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.BeltOff);
                 }

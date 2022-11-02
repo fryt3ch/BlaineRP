@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 
 namespace BCRPServer
 {
-    class VehicleData
+    public class VehicleData
     {
         public static Dictionary<Vehicle, VehicleData> Vehicles { get; private set; } = new Dictionary<Vehicle, VehicleData>();
 
@@ -23,7 +23,7 @@ namespace BCRPServer
             if (vehicle == null)
                 return null;
 
-            return Vehicles.ContainsKey(vehicle) ? Vehicles[vehicle] : null;
+            return Vehicles.GetValueOrDefault(vehicle);
         }
 
         /// <summary>Назначить объект класса VehicleData транспорту</summary>
@@ -32,8 +32,10 @@ namespace BCRPServer
             if (vehicle == null)
                 return;
 
-            if (Vehicles.ContainsKey(vehicle))
-                Vehicles[vehicle] = data;
+            VehicleData existing;
+
+            if (Vehicles.TryGetValue(vehicle, out existing))
+                existing = data;
             else
                 Vehicles.Add(vehicle, data);
         }

@@ -1,11 +1,145 @@
-﻿using System;
+using RAGE;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace BCRPClient.Data
 {
-    class Items
+    class Items : Events.Script
     {
+        public abstract class Item
+        {
+            public class Data
+            {
+                public Data()
+                {
+
+                }
+            }
+        }
+
+        public interface IWearable
+        {
+
+        }
+
+        public interface IStackable
+        {
+
+        }
+
+        public interface IContainer
+        {
+
+        }
+
+        public interface ITagged
+        {
+
+        }
+
+        public abstract class Clothes : Item, IWearable
+        {
+            public interface IToggleable
+            {
+
+            }
+        }
+
+        #region TO_REPLACE
+        public class Weapon : Item, ITagged, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Ammo : Item, IStackable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Hat : Clothes, IWearable, Clothes.IToggleable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Top : Clothes, IWearable, Clothes.IToggleable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Under : Clothes, IWearable, Clothes.IToggleable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Gloves : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Pants : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Shoes : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Accessory : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Glasses : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Watches : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Bracelet : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Earrings : Clothes, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Armour : Item, IWearable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Bag : Item, IWearable, IContainer
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class Holster : Item, IWearable, IContainer
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class VehicleKey : Item, ITagged
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+
+        public class StatusChanger : Item, IStackable
+        {
+            public static Dictionary<string, Data> IDList { get; set; }
+        }
+        #endregion
+
         #region Enums
         public enum ActionTypes
         {
@@ -14,193 +148,101 @@ namespace BCRPClient.Data
             Throw = 2,
             Use = 3,
         }
-
-        // Типы всех предметов
-        public enum Types
-        {
-            NotAssigned = -1,
-            // Одежда
-            Hat = 0,
-            Top,
-            Under,
-            Gloves,
-            Pants,
-            Shoes,
-            Mask,
-            Accessory,
-            Glasses,
-            Ears,
-            Watches,
-            Bracelet,
-            Ring,
-
-            BArmShop,
-            Bag,
-            Holster,
-
-            // Оружие
-            Stungun,
-            Pistol,
-            CombatPistol,
-            HeavyPistol,
-            VintagePistol,
-            MarksmanPistol,
-            Revolver,
-            RevolverMk2,
-            APPistol,
-            PistolMk2,
-            SMG,
-            MicroSMG,
-            AssaultSMG,
-            CombatPDW,
-            Gusenberg,
-            MiniSMG,
-            SMGMk2,
-            CombatMG,
-            MachinePistol,
-            AssaultRifle,
-            AssaultRifleMk2,
-            CarbineRifle,
-            AdvancedRifle,
-            CompactRifle,
-            HeavyRifle,
-            HeavySniper,
-            MarksmanRifle,
-            PumpShotgun,
-            SawnOffShotgun,
-            AssaultShotgun,
-            Musket,
-            HeavyShotgun,
-            PumpShotgunMk2,
-            Knife,
-            Nightstick,
-            Hammer,
-            Bat,
-            Crowbar,
-            GolfClub,
-            Bottle,
-            Dagger,
-            Hatchet,
-            Knuckles,
-            Machete,
-            Flashlight,
-            SwitchBlade,
-            PoolCue,
-            Wrench,
-
-            // Патроны
-            Ammo5_56, Ammo7_62, Ammo9, Ammo11_43, Ammo12, Ammo12_7,
-
-            Numberplate0, Numberplate1, Numberplate2, Numberplate3, Numberplate4, Numberplate5,
-
-            VehKey,
-
-            Burger,
-            Chips,
-            Hotdog,
-            Chocolate,
-            Pizza,
-            Cola,
-            Cigarettes,
-            Joint,
-            Beer,
-            Vodka,
-            Rum,
-            Smoothie,
-            VegSmoothie,
-            Milkshake,
-            Milk,
-        }
-
-        public enum TopTypes
-        {
-            Wearable = 0,
-            Weapon,
-            Default,
-            StatusChanger,
-        }
         #endregion
 
-        public static Dictionary<string, Types> AllTypes = new Dictionary<string, Types>()
+        private static Dictionary<string, Type> AllTypes { get; set; } = new Dictionary<string, Type>();
+
+        private static Dictionary<Type, Dictionary<string, Item.Data>> AllData { get; set; } = new Dictionary<Type, Dictionary<string, Item.Data>>();
+
+        private static Dictionary<Type, string[]> AbstractImageTypes = new Dictionary<Type, string[]>() // string[] - exceptions
         {
-            { "arm_shop", Types.BArmShop },
+            { typeof(Clothes), new string[] { } },
 
-            { "holster_0", Types.Holster },
-            { "holster_1", Types.Holster },
+            { typeof(Bag), new string[] { } },
 
-            { "sc_burger", Types.Burger },
-            { "sc_cigs", Types.Cigarettes },
+            { typeof(Holster), new string[] { } },
         };
 
-        public static List<string> AllBags = new List<string>()
+        public Items()
         {
-            "bag_0",
-        };
-
-        #region Stuff
-        public static Types GetType(string id)
-        {
-            var data = id.Split('_');
-
-            switch (data[0])
+            foreach (var x in typeof(Items).GetNestedTypes().Where(x => x.IsClass && !x.IsAbstract && typeof(Item).IsAssignableFrom(x)))
             {
-                case "w":
-                    return Weapons.AllWeapons.ContainsKey(id) ? Weapons.AllWeapons[id] : Types.NotAssigned;
+                var idList = (Dictionary<string, Item.Data>)x.GetProperty("IDList")?.GetValue(null);
 
-                case "am":
-                    return Weapons.AllAmmo.ContainsKey(id) ? Weapons.AllAmmo[id] : Types.NotAssigned;
+                if (idList == null)
+                    continue;
 
-                case "top":
-                case "under":
-                case "hat":
-                case "pants":
-                case "shoes":
-                case "accs":
-                case "watches":
-                case "glasses":
-                case "bracelet":
-                case "gloves":
-                case "ears":
-                    return Clothes.AllClothes.ContainsKey(id) ? Clothes.AllClothes[id].ItemType : Types.NotAssigned;
+                AllData.Add(x, idList);
 
-                case "bag":
-                    return Types.Bag;
+                foreach (var t in idList)
+                {
+                    var id = t.Key.Split('_');
 
-                default:
-                    return AllTypes.ContainsKey(id) ? AllTypes[id] : Types.NotAssigned;
+                    if (!AllTypes.ContainsKey(id[0]))
+                        AllTypes.Add(id[0], x);
+                }
             }
         }
 
-        public static TopTypes GetTopType(Types type)
+        #region Stuff
+        public static string GetImageId(string id, Type type = null)
         {
-            if (type >= Types.Hat && type <= Types.Holster)
-                return TopTypes.Wearable;
+            if (type == null)
+            {
+                type = GetType(id, false);
 
-            if (type >= Types.Stungun && type <= Types.Wrench)
-                return TopTypes.Weapon;
+                if (type == null)
+                    return "null";
+            }
 
-            if (type >= Types.Burger && type <= Types.Milk)
-                return TopTypes.StatusChanger;
+            var aType = AbstractImageTypes.Where(x => (x.Key == type || x.Key.IsAssignableFrom(type)) && !x.Value.Contains(id)).Select(x => x.Key).FirstOrDefault();
 
-            return TopTypes.Default;
+            if (aType != null)
+                return type.Name;
+
+            return id;
         }
 
-        public static string GetName(string id)
+        public static Type GetType(string id, bool checkFullId = true)
         {
-            if (!Names.ContainsKey(id))
-                return "null";
+            var data = id.Split('_');
 
-            return Names[id];
+            var type = AllTypes.GetValueOrDefault(data[0]);
+
+            if (type == null || (checkFullId && !AllData[type].ContainsKey(id)))
+                return null;
+
+            return type;
         }
 
-        public static object[][] GetActions(Types type, int amount, bool hasContainer = false, bool isContainer = false)
+        public static Item.Data GetData(string id, Type type = null)
+        {
+            if (type == null)
+            {
+                type = GetType(id, false);
+
+                if (type == null)
+                    return null;
+            }
+
+            return AllData[type].GetValueOrDefault(id);
+        }
+
+        public static string GetName(string id) => Names.GetValueOrDefault(id) ?? "null";
+
+        public static object[][] GetActions(Type type, int amount, bool hasContainer = false, bool isContainer = false)
         {
             List<object[]> actions;
 
-            TopTypes topType = GetTopType(type);
+            if (!isContainer)
+            {
+                var action = Actions.Where(x => x.Key == type || x.Key.IsAssignableFrom(type)).Select(x => x.Value).FirstOrDefault();
 
-            if (!isContainer && Actions.ContainsKey(topType))
-                actions = new List<object[]>(Actions[topType]);
+                if (action != null)
+                    actions = new List<object[]>() { action };
+                else
+                    actions = new List<object[]>();
+            }
             else
                 actions = new List<object[]>();
 
@@ -217,11 +259,13 @@ namespace BCRPClient.Data
         #endregion
 
         #region All Custom Actions
-        private static Dictionary<TopTypes, object[][]> Actions = new Dictionary<TopTypes, object[][]>()
+        private static Dictionary<Type, object[][]> Actions = new Dictionary<Type, object[][]>()
         {
-            { TopTypes.Wearable, new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
-            { TopTypes.Weapon, new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
-            { TopTypes.StatusChanger, new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+            { typeof(Weapon), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+
+            { typeof(StatusChanger), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+
+            { typeof(IWearable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
         };
         #endregion
 

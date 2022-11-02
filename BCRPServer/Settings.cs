@@ -8,6 +8,18 @@ namespace BCRPServer
 {
     public static class Settings
     {
+        public const string VERSION = "Alpha 2.5";
+
+        public const string DIR_BASE_PATH = @"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP";
+
+        public const string DIR_SOURCES_PATH = DIR_BASE_PATH + @"\backend\BCRPMode";
+
+        public const string DIR_CLIENT_PACKAGES_PATH = DIR_BASE_PATH + @"\client_packages";
+        public const string DIR_CLIENT_PACKAGES_CS_PATH = DIR_CLIENT_PACKAGES_PATH + @"\cs_packages";
+        public const string DIR_CLIENT_SOURCES_PATH = DIR_SOURCES_PATH + @"\BCRPClient";
+
+        public const string DIR_CLIENT_ITEMS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Items.cs";
+
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
 

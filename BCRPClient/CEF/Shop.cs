@@ -1254,7 +1254,7 @@ namespace BCRPClient.CEF
 
                     if (newItem)
                     {
-                        if (data.ItemType == Data.Items.Types.Under)
+                        if (data.ItemType == Data.Clothes.Types.Under)
                         {
                             if ((data as Data.Clothes.Under).ExtraData == null && (data as Data.Clothes.Under).BestTop != null && (data as Data.Clothes.Under).BestTop.ExtraData != null)
                                 CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopUnderExtraNotNeedTop, false);
@@ -1311,25 +1311,25 @@ namespace BCRPClient.CEF
                 if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
                 {
                     if (CurrentNavigation == 0)
-                        Data.Clothes.Unwear(Data.Items.Types.Hat);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Hat);
                     else if (CurrentNavigation == 1)
-                        Data.Clothes.Unwear(Data.Items.Types.Glasses);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Glasses);
                     else if (CurrentNavigation == 2)
-                        Data.Clothes.Unwear(Data.Items.Types.Top);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Top);
                     else if (CurrentNavigation == 3)
-                        Data.Clothes.Unwear(Data.Items.Types.Under);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Under);
                     else if (CurrentNavigation == 4)
-                        Data.Clothes.Unwear(Data.Items.Types.Accessory);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Accessory);
                     else if (CurrentNavigation == 5)
-                        Data.Clothes.Unwear(Data.Items.Types.Gloves);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Gloves);
                     else if (CurrentNavigation == 6)
-                        Data.Clothes.Unwear(Data.Items.Types.Pants);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Pants);
                     else if (CurrentNavigation == 7)
-                        Data.Clothes.Unwear(Data.Items.Types.Shoes);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Shoes);
                     else if (CurrentNavigation == 8)
-                        Data.Clothes.Unwear(Data.Items.Types.Watches);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Watches);
                     else if (CurrentNavigation == 9)
-                        Data.Clothes.Unwear(Data.Items.Types.Bracelet);
+                        Data.Clothes.Unwear(Data.Clothes.Types.Bracelet);
                 }
             });
 
@@ -1459,9 +1459,9 @@ namespace BCRPClient.CEF
                         Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
                         Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
 
-                        var currentTop = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Items.Types.Top && x.Value.Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentUnder = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Items.Types.Under && x.Value.Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentGloves = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Items.Types.Gloves && (x.Value as Data.Clothes.Gloves).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
+                        var currentTop = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Clothes.Types.Top && x.Value.Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentUnder = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Clothes.Types.Under && x.Value.Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentGloves = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Clothes.Types.Gloves && (x.Value as Data.Clothes.Gloves).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
 
                         if (currentTop != null)
                             Player.LocalPlayer.SetData("TempClothes::Top", new Data.Clothes.TempClothes(currentTop, RealClothes[11].Item2));

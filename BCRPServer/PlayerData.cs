@@ -19,7 +19,7 @@ namespace BCRPServer
             if (player == null)
                 return null;
 
-            return Players.ContainsKey(player) ? Players[player] : null;
+            return Players.GetValueOrDefault(player);
         }
 
         /// <summary>Назначить объект класса PlayerData игроку</summary>
@@ -28,8 +28,10 @@ namespace BCRPServer
             if (player == null)
                 return;
 
-            if (Players.ContainsKey(player))
-                Players[player] = data;
+            PlayerData existing;
+
+            if (Players.TryGetValue(player, out existing))
+                existing = data;
             else
                 Players.Add(player, data);
         }
@@ -315,7 +317,7 @@ namespace BCRPServer
 
         /// <summary>Текущий бронежилет игрока</summary>
         /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
-        public Game.Items.BodyArmour Armour { get; set; }
+        public Game.Items.Armour Armour { get; set; }
 
         /// <summary>Текущее оружие игрока (не включает в себя кобуру), которое было временно снято сервером</summary>
         /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>
@@ -793,20 +795,20 @@ namespace BCRPServer
             CEF.CharacterCreation.Undress(Player, Sex);
 
             foreach (var x in Clothes)
-                x?.Wear(Player);
+                x?.Wear(this);
 
             foreach (var x in Accessories)
-                x?.Wear(Player);
+                x?.Wear(this);
 
-            Armour?.Wear(Player);
-            Bag?.Wear(Player);
-            Holster?.Wear(Player);
+            Armour?.Wear(this);
+            Bag?.Wear(this);
+            Holster?.Wear(this);
         }
 
         public void UpdateWeapons()
         {
             foreach (var x in Weapons)
-                x?.Wear(Player);
+                x?.Wear(this);
         }
 
         /// <summary>Метод обновляет кастомизацию игрока</summary>

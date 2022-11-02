@@ -27,8 +27,6 @@ namespace BCRPServer
         /// <summary>Кол-во средств, которое получит безработный игрок</summary>
         private const int JoblessBenefits = 500;
 
-        private const string ModeVersion = "alpha_2.0";
-
         #region On Start
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
@@ -37,7 +35,7 @@ namespace BCRPServer
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
 
-            Utils.ConsoleOutput($"~White~Blaine~/~ ~Blue~Role~/~ ~Red~Play~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{ModeVersion}~/~");
+            Utils.ConsoleOutput($"~White~Blaine~/~ ~Blue~Role~/~ ~Red~Play~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{Settings.VERSION}~/~");
 
             Utils.ConsoleOutput();
 
@@ -45,14 +43,14 @@ namespace BCRPServer
             {
                 Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_resources...");
 
-                DirectoryInfo ClientCSPackagesTarget = new DirectoryInfo(@"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP\client_packages\cs_packages\");
-                DirectoryInfo ClientCSPackagesSource = new DirectoryInfo(@"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP\backend\BCRPMode\BCRPClient\");
+                DirectoryInfo ClientCSPackagesTarget = new DirectoryInfo(Settings.DIR_CLIENT_PACKAGES_CS_PATH);
+                DirectoryInfo ClientCSPackagesSource = new DirectoryInfo(Settings.DIR_CLIENT_SOURCES_PATH);
 
                 ClientCSPackagesTarget.Delete(true);
                 ClientCSPackagesTarget.Create();
 
                 foreach (var script in ClientCSPackagesSource.GetFiles("*.cs"))
-                    File.Copy(script.FullName, ClientCSPackagesTarget.FullName + script.Name, true);
+                    File.Copy(script.FullName, ClientCSPackagesTarget.FullName + "\\" + script.Name, true);
 
                 foreach (var dir in ClientCSPackagesSource.GetDirectories().Where(x => x.Name != "bin" && x.Name != "obj"))
                 {

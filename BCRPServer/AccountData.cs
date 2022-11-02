@@ -42,11 +42,23 @@ namespace BCRPServer
 
         private static Dictionary<Player, AccountData> Players = new Dictionary<Player, AccountData>();
 
-        public static AccountData Get(Player player) => Players.ContainsKey(player) ? Players[player] : null;
+        public static AccountData Get(Player player)
+        {
+            if (player == null)
+                return null;
+
+            return Players.GetValueOrDefault(player);
+        }
+
         public static void Set(Player player, AccountData data)
         {
-            if (Players.ContainsKey(player))
-                Players[player] = data;
+            if (player == null)
+                return;
+
+            AccountData existing;
+
+            if (Players.TryGetValue(player, out existing))
+                existing = data;
             else
                 Players.Add(player, data);
         }

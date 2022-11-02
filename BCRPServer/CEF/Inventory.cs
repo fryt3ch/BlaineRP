@@ -15,26 +15,26 @@ namespace BCRPServer.CEF
     {
         #region Settings
         /// <summary>Слоты одежды</summary>
-        public static Dictionary<Game.Items.Item.Types, int> ClothesSlots = new Dictionary<Game.Items.Item.Types, int>()
+        public static Dictionary<Type, int> ClothesSlots = new Dictionary<Type, int>()
         {
-            { Game.Items.Item.Types.Hat, 0 },
-            { Game.Items.Item.Types.Top, 1 },
-            { Game.Items.Item.Types.Under, 2 },
-            { Game.Items.Item.Types.Pants, 3 },
-            { Game.Items.Item.Types.Shoes, 4 },
+            { typeof(Game.Items.Hat), 0 },
+            { typeof(Game.Items.Top), 1 },
+            { typeof(Game.Items.Under), 2 },
+            { typeof(Game.Items.Pants), 3 },
+            { typeof(Game.Items.Shoes), 4 },
         };
 
         /// <summary>Слоты аксессуаров</summary>
-        public static Dictionary<Game.Items.Item.Types, int> AccessoriesSlots = new Dictionary<Game.Items.Item.Types, int>()
+        public static Dictionary<Type, int> AccessoriesSlots = new Dictionary<Type, int>()
         {
-            { Game.Items.Item.Types.Glasses, 0 },
-            { Game.Items.Item.Types.Mask, 1 },
-            { Game.Items.Item.Types.Ears, 2 },
-            { Game.Items.Item.Types.Accessory, 3 },
-            { Game.Items.Item.Types.Watches, 4 },
-            { Game.Items.Item.Types.Bracelet, 5 },
-            { Game.Items.Item.Types.Ring, 6 },
-            { Game.Items.Item.Types.Gloves, 7 },
+            { typeof(Game.Items.Glasses), 0 },
+            //{ typeof(Game.Items.Mask), 1 },
+            { typeof(Game.Items.Earrings), 2 },
+            { typeof(Game.Items.Accessory), 3 },
+            { typeof(Game.Items.Watches), 4 },
+            { typeof(Game.Items.Bracelet), 5 },
+            //{ typeof(Game.Items.Ring), 6 },
+            { typeof(Game.Items.Gloves), 7 },
         };
 
         /// <summary>Секции инвентаря</summary>
@@ -118,8 +118,10 @@ namespace BCRPServer.CEF
 
                         await NAPI.Task.RunAsync(() =>
                         {
-                            if (player?.Exists == true)
-                                weapon.Value.WeaponItem.UpdateAmmo(player);
+                            if (player?.Exists != true)
+                                return;
+
+                            weapon.Value.WeaponItem.UpdateAmmo(pData);
                         });
                     }
                     else
@@ -203,7 +205,7 @@ namespace BCRPServer.CEF
 
                                     if (weapons[slot].Equiped)
                                     {
-                                        weapons[slot].Unequip(player);
+                                        weapons[slot].Unequip(pData);
 
                                         player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
                                     }
@@ -220,18 +222,18 @@ namespace BCRPServer.CEF
 
                                         if (weapons[idxToCheck]?.Equiped == true)
                                         {
-                                            weapons[idxToCheck].Unequip(player);
+                                            weapons[idxToCheck].Unequip(pData);
 
                                             player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, idxToCheck, Game.Items.Item.ToClientJson(weapons[idxToCheck], Groups.Weapons));
                                         }
                                         else if (holster != null && (holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
                                         {
-                                            ((Game.Items.Weapon)holster.Items[0]).Unequip(player);
+                                            ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
 
                                             player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
                                         }
 
-                                        weapons[slot].Equip(player);
+                                        weapons[slot].Equip(pData);
 
                                         player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
                                     }
@@ -245,7 +247,7 @@ namespace BCRPServer.CEF
                                 {
                                     if (((Game.Items.Weapon)holster.Items[0]).Equiped)
                                     {
-                                        ((Game.Items.Weapon)holster.Items[0]).Unequip(player);
+                                        ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
 
                                         player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
                                     }
@@ -253,18 +255,18 @@ namespace BCRPServer.CEF
                                     {
                                         if (weapons[0]?.Equiped == true)
                                         {
-                                            weapons[0].Unequip(player);
+                                            weapons[0].Unequip(pData);
 
                                             player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 0, Game.Items.Item.ToClientJson(weapons[0], Groups.Weapons));
                                         }
                                         else if (weapons[1]?.Equiped == true)
                                         {
-                                            weapons[1].Unequip(player);
+                                            weapons[1].Unequip(pData);
 
                                             player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 1, Game.Items.Item.ToClientJson(weapons[1], Groups.Weapons));
                                         }
 
-                                        ((Game.Items.Weapon)holster.Items[0]).Equip(player);
+                                        ((Game.Items.Weapon)holster.Items[0]).Equip(pData);
 
                                         player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
                                     }
@@ -299,7 +301,7 @@ namespace BCRPServer.CEF
 
                                 for (int i = 0; i < items.Length; i++)
                                 {
-                                    if (items[i] != null && items[i].Type == weapons[slot].Data.AmmoType && maxAmmo < (items[i] as Game.Items.Ammo).Amount)
+                                    if (items[i] != null && items[i].ID == weapons[slot].Data.AmmoID && maxAmmo < (items[i] as Game.Items.Ammo).Amount)
                                     {
                                         ammoIdx = i;
                                         maxAmmo = (items[i] as Game.Items.Ammo).Amount;
@@ -323,7 +325,7 @@ namespace BCRPServer.CEF
 
                                 for (int i = 0; i < items.Length; i++)
                                 {
-                                    if (items[i] != null && items[i].Type == ((Game.Items.Weapon)holster.Items[0]).Data.AmmoType && maxAmmo < (items[i] as Game.Items.Ammo).Amount)
+                                    if (items[i] != null && items[i].ID == ((Game.Items.Weapon)holster.Items[0]).Data.AmmoID && maxAmmo < (items[i] as Game.Items.Ammo).Amount)
                                     {
                                         ammoIdx = i;
                                         maxAmmo = (items[i] as Game.Items.Ammo).Amount;
@@ -356,9 +358,11 @@ namespace BCRPServer.CEF
 
                             if (group == Groups.Items || group == Groups.Bag)
                             {
-                                if (AccessoriesSlots.ContainsKey(item.Type))
+                                int slotTo;
+
+                                if (AccessoriesSlots.TryGetValue(item.Type, out slotTo))
                                 {
-                                    return await Replace(pData, Groups.Accessories, AccessoriesSlots[item.Type], group, slot, -1);
+                                    return await Replace(pData, Groups.Accessories, slotTo, group, slot, -1);
                                 }
                                 else
                                 {
@@ -374,7 +378,7 @@ namespace BCRPServer.CEF
                                         if (player?.Exists != true)
                                             return;
 
-                                        tItem?.Action(player);
+                                        tItem?.Action(pData);
                                     });
                                 }
 
@@ -434,7 +438,7 @@ namespace BCRPServer.CEF
             },
 
             {
-                typeof(Game.Items.BodyArmour),
+                typeof(Game.Items.Armour),
 
                 new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
                 {
@@ -811,7 +815,7 @@ namespace BCRPServer.CEF
                         }
                         #endregion
                         #region Load
-                        else if (pData.Items[slotFrom] is Game.Items.Ammo && pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.AmmoType != null && (pData.Items[slotFrom] as Game.Items.Ammo).Type == pData.Weapons[slotTo].Data.AmmoType)
+                        else if (pData.Items[slotFrom] is Game.Items.Ammo && pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.AmmoID != null && (pData.Items[slotFrom] as Game.Items.Ammo).ID == pData.Weapons[slotTo].Data.AmmoID)
                         {
                             var slotFromAmount = (pData.Items[slotFrom] as Game.Items.Ammo).Amount;
                             var slotToAmount = pData.Weapons[slotTo].Ammo;
@@ -869,17 +873,17 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Items[slotFrom] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unequip(player);
-                                    pData.Weapons[slotTo].Equip(player);
+                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
+                                    pData.Weapons[slotTo].Equip(pData);
                                 }
                                 else
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
-                                pData.Weapons[slotTo].UpdateAmmo(player);
+                                pData.Weapons[slotTo].UpdateAmmo(pData);
 
-                                pData.Weapons[slotTo].Wear(player);
+                                pData.Weapons[slotTo].Wear(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
@@ -923,8 +927,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Clothes[slotTo].Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Clothes[slotTo].Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, true, true);
@@ -962,8 +966,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Accessories[slotTo].Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Accessories[slotTo].Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, true, false, true);
@@ -998,8 +1002,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Bag.Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Bag.Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, true, false, false, true);
@@ -1032,13 +1036,13 @@ namespace BCRPServer.CEF
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
 
-                            (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(player);
-                            pData.Holster.Wear(player);
+                            (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
+                            pData.Holster.Wear(pData);
 
                             if (pData.Items[slotFrom] != null && ((pData.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                ((pData.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(player);
-                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                ((pData.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
@@ -1055,14 +1059,14 @@ namespace BCRPServer.CEF
                         if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
                             return Results.Wounded;
 
-                        if (!(pData.Items[slotFrom] is Game.Items.BodyArmour))
+                        if (!(pData.Items[slotFrom] is Game.Items.Armour))
                             return Results.Error;
 
                         if (pData.Armour != null && pData.Armour.Weight + Game.Items.Items.GetWeight(pData.Items) - pData.Items[slotFrom].Weight > Settings.MAX_INVENTORY_WEIGHT)
                             return Results.NoSpace;
 
                         var temp = pData.Armour;
-                        pData.Armour = pData.Items[slotFrom] as Game.Items.BodyArmour;
+                        pData.Armour = pData.Items[slotFrom] as Game.Items.Armour;
                         pData.Items[slotFrom] = temp;
 
                         var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
@@ -1076,8 +1080,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Armour.Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Armour.Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, true);
@@ -1116,7 +1120,7 @@ namespace BCRPServer.CEF
                         }
                         #endregion
                         #region Load
-                        else if (pData.Items[slotFrom] is Game.Items.Ammo && pData.Holster.Items[0] != null && (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType != null && (pData.Items[slotFrom] as Game.Items.Ammo).Type == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)
+                        else if (pData.Items[slotFrom] is Game.Items.Ammo && pData.Holster.Items[0] != null && (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID != null && (pData.Items[slotFrom] as Game.Items.Ammo).ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID)
                         {
                             var slotFromAmount = (pData.Items[slotFrom] as Game.Items.Ammo).Amount;
                             var slotToAmount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
@@ -1174,17 +1178,17 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Items[slotFrom] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unequip(player);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(player);
+                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
                                 }
                                 else
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
-                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(player);
+                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
 
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(player);
+                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
@@ -1447,7 +1451,7 @@ namespace BCRPServer.CEF
                         }
                         #endregion
                         #region Load
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.Ammo && pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.AmmoType != null && (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Type == pData.Weapons[slotTo].Data.AmmoType)
+                        else if (pData.Bag.Items[slotFrom] is Game.Items.Ammo && pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.AmmoID != null && (pData.Bag.Items[slotFrom] as Game.Items.Ammo).ID == pData.Weapons[slotTo].Data.AmmoID)
                         {
                             var slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount;
                             var slotToAmount = pData.Weapons[slotTo].Ammo;
@@ -1505,17 +1509,17 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Bag.Items[slotFrom] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unequip(player);
-                                    pData.Weapons[slotTo].Equip(player);
+                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
+                                    pData.Weapons[slotTo].Equip(pData);
                                 }
                                 else
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
-                                pData.Weapons[slotTo].UpdateAmmo(player);
+                                pData.Weapons[slotTo].UpdateAmmo(pData);
 
-                                pData.Weapons[slotTo].Wear(player);
+                                pData.Weapons[slotTo].Wear(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
@@ -1562,8 +1566,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Clothes[slotTo].Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Clothes[slotTo].Wear(pData);
                         });
 
                         pData.Bag.Update();
@@ -1602,8 +1606,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Accessories[slotTo].Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Accessories[slotTo].Wear(pData);
                         });
 
                         pData.Bag.Update();
@@ -1634,13 +1638,13 @@ namespace BCRPServer.CEF
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
 
-                            (pData.Bag.Items[slotFrom] as Game.Items.Holster)?.Unwear(player);
-                            pData.Holster.Wear(player);
+                            (pData.Bag.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
+                            pData.Holster.Wear(pData);
 
                             if (pData.Bag.Items[slotFrom] != null && ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(player);
-                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
@@ -1658,14 +1662,14 @@ namespace BCRPServer.CEF
                         if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
                             return Results.Wounded;
 
-                        if (!(pData.Bag.Items[slotFrom] is Game.Items.BodyArmour))
+                        if (!(pData.Bag.Items[slotFrom] is Game.Items.Armour))
                             return Results.Error;
 
                         if (pData.Armour != null && pData.Armour.Weight + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight - pData.Bag.Items[slotFrom].Weight > pData.Bag.Data.MaxWeight)
                             return Results.NoSpace;
 
                         var temp = pData.Armour;
-                        pData.Armour = pData.Bag.Items[slotFrom] as Game.Items.BodyArmour;
+                        pData.Armour = pData.Bag.Items[slotFrom] as Game.Items.Armour;
                         pData.Bag.Items[slotFrom] = temp;
 
                         var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
@@ -1679,8 +1683,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
 
-                            temp?.Unwear(player);
-                            pData.Armour.Wear(player);
+                            temp?.Unwear(pData);
+                            pData.Armour.Wear(pData);
                         });
 
                         pData.Bag.Update();
@@ -1717,7 +1721,7 @@ namespace BCRPServer.CEF
                         }
                         #endregion
                         #region Load
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.Ammo && pData.Holster.Items[0] != null && (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType != null && (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Type == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)
+                        else if (pData.Bag.Items[slotFrom] is Game.Items.Ammo && pData.Holster.Items[0] != null && (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID != null && (pData.Bag.Items[slotFrom] as Game.Items.Ammo).ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID)
                         {
                             var slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount;
                             var slotToAmount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
@@ -1775,17 +1779,17 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Bag.Items[slotFrom] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unequip(player);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(player);
+                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
                                 }
                                 else
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
-                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(player);
+                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
 
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(player);
+                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
@@ -1817,7 +1821,7 @@ namespace BCRPServer.CEF
                         bool wasCreated = false;
                         bool wasReplaced = false;
 
-                        bool extractToExisting = pData.Items[slotTo] != null && pData.Items[slotTo] is Game.Items.Ammo && pData.Items[slotTo].Type == pData.Weapons[slotFrom].Data.AmmoType;
+                        bool extractToExisting = pData.Items[slotTo] != null && pData.Items[slotTo] is Game.Items.Ammo && pData.Items[slotTo].ID == pData.Weapons[slotFrom].Data.AmmoID;
 
                         #region Extract
                         if (amount != -1 || extractToExisting) // extract ammo from weapon
@@ -1825,7 +1829,7 @@ namespace BCRPServer.CEF
                             if (pData.Weapons[slotFrom].IsTemp)
                                 return Results.TempItem;
 
-                            if (pData.Weapons[slotFrom].Ammo == 0 || pData.Weapons[slotFrom].Data.AmmoType == null)
+                            if (pData.Weapons[slotFrom].Ammo == 0 || pData.Weapons[slotFrom].Data.AmmoID == null)
                                 return Results.Error;
 
                             if (pData.Weapons[slotFrom].Equiped)
@@ -1835,7 +1839,7 @@ namespace BCRPServer.CEF
                                 amount = pData.Weapons[slotFrom].Ammo;
 
                             var curWeight = Game.Items.Items.GetWeight(pData.Items);
-                            var ammoWeight = Game.Items.Item.GetWeight((Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType);
+                            var ammoWeight = Game.Items.Ammo.GetData(pData.Weapons[slotFrom].Data.AmmoID).Weight;
 
                             if (extractToExisting)
                             {
@@ -1877,7 +1881,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 pData.Weapons[slotFrom].Ammo -= amount;
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType).Key, 0, amount);
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Weapons[slotFrom].Data.AmmoID, 0, amount);
 
                                 pData.Weapons[slotFrom].Update();
 
@@ -1912,19 +1916,19 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Items[slotTo] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unequip(player);
-                                    pData.Weapons[slotFrom]?.Equip(player);
+                                    (pData.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
+                                    pData.Weapons[slotFrom]?.Equip(pData);
                                 }
                                 else
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Items[slotTo] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
                                 if (pData.Weapons[slotFrom] != null)
                                 {
-                                    pData.Weapons[slotFrom].UpdateAmmo(player);
+                                    pData.Weapons[slotFrom].UpdateAmmo(pData);
 
-                                    pData.Weapons[slotFrom].Wear(player);
+                                    pData.Weapons[slotFrom].Wear(pData);
                                 }
                             }
 
@@ -1954,12 +1958,12 @@ namespace BCRPServer.CEF
                         bool wasCreated = false;
                         bool wasReplaced = false;
 
-                        bool extractToExisting = pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo] is Game.Items.Ammo && pData.Bag.Items[slotTo].Type == pData.Weapons[slotFrom].Data.AmmoType;
+                        bool extractToExisting = pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo] is Game.Items.Ammo && pData.Bag.Items[slotTo].ID == pData.Weapons[slotFrom].Data.AmmoID;
 
                         #region Extract
                         if (amount != -1 || extractToExisting)
                         {
-                            if (pData.Weapons[slotFrom].Ammo == 0 || pData.Weapons[slotFrom].Data.AmmoType == null)
+                            if (pData.Weapons[slotFrom].Ammo == 0 || pData.Weapons[slotFrom].Data.AmmoID == null)
                                 return Results.Error;
 
                             if (pData.Weapons[slotFrom].Equiped)
@@ -1970,8 +1974,8 @@ namespace BCRPServer.CEF
 
                             var curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
                             var maxWeight = pData.Bag.Data.MaxWeight;
-                            
-                            var ammoWeight = Game.Items.Item.GetWeight((Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType);
+
+                            var ammoWeight = Game.Items.Ammo.GetData(pData.Weapons[slotFrom].Data.AmmoID).Weight;
 
                             if (extractToExisting)
                             {
@@ -2013,7 +2017,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 pData.Weapons[slotFrom].Ammo -= amount;
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)pData.Weapons[slotFrom].Data.AmmoType).Key, 0, amount);
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Weapons[slotFrom].Data.AmmoID, 0, amount);
 
                                 pData.Weapons[slotFrom].Update();
 
@@ -2049,17 +2053,17 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Bag.Items[slotTo] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unequip(player);
-                                    pData.Weapons[slotFrom]?.Equip(player);
+                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
+                                    pData.Weapons[slotFrom]?.Equip(pData);
                                 }
                             }
                             else
                             {
                                 if (pData.Weapons[slotFrom] != null)
                                 {
-                                    pData.Weapons[slotFrom].UpdateAmmo(player);
+                                    pData.Weapons[slotFrom].UpdateAmmo(pData);
 
-                                    pData.Weapons[slotFrom].Wear(player);
+                                    pData.Weapons[slotFrom].Wear(pData);
                                 }
                             }
 
@@ -2091,8 +2095,8 @@ namespace BCRPServer.CEF
 
                             if (pData.Weapons[slotFrom]?.Equiped == true)
                             {
-                                pData.Weapons[slotFrom].Unequip(player);
-                                pData.Weapons[slotTo].Equip(player);
+                                pData.Weapons[slotFrom].Unequip(pData);
+                                pData.Weapons[slotTo].Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
@@ -2128,8 +2132,8 @@ namespace BCRPServer.CEF
 
                             if (pData.Weapons[slotFrom]?.Equiped == true)
                             {
-                                pData.Weapons[slotFrom].Unequip(player);
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Equip(player);
+                                pData.Weapons[slotFrom].Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
@@ -2171,8 +2175,8 @@ namespace BCRPServer.CEF
 
                             if (pData.Weapons[slotTo].Equiped)
                             {
-                                pData.Weapons[slotTo].Unequip(player);
-                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                pData.Weapons[slotTo].Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
@@ -2191,7 +2195,7 @@ namespace BCRPServer.CEF
                         if (slotTo >= pData.Items.Length)
                             return Results.Error;
 
-                        bool extractToExisting = pData.Items[slotTo] != null && pData.Items[slotTo] is Game.Items.Ammo && pData.Items[slotTo].Type == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType;
+                        bool extractToExisting = pData.Items[slotTo] != null && pData.Items[slotTo] is Game.Items.Ammo && pData.Items[slotTo].ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID;
 
                         bool wasCreated = false;
                         bool wasReplaced = false;
@@ -2199,7 +2203,7 @@ namespace BCRPServer.CEF
                         #region Extract
                         if (amount != -1 || extractToExisting)
                         {
-                            if ((pData.Holster.Items[0] as Game.Items.Weapon).Ammo == 0 || (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType == null)
+                            if ((pData.Holster.Items[0] as Game.Items.Weapon).Ammo == 0 || (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID == null)
                                 return Results.Error;
 
                             if (((Game.Items.Weapon)pData.Holster.Items[0]).Equiped)
@@ -2209,7 +2213,7 @@ namespace BCRPServer.CEF
                                 amount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
 
                             var curWeight = Game.Items.Items.GetWeight(pData.Items);
-                            var ammoWeight = Game.Items.Item.GetWeight((Game.Items.Item.Types)(pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType);
+                            var ammoWeight = Game.Items.Ammo.GetData((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID).Weight;
 
                             if (extractToExisting)
                             {
@@ -2251,7 +2255,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)).Key, 0, amount);
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID, 0, amount);
 
                                 wasCreated = true;
 
@@ -2286,19 +2290,19 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Items[slotTo] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unequip(player);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                    (pData.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
                                 else
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Items[slotTo] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
                                 if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
                                 {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(player);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
 
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(player);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
                                 }
                             }
 
@@ -2321,7 +2325,7 @@ namespace BCRPServer.CEF
                         if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
                             return Results.Error;
 
-                        bool extractToExisting = pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo] is Game.Items.Ammo && pData.Bag.Items[slotTo].Type == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType;
+                        bool extractToExisting = pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo] is Game.Items.Ammo && pData.Bag.Items[slotTo].ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID;
 
                         bool wasCreated = false;
                         bool wasReplaced = false;
@@ -2329,7 +2333,7 @@ namespace BCRPServer.CEF
                         #region Extract
                         if (amount != -1 || extractToExisting)
                         {
-                            if ((pData.Holster.Items[0] as Game.Items.Weapon).Ammo == 0 || (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType == null)
+                            if ((pData.Holster.Items[0] as Game.Items.Weapon).Ammo == 0 || (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID == null)
                                 return Results.Error;
 
                             if (((Game.Items.Weapon)pData.Holster.Items[0]).Equiped)
@@ -2341,7 +2345,7 @@ namespace BCRPServer.CEF
                             var curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
                             var maxWeight = pData.Bag.Data.MaxWeight;
 
-                            var ammoWeight = Game.Items.Item.GetWeight((Game.Items.Item.Types)(pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType);
+                            var ammoWeight = Game.Items.Ammo.GetData((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID).Weight;
 
                             if (extractToExisting)
                             {
@@ -2383,7 +2387,7 @@ namespace BCRPServer.CEF
                                 }
 
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(Game.Items.Ammo.IDList.First(x => x.Value.Type == (Game.Items.Item.Types)((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoType)).Key, 0, amount);
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID, 0, amount);
 
                                 wasCreated = true;
 
@@ -2419,19 +2423,19 @@ namespace BCRPServer.CEF
                             {
                                 if ((pData.Bag.Items[slotTo] as Game.Items.Weapon).Equiped)
                                 {
-                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unequip(player);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
                                 else
-                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unwear(player);
+                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unwear(pData);
                             }
                             else
                             {
                                 if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
                                 {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(player);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
 
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(player);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
                                 }
                             }
 
@@ -2461,14 +2465,14 @@ namespace BCRPServer.CEF
                     #region To Pockets
                     if (to == Groups.Items)
                     {
-                        if (slotTo >= pData.Items.Length || (pData.Items[slotTo] != null && (!(pData.Items[slotTo] is Game.Items.BodyArmour))))
+                        if (slotTo >= pData.Items.Length || (pData.Items[slotTo] != null && (!(pData.Items[slotTo] is Game.Items.Armour))))
                             return Results.Error;
 
                         if (Game.Items.Items.GetWeight(pData.Items) + pData.Armour.Weight - (pData.Items[slotTo]?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
                             return Results.NoSpace;
 
                         var temp = pData.Armour;
-                        pData.Armour = pData.Items[slotTo] as Game.Items.BodyArmour;
+                        pData.Armour = pData.Items[slotTo] as Game.Items.Armour;
                         pData.Items[slotTo] = temp;
 
                         var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
@@ -2482,8 +2486,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                            (pData.Items[slotTo] as Game.Items.BodyArmour).Unwear(player);
-                            pData.Armour?.Wear(player);
+                            (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
+                            pData.Armour?.Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
@@ -2500,14 +2504,14 @@ namespace BCRPServer.CEF
                         if (pData.Bag == null)
                             return Results.Error;
 
-                        if (slotTo >= pData.Bag.Items.Length || (pData.Bag.Items[slotTo] != null && (!(pData.Bag.Items[slotTo] is Game.Items.BodyArmour))))
+                        if (slotTo >= pData.Bag.Items.Length || (pData.Bag.Items[slotTo] != null && (!(pData.Bag.Items[slotTo] is Game.Items.Armour))))
                             return Results.Error;
 
                         if (pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight + pData.Armour.Weight - (pData.Bag.Items[slotTo]?.Weight ?? 0) > pData.Bag.Data.MaxWeight)
                             return Results.NoSpace;
 
                         var temp = pData.Armour;
-                        pData.Armour = pData.Bag.Items[slotTo] as Game.Items.BodyArmour;
+                        pData.Armour = pData.Bag.Items[slotTo] as Game.Items.Armour;
                         pData.Bag.Items[slotTo] = temp;
 
                         var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
@@ -2521,8 +2525,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
-                            (pData.Bag.Items[slotTo] as Game.Items.BodyArmour).Unwear(player);
-                            pData.Armour?.Wear(player);
+                            (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
+                            pData.Armour?.Wear(pData);
                         });
 
                         pData.Bag.Update();
@@ -2572,8 +2576,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(player);
-                            (temp as Game.Items.Clothes)?.Wear(player);
+                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            (temp as Game.Items.Clothes)?.Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, true, true, false, false, false, false, false);
@@ -2617,8 +2621,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
-                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(player);
-                            (temp as Game.Items.Clothes)?.Wear(player);
+                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            (temp as Game.Items.Clothes)?.Wear(pData);
                         });
 
                         pData.Bag.Update();
@@ -2668,8 +2672,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(player);
-                            (temp as Game.Items.Clothes)?.Wear(player);
+                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            (temp as Game.Items.Clothes)?.Wear(pData);
                         });
 
                         MySQL.UpdatePlayerInventory(pData, true, false, true, false, false, false, false);
@@ -2713,8 +2717,8 @@ namespace BCRPServer.CEF
                             player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
-                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(player);
-                            (temp as Game.Items.Clothes)?.Wear(player);
+                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            (temp as Game.Items.Clothes)?.Wear(pData);
                         });
 
                         pData.Bag.Update();
@@ -2763,8 +2767,8 @@ namespace BCRPServer.CEF
                         player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd1);
                         player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                        temp.Unwear(player);
-                        pData.Bag?.Wear(player);
+                        temp.Unwear(pData);
+                        pData.Bag?.Wear(pData);
                     });
 
                     MySQL.UpdatePlayerInventory(pData, true, false, false, true, false, false, false);
@@ -2806,13 +2810,13 @@ namespace BCRPServer.CEF
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
 
-                            (pData.Items[slotTo] as Game.Items.Holster).Unwear(player);
-                            pData.Holster?.Wear(player);
+                            (pData.Items[slotTo] as Game.Items.Holster).Unwear(pData);
+                            pData.Holster?.Wear(pData);
 
                             if (((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                ((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(player);
-                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                ((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
@@ -2848,13 +2852,13 @@ namespace BCRPServer.CEF
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
 
-                            (pData.Bag.Items[slotTo] as Game.Items.Holster).Unwear(player);
-                            pData.Holster?.Wear(player);
+                            (pData.Bag.Items[slotTo] as Game.Items.Holster).Unwear(pData);
+                            pData.Holster?.Wear(pData);
 
                             if (((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                ((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(player);
-                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(player);
+                                ((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
                             player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
@@ -2937,17 +2941,15 @@ namespace BCRPServer.CEF
                 if (item == null)
                     return Results.Error;
 
-                var type = item.GetType();
-
-                var bType = type.BaseType;
-
-                if (bType != null && bType != typeof(Game.Items.Item))
-                    type = bType;
-
-                var a1 = Actions.GetValueOrDefault(type);
+                var a1 = Actions.GetValueOrDefault(item.Type);
 
                 if (a1 == null)
-                    return Results.Error;
+                {
+                    a1 = Actions.GetValueOrDefault(item.Type.BaseType);
+
+                    if (a1 == null)
+                        return Results.Error;
+                }
 
                 var a2 = a1.GetValueOrDefault(action);
 
@@ -3125,12 +3127,15 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
 
                         if (weapons[slot].Equiped)
-                            weapons[slot].Unequip(player, false, false);
+                            weapons[slot].Unequip(pData, false, false);
                         else
-                            weapons[slot].Unwear(player);
+                            weapons[slot].Unwear(pData);
                     });
 
                     weapons[slot] = null;
@@ -3161,9 +3166,12 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
 
-                        (item as Game.Items.Clothes).Unwear(player);
+                        (item as Game.Items.Clothes).Unwear(pData);
                     });
                 }
                 #endregion
@@ -3188,9 +3196,12 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
 
-                        (item as Game.Items.Clothes).Unwear(player);
+                        (item as Game.Items.Clothes).Unwear(pData);
                     });
                 }
                 #endregion
@@ -3206,9 +3217,12 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
 
-                        (item as Game.Items.Bag).Unwear(player);
+                        (item as Game.Items.Bag).Unwear(pData);
                     });
 
                     MySQL.UpdatePlayerInventory(pData, false, false, false, true);
@@ -3226,9 +3240,12 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
 
-                        (item as Game.Items.BodyArmour).Unwear(player);
+                        (item as Game.Items.Armour).Unwear(pData);
                     });
 
                     MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
@@ -3249,11 +3266,14 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
 
-                        (item as Game.Items.Holster).Unwear(player);
+                        (item as Game.Items.Holster).Unwear(pData);
 
-                        ((item as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Unequip(player, false, false);
+                        ((item as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Unequip(pData, false, false);
                     });
 
                     MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
@@ -3277,12 +3297,15 @@ namespace BCRPServer.CEF
 
                     await NAPI.Task.RunAsync(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
 
                         if ((holster[0] as Game.Items.Weapon).Equiped)
-                            (holster[0] as Game.Items.Weapon).Unequip(player, false, false);
+                            (holster[0] as Game.Items.Weapon).Unequip(pData, false, false);
                         else
-                            (holster[0] as Game.Items.Weapon).Unwear(player);
+                            (holster[0] as Game.Items.Weapon).Unwear(pData);
                     });
 
                     holster[0] = null;

@@ -966,7 +966,7 @@ namespace BCRPServer
                 {
                     pData.Armour = null;
 
-                    arm.Unwear(pData.Player);
+                    arm.Unwear(pData);
 
                     NAPI.Player.SpawnPlayer(pData.Player, position, heading);
 
@@ -979,7 +979,7 @@ namespace BCRPServer
 
                         pData.Armour = arm;
 
-                        arm.Wear(player);
+                        arm.Wear(pData);
                     }, 500);
                 }
                 else

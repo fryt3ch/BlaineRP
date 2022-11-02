@@ -43,7 +43,7 @@ namespace BCRPServer
             if (player == null)
                 return null;
 
-            return Players.ContainsKey(player) ? Players[player] : null;
+            return Players.GetValueOrDefault(player);
         }
 
         /// <summary>Назначить объект класса TempData игроку</summary>
@@ -52,8 +52,10 @@ namespace BCRPServer
             if (player == null)
                 return;
 
-            if (Players.ContainsKey(player))
-                Players[player] = data;
+            TempData existing;
+
+            if (Players.TryGetValue(player, out existing))
+                existing = data;
             else
                 Players.Add(player, data);
         }

@@ -930,7 +930,7 @@ namespace BCRPServer
                                 Bag = Bag as Game.Items.Bag,
                                 Holster = Holster as Game.Items.Holster,
                                 Weapons = Weapons.Select(x => (Game.Items.Weapon)x).ToArray(),
-                                Armour = (Game.Items.BodyArmour)Armour,
+                                Armour = (Game.Items.Armour)Armour,
 
                                 Skills = Skills,
 

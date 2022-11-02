@@ -7,11 +7,71 @@ namespace BCRPServer.Game.Data
 {
     public class Customization
     {
+        public enum ClothesTypes
+        {
+            Top = 11,
+            Under = 8,
+            Pants = 4,
+            Shoes = 6,
+            Gloves = 3,
+            Mask = 1,
+            Accessory = 7,
+            Bag = 5,
+            Armour = 9,
+        }
+
+        public enum AccessoryTypes
+        {
+            Hat = 0,
+            Glasses = 1,
+            Earrings = 2,
+            Watches = 6,
+            Bracelet = 7,
+        }
+
+        private static Dictionary<bool, Dictionary<ClothesTypes, int>> NudeClothes = new Dictionary<bool, Dictionary<ClothesTypes, int>>()
+        {
+            {
+                true,
+
+                new Dictionary<ClothesTypes, int>()
+                {
+                    { ClothesTypes.Top, 15 },
+                    { ClothesTypes.Under, 15 },
+                    { ClothesTypes.Gloves, 15 },
+                    { ClothesTypes.Pants, 21 },
+                    { ClothesTypes.Shoes, 34 },
+                    { ClothesTypes.Accessory, 0 },
+                    { ClothesTypes.Mask, 0 },
+                    { ClothesTypes.Bag, 0 },
+                }
+            },
+
+            {
+                false,
+
+                new Dictionary<ClothesTypes, int>()
+                {
+                    { ClothesTypes.Top, 15 },
+                    { ClothesTypes.Under, 15 },
+                    { ClothesTypes.Gloves, 15 },
+                    { ClothesTypes.Pants, 15 },
+                    { ClothesTypes.Shoes, 35 },
+                    { ClothesTypes.Accessory, 0 },
+                    { ClothesTypes.Mask, 0 },
+                    { ClothesTypes.Bag, 0 }
+                }
+            },
+        };
+
         public class HairStyle
         {
             public int ID { get; set; }
+
             public byte Overlay { get; set; }
+
             public byte Color { get; set; }
+
             public byte Color2 { get; set; }
 
             public HairStyle(int ID, byte Overlay, byte Color, byte Color2)
@@ -27,8 +87,11 @@ namespace BCRPServer.Game.Data
         public class Defaults
         {
             public static HairStyle HairStyle = new HairStyle(0, 0, 0, 0);
+
             public static HeadBlend HeadBlend = new HeadBlend { ShapeFirst = 21, ShapeSecond = 0, SkinFirst = 21, SkinSecond = 0, ShapeMix = 0.5f, SkinMix = 0.5f, ShapeThird = 0, SkinThird = 0, ThirdMix = 0f };
+
             public static float[] FaceFeatures = new float[20] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
             public static Dictionary<int, HeadOverlay> HeadOverlays = new Dictionary<int, HeadOverlay>()
             {
                 { 0, new HeadOverlay() { Index = 255, Color = 0, SecondaryColor = 0, Opacity = 1 } }, // Blemishes (0-23)
@@ -45,7 +108,9 @@ namespace BCRPServer.Game.Data
                 { 11, new HeadOverlay() { Index = 255, Color = 0, SecondaryColor = 0, Opacity = 1 } }, // Body Blemishes (0-11)
                 { 12, new HeadOverlay() { Index = 255, Color = 0, SecondaryColor = 0, Opacity = 0 } }, // Add Body Blemishes (0-1)
             };
+
             public static byte EyeColor = 0;
+
             public static Decoration[] Decorations = new Decoration[] { };
         }
         #endregion
@@ -73,19 +138,15 @@ namespace BCRPServer.Game.Data
         {
             if (sex)
             {
-                if (!MaleHairs.ContainsKey(id))
-                    return 0;
-
-                return MaleHairs[id];
+                return MaleHairs.GetValueOrDefault(id);
             }
             else
             {
-                if (!FemaleHairs.ContainsKey(id))
-                    return 0;
-
-                return FemaleHairs[id];
+                return FemaleHairs.GetValueOrDefault(id);
             }
         }
+
+        public static int GetNudeDrawable(ClothesTypes cType, bool sex) => NudeClothes[sex].GetValueOrDefault(cType);
         #endregion
     }
 }

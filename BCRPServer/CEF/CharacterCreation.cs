@@ -150,7 +150,7 @@ namespace BCRPServer.CEF
 
                         if (clothes[1] != null)
                         {
-                            newClothes[Game.Items.Items.GetType(clothes[1]) == Game.Items.Item.Types.Top ? 1 : 2] = (Game.Items.Clothes)await Game.Items.Items.CreateItem(clothes[1], 0, 1);
+                            newClothes[Game.Items.Items.GetType(clothes[1]) == typeof(Game.Items.Top) ? 1 : 2] = (Game.Items.Clothes)await Game.Items.Items.CreateItem(clothes[1], 0, 1);
                         }
 
                         if (clothes[2] != null)

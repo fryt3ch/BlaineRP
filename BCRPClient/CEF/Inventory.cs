@@ -110,41 +110,59 @@ namespace BCRPClient.CEF
         #endregion
 
         #region Fillers
-        private static object[] FillWeapon(string type, int ammo, bool inUse, string tag) => new object[] { Data.Items.GetType(type).ToString(), (tag == null || tag.Length < 1) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]", new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 5, inUse ? Locale.General.Inventory.Actions.FromHands : Locale.General.Inventory.Actions.ToHands }, new object[] { 6, Locale.General.Inventory.Actions.Load }, new object[] { 1, Locale.General.Inventory.Actions.Unload }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, ammo, inUse };
+        private static object[] FillWeapon(string type, int ammo, bool inUse, string tag)
+        {
+            var iType = Data.Items.GetType(type);
+            var imgId = Data.Items.GetImageId(type, iType);
+
+            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]";
+
+            return new object[] { imgId, name, new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 5, inUse ? Locale.General.Inventory.Actions.FromHands : Locale.General.Inventory.Actions.ToHands }, new object[] { 6, Locale.General.Inventory.Actions.Load }, new object[] { 1, Locale.General.Inventory.Actions.Unload }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, ammo, inUse };
+        }
         
-        private static object[] FillArmour(string type, int strength) => new object[] { Data.Items.GetType(type).ToString(), Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
+        private static object[] FillArmour(string type, int strength)
+        {
+            var iType = Data.Items.GetType(type);
+            var imgId = Data.Items.GetImageId(type, iType);
+
+            return new object[] { imgId, iType, new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
+        }
        
         private static object[] FillItem(string type, int amount, float weight, string tag, bool inBag = false, bool inContainer = false, bool inTrade = false)
         {
             var iType = Data.Items.GetType(type);
+            var imgId = Data.Items.GetImageId(type, iType);
+
             var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]";
 
             if (inContainer)
-                return new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
+                return new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
             else if (inBag)
-                return new object[] { new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, true, true), amount, weight }, new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, true, false), amount, weight } };
+                return new object[] { new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, true), amount, weight }, new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, false), amount, weight } };
             else if (inTrade)
-                return new object[] { iType.ToString(), name, new object[] { 4, Locale.General.Inventory.Actions.ShiftOutOfTrade }, amount, weight };
+                return new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftOutOfTrade }, amount, weight };
 
-            var item1 = new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
-            var item2 = new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, true, false), amount, weight };
-            var item3 = new object[] { iType.ToString(), name, Data.Items.GetActions(iType, amount, false, false), amount, weight };
-            var item4 = new object[] { iType.ToString(), name, new object[] { 4, Locale.General.Inventory.Actions.ShiftTrade }, amount, weight };
+            var item1 = new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
+            var item2 = new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, false), amount, weight };
+            var item3 = new object[] { imgId, name, Data.Items.GetActions(iType, amount, false, false), amount, weight };
+            var item4 = new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftTrade }, amount, weight };
 
             return new object[] { item1, item2, item3, item4 };
         }
         private static object[] FillClothes(string type)
         {
             var iType = Data.Items.GetType(type);
+            var imgId = Data.Items.GetImageId(type, iType);
+
             var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
 
-            var item = new object[] { iType.ToString(), Data.Items.GetName(type), null };
+            var item = new object[] { imgId, Data.Items.GetName(type), null };
 
-            if (iType == Data.Items.Types.Hat || iType == Data.Items.Types.Top || iType == Data.Items.Types.Under)
+            if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType))
             {
                 var data = Data.Clothes.AllClothes[type];
 
-                if (iType == Data.Items.Types.Hat && (data as Data.Clothes.Hat).ExtraData != null || iType == Data.Items.Types.Top && (data as Data.Clothes.Top).ExtraData != null || iType == Data.Items.Types.Under && (data as Data.Clothes.Under).ExtraData != null)
+                if (iType == typeof(Data.Items.Hat) && (data as Data.Clothes.Hat).ExtraData != null || iType == typeof(Data.Items.Top) && (data as Data.Clothes.Top).ExtraData != null || iType == typeof(Data.Items.Under) && (data as Data.Clothes.Under).ExtraData != null)
                     actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
             }
 
@@ -152,7 +170,13 @@ namespace BCRPClient.CEF
 
             return item;
         }
-        private static object[] FillAccessories(string type) => new object[] { Data.Items.GetType(type).ToString(), Data.Items.GetName(type), new object[][] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } } };
+        private static object[] FillAccessories(string type)
+        {
+            var iType = Data.Items.GetType(type);
+            var imgId = Data.Items.GetImageId(type, iType);
+
+            return new object[] { imgId, Data.Items.GetName(type), new object[][] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } } };
+        }
         #endregion
 
         public Inventory()

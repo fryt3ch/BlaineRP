@@ -327,7 +327,7 @@ namespace BCRPClient.Additional
         public static ExtraColshape GetByRemoteId(int id) => All.Where(x => x.Key?.RemoteId == id).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Получить колшейп по его держателю</summary>
-        public static ExtraColshape Get(Colshape colshape) => All.ContainsKey(colshape) ? All[colshape] : null;
+        public static ExtraColshape Get(Colshape colshape) => All.GetValueOrDefault(colshape);
 
         public static Action<ExtraColshape> GetEnterAction(ActionTypes aType) => Actions.ContainsKey(aType) ? (Actions[aType].ContainsKey(true) ? Actions[aType][true] : null) : null;
 

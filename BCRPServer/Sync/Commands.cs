@@ -345,7 +345,7 @@ namespace BCRPServer.Sync
                 if (!IsAllowed(pData, "Cmd::Item::Temp"))
                     return;
 
-                if (Game.Items.Items.GetClass(id) == null)
+                if (Game.Items.Items.GetType(id) == null)
                 {
                     player.Notify("Cmd::IdNotFound");
 
@@ -396,7 +396,7 @@ namespace BCRPServer.Sync
                 if (!IsAllowed(pData, "Cmd::Item::Temp"))
                     return;
 
-                if (Game.Items.Items.GetClass(id) == null)
+                if (Game.Items.Items.GetType(id) == null)
                 {
                     player.Notify("Cmd::IdNotFound");
 
@@ -447,10 +447,9 @@ namespace BCRPServer.Sync
                 if (!IsAllowed(pData, "Cmd::Item::Info"))
                     return;
 
-                var iClass = Game.Items.Items.GetClass(id);
-                var iType = Game.Items.Items.GetType(id);
+                var iClass = Game.Items.Items.GetType(id);
 
-                if (iClass == null || iType == Game.Items.Item.Types.NotAssigned)
+                if (iClass == null)
                 {
                     player.Notify("Cmd::IdNotFound");
 
@@ -459,7 +458,7 @@ namespace BCRPServer.Sync
 
                 string interfaces = string.Join(", ", iClass.GetInterfaces().Select(x => x.Name));
 
-                player.TriggerEvent("Item::Info", id, iClass.Name, iType.ToString(), interfaces);
+                player.TriggerEvent("Item::Info", id, iClass.BaseType.Name, iClass.Name, interfaces);
             });
 
             pData.Release();
