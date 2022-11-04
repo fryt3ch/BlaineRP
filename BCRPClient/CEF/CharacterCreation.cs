@@ -370,8 +370,8 @@ namespace BCRPClient.CEF
                 {
                     if (type == 1)
                     {
-                        Data.Clothes.Unwear(Data.Clothes.Types.Under);
-                        Data.Clothes.Unwear(Data.Clothes.Types.Top);
+                        Data.Clothes.Unwear(typeof(Data.Items.Under));
+                        Data.Clothes.Unwear(typeof(Data.Items.Top));
                     }
 
                     var clothes = DefaultClothes[Sex][type][value];
@@ -385,16 +385,16 @@ namespace BCRPClient.CEF
                     Clothes[type] = null;
 
                     if (type == 0)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Hat);
+                        Data.Clothes.Unwear(typeof(Data.Items.Hat));
                     else if (type == 1)
                     {
-                        Data.Clothes.Unwear(Data.Clothes.Types.Under);
-                        Data.Clothes.Unwear(Data.Clothes.Types.Top);
+                        Data.Clothes.Unwear(typeof(Data.Items.Under));
+                        Data.Clothes.Unwear(typeof(Data.Items.Top));
                     }
                     else if (type == 2)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Pants);
+                        Data.Clothes.Unwear(typeof(Data.Items.Pants));
                     else
-                        Data.Clothes.Unwear(Data.Clothes.Types.Shoes);
+                        Data.Clothes.Unwear(typeof(Data.Items.Shoes));
                 }
             });
             #endregion

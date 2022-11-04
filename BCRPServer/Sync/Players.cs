@@ -288,28 +288,31 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (await pData.WaitAsync())
+            if (!await pData.WaitAsync())
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            await Task.Run(async () =>
             {
-                if (player?.Exists != true)
-                    return;
+                var arm = pData.Armour;
 
-                if (pData.Armour == null)
+                if (arm == null)
                     return;
-
-                pData.Armour.Unwear(pData);
-                player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, CEF.Inventory.Groups.Armour));
 
                 pData.Armour = null;
 
-                var armItem = pData.Armour;
-
-                if (!armItem.IsTemp)
+                await NAPI.Task.RunAsync(() =>
                 {
-                    Task.Run(() => armItem.Delete());
-                }
+                    if (player?.Exists != true)
+                        return;
+
+                    arm.Unwear(pData);
+
+                    player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, CEF.Inventory.Groups.Armour));
+                });
+
+                MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+
+                arm.Delete();
             });
 
             pData.Release();

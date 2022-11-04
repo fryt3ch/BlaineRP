@@ -60,6 +60,10 @@ namespace BCRPClient
         public static ExtraColour YellowColor = new ExtraColour(255, 255, 0);
         #endregion
 
+        public const uint MP_MALE_MODEL = 0x705E61F2;
+
+        public const uint MP_FEMALE_MODEL = 0x9C9EFFD8;
+
         /// <summary>Вектор для ненужных данных</summary>
         /// <remarks>Использовать везде, где необходимо передавать вектор в качестве параметра, но его изменения нам не нужны</remarks>
         private static Vector3 GarbageVector = new Vector3(0f, 0f, 0f);
@@ -936,5 +940,7 @@ namespace BCRPClient
         }
 
         public static string GetName(this Blip blip) => blip.GetData<string>("Name");
+
+        public static bool GetSex(this Player player) => player.Model == Utils.MP_MALE_MODEL;
     }
 }

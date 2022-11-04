@@ -62,22 +62,28 @@ namespace BCRPServer.Game.Items
         /// <summary>Предметы в контейнере</summary>
         /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
         public Game.Items.Item[] Items { get; set; }
+
         /// <summary>Уникальный ID контейнера</summary>
         public uint ID { get; set; }
+
         /// <summary>ID разновидности контейнера (SubID)</summary>
         public string SID { get; set; }
+
         /// <summary>Игроки, в данный момент просматривающие контейнер</summary>
         /// <value>Список сущностей игроков</value>
         public List<Player> PlayersObserving { get; set; }
 
         /// <summary>Максимальный вес контейнера</summary>
         public float MaxWeight { get => ContData.MaxWeight; }
+
         /// <summary>Тип предметов, доступных для хранения в контейнере</summary>
         private Type AllowedItemType { get => AllowedItemsDict[ContData.AllowedItemsType]; }
+
         /// <summary>Тип контейнера</summary>
         private ContainerTypes ContainerType { get => ContData.ContainerType; }
+
         /// <summary>Текущий общий вес контейнера</summary>
-        public float Weight { get => Game.Items.Items.GetWeight(Items); }
+        public float Weight { get => Items.Sum(x => x?.Weight ?? 0f); }
 
         public Data ContData { get; set; }
 
@@ -370,6 +376,667 @@ namespace BCRPServer.Game.Items
 
         public string ToClientJson() => (new object[] { ContainerType, MaxWeight, Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Container)) }).SerializeToJson();
 
+        private static Dictionary<CEF.Inventory.Groups, Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>> ReplaceActions = new Dictionary<CEF.Inventory.Groups, Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>>()
+        {
+            {
+                CEF.Inventory.Groups.Items,
+
+                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>()
+                {
+                    {
+                        CEF.Inventory.Groups.Container,
+
+                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Items.Length || slotTo >= cont.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var fromItem = pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return CEF.Inventory.Results.Error;
+
+                            var toItem = cont.Items[slotTo];
+
+                            if (fromItem.IsTemp)
+                                return CEF.Inventory.Results.TempItem;
+
+                            if (!cont.IsItemAllowed(fromItem))
+                                return CEF.Inventory.Results.Error;
+
+                            float curWeight = cont.Weight;
+                            float maxWeight = cont.MaxWeight;
+
+                            bool wasDeleted = false;
+                            bool wasCreated = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return CEF.Inventory.Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (curWeight + amount * fromItem.BaseWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Items[slotFrom] = null;
+
+                                        wasDeleted = true;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                if (fromItem.BaseWeight * amount + curWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount == 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+
+                                wasCreated = true;
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                var addWeightItems = toItem?.Weight ?? 0f;
+                                var addWeightBag = fromItem.Weight;
+
+                                if ((addWeightBag - addWeightItems + curWeight > maxWeight) || (addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT))
+                                    return CEF.Inventory.Results.NoSpace;
+
+                                pData.Items[slotFrom] = toItem;
+                                cont.Items[slotTo] = fromItem;
+
+                                wasDeleted = true; wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], CEF.Inventory.Groups.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
+
+                                foreach (var x in cont.PlayersObserving.ToList())
+                                {
+                                    if (x?.Exists != true)
+                                        continue;
+
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
+                                }
+                            });
+
+                            if (wasDeleted)
+                                MySQL.UpdatePlayerInventory(pData, true);
+
+                            if (wasCreated)
+                                cont.Update();
+
+                            return CEF.Inventory.Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                CEF.Inventory.Groups.Bag,
+
+                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>()
+                {
+                    {
+                        CEF.Inventory.Groups.Container,
+
+                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length || slotTo >= cont.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return CEF.Inventory.Results.Error;
+
+                            var toItem = cont.Items[slotTo];
+
+                            if (!cont.IsItemAllowed(fromItem))
+                                return CEF.Inventory.Results.Error;
+
+                            float curWeight = cont.Weight;
+                            float maxWeight = cont.MaxWeight;
+
+                            bool wasDeleted = false;
+                            bool wasCreated = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return CEF.Inventory.Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (curWeight + amount * fromItem.BaseWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Bag.Items[slotFrom] = null;
+
+                                        wasDeleted = true;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                if (fromItem.BaseWeight * amount + curWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+
+                                wasCreated = true;
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                var addWeightItems = toItem?.Weight ?? 0f;
+                                var addWeightBag = fromItem.Weight;
+
+                                if ((addWeightBag - addWeightItems + curWeight > maxWeight) || (addWeightItems - addWeightBag + pData.Bag.Weight - pData.Bag.BaseWeight > pData.Bag.Data.MaxWeight))
+                                    return CEF.Inventory.Results.NoSpace;
+
+                                pData.Bag.Items[slotFrom] = toItem;
+                                cont.Items[slotTo] = fromItem;
+
+                                wasDeleted = true; wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], CEF.Inventory.Groups.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
+
+                            await NAPI.Task.RunAsync (() =>
+                            {
+                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotFrom, upd1);
+
+                                foreach (var x in cont.PlayersObserving.ToList())
+                                {
+                                    if (x?.Exists != true)
+                                        continue;
+
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
+                                }
+                            });
+
+                            if (wasDeleted)
+                                pData.Bag.Update();
+
+                            if (wasCreated)
+                                cont.Update();
+
+                            return CEF.Inventory.Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                CEF.Inventory.Groups.Container,
+
+                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>()
+                {
+                    {
+                        CEF.Inventory.Groups.Container,
+
+                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= cont.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var fromItem = cont.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return CEF.Inventory.Results.Error;
+
+                            if (slotTo >= cont.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var toItem = cont.Items[slotTo];
+
+                            bool wasCreated = false;
+                            bool wasDeleted = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return CEF.Inventory.Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        wasDeleted = true;
+
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        cont.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                wasCreated = true;
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                cont.Items[slotFrom] = toItem;
+                                cont.Items[slotTo] = fromItem;
+
+                                wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
+                            var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                foreach (var x in cont.PlayersObserving.ToList())
+                                {
+                                    if (x?.Exists != true)
+                                        continue;
+
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
+                                }
+                            });
+
+                            if (wasCreated || wasDeleted)
+                                cont.Update();
+
+                            return CEF.Inventory.Results.Success;
+                        }
+                    },
+
+                    {
+                        CEF.Inventory.Groups.Items,
+
+                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= cont.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var fromItem = cont.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return CEF.Inventory.Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (!cont.IsItemAllowed(toItem))
+                                return CEF.Inventory.Results.Error;
+
+                            float curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
+
+                            bool wasDeleted = false, wasCreated = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return CEF.Inventory.Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (curWeight + amount * fromItem.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                {
+                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        cont.Items[slotFrom] = null;
+
+                                        wasDeleted = true;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                if (fromItem.BaseWeight * amount + curWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                {
+                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+
+                                wasCreated = true;
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                var addWeightItems = toItem?.Weight ?? 0f;
+                                var addWeightBag = fromItem.Weight;
+
+                                if ((addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT) || (addWeightItems - addWeightBag + cont.Weight > cont.MaxWeight))
+                                    return CEF.Inventory.Results.NoSpace;
+
+                                cont.Items[slotFrom] = toItem;
+                                pData.Items[slotTo] = fromItem;
+
+                                wasDeleted = true; wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], CEF.Inventory.Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotTo, upd2);
+
+                                foreach (var x in cont.PlayersObserving.ToList())
+                                {
+                                    if (x?.Exists != true)
+                                        continue;
+
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                                }
+                            });
+
+                            if (wasCreated)
+                                MySQL.UpdatePlayerInventory(pData, true);
+
+                            if (wasDeleted)
+                                cont.Update();
+
+                            return CEF.Inventory.Results.Success;
+                        }
+                    },
+
+                    {
+                        CEF.Inventory.Groups.Bag,
+
+                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= cont.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var fromItem = cont.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return CEF.Inventory.Results.Error;
+
+                            if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
+                                return CEF.Inventory.Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (!cont.IsItemAllowed(toItem))
+                                return CEF.Inventory.Results.Error;
+
+                            float curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
+                            float maxWeight = pData.Bag.Data.MaxWeight;
+
+                            bool wasDeleted = false, wasCreated = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return CEF.Inventory.Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (curWeight + amount * fromItem.BaseWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        cont.Items[slotFrom] = null;
+
+                                        wasDeleted = true;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                if (fromItem.BaseWeight * amount + curWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return CEF.Inventory.Results.NoSpace;
+                                }
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+
+                                wasCreated = true;
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                var addWeightItems = toItem?.Weight ?? 0f;
+                                var addWeightBag = fromItem.Weight;
+
+                                if ((addWeightBag - addWeightItems + curWeight > maxWeight) || (addWeightItems - addWeightBag + cont.Weight > cont.MaxWeight))
+                                    return CEF.Inventory.Results.NoSpace;
+
+                                cont.Items[slotFrom] = toItem;
+                                pData.Bag.Items[slotTo] = fromItem;
+
+                                wasDeleted = true; wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], CEF.Inventory.Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotTo, upd2);
+
+                                foreach (var x in cont.PlayersObserving.ToList())
+                                {
+                                    if (x?.Exists != true)
+                                        continue;
+
+                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                                }
+                            });
+
+                            if (wasCreated)
+                                pData.Bag.Update();
+
+                            if (wasDeleted)
+                                cont.Update();
+
+                            return CEF.Inventory.Results.Success;
+                        }
+                    },
+                }
+            },
+        };
+
         #region Show
         [RemoteEvent("Container::Show")]
         private static async Task Show(Player player, uint uid)
@@ -470,7 +1137,7 @@ namespace BCRPServer.Game.Items
                         return;
                 }
 
-                if (toStr > 9 || toStr < 0 || fromStr > 9 || fromStr < 0)
+                if (!Enum.IsDefined(typeof(CEF.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(CEF.Inventory.Groups), fromStr))
                     return;
 
                 if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
@@ -484,7 +1151,7 @@ namespace BCRPServer.Game.Items
                 if (!await cont.WaitAsync())
                     return;
 
-                var res = await Task.Run<CEF.Inventory.Results>(async () =>
+                var res = await Task.Run(async () =>
                 {
                     if (cont == null)
                         return CEF.Inventory.Results.Error;
@@ -505,638 +1172,28 @@ namespace BCRPServer.Game.Items
                     if (!res)
                         return CEF.Inventory.Results.Error;
 
-                    #region From Pockets
-                    if (from == CEF.Inventory.Groups.Items)
-                    {
-                        if (to != CEF.Inventory.Groups.Container)
-                            return CEF.Inventory.Results.Error;
+                    var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
 
-                        if (slotFrom >= pData.Items.Length || slotTo >= cont.Items.Length || pData.Items[slotFrom] == null)
-                            return CEF.Inventory.Results.Error;
-
-                        if (pData.Items[slotFrom].IsTemp)
-                            return CEF.Inventory.Results.TempItem;
-
-                        if (!cont.IsItemAllowed(pData.Items[slotFrom]))
-                            return CEF.Inventory.Results.Error;
-
-                        float curWeight = cont.Weight;
-                        float maxWeight = cont.MaxWeight;
-
-                        bool wasDeleted = false;
-                        bool wasCreated = false;
-
-                        #region Unite
-                        if (cont.Items[slotTo] != null && cont.Items[slotTo].Type == pData.Items[slotFrom].Type && pData.Items[slotFrom] is Game.Items.IStackable)
-                        {
-                            int slotToAmount = (cont.Items[slotTo] as Game.Items.IStackable).Amount;
-                            int slotFromAmount = (pData.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            int maxStack = (pData.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                            if (slotToAmount == maxStack)
-                                return CEF.Inventory.Results.Error;
-
-                            // if amount*weight is too big -> reduce amount to fit the bag's maxWeight
-                            if (curWeight + amount * pData.Items[slotFrom].Weight > maxWeight)
-                            {
-                                amount = (int)Math.Floor((maxWeight - curWeight) / pData.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return CEF.Inventory.Results.NoSpace;
-                            }
-
-                            if (slotToAmount + amount > maxStack)
-                            {
-                                (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                (cont.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                            }
-                            else
-                            {
-                                (cont.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                if ((pData.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                {
-                                    var tItem = pData.Items[slotFrom];
-
-                                    Task.Run(() => tItem.Delete());
-
-                                    pData.Items[slotFrom] = null;
-
-                                    wasDeleted = true;
-                                }
-                            }
-
-                            cont.Items[slotTo].Update();
-                            pData.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        #region Split To New
-                        else if (pData.Items[slotFrom] is Game.Items.IStackable && cont.Items[slotTo] == null && amount != -1 && amount < (pData.Items[slotFrom] as Game.Items.IStackable).Amount)
-                        {
-                            if (pData.Items[slotFrom].Weight * amount + curWeight > maxWeight)
-                            {
-                                amount = (int)Math.Floor((maxWeight - curWeight) / pData.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return CEF.Inventory.Results.NoSpace;
-                            }
-
-                            (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                            pData.Items[slotFrom].Update();
-
-                            cont.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Items[slotFrom].ID, 0, amount); // but wait for that :)
-
-                            wasCreated = true;
-                        }
-                        #endregion
-                        #region Replace
-                        else
-                        {
-                            var addWeightItems = cont.Items[slotTo] != null ? Game.Items.Items.GetItemWeight(cont.Items[slotTo], true) : 0;
-                            var addWeightBag = Game.Items.Items.GetItemWeight(pData.Items[slotFrom], true);
-
-                            if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + Game.Items.Items.GetWeight(pData.Items) > Settings.MAX_INVENTORY_WEIGHT)
-                                return CEF.Inventory.Results.NoSpace;
-
-                            var temp = pData.Items[slotFrom];
-                            pData.Items[slotFrom] = cont.Items[slotTo];
-                            cont.Items[slotTo] = temp;
-
-                            wasDeleted = true; wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], CEF.Inventory.Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
-
-                            foreach (var x in cont.PlayersObserving.ToList())
-                            {
-                                if (x?.Exists != true)
-                                    continue;
-
-                                x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
-                            }
-                        });
-
-                        if (wasDeleted)
-                            MySQL.UpdatePlayerInventory(pData, true);
-
-                        if (wasCreated)
-                            cont.Update();
-
-                        return CEF.Inventory.Results.Success;
-                    }
-                    #endregion
-
-                    #region From Bag
-                    else if (from == CEF.Inventory.Groups.Bag)
-                    {
-                        if (to != CEF.Inventory.Groups.Container)
-                            return CEF.Inventory.Results.Error;
-
-                        if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length || slotTo >= cont.Items.Length || pData.Bag.Items[slotFrom] == null)
-                            return CEF.Inventory.Results.Error;
-
-                        if (!cont.IsItemAllowed(pData.Bag.Items[slotFrom]))
-                            return CEF.Inventory.Results.Error;
-
-                        float curWeight = cont.Weight;
-                        float maxWeight = cont.MaxWeight;
-
-                        bool wasDeleted = false;
-                        bool wasCreated = false;
-
-                        #region Unite
-                        if (cont.Items[slotTo] != null && cont.Items[slotTo].Type == pData.Bag.Items[slotFrom].Type && pData.Bag.Items[slotFrom] is Game.Items.IStackable)
-                        {
-                            int slotToAmount = (cont.Items[slotTo] as Game.Items.IStackable).Amount;
-                            int slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            int maxStack = (pData.Bag.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                            if (slotToAmount == maxStack)
-                                return CEF.Inventory.Results.Error;
-
-                            // if amount*weight is too big -> reduce amount to fit the bag's maxWeight
-                            if (curWeight + amount * pData.Bag.Items[slotFrom].Weight > maxWeight)
-                            {
-                                amount = (int)Math.Floor((maxWeight - curWeight) / pData.Bag.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return CEF.Inventory.Results.NoSpace;
-                            }
-
-                            if (slotToAmount + amount > maxStack)
-                            {
-                                (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                (cont.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                            }
-                            else
-                            {
-                                (cont.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                {
-                                    var tItem = pData.Bag.Items[slotFrom];
-
-                                    Task.Run(() => tItem.Delete());
-
-                                    pData.Bag.Items[slotFrom] = null;
-
-                                    wasDeleted = true;
-                                }
-                            }
-
-                            cont.Items[slotTo].Update();
-                            pData.Bag.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        #region Split To New
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.IStackable && cont.Items[slotTo] == null && amount != -1 && amount < (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount)
-                        {
-                            if (pData.Bag.Items[slotFrom].Weight * amount + curWeight > maxWeight)
-                            {
-                                amount = (int)Math.Floor((maxWeight - curWeight) / pData.Bag.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return CEF.Inventory.Results.NoSpace;
-                            }
-
-                            (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                            pData.Bag.Items[slotFrom].Update();
-
-                            cont.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Bag.Items[slotFrom].ID, 0, amount); // but wait for that :)
-
-                            wasCreated = true;
-                        }
-                        #endregion
-                        #region Replace
-                        else
-                        {
-                            var addWeightItems = cont.Items[slotTo] != null ? Game.Items.Items.GetItemWeight(cont.Items[slotTo], true) : 0;
-                            var addWeightBag = Game.Items.Items.GetItemWeight(pData.Bag.Items[slotFrom], true);
-
-                            if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight > pData.Bag.Data.MaxWeight)
-                                return CEF.Inventory.Results.NoSpace;
-
-                            var temp = pData.Bag.Items[slotFrom];
-                            pData.Bag.Items[slotFrom] = cont.Items[slotTo];
-                            cont.Items[slotTo] = temp;
-
-                            wasDeleted = true; wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], CEF.Inventory.Groups.Bag);
-                        var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotFrom, upd1);
-
-                            foreach (var x in cont.PlayersObserving.ToList())
-                            {
-                                if (x?.Exists != true)
-                                    continue;
-
-                                x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
-                            }
-                        });
-
-                        if (wasDeleted)
-                            pData.Bag.Update();
-
-                        if (wasCreated)
-                            cont.Update();
-
-                        return CEF.Inventory.Results.Success;
-                    }
-                    #endregion
-
-                    #region From Container
-                    else if (from == CEF.Inventory.Groups.Container)
-                    {
-                        if (slotFrom >= cont.Items.Length || cont.Items[slotFrom] == null)
-                            return CEF.Inventory.Results.Error;
-
-                        #region To Pockets
-                        if (to == CEF.Inventory.Groups.Items)
-                        {
-                            if (slotTo >= pData.Items.Length)
-                                return CEF.Inventory.Results.Error;
-
-                            if (!cont.IsItemAllowed(pData.Items[slotTo]))
-                                return CEF.Inventory.Results.Error;
-
-                            float curWeight = Game.Items.Items.GetWeight(pData.Items);
-
-                            bool wasDeleted = false, wasCreated = false;
-
-                            #region Unite
-                            if (pData.Items[slotTo] != null && pData.Items[slotTo].Type == cont.Items[slotFrom].Type && cont.Items[slotFrom] is Game.Items.IStackable)
-                            {
-                                int slotToAmount = (pData.Items[slotTo] as Game.Items.IStackable).Amount;
-                                int slotFromAmount = (cont.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                                if (amount == -1 || amount > slotFromAmount)
-                                    amount = slotFromAmount;
-
-                                int maxStack = (cont.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                                if (slotToAmount == maxStack)
-                                    return CEF.Inventory.Results.Error;
-
-                                // if amount*weight is too big -> reduce amount to fit the pData.Items's maxWeight
-                                if (curWeight + amount * cont.Items[slotFrom].Weight > Settings.MAX_INVENTORY_WEIGHT)
-                                {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / cont.Items[slotFrom].Weight);
-
-                                    if (amount == 0)
-                                        return CEF.Inventory.Results.NoSpace;
-                                }
-
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                    (pData.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else
-                                {
-                                    (pData.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                    if ((cont.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                    {
-                                        var tItem = cont.Items[slotFrom];
-
-                                        Task.Run(() => tItem.Delete());
-
-                                        cont.Items[slotFrom] = null;
-
-                                        wasDeleted = true;
-                                    }
-                                }
-
-                                pData.Items[slotTo].Update();
-                                cont.Items[slotFrom]?.Update();
-                            }
-                            #endregion
-                            #region Split To New
-                            else if (cont.Items[slotFrom] is Game.Items.IStackable && pData.Items[slotTo] == null && amount != -1 && amount < (cont.Items[slotFrom] as Game.Items.IStackable).Amount)
-                            {
-                                if (cont.Items[slotFrom].Weight * amount + curWeight > Settings.MAX_INVENTORY_WEIGHT)
-                                {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / cont.Items[slotFrom].Weight);
-
-                                    if (amount == 0)
-                                        return CEF.Inventory.Results.NoSpace;
-                                }
-
-                                (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                                cont.Items[slotFrom].Update();
-
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(cont.Items[slotFrom].ID, 0, amount); // but wait for that :)
-
-                                wasCreated = true;
-                            }
-                            #endregion
-                            #region Replace
-                            else
-                            {
-                                var addWeightItems = pData.Items[slotTo] != null ? Game.Items.Items.GetItemWeight(pData.Items[slotTo], true) : 0;
-                                var addWeightBag = Game.Items.Items.GetItemWeight(cont.Items[slotFrom], true);
-
-                                if (addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT || addWeightItems - addWeightBag + cont.Weight > cont.MaxWeight)
-                                    return CEF.Inventory.Results.NoSpace;
-
-                                var temp = cont.Items[slotFrom];
-                                cont.Items[slotFrom] = pData.Items[slotTo];
-                                pData.Items[slotTo] = temp;
-
-                                wasDeleted = true; wasCreated = true;
-                            }
-                            #endregion
-
-                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], CEF.Inventory.Groups.Items);
-
-                            NAPI.Task.Run(() =>
-                            {
-                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotTo, upd2);
-
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
-
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
-                                }
-                            });
-
-                            if (wasCreated)
-                                MySQL.UpdatePlayerInventory(pData, true);
-
-                            if (wasDeleted)
-                                cont.Update();
-
-                            return CEF.Inventory.Results.Success;
-                        }
-                        #endregion
-
-                        #region To Bag
-                        else if (to == CEF.Inventory.Groups.Bag)
-                        {
-                            if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                                return CEF.Inventory.Results.Error;
-
-                            if (!cont.IsItemAllowed(pData.Bag.Items[slotTo]))
-                                return CEF.Inventory.Results.Error;
-
-                            float curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
-                            float maxWeight = pData.Bag.Data.MaxWeight;
-
-                            bool wasDeleted = false, wasCreated = false;
-
-                            #region Unite
-                            if (pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo].Type == cont.Items[slotFrom].Type && cont.Items[slotFrom] is Game.Items.IStackable)
-                            {
-                                int slotToAmount = (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount;
-                                int slotFromAmount = (cont.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                                if (amount == -1 || amount > slotFromAmount)
-                                    amount = slotFromAmount;
-
-                                int maxStack = (cont.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                                if (slotToAmount == maxStack)
-                                    return CEF.Inventory.Results.Error;
-
-                                // if amount*weight is too big -> reduce amount to fit the pData.Bag.Items's maxWeight
-                                if (curWeight + amount * cont.Items[slotFrom].Weight > maxWeight)
-                                {
-                                    amount = (int)Math.Floor((maxWeight - curWeight) / cont.Items[slotFrom].Weight);
-
-                                    if (amount == 0)
-                                        return CEF.Inventory.Results.NoSpace;
-                                }
-
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                    (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else
-                                {
-                                    (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                    if ((cont.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                    {
-                                        var tItem = cont.Items[slotFrom];
-
-                                        Task.Run(() => tItem.Delete());
-
-                                        cont.Items[slotFrom] = null;
-
-                                        wasDeleted = true;
-                                    }
-                                }
-
-                                pData.Bag.Items[slotTo].Update();
-                                cont.Items[slotFrom]?.Update();
-                            }
-                            #endregion
-                            #region Split To New
-                            else if (cont.Items[slotFrom] is Game.Items.IStackable && pData.Bag.Items[slotTo] == null && amount != -1 && amount < (cont.Items[slotFrom] as Game.Items.IStackable).Amount)
-                            {
-                                if (cont.Items[slotFrom].Weight * amount + curWeight > maxWeight)
-                                {
-                                    amount = (int)Math.Floor((maxWeight - curWeight) / cont.Items[slotFrom].Weight);
-
-                                    if (amount == 0)
-                                        return CEF.Inventory.Results.NoSpace;
-                                }
-
-                                (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                                cont.Items[slotFrom].Update();
-
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(cont.Items[slotFrom].ID, 0, amount); // but wait for that :)
-
-                                wasCreated = true;
-                            }
-                            #endregion
-                            #region Replace
-                            else
-                            {
-                                var addWeightItems = pData.Bag.Items[slotTo] != null ? Game.Items.Items.GetItemWeight(pData.Bag.Items[slotTo], true) : 0;
-                                var addWeightBag = Game.Items.Items.GetItemWeight(cont.Items[slotFrom], true);
-
-                                if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + cont.Weight > cont.MaxWeight)
-                                    return CEF.Inventory.Results.NoSpace;
-
-                                var temp = cont.Items[slotFrom];
-                                cont.Items[slotFrom] = pData.Bag.Items[slotTo];
-                                pData.Bag.Items[slotTo] = temp;
-
-                                wasDeleted = true; wasCreated = true;
-                            }
-                            #endregion
-
-                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], CEF.Inventory.Groups.Bag);
-
-                            NAPI.Task.Run(() =>
-                            {
-                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotTo, upd2);
-
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
-
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
-                                }
-                            });
-
-                            if (wasCreated)
-                                pData.Bag.Update();
-
-                            if (wasDeleted)
-                                cont.Update();
-
-                            return CEF.Inventory.Results.Success;
-                        }
-                        #endregion
-
-                        #region To Container
-                        else if (to == CEF.Inventory.Groups.Container)
-                        {
-                            if (slotTo >= cont.Items.Length)
-                                return CEF.Inventory.Results.Error;
-
-                            bool wasCreated = false;
-                            bool wasDeleted = false;
-
-                            #region Unite
-                            if (cont.Items[slotTo] != null && cont.Items[slotTo].Type == cont.Items[slotFrom].Type && cont.Items[slotFrom] is Game.Items.IStackable)
-                            {
-                                int slotToAmount = (cont.Items[slotTo] as Game.Items.IStackable).Amount;
-                                int slotFromAmount = (cont.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                                // if no amount requested -> suggest it's whole item
-                                if (amount == -1 || amount > slotFromAmount)
-                                    amount = slotFromAmount;
-
-                                int maxStack = (cont.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                                if (slotToAmount == maxStack)
-                                    return CEF.Inventory.Results.Error;
-
-                                // if new amount > maxStack -> reduce new amount
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                    (cont.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else // if new amount <= maxStack
-                                {
-                                    (cont.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                    // delete old item if amount is 0 now
-                                    if ((cont.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                    {
-                                        wasDeleted = true;
-
-                                        cont.Items[slotFrom].Delete(); // don't wait for it :)
-
-                                        cont.Items[slotFrom] = null;
-                                    }
-                                }
-
-                                cont.Items[slotTo].Update();
-                                cont.Items[slotFrom]?.Update();
-                            }
-                            #endregion
-                            #region Split To New
-                            else if (cont.Items[slotFrom] is Game.Items.IStackable && cont.Items[slotTo] == null && amount != -1 && amount < (cont.Items[slotFrom] as Game.Items.IStackable).Amount) // split to new item
-                            {
-                                wasCreated = true;
-
-                                (cont.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                                cont.Items[slotFrom].Update();
-
-                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(cont.Items[slotFrom].ID, 0, amount);
-                            }
-                            #endregion
-                            #region Replace
-                            else // replace
-                            {
-                                var temp = cont.Items[slotFrom];
-                                cont.Items[slotFrom] = cont.Items[slotTo];
-                                cont.Items[slotTo] = temp;
-
-                                wasCreated = true;
-                            }
-                            #endregion
-
-                            var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
-                            var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
-
-                            NAPI.Task.Run(() =>
-                            {
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
-
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
-                                }
-                            });
-
-                            if (wasCreated || wasDeleted)
-                                cont.Update();
-
-                            return CEF.Inventory.Results.Success;
-                        }
-                        #endregion
-                    }
+                    if (action != null)
+                        return await action.Invoke(pData, cont, slotTo, slotFrom, amount);
 
                     return CEF.Inventory.Results.Error;
-                    #endregion
                 });
 
-                if (res != CEF.Inventory.Results.Success && res != CEF.Inventory.Results.Error)
-                {
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        if (res == CEF.Inventory.Results.NoSpace)
-                            player.Notify("Inventory::NoSpace");
-                        else if (res == CEF.Inventory.Results.PlaceRestricted)
-                            player.Notify("Inventory::PlaceRestricted");
-                        else if (res == CEF.Inventory.Results.TempItem)
-                            player.Notify("Inventory::ItemIsTemp");
-                    });
-                }
-
                 cont.Release();
+
+                var notification = CEF.Inventory.ResultsNotifications.GetValueOrDefault(res);
+
+                if (notification == null)
+                    return;
+
+                NAPI.Task.Run(() =>
+                {
+                    if (player?.Exists != true)
+                        return;
+
+                    player.Notify(notification);
+                });
             });
 
             pData.Release();
@@ -1169,9 +1226,12 @@ namespace BCRPServer.Game.Items
 
                 await Task.Run(async () =>
                 {
-                    var items = cont.Items;
+                    if (slot >= cont.Items.Length)
+                        return;
 
-                    if (slot >= items.Length || items[slot] == null)
+                    var item = cont.Items[slot];
+
+                    if (item == null)
                         return;
 
                     var res = await NAPI.Task.RunAsync(() =>
@@ -1187,14 +1247,9 @@ namespace BCRPServer.Game.Items
                         return res;
                     });
 
-                    var item = items[slot];
-
-                    if (item == null)
-                        return;
-
-                    if (item is Game.Items.IStackable)
+                    if (item is Game.Items.IStackable itemStackable)
                     {
-                        int curAmount = (item as Game.Items.IStackable).Amount;
+                        int curAmount = itemStackable.Amount;
 
                         if (amount > curAmount)
                             amount = curAmount;
@@ -1203,21 +1258,21 @@ namespace BCRPServer.Game.Items
 
                         if (curAmount > 0)
                         {
-                            (item as Game.Items.IStackable).Amount = curAmount;
-                            items[slot] = item;
+                            itemStackable.Amount = curAmount;
+                            cont.Items[slot] = item;
 
                             item.Update();
                             item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
                         }
                         else
-                            items[slot] = null;
+                            cont.Items[slot] = null;
                     }
                     else
-                        items[slot] = null;
+                        cont.Items[slot] = null;
 
-                    var upd = Game.Items.Item.ToClientJson(items[slot], CEF.Inventory.Groups.Container);
+                    var upd = Game.Items.Item.ToClientJson(cont.Items[slot], CEF.Inventory.Groups.Container);
 
-                    NAPI.Task.Run(() =>
+                    await NAPI.Task.RunAsync(() =>
                     {
                         foreach (var x in cont.PlayersObserving.ToList())
                         {

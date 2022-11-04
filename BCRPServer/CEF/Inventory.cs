@@ -1,4 +1,6 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Game.Bank;
+using BCRPServer.Game.Items;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 namespace BCRPServer.CEF
 {
     /*
-        OVER 3.000 LINES! BE CAREFUL! IT SLOWS IDE
+        4.000 LINES! BE CAREFUL! IT SLOWS IDE
     */
 
     public class Inventory : Script
@@ -83,7 +85,7 @@ namespace BCRPServer.CEF
             NotEnoughMoney,
         }
 
-        private static Dictionary<Results, string> ResultsNotifications = new Dictionary<Results, string>()
+        public static Dictionary<Results, string> ResultsNotifications = new Dictionary<Results, string>()
         {
             { Results.NoSpace, "Inventory::NoSpace" },
             { Results.PlaceRestricted, "Inventory::PlaceRestricted" },
@@ -94,7 +96,7 @@ namespace BCRPServer.CEF
 
         #region Show
         [RemoteEvent("Inventory::Show")]
-        public static async Task Show(Player player, bool state, int ammo)
+        public static async Task Show(Player player, int ammo)
         {
             var sRes = player.CheckSpamAttack(1000);
 
@@ -140,15 +142,23 @@ namespace BCRPServer.CEF
 
         private static Dictionary<Groups, Func<PlayerData, int, Game.Items.Item>> PlayerDataGroups = new Dictionary<Groups, Func<PlayerData, int, Game.Items.Item>>
         {
-            { Groups.Items, (pData, slot) => pData.Items.Length <= slot || slot < 0 ? null : pData.Items[slot] },
-            { Groups.Bag, (pData, slot) => pData.Bag == null ? null : pData.Bag.Items.Length <= slot || slot < 0 ? null : pData.Bag.Items[slot] },
-            { Groups.Weapons, (pData, slot) =>  pData.Weapons.Length <= slot || slot < 0 ? null : pData.Weapons[slot] },
+            { Groups.Items, (pData, slot) => pData.Items.Length <= slot ? null : pData.Items[slot] },
+
+            { Groups.Bag, (pData, slot) => pData.Bag == null ? null : pData.Bag.Items.Length <= slot ? null : pData.Bag.Items[slot] },
+
+            { Groups.Weapons, (pData, slot) =>  pData.Weapons.Length <= slot ? null : pData.Weapons[slot] },
+
             { Groups.Holster, (pData, slot) =>  pData.Holster == null ? null : pData.Holster.Items[0] },
+
             { Groups.Armour, (pData, slot) =>  pData.Armour },
+
             { Groups.BagItem, (pData, slot) =>  pData.Bag },
+
             { Groups.HolsterItem, (pData, slot) =>  pData.Holster },
-            { Groups.Clothes, (pData, slot) =>  pData.Clothes.Length <= slot || slot < 0 ? null : pData.Clothes[slot] },
-            { Groups.Accessories, (pData, slot) =>  pData.Accessories.Length <= slot || slot < 0 ? null : pData.Accessories[slot] },
+
+            { Groups.Clothes, (pData, slot) =>  pData.Clothes.Length <= slot ? null : pData.Clothes[slot] },
+
+            { Groups.Accessories, (pData, slot) =>  pData.Accessories.Length <= slot ? null : pData.Accessories[slot] },
         };
 
         public static Game.Items.Item GetPlayerItem(PlayerData pData, Groups group, int slot = 0)
@@ -538,6 +548,3011 @@ namespace BCRPServer.CEF
             },
         };
 
+        private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>>()
+        {
+            {
+                Groups.Items,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                if (toItem.IsTemp || fromItem.IsTemp)
+                                    return Results.TempItem;
+
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount >= maxStack)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount) // split to new item
+                            {
+                                if (fromItem.IsTemp)
+                                    return Results.TempItem;
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                pData.Items[slotFrom] = toItem;
+                                pData.Items[slotTo] = fromItem;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (fromItem is Game.Items.Bag)
+                                return Results.PlaceRestricted;
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            float curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
+                            float maxWeight = pData.Bag.Data.MaxWeight;
+
+                            bool wasDeleted = false;
+                            bool wasCreated = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount >= maxStack)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (curWeight + amount * fromItem.BaseWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return Results.NoSpace;
+                                }
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Items[slotFrom] = null;
+
+                                        wasDeleted = true;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                if (fromItem.BaseWeight * amount + curWeight > maxWeight)
+                                {
+                                    amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return Results.NoSpace;
+                                }
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+
+                                wasCreated = true;
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                var addWeightItems = toItem?.Weight ?? 0f;
+                                var addWeightBag = fromItem.Weight;
+
+                                if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT)
+                                    return Results.NoSpace;
+
+                                pData.Items[slotFrom] = toItem;
+                                pData.Bag.Items[slotTo] = fromItem;
+
+                                wasDeleted = true; wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+                            });
+
+                            if (wasDeleted)
+                                MySQL.UpdatePlayerInventory(pData, true);
+
+                            if (wasCreated)
+                                pData.Bag.Update();
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Weapons,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Weapons[slotTo];
+
+                            bool wasDeleted = false;
+                            bool wasReplaced = false;
+
+                            #region Replace
+                            if (fromItem is Game.Items.Weapon fromWeapon)
+                            {
+                                if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                    return Results.NoSpace;
+
+                                pData.Weapons[slotTo] = fromWeapon;
+                                pData.Items[slotFrom] = toItem;
+
+                                wasReplaced = true;
+                            }
+                            #endregion
+                            #region Load
+                            else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && fromItem.ID == toItem.Data.AmmoID)
+                            {
+                                var maxAmount = toItem.Data.MaxAmmo;
+
+                                if (amount == -1 || amount > fromAmmo.Amount)
+                                    amount = toItem.Ammo;
+
+                                if (toItem.Ammo == maxAmount)
+                                    return Results.Error;
+
+                                if (toItem.Ammo + amount > maxAmount)
+                                {
+                                    fromAmmo.Amount -= maxAmount - toItem.Ammo;
+                                    toItem.Ammo = maxAmount;
+                                }
+                                else
+                                {
+                                    toItem.Ammo += amount;
+                                    fromAmmo.Amount -= amount;
+
+                                    if (fromAmmo.Amount == 0)
+                                    {
+                                        wasDeleted = true;
+
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            else
+                                return Results.Error;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+
+                                if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        pData.Weapons[slotTo].Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    pData.Weapons[slotTo].UpdateAmmo(pData);
+
+                                    pData.Weapons[slotTo].Wear(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            });
+
+                            if (wasDeleted)
+                                MySQL.UpdatePlayerInventory(pData, true);
+                            else if (wasReplaced)
+                                MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, true, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Holster,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Holster == null)
+                                return Results.Error;
+
+                            var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            bool wasDeleted = false;
+                            bool wasReplaced = false;
+
+                            #region Replace
+                            if (fromItem is Game.Items.Weapon fromWeapon)
+                            {
+                                if (fromWeapon.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
+                                    return Results.PlaceRestricted;
+
+                                if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                    return Results.NoSpace;
+
+                                pData.Holster.Items[0] = fromWeapon;
+                                pData.Items[slotFrom] = toItem;
+
+                                pData.Holster.Update();
+
+                                wasReplaced = true;
+                            }
+                            #endregion
+                            #region Load
+                            else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && (fromItem.ID == toItem.Data.AmmoID))
+                            {
+                                var maxAmount = toItem.Data.MaxAmmo;
+
+                                if (toItem.Ammo == maxAmount)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > fromAmmo.Amount)
+                                    amount = fromAmmo.Amount;
+
+                                if (toItem.Ammo + amount > maxAmount)
+                                {
+                                    fromAmmo.Amount -= maxAmount - toItem.Ammo;
+                                    toItem.Ammo = maxAmount;
+                                }
+                                else
+                                {
+                                    toItem.Ammo += amount;
+                                    fromAmmo.Amount -= amount;
+
+                                    if (fromAmmo.Amount == 0)
+                                    {
+                                        wasDeleted = true;
+
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            else
+                                return Results.Error;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+
+                                if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        ((Game.Items.Weapon)pData.Holster.Items[0]).Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    ((Game.Items.Weapon)pData.Holster.Items[0]).UpdateAmmo(pData);
+
+                                    ((Game.Items.Weapon)pData.Holster.Items[0]).Wear(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            });
+
+                            if (wasDeleted || wasReplaced)
+                                MySQL.UpdatePlayerInventory(pData, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Clothes,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Clothes.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Clothes[slotTo];
+
+                            if (!(fromItem is Game.Items.Clothes fromClothes))
+                                return Results.Error;
+
+                            int actualSlot;
+
+                            if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
+                                return Results.Error;
+
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Clothes[slotTo] = fromClothes;
+                            pData.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
+
+                                (pData.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
+                                pData.Clothes[slotTo].Wear(pData);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Accessories,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Accessories.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Accessories[slotTo];
+
+                            if (!(fromItem is Game.Items.Clothes fromClothes))
+                                return Results.Error;
+
+                            int actualSlot;
+
+                            if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
+                                return Results.Error;
+
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Accessories[slotTo] = fromClothes;
+                            pData.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
+
+                                (pData.Accessories[slotTo] as Game.Items.Clothes)?.Unwear(pData);
+                                pData.Accessories[slotTo].Wear(pData);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.HolsterItem,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            var toItem = pData.Holster;
+
+                            if (!(fromItem is Game.Items.Holster fromHolster))
+                                return Results.Error;
+
+                            if (fromItem.IsTemp || toItem?.Items[0]?.IsTemp == true)
+                                return Results.TempItem;
+
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Holster = fromHolster;
+                            pData.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+
+                                (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
+
+                                pData.Holster.Wear(pData);
+
+                                if (pData.Items[slotFrom] is Game.Items.Holster holster && ((Game.Items.Weapon)holster.Items[0])?.Equiped == true)
+                                {
+                                    ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
+                                    ((Game.Items.Weapon)pData.Holster.Items[0])?.Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.BagItem,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            var toItem = pData.Bag;
+
+                            if (!(fromItem is Game.Items.Bag fromBag))
+                                return Results.Error;
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Bag = fromBag;
+                            pData.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd2);
+
+                                (pData.Items[slotFrom] as Game.Items.Bag)?.Unwear(pData);
+                                pData.Bag.Wear(pData);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Armour,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            var toItem = pData.Armour;
+
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                                return Results.Wounded;
+
+                            if (!(fromItem is Game.Items.Armour fromArmour))
+                                return Results.Error;
+
+                            if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Armour = fromArmour;
+                            pData.Items[slotFrom] = toItem;
+
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                (pData.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
+                                pData.Armour.Wear(pData);
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.Bag,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            bool wasCreated = false;
+                            bool wasDeleted = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > toStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        wasDeleted = true;
+
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Bag.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount) // split to new item
+                            {
+                                wasCreated = true;
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                pData.Bag.Items[slotFrom] = toItem;
+                                pData.Bag.Items[slotTo] = fromItem;
+
+                                wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+                            });
+
+                            if (wasCreated || wasDeleted)
+                                pData.Bag.Update();
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (toItem is Game.Items.Bag)
+                                return Results.Error;
+
+                            float curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
+
+                            bool wasDeleted = false, wasCreated = false;
+
+                            #region Unite
+                            if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
+                            {
+                                int maxStack = toStackable.MaxAmount;
+
+                                if (toStackable.Amount == maxStack)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > fromStackable.Amount)
+                                    amount = fromStackable.Amount;
+
+                                if (curWeight + amount * fromItem.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                {
+                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return Results.NoSpace;
+                                }
+
+                                if (toStackable.Amount + amount > maxStack)
+                                {
+                                    fromStackable.Amount -= maxStack - toStackable.Amount;
+                                    toStackable.Amount = maxStack;
+                                }
+                                else
+                                {
+                                    toStackable.Amount += amount;
+                                    fromStackable.Amount -= amount;
+
+                                    if (fromStackable.Amount == 0)
+                                    {
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Bag.Items[slotFrom] = null;
+
+                                        wasDeleted = true;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            #region Split To New
+                            else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
+                            {
+                                if (fromItem.BaseWeight * amount + curWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                {
+                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
+
+                                    if (amount <= 0)
+                                        return Results.NoSpace;
+                                }
+
+                                targetItem.Amount -= amount;
+                                fromItem.Update();
+
+                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+
+                                wasCreated = true;
+                            }
+                            #endregion
+                            #region Replace
+                            else
+                            {
+                                var addWeightItems = toItem?.Weight ?? 0f;
+                                var addWeightBag = fromItem.Weight;
+
+                                if (addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT || addWeightItems - addWeightBag + pData.Bag.Weight - pData.Bag.BaseWeight > pData.Bag.Data.MaxWeight)
+                                    return Results.NoSpace;
+
+                                pData.Bag.Items[slotFrom] = toItem;
+                                pData.Items[slotTo] = fromItem;
+
+                                wasDeleted = true; wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            });
+
+                            if (wasCreated)
+                                MySQL.UpdatePlayerInventory(pData, true);
+
+                            if (wasDeleted)
+                                pData.Bag.Update();
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Weapons,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {                            
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Weapons[slotTo];
+
+                            bool wasDeleted = false;
+                            bool wasReplaced = false;
+
+                            #region Replace
+                            if (fromItem is Game.Items.Weapon fromWeapon)
+                            {
+                                if (toItem != null && pData.Bag.Weight - pData.Bag.BaseWeight + toItem.Weight - fromItem.Weight > pData.Bag.Data.MaxWeight)
+                                    return Results.NoSpace;
+
+                                pData.Weapons[slotTo] = fromWeapon;
+                                pData.Bag.Items[slotFrom] = toItem;
+
+                                wasReplaced = true;
+                            }
+                            #endregion
+                            #region Load
+                            else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && fromItem.ID == toItem.Data.AmmoID)
+                            {
+                                var maxAmount = toItem.Data.MaxAmmo;
+
+                                if (toItem.Ammo == maxAmount)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > fromAmmo.Amount)
+                                    amount = fromAmmo.Amount;
+
+                                if (toItem.Ammo + amount > maxAmount)
+                                {
+                                    fromAmmo.Amount -= maxAmount - toItem.Ammo;
+                                    toItem.Ammo = maxAmount;
+                                }
+                                else
+                                {
+                                    toItem.Ammo += amount;
+                                    fromAmmo.Amount -= amount;
+
+                                    if (fromAmmo.Amount == 0)
+                                    {
+                                        wasDeleted = true;
+
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Bag.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            else
+                                return Results.Error;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+
+                                if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        pData.Weapons[slotTo].Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    pData.Weapons[slotTo].UpdateAmmo(pData);
+
+                                    pData.Weapons[slotTo].Wear(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            });
+
+                            if (wasDeleted)
+                                pData.Bag.Update();
+                            else if (wasReplaced)
+                            {
+                                pData.Bag.Update();
+                                MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                            }
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Holster,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {                            
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Holster == null)
+                                return Results.Error;
+
+                            var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                            bool wasDeleted = false;
+                            bool wasReplaced = false;
+
+                            #region Replace
+                            if (fromItem is Game.Items.Weapon fromWeapon)
+                            {
+                                if (fromWeapon.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
+                                    return Results.PlaceRestricted;
+
+                                if (toItem != null && pData.Bag.Weight - pData.Bag.BaseWeight + toItem.Weight - fromItem.Weight > pData.Bag.Data.MaxWeight)
+                                    return Results.NoSpace;
+
+                                pData.Holster.Items[0] = fromWeapon;
+                                pData.Bag.Items[slotFrom] = toItem;
+
+                                pData.Holster.Update();
+
+                                wasReplaced = true;
+                            }
+                            #endregion
+                            #region Load
+                            else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && fromItem.ID == toItem.Data.AmmoID)
+                            {
+                                var maxAmount = toItem.Data.MaxAmmo;
+
+                                if (toItem.Ammo == maxAmount)
+                                    return Results.Error;
+
+                                if (amount == -1 || amount > fromAmmo.Amount)
+                                    amount = fromAmmo.Amount;
+
+                                if (toItem.Ammo + amount > maxAmount)
+                                {
+                                    fromAmmo.Amount -= maxAmount - toItem.Ammo;
+                                    toItem.Ammo = maxAmount;
+                                }
+                                else
+                                {
+                                    toItem.Ammo += amount;
+                                    fromAmmo.Amount -= amount;
+
+                                    if (fromAmmo.Amount == 0)
+                                    {
+                                        wasDeleted = true;
+
+                                        fromItem.Delete();
+
+                                        fromItem = null;
+
+                                        pData.Bag.Items[slotFrom] = null;
+                                    }
+                                }
+
+                                toItem.Update();
+                                fromItem?.Update();
+                            }
+                            #endregion
+                            else
+                                return Results.Error;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+
+                                if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
+
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            });
+
+                            if (wasDeleted || wasReplaced)
+                                pData.Bag.Update();
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Clothes,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {                            
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Clothes.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Clothes[slotTo];
+
+                            if (!(fromItem is Game.Items.Clothes fromClothes))
+                                return Results.Error;
+
+                            int actualSlot;
+
+                            if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
+                                return Results.Error;
+
+                            if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
+                                return Results.NoSpace;
+
+                            pData.Clothes[slotTo] = fromClothes;
+                            pData.Bag.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
+
+                                (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
+                                pData.Clothes[slotTo].Wear(pData);
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Accessories,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {                            
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Accessories.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Accessories[slotTo];
+
+                            if (!(fromItem is Game.Items.Clothes fromClothes))
+                                return Results.Error;
+
+                            int actualSlot;
+
+                            if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
+                                return Results.Error;
+
+                            if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
+                                return Results.NoSpace;
+
+                            pData.Accessories[slotTo] = fromClothes;
+                            pData.Bag.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
+
+                                (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
+                                pData.Accessories[slotTo].Wear(pData);
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.HolsterItem,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {                            
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            var toItem = pData.Holster;
+
+                            if (!(fromItem is Game.Items.Holster fromHolster))
+                                return Results.Error;
+
+                            if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
+                                return Results.NoSpace;
+
+                            pData.Holster = fromHolster;
+                            pData.Bag.Items[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+
+                                (pData.Bag.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
+                                pData.Holster.Wear(pData);
+
+                                if (pData.Bag.Items[slotFrom] != null && ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
+                                {
+                                    ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Armour,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Bag.Items[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                                return Results.Wounded;
+
+                            var toItem = pData.Armour;
+
+                            if (!(fromItem is Game.Items.Armour fromArmour))
+                                return Results.Error;
+
+                            if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
+                                return Results.NoSpace;
+
+                            pData.Armour = fromArmour;
+                            pData.Bag.Items[slotFrom] = toItem;
+
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                (pData.Bag.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
+                                pData.Armour.Wear(pData);
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.Weapons,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Weapons,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Weapons[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Weapons[slotTo];
+
+                            pData.Weapons[slotTo] = fromItem;
+                            pData.Weapons[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, upd1);
+
+                                if (pData.Weapons[slotFrom]?.Equiped == true)
+                                {
+                                    pData.Weapons[slotFrom].Unequip(pData);
+                                    pData.Weapons[slotTo].Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Holster,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Weapons[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Holster == null)
+                                return Results.Error;
+
+                            var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                            if (fromItem.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
+                                return Results.PlaceRestricted;
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            pData.Holster.Items[0] = fromItem;
+                            pData.Weapons[slotFrom] = toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, upd1);
+
+                                if (pData.Weapons[slotFrom]?.Equiped == true)
+                                {
+                                    pData.Weapons[slotFrom].Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            });
+
+                            pData.Holster.Update();
+
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Weapons[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            bool wasCreated = false;
+                            bool wasReplaced = false;
+
+                            bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
+
+                            #region Extract
+                            if (amount != -1 || extractToExisting) // extract ammo from weapon
+                            {
+                                if (fromItem.IsTemp)
+                                    return Results.TempItem;
+
+                                if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
+                                    return Results.Error;
+
+                                if (fromItem.Equiped)
+                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
+
+                                if (amount == -1)
+                                    amount = fromItem.Ammo;
+
+                                var curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
+                                var ammoWeight = Game.Items.Ammo.GetData(fromItem.Data.AmmoID).Weight;
+
+                                if (extractToExisting)
+                                {
+                                    var toAmmo = (Game.Items.Ammo)toItem;
+
+                                    int maxStack = toAmmo.MaxAmount;
+
+                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    {
+                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    if (toAmmo.Amount + amount > maxStack)
+                                    {
+                                        fromItem.Ammo -= maxStack - toAmmo.Amount;
+                                        toAmmo.Amount = maxStack;
+                                    }
+                                    else
+                                    {
+                                        toAmmo.Amount += amount;
+                                        fromItem.Ammo -= amount;
+                                    }
+
+                                    fromItem.Update();
+                                    toItem.Update();
+                                }
+                                else if (toItem == null)
+                                {
+                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    {
+                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    fromItem.Ammo -= amount;
+                                    pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
+
+                                    fromItem.Update();
+
+                                    wasCreated = true;
+                                }
+                            }
+                            #endregion
+                            #region Replace
+                            else if (toItem == null || toItem is Game.Items.Weapon)
+                            {
+                                if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT)
+                                    return Results.NoSpace;
+
+                                pData.Items[slotTo] = fromItem;
+                                pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
+
+                                wasReplaced = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
+
+                                if (pData.Items[slotTo] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        pData.Weapons[slotFrom]?.Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    if (pData.Weapons[slotFrom] != null)
+                                    {
+                                        pData.Weapons[slotFrom].UpdateAmmo(pData);
+
+                                        pData.Weapons[slotFrom].Wear(pData);
+                                    }
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            });
+
+                            if (wasCreated)
+                                MySQL.UpdatePlayerInventory(pData, true);
+                            else if (wasReplaced)
+                                MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, true, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Weapons.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Weapons[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            bool wasCreated = false;
+                            bool wasReplaced = false;
+
+                            bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
+
+                            #region Extract
+                            if (amount != -1 || extractToExisting)
+                            {
+                                if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
+                                    return Results.Error;
+
+                                if (fromItem.Equiped)
+                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
+
+                                if (amount == -1)
+                                    amount = fromItem.Ammo;
+
+                                var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
+                                var maxWeight = pData.Bag.Data.MaxWeight;
+
+                                var ammoWeight = Game.Items.Ammo.GetData(fromItem.Data.AmmoID).Weight;
+
+                                if (extractToExisting)
+                                {
+                                    var toAmmo = (Game.Items.Ammo)toItem;
+
+                                    int maxStack = toAmmo.MaxAmount;
+
+                                    if (curWeight + amount * ammoWeight > maxWeight)
+                                    {
+                                        amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    if (toAmmo.Amount + amount > maxStack)
+                                    {
+                                        fromItem.Ammo -= maxStack - toAmmo.Amount;
+                                        toAmmo.Amount = maxStack;
+                                    }
+                                    else
+                                    {
+                                        toAmmo.Amount += amount;
+                                        fromItem.Ammo -= amount;
+                                    }
+
+                                    fromItem.Update();
+                                    toItem.Update();
+                                }
+                                else if (toItem == null)
+                                {
+                                    if (curWeight + amount * ammoWeight > maxWeight)
+                                    {
+                                        amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    fromItem.Ammo -= amount;
+                                    pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
+
+                                    fromItem.Update();
+
+                                    wasCreated = true;
+                                }
+                            }
+                            #endregion
+                            #region Replace
+                            else if (toItem == null || toItem is Game.Items.Weapon)
+                            {
+                                if ((pData.Bag.Weight - pData.Bag.BaseWeight + fromItem.Weight - (toItem?.Weight ?? 0) > pData.Bag.Data.MaxWeight))
+                                    return Results.NoSpace;
+
+                                pData.Bag.Items[slotTo] = fromItem;
+                                pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
+
+                                wasReplaced = true;
+                                wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
+
+                                if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        pData.Weapons[slotFrom]?.Equip(pData);
+                                    }
+                                }
+                                else
+                                {
+                                    if (pData.Weapons[slotFrom] != null)
+                                    {
+                                        pData.Weapons[slotFrom].UpdateAmmo(pData);
+
+                                        pData.Weapons[slotFrom].Wear(pData);
+                                    }
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            });
+
+                            if (wasCreated)
+                                pData.Bag.Update();
+
+                            if (wasReplaced)
+                                MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.Holster,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Weapons,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Holster == null)
+                                return Results.Error;
+
+                            var fromItem = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Weapons.Length)
+                                return Results.PlaceRestricted;
+
+                            var toItem = pData.Weapons[slotTo];
+
+                            if (toItem != null && toItem.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
+                                return Results.PlaceRestricted;
+
+                            pData.Holster.Items[0] = toItem;
+                            pData.Weapons[slotTo] = fromItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, upd1);
+
+                                if (pData.Weapons[slotTo].Equiped)
+                                {
+                                    pData.Weapons[slotTo].Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            });
+
+                            pData.Holster.Update();
+
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Holster == null)
+                                return Results.Error;
+
+                            var fromItem = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
+
+                            bool wasCreated = false;
+                            bool wasReplaced = false;
+
+                            #region Extract
+                            if (amount != -1 || extractToExisting)
+                            {
+                                if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
+                                    return Results.Error;
+
+                                if (fromItem.Equiped)
+                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
+
+                                if (amount == -1)
+                                    amount = fromItem.Ammo;
+
+                                var curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
+                                var ammoWeight = Game.Items.Ammo.GetData(fromItem.Data.AmmoID).Weight;
+
+                                if (extractToExisting)
+                                {
+                                    var toAmmo = (Game.Items.Ammo)toItem;
+
+                                    int maxStack = toAmmo.MaxAmount;
+
+                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    {
+                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    if (toAmmo.Amount + amount > maxStack)
+                                    {
+                                        fromItem.Ammo -= maxStack - toAmmo.Amount;
+                                        toAmmo.Amount = maxStack;
+                                    }
+                                    else
+                                    {
+                                        toAmmo.Amount += amount;
+                                        fromItem.Ammo -= amount;
+                                    }
+
+                                    fromItem.Update();
+                                    toItem.Update();
+                                }
+                                else if (toItem == null)
+                                {
+                                    if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
+                                    {
+                                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    fromItem.Ammo -= amount;
+                                    pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
+
+                                    wasCreated = true;
+
+                                    fromItem.Update();
+                                }
+                            }
+                            #endregion
+                            #region Replace
+                            else if (toItem == null || toItem is Game.Items.Weapon)
+                            {
+                                if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
+                                    return Results.NoSpace;
+
+                                pData.Items[slotTo] = fromItem;
+                                pData.Holster.Items[0] = (Game.Items.Weapon)toItem;
+
+                                wasReplaced = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
+
+                                if (pData.Items[slotTo] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
+                                    {
+                                        (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
+
+                                        (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                    }
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            });
+
+                            if (wasReplaced)
+                            {
+                                pData.Holster.Update();
+
+                                MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, false);
+                            }
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (pData.Holster == null)
+                                return Results.Error;
+
+                            var fromItem = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
+
+                            bool wasCreated = false;
+                            bool wasReplaced = false;
+
+                            #region Extract
+                            if (amount != -1 || extractToExisting)
+                            {
+                                if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
+                                    return Results.Error;
+
+                                if (fromItem.Equiped)
+                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
+
+                                if (amount == -1)
+                                    amount = fromItem.Ammo;
+
+                                var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
+                                var maxWeight = pData.Bag.Data.MaxWeight;
+
+                                var ammoWeight = Game.Items.Ammo.GetData(fromItem.Data.AmmoID).Weight;
+
+                                if (extractToExisting)
+                                {
+                                    var toAmmo = (Game.Items.Ammo)toItem;
+
+                                    int maxStack = toAmmo.MaxAmount;
+
+                                    if (curWeight + amount * ammoWeight > maxWeight)
+                                    {
+                                        amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    if (toAmmo.Amount + amount > maxStack)
+                                    {
+                                        fromItem.Ammo -= maxStack - toAmmo.Amount;
+                                        toAmmo.Amount = maxStack;
+                                    }
+                                    else
+                                    {
+                                        toAmmo.Amount += amount;
+                                        fromItem.Ammo -= amount;
+                                    }
+
+                                    fromItem.Update();
+                                    toItem.Update();
+                                }
+                                else if (toItem == null)
+                                {
+                                    if (curWeight + amount * ammoWeight > pData.Bag.Data.MaxWeight)
+                                    {
+                                        amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
+
+                                        if (amount <= 0)
+                                            return Results.NoSpace;
+                                    }
+
+                                    fromItem.Ammo -= amount;
+                                    pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
+
+                                    wasCreated = true;
+
+                                    fromItem.Update();
+                                }
+                            }
+                            #endregion
+                            #region Replace
+                            else if (toItem == null || toItem is Game.Items.Weapon)
+                            {
+                                if ((pData.Bag.Weight - pData.Bag.BaseWeight + fromItem.Weight - (toItem?.Weight ?? 0)) > pData.Bag.Data.MaxWeight)
+                                    return Results.NoSpace;
+
+                                pData.Bag.Items[slotTo] = fromItem;
+                                pData.Holster.Items[0] = (Game.Items.Weapon)toItem;
+
+                                wasReplaced = true;
+                                wasCreated = true;
+                            }
+                            #endregion
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
+
+                                if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
+                                {
+                                    if (weapon.Equiped)
+                                    {
+                                        weapon.Unequip(pData);
+                                        (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                                    }
+                                    else
+                                        weapon.Unwear(pData);
+                                }
+                                else
+                                {
+                                    if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
+                                    {
+                                        (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
+
+                                        (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                    }
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            });
+
+                            if (wasReplaced || wasCreated)
+                            {
+                                pData.Holster.Update();
+                                pData.Bag.Update();
+                            }
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.Armour,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Armour;
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                                return Results.Wounded;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (toItem != null && (!(toItem is Game.Items.Armour)))
+                                return Results.Error;
+
+                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0)) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Armour = (Game.Items.Armour)toItem;
+                            pData.Items[slotTo] = fromItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
+                                pData.Armour?.Wear(pData);
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Armour;
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
+                                return Results.Wounded;
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            if (pData.Bag == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (toItem != null && (!(toItem is Game.Items.Armour)))
+                                return Results.Error;
+
+                            if ((pData.Bag.Weight - pData.Bag.BaseWeight + fromItem.Weight - (toItem?.Weight ?? 0f)) > pData.Bag.Data.MaxWeight)
+                                return Results.NoSpace;
+
+                            pData.Armour = (Game.Items.Armour)toItem;
+                            pData.Bag.Items[slotTo] = fromItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
+                                pData.Armour?.Wear(pData);
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.Clothes,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Clothes.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Clothes[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (toItem != null && toItem.Type != fromItem.Type)
+                                return Results.Error;
+
+                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Items[slotTo] = fromItem;
+                            pData.Clothes[slotFrom] = (Game.Items.Clothes)toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+
+                                (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                                pData.Clothes[slotFrom]?.Wear(pData);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, true, false, false, false, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Clothes.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Clothes[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            if (pData.Bag == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (toItem != null && toItem.Type != fromItem.Type)
+                                return Results.Error;
+
+                            var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
+                            var maxWeight = pData.Bag.Data.MaxWeight;
+
+                            if ((curWeight + fromItem.Weight - (toItem?.Weight ?? 0f)) > maxWeight)
+                                return Results.NoSpace;
+
+                            pData.Bag.Items[slotTo] = fromItem;
+                            pData.Clothes[slotFrom] = (Game.Items.Clothes)toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+
+                                (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                                pData.Clothes[slotFrom]?.Wear(pData);
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, true, false, false, false, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.Accessories,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Accessories.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Accessories[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (toItem != null && toItem.Type != fromItem.Type)
+                                return Results.Error;
+
+                            if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Items[slotTo] = fromItem;
+                            pData.Accessories[slotFrom] = (Game.Items.Clothes)toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+
+                                (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                                (pData.Accessories[slotFrom])?.Wear(pData);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, true, false, false, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            if (slotFrom >= pData.Accessories.Length)
+                                return Results.Error;
+
+                            var fromItem = pData.Accessories[slotFrom];
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (fromItem.IsTemp)
+                                return Results.TempItem;
+
+                            if (pData.Bag == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (toItem != null && toItem.Type != fromItem.Type)
+                                return Results.Error;
+
+                            var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
+                            var maxWeight = pData.Bag.Data.MaxWeight;
+
+                            if ((curWeight + fromItem.Weight - (toItem?.Weight ?? 0f)) > maxWeight)
+                                return Results.NoSpace;
+
+                            pData.Bag.Items[slotTo] = fromItem;
+                            pData.Accessories[slotFrom] = (Game.Items.Clothes)toItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+
+                                (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                                pData.Accessories[slotFrom]?.Wear(pData);
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, false, true, false, false, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.BagItem,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Bag;
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (toItem != null && !(toItem is Game.Items.Bag))
+                                return Results.Error;
+
+                            if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Bag = (Game.Items.Bag)toItem;
+                            pData.Items[slotTo] = fromItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync (() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd1);
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+
+                                (pData.Items[slotTo] as Game.Items.Bag).Unwear(pData);
+                                pData.Bag?.Wear(pData);
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, false, true, false, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+
+            {
+                Groups.HolsterItem,
+
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                {
+                    {
+                        Groups.Items,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Holster;
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (slotTo >= pData.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Items[slotTo];
+
+                            if (toItem != null && !(toItem is Game.Items.Holster))
+                                return Results.Error;
+
+                            if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
+                                return Results.NoSpace;
+
+                            pData.Holster = (Game.Items.Holster)toItem;
+                            pData.Items[slotTo] = fromItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
+
+                                (pData.Items[slotTo] as Game.Items.Holster).Unwear(pData);
+                                pData.Holster?.Wear(pData);
+
+                                if (((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
+                                {
+                                    ((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            });
+
+                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, true, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        Groups.Bag,
+
+                        async (pData, slotTo, slotFrom, amount) =>
+                        {
+                            var player = pData.Player;
+
+                            var fromItem = pData.Holster;
+
+                            if (fromItem == null)
+                                return Results.Error;
+
+                            if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
+                                return Results.Error;
+
+                            var toItem = pData.Bag.Items[slotTo];
+
+                            if (toItem != null && !(toItem is Game.Items.Holster))
+                                return Results.Error;
+
+                            if ((fromItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - (toItem?.Weight ?? 0f)) > pData.Bag.Data.MaxWeight)
+                                return Results.NoSpace;
+
+                            pData.Holster = (Game.Items.Holster)toItem;
+                            pData.Bag.Items[slotTo] = fromItem;
+
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+
+                            await NAPI.Task.RunAsync(() =>
+                            {
+                                if (player?.Exists != true)
+                                    return;
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
+
+                                (pData.Bag.Items[slotTo] as Game.Items.Holster).Unwear(pData);
+                                pData.Holster?.Wear(pData);
+
+                                if (((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
+                                {
+                                    ((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                    (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                                }
+
+                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            });
+
+                            pData.Bag.Update();
+                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, true, false, false);
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
+        };
+
+        private static Dictionary<Groups, Func<PlayerData, int, int, Task<Game.Items.Item>>> DropActions = new Dictionary<Groups, Func<PlayerData, int, int, Task<Game.Items.Item>>>()
+        {
+            {
+                Groups.Items,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    if (slot >= pData.Items.Length)
+                        return null;
+
+                    var item = pData.Items[slot];
+
+                    if (item == null)
+                        return null;
+
+                    if (item is Game.Items.IStackable itemStackable)
+                    {
+                        int curAmount = itemStackable.Amount;
+
+                        if (amount > curAmount)
+                            amount = curAmount;
+
+                        curAmount -= amount;
+
+                        if (curAmount > 0)
+                        {
+                            itemStackable.Amount = curAmount;
+                            pData.Items[slot] = item;
+
+                            item.Update();
+                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
+                        }
+                        else
+                            pData.Items[slot] = null;
+                    }
+                    else
+                        pData.Items[slot] = null;
+
+                    var upd = Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items);
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Items, slot, upd);
+                    });
+
+                    MySQL.UpdatePlayerInventory(pData, true);
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.Bag,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    if (pData.Bag == null || slot >= pData.Bag.Items.Length)
+                        return null;
+
+                    var item = pData.Bag.Items[slot];
+
+                    if (item == null)
+                        return null;
+
+                    if (item is Game.Items.IStackable itemStackable)
+                    {
+                        int curAmount = itemStackable.Amount;
+
+                        if (amount > curAmount)
+                            amount = curAmount;
+
+                        curAmount -= amount;
+
+                        if (curAmount > 0)
+                        {
+                            itemStackable.Amount = curAmount;
+                            pData.Bag.Items[slot] = item;
+
+                            item.Update();
+                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
+                        }
+                        else
+                            pData.Bag.Items[slot] = null;
+                    }
+                    else
+                        pData.Bag.Items[slot] = null;
+
+                    var upd = Game.Items.Item.ToClientJson(pData.Bag.Items[slot], Groups.Bag);
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slot, upd);
+                    });
+
+                    pData.Bag.Update();
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.Weapons,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    if (slot >= pData.Weapons.Length)
+                        return null;
+
+                    var item = pData.Weapons[slot];
+
+                    if (item == null)
+                        return null;
+
+                    if (item.Equiped)
+                        Sync.WeaponSystem.UpdateAmmo(pData, item, false);
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
+
+                        if (item.Equiped)
+                            item.Unequip(pData, false, false);
+                        else
+                            item.Unwear(pData);
+                    });
+
+                    pData.Weapons[slot] = null;
+
+                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.Holster,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    if (pData.Holster == null)
+                        return null;
+
+                    var item = (Game.Items.Weapon)pData.Holster.Items[0];
+
+                    if (item == null)
+                        return null;
+
+                    if (item.Equiped)
+                        Sync.WeaponSystem.UpdateAmmo(pData, item, false);
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
+
+                        if (item.Equiped)
+                            item.Unequip(pData, false, false);
+                        else
+                            item.Unwear(pData);
+                    });
+
+                    pData.Holster.Items[0] = null;
+
+                    pData.Holster.Update();
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.Clothes,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    if (slot >= pData.Clothes.Length)
+                        return null;
+
+                    var item = pData.Clothes[slot];
+
+                    if (item == null)
+                        return null;
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
+
+                        item.Unwear(pData);
+                    });
+
+                    pData.Clothes[slot] = null;
+
+                    MySQL.UpdatePlayerInventory(pData, false, true);
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.Accessories,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    if (slot >= pData.Accessories.Length)
+                        return null;
+
+                    var item = pData.Accessories[slot];
+
+                    if (item == null)
+                        return null;
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
+
+                        item.Unwear(pData);
+                    });
+
+                    pData.Accessories[slot] = null;
+
+                    MySQL.UpdatePlayerInventory(pData, false, false, true);
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.BagItem,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    var item = pData.Bag;
+
+                    if (item == null)
+                        return null;
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
+
+                        item.Unwear(pData);
+                    });
+
+                    pData.Bag = null;
+
+                    MySQL.UpdatePlayerInventory(pData, false, false, false, true);
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.HolsterItem,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    var item = pData.Holster;
+
+                    if (item == null)
+                        return null;
+
+                    if ((pData.Holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
+                        Sync.WeaponSystem.UpdateAmmo(pData, pData.Holster.Items[0] as Game.Items.Weapon, false);
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
+
+                        item.Unwear(pData);
+
+                        (item.Items[0] as Game.Items.Weapon)?.Unequip(pData, false, false);
+                    });
+
+                    pData.Holster = null;
+
+                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
+
+                    return item;
+                }
+            },
+
+            {
+                Groups.Armour,
+
+                async (pData, slot, amount) =>
+                {
+                    var player = pData.Player;
+
+                    var item = pData.Armour;
+
+                    if (item == null)
+                        return null;
+
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Inventory::Update", (int)Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
+
+                        item.Unwear(pData);
+                    });
+
+                    pData.Armour = null;
+
+                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+
+                    return item;
+                }
+            },
+        };
+
         #region Replace
         /// <summary>Метод для перемещения/замены предметов в инвентаре игрока</summary>
         /// <param name="pData">PlayerData</param>
@@ -550,2334 +3565,22 @@ namespace BCRPServer.CEF
         {
             var player = pData.Player;
 
-            var res = await Task.Run<Results>(async () =>
+            var res = await Task.Run(async () =>
             {
                 if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
                     return Results.Error;
 
-                #region From Pockets (To - Pockets, Bag, Weapons, Holster, Clothes, Accessories, Holster Item, Bag Item, Armour)
-                if (from == Groups.Items)
-                {
-                    if (slotFrom >= pData.Items.Length)
-                        return Results.Error;
+                var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
 
-                    if (pData.Items[slotFrom] == null)
-                        return Results.Error;
+                if (action != null)
+                    return await action.Invoke(pData, slotTo, slotFrom, amount);
 
-                    #region To Pockets
-                    if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        bool wasCreated = false;
-                        bool wasDeleted = false;
-
-                        #region Unite
-                        if (pData.Items[slotTo] != null && pData.Items[slotTo].Type == pData.Items[slotFrom].Type && pData.Items[slotFrom] is Game.Items.IStackable)
-                        {
-                            if (pData.Items[slotFrom].IsTemp || pData.Items[slotTo]?.IsTemp == true)
-                                return Results.TempItem;
-
-                            int slotToAmount = (pData.Items[slotTo] as Game.Items.IStackable).Amount;
-                            int slotFromAmount = (pData.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                            // if no amount requested -> suggest it's whole item
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            int maxStack = (pData.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                            if (slotToAmount == maxStack)
-                                return Results.Error;
-
-                            // if new amount > maxStack -> reduce new amount
-                            if (slotToAmount + amount > maxStack)
-                            {
-                                (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                (pData.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                            }
-                            else // if new amount <= maxStack
-                            {
-                                (pData.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                // delete old item if amount is 0 now
-                                if ((pData.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                {
-                                    wasDeleted = true;
-
-                                    var tItem = pData.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Items[slotFrom] = null;
-                                }
-                            }
-
-                            pData.Items[slotTo].Update();
-                            pData.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        #region Split
-                        else if (pData.Items[slotFrom] is Game.Items.IStackable && pData.Items[slotTo] == null && amount != -1 && amount < (pData.Items[slotFrom] as Game.Items.IStackable).Amount) // split to new item
-                        {
-                            if (pData.Items[slotFrom].IsTemp)
-                                return Results.TempItem;
-
-                            wasCreated = true;
-
-                            (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                            pData.Items[slotFrom].Update();
-
-                            pData.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Items[slotFrom].ID, 0, amount);
-                        }
-                        #endregion
-                        #region Replace
-                        else
-                        {
-                            var temp = pData.Items[slotFrom];
-                            pData.Items[slotFrom] = pData.Items[slotTo];
-                            pData.Items[slotTo] = temp;
-
-                            wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], CEF.Inventory.Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], CEF.Inventory.Groups.Items);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotTo, upd2);
-                        });
-
-                        if (wasCreated || wasDeleted)
-                            MySQL.UpdatePlayerInventory(pData, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else if (to == Groups.Bag)
-                    {
-                        if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Items[slotFrom] is Game.Items.Bag)
-                            return Results.PlaceRestricted;
-
-                        if (pData.Items[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        float curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
-                        float maxWeight = pData.Bag.Data.MaxWeight;
-
-                        bool wasDeleted = false;
-                        bool wasCreated = false;
-
-                        #region Unite
-                        if (pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo].Type == pData.Items[slotFrom].Type && pData.Items[slotFrom] is Game.Items.IStackable)
-                        {
-                            int slotToAmount = (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount;
-                            int slotFromAmount = (pData.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            int maxStack = (pData.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                            if (slotToAmount == maxStack)
-                                return Results.Error;
-
-                            // if amount*weight is too big -> reduce amount to fit the pData.Bag.Items's maxWeight
-                            if (curWeight + amount * pData.Items[slotFrom].Weight > maxWeight)
-                            {
-                                amount = (int)Math.Floor((maxWeight - curWeight) / pData.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return Results.NoSpace;
-                            }
-
-                            if (slotToAmount + amount > maxStack)
-                            {
-                                (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                            }
-                            else
-                            {
-                                (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                if ((pData.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                {
-                                    var tItem = pData.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Items[slotFrom] = null;
-
-                                    wasDeleted = true;
-                                }
-                            }
-
-                            pData.Bag.Items[slotTo].Update();
-                            pData.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        #region Split To New
-                        else if (pData.Items[slotFrom] is Game.Items.IStackable && pData.Bag.Items[slotTo] == null && amount != -1 && amount < (pData.Items[slotFrom] as Game.Items.IStackable).Amount)
-                        {
-                            if (pData.Items[slotFrom].Weight * amount + curWeight > maxWeight)
-                            {
-                                amount = (int)Math.Floor((maxWeight - curWeight) / pData.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return Results.NoSpace;
-                            }
-
-                            (pData.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                            pData.Items[slotFrom].Update();
-
-                            pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Items[slotFrom].ID, 0, amount); // but wait for that :)
-
-                            wasCreated = true;
-                        }
-                        #endregion
-                        #region Replace
-                        else
-                        {
-                            var addWeightItems = pData.Bag.Items[slotTo] != null ? Game.Items.Items.GetItemWeight(pData.Bag.Items[slotTo], true) : 0;
-                            var addWeightBag = Game.Items.Items.GetItemWeight(pData.Items[slotFrom], true);
-
-                            if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + Game.Items.Items.GetWeight(pData.Items) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
-
-                            var temp = pData.Items[slotFrom];
-                            pData.Items[slotFrom] = pData.Bag.Items[slotTo];
-                            pData.Bag.Items[slotTo] = temp;
-
-                            wasDeleted = true; wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotTo, upd2);
-                        });
-
-                        if (wasDeleted)
-                            MySQL.UpdatePlayerInventory(pData, true);
-                        
-                        if (wasCreated)
-                            pData.Bag.Update();
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Weapons
-                    else if (to == Groups.Weapons)
-                    {
-                        if (slotTo >= pData.Weapons.Length)
-                            return Results.Error;
-
-                        bool wasDeleted = false;
-                        bool wasReplaced = false;
-
-                        #region Replace
-                        if (pData.Items[slotFrom] is Game.Items.Weapon)
-                        {
-                            if (pData.Weapons[slotTo] != null && Game.Items.Items.GetWeight(pData.Items) + pData.Weapons[slotTo].Weight - (pData.Items[slotFrom] as Game.Items.Weapon).Weight > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
-
-                            var temp = pData.Weapons[slotTo];
-                            pData.Weapons[slotTo] = pData.Items[slotFrom] as Game.Items.Weapon;
-                            pData.Items[slotFrom] = temp;
-
-                            wasReplaced = true;
-                        }
-                        #endregion
-                        #region Load
-                        else if (pData.Items[slotFrom] is Game.Items.Ammo && pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.AmmoID != null && (pData.Items[slotFrom] as Game.Items.Ammo).ID == pData.Weapons[slotTo].Data.AmmoID)
-                        {
-                            var slotFromAmount = (pData.Items[slotFrom] as Game.Items.Ammo).Amount;
-                            var slotToAmount = pData.Weapons[slotTo].Ammo;
-
-                            var maxAmount = pData.Weapons[slotTo].Data.MaxAmmo;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            if (slotToAmount == maxAmount)
-                                return Results.Error;
-
-                            if (slotToAmount + amount > maxAmount)
-                            {
-                                (pData.Items[slotFrom] as Game.Items.Ammo).Amount -= maxAmount - slotToAmount;
-                                pData.Weapons[slotTo].Ammo = maxAmount;
-                            }
-                            else
-                            {
-                                pData.Weapons[slotTo].Ammo += amount;
-                                (pData.Items[slotFrom] as Game.Items.Ammo).Amount -= amount;
-
-                                if ((pData.Items[slotFrom] as Game.Items.Ammo).Amount == 0)
-                                {
-                                    wasDeleted = true;
-
-                                    var tItem = pData.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Items[slotFrom] = null;
-                                }
-                            }
-
-                            pData.Weapons[slotTo].Update();
-                            pData.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        else
-                            return Results.Error;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-
-                            if (pData.Items[slotFrom] != null && pData.Items[slotFrom] is Game.Items.Weapon)
-                            {
-                                if ((pData.Items[slotFrom] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
-                                    pData.Weapons[slotTo].Equip(pData);
-                                }
-                                else
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                pData.Weapons[slotTo].UpdateAmmo(pData);
-
-                                pData.Weapons[slotTo].Wear(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                        });
-
-                        if (wasDeleted)
-                            MySQL.UpdatePlayerInventory(pData, true);
-                        else if (wasReplaced)
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, true, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Clothes
-                    else if (to == Groups.Clothes)
-                    {
-                        if (slotTo >= pData.Clothes.Length)
-                            return Results.Error;
-
-                        if (!(pData.Items[slotFrom] is Game.Items.Clothes))
-                            return Results.Error;
-
-                        if (!ClothesSlots.ContainsKey(pData.Items[slotFrom].Type) || ClothesSlots[pData.Items[slotFrom].Type] != slotTo)
-                            return Results.Error;
-
-                        if (pData.Clothes[slotTo] != null && pData.Clothes[slotTo].Weight + Game.Items.Items.GetWeight(pData.Items) - pData.Items[slotFrom].Weight > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Clothes[slotTo];
-                        pData.Clothes[slotTo] = pData.Items[slotFrom] as Game.Items.Clothes;
-                        pData.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Clothes[slotTo].Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Accessories
-                    else if (to == Groups.Accessories)
-                    {
-                        if (slotTo >= pData.Accessories.Length)
-                            return Results.Error;
-
-                        if (!(pData.Items[slotFrom] is Game.Items.Clothes))
-                            return Results.Error;
-
-                        if (!AccessoriesSlots.ContainsKey(pData.Items[slotFrom].Type) || AccessoriesSlots[pData.Items[slotFrom].Type] != slotTo)
-                            return Results.Error;
-
-                        if (pData.Accessories[slotTo] != null && pData.Accessories[slotTo].Weight + Game.Items.Items.GetWeight(pData.Items) - pData.Items[slotFrom].Weight > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Accessories[slotTo];
-                        pData.Accessories[slotTo] = pData.Items[slotFrom] as Game.Items.Clothes;
-                        pData.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Accessories[slotTo].Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag Item
-                    else if (to == Groups.BagItem)
-                    {
-                        if (!(pData.Items[slotFrom] is Game.Items.Bag))
-                            return Results.Error;
-
-                        if (pData.Items[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        if (pData.Bag != null && pData.Bag.Weight + Game.Items.Items.GetWeight(pData.Items) - (pData.Items[slotFrom] as Game.Items.Bag).Weight > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Bag;
-                        pData.Bag = pData.Items[slotFrom] as Game.Items.Bag;
-                        pData.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Bag.Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Holster Item
-                    else if (to == Groups.HolsterItem)
-                    {
-                        if (!(pData.Items[slotFrom] is Game.Items.Holster))
-                            return Results.Error;
-
-                        if (pData.Items[slotFrom].IsTemp || pData.Holster?.Items[0]?.IsTemp == true)
-                            return Results.TempItem;
-
-                        if (pData.Holster != null && pData.Holster.Weight + Game.Items.Items.GetWeight(pData.Items) - (pData.Items[slotFrom] as Game.Items.Holster).Weight > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Holster;
-                        pData.Holster = pData.Items[slotFrom] as Game.Items.Holster;
-                        pData.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-
-                            (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
-                            pData.Holster.Wear(pData);
-
-                            if (pData.Items[slotFrom] != null && ((pData.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                            {
-                                ((pData.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, false, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Armour
-                    else if (to == Groups.Armour)
-                    {
-                        if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                            return Results.Wounded;
-
-                        if (!(pData.Items[slotFrom] is Game.Items.Armour))
-                            return Results.Error;
-
-                        if (pData.Armour != null && pData.Armour.Weight + Game.Items.Items.GetWeight(pData.Items) - pData.Items[slotFrom].Weight > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Armour;
-                        pData.Armour = pData.Items[slotFrom] as Game.Items.Armour;
-                        pData.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Armour.Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Holster
-                    else if (to == Groups.Holster)
-                    {
-                        if (pData.Holster == null)
-                            return Results.Error;
-
-                        if (pData.Items[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        bool wasDeleted = false;
-                        bool wasReplaced = false;
-
-                        #region Replace
-                        if (pData.Items[slotFrom] is Game.Items.Weapon)
-                        {
-                            if ((pData.Items[slotFrom] as Game.Items.Weapon).Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                                return Results.PlaceRestricted;
-
-                            if (pData.Holster.Items[0] != null && Game.Items.Items.GetWeight(pData.Items) + (pData.Holster.Items[0] as Game.Items.Weapon).Weight - (pData.Items[slotFrom] as Game.Items.Weapon).Weight > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
-
-                            var temp = pData.Holster.Items[0];
-                            pData.Holster.Items[0] = pData.Items[slotFrom] as Game.Items.Weapon;
-                            pData.Items[slotFrom] = temp;
-
-                            pData.Holster.Update();
-
-                            wasReplaced = true;
-                        }
-                        #endregion
-                        #region Load
-                        else if (pData.Items[slotFrom] is Game.Items.Ammo && pData.Holster.Items[0] != null && (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID != null && (pData.Items[slotFrom] as Game.Items.Ammo).ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID)
-                        {
-                            var slotFromAmount = (pData.Items[slotFrom] as Game.Items.Ammo).Amount;
-                            var slotToAmount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
-
-                            var maxAmount = (pData.Holster.Items[0] as Game.Items.Weapon).Data.MaxAmmo;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            if (slotToAmount == maxAmount)
-                                return Results.Error;
-
-                            if (slotToAmount + amount > maxAmount)
-                            {
-                                (pData.Items[slotFrom] as Game.Items.Ammo).Amount -= maxAmount - slotToAmount;
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Ammo = maxAmount;
-                            }
-                            else
-                            {
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Ammo += amount;
-                                (pData.Items[slotFrom] as Game.Items.Ammo).Amount -= amount;
-
-                                if ((pData.Items[slotFrom] as Game.Items.Ammo).Amount == 0)
-                                {
-                                    wasDeleted = true;
-
-                                    var tItem = pData.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Items[slotFrom] = null;
-                                }
-                            }
-
-                            pData.Holster.Items[0].Update();
-                            pData.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        else
-                            return Results.Error;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-
-                            if (pData.Items[slotFrom] != null && pData.Items[slotFrom] is Game.Items.Weapon)
-                            {
-                                if ((pData.Items[slotFrom] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
-                                }
-                                else
-                                    (pData.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
-
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                        });
-
-                        if (wasDeleted || wasReplaced)
-                            MySQL.UpdatePlayerInventory(pData, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From Bag (To - Pockets, Bag, Weapons, Holster, Clothes, Accessories, Holster Item, Armour)
-                else if (from == Groups.Bag)
-                {
-                    if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                        return Results.Error;
-
-                    if (pData.Bag.Items[slotFrom] == null)
-                        return Results.Error;
-
-                    #region To Bag
-                    if (to == Groups.Bag)
-                    {
-                        if (slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        bool wasCreated = false;
-                        bool wasDeleted = false;
-
-                        #region Unite
-                        if (pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo].Type == pData.Bag.Items[slotFrom].Type && pData.Bag.Items[slotFrom] is Game.Items.IStackable)
-                        {
-                            int slotToAmount = (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount;
-                            int slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                            // if no amount requested -> suggest it's whole item
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            int maxStack = (pData.Bag.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                            if (slotToAmount == maxStack)
-                                return Results.Error;
-
-                            // if new amount > maxStack -> reduce new amount
-                            if (slotToAmount + amount > maxStack)
-                            {
-                                (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                            }
-                            else // if new amount <= maxStack
-                            {
-                                (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                // delete old item if amount is 0 now
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                {
-                                    wasDeleted = true;
-
-                                    var tItem = pData.Bag.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Bag.Items[slotFrom] = null;
-                                }
-                            }
-
-                            pData.Bag.Items[slotTo].Update();
-                            pData.Bag.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        #region Split
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.IStackable && pData.Bag.Items[slotTo] == null && amount != -1 && amount < (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount) // split to new item
-                        {
-                            wasCreated = true;
-
-                            (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                            pData.Bag.Items[slotFrom].Update();
-
-                            pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Bag.Items[slotFrom].ID, 0, amount);
-                        }
-                        #endregion
-                        #region Replace
-                        else
-                        {
-                            var temp = pData.Bag.Items[slotFrom];
-                            pData.Bag.Items[slotFrom] = pData.Bag.Items[slotTo];
-                            pData.Bag.Items[slotTo] = temp;
-
-                            wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-                        });
-
-                        if (wasCreated || wasDeleted)
-                            pData.Bag.Update();
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Pockets
-                    else if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Items[slotTo] is Game.Items.Bag)
-                            return Results.Error;
-
-                        float curWeight = Game.Items.Items.GetWeight(pData.Items);
-
-                        bool wasDeleted = false, wasCreated = false;
-
-                        #region Unite
-                        if (pData.Items[slotTo] != null && pData.Items[slotTo].Type == pData.Bag.Items[slotFrom].Type && pData.Bag.Items[slotFrom] is Game.Items.IStackable)
-                        {
-                            int slotToAmount = (pData.Items[slotTo] as Game.Items.IStackable).Amount;
-                            int slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            int maxStack = (pData.Bag.Items[slotFrom] as Game.Items.IStackable).MaxAmount;
-
-                            if (slotToAmount == maxStack)
-                                return Results.Error;
-
-                            // if amount*weight is too big -> reduce amount to fit the pData.Items's maxWeight
-                            if (curWeight + amount * pData.Bag.Items[slotFrom].Weight > Settings.MAX_INVENTORY_WEIGHT)
-                            {
-                                amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / pData.Bag.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return Results.NoSpace;
-                            }
-
-                            if (slotToAmount + amount > maxStack)
-                            {
-                                (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= maxStack - slotToAmount;
-                                (pData.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                            }
-                            else
-                            {
-                                (pData.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount == 0)
-                                {
-                                    var tItem = pData.Bag.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Bag.Items[slotFrom] = null;
-
-                                    wasDeleted = true;
-                                }
-                            }
-
-                            pData.Items[slotTo].Update();
-                            pData.Bag.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        #region Split To New
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.IStackable && pData.Items[slotTo] == null && amount != -1 && amount < (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount)
-                        {
-                            if (pData.Bag.Items[slotFrom].Weight * amount + curWeight > Settings.MAX_INVENTORY_WEIGHT)
-                            {
-                                amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / pData.Bag.Items[slotFrom].Weight);
-
-                                if (amount == 0)
-                                    return Results.NoSpace;
-                            }
-
-                            (pData.Bag.Items[slotFrom] as Game.Items.IStackable).Amount -= amount;
-                            pData.Bag.Items[slotFrom].Update();
-
-                            pData.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Bag.Items[slotFrom].ID, 0, amount); // but wait for that :)
-
-                            wasCreated = true;
-                        }
-                        #endregion
-                        #region Replace
-                        else
-                        {
-                            var addWeightItems = pData.Items[slotTo] != null ? Game.Items.Items.GetItemWeight(pData.Items[slotTo], true) : 0;
-                            var addWeightBag = Game.Items.Items.GetItemWeight(pData.Bag.Items[slotFrom], true);
-
-                            if (addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT || addWeightItems - addWeightBag + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
-
-                            var temp = pData.Bag.Items[slotFrom];
-                            pData.Bag.Items[slotFrom] = pData.Items[slotTo];
-                            pData.Items[slotTo] = temp;
-
-                            wasDeleted = true; wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-                        });
-
-                        if (wasCreated)
-                            MySQL.UpdatePlayerInventory(pData, true);
-
-                        if (wasDeleted)
-                            pData.Bag.Update();
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Weapons
-                    else if (to == Groups.Weapons)
-                    {
-                        if (slotTo >= pData.Weapons.Length)
-                            return Results.Error;
-
-                        bool wasDeleted = false;
-                        bool wasReplaced = false;
-
-                        #region Replace
-                        if (pData.Bag.Items[slotFrom] is Game.Items.Weapon)
-                        {
-                            if (pData.Weapons[slotTo] != null && pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight + pData.Weapons[slotTo].Weight - (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
-
-                            var temp = pData.Weapons[slotTo];
-                            pData.Weapons[slotTo] = pData.Bag.Items[slotFrom] as Game.Items.Weapon;
-                            pData.Bag.Items[slotFrom] = temp;
-
-                            wasReplaced = true;
-                        }
-                        #endregion
-                        #region Load
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.Ammo && pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.AmmoID != null && (pData.Bag.Items[slotFrom] as Game.Items.Ammo).ID == pData.Weapons[slotTo].Data.AmmoID)
-                        {
-                            var slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount;
-                            var slotToAmount = pData.Weapons[slotTo].Ammo;
-
-                            var maxAmount = pData.Weapons[slotTo].Data.MaxAmmo;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            if (slotToAmount == maxAmount)
-                                return Results.Error;
-
-                            if (slotToAmount + amount > maxAmount)
-                            {
-                                (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount -= maxAmount - slotToAmount;
-                                pData.Weapons[slotTo].Ammo = maxAmount;
-                            }
-                            else
-                            {
-                                pData.Weapons[slotTo].Ammo += amount;
-                                (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount -= amount;
-
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount == 0)
-                                {
-                                    wasDeleted = true;
-
-                                    var tItem = pData.Bag.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Bag.Items[slotFrom] = null;
-                                }
-                            }
-
-                            pData.Weapons[slotTo].Update();
-                            pData.Bag.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        else
-                            return Results.Error;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-
-                            if (pData.Bag.Items[slotFrom] != null && pData.Bag.Items[slotFrom] is Game.Items.Weapon)
-                            {
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
-                                    pData.Weapons[slotTo].Equip(pData);
-                                }
-                                else
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                pData.Weapons[slotTo].UpdateAmmo(pData);
-
-                                pData.Weapons[slotTo].Wear(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                        });
-
-                        if (wasDeleted)
-                            pData.Bag.Update();
-                        else if (wasReplaced)
-                        {
-                            pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
-                        }
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Clothes
-                    else if (to == Groups.Clothes)
-                    {
-                        if (slotTo >= pData.Clothes.Length)
-                            return Results.Error;
-
-                        if (!(pData.Bag.Items[slotFrom] is Game.Items.Clothes))
-                            return Results.Error;
-
-                        if (!ClothesSlots.ContainsKey((pData.Bag.Items[slotFrom] as Game.Items.Clothes).Type) || ClothesSlots[(pData.Bag.Items[slotFrom] as Game.Items.Clothes).Type] != slotTo)
-                            return Results.Error;
-
-                        if (pData.Clothes[slotTo] != null && pData.Clothes[slotTo].Weight + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight - pData.Bag.Items[slotFrom].Weight > pData.Bag.Data.MaxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Clothes[slotTo];
-                        pData.Clothes[slotTo] = pData.Bag.Items[slotFrom] as Game.Items.Clothes;
-                        pData.Bag.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Clothes[slotTo].Wear(pData);
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Accessories
-                    else if (to == Groups.Accessories)
-                    {
-                        if (slotTo >= pData.Accessories.Length)
-                            return Results.Error;
-
-                        if (!(pData.Bag.Items[slotFrom] is Game.Items.Clothes))
-                            return Results.Error;
-
-                        if (!AccessoriesSlots.ContainsKey((pData.Bag.Items[slotFrom] as Game.Items.Clothes).Type) || AccessoriesSlots[(pData.Bag.Items[slotFrom] as Game.Items.Clothes).Type] != slotTo)
-                            return Results.Error;
-
-                        if (pData.Accessories[slotTo] != null && pData.Accessories[slotTo].Weight + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight - pData.Bag.Items[slotFrom].Weight > pData.Bag.Data.MaxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Accessories[slotTo];
-                        pData.Accessories[slotTo] = pData.Bag.Items[slotFrom] as Game.Items.Clothes;
-                        pData.Bag.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Accessories[slotTo].Wear(pData);
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Holster Item
-                    else if (to == Groups.HolsterItem)
-                    {
-                        if (!(pData.Bag.Items[slotFrom] is Game.Items.Holster))
-                            return Results.Error;
-
-                        if (pData.Holster != null && pData.Holster.Weight + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight - (pData.Bag.Items[slotFrom] as Game.Items.Holster).Weight > pData.Bag.Data.MaxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Holster;
-                        pData.Holster = pData.Bag.Items[slotFrom] as Game.Items.Holster;
-                        pData.Bag.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-
-                            (pData.Bag.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
-                            pData.Holster.Wear(pData);
-
-                            if (pData.Bag.Items[slotFrom] != null && ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                            {
-                                ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Armour
-                    else if (to == Groups.Armour)
-                    {
-                        if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                            return Results.Wounded;
-
-                        if (!(pData.Bag.Items[slotFrom] is Game.Items.Armour))
-                            return Results.Error;
-
-                        if (pData.Armour != null && pData.Armour.Weight + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight - pData.Bag.Items[slotFrom].Weight > pData.Bag.Data.MaxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Armour;
-                        pData.Armour = pData.Bag.Items[slotFrom] as Game.Items.Armour;
-                        pData.Bag.Items[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
-
-                            temp?.Unwear(pData);
-                            pData.Armour.Wear(pData);
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Holster
-                    else if (to == Groups.Holster)
-                    {
-                        if (pData.Holster == null)
-                            return Results.Error;
-
-                        bool wasDeleted = false;
-                        bool wasReplaced = false;
-
-                        #region Replace
-                        if (pData.Bag.Items[slotFrom] is Game.Items.Weapon)
-                        {
-                            if ((pData.Bag.Items[slotFrom] as Game.Items.Weapon).Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                                return Results.PlaceRestricted;
-
-                            if (pData.Holster.Items[0] != null && pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight + (pData.Holster.Items[0] as Game.Items.Weapon).Weight - (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
-
-                            var temp = pData.Holster.Items[0];
-                            pData.Holster.Items[0] = pData.Bag.Items[slotFrom] as Game.Items.Weapon;
-                            pData.Bag.Items[slotFrom] = temp;
-
-                            pData.Holster.Update();
-
-                            wasReplaced = true;
-                        }
-                        #endregion
-                        #region Load
-                        else if (pData.Bag.Items[slotFrom] is Game.Items.Ammo && pData.Holster.Items[0] != null && (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID != null && (pData.Bag.Items[slotFrom] as Game.Items.Ammo).ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID)
-                        {
-                            var slotFromAmount = (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount;
-                            var slotToAmount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
-
-                            var maxAmount = (pData.Holster.Items[0] as Game.Items.Weapon).Data.MaxAmmo;
-
-                            if (amount == -1 || amount > slotFromAmount)
-                                amount = slotFromAmount;
-
-                            if (slotToAmount == maxAmount)
-                                return Results.Error;
-
-                            if (slotToAmount + amount > maxAmount)
-                            {
-                                (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount -= maxAmount - slotToAmount;
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Ammo = maxAmount;
-                            }
-                            else
-                            {
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Ammo += amount;
-                                (pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount -= amount;
-
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.Ammo).Amount == 0)
-                                {
-                                    wasDeleted = true;
-
-                                    var tItem = pData.Bag.Items[slotFrom];
-
-                                    Task.Run(() =>
-                                    {
-                                        tItem.Delete();
-                                    });
-
-                                    pData.Bag.Items[slotFrom] = null;
-                                }
-                            }
-
-                            pData.Holster.Items[0].Update();
-                            pData.Bag.Items[slotFrom]?.Update();
-                        }
-                        #endregion
-                        else
-                            return Results.Error;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-
-                            if (pData.Bag.Items[slotFrom] != null && pData.Bag.Items[slotFrom] is Game.Items.Weapon)
-                            {
-                                if ((pData.Bag.Items[slotFrom] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
-                                }
-                                else
-                                    (pData.Bag.Items[slotFrom] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
-
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                        });
-
-                        if (wasDeleted || wasReplaced)
-                            pData.Bag.Update();
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From Weapons (To - Pockets, Bag, Weapons, Holster, HolsterItem)
-                else if (from == Groups.Weapons)
-                {
-                    if (slotFrom >= pData.Weapons.Length)
-                        return Results.Error;
-
-                    if (pData.Weapons[slotFrom] == null)
-                        return Results.Error;
-
-                    #region To Pockets
-                    if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        bool wasCreated = false;
-                        bool wasReplaced = false;
-
-                        bool extractToExisting = pData.Items[slotTo] != null && pData.Items[slotTo] is Game.Items.Ammo && pData.Items[slotTo].ID == pData.Weapons[slotFrom].Data.AmmoID;
-
-                        #region Extract
-                        if (amount != -1 || extractToExisting) // extract ammo from weapon
-                        {
-                            if (pData.Weapons[slotFrom].IsTemp)
-                                return Results.TempItem;
-
-                            if (pData.Weapons[slotFrom].Ammo == 0 || pData.Weapons[slotFrom].Data.AmmoID == null)
-                                return Results.Error;
-
-                            if (pData.Weapons[slotFrom].Equiped)
-                                Sync.WeaponSystem.UpdateAmmo(pData, pData.Weapons[slotFrom], false);
-
-                            if (amount == -1)
-                                amount = pData.Weapons[slotFrom].Ammo;
-
-                            var curWeight = Game.Items.Items.GetWeight(pData.Items);
-                            var ammoWeight = Game.Items.Ammo.GetData(pData.Weapons[slotFrom].Data.AmmoID).Weight;
-
-                            if (extractToExisting)
-                            {
-                                int slotToAmount = (pData.Items[slotTo] as Game.Items.Ammo).Amount;
-                                int maxStack = (pData.Items[slotTo] as Game.Items.Ammo).MaxAmount;
-
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
-                                {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    pData.Weapons[slotFrom].Ammo -= maxStack - slotToAmount;
-                                    (pData.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else
-                                {
-                                    (pData.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    pData.Weapons[slotFrom].Ammo -= amount;
-                                }
-
-                                pData.Weapons[slotFrom].Update();
-                                pData.Items[slotTo].Update();
-                            }
-                            else if (pData.Items[slotTo] == null)
-                            {
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
-                                {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                pData.Weapons[slotFrom].Ammo -= amount;
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Weapons[slotFrom].Data.AmmoID, 0, amount);
-
-                                pData.Weapons[slotFrom].Update();
-
-                                wasCreated = true;
-                            }
-                        }
-                        #endregion
-                        #region Replace
-                        else if (pData.Items[slotTo] == null || pData.Items[slotTo] is Game.Items.Weapon)
-                        {
-                            if ((Game.Items.Items.GetWeight(pData.Items) + pData.Weapons[slotFrom].Weight - ((pData.Items[slotTo] as Game.Items.Weapon)?.Weight ?? 0)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
-
-                            var temp = pData.Items[slotTo];
-                            pData.Items[slotTo] = pData.Weapons[slotFrom];
-                            pData.Weapons[slotFrom] = temp as Game.Items.Weapon;
-
-                            wasReplaced = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
-
-                            if (pData.Items[slotTo] is Game.Items.Weapon)
-                            {
-                                if ((pData.Items[slotTo] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
-                                    pData.Weapons[slotFrom]?.Equip(pData);
-                                }
-                                else
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                if (pData.Weapons[slotFrom] != null)
-                                {
-                                    pData.Weapons[slotFrom].UpdateAmmo(pData);
-
-                                    pData.Weapons[slotFrom].Wear(pData);
-                                }
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                        });
-
-                        pData.Weapons = pData.Weapons;
-                        pData.Items = pData.Items;
-
-                        if (wasCreated)
-                            MySQL.UpdatePlayerInventory(pData, true);
-                        else if (wasReplaced)
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, true, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else if (to == Groups.Bag)
-                    {
-                        if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Weapons[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        bool wasCreated = false;
-                        bool wasReplaced = false;
-
-                        bool extractToExisting = pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo] is Game.Items.Ammo && pData.Bag.Items[slotTo].ID == pData.Weapons[slotFrom].Data.AmmoID;
-
-                        #region Extract
-                        if (amount != -1 || extractToExisting)
-                        {
-                            if (pData.Weapons[slotFrom].Ammo == 0 || pData.Weapons[slotFrom].Data.AmmoID == null)
-                                return Results.Error;
-
-                            if (pData.Weapons[slotFrom].Equiped)
-                                Sync.WeaponSystem.UpdateAmmo(pData, pData.Weapons[slotFrom], false);
-
-                            if (amount == -1)
-                                amount = pData.Weapons[slotFrom].Ammo;
-
-                            var curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
-                            var maxWeight = pData.Bag.Data.MaxWeight;
-
-                            var ammoWeight = Game.Items.Ammo.GetData(pData.Weapons[slotFrom].Data.AmmoID).Weight;
-
-                            if (extractToExisting)
-                            {
-                                int slotToAmount = (pData.Bag.Items[slotTo] as Game.Items.Ammo).Amount;
-                                int maxStack = (pData.Bag.Items[slotTo] as Game.Items.Ammo).MaxAmount;
-
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > maxWeight)
-                                {
-                                    amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    pData.Weapons[slotFrom].Ammo -= maxStack - slotToAmount;
-                                    (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else
-                                {
-                                    (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    pData.Weapons[slotFrom].Ammo -= amount;
-                                }
-
-                                pData.Weapons[slotFrom].Update();
-                                pData.Bag.Items[slotTo].Update();
-                            }
-                            else if (pData.Bag.Items[slotTo] == null)
-                            {
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > maxWeight)
-                                {
-                                    amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                pData.Weapons[slotFrom].Ammo -= amount;
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(pData.Weapons[slotFrom].Data.AmmoID, 0, amount);
-
-                                pData.Weapons[slotFrom].Update();
-
-                                wasCreated = true;
-                            }
-                        }
-                        #endregion
-                        #region Replace
-                        else if (pData.Bag.Items[slotTo] == null || pData.Bag.Items[slotTo] is Game.Items.Weapon)
-                        {
-                            if ((pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight + pData.Weapons[slotFrom].Weight - ((pData.Bag.Items[slotTo] as Game.Items.Weapon)?.Weight ?? 0)) > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
-
-                            var temp = pData.Bag.Items[slotTo];
-                            pData.Bag.Items[slotTo] = pData.Weapons[slotFrom];
-                            pData.Weapons[slotFrom] = temp as Game.Items.Weapon;
-
-                            wasReplaced = true;
-                            wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
-
-                            if (pData.Bag.Items[slotTo] is Game.Items.Weapon)
-                            {
-                                if ((pData.Bag.Items[slotTo] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
-                                    pData.Weapons[slotFrom]?.Equip(pData);
-                                }
-                            }
-                            else
-                            {
-                                if (pData.Weapons[slotFrom] != null)
-                                {
-                                    pData.Weapons[slotFrom].UpdateAmmo(pData);
-
-                                    pData.Weapons[slotFrom].Wear(pData);
-                                }
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                        });
-
-                        if (wasCreated)
-                            pData.Bag.Update();
-                        
-                        if (wasReplaced)
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
-                    }
-                    #endregion
-                    #region To Weapons
-                    if (to == Groups.Weapons)
-                    {
-                        var temp = pData.Weapons[slotTo];
-                        pData.Weapons[slotTo] = pData.Weapons[slotFrom];
-                        pData.Weapons[slotFrom] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, upd1);
-
-                            if (pData.Weapons[slotFrom]?.Equiped == true)
-                            {
-                                pData.Weapons[slotFrom].Unequip(pData);
-                                pData.Weapons[slotTo].Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
-                    }
-                    #endregion
-                    #region To Holster / Holster Item
-                    if (to == Groups.Holster || to == Groups.HolsterItem)
-                    {
-                        if (pData.Holster == null)
-                            return Results.Error;
-
-                        if (pData.Weapons[slotFrom].Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                            return Results.PlaceRestricted;
-
-                        if (pData.Weapons[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        var temp = pData.Holster.Items[0];
-                        pData.Holster.Items[0] = pData.Weapons[slotFrom];
-                        pData.Weapons[slotFrom] = temp as Game.Items.Weapon;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, upd1);
-
-                            if (pData.Weapons[slotFrom]?.Equiped == true)
-                            {
-                                pData.Weapons[slotFrom].Unequip(pData);
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                        });
-
-                        pData.Holster.Update();
-
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From Holster (To - Pockets, Bag, Weapons)
-                else if (from == Groups.Holster)
-                {
-                    if (pData.Holster == null || pData.Holster.Items[0] == null)
-                        return Results.Error;
-
-                    #region To Weapons
-                    if (to == Groups.Weapons)
-                    {
-                        if (slotTo >= pData.Weapons.Length || (pData.Weapons[slotTo] != null && pData.Weapons[slotTo].Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun))
-                            return Results.PlaceRestricted;
-
-                        var temp = pData.Holster.Items[0];
-                        pData.Holster.Items[0] = pData.Weapons[slotTo];
-                        pData.Weapons[slotTo] = temp as Game.Items.Weapon;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, upd1);
-
-                            if (pData.Weapons[slotTo].Equiped)
-                            {
-                                pData.Weapons[slotTo].Unequip(pData);
-                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                        });
-
-                        pData.Holster.Update();
-
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Pockets
-                    else if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        bool extractToExisting = pData.Items[slotTo] != null && pData.Items[slotTo] is Game.Items.Ammo && pData.Items[slotTo].ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID;
-
-                        bool wasCreated = false;
-                        bool wasReplaced = false;
-
-                        #region Extract
-                        if (amount != -1 || extractToExisting)
-                        {
-                            if ((pData.Holster.Items[0] as Game.Items.Weapon).Ammo == 0 || (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID == null)
-                                return Results.Error;
-
-                            if (((Game.Items.Weapon)pData.Holster.Items[0]).Equiped)
-                                Sync.WeaponSystem.UpdateAmmo(pData, (Game.Items.Weapon)pData.Holster.Items[0], false);
-
-                            if (amount == -1)
-                                amount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
-
-                            var curWeight = Game.Items.Items.GetWeight(pData.Items);
-                            var ammoWeight = Game.Items.Ammo.GetData((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID).Weight;
-
-                            if (extractToExisting)
-                            {
-                                int slotToAmount = (pData.Items[slotTo] as Game.Items.Ammo).Amount;
-                                int maxStack = (pData.Items[slotTo] as Game.Items.Ammo).MaxAmount;
-
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
-                                {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= maxStack - slotToAmount;
-                                    (pData.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else
-                                {
-                                    (pData.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                }
-
-                                pData.Holster.Items[0].Update();
-                                pData.Items[slotTo].Update();
-                            }
-                            else if (pData.Items[slotTo] == null)
-                            {
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > Settings.MAX_INVENTORY_WEIGHT)
-                                {
-                                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID, 0, amount);
-
-                                wasCreated = true;
-
-                                pData.Holster.Items[0].Update();
-                            }
-                        }
-                        #endregion
-                        #region Replace
-                        else if (pData.Items[slotTo] == null || pData.Items[slotTo] is Game.Items.Weapon)
-                        {
-                            if ((Game.Items.Items.GetWeight(pData.Items) + (pData.Holster.Items[0] as Game.Items.Weapon).Weight - ((pData.Items[slotTo] as Game.Items.Weapon)?.Weight ?? 0)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
-
-                            var temp = pData.Items[slotTo];
-                            pData.Items[slotTo] = pData.Holster.Items[0];
-                            pData.Holster.Items[0] = temp as Game.Items.Weapon;
-
-                            wasReplaced = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
-
-                            if (pData.Items[slotTo] is Game.Items.Weapon)
-                            {
-                                if ((pData.Items[slotTo] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                }
-                                else
-                                    (pData.Items[slotTo] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
-                                {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
-
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                                }
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                        });
-
-                        if (wasReplaced)
-                        {
-                            pData.Holster.Update();
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, false);
-                        }
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else if (to == Groups.Bag)
-                    {
-                        if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        bool extractToExisting = pData.Bag.Items[slotTo] != null && pData.Bag.Items[slotTo] is Game.Items.Ammo && pData.Bag.Items[slotTo].ID == (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID;
-
-                        bool wasCreated = false;
-                        bool wasReplaced = false;
-
-                        #region Extract
-                        if (amount != -1 || extractToExisting)
-                        {
-                            if ((pData.Holster.Items[0] as Game.Items.Weapon).Ammo == 0 || (pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID == null)
-                                return Results.Error;
-
-                            if (((Game.Items.Weapon)pData.Holster.Items[0]).Equiped)
-                                Sync.WeaponSystem.UpdateAmmo(pData, (Game.Items.Weapon)pData.Holster.Items[0], false);
-
-                            if (amount == -1)
-                                amount = (pData.Holster.Items[0] as Game.Items.Weapon).Ammo;
-
-                            var curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
-                            var maxWeight = pData.Bag.Data.MaxWeight;
-
-                            var ammoWeight = Game.Items.Ammo.GetData((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID).Weight;
-
-                            if (extractToExisting)
-                            {
-                                int slotToAmount = (pData.Bag.Items[slotTo] as Game.Items.Ammo).Amount;
-                                int maxStack = (pData.Bag.Items[slotTo] as Game.Items.Ammo).MaxAmount;
-
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > maxWeight)
-                                {
-                                    amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                if (slotToAmount + amount > maxStack)
-                                {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= maxStack - slotToAmount;
-                                    (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount = maxStack;
-                                }
-                                else
-                                {
-                                    (pData.Bag.Items[slotTo] as Game.Items.IStackable).Amount += amount;
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                }
-
-                                pData.Holster.Items[0].Update();
-                                pData.Bag.Items[slotTo].Update();
-                            }
-                            else if (pData.Bag.Items[slotTo] == null)
-                            {
-                                // if amount*weight is too big -> reduce amount to fit the item's maxWeight
-                                if (curWeight + amount * ammoWeight > pData.Bag.Data.MaxWeight)
-                                {
-                                    amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
-
-                                    if (amount == 0)
-                                        return Results.NoSpace;
-                                }
-
-                                (pData.Holster.Items[0] as Game.Items.Weapon).Ammo -= amount;
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem((pData.Holster.Items[0] as Game.Items.Weapon).Data.AmmoID, 0, amount);
-
-                                wasCreated = true;
-
-                                pData.Holster.Items[0].Update();
-                            }
-                        }
-                        #endregion
-                        #region Replace
-                        else if (pData.Bag.Items[slotTo] == null || pData.Bag.Items[slotTo] is Game.Items.Weapon)
-                        {
-                            if ((pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight + (pData.Holster.Items[0] as Game.Items.Weapon).Weight - ((pData.Bag.Items[slotTo] as Game.Items.Weapon)?.Weight ?? 0)) > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
-
-                            var temp = pData.Bag.Items[slotTo];
-                            pData.Bag.Items[slotTo] = pData.Holster.Items[0];
-                            pData.Holster.Items[0] = temp as Game.Items.Weapon;
-
-                            wasReplaced = true;
-                            wasCreated = true;
-                        }
-                        #endregion
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
-
-                            if (pData.Bag.Items[slotTo] is Game.Items.Weapon)
-                            {
-                                if ((pData.Bag.Items[slotTo] as Game.Items.Weapon).Equiped)
-                                {
-                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                }
-                                else
-                                    (pData.Bag.Items[slotTo] as Game.Items.Weapon).Unwear(pData);
-                            }
-                            else
-                            {
-                                if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
-                                {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
-
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                                }
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                        });
-
-                        if (wasReplaced || wasCreated)
-                        {
-                            pData.Holster.Update();
-                            pData.Bag.Update();
-                        }
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From Armour (To - Pockets, Bag)
-                else if (from == Groups.Armour)
-                {
-                    if (pData.Armour == null)
-                        return Results.Error;
-
-                    if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                        return Results.Wounded;
-
-                    #region To Pockets
-                    if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length || (pData.Items[slotTo] != null && (!(pData.Items[slotTo] is Game.Items.Armour))))
-                            return Results.Error;
-
-                        if (Game.Items.Items.GetWeight(pData.Items) + pData.Armour.Weight - (pData.Items[slotTo]?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Armour;
-                        pData.Armour = pData.Items[slotTo] as Game.Items.Armour;
-                        pData.Items[slotTo] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                            (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
-                            pData.Armour?.Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else if (to == Groups.Bag)
-                    {
-                        if (pData.Armour.IsTemp)
-                            return Results.TempItem;
-
-                        if (pData.Bag == null)
-                            return Results.Error;
-
-                        if (slotTo >= pData.Bag.Items.Length || (pData.Bag.Items[slotTo] != null && (!(pData.Bag.Items[slotTo] is Game.Items.Armour))))
-                            return Results.Error;
-
-                        if (pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight + pData.Armour.Weight - (pData.Bag.Items[slotTo]?.Weight ?? 0) > pData.Bag.Data.MaxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Armour;
-                        pData.Armour = pData.Bag.Items[slotTo] as Game.Items.Armour;
-                        pData.Bag.Items[slotTo] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-
-                            (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
-                            pData.Armour?.Wear(pData);
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From Clothes (To - Pockets, Bag)
-                else if (from == Groups.Clothes)
-                {
-                    if (to != Groups.Bag && to != Groups.Items)
-                        return Results.Error;
-
-                    if (slotFrom >= pData.Clothes.Length)
-                        return Results.Error;
-
-                    if (pData.Clothes[slotFrom] == null)
-                        return Results.Error;
-
-                    #region To Pockets
-                    if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Items[slotTo] != null && (!(pData.Items[slotTo] is Game.Items.Clothes) || pData.Items[slotTo].Type != pData.Clothes[slotFrom].Type))
-                            return Results.Error;
-
-                        if (Game.Items.Items.GetWeight(pData.Items) + pData.Clothes[slotFrom].Weight - (pData.Items[slotTo]?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Items[slotTo];
-                        pData.Items[slotTo] = pData.Clothes[slotFrom];
-                        pData.Clothes[slotFrom] = temp as Game.Items.Clothes;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                            (temp as Game.Items.Clothes)?.Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, true, false, false, false, false, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else
-                    {
-                        if (pData.Clothes[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        if (pData.Bag == null)
-                            return Results.Error;
-
-                        var curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
-                        var maxWeight = pData.Bag.Data.MaxWeight;
-
-                        if (slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Bag.Items[slotTo] != null && (!(pData.Bag.Items[slotTo] is Game.Items.Clothes) || pData.Bag.Items[slotTo].Type != pData.Clothes[slotFrom].Type))
-                            return Results.Error;
-
-                        if (curWeight + pData.Clothes[slotFrom].Weight - (pData.Bag.Items[slotTo]?.Weight ?? 0) > maxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Bag.Items[slotTo];
-                        pData.Bag.Items[slotTo] = pData.Clothes[slotFrom];
-                        pData.Clothes[slotFrom] = temp as Game.Items.Clothes;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-
-                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                            (temp as Game.Items.Clothes)?.Wear(pData);
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, true, false, false, false, false, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From Accessories (To - Pockets, Bag)
-                else if (from == Groups.Accessories)
-                {
-                    if (to != Groups.Bag && to != Groups.Items)
-                        return Results.Error;
-
-                    if (slotFrom >= pData.Accessories.Length)
-                        return Results.Error;
-
-                    if (pData.Accessories[slotFrom] == null)
-                        return Results.Error;
-
-                    #region To Pockets
-                    if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Items[slotTo] != null && (!(pData.Items[slotTo] is Game.Items.Clothes) || pData.Items[slotTo].Type != pData.Accessories[slotFrom].Type))
-                            return Results.Error;
-
-                        if (Game.Items.Items.GetWeight(pData.Items) + pData.Accessories[slotFrom].Weight - (pData.Items[slotTo]?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Items[slotTo];
-                        pData.Items[slotTo] = pData.Accessories[slotFrom];
-                        pData.Accessories[slotFrom] = temp as Game.Items.Clothes;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                            (temp as Game.Items.Clothes)?.Wear(pData);
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, false, true, false, false, false, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else
-                    {
-                        if (pData.Accessories[slotFrom].IsTemp)
-                            return Results.TempItem;
-
-                        if (pData.Bag == null)
-                            return Results.Error;
-
-                        var curWeight = pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight;
-                        var maxWeight = pData.Bag.Data.MaxWeight;
-
-                        if (slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        if (pData.Bag.Items[slotTo] != null && (!(pData.Bag.Items[slotTo] is Game.Items.Clothes) || pData.Bag.Items[slotTo].Type != pData.Accessories[slotFrom].Type))
-                            return Results.Error;
-
-                        if (curWeight + pData.Accessories[slotFrom].Weight - (pData.Bag.Items[slotTo]?.Weight ?? 0) > maxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Bag.Items[slotTo];
-                        pData.Bag.Items[slotTo] = pData.Accessories[slotFrom];
-                        pData.Accessories[slotFrom] = temp as Game.Items.Clothes;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
-                        var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-
-                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                            (temp as Game.Items.Clothes)?.Wear(pData);
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, false, true, false, false, false, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-                #region From BagItem (To - Pockets)
-                else if (from == Groups.BagItem)
-                {
-                    if (to != Groups.Items)
-                    {
-                        if (to == Groups.Bag)
-                            return Results.PlaceRestricted;
-                        else
-                            return Results.Error;
-                    }
-
-                    if (pData.Bag == null)
-                        return Results.Error;
-
-                    if (slotTo >= pData.Items.Length)
-                        return Results.Error;
-
-                    if (!(pData.Items[slotTo] is Game.Items.Bag) && pData.Items[slotTo] != null)
-                        return Results.Error;
-
-                    if (pData.Bag.Weight + Game.Items.Items.GetWeight(pData.Items) - ((pData.Items[slotTo] as Game.Items.Bag)?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
-                        return Results.NoSpace;
-
-                    var temp = pData.Bag;
-                    pData.Bag = pData.Items[slotTo] as Game.Items.Bag;
-                    pData.Items[slotTo] = temp;
-
-                    var upd1 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
-                    var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd1);
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                        temp.Unwear(pData);
-                        pData.Bag?.Wear(pData);
-                    });
-
-                    MySQL.UpdatePlayerInventory(pData, true, false, false, true, false, false, false);
-
-                    return Results.Success;
-                }
-                #endregion
-                #region From Holster Item (To - Pockets, Bag)
-                else if (from == Groups.HolsterItem)
-                {
-                    if (to != Groups.Bag && to != Groups.Items)
-                        return Results.Error;
-
-                    if (pData.Holster == null)
-                        return Results.Error;
-
-                    #region To Pockets
-                    if (to == Groups.Items)
-                    {
-                        if (slotTo >= pData.Items.Length)
-                            return Results.Error;
-
-                        if (!(pData.Items[slotTo] is Game.Items.Holster) && pData.Items[slotTo] != null)
-                            return Results.Error;
-
-                        if (pData.Holster.Weight + Game.Items.Items.GetWeight(pData.Items) - ((pData.Items[slotTo] as Game.Items.Holster)?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
-                            return Results.NoSpace;
-
-                        var temp = pData.Holster;
-                        pData.Holster = pData.Items[slotTo] as Game.Items.Holster;
-                        pData.Items[slotTo] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd1);
-
-                            (pData.Items[slotTo] as Game.Items.Holster).Unwear(pData);
-                            pData.Holster?.Wear(pData);
-
-                            if (((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                            {
-                                ((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                        });
-
-                        MySQL.UpdatePlayerInventory(pData, true, false, false, false, true, false, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                    #region To Bag
-                    else
-                    {
-                        if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                            return Results.Error;
-
-                        if (!(pData.Bag.Items[slotTo] is Game.Items.Holster) && pData.Bag.Items[slotTo] != null)
-                            return Results.Error;
-
-                        if (pData.Holster.Weight + pData.Bag.Weight - (pData.Bag as Game.Items.Item).Weight - ((pData.Bag.Items[slotTo] as Game.Items.Holster)?.Weight) > pData.Bag.Data.MaxWeight)
-                            return Results.NoSpace;
-
-                        var temp = pData.Holster;
-                        pData.Holster = pData.Bag.Items[slotTo] as Game.Items.Holster;
-                        pData.Bag.Items[slotTo] = temp;
-
-                        var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd1);
-
-                            (pData.Bag.Items[slotTo] as Game.Items.Holster).Unwear(pData);
-                            pData.Holster?.Wear(pData);
-
-                            if (((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                            {
-                                ((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                            }
-
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                        });
-
-                        pData.Bag.Update();
-                        MySQL.UpdatePlayerInventory(pData, false, false, false, false, true, false, false);
-
-                        return Results.Success;
-                    }
-                    #endregion
-                }
-                #endregion
-
-                // Nothing suitable
                 return Results.Error;
             });
 
-            if (!ResultsNotifications.ContainsKey(res))
+            var notification = ResultsNotifications.GetValueOrDefault(res);
+
+            if (notification == null)
                 return res;
 
             NAPI.Task.Run(() =>
@@ -2885,7 +3588,7 @@ namespace BCRPServer.CEF
                 if (player?.Exists != true)
                     return;
 
-                player.Notify(ResultsNotifications[res]);
+                player.Notify(notification);
             });
 
             return res;
@@ -2906,7 +3609,7 @@ namespace BCRPServer.CEF
 
             await Task.Run(async () =>
             {
-                if (to < 0 || to > 8 || from < 0 || to > 8)
+                if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
                     return;
 
                 var offer = await pData.ActiveOffer;
@@ -3014,310 +3717,12 @@ namespace BCRPServer.CEF
                 if (amount < 1 || slot < 0)
                     return;
 
-                Game.Items.Item item = null;
+                var action = DropActions.GetValueOrDefault(group);
 
-                #region Pockets
-                if (group == Groups.Items)
-                {
-                    var items = pData.Items;
+                if (action == null)
+                    return;
 
-                    if (slot >= items.Length)
-                        return;
-
-                    item = items[slot];
-
-                    if (item == null)
-                        return;
-
-                    if (item is Game.Items.IStackable)
-                    {
-                        int curAmount = (item as Game.Items.IStackable).Amount;
-
-                        if (amount > curAmount)
-                            amount = curAmount;
-
-                        curAmount -= amount;
-
-                        if (curAmount > 0)
-                        {
-                            (item as Game.Items.IStackable).Amount = curAmount;
-                            items[slot] = item;
-
-                            item.Update();
-                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
-                        }
-                        else
-                            items[slot] = null;
-                    }
-                    else
-                        items[slot] = null;
-
-                    pData.Items = items;
-
-                    var upd = Game.Items.Item.ToClientJson(items[slot], Groups.Items);
-
-                    NAPI.Task.Run(() => player.TriggerEvent("Inventory::Update", (int)Groups.Items, slot, upd));
-
-                    MySQL.UpdatePlayerInventory(pData, true);
-                }
-                #endregion
-                #region Bag
-                else if (group == Groups.Bag)
-                {
-                    var bag = pData.Bag?.Items;
-
-                    if (slot >= bag.Length || bag == null)
-                        return;
-
-                    item = bag[slot];
-
-                    if (item == null)
-                        return;
-
-                    if (item is Game.Items.IStackable)
-                    {
-                        int curAmount = (item as Game.Items.IStackable).Amount;
-
-                        if (amount > curAmount)
-                            amount = curAmount;
-
-                        curAmount -= amount;
-
-                        if (curAmount > 0)
-                        {
-                            (item as Game.Items.IStackable).Amount = curAmount;
-                            bag[slot] = item;
-
-                            item.Update();
-                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
-                        }
-                        else
-                            bag[slot] = null;
-                    }
-                    else
-                        bag[slot] = null;
-
-                    var tempBag = pData.Bag;
-                    tempBag.Items = bag;
-
-                    pData.Bag = tempBag;
-
-                    var upd = Game.Items.Item.ToClientJson(bag[slot], Groups.Bag);
-
-                    NAPI.Task.Run(() => player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slot, upd));
-
-                    tempBag.Update();
-                }
-                #endregion
-                #region Weapons
-                else if (group == Groups.Weapons)
-                {
-                    var weapons = pData.Weapons;
-
-                    if (slot >= weapons.Length)
-                        return;
-
-                    item = weapons[slot];
-
-                    if (item == null)
-                        return;
-
-                    if ((item as Game.Items.Weapon).Equiped)
-                        Sync.WeaponSystem.UpdateAmmo(pData, item as Game.Items.Weapon, false);
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
-
-                        if (weapons[slot].Equiped)
-                            weapons[slot].Unequip(pData, false, false);
-                        else
-                            weapons[slot].Unwear(pData);
-                    });
-
-                    weapons[slot] = null;
-
-                    pData.Weapons = weapons;
-
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
-                }
-                #endregion
-                #region Clothes
-                else if (group == Groups.Clothes)
-                {
-                    var clothes = pData.Clothes;
-
-                    if (slot >= clothes.Length)
-                        return;
-
-                    item = clothes[slot];
-
-                    if (item == null)
-                        return;
-
-                    clothes[slot] = null;
-
-                    pData.Clothes = clothes;
-
-                    MySQL.UpdatePlayerInventory(pData, false, true);
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
-
-                        (item as Game.Items.Clothes).Unwear(pData);
-                    });
-                }
-                #endregion
-                #region Accessories
-                else if (group == Groups.Accessories)
-                {
-                    var accs = pData.Accessories;
-
-                    if (slot >= accs.Length)
-                        return;
-
-                    item = accs[slot];
-
-                    if (item == null)
-                        return;
-
-                    accs[slot] = null;
-
-                    pData.Accessories = accs;
-
-                    MySQL.UpdatePlayerInventory(pData, false, false, true);
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
-
-                        (item as Game.Items.Clothes).Unwear(pData);
-                    });
-                }
-                #endregion
-                #region Bag Item
-                else if (group == Groups.BagItem)
-                {
-                    item = pData.Bag;
-
-                    if (item == null)
-                        return;
-
-                    pData.Bag = null;
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
-
-                        (item as Game.Items.Bag).Unwear(pData);
-                    });
-
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, true);
-                }
-                #endregion
-                #region Armour
-                else if (group == Groups.Armour)
-                {
-                    item = pData.Armour;
-
-                    if (item == null)
-                        return;
-
-                    pData.Armour = null;
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
-
-                        (item as Game.Items.Armour).Unwear(pData);
-                    });
-
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
-                }
-                #endregion
-                #region Holster Item
-                else if (group == Groups.HolsterItem)
-                {
-                    item = pData.Holster;
-
-                    if (item == null)
-                        return;
-
-                    if ((pData.Holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
-                        Sync.WeaponSystem.UpdateAmmo(pData, pData.Holster.Items[0] as Game.Items.Weapon, false);
-
-                    pData.Holster = null;
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
-
-                        (item as Game.Items.Holster).Unwear(pData);
-
-                        ((item as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Unequip(pData, false, false);
-                    });
-
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
-                }
-                #endregion
-                #region Holster
-                else if (group == Groups.Holster)
-                {
-                    var holster = pData.Holster?.Items;
-
-                    if (holster == null)
-                        return;
-
-                    item = holster[0];
-
-                    if (item == null)
-                        return;
-
-                    if ((item as Game.Items.Weapon).Equiped)
-                        Sync.WeaponSystem.UpdateAmmo(pData, item as Game.Items.Weapon, false);
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
-
-                        if ((holster[0] as Game.Items.Weapon).Equiped)
-                            (holster[0] as Game.Items.Weapon).Unequip(pData, false, false);
-                        else
-                            (holster[0] as Game.Items.Weapon).Unwear(pData);
-                    });
-
-                    holster[0] = null;
-
-                    var tempHolster = pData.Holster;
-                    tempHolster.Items = holster;
-
-                    pData.Holster = tempHolster;
-
-                    tempHolster.Update();
-                }
-                #endregion
+                Game.Items.Item item = await action.Invoke(pData, slot, amount);
 
                 if (item == null)
                     return;
@@ -3368,7 +3773,7 @@ namespace BCRPServer.CEF
 
             await Task.Run(async () =>
             {
-                if (slotStr < 0 || slotStr > 8 || slot < 0)
+                if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
                     return;
 
                 var offer = await pData.ActiveOffer;
@@ -3419,11 +3824,11 @@ namespace BCRPServer.CEF
 
                 var items = pData.Items;
 
-                var curWeight = Game.Items.Items.GetWeight(items);
+                var curWeight = items.Sum(x => x?.Weight ?? 0f);
 
                 var freeIdx = Array.FindIndex(items, x => x == null);
 
-                var curAmount = item.Item is Game.Items.IStackable ? (item.Item as Game.Items.IStackable).Amount : 1;
+                var curAmount = (item.Item as Game.Items.IStackable)?.Amount ?? 1;
 
                 if (amount > curAmount)
                     amount = curAmount;
@@ -3433,10 +3838,9 @@ namespace BCRPServer.CEF
                     if (amount > curAmount)
                         amount = curAmount;
 
-                    // if amount*weight is too big -> reduce amount to fit the bag's maxWeight
-                    if (curWeight + amount * item.Item.Weight > Settings.MAX_INVENTORY_WEIGHT)
+                    if (curWeight + amount * item.Item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
                     {
-                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.Weight);
+                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.BaseWeight);
 
                         if (amount == 0)
                             return;
@@ -3452,7 +3856,7 @@ namespace BCRPServer.CEF
                 }
                 else
                 {
-                    if (curWeight + Game.Items.Items.GetItemWeight(item.Item, false) > Settings.MAX_INVENTORY_WEIGHT)
+                    if (curWeight + item.Item.Weight > Settings.MAX_INVENTORY_WEIGHT)
                     {
                         NAPI.Task.Run(() =>
                         {

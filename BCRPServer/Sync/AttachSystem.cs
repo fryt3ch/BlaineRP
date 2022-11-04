@@ -12,6 +12,8 @@ namespace BCRPServer.Sync
         public const string AttachedObjectsKey = "AttachedObjects";
         public const string AttachedEntitiesKey = "AttachedEntities";
 
+        public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack };
+
         #region Types
         public enum Types
         {

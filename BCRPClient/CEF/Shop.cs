@@ -1247,18 +1247,23 @@ namespace BCRPClient.CEF
 
                     Data.Clothes.Wear(CurrentItem, CurrentVariation);
 
-                    var data = Data.Clothes.GetData(CurrentItem);
+                    var type = Data.Items.GetType(CurrentItem, true);
+
+                    if (type == null)
+                        return;
+
+                    var data = Data.Items.GetData(CurrentItem,  type);
 
                     if (data == null)
                         return;
 
                     if (newItem)
                     {
-                        if (data.ItemType == Data.Clothes.Types.Under)
+                        if (data is Data.Items.Under.ItemData uData)
                         {
-                            if ((data as Data.Clothes.Under).ExtraData == null && (data as Data.Clothes.Under).BestTop != null && (data as Data.Clothes.Under).BestTop.ExtraData != null)
+                            if (uData.ExtraData == null && uData.BestTop != null && uData.BestTop.ExtraData != null)
                                 CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopUnderExtraNotNeedTop, false);
-                            else if ((data as Data.Clothes.Under).ExtraData != null && (data as Data.Clothes.Under).BestTop != null && (data as Data.Clothes.Under).BestTop.ExtraData == null)
+                            else if (uData.ExtraData != null && uData.BestTop != null && uData.BestTop.ExtraData == null)
                                 CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopUnderExtraNeedTop, false);
                         }
                     }
@@ -1311,25 +1316,25 @@ namespace BCRPClient.CEF
                 if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
                 {
                     if (CurrentNavigation == 0)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Hat);
+                        Data.Clothes.Unwear(typeof(Data.Items.Hat));
                     else if (CurrentNavigation == 1)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Glasses);
+                        Data.Clothes.Unwear(typeof(Data.Items.Glasses));
                     else if (CurrentNavigation == 2)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Top);
+                        Data.Clothes.Unwear(typeof(Data.Items.Top));
                     else if (CurrentNavigation == 3)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Under);
+                        Data.Clothes.Unwear(typeof(Data.Items.Under));
                     else if (CurrentNavigation == 4)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Accessory);
+                        Data.Clothes.Unwear(typeof(Data.Items.Accessory));
                     else if (CurrentNavigation == 5)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Gloves);
+                        Data.Clothes.Unwear(typeof(Data.Items.Gloves));
                     else if (CurrentNavigation == 6)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Pants);
+                        Data.Clothes.Unwear(typeof(Data.Items.Pants));
                     else if (CurrentNavigation == 7)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Shoes);
+                        Data.Clothes.Unwear(typeof(Data.Items.Shoes));
                     else if (CurrentNavigation == 8)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Watches);
+                        Data.Clothes.Unwear(typeof(Data.Items.Watches));
                     else if (CurrentNavigation == 9)
-                        Data.Clothes.Unwear(Data.Clothes.Types.Bracelet);
+                        Data.Clothes.Unwear(typeof(Data.Items.Bracelet));
                 }
             });
 
@@ -1459,9 +1464,9 @@ namespace BCRPClient.CEF
                         Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
                         Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
 
-                        var currentTop = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Clothes.Types.Top && x.Value.Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentUnder = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Clothes.Types.Under && x.Value.Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentGloves = Data.Clothes.AllClothes.Where(x => x.Value.Sex == pData.Sex && x.Value.ItemType == Data.Clothes.Types.Gloves && (x.Value as Data.Clothes.Gloves).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
+                        var currentTop = Data.Items.AllData[typeof(Data.Items.Top)].Where(x => ((Data.Items.Top.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentUnder = Data.Items.AllData[typeof(Data.Items.Under)].Where(x => ((Data.Items.Under.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentGloves = Data.Items.AllData[typeof(Data.Items.Gloves)].Where(x => ((Data.Items.Gloves.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
 
                         if (currentTop != null)
                             Player.LocalPlayer.SetData("TempClothes::Top", new Data.Clothes.TempClothes(currentTop, RealClothes[11].Item2));
@@ -1490,7 +1495,7 @@ namespace BCRPClient.CEF
                         List<object[]> watches = new List<object[]>();
                         List<object[]> bracelets = new List<object[]>();
 
-                        var clearingItem = new object[] { "clear", "Ничего", 0, 0, 0, false };
+                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, 0, false };
 
                         hats.Add(clearingItem);
                         tops.Add(clearingItem);
@@ -1505,31 +1510,38 @@ namespace BCRPClient.CEF
 
                         foreach (var x in prices)
                         {
-                            var data = Data.Clothes.GetData(x.Key);
+                            var type = Data.Items.GetType(x.Key, true);
+
+                            if (type == null)
+                                continue;
+
+                            var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(x.Key, type);
 
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
 
-                            if (data is Data.Clothes.Hat)
-                                hats.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, (data as Data.Clothes.Hat).ExtraData != null });
-                            else if (data is Data.Clothes.Top)
-                                tops.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, (data as Data.Clothes.Top).ExtraData != null });
-                            else if (data is Data.Clothes.Under)
-                                unders.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, (data as Data.Clothes.Under).ExtraData != null });
-                            else if (data is Data.Clothes.Pants)
-                                pants.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
-                            else if (data is Data.Clothes.Shoes)
-                                shoes.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
-                            else if (data is Data.Clothes.Accessory)
-                                accs.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
-                            else if (data is Data.Clothes.Glasses)
-                                glasses.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
-                            else if (data is Data.Clothes.Gloves)
-                                gloves.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
-                            else if (data is Data.Clothes.Watches)
-                                watches.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
-                            else if (data is Data.Clothes.Bracelet)
-                                bracelets.Add(new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, false });
+                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
+
+                            if (data is Data.Items.Hat.ItemData)
+                                hats.Add(obj);
+                            else if (data is Data.Items.Top.ItemData)
+                                tops.Add(obj);
+                            else if (data is Data.Items.Under.ItemData)
+                                unders.Add(obj);
+                            else if (data is Data.Items.Pants.ItemData)
+                                pants.Add(obj);
+                            else if (data is Data.Items.Shoes.ItemData)
+                                shoes.Add(obj);
+                            else if (data is Data.Items.Accessory.ItemData)
+                                accs.Add(obj);
+                            else if (data is Data.Items.Glasses.ItemData)
+                                glasses.Add(obj);
+                            else if (data is Data.Items.Gloves.ItemData)
+                                gloves.Add(obj);
+                            else if (data is Data.Items.Watches.ItemData)
+                                watches.Add(obj);
+                            else if (data is Data.Items.Bracelet.ItemData)
+                                bracelets.Add(obj);
                         }
 
                         Browser.Window.ExecuteJs("Shop.fillContainer", 0, hats);

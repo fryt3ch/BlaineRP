@@ -3,7 +3,7 @@ using GTANetworkAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Bcpg;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,11 +23,11 @@ namespace BCRPServer.Game.Items
     {
         private static Dictionary<CEF.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<CEF.Inventory.Groups, Func<Item, string>>()
         {
-            { CEF.Inventory.Groups.Items, (item) => (new object[] { item.ID, Items.GetItemAmount(item), Items.GetItemWeight(item, false), Items.GetItemTag(item) }).SerializeToJson() },
+            { CEF.Inventory.Groups.Items, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
 
-            { CEF.Inventory.Groups.Bag, (item) => (new object[] { item.ID, Items.GetItemAmount(item), Items.GetItemWeight(item, false), Items.GetItemTag(item) }).SerializeToJson() },
+            { CEF.Inventory.Groups.Bag, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
 
-            { CEF.Inventory.Groups.Container, (item) => (new object[] { item.ID, Items.GetItemAmount(item), Items.GetItemWeight(item, false), Items.GetItemTag(item) }).SerializeToJson() },
+            { CEF.Inventory.Groups.Container, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
 
             {
                 CEF.Inventory.Groups.Weapons,
@@ -51,7 +51,7 @@ namespace BCRPServer.Game.Items
                 }
             },
 
-            { CEF.Inventory.Groups.Armour, (item) => (new object[] { (item.ID, ((Armour)item).Strength) }).SerializeToJson() },
+            { CEF.Inventory.Groups.Armour, (item) => (new object[] { item.ID, ((Armour)item).Strength }).SerializeToJson() },
 
             {
                 CEF.Inventory.Groups.BagItem,
@@ -120,7 +120,11 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Стандартный вес предмета (1 единица)</summary>
         [JsonIgnore]
-        public float Weight { get => Data.Weight; }
+        public float BaseWeight { get => Data.Weight; }
+
+        /// <summary>Фактический вес предмета</summary>
+        [JsonIgnore]
+        public virtual float Weight { get => BaseWeight; }
 
         /// <summary>ID модели предмета</summary>
         [JsonIgnore]
@@ -356,7 +360,7 @@ namespace BCRPServer.Game.Items
             { "w_revolver_mk2", new ItemData("Револьвер (улучш.)", 1f, "w_pi_revolvermk2", ItemData.TopTypes.HandGun, "am_11.43", WeaponHash.Revolver_mk2, 20, true) },
 
             { "w_bat", new ItemData("Бита", 1f, "w_me_bat", ItemData.TopTypes.Melee, null, WeaponHash.Bat, 0, false) },
-            { "w_bottle", new ItemData("\"Розочка\"", 1f, "w_me_bottle", ItemData.TopTypes.Melee, null, WeaponHash.Bottle, 0, false) },
+            { "w_bottle", new ItemData("'Розочка'", 1f, "w_me_bottle", ItemData.TopTypes.Melee, null, WeaponHash.Bottle, 0, false) },
             { "w_crowbar", new ItemData("Гвоздодёр", 1f, "w_me_crowbar", ItemData.TopTypes.Melee, null, WeaponHash.Crowbar, 0, false) },
             { "w_dagger", new ItemData("Клинок", 1f, "w_me_dagger", ItemData.TopTypes.Melee, null, WeaponHash.Dagger, 0, false) },
             { "w_flashlight", new ItemData("Фонарик", 1f, "w_me_flashlight", ItemData.TopTypes.Melee, null, WeaponHash.Flashlight, 0, false) },
@@ -376,7 +380,7 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Обший вес оружия (вместе с патронами в обойме)</summary>
         [JsonIgnore]
-        new public float Weight { get => Data.AmmoID == null ? base.Weight : base.Weight + Ammo * (Game.Items.Ammo.IDList[Data.AmmoID].Weight); }
+        public override float Weight { get => Data.AmmoID == null ? BaseWeight : BaseWeight + Ammo * (Game.Items.Ammo.IDList[Data.AmmoID].Weight); }
 
         public string Tag { get; set; }
 
@@ -551,7 +555,7 @@ namespace BCRPServer.Game.Items
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        new public float Weight { get => Amount * base.Weight; }
+        public override float Weight { get => Amount * BaseWeight; }
 
         [JsonIgnore]
         public int MaxAmount => 999;
@@ -576,6 +580,11 @@ namespace BCRPServer.Game.Items
             public void Action(PlayerData pData);
         }
 
+        public interface IProp
+        {
+
+        }
+
         new public abstract class ItemData : Item.ItemData
         {
             public class ExtraData
@@ -587,8 +596,14 @@ namespace BCRPServer.Game.Items
                 public ExtraData(int Drawable, int BestTorso)
                 {
                     this.Drawable = Drawable;
+
                     this.BestTorso = BestTorso;
                 }
+            }
+
+            public interface IToggleable
+            {
+                public ExtraData ExtraData { get; set; }
             }
 
             public bool Sex { get; set; }
@@ -625,7 +640,7 @@ namespace BCRPServer.Game.Items
 
         public Clothes(string ID, Item.ItemData Data, Type Type, int Var) : base(ID, Data, Type)
         {
-            this.Var = Var;
+            this.Var = Var >= this.Data.Textures.Length ? this.Data.Textures.Length - 1 : (Var < 0 ? 0 : Var);
 
             var sexAltId = this.Data.SexAlternativeID;
 
@@ -634,9 +649,9 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Hat : Clothes, Clothes.IToggleable
+    public class Hat : Clothes, Clothes.IToggleable, Clothes.IProp
     {
-        new public class ItemData : Clothes.ItemData
+        new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
         {
             public ExtraData ExtraData { get; set; }
 
@@ -775,20 +790,25 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            if (Data.Sex != player.GetSex())
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
             if (data.ExtraData != null)
-                player.SetAccessories(Slot, Toggled ? data.ExtraData.Drawable : data.Drawable, variation);
+                player.SetAccessories(Slot, Toggled ? data.ExtraData.Drawable : data.Drawable, data.Textures[variation]);
             else
-                player.SetAccessories(Slot, data.Drawable, variation);
+                player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
 
-            pData.Hat = $"{this.ID}|{variation}|{(Toggled ? 1 : 0)}";
+            pData.Hat = $"{this.ID}|{Var}|{(Toggled ? 1 : 0)}";
         }
 
         public override void Unwear(PlayerData pData)
@@ -818,7 +838,7 @@ namespace BCRPServer.Game.Items
 
     public class Top : Clothes, Clothes.IToggleable
     {
-        new public class ItemData : Clothes.ItemData
+        new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
         {
             public int BestTorso { get; set; }
 
@@ -1250,22 +1270,27 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
             if (Toggled)
             {
-                player.SetClothes(Slot, data.ExtraData.Drawable, variation);
+                player.SetClothes(Slot, data.ExtraData.Drawable, data.Textures[variation]);
                 player.SetClothes(Gloves.Slot, data.ExtraData.BestTorso, 0);
             }
             else
             {
-                player.SetClothes(Slot, data.Drawable, variation);
+                player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
                 player.SetClothes(Gloves.Slot, data.BestTorso, 0);
             }
 
@@ -1273,7 +1298,20 @@ namespace BCRPServer.Game.Items
             {
                 var aData = pData.Armour.Data;
 
-                player.SetClothes(9, aData.Drawables[pData.Sex].DrawableTop, aData.Texture);
+                var aVar = pData.Armour.Var;
+
+                if (Data.Sex != pData.Sex)
+                {
+                    aData = pData.Armour.SexAlternativeData;
+
+                    if (aData == null)
+                        return;
+
+                    if (aVar >= aData.Textures.Length)
+                        aVar = aData.Textures.Length;
+                }
+
+                player.SetClothes(9, aData.DrawableTop, aData.Textures[aVar]);
             }
 
             if (pData.Clothes[2] != null)
@@ -1293,7 +1331,20 @@ namespace BCRPServer.Game.Items
             {
                 var aData = pData.Armour.Data;
 
-                player.SetClothes(9, aData.Drawables[pData.Sex].Drawable, aData.Texture);
+                var aVar = pData.Armour.Var;
+
+                if (Data.Sex != pData.Sex)
+                {
+                    aData = pData.Armour.SexAlternativeData;
+
+                    if (aData == null)
+                        return;
+
+                    if (aVar >= aData.Textures.Length)
+                        aVar = aData.Textures.Length;
+                }
+
+                player.SetClothes(9, aData.Drawable, aData.Textures[aVar]);
             }
 
             if (pData.Clothes[2] != null)
@@ -1320,7 +1371,7 @@ namespace BCRPServer.Game.Items
 
     public class Under : Clothes, Clothes.IToggleable
     {
-        new public class ItemData : Clothes.ItemData
+        new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
         {
             public Top.ItemData BestTop { get; set; }
 
@@ -1420,24 +1471,29 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
             if (pData.Clothes[1] == null && data.BestTop != null)
             {
                 if (Toggled && data.BestTop.ExtraData != null)
                 {
-                    player.SetClothes(Top.Slot, data.BestTop.ExtraData.Drawable, variation);
+                    player.SetClothes(Top.Slot, data.BestTop.ExtraData.Drawable, data.Textures[variation]);
                     player.SetClothes(Gloves.Slot, data.BestTop.ExtraData.BestTorso, 0);
                 }
                 else
                 {
-                    player.SetClothes(Top.Slot, data.BestTop.Drawable, variation);
+                    player.SetClothes(Top.Slot, data.BestTop.Drawable, data.Textures[variation]);
                     player.SetClothes(Gloves.Slot, data.BestTop.BestTorso, 0);
                 }
             }
@@ -1445,12 +1501,12 @@ namespace BCRPServer.Game.Items
             {
                 if (Toggled && data.ExtraData != null)
                 {
-                    player.SetClothes(Slot, data.ExtraData.Drawable, variation);
+                    player.SetClothes(Slot, data.ExtraData.Drawable, data.Textures[variation]);
                     player.SetClothes(Gloves.Slot, data.ExtraData.BestTorso, 0);
                 }
                 else
                 {
-                    player.SetClothes(Slot, data.Drawable, variation);
+                    player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
                     player.SetClothes(Gloves.Slot, data.BestTorso, 0);
                 }
             }
@@ -1620,20 +1676,25 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
             int curTorso = player.GetClothesDrawable(3);
 
             int bestTorso;
 
             if (data.BestTorsos.TryGetValue(curTorso, out bestTorso))
-                player.SetClothes(3, bestTorso, variation);
+                player.SetClothes(3, bestTorso, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -1842,15 +1903,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetClothes(4, data.Drawable, variation);
+            player.SetClothes(4, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2043,15 +2109,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetClothes(Slot, data.Drawable, variation);
+            player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2133,15 +2204,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetClothes(Slot, data.Drawable, variation);
+            player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2157,7 +2233,7 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Glasses : Clothes
+    public class Glasses : Clothes, Clothes.IProp
     {
         new public class ItemData : Clothes.ItemData
         {
@@ -2238,15 +2314,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetAccessories(Slot, data.Drawable, variation);
+            player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2262,7 +2343,7 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Watches : Clothes
+    public class Watches : Clothes, Clothes.IProp
     {
         new public class ItemData : Clothes.ItemData
         {
@@ -2335,15 +2416,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetAccessories(Slot, data.Drawable, variation);
+            player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2359,7 +2445,7 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Bracelet : Clothes
+    public class Bracelet : Clothes, Clothes.IProp
     {
         new public class ItemData : Clothes.ItemData
         {
@@ -2415,15 +2501,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetAccessories(Slot, data.Drawable, variation);
+            player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2439,7 +2530,7 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Earrings : Clothes
+    public class Earrings : Clothes, Clothes.IProp
     {
         new public class ItemData : Clothes.ItemData
         {
@@ -2525,15 +2616,20 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
+            var variation = Var;
+
             if (Data.Sex != pData.Sex)
+            {
                 data = SexAlternativeData;
 
-            if (data == null)
-                return;
+                if (data == null)
+                    return;
 
-            var variation = Var < data.Textures.Length && Var >= 0 ? data.Textures[Var] : 0;
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
 
-            player.SetAccessories(Slot, data.Drawable, variation);
+            player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
         }
 
         public override void Unwear(PlayerData pData)
@@ -2551,9 +2647,9 @@ namespace BCRPServer.Game.Items
     #endregion
 
     #region Armour
-    public class Armour : Item, IWearable
+    public class Armour : Clothes
     {
-        new public class ItemData : Item.ItemData
+        new public class ItemData : Clothes.ItemData
         {
             /// <summary>ID текстуры разных цветов</summary>
             /// <remarks>Работает только для Drawable 28!</remarks>
@@ -2573,51 +2669,63 @@ namespace BCRPServer.Game.Items
 
             public int MaxStrength { get; set; }
 
-            public Dictionary<bool, (int Drawable, int DrawableTop)> Drawables { get; set; }
+            public int DrawableTop { get; set; }
 
-            public int Texture { get; set; }
-
-            public ItemData(string Name, float Weight, string Model, int MaxStrength, int DrawableMale, int DrawableMaleTop, int DrawableFemale, int DrawableFemaleTop, int Texture) : base(Name, Weight, Model)
+            public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, int DrawableTop, int MaxStrength, string SexAlternativeID = null) : base(Name, Weight, "prop_armour_pickup", Sex, Drawable, Textures, SexAlternativeID)
             {
+                this.DrawableTop = DrawableTop;
+
                 this.MaxStrength = MaxStrength;
-
-                this.Drawables = new Dictionary<bool, (int Drawable, int DrawableTop)>()
-                {
-                    { true, (DrawableMale, DrawableMaleTop) },
-                    { false, (DrawableFemale, DrawableFemaleTop) },
-                };
-
-                this.Texture = Texture;
             }
 
-            public ItemData(string Name, float Weight, string Model, int MaxStrength, int DrawableMale, int DrawableMaleTop, int DrawableFemale, int DrawableFemaleTop, Colours Colour) : this(Name, Weight, Model, MaxStrength, DrawableMale, DrawableMaleTop, DrawableFemale, DrawableFemaleTop, (int)Colour) { }
+            public ItemData(string Name, float Weight, bool Sex, int Drawable, Colours[] Colours, int DrawableTop, int MaxStrength, string SexAlternativeID = null) : this(Name, Weight, Sex, Drawable, Colours.Select(x => (int)x).ToArray(), DrawableTop, MaxStrength, SexAlternativeID) { }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "arm_shop", new ItemData("Обычный бронежилет", 0.5f, "prop_armour_pickup", 100, 28, 19, 0, 0, ItemData.Colours.Grey) },
+            { "arm_m_s", new ItemData("Обычный бронежилет", 0.5f, true, 28, new ItemData.Colours[] { ItemData.Colours.White }, 19, 100, null) },
         };
 
         [JsonIgnore]
+        public const int Slot = (int)Game.Data.Customization.ClothesTypes.Armour;
+
+        [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
 
         public int Strength { get; set; }
 
         /// <summary>Метод для надевания брони на игрока</summary>
         /// <param name="pData">Сущность игрока</param>
-        public void Wear(PlayerData pData)
+        public override void Wear(PlayerData pData)
         {
             var player = pData.Player;
 
             var data = Data;
 
-            player.SetClothes(9, pData.Clothes[1] == null ? data.Drawables[player.GetSex()].Drawable : data.Drawables[player.GetSex()].DrawableTop, data.Texture);
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
+                data = SexAlternativeData;
+
+                if (data == null)
+                    return;
+
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
+
+            player.SetClothes(Slot, pData.Clothes[1] == null ? data.Drawable : data.DrawableTop, data.Textures[variation]);
+
             player.SetArmour(Strength);
         }
 
         /// <summary>Метод для снятия брони с игрока</summary>
         /// <param name="pData">Сущность игрока</param>
-        public void Unwear(PlayerData pData)
+        public override void Unwear(PlayerData pData)
         {
             var player = pData.Player;
 
@@ -2630,7 +2738,8 @@ namespace BCRPServer.Game.Items
                 this.Update();
             }
 
-            player.SetClothes(9, 0, 0);
+            player.SetClothes(Slot, 0, 0);
+
             player.SetArmour(0);
         }
 
@@ -2649,7 +2758,8 @@ namespace BCRPServer.Game.Items
                 this.Update();
             }
         }
-        public Armour(string ID) : base(ID, IDList[ID], typeof(Armour))
+
+        public Armour(string ID, int Var = 0) : base(ID, IDList[ID], typeof(Armour), Var)
         {
             this.Strength = Data.MaxStrength;
         }
@@ -2657,165 +2767,201 @@ namespace BCRPServer.Game.Items
     #endregion
 
     #region Bag
-    public class Bag : Item, IWearable, IContainer
+    public class Bag : Clothes, IContainer
     {
-        new public class ItemData : Item.ItemData
+        new public class ItemData : Clothes.ItemData
         {
-            public Dictionary<bool, int> Drawables;
-
-            /// <summary>Текстуры</summary>
-            public int[] Textures { get; set; }
-
             /// <summary>Максимальное кол-во слотов</summary>
             public byte MaxSlots { get; set; }
 
             /// <summary>Максимальный вес содержимого</summary>
             public float MaxWeight { get; set; }
 
-            public ItemData(string Name, int DrawableMale, int DrawableFemale, int[] Textures, byte MaxSlots, float MaxWeight) : base(Name, 0.25f, "prop_cs_heist_bag_01")
+            public ItemData(string Name, bool Sex, int Drawable, int[] Textures, byte MaxSlots, float MaxWeight, string SexAlternativeID = null) : base(Name, 0.25f, "prop_cs_heist_bag_01", Sex, Drawable, Textures, SexAlternativeID)
             {
-                this.Drawables = new Dictionary<bool, int>()
-                {
-                    { true, DrawableMale },
-                    { false, DrawableFemale },
-                };
-
-                this.Textures = Textures;
-
                 this.MaxSlots = MaxSlots;
+
                 this.MaxWeight = MaxWeight;
             }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "bag_0", new ItemData("Обычная сумка", 81, 81, new int[] { 0 }, 10, 5f) },
+            { "bag_m_0", new ItemData("Обычная сумка", true, 81, new int[] { 0 }, 10, 5f, "bag_f_0") },
+
+            { "bag_f_0", new ItemData("Обычная сумка", false, 81, new int[] { 0 }, 10, 5f, "bag_m_0") },
         };
+
+        public const int Slot = 5;
 
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
 
         /// <summary>Предметы внутри</summary>
         [JsonIgnore]
         public Item[] Items { get; set; }
 
-        public void Wear(PlayerData pData)
+        public override void Wear(PlayerData pData)
         {
             var player = pData.Player;
 
             if (pData.BeltOn)
                 return;
 
-            var iData = Data;
+            var data = Data;
 
-            player.SetClothes(5, iData.Drawables[player.GetSex()], iData.Textures[Var]);
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
+                data = SexAlternativeData;
+
+                if (data == null)
+                    return;
+
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
+
+            player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
         }
 
-        public void Unwear(PlayerData pData)
+        public override void Unwear(PlayerData pData)
         {
             var player = pData.Player;
 
             if (pData.BeltOn)
                 return;
 
-            player.SetClothes(5, 0, 0);
+            player.SetClothes(Slot, 0, 0);
         }
 
         /// <summary>Итоговый вес</summary>
         /// <remarks>Включает в себя вес самой сумки!</remarks>
         [JsonIgnore]
-        new public float Weight { get => base.Weight + Items.Sum(x => (x == null ? 0 : (x is Weapon ? (x as Weapon).Weight : (x is IContainer ? (x as IContainer).Weight : (x is IStackable ? (x as IStackable).Weight : x.Weight))))); }
+        public override float Weight { get => BaseWeight + Items.Sum(x => x?.Weight ?? 0f); }
 
-        public int Var { get; set; }
-
-        public Bag(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Bag))
+        public Bag(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Bag), Variation)
         {
-            this.Var = Variation;
-
             this.Items = new Item[Data.MaxSlots];
         }
     }
     #endregion
 
     #region Holster
-    public class Holster : Item, IWearable, IContainer
+    public class Holster : Clothes, IContainer
     {
-        new public class ItemData : Item.ItemData
+        new public class ItemData : Clothes.ItemData
         {
-            public Dictionary<bool, (int Drawable, int DrawableWeapon)> Drawables;
+            public int DrawableWeapon { get; set; }
 
-            public int[] Textures { get; set; }
-
-            public ItemData(string Name, int DrawableMale, int DrawableWeaponMale, int DrawableFemale, int DrawableWeaponFemale, int[] Textures) : base(Name, 0.1f, "prop_holster_01")
+            public ItemData(string Name, bool Sex, int Drawable, int[] Textures, int DrawableWeapon, string SexAlternativeID = null) : base(Name, 0.15f, "prop_holster_01", Sex, Drawable, Textures, SexAlternativeID)
             {
-                this.Drawables = new Dictionary<bool, (int Drawable, int DrawableWeapon)>()
-                {
-                    { true, (DrawableMale, DrawableWeaponMale) },
-                    { false, (DrawableFemale, DrawableWeaponFemale) },
-                };
-
-                this.Textures = Textures;
+                this.DrawableWeapon = DrawableWeapon;
             }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "holster_0", new ItemData("Кобура на ногу", 136, 134, 0, 0, new int[] { 0, 1 }) },
-            { "holster_1", new ItemData("Кобура простая", 135, 137, 0, 0, new int[] { 0, 1 }) },
+            { "holster_m_0", new ItemData("Кобура на ногу", true, 136, new int[] { 0, 1 }, 134, null) },
+            { "holster_m_1", new ItemData("Кобура простая", true, 135, new int[] { 0, 1 }, 137, null) },
         };
+
+        public const int Slot = 10;
 
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
+        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        [JsonIgnore]
         public Item[] Items { get; set; }
 
-        public void Wear(PlayerData pData)
+        [JsonIgnore]
+        public Weapon Weapon { get => (Weapon)Items[0]; }
+
+        public override void Wear(PlayerData pData)
         {
             var player = pData.Player;
 
-            var iData = Data;
-            var drawables = iData.Drawables[pData.Sex];
+            var data = Data;
 
-            player.SetClothes(10, Items[0] == null ? drawables.Drawable : drawables.DrawableWeapon, iData.Textures[Var]);
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
+                data = SexAlternativeData;
+
+                if (data == null)
+                    return;
+
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
+
+            player.SetClothes(Slot, Items[0] == null ? data.Drawable : data.DrawableWeapon, data.Textures[variation]);
         }
 
-        public void Unwear(PlayerData pData)
+        public override void Unwear(PlayerData pData)
         {
             var player = pData.Player;
 
-            player.SetClothes(10, 0, 0);
+            player.SetClothes(Slot, 0, 0);
         }
 
         public void WearWeapon(PlayerData pData)
         {
             var player = pData.Player;
 
-            var iData = Data;
-            var drawables = iData.Drawables[pData.Sex];
+            var data = Data;
 
-            player.SetClothes(10, drawables.DrawableWeapon, iData.Textures[Var]);
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
+                data = SexAlternativeData;
+
+                if (data == null)
+                    return;
+
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
+
+            player.SetClothes(Slot, data.DrawableWeapon, data.Textures[variation]);
         }
 
         public void UnwearWeapon(PlayerData pData)
         {
             var player = pData.Player;
 
-            var iData = Data;
-            var drawables = iData.Drawables[pData.Sex];
+            var data = Data;
 
-            player.SetClothes(10, drawables.Drawable, iData.Textures[Var]);
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
+                data = SexAlternativeData;
+
+                if (data == null)
+                    return;
+
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
+
+            player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
         }
 
         [JsonIgnore]
-        new public float Weight { get => (this as Item).Weight + ((Items[0] as Weapon)?.Weight ?? 0); }
+        public override float Weight { get => BaseWeight + Items.Sum(x => x?.Weight ?? 0f); }
 
-        public int Var { get; set; }
-
-        public Holster(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Holster))
+        public Holster(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Holster), Variation)
         {
-            this.Var = Variation;
-
             this.Items = new Item[1];
         }
     }
@@ -2900,7 +3046,7 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Item.ItemData
         {
-            public ItemData(float Weight, string Model) : base(Weight, Model) { }
+            public ItemData(string Name, float Weight, string Model) : base(Name, Weight, Model) { }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
@@ -2923,13 +3069,8 @@ namespace BCRPServer.Game.Items
             return null;
         }
 
-        public bool IsKeyValid(Vehicle veh)
+        public bool IsKeyValid(VehicleData vData)
         {
-            var vData = veh.GetMainData();
-
-            if (vData == null)
-                return false;
-
             if (vData.Keys.Contains(UID))
                 return true;
 
@@ -3013,7 +3154,7 @@ namespace BCRPServer.Game.Items
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        new public float Weight { get => Amount * base.Weight; }
+        new public float Weight { get => Amount * base.BaseWeight; }
 
         [JsonIgnore]
         public int MaxAmount => 999;
@@ -3108,7 +3249,7 @@ namespace BCRPServer.Game.Items
 
                 foreach (var x in inv)
                     if (x != null)
-                        totalWeight += GetItemWeight(x, true);
+                        totalWeight += x.Weight;
                     else
                         totalFreeSlots += 1;
 
@@ -3210,32 +3351,9 @@ namespace BCRPServer.Game.Items
 
                 Item item = null;
 
-                if (type == typeof(Clothes))
+                if (typeof(Clothes).IsAssignableFrom(type))
                 {
-                    var textures = ((Clothes.ItemData)data).Textures.Length - 1;
-
-                    if (textures < variation || variation < 0)
-                        variation = 0;
-
                     item = (Clothes)Activator.CreateInstance(type, id, variation);
-                }
-                else if (type == typeof(Holster))
-                {
-                    var textures = ((Holster.ItemData)data).Textures.Length - 1;
-
-                    if (textures < variation || variation < 0)
-                        variation = 0;
-
-                    item = (Holster)Activator.CreateInstance(type, id, variation);
-                }
-                else if (type == typeof(Bag))
-                {
-                    var textures = ((Bag.ItemData)data).Textures.Length - 1;
-
-                    if (textures < variation || variation < 0)
-                        variation = 0;
-
-                    item = (Bag)Activator.CreateInstance(type, id, variation);
                 }
                 else
                     item = (Item)Activator.CreateInstance(type, id);
@@ -3268,23 +3386,8 @@ namespace BCRPServer.Game.Items
         #endregion
 
         #region Stuff
-        public static float GetItemWeight(Item item, bool calculateStackable = false)
-        {
-            if (item is Game.Items.IContainer)
-                return (item as Game.Items.IContainer).Weight;
-
-            if (calculateStackable && item is Game.Items.IStackable)
-                return (item as Game.Items.IStackable).Weight;
-
-            if (item is Game.Items.Weapon)
-                return (item as Game.Items.Weapon).Weight;
-
-            return item.Weight;
-        }
 
         public static int GetItemAmount(Game.Items.Item item) => (item as Game.Items.IStackable)?.Amount ?? 1;
-
-        public static float GetWeight(Game.Items.Item[] items, bool calculateStackable = true) => items.Sum(x => x == null ? 0 : GetItemWeight(x, calculateStackable));
 
         public static string GetItemTag(Game.Items.Item item)
         {
@@ -3383,17 +3486,6 @@ namespace BCRPServer.Game.Items
                 if (idList == null)
                     continue;
 
-                string str = $"public class {x.Name} : {x.BaseType.Name}";
-
-                var interfaces = x.GetInterfaces();
-
-                if (interfaces.Length > 0)
-                    str += $", {string.Join(", ", interfaces.Select(x => x.FullName.Replace(ns + ".", null).Replace('+', '.')))}";
-
-                str += "\n{\n\tpublic static Dictionary<string, Data> IDList { get; set; } = new Dictionary<string, Data>()\n\t{\n\t\t" + string.Join(",\n\t\t", idList.Select(x => "{ " + $"\"{x.Key}\", new Data()" + " }")) + "\n\t};\n}\n";
-
-                lines.Insert(++insIdx, str);
-
                 AllData.Add(x, idList);
 
                 counter += idList.Count;
@@ -3404,6 +3496,70 @@ namespace BCRPServer.Game.Items
 
                     if (!AllTypes.ContainsKey(id[0]))
                         AllTypes.Add(id[0], x);
+
+                    string dataArgs = $"\"{t.Value.Name}\", {t.Value.Weight}f";
+
+                    if (typeof(Clothes).IsAssignableFrom(x))
+                    {
+                        var tClothes = (Clothes.ItemData)t.Value;
+
+                        dataArgs += $", {tClothes.Sex.ToString().ToLower()}, {tClothes.Drawable}, new int[] {{{string.Join(", ", tClothes.Textures)}}}{{addArgs}}, {(tClothes.SexAlternativeID == null ? "null" : $"\"{tClothes.SexAlternativeID}\"")}";
+
+                        string addArgs = "";
+
+                        if (x == typeof(Hat))
+                        {
+                            var hClothes = (Hat.ItemData)t.Value;
+
+                            if (hClothes.ExtraData != null)
+                                addArgs += $", new {x.Name}.ItemData.ExtraData({hClothes.ExtraData.Drawable}, {hClothes.ExtraData.BestTorso})";
+                            else
+                                addArgs += $", null";
+                        }
+                        else if (x == typeof(Top))
+                        {
+                            var hClothes = (Top.ItemData)t.Value;
+
+                            addArgs += $", {hClothes.BestTorso}";
+
+                            if (hClothes.ExtraData != null)
+                                addArgs += $", new {x.Name}.ItemData.ExtraData({hClothes.ExtraData.Drawable}, {hClothes.ExtraData.BestTorso})";
+                            else
+                                addArgs += $", null";
+                        }
+                        else if (x == typeof(Under))
+                        {
+                            var hClothes = (Under.ItemData)t.Value;
+
+                            if (hClothes.BestTop != null)
+                                addArgs += $", new Top.ItemData({hClothes.BestTop.Sex.ToString().ToLower()}, {hClothes.BestTop.Drawable}, new int[] {{{string.Join(", ", hClothes.BestTop.Textures)}}}, {hClothes.BestTop.BestTorso}, {(hClothes.BestTop.ExtraData == null ? "null" : $"new {x.Name}.ItemData.ExtraData({hClothes.BestTop.ExtraData.Drawable}, {hClothes.BestTop.ExtraData.BestTorso})")}, {(hClothes.BestTop.SexAlternativeID == null ? "null" : $"\"{hClothes.BestTop.SexAlternativeID}\"")})";
+                            else
+                                addArgs += $", null";
+
+                            addArgs += $", {hClothes.BestTorso}";
+
+                            if (hClothes.ExtraData != null)
+                                addArgs += $", new {x.Name}.ItemData.ExtraData({hClothes.ExtraData.Drawable}, {hClothes.ExtraData.BestTorso})";
+                            else
+                                addArgs += $", null";
+                        }
+                        else if (x == typeof(Gloves))
+                        {
+                            var hClothes = (Gloves.ItemData)t.Value;
+
+                            addArgs += $", new Dictionary<int, int>() {{ {string.Join("\n,", hClothes.BestTorsos.Select(x => $"{{ {x.Key}, {x.Value} }}"))} }}";
+                        }
+                        else if (x == typeof(Bag))
+                        {
+                            var bClothes = (Bag.ItemData)t.Value;
+
+                            addArgs += $", {bClothes.MaxSlots}, {bClothes.MaxWeight}f";
+                        }
+
+                        dataArgs = dataArgs.Replace("{addArgs}", addArgs);
+                    }
+
+                    lines.Insert(++insIdx, $"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({dataArgs}));");
                 }
             }
 

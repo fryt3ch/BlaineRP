@@ -1542,7 +1542,7 @@ namespace BCRPClient.Sync
             if (hData.Length < 3)
                 return;
 
-            var data = (Data.Clothes.Hat)Data.Clothes.GetData(hData[0]);
+            var data = (Data.Items.Hat.ItemData)Data.Items.GetData(hData[0], typeof(Data.Items.Hat));
 
             if (data == null)
                 return;

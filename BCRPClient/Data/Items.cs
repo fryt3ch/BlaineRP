@@ -11,11 +11,16 @@ namespace BCRPClient.Data
     {
         public abstract class Item
         {
-            public class Data
+            public class ItemData
             {
-                public Data()
-                {
+                public string Name { get; set; }
 
+                public float Weight { get; set; }
+
+                public ItemData(string Name, float Weight)
+                {
+                    this.Name = Name;
+                    this.Weight = Weight;
                 }
             }
         }
@@ -46,99 +51,263 @@ namespace BCRPClient.Data
             {
 
             }
+
+            public interface IProp
+            {
+
+            }
+
+            new public abstract class ItemData : Item.ItemData
+            {
+                public class ExtraData
+                {
+                    public int Drawable { get; set; }
+
+                    public int BestTorso { get; set; }
+
+                    public ExtraData(int Drawable, int BestTorso)
+                    {
+                        this.Drawable = Drawable;
+
+                        this.BestTorso = BestTorso;
+                    }
+                }
+
+                public interface IToggleable
+                {
+                    public ExtraData ExtraData { get; set; }
+                }
+
+                public bool Sex { get; set; }
+
+                public int Drawable { get; set; }
+
+                public int[] Textures { get; set; }
+
+                public string SexAlternativeID { get; set; }
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight)
+                {
+                    this.Drawable = Drawable;
+                    this.Textures = Textures;
+
+                    this.Sex = Sex;
+
+                    this.SexAlternativeID = SexAlternativeID;
+                }
+            }
         }
 
-        #region TO_REPLACE
+        public class Hat : Clothes, Clothes.IToggleable, Clothes.IProp
+        {
+            new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
+            {
+                public ExtraData ExtraData { get; set; }
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+                    this.ExtraData = ExtraData;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Top : Clothes, Clothes.IToggleable
+        {
+            new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
+            {
+                public int BestTorso { get; set; }
+
+                public ExtraData ExtraData { get; set; }
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+                    this.BestTorso = BestTorso;
+                    this.ExtraData = ExtraData;
+                }
+
+                public ItemData(bool Sex, int Drawable, int[] Textures, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : this(null, 0f, Sex, Drawable, Textures, BestTorso, ExtraData, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Under : Clothes, Clothes.IToggleable
+        {
+            new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
+            {
+                public Top.ItemData BestTop { get; set; }
+
+                public int BestTorso { get; set; }
+
+                public ExtraData ExtraData { get; set; }
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, Top.ItemData BestTop, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+                    this.BestTop = BestTop;
+                    this.ExtraData = ExtraData;
+
+                    this.BestTorso = BestTorso;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Gloves : Clothes
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public Dictionary<int, int> BestTorsos { get; set; }
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, Dictionary<int, int> BestTorsos, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+                    this.BestTorsos = BestTorsos;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Pants : Clothes
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Shoes : Clothes
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Accessory : Clothes
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Glasses : Clothes, Clothes.IProp
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Watches : Clothes, Clothes.IProp
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Bracelet : Clothes, Clothes.IProp
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Earrings : Clothes, Clothes.IProp
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public class Weapon : Item, ITagged, IWearable
         {
-            public static Dictionary<string, Data> IDList { get; set; }
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
         public class Ammo : Item, IStackable
         {
-            public static Dictionary<string, Data> IDList { get; set; }
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class Hat : Clothes, IWearable, Clothes.IToggleable
+        public class Armour : Clothes
         {
-            public static Dictionary<string, Data> IDList { get; set; }
+            new public class ItemData : Clothes.ItemData
+            {
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class Top : Clothes, IWearable, Clothes.IToggleable
+        public class Bag : Clothes, IContainer
         {
-            public static Dictionary<string, Data> IDList { get; set; }
+            new public class ItemData : Clothes.ItemData
+            {
+                /// <summary>������������ ���-�� ������</summary>
+                public byte MaxSlots { get; set; }
+
+                /// <summary>������������ ��� �����������</summary>
+                public float MaxWeight { get; set; }
+
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, byte MaxSlots, float MaxWeight, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+                    this.MaxSlots = MaxSlots;
+
+                    this.MaxWeight = MaxWeight;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class Under : Clothes, IWearable, Clothes.IToggleable
+        public class Holster : Clothes, IContainer
         {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
+            new public class ItemData : Clothes.ItemData
+            {
 
-        public class Gloves : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
 
-        public class Pants : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
+                }
+            }
 
-        public class Shoes : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Accessory : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Glasses : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Watches : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Bracelet : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Earrings : Clothes, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Armour : Item, IWearable
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Bag : Item, IWearable, IContainer
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
-        }
-
-        public class Holster : Item, IWearable, IContainer
-        {
-            public static Dictionary<string, Data> IDList { get; set; }
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
         public class VehicleKey : Item, ITagged
         {
-            public static Dictionary<string, Data> IDList { get; set; }
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
         public class StatusChanger : Item, IStackable
         {
-            public static Dictionary<string, Data> IDList { get; set; }
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
-        #endregion
 
         #region Enums
         public enum ActionTypes
@@ -152,7 +321,7 @@ namespace BCRPClient.Data
 
         private static Dictionary<string, Type> AllTypes { get; set; } = new Dictionary<string, Type>();
 
-        private static Dictionary<Type, Dictionary<string, Item.Data>> AllData { get; set; } = new Dictionary<Type, Dictionary<string, Item.Data>>();
+        public static Dictionary<Type, Dictionary<string, Item.ItemData>> AllData { get; private set; } = new Dictionary<Type, Dictionary<string, Item.ItemData>>();
 
         private static Dictionary<Type, string[]> AbstractImageTypes = new Dictionary<Type, string[]>() // string[] - exceptions
         {
@@ -165,9 +334,13 @@ namespace BCRPClient.Data
 
         public Items()
         {
+            #region TO_REPLACE
+
+            #endregion
+
             foreach (var x in typeof(Items).GetNestedTypes().Where(x => x.IsClass && !x.IsAbstract && typeof(Item).IsAssignableFrom(x)))
             {
-                var idList = (Dictionary<string, Item.Data>)x.GetProperty("IDList")?.GetValue(null);
+                var idList = (Dictionary<string, Item.ItemData>)x.GetProperty("IDList")?.GetValue(null);
 
                 if (idList == null)
                     continue;
@@ -215,7 +388,7 @@ namespace BCRPClient.Data
             return type;
         }
 
-        public static Item.Data GetData(string id, Type type = null)
+        public static Item.ItemData GetData(string id, Type type = null)
         {
             if (type == null)
             {
@@ -228,7 +401,7 @@ namespace BCRPClient.Data
             return AllData[type].GetValueOrDefault(id);
         }
 
-        public static string GetName(string id) => Names.GetValueOrDefault(id) ?? "null";
+        public static string GetName(string id) => GetData(id, null)?.Name ?? "null";
 
         public static object[][] GetActions(Type type, int amount, bool hasContainer = false, bool isContainer = false)
         {
@@ -266,1202 +439,6 @@ namespace BCRPClient.Data
             { typeof(StatusChanger), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
 
             { typeof(IWearable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
-        };
-        #endregion
-
-        #region All Names
-        private static Dictionary<string, string> Names = new Dictionary<string, string>()
-        {
-            {"bag_0", "Обычная сумка"},
-
-            {"holster_0", "Кобура на ногу"},
-            {"holster_1", "Кобура простая"},
-
-            {"w_asrifle", "AK-47"},
-            {"w_asrifle_mk2", "AK-47 (улучш.)"},
-            {"w_advrifle", "TAR-21"},
-            {"w_carbrifle", "AR-15"},
-            {"w_comprifle", "AK-47 (укороч.)"},
-            {"w_heavyrifle", "SCAR"},
-
-            {"w_heavysnp", "Barrett M82"},
-            {"w_markrifle", "Винтовка Марксмана"},
-            {"w_musket", "Мушкет"},
-
-            {"w_combmg", "M249"},
-            {"w_gusenberg", "ПП Томпсона"},
-
-            {"w_microsmg", "UZI"},
-            {"w_minismg", "Мини SMG"},
-            {"w_smg", "MP5"},
-            {"w_smg_mk2", "MP5 (улучш.)"},
-            {"w_asmg", "P90"},
-            {"w_combpdw", "Боевой PDW"},
-
-            {"w_pistol", "Пистолет"},
-            {"w_pistol_mk2", "Пистолет (улучш.)"},
-            {"w_appistol", "Автоматический пистолет"},
-            {"w_combpistol", "P2000"},
-            {"w_heavypistol", "Remington 1911"},
-            {"w_machpistol", "TEC-9"},
-            {"w_vintpistol", "Винтажный пистолет"},
-            {"w_markpistol", "Пистолет Марксмана"},
-
-            {"w_revolver", "Револьвер"},
-            {"w_revolver_mk2", "Револьвер (улучш.)"},
-
-            {"w_bat", "Бита"},
-            {"w_bottle", "\"Розочка\""},
-            {"w_crowbar", "Гвоздодёр"},
-            {"w_dagger", "Клинок"},
-            {"w_flashlight", "Фонарик"},
-            {"w_golfclub", "Клюшка"},
-            {"w_hammer", "Молоток"},
-            {"w_hatchet", "Топор"},
-            {"w_knuckles", "Кастет"},
-            {"w_machete", "Мачете"},
-            {"w_nightstick", "Резиновая дубинка"},
-            {"w_poolcue", "Кий"},
-            {"w_switchblade", "Складной нож"},
-            {"w_wrench", "Гаечный ключ"},
-
-            {"am_5.56", "Патроны 5.56мм"},
-            {"am_7.62", "Патроны 7.62мм"},
-            {"am_9", "Патроны 9мм"},
-            {"am_11.43", "Патроны 11.43мм"},
-            {"am_12", "Патроны 12мм"},
-            {"am_12.7", "Патроны 12.7мм"},
-
-            {"arm_shop", "Обычный бронежилет"},
-
-            {"sc_burger", "Бургер"},
-            {"sc_chips", "Чипсы"},
-            {"sc_pizza", "Пицца"},
-            {"sc_chocolate", "Шоколад"},
-            {"sc_hotdog", "Хот-дог"},
-
-            {"sc_cola", "Кола"},
-
-            {"sc_cigs", "Сигареты"},
-            {"sc_joint", "Косяк"},
-
-            {"sc_beer", "Пиво"},
-
-            {"top_m_0", "Олимпийка"},
-            {"top_m_1", "Куртка рейсера"},
-            {"top_m_3", "Худи открытое"},
-            {"top_m_4", "Куртка рейсера #2"},
-            {"top_m_5", "Худи закрытое"},
-            {"top_m_6", "Рубашка с узорами"},
-            {"top_m_7", "Футболка регби"},
-            {"top_m_8", "Поло Н"},
-            {"top_m_9", "Футболка хоккейная"},
-            {"top_m_10", "Футболка на выпуск"},
-            {"top_m_11", "Поло длинное разноцветное"},
-            {"top_m_12", "Худи спортивное"},
-            {"top_m_13", "Куртка брутальная"},
-            {"top_m_14", "Куртка кожаная открытая"},
-            {"top_m_15", "Куртка кожаная закрытая"},
-            {"top_m_16", "Олимпийка спортивная"},
-            {"top_m_17", "Куртка с капюшоном"},
-            {"top_m_18", "Бомбер"},
-            {"top_m_19", "Поло рабочее"},
-            {"top_m_20", "Худи обычное"},
-            {"top_m_22", "Бомбер с принтами"},
-            {"top_m_23", "Куртка стёганая"},
-            {"top_m_24", "Рубашка с принтами"},
-            {"top_m_25", "Азиатский стиль"},
-            {"top_m_26", "Кожаная куртка преследователя"},
-            {"top_m_27", "Куртка спортивная"},
-            {"top_m_28", "Кимоно"},
-            {"top_m_29", "Куртка с узорами"},
-            {"top_m_30", "Худи необычное"},
-            {"top_m_31", "Куртка обычная"},
-            {"top_m_32", "Рубашка гангстера"},
-            {"top_m_33", "Куртка SecuroServ"},
-            {"top_m_34", "Тишка"},
-            {"top_m_35", "Куртка стёганая разноцветная"},
-            {"top_m_36", "Жилет вязаный"},
-            {"top_m_37", "Бомбер разноцветный"},
-            {"top_m_38", "Куртка стритрейсера"},
-            {"top_m_39", "Куртка гонщика"},
-            {"top_m_40", "Куртка с вырезом"},
-            {"top_m_41", "Куртка с принтами"},
-            {"top_m_42", "Куртка из старой кожи"},
-            {"top_m_43", "Куртка с принтами #2"},
-            {"top_m_44", "Куртка стритрейсера #2"},
-            {"top_m_45", "Байкерская жилетка"},
-            {"top_m_46", "Жилетка расстёгнутая"},
-            {"top_m_47", "Жилетка кожаная"},
-            {"top_m_48", "Куртка чёрная"},
-            {"top_m_49", "Куртка кожаная расстёгнутая"},
-            {"top_m_50", "Пуховик"},
-            {"top_m_51", "Куртка джинсовая"},
-            {"top_m_52", "Жилет джинсовый"},
-            {"top_m_53", "Джинсовка байкерская"},
-            {"top_m_54", "Жилетка джинсовая байкерская"},
-            {"top_m_55", "Куртка кожаная байкерская"},
-            {"top_m_56", "Жилет кожаный байкерский"},
-            {"top_m_57", "Ветровка с капюшоном"},
-            {"top_m_58", "Ветровка удлиненная"},
-            {"top_m_59", "Худи модника"},
-            {"top_m_60", "Жилет с капюшоном"},
-            {"top_m_61", "Бомбер открытый"},
-            {"top_m_62", "Куртка с принтами #3"},
-            {"top_m_63", "Футболка модника"},
-            {"top_m_64", "Свитер вязаный"},
-            {"top_m_65", "Бомбер модника открытый"},
-            {"top_m_66", "Спортивная водолазка"},
-            {"top_m_67", "Куртка модника"},
-            {"top_m_68", "Толстовка модника"},
-            {"top_m_69", "Худи модника #2"},
-            {"top_m_70", "Куртка с ремнями"},
-            {"top_m_71", "Футболка с логотипами"},
-            {"top_m_72", "Футболка модника #2"},
-            {"top_m_73", "Худи с принтами"},
-            {"top_m_74", "Толстовка с логотипами"},
-            {"top_m_75", "Футболка удлиненная"},
-            {"top_m_76", "Ветровка с принтами #2"},
-            {"top_m_77", "Толстовка с принтами"},
-            {"top_m_78", "Футболка с картинками"},
-            {"top_m_79", "Футболка с рисунками"},
-            {"top_m_80", "Футболка с рисунками #2"},
-            {"top_m_81", "Свитер боевой"},
-            {"top_m_82", "Пиджак мятый"},
-            {"top_m_83", "Водолазка мятая"},
-            {"top_m_84", "Ветровка осенняя"},
-            {"top_m_85", "Свитшот разноцветный"},
-            {"top_m_86", "Жилетка вязаная"},
-            {"top_m_87", "Водолазка разноцветная"},
-            {"top_m_88", "Куртка с капюшоном"},
-            {"top_m_89", "Куртка закрытая с воротником"},
-            {"top_m_90", "Поло Liberty"},
-            {"top_m_92", "Худи Liberty"},
-            {"top_m_93", "Рубашка с принтами"},
-            {"top_m_94", "Пальто кожаное на ремнях"},
-            {"top_m_97", "Куртка танцора"},
-            {"top_m_98", "Жилет с ремнями"},
-            {"top_m_99", "Жилет кожаный"},
-            {"top_m_100", "Толстовка гонщика"},
-            {"top_m_101", "Толстовка уличная"},
-            {"top_m_102", "Худи уличное"},
-            {"top_m_103", "Жилет STFU"},
-            {"top_m_104", "Жилет гонщика"},
-            {"top_m_105", "Куртка кожаная с застёжками #2"},
-            {"top_m_106", "Парка разноцветная открытая"},
-            {"top_m_107", "Толстовка модника #3"},
-            {"top_m_108", "Жилет стёганый"},
-            {"top_m_109", "Куртка стёганая #2"},
-            {"top_m_110", "Толстовка Class Of"},
-            {"top_m_112", "Майка разноцветная #2"},
-            {"top_m_113", "Футболка без рукавов"},
-            {"top_m_114", "Поло разноцветное"},
-            {"top_m_116", "Куртка с фиолетовыми чертами"},
-            {"top_m_117", "Толстовка с фиолетовыми чертами"},
-            {"top_m_118", "Спортивная толстовка"},
-            {"top_m_119", "Фиолетовая удлиненная футболка"},
-            {"top_m_120", "Толстовка Baseball"},
-            {"top_m_121", "Рубашка гангстера расстегнутая"},
-            {"top_m_122", "Толстовка с желтыми принтами"},
-            {"top_m_123", "Бомбер с желтыми принтами"},
-            {"top_m_124", "Футболка свободная Bigness"},
-            {"top_m_126", "Ветровка с капюшоном цветная"},
-            {"top_m_127", "Джинсовая ветровка"},
-            {"top_m_128", "Футболка лёгкая"},
-            {"top_m_129", "Худи лёгкое"},
-            {"top_m_130", "Майка баскетбольная"},
-            {"top_m_132", "Поло гольфиста"},
-            {"top_m_133", "Худи свободное"},
-            {"top_m_134", "Пиджак Блэйзер"},
-            {"top_m_135", "Пиджак двубортный праздничный"},
-            {"top_m_136", "Жилет с цепочкой"},
-            {"top_m_137", "Жилет обычный"},
-            {"top_m_138", "Пиджак Блэйзер с принтами"},
-            {"top_m_139", "Пиджак двубортный"},
-            {"top_m_140", "Пиджак однобортный"},
-            {"top_m_141", "Пиджак модника"},
-            {"top_m_142", "Жилет USA"},
-            {"top_m_143", "Фрак USA"},
-            {"top_m_144", "Фрак"},
-            {"top_m_145", "Дубленка с мехом"},
-            {"top_m_146", "Пальто Редингот"},
-            {"top_m_147", "Куртка модника открытая"},
-            {"top_m_148", "Пальто Бушлат"},
-            {"top_m_149", "Пальто Кромби удлиненное"},
-            {"top_m_150", "Пиджак для встреч открытый"},
-            {"top_m_151", "Пиджак хозяина"},
-            {"top_m_152", "Пальто строгое"},
-            {"top_m_153", "Пиджак строгий"},
-            {"top_m_154", "Пиджак хозяина #2"},
-            {"top_m_155", "Пиджак праздничный"},
-            {"top_m_156", "Пуховик модника"},
-            {"top_m_157", "Пальто строгое разноцветное"},
-            {"top_m_158", "Пуховик модника #2"},
-            {"top_m_159", "Бомбер модника #2"},
-            {"top_m_160", "Рубашка модника"},
-            {"top_m_161", "Куртка спортивная с принтами"},
-            {"top_m_162", "Рубашка на выпуск с принтами"},
-            {"top_m_163", "Парка модника"},
-            {"top_m_164", "Парка модника с капюшоном"},
-            {"top_m_165", "Куртка на меху"},
-            {"top_m_166", "Худи Diamond"},
-            {"top_m_167", "Толстовка модника #2"},
-            {"top_m_168", "Пуховик модника #3"},
-            {"top_m_170", "Жилет обычный #2"},
-            {"top_m_171", "Пиджак жениха"},
-            {"top_m_172", "Пиджак Блейзер #2 открытый"},
-            {"top_m_173", "Жилет праздничный"},
-            {"top_m_174", "Пиджак с узорами"},
-            {"top_m_175", "Пальто закрытое"},
-            {"top_m_176", "Пальто серое"},
-            {"top_m_177", "Жилет с принтами"},
-            {"top_m_178", "Куртка с застежками"},
-            {"top_m_179", "Куртка с мехом"},
-            {"top_m_180", "Кимоно с принтами"},
-            {"top_m_181", "Кожаная разноцветная куртка"},
-            {"top_m_182", "Рубашка солидная с принтами"},
-            {"top_m_183", "Свитшот модника"},
-            {"top_m_184", "Рубашка гавайская"},
-            {"top_m_185", "Свитшот тусовщика"},
-            {"top_m_186", "Бомбер с тигром"},
-            {"top_m_187", "Бомбер Cayo Perico"},
-            {"top_m_188", "Жилет на молнии брендированный"},
-            {"top_m_189", "Куртка дутая брендированная"},
-            {"top_m_190", "Куртка автолюбителя"},
-            {"top_m_191", "Худи автолюбителя"},
-            {"top_m_192", "Регби брендированная"},
-            {"top_m_193", "Футболка автолюбителя"},
-            {"top_m_194", "Ветровка автолюбителя"},
-            {"top_m_195", "Кожанка глянцевая"},
-            {"top_m_196", "Кожанка на молнии"},
-            {"top_m_197", "Куртка Broker"},
-            {"top_m_198", "Куртка Sweatbox"},
-
-            {"top_f_1", "Бейсбольная рубашка"},
-            {"top_f_2", "Майка обычная"},
-            {"top_f_3", "Джинсовка"},
-            {"top_f_4", "Косуха"},
-            {"top_f_5", "Куртка спортивная"},
-            {"top_f_6", "Поло экзотическое"},
-            {"top_f_8", "Джинсовка с рукавами"},
-            {"top_f_10", "Топик с принтами"},
-            {"top_f_11", "Летний сарафан"},
-            {"top_f_12", "Свитер боевой"},
-            {"top_f_13", "Кофта с капюшоном"},
-            {"top_f_14", "Куртка брутальная"},
-            {"top_f_15", "Куртка кожаная"},
-            {"top_f_16", "Куртка с капюшоном"},
-            {"top_f_17", "Куртка кожаная с ремнем"},
-            {"top_f_18", "Кофта модницы"},
-            {"top_f_19", "Бомбер с волком"},
-            {"top_f_20", "Рубашка на выпуск"},
-            {"top_f_21", "Худи обычное"},
-            {"top_f_22", "Кофта обычная"},
-            {"top_f_23", "Бомбер с принтами"},
-            {"top_f_24", "Поло обычное #2"},
-            {"top_f_25", "Поло с узорами"},
-            {"top_f_26", "Куртка стеганая"},
-            {"top_f_27", "Азиатский стиль"},
-            {"top_f_28", "Рубашка гангстера"},
-            {"top_f_29", "Жилет вязаный"},
-            {"top_f_30", "Кимоно"},
-            {"top_f_31", "Куртка спортивная"},
-            {"top_f_32", "Рубашка с принтами"},
-            {"top_f_33", "Куртка рейсера"},
-            {"top_f_34", "Платье с узорами"},
-            {"top_f_35", "Поло H"},
-            {"top_f_36", "Футболка H"},
-            {"top_f_37", "Куртка SecuroServ закрытая"},
-            {"top_f_38", "Рубашка с принтами #2"},
-            {"top_f_39", "Куртка стеганая разноцветная"},
-            {"top_f_40", "Олимпийка"},
-            {"top_f_41", "Бомбер разноцветный"},
-            {"top_f_42", "Куртка стритрейсера"},
-            {"top_f_43", "Худи необычное"},
-            {"top_f_44", "Куртка гонщика"},
-            {"top_f_45", "Куртка с вырезом"},
-            {"top_f_46", "Куртка с принтами"},
-            {"top_f_47", "Куртка с принтами #2"},
-            {"top_f_48", "Куртка стритрейсера #2"},
-            {"top_f_49", "Байкерская жилетка"},
-            {"top_f_50", "Жилетка расстегнутая"},
-            {"top_f_51", "Жилетка кожаная"},
-            {"top_f_52", "Куртка черная"},
-            {"top_f_53", "Куртка кожаная расстегнутая"},
-            {"top_f_54", "Пуховик"},
-            {"top_f_55", "Куртка джинсовая"},
-            {"top_f_56", "Жилет джинсовый"},
-            {"top_f_57", "Джинсовый топ"},
-            {"top_f_58", "Джинсовка байкерская"},
-            {"top_f_59", "Жилетка джинсовая байкерская"},
-            {"top_f_60", "Куртка с застежками"},
-            {"top_f_61", "Куртка кожаная байкерская"},
-            {"top_f_62", "Жилет кожаный байкерский"},
-            {"top_f_63", "Ветровка с капюшоном"},
-            {"top_f_64", "Кофта с принтами"},
-            {"top_f_65", "Топик модницы"},
-            {"top_f_66", "Худи модницы"},
-            {"top_f_68", "Жилет стеганый с принтами"},
-            {"top_f_69", "Куртка стегеная с принтами"},
-            {"top_f_70", "Куртка с принтами #3"},
-            {"top_f_71", "Бомбер открытый"},
-            {"top_f_72", "Спортивная ветровка"},
-            {"top_f_73", "Рейсерский стиль"},
-            {"top_f_74", "Бомбер модницы"},
-            {"top_f_75", "Свитер вязаный"},
-            {"top_f_76", "Куртка модницы"},
-            {"top_f_77", "Толстовка модницы"},
-            {"top_f_78", "Худи модницы #2"},
-            {"top_f_79", "Футболка с логотипами"},
-            {"top_f_80", "Футболка модницы #2"},
-            {"top_f_81", "Худи с принтами"},
-            {"top_f_82", "Толстовка с логотипами"},
-            {"top_f_83", "Футболка удлиненная"},
-            {"top_f_84", "Толстовка с принтами"},
-            {"top_f_85", "Кимоно с принтами"},
-            {"top_f_86", "Футболка с картинками"},
-            {"top_f_87", "Футболка с картинками #2"},
-            {"top_f_88", "Футболка с рисунками"},
-            {"top_f_89", "Футболка с рисунками #2"},
-            {"top_f_90", "Куртка на ремнях"},
-            {"top_f_91", "Топик с принтами"},
-            {"top_f_92", "Спортивная водолазка"},
-            {"top_f_93", "Платье с бахромой"},
-            {"top_f_94", "Топик обычный"},
-            {"top_f_95", "Куртка весенняя"},
-            {"top_f_97", "Платье с узорами #2"},
-            {"top_f_98", "Платье с узорами #3"},
-            {"top_f_99", "Платье с узорами #4"},
-            {"top_f_100", "Футболка хоккейная"},
-            {"top_f_101", "Худи Liberty"},
-            {"top_f_102", "Футболка Libery на выпуск"},
-            {"top_f_103", "Джинсовка"},
-            {"top_f_104", "Куртка JackCandy"},
-            {"top_f_105", "Жилет гонщицы"},
-            {"top_f_106", "Жилет кожаный"},
-            {"top_f_107", "Куртка кожаная с капюшоном"},
-            {"top_f_108", "Майка порезанная"},
-            {"top_f_109", "Топик порезанный"},
-            {"top_f_110", "Майка порезанная #2"},
-            {"top_f_111", "Худи обычное"},
-            {"top_f_112", "Жилет STFU"},
-            {"top_f_113", "Ветровка разноцветная"},
-            {"top_f_114", "Ветровка удлиненная"},
-            {"top_f_115", "Худи без рукавов"},
-            {"top_f_117", "Ветровка разноцветная с капюшоном"},
-            {"top_f_118", "Блузка Class Of"},
-            {"top_f_119", "Поло с принтами"},
-            {"top_f_120", "Поло с брендами"},
-            {"top_f_121", "Майка разноцветная"},
-            {"top_f_122", "Поло обычное"},
-            {"top_f_123", "Спортивная толстовка"},
-            {"top_f_124", "Фиолетовая удлиненная футболка"},
-            {"top_f_125", "Толстовка Base Ball"},
-            {"top_f_126", "Рубашка гангстера #2"},
-            {"top_f_127", "Рубашка гангстера #3"},
-            {"top_f_128", "Толстовка с желтыми принтами"},
-            {"top_f_129", "Бомбер с желтыми принтами"},
-            {"top_f_130", "Бомбер с фиолетовыми чертами"},
-            {"top_f_131", "Толстовка с фиолетовыми чертами"},
-            {"top_f_132", "Поло фиолетовое Bigness"},
-            {"top_f_133", "Футболка модницы #3"},
-            {"top_f_134", "Худи легкое"},
-            {"top_f_135", "Футболка легкая"},
-            {"top_f_137", "Поло гольфиста"},
-            {"top_f_138", "Худи свободное"},
-            {"top_f_139", "Джемпер с V вырезом"},
-            {"top_f_140", "Жакет закрытый"},
-            {"top_f_141", "Пиджак строгий"},
-            {"top_f_142", "Пиджак с принтами"},
-            {"top_f_143", "Лифчик с принтами"},
-            {"top_f_144", "Лифчик модницы"},
-            {"top_f_145", "Жакет модницы"},
-            {"top_f_146", "Жилет обычный"},
-            {"top_f_147", "Жакет из кожи"},
-            {"top_f_148", "Фрак USA"},
-            {"top_f_149", "Фрак"},
-            {"top_f_150", "Пиджак Блэйзер"},
-            {"top_f_151", "Пальто шинель"},
-            {"top_f_152", "Куртка с мехом"},
-            {"top_f_153", "Пиджак на поясе"},
-            {"top_f_154", "Пальто тренчкот"},
-            {"top_f_155", "Пиджак приталенный закрытый"},
-            {"top_f_156", "Рубашка модницы"},
-            {"top_f_157", "Пиджак строгий #2"},
-            {"top_f_158", "Пиджак хозяйки"},
-            {"top_f_159", "Кожаный топ"},
-            {"top_f_160", "Лифчик модницы #2"},
-            {"top_f_161", "Пиджак праздничный"},
-            {"top_f_162", "Пуховик модницы"},
-            {"top_f_163", "Пальто строгое расстегнутое"},
-            {"top_f_164", "Поло расстегнутое"},
-            {"top_f_165", "Пиджак в камуфляжной расцветке"},
-            {"top_f_166", "Пиджак Блэйзер"},
-            {"top_f_167", "Пиджак строгий #2"},
-            {"top_f_168", "Куртка кожаная коричневая"},
-            {"top_f_169", "Пиджак на заклепках"},
-            {"top_f_170", "Пальто удлиненное"},
-            {"top_f_171", "Пижама с принтами"},
-            {"top_f_172", "Пижама хозяйки"},
-            {"top_f_173", "Куртка с мехом"},
-            {"top_f_174", "Пиджак солидный (с платком)"},
-            {"top_f_175", "Ветровка Bigness"},
-            {"top_f_176", "Толстовка с принтами #2"},
-            {"top_f_177", "Кожаная разноцветная куртка"},
-            {"top_f_178", "Рубашка солидная с принтами"},
-            {"top_f_179", "Пуховик модницы #2"},
-            {"top_f_180", "Бомбер модницы #2"},
-            {"top_f_181", "Рубашка модницы"},
-            {"top_f_182", "Куртка спортивная с принтами"},
-            {"top_f_183", "Рубашка на выпуск с принтами"},
-            {"top_f_184", "Парка модницы"},
-            {"top_f_185", "Парка модницы #2"},
-            {"top_f_186", "Куртка на меху"},
-            {"top_f_187", "Худи Diamond"},
-            {"top_f_188", "Пуховик модницы #3"},
-            {"top_f_189", "Рубашка с рукавами"},
-            {"top_f_191", "Платье модницы"},
-            {"top_f_192", "Платье модницы #2"},
-            {"top_f_193", "Пиджак разноцветный"},
-            {"top_f_194", "Рубашка гавайская"},
-            {"top_f_195", "Худи тусовщицы"},
-            {"top_f_196", "Бомбер с тигром"},
-            {"top_f_197", "Бомбер Cayo Perico"},
-            {"top_f_198", "Жилет на молнии брендированный"},
-            {"top_f_199", "Куртка дутая брендированная"},
-            {"top_f_200", "Куртка автолюбительницы"},
-            {"top_f_201", "Худи автолюбительнцы"},
-            {"top_f_202", "Регби брендированная"},
-            {"top_f_203", "Футболка автолюбительнцы"},
-            {"top_f_204", "Ветровка автолюбительницы"},
-            {"top_f_205", "Кожанка глянцевая"},
-            {"top_f_206", "Кожанка на молнии"},
-            {"top_f_207", "Куртка Broker"},
-            {"top_f_208", "Куртка Sweatbox"},
-            {"top_f_209", "Блуза без рукавов"},
-            {"top_f_210", "Блуза без рукавов #2"},
-
-            {"under_m_0", "Футболка стандартная"},
-            {"under_m_1", "Майка стандартная"},
-            {"under_m_2", "Футболка обычная"},
-            {"under_m_3", "Кофта обычная"},
-            {"under_m_4", "Поло обычное"},
-            {"under_m_5", "Рубашка свободная"},
-            {"under_m_6", "Рубашка на выпуск"},
-            {"under_m_7", "Майка обычная"},
-            {"under_m_8", "Свитшот"},
-            {"under_m_9", "Поло с рисунками"},
-            {"under_m_10", "Рубашка на выпуск"},
-            {"under_m_11", "Рубашка с подтяжками"},
-            {"under_m_12", "Футболка обычная #2"},
-            {"under_m_13", "Рубашка приталенная"},
-            {"under_m_14", "Рубашка приталенная #2"},
-            {"under_m_15", "Футболка золотая"},
-            {"under_m_16", "Футболка модника"},
-            {"under_m_17", "Рубашка с жилетом"},
-            {"under_m_18", "Рубашка обычная"},
-            {"under_m_19", "Рубашка с разноцветным жилетом"},
-            {"under_m_20", "Рубашка под смокинг"},
-            {"under_m_21", "Рубашка с жилетом USA"},
-            {"under_m_22", "Рубашка нараспашку"},
-            {"under_m_24", "Рубашка под жилетку #2"},
-            {"under_m_25", "Рубашка под жилетку #3"},
-            {"under_m_26", "Рубашка под жилетку #4"},
-            {"under_m_27", "null"},
-            {"under_m_28", "null"},
-            {"under_m_29", "null"},
-            {"under_m_30", "null"},
-            {"under_m_31", "null"},
-            {"under_m_32", "null"},
-            {"under_m_33", "null"},
-            {"under_m_34", "null"},
-            {"under_m_35", "null"},
-
-            {"under_f_0", "Майка дизайнерская"},
-            {"under_f_1", "Футболка на выпуск"},
-            {"under_f_2", "Майка с принтами"},
-            {"under_f_3", "Футболка облегающая"},
-            {"under_f_4", "Футболка USA"},
-            {"under_f_5", "Свитшот"},
-            {"under_f_6", "Кофта обычная"},
-            {"under_f_7", "Водолазка"},
-            {"under_f_8", "Футболка обычная"},
-            {"under_f_9", "Футболка черная"},
-            {"under_f_10", "Корсет с кружевами"},
-            {"under_f_11", "Майка с принтами #2"},
-            {"under_f_12", "Футболка модницы"},
-            {"under_f_13", "Футболка золотая"},
-            {"under_f_14", "Майка модницы"},
-            {"under_f_15", "Корсет с принтами"},
-            {"under_f_16", "Рубашка обычная"},
-            {"under_f_17", "Рубашка в разноцветном жилете"},
-            {"under_f_18", "Корсет с принтами #2"},
-            {"under_f_19", "Блузка с принтами"},
-            {"under_f_20", "Майка спортивная"},
-            {"under_f_21", "Рубашка обычная #2"},
-            {"under_f_22", "Футболка цветная"},
-            {"under_f_23", "Футболка Xmas Criminal"},
-            {"under_f_24", "Рубашка обычная #3"},
-
-            {"pants_m_0", "Джинсы обычные"},
-            {"pants_m_1", "Джинсы свободные"},
-            {"pants_m_2", "Спортивные штаны"},
-            {"pants_m_3", "Джинсы джогеры"},
-            {"pants_m_4", "Свободные спортивные штаны"},
-            {"pants_m_5", "Шорты на веревках"},
-            {"pants_m_6", "Джинсы очень свободные"},
-            {"pants_m_7", "Мятые брюки"},
-            {"pants_m_8", "Брюки с карманами"},
-            {"pants_m_9", "Шорты обычные"},
-            {"pants_m_10", "Шорты беговые"},
-            {"pants_m_11", "Бриджи с карманами"},
-            {"pants_m_12", "Бриджи с принтами"},
-            {"pants_m_13", "Бриджи обычные"},
-            {"pants_m_14", "Шорты беговые #2"},
-            {"pants_m_15", "Брюки хулигана"},
-            {"pants_m_16", "Брюки карго"},
-            {"pants_m_17", "Брюки хаки"},
-            {"pants_m_18", "Трико"},
-            {"pants_m_19", "Шорты длинные"},
-            {"pants_m_20", "Джинсы бандитские"},
-            {"pants_m_21", "Штаны спортивки"},
-            {"pants_m_22", "Штаны с принтами"},
-            {"pants_m_23", "Шорты хулигана"},
-            {"pants_m_24", "Штаны гонщика"},
-            {"pants_m_25", "Штаны с принтами #2"},
-            {"pants_m_26", "Штаны байкерские"},
-            {"pants_m_27", "Штаны байкерские #2"},
-            {"pants_m_28", "Джинсы рваные"},
-            {"pants_m_29", "Штаны хулигана на веревках"},
-            {"pants_m_30", "Штаны хулигана на веревках #2"},
-            {"pants_m_31", "Бриджи зауженные"},
-            {"pants_m_32", "Джинсы хулигана"},
-            {"pants_m_33", "Комбинезон"},
-            {"pants_m_34", "Штаны разноцветные"},
-            {"pants_m_35", "Штаны пижамные модника"},
-            {"pants_m_36", "Шорты модника"},
-            {"pants_m_37", "Штаны спортивные"},
-            {"pants_m_38", "Кимоно (М)"},
-            {"pants_m_39", "Штаны хаки разноцветные"},
-            {"pants_m_40", "Джинсы ретро"},
-            {"pants_m_41", "Джинсы старого стиля"},
-            {"pants_m_42", "Штаны с веревками"},
-            {"pants_m_43", "Штаны хулигана на веревках #2"},
-            {"pants_m_44", "Шорты баскетбольные"},
-            {"pants_m_45", "Брюки обычные"},
-            {"pants_m_46", "Брюки свободные"},
-            {"pants_m_47", "Брюки классические"},
-            {"pants_m_48", "Брюки классические #2"},
-            {"pants_m_49", "Брюки классические свободные"},
-            {"pants_m_50", "Брюки зауженные"},
-            {"pants_m_51", "Брюки вельветовые"},
-            {"pants_m_52", "Брюки слаксы"},
-            {"pants_m_53", "Брюки вельветовые #2"},
-            {"pants_m_54", "Брюки хаки #2"},
-            {"pants_m_55", "Штаны модника"},
-            {"pants_m_56", "Брюки слаксы #2"},
-            {"pants_m_57", "Бриджи модника"},
-            {"pants_m_58", "Брюки с узорами"},
-            {"pants_m_59", "Шорты для бега с принтами"},
-            {"pants_m_60", "Бриджи с цепочкой"},
-            {"pants_m_61", "Брюки модника"},
-            {"pants_m_62", "Брюки вельветовые разноцветные"},
-            {"pants_m_63", "Брюки классические разноцветные"},
-            {"pants_m_64", "Брюки с узорами"},
-            {"pants_m_65", "Брюки слаксы разноцветные"},
-            {"pants_m_66", "Брюки слаксы с узорами"},
-            {"pants_m_67", "Штаны модника c принтами"},
-            {"pants_m_68", "Кимоно модника"},
-            {"pants_m_69", "Брюки дизайнерские"},
-            {"pants_m_70", "Джоггеры модника"},
-            {"pants_m_71", "Джоггеры модника #2"},
-            {"pants_m_72", "Джоггеры модника #3"},
-            {"pants_m_73", "Слаксы современные"},
-            {"pants_m_74", "Слаксы современные #2"},
-            {"pants_m_75", "Слаксы кислотные"},
-
-            {"pants_f_0", "Джинсы обычные"},
-            {"pants_f_1", "Джинсы свободные"},
-            {"pants_f_2", "Спортивные штаны"},
-            {"pants_f_3", "Джоггеры"},
-            {"pants_f_4", "Юбка обычная"},
-            {"pants_f_5", "Юбка строгая"},
-            {"pants_f_6", "Юбка с принтами"},
-            {"pants_f_7", "Шорты обычные"},
-            {"pants_f_8", "Трусы с принтами"},
-            {"pants_f_9", "Чулки"},
-            {"pants_f_10", "Брюки вельветовые"},
-            {"pants_f_11", "Юбка укороченная"},
-            {"pants_f_12", "Шорты в обтяжку"},
-            {"pants_f_13", "Шорты в обтяжку #2"},
-            {"pants_f_14", "Штаны зауженные"},
-            {"pants_f_15", "Юбка кимоно"},
-            {"pants_f_16", "Штаны спортивки"},
-            {"pants_f_17", "Штаны свободные с принтами"},
-            {"pants_f_18", "Штаны обычные с принтами"},
-            {"pants_f_19", "Штаны с низкой посадкой"},
-            {"pants_f_20", "Штаны карго с принтами"},
-            {"pants_f_21", "Джинсы Slim"},
-            {"pants_f_22", "Джинсы Skinny"},
-            {"pants_f_23", "Джинсы хулиганки"},
-            {"pants_f_24", "Леггинсы с принтами"},
-            {"pants_f_25", "Штаны кокетки"},
-            {"pants_f_26", "Брюки хаки"},
-            {"pants_f_27", "Штаны гонщицы"},
-            {"pants_f_28", "Штаны хулиганки на веревках"},
-            {"pants_f_29", "Штаны хулиганки на веревках #2"},
-            {"pants_f_30", "Комбинезон"},
-            {"pants_f_31", "Чулки кружевные"},
-            {"pants_f_32", "Леопардовое мини"},
-            {"pants_f_33", "Мини в полоску"},
-            {"pants_f_34", "Бриджи Military"},
-            {"pants_f_35", "Юбка карандаш легкая"},
-            {"pants_f_36", "Брюки с боковыми разрезами"},
-            {"pants_f_37", "Брюки льняные"},
-            {"pants_f_38", "Брюки облегающие прямые"},
-            {"pants_f_39", "Леггинсы матовые"},
-            {"pants_f_40", "Широкие спортивные штаны"},
-            {"pants_f_41", "Штаны хаки разноцветные"},
-            {"pants_f_42", "Штаны мятые прямые"},
-            {"pants_f_43", "Бриджи хулиганки на веревках"},
-            {"pants_f_44", "Бриджи на веревках"},
-            {"pants_f_45", "Штаны хулиганки кожаные"},
-            {"pants_f_46", "Комбинезон джинсовый"},
-            {"pants_f_47", "Брюки цветные с порезами"},
-            {"pants_f_48", "Шорты баскетбольные"},
-            {"pants_f_49", "Брюки обычные"},
-            {"pants_f_50", "Трусы с кружевами"},
-            {"pants_f_51", "Шорты джинсовые с принтами"},
-            {"pants_f_52", "Юбка строгая с принтами"},
-            {"pants_f_53", "Брюки свободные"},
-            {"pants_f_54", "Брюки узкие"},
-            {"pants_f_55", "Брюки классически #2"},
-            {"pants_f_56", "Юбка классическая"},
-            {"pants_f_57", "Трусы модницы"},
-            {"pants_f_58", "Трусы Кюлот"},
-            {"pants_f_59", "Брюки слаксы"},
-            {"pants_f_60", "Чулки со швом"},
-            {"pants_f_61", "Штаны Skinny"},
-            {"pants_f_62", "Юбка модницы"},
-            {"pants_f_63", "Шорты с чулками"},
-            {"pants_f_64", "Штаны с принтами"},
-            {"pants_f_65", "Штаны Skinny #2"},
-            {"pants_f_66", "Штаны с рисунками"},
-            {"pants_f_67", "Кимоно с рисунками"},
-            {"pants_f_68", "Чиносы современные"},
-            {"pants_f_69", "Брюки строгие"},
-            {"pants_f_70", "Чиносы легкие"},
-            {"pants_f_71", "Чиносы льняные"},
-            {"pants_f_72", "Брюки Skinny глянцевые"},
-            {"pants_f_73", "Брюки Skinny кожаные"},
-            {"pants_f_74", "Шорты модницы с принтами"},
-            {"pants_f_75", "Шорты длинные с принтами"},
-            {"pants_f_76", "Брюки облегающие с узором"},
-            {"pants_f_77", "Леггинсы с узором"},
-            {"pants_f_78", "Брюки Метро"},
-            {"pants_f_79", "Джоггеры модницы"},
-            {"pants_f_80", "Джоггеры модницы #2"},
-            {"pants_f_81", "Джоггеры модницы #3"},
-            {"pants_f_82", "Слаксы современные"},
-            {"pants_f_83", "Слаксы современные #2"},
-            {"pants_f_84", "Слаксы кислотные"},
-
-            {"shoes_m_0", "Кроссовки обычные"},
-            {"shoes_m_1", "Кеды"},
-            {"shoes_m_2", "Сланцы"},
-            {"shoes_m_3", "Шлёпки с носками"},
-            {"shoes_m_4", "Кроссовки скейтерские"},
-            {"shoes_m_5", "Кроссовки спортивные"},
-            {"shoes_m_6", "Сапоги Челси"},
-            {"shoes_m_7", "Кеды большие"},
-            {"shoes_m_8", "Берцы"},
-            {"shoes_m_9", "Берцы #2"},
-            {"shoes_m_10", "Кеды обычные"},
-            {"shoes_m_11", "Кеды с шипами"},
-            {"shoes_m_12", "Кроссовки для бега"},
-            {"shoes_m_13", "Кроссовки высокие"},
-            {"shoes_m_14", "Сапоги"},
-            {"shoes_m_15", "Кроссовки скользящие"},
-            {"shoes_m_16", "Кроссовки с ремешком"},
-            {"shoes_m_17", "Сапоги байкерские"},
-            {"shoes_m_18", "Сапоги низкие"},
-            {"shoes_m_19", "Кроссовки с язычком"},
-            {"shoes_m_20", "Тапочки с подсветкой"},
-            {"shoes_m_21", "Кроссовки боксерки"},
-            {"shoes_m_22", "Сапоги разноцветные"},
-            {"shoes_m_23", "Сапоги с принтами"},
-            {"shoes_m_24", "Сапоги с принтами укороченные"},
-            {"shoes_m_25", "Кеды с носками"},
-            {"shoes_m_26", "Потрёпанные берцы"},
-            {"shoes_m_27", "Ботинки брутальные"},
-            {"shoes_m_28", "Ботинки брутальные укороченные"},
-            {"shoes_m_29", "Тапочки с подсветкой #2"},
-            {"shoes_m_30", "Казаки кожаные"},
-            {"shoes_m_31", "Казаки кожаные укороченные"},
-            {"shoes_m_32", "Хайкеры низкие с двойной шнуровкой"},
-            {"shoes_m_33", "Хайкеры высокие на шнуровке"},
-            {"shoes_m_34", "Хайкеры на шнуровке укороченные"},
-            {"shoes_m_35", "Хайкеры крепкие на шнуровке"},
-            {"shoes_m_36", "Хайкеры крепкие на шнуровке укороченные"},
-            {"shoes_m_37", "Хайкеры разноцветные"},
-            {"shoes_m_38", "Ботинки высокие на шнуровке"},
-            {"shoes_m_39", "Ботинки без шнуровки"},
-            {"shoes_m_40", "Походные ботинки со шнуровкой"},
-            {"shoes_m_41", "Походные ботинки со шнуровкой укороченные"},
-            {"shoes_m_42", "Ботинки прорезиненные"},
-            {"shoes_m_43", "Ботинки прорезиненные укороченные"},
-            {"shoes_m_44", "Кеды с белыми вставками"},
-            {"shoes_m_45", "Ботинки зимние высокие"},
-            {"shoes_m_46", "Ботинки зимние укороченные"},
-            {"shoes_m_47", "Высокие сапоги без шнуровки"},
-            {"shoes_m_48", "Мокасины"},
-            {"shoes_m_49", "Оксфорды черные"},
-            {"shoes_m_50", "Ботинки из замши"},
-            {"shoes_m_51", "Оксфорды разноцветные"},
-            {"shoes_m_52", "Лоферы"},
-            {"shoes_m_53", "Топсайдеры"},
-            {"shoes_m_54", "Лоферы с пряжками"},
-            {"shoes_m_55", "Кроссовки с подсветкой"},
-            {"shoes_m_56", "Кроссовки модника"},
-            {"shoes_m_57", "Кроссовки модника укороченные"},
-            {"shoes_m_58", "Кроссовки модника #2"},
-            {"shoes_m_59", "Кроссовки с подсветкой #2"},
-            {"shoes_m_60", "Кроссовки модника #2 укороченные"},
-            {"shoes_m_61", "Двухцветные лоферы"},
-            {"shoes_m_62", "Черно-белые оксфорды"},
-            {"shoes_m_63", "Оксфорды с носками цветные"},
-            {"shoes_m_64", "Джодпуры черно-белые"},
-            {"shoes_m_65", "Кроссовки дутые глянцевые"},
-            {"shoes_m_66", "Слипперы красные"},
-            {"shoes_m_67", "Ботинки модника с вставками"},
-            {"shoes_m_68", "Кроссовки-носки модника"},
-            {"shoes_m_69", "Слипоны с бананами"},
-            {"shoes_m_70", "Кроссовки автолюбителя"},
-
-            {"shoes_f_0", "Кроссовки обычные"},
-            {"shoes_f_1", "Валенки"},
-            {"shoes_f_2", "Кеды обычные"},
-            {"shoes_f_3", "Кроссовки спортивные"},
-            {"shoes_f_4", "Сланцы"},
-            {"shoes_f_5", "Туфли закрытые"},
-            {"shoes_f_6", "Сапоги высокие"},
-            {"shoes_f_7", "Кроссовки баскетбольные"},
-            {"shoes_f_8", "Балетки"},
-            {"shoes_f_9", "Сандалии"},
-            {"shoes_f_10", "Сапоги разноцветные"},
-            {"shoes_f_11", "Туфли с 2 язычком"},
-            {"shoes_f_12", "Ботильоны"},
-            {"shoes_f_13", "Кеды закрытые"},
-            {"shoes_f_14", "Ботинки дезерты"},
-            {"shoes_f_15", "Кроссовки на высокой подошве"},
-            {"shoes_f_16", "Ботильоны #2"},
-            {"shoes_f_17", "Кроссовки скейтерские"},
-            {"shoes_f_18", "Тапочки с подсветкой"},
-            {"shoes_f_19", "Кроссовки боксерки"},
-            {"shoes_f_20", "Сапоги сникерсы"},
-            {"shoes_f_21", "Сапоги байкерские"},
-            {"shoes_f_22", "Ботинки высокие"},
-            {"shoes_f_23", "Казаки"},
-            {"shoes_f_24", "Валенки"},
-            {"shoes_f_25", "Казаки #2"},
-            {"shoes_f_26", "Казаки #1 укороченные"},
-            {"shoes_f_27", "Казаки #2 укороченные"},
-            {"shoes_f_28", "Берцы"},
-            {"shoes_f_29", "Берцы укороченные"},
-            {"shoes_f_30", "Берцы #2"},
-            {"shoes_f_31", "Берцы #2 укороченные"},
-            {"shoes_f_32", "Хайкеры крепкие на шнуровке"},
-            {"shoes_f_33", "Хайкеры крепкие на шнуровке укороченные"},
-            {"shoes_f_34", "Походные ботинки со шнуровкой"},
-            {"shoes_f_35", "Походные ботинки со шнуровкой укороченные"},
-            {"shoes_f_36", "Сапоги с принтами"},
-            {"shoes_f_37", "Сапоги с принтами укороченные"},
-            {"shoes_f_38", "Кеды простые"},
-            {"shoes_f_39", "Кеды беговые"},
-            {"shoes_f_40", "Полусапожки"},
-            {"shoes_f_41", "Полусапожки укороченные"},
-            {"shoes_f_42", "Тапочки с подсветкой #2"},
-            {"shoes_f_43", "Ботинки брутальные"},
-            {"shoes_f_44", "Ботинки брутальные укороченные"},
-            {"shoes_f_45", "Ботинки прорезиненные"},
-            {"shoes_f_46", "Ботинки прорезиненные укороченные"},
-            {"shoes_f_47", "Туфли обычные"},
-            {"shoes_f_48", "Туфли Стилеты"},
-            {"shoes_f_49", "Туфли Lita"},
-            {"shoes_f_50", "Кроссовки спортивные #2"},
-            {"shoes_f_51", "Туфли открытые"},
-            {"shoes_f_52", "Туфли на шпильках"},
-            {"shoes_f_53", "Лодочки"},
-            {"shoes_f_54", "Сапоги Хайкеры"},
-            {"shoes_f_55", "Лоферы"},
-            {"shoes_f_56", "Туфли на платформе"},
-            {"shoes_f_57", "Кроссовки позолоченные"},
-            {"shoes_f_58", "Кроссовки с подсветкой"},
-            {"shoes_f_59", "Кроссовки модницы"},
-            {"shoes_f_60", "Кроссовки модницы укороченные"},
-            {"shoes_f_61", "Кроссовки с подсветкой #2"},
-            {"shoes_f_62", "Кроссовки модницы #2"},
-            {"shoes_f_63", "Кроссовки модницы #2 укороченные"},
-            {"shoes_f_64", "Сапоги с узорами"},
-            {"shoes_f_65", "Сапоги с узорами укороченные"},
-            {"shoes_f_66", "Туфли с носками"},
-            {"shoes_f_67", "Сапоги высокие с застежками"},
-            {"shoes_f_68", "Сапоги укороченные с застежками"},
-            {"shoes_f_69", "Сапоги высокие на шнуровке"},
-            {"shoes_f_70", "Ботинки высокие кожаные"},
-            {"shoes_f_71", "Походные ботинки"},
-            {"shoes_f_72", "Кроссовки с белыми вставками"},
-            {"shoes_f_73", "Кроссовки с застежкой"},
-            {"shoes_f_74", "Кроссовки-носки модницы"},
-            {"shoes_f_75", "Высокие сапоги без шнуровки"},
-            {"shoes_f_76", "Слипоны модницы"},
-            {"shoes_f_77", "Слипоны с бананами"},
-            {"shoes_f_78", "Туфли на шпильке с ремешком"},
-            {"shoes_f_79", "Кроссовки автолюбителя"},
-
-            {"hat_m_0", "Шапка обычная"},
-            {"hat_m_1", "Панама"},
-            {"hat_m_2", "Кепка Snapback"},
-            {"hat_m_3", "Шапка трикотажная"},
-            {"hat_m_4", "Шапка восьмиклинка"},
-            {"hat_m_5", "Кепка козырьком назад"},
-            {"hat_m_6", "Бандана"},
-            {"hat_m_7", "Наушники"},
-            {"hat_m_8", "Панама с принтами"},
-            {"hat_m_9", "Шляпа USA"},
-            {"hat_m_10", "Цилиндр USA"},
-            {"hat_m_11", "Шапка USA"},
-            {"hat_m_12", "Каска болельщика"},
-            {"hat_m_13", "Кепка Snapback #2"},
-            {"hat_m_14", "Кепка с принтами"},
-            {"hat_m_15", "Кепка дизайнерская"},
-            {"hat_m_16", "Кепка SecuroServ"},
-            {"hat_m_17", "Бандана байкерская"},
-            {"hat_m_18", "Панама разноцветная"},
-            {"hat_m_19", "Шапка трикотажная #2"},
-            {"hat_m_20", "Кепка Diamond"},
-            {"hat_m_21", "Шлем с принтами"},
-            {"hat_m_22", "Шлем обычный"},
-            {"hat_m_23", "Шлем зеркальный"},
-            {"hat_m_24", "Шлем разноцветный"},
-            {"hat_m_25", "Шлем It's Go Time"},
-            {"hat_m_26", "Шлем It's Go Time #2"},
-            {"hat_m_27", "Шлем модника"},
-            {"hat_m_28", "Каска байкерская #2"},
-            {"hat_m_29", "Каска байкерская #2 (козырёк)"},
-            {"hat_m_30", "Каска байкерская #2 (ирокез)"},
-            {"hat_m_31", "Каска байкерская #2 (шипы)"},
-            {"hat_m_32", "Кепка брендовая #1"},
-            {"hat_m_33", "Кепка брендовая #2"},
-            {"hat_m_34", "Кепка брендовая #3"},
-            {"hat_m_35", "Кепка с принтами #2"},
-            {"hat_m_36", "Кепка цветная"},
-            {"hat_m_37", "Кепка современная"},
-            {"hat_m_38", "Элегантная панама"},
-            {"hat_m_39", "Ковбойская шляпа"},
-            {"hat_m_40", "Порк-пай"},
-            {"hat_m_41", "Шляпа с бабочкой"},
-            {"hat_m_42", "Котелок"},
-            {"hat_m_43", "Цилиндр"},
-            {"hat_m_44", "Трилби"},
-            {"hat_m_45", "Борсалино"},
-            {"hat_m_46", "Цилиндр USA #2"},
-            {"hat_m_47", "Кепка Snapback модника"},
-            {"hat_m_48", "Хомбург"},
-            {"hat_m_49", "Хомбург с принтами"},
-            {"hat_m_50", "Каска байкерская"},
-            {"hat_m_51", "Каска байкерская #3"},
-            {"hat_m_52", "Каска байкерская (металлик)"},
-            {"hat_m_53", "Кепка модника"},
-            {"hat_m_54", "Кепка автолюбителя"},
-
-            {"hat_f_0", "Шапка обычная"},
-            {"hat_f_1", "Шапка с принтами"},
-            {"hat_f_2", "Фуражка"},
-            {"hat_f_3", "Восьмиклинка"},
-            {"hat_f_4", "Шляпа фермерская"},
-            {"hat_f_5", "Панама"},
-            {"hat_f_6", "Шляпа пляжная"},
-            {"hat_f_7", "Наушники"},
-            {"hat_f_8", "Шляпа USA"},
-            {"hat_f_9", "Цилиндр USA"},
-            {"hat_f_10", "Шапка USA"},
-            {"hat_f_11", "Каска болельщицы"},
-            {"hat_f_12", "Кепка Snapback"},
-            {"hat_f_13", "Кепка Snapback #2"},
-            {"hat_f_14", "Кепка дизайнерская"},
-            {"hat_f_15", "Кепка SecuroServ"},
-            {"hat_f_16", "Бандана байкерская"},
-            {"hat_f_17", "Панама с принтами"},
-            {"hat_f_18", "Кепка модницы"},
-            {"hat_f_19", "Кепка Diamond"},
-            {"hat_f_20", "Шлем с принтами"},
-            {"hat_f_21", "Шлем зеркальный"},
-            {"hat_f_22", "Шлем обычный"},
-            {"hat_f_23", "Шлем разноцветный"},
-            {"hat_f_24", "Шлем It's Go Time"},
-            {"hat_f_25", "Шлем It's Go Time #2"},
-            {"hat_f_26", "Шлем модницы"},
-            {"hat_f_27", "Каска байкерская #2"},
-            {"hat_f_28", "Каска байкерская #2 (козырек)"},
-            {"hat_f_29", "Каска байкерская #2 (ирокез)"},
-            {"hat_f_30", "Каска байкерская #2 (шипы)"},
-            {"hat_f_31", "Кепка брендовая"},
-            {"hat_f_32", "Кепка брендовая #2"},
-            {"hat_f_33", "Кепка брендовая #3"},
-            {"hat_f_34", "Кепка цветная"},
-            {"hat_f_35", "Панама разноцветная"},
-            {"hat_f_36", "Кепка современная"},
-            {"hat_f_37", "Элегантная шляпа"},
-            {"hat_f_38", "Элегантная панама"},
-            {"hat_f_39", "Порк-пай"},
-            {"hat_f_40", "Котелок"},
-            {"hat_f_41", "Цилиндр"},
-            {"hat_f_42", "Трилби"},
-            {"hat_f_43", "Цилиндр USA #2"},
-            {"hat_f_44", "Кепка модницы #2"},
-            {"hat_f_45", "Хомбург"},
-            {"hat_f_46", "Каска байкерская"},
-            {"hat_f_47", "Каска байкерская #3"},
-            {"hat_f_48", "Каска байкерская (металлик)"},
-            {"hat_f_49", "Кепка автолюбителя"},
-
-            {"accs_m_0", "Цепочка Бисмарк"},
-            {"accs_m_1", "Цепочка Бисмарк #2"},
-            {"accs_m_2", "Шарф"},
-            {"accs_m_3", "Цепочка с балаклавой"},
-            {"accs_m_4", "Цепочка с якорным плетением"},
-            {"accs_m_5", "Цепь плетение Фигаро"},
-            {"accs_m_6", "Цепь плетение Ролло"},
-            {"accs_m_7", "Цепь M"},
-            {"accs_m_8", "Шарф Арафатка"},
-            {"accs_m_9", "Наушники"},
-            {"accs_m_10", "Цепь с колесом"},
-            {"accs_m_11", "Наушники #2"},
-            {"accs_m_12", "Галстук пионера"},
-            {"accs_m_13", "Галстук Виндзор"},
-            {"accs_m_14", "Бабочка"},
-            {"accs_m_15", "Узкий галстук"},
-            {"accs_m_16", "Галстук Виндзор длинный"},
-            {"accs_m_17", "Галстук Виндзор узкий"},
-            {"accs_m_18", "Бабочка цветная"},
-            {"accs_m_19", "Галстук Регат"},
-            {"accs_m_20", "Галстук обычный"},
-            {"accs_m_21", "Галстук Регат удлиненный"},
-            {"accs_m_22", "Аккуратная бабочка"},
-
-            {"accs_f_0", "Шарф Арафатка"},
-            {"accs_f_1", "Шарф Арафатка #2"},
-            {"accs_f_2", "Шарф Арафатка #3"},
-            {"accs_f_3", "Наушники"},
-            {"accs_f_4", "Наушники #2"},
-            {"accs_f_5", "Галстук пионера"},
-            {"accs_f_6", "Бусы длинные"},
-            {"accs_f_7", "Галстук Французский"},
-            {"accs_f_8", "Галстук Stillini"},
-            {"accs_f_9", "Строгий галстук"},
-            {"accs_f_10", "Строгий дизайнерский галстук"},
-            {"accs_f_11", "Бабочка"},
-
-            {"watches_m_0", "Спортивные часы"},
-            {"watches_m_1", "Классические часы"},
-            {"watches_m_2", "Спортивные часы #2"},
-            {"watches_m_3", "Часы угловатые"},
-            {"watches_m_4", "Часы с механизмом кинетик"},
-            {"watches_m_5", "Часы обычные"},
-            {"watches_m_6", "Часы с картинками"},
-            {"watches_m_7", "Часы аккуратные"},
-            {"watches_m_8", "Часы с большим циферблатом"},
-            {"watches_m_9", "Часы с механизмом кинетик #2"},
-            {"watches_m_10", "Часы смарт"},
-            {"watches_m_11", "Часы квадратные"},
-            {"watches_m_12", "Механические часы"},
-            {"watches_m_13", "Хронометр"},
-            {"watches_m_14", "Хронограф"},
-            {"watches_m_15", "Часы двойные"},
-            {"watches_m_16", "Хронограф #2"},
-            {"watches_m_17", "Часы с большим циферблатом #2"},
-            {"watches_m_18", "Часы необычные #2"},
-            {"watches_m_19", "Механические часы #2"},
-            {"watches_m_20", "Хронограф #3"},
-            {"watches_m_21", "Часы солидные"},
-            {"watches_m_22", "MIDO"},
-            {"watches_m_23", "Tudor"},
-            {"watches_m_24", "Longines"},
-            {"watches_m_25", "TAG"},
-
-            {"watches_f_0", "Diesel"},
-            {"watches_f_1", "Skagen"},
-            {"watches_f_2", "Часы шестиугольные"},
-            {"watches_f_3", "Часы с механизмом кинетик"},
-            {"watches_f_4", "Часы спортивные"},
-            {"watches_f_5", "Часы круглые"},
-            {"watches_f_6", "Часы аккуратные"},
-            {"watches_f_7", "Часы с большим циферблатом"},
-            {"watches_f_8", "Часы позолоченные"},
-            {"watches_f_9", "Seiko"},
-            {"watches_f_10", "Часы позолоченные #2"},
-            {"watches_f_11", "Часы солидные"},
-            {"watches_f_12", "MIDO"},
-            {"watches_f_13", "Tudor"},
-            {"watches_f_14", "Longines"},
-            {"watches_f_15", "Часы круглые"},
-
-            {"glasses_m_0", "Спортивные очки"},
-            {"glasses_m_1", "Очки Панто"},
-            {"glasses_m_2", "Спортивные очки #2"},
-            {"glasses_m_3", "Прямоугольные очки"},
-            {"glasses_m_4", "Очки Авиаторы обычные"},
-            {"glasses_m_5", "Спортивные очки #3"},
-            {"glasses_m_6", "Очки обычные"},
-            {"glasses_m_7", "Очки Авиаторы обычные #2"},
-            {"glasses_m_8", "Очки USA"},
-            {"glasses_m_9", "Очки USA #2"},
-            {"glasses_m_10", "Спортивные очки"},
-            {"glasses_m_11", "Browline"},
-            {"glasses_m_12", "Авиаторы"},
-            {"glasses_m_13", "Wayfarer"},
-            {"glasses_m_14", "Авиаторы #2"},
-            {"glasses_m_15", "Прямоугольные очки #2"},
-            {"glasses_m_16", "Прямоугольные очки #3"},
-            {"glasses_m_17", "Wayfarer #2"},
-            {"glasses_m_18", "Авиаторы защищенные"},
-            {"glasses_m_19", "Очки модника"},
-            {"glasses_m_20", "Очки неоновые"},
-            {"glasses_m_21", "Очки клубные"},
-            {"glasses_m_22", "Очки современные"},
-            {"glasses_m_23", "Очки модника #2"},
-
-            {"glasses_f_0", "Прямоугольные очки"},
-            {"glasses_f_1", "Спортивные очки"},
-            {"glasses_f_2", "Круглые очки"},
-            {"glasses_f_3", "Очки-кошки"},
-            {"glasses_f_4", "Овальные очки"},
-            {"glasses_f_5", "Спортивные очки #2"},
-            {"glasses_f_6", "Очки USA"},
-            {"glasses_f_7", "Очки USA #2"},
-            {"glasses_f_8", "Очки переплетающиеся"},
-            {"glasses_f_9", "Очки строгие"},
-            {"glasses_f_10", "Очки строгие #2"},
-            {"glasses_f_11", "Очки DS"},
-            {"glasses_f_12", "Очки DS #2"},
-            {"glasses_f_13", "Авиаторы"},
-            {"glasses_f_14", "Очки-кошки #2"},
-            {"glasses_f_15", "Wayfarer"},
-            {"glasses_f_16", "Wayfarer #2"},
-            {"glasses_f_17", "Wayfarer #3"},
-            {"glasses_f_18", "Прямоугольные очки #2"},
-            {"glasses_f_19", "Овальные очки #2"},
-            {"glasses_f_20", "Авиаторы защищенные"},
-            {"glasses_f_21", "Очки модницы"},
-            {"glasses_f_22", "Очки неоновые"},
-            {"glasses_f_23", "Очки клубные"},
-            {"glasses_f_24", "Очки современные"},
-            {"glasses_f_25", "Очки модницы #2"},
-
-            {"gloves_m_0", "Перчатки вязаные"},
-            {"gloves_m_1", "Перчатки без пальцев"},
-            {"gloves_m_2", "Перчатки рабочего"},
-            {"gloves_m_3", "Перчатки вязаные разноцветные"},
-            {"gloves_m_4", "Перчатки резиновые"},
-            {"gloves_m_5", "Перчатки с вырезом"},
-            {"gloves_m_6", "Перчатки из кожи"},
-            {"gloves_m_7", "Перчатки по крою"},
-            {"gloves_m_8", "Перчатки с протектором"},
-
-            {"gloves_f_0", "Перчатки вязаные"},
-            {"gloves_f_1", "Перчатки без пальцев"},
-            {"gloves_f_2", "Перчатки рабочего"},
-            {"gloves_f_3", "Перчатки вязаные разноцветные"},
-            {"gloves_f_4", "Перчатки резиновые"},
-            {"gloves_f_5", "Перчатки с вырезом"},
-            {"gloves_f_6", "Перчатки из кожи"},
-            {"gloves_f_7", "Перчатки по крою"},
-            {"gloves_f_8", "Перчатки с протектором"},
-
-            {"bracelet_m_0", "Плетеный браслет"},
-            {"bracelet_m_1", "Плетеный браслет #2"},
-            {"bracelet_m_2", "Жесткое плетение"},
-            {"bracelet_m_3", "Плетение с черепами"},
-            {"bracelet_m_4", "Плетение Z"},
-            {"bracelet_m_5", "Плетение с браслетом"},
-            {"bracelet_m_6", "Браслет с шипами"},
-            {"bracelet_m_7", "Кожаный напульсник"},
-            {"bracelet_m_8", "Светящиеся браслеты"},
-
-            {"bracelet_f_0", "Золотой браслет"},
-            {"bracelet_f_1", "Золотой браслет #2"},
-            {"bracelet_f_2", "Золотой браслет #3"},
-            {"bracelet_f_3", "Золотой браслет #4"},
-            {"bracelet_f_4", "Золотой браслет #5"},
-            {"bracelet_f_5", "Золотой браслет #6"},
-            {"bracelet_f_6", "Золотой браслет #7"},
-            {"bracelet_f_7", "Плетеный браслет"},
-            {"bracelet_f_8", "Плетеный браслет #2"},
-            {"bracelet_f_9", "Жесткое плетение"},
-            {"bracelet_f_10", "Плетение с черепами"},
-            {"bracelet_f_11", "Плетение Z"},
-            {"bracelet_f_12", "Плетение с браслетом"},
-            {"bracelet_f_13", "Браслет с шипами"},
-            {"bracelet_f_14", "Кожаный напульсник"},
-            {"bracelet_f_15", "Светящиеся браслеты"},
-
-            {"ears_m_0", "Солитер (левый)"},
-            {"ears_m_1", "Солитер (правый)"},
-            {"ears_m_2", "Солитер (оба)"},
-            {"ears_m_3", "Гвоздники (левый)"},
-            {"ears_m_4", "Гвоздники (правый)"},
-            {"ears_m_5", "Гвоздники (оба)"},
-            {"ears_m_6", "Diamond (левый)"},
-            {"ears_m_7", "Diamond (правый)"},
-            {"ears_m_8", "Diamond (оба)"},
-            {"ears_m_9", "Ромб (левый)"},
-            {"ears_m_10", "Ромб (правый)"},
-            {"ears_m_11", "Ромб (оба)"},
-            {"ears_m_12", "Кнопка (левый)"},
-            {"ears_m_13", "Кнопка (правый)"},
-            {"ears_m_14", "Кнопка (оба)"},
-            {"ears_m_15", "Квадрат платиновый (левый)"},
-            {"ears_m_16", "Квадрат платиновый (правый)"},
-            {"ears_m_17", "Квадрат платиновый (оба)"},
-            {"ears_m_18", "Серьги NS (левый)"},
-            {"ears_m_19", "Серьги NS (правый)"},
-            {"ears_m_20", "Серьги NS (оба)"},
-            {"ears_m_21", "Череп (левый)"},
-            {"ears_m_22", "Череп (правый)"},
-            {"ears_m_23", "Череп (оба)"},
-            {"ears_m_24", "Острый цилиндр (левый)"},
-            {"ears_m_25", "Острый цилиндр (правый)"},
-            {"ears_m_26", "Острый цилиндр (оба)"},
-            {"ears_m_27", "Черный сапфир (левый)"},
-            {"ears_m_28", "Серьги NS (левый)"},
-            {"ears_m_29", "Черный сапфир (оба)"},
-            {"ears_m_30", "Позолоченный NS (левый)"},
-            {"ears_m_31", "Позолоченный NS (правый)"},
-            {"ears_m_32", "Позолоченный NS (оба)"},
-            {"ears_m_33", "Микрофоны (оба)"},
-            {"ears_m_34", "Карты (оба)"},
-            {"ears_m_35", "Игральные кости (оба)"},
-            {"ears_m_36", "Игральные фишки (оба)"},
-
-            {"ears_f_0", "Шандельеры"},
-            {"ears_f_1", "Конго"},
-            {"ears_f_2", "Серьги-жирандоль"},
-            {"ears_f_3", "Серьги-протяжки"},
-            {"ears_f_4", "Кластеры"},
-            {"ears_f_5", "Петли"},
-            {"ears_f_6", "Цепочки"},
-            {"ears_f_7", "Петли с камнем"},
-            {"ears_f_8", "Петли снежинки"},
-            {"ears_f_9", "Кнопки"},
-            {"ears_f_10", "Калаши"},
-            {"ears_f_11", "Кольца переплет"},
-            {"ears_f_12", "Кольца"},
-            {"ears_f_13", "Кольца FY"},
-            {"ears_f_14", "Микрофоны"},
-            {"ears_f_15", "Карты"},
-            {"ears_f_16", "Игральные кости"},
-            {"ears_f_17", "Игральные фишки"},
         };
         #endregion
     }

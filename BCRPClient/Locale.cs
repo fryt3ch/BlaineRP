@@ -42,6 +42,8 @@ namespace BCRPClient
             public static class Business
             {
                 public static string InfoColshape = "{0} #{1}";
+
+                public static string NothingItem = "Ничего";
             }
 
             public static class NPC

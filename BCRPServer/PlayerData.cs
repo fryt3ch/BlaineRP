@@ -603,7 +603,7 @@ namespace BCRPServer
         {
             get
             {
-                return AttachedObjects.Where(x => x.Type != Sync.AttachSystem.Types.WeaponRightTight && x.Type != Sync.AttachSystem.Types.WeaponLeftTight && x.Type != Sync.AttachSystem.Types.WeaponRightBack && x.Type != Sync.AttachSystem.Types.WeaponLeftBack).ToList();
+                return AttachedObjects.Where(x => !Sync.AttachSystem.StaticObjectsTypes.Contains(x.Type)).ToList();
             }
         }
         #endregion

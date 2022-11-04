@@ -125,7 +125,7 @@ namespace BCRPClient.CEF
             var iType = Data.Items.GetType(type);
             var imgId = Data.Items.GetImageId(type, iType);
 
-            return new object[] { imgId, iType, new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
+            return new object[] { imgId, Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
         }
        
         private static object[] FillItem(string type, int amount, float weight, string tag, bool inBag = false, bool inContainer = false, bool inTrade = false)
@@ -160,9 +160,9 @@ namespace BCRPClient.CEF
 
             if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType))
             {
-                var data = Data.Clothes.AllClothes[type];
+                var data = Data.Items.GetData(type, iType);
 
-                if (iType == typeof(Data.Items.Hat) && (data as Data.Clothes.Hat).ExtraData != null || iType == typeof(Data.Items.Top) && (data as Data.Clothes.Top).ExtraData != null || iType == typeof(Data.Items.Under) && (data as Data.Clothes.Under).ExtraData != null)
+                if ((data as Data.Items.Hat.ItemData)?.ExtraData != null || (data as Data.Items.Top.ItemData)?.ExtraData != null || (data as Data.Items.Under.ItemData)?.ExtraData != null)
                     actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
             }
 
@@ -1012,7 +1012,7 @@ namespace BCRPClient.CEF
 
             if (type == Types.Inventory)
             {
-                Events.CallRemote("Inventory::Show", true, Player.LocalPlayer.GetAmmoInWeapon(Player.LocalPlayer.GetSelectedWeapon()));
+                Events.CallRemote("Inventory::Show", Player.LocalPlayer.GetAmmoInWeapon(Player.LocalPlayer.GetSelectedWeapon()));
 
                 Events.CallLocal("Inventory::Show", (int)Types.Inventory);
             }

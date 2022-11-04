@@ -947,6 +947,8 @@ namespace BCRPServer
         {
             if (pData != null)
             {
+                var player = pData.Player;
+
                 var offer = pData.ActiveOffer.GetAwaiter().GetResult();
 
                 if (offer != null)
@@ -954,9 +956,12 @@ namespace BCRPServer
                     offer.Cancel(false, false, false);
                 }
 
-                pData.IsAttachedTo?.Entity?.DetachEntity(pData.Player);
+                pData.IsAttachedTo?.Entity?.DetachEntity(player);
 
-                pData.Player.DetachAllEntities();
+                player.DetachAllEntities();
+
+                foreach (var x in pData.ObjectsInHand)
+                    player.DetachObject(x.Id);
 
                 pData.StopAnim();
 
@@ -968,9 +973,7 @@ namespace BCRPServer
 
                     arm.Unwear(pData);
 
-                    NAPI.Player.SpawnPlayer(pData.Player, position, heading);
-
-                    var player = pData.Player;
+                    NAPI.Player.SpawnPlayer(player, position, heading);
 
                     NAPI.Task.Run(() =>
                     {
@@ -983,7 +986,7 @@ namespace BCRPServer
                     }, 500);
                 }
                 else
-                    NAPI.Player.SpawnPlayer(pData.Player, position, heading);
+                    NAPI.Player.SpawnPlayer(player, position, heading);
             }
         }
 

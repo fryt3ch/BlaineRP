@@ -1,4 +1,5 @@
 ﻿using BCRPServer.Game.Bank;
+using BCRPServer.Game.Items;
 using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
@@ -270,7 +271,7 @@ namespace BCRPServer.Sync
                         this.Amount = Amount;
                     }
 
-                    public string ToClientJson() => ItemRoot == null ? "null" : (new object[] { ItemRoot.ID, Amount, Game.Items.Items.GetItemWeight(ItemRoot, false), Game.Items.Items.GetItemTag(ItemRoot) }).SerializeToJson();
+                    public string ToClientJson() => ItemRoot == null ? "null" : (new object[] { ItemRoot.ID, Amount, ItemRoot is IStackable ? ItemRoot.BaseWeight : ItemRoot.Weight, Game.Items.Items.GetItemTag(ItemRoot) }).SerializeToJson();
                 }
 
                 public TradeItem[] SenderItems { get; set; }
@@ -300,15 +301,15 @@ namespace BCRPServer.Sync
                     if (receiverFreeSlots + receiverRemoveSlots < senderItems.Count)
                         return (CEF.Inventory.Results.NoSpace, pData);
 
-                    var senderCurrentWeight = Game.Items.Items.GetWeight(pData.Items);
+                    var senderCurrentWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
 
-                    var senderRemoveWeight = senderItems.Sum(x => x.Amount * Game.Items.Items.GetItemWeight(x.ItemRoot, false));
-                    var receiverRemoveWeight = receiverItems.Sum(x => x.Amount * Game.Items.Items.GetItemWeight(x.ItemRoot, false));
+                    var senderRemoveWeight = senderItems.Sum(x => x.Amount * x.ItemRoot.BaseWeight);
+                    var receiverRemoveWeight = receiverItems.Sum(x => x.Amount * x.ItemRoot.BaseWeight);
 
                     if (senderCurrentWeight - senderRemoveWeight + receiverRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
                         return (CEF.Inventory.Results.NoSpace, pData);
 
-                    var receiverCurrentWeight = Game.Items.Items.GetWeight(tData.Items);
+                    var receiverCurrentWeight = tData.Items.Sum(x => x?.Weight ?? 0f);
 
                     if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
                         return (CEF.Inventory.Results.NoSpace, tData);
