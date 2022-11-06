@@ -1,9 +1,11 @@
 ﻿using GTANetworkAPI;
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace BCRPServer.Sync
 {
@@ -11,6 +13,11 @@ namespace BCRPServer.Sync
     {
         public const string AttachedObjectsKey = "AttachedObjects";
         public const string AttachedEntitiesKey = "AttachedEntities";
+
+        public const string AttachedObjectsIDsKey = AttachedObjectsKey + "::IDs";
+        public const string AttachedObjectsCancelsKey = AttachedObjectsKey + "::Cancels";
+
+        private static object[] EmptyArgs = new object[] { };
 
         public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack };
 
@@ -87,211 +94,415 @@ namespace BCRPServer.Sync
             }
         }
 
-        private static Dictionary<Types[], (Action<Entity, Entity, Types> On, Action<Entity, Entity, Types> Off)> Actions = new Dictionary<Types[], (Action<Entity, Entity, Types> On, Action<Entity, Entity, Types> Off)>()
+        private static Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>> Actions = new Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>>()
         {
             {
-                new Types[] {Types.PushVehicleBack, Types.PushVehicleFront },
+                Types.PushVehicleBack,
 
-                ((Entity root, Entity target, Types type) =>
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
                 {
-                    System.Threading.Tasks.Task.Run(async () =>
                     {
-                        var pData = (target as Player).GetMainData();
+                        true,
 
-                        if (!await pData.WaitAsync())
-                            return;
-
-                        await System.Threading.Tasks.Task.Run(async () =>
+                        (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            var vData = (root as Vehicle).GetMainData();
-
-                            if (!await vData.WaitAsync())
-                                return;
-
-                            await NAPI.Task.RunAsync(() =>
+                            System.Threading.Tasks.Task.Run(async () =>
                             {
-                                if (root?.Exists != true || target?.Exists != true)
+                                var pData = (target as Player).GetMainData();
+
+                                if (!await pData.WaitAsync())
                                     return;
 
-                                var baseSpeed = type == Types.PushVehicleFront ? -Settings.PUSHING_VEHICLE_STRENGTH_MIN : Settings.PUSHING_VEHICLE_STRENGTH_MIN;
-                                var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
+                                await System.Threading.Tasks.Task.Run(async () =>
+                                {
+                                    var vData = (root as Vehicle).GetMainData();
 
-                                vData.ForcedSpeed = baseSpeed > 0f ? baseSpeed + strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN) : baseSpeed - strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
+                                    if (!await vData.WaitAsync())
+                                        return;
 
-                                pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
+                                    await NAPI.Task.RunAsync(() =>
+                                    {
+                                        if (root?.Exists != true || target?.Exists != true)
+                                            return;
+
+                                        var baseSpeed = Settings.PUSHING_VEHICLE_STRENGTH_MIN;
+                                        var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
+
+                                        vData.ForcedSpeed = baseSpeed + strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
+
+                                        pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
+                                    });
+
+                                    vData.Release();
+                                });
+
+                                pData.Release();
+                            });
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (Entity root, Entity target, Types type, object[] args) =>
+                        {
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var pData = (target as Player).GetMainData();
+
+                                if (!await pData.WaitAsync())
+                                    return;
+
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (target?.Exists != true)
+                                        return;
+
+                                    pData.StopAnim();
+                                });
+
+                                pData.Release();
                             });
 
-                            vData.Release();
-                        });
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var vData = (root as Vehicle).GetMainData();
 
-                        pData.Release();
-                    });
-                },
+                                if (!await vData.WaitAsync())
+                                    return;
 
-                (Entity root, Entity target, Types type) =>
-                {
-                    System.Threading.Tasks.Task.Run(async () =>
-                    {
-                        var pData = (target as Player).GetMainData();
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (root?.Exists != true)
+                                        return;
 
-                        if (!await pData.WaitAsync())
-                            return;
+                                    vData.ForcedSpeed = 0f;
+                                });
 
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (target?.Exists != true)
-                                return;
-
-                            pData.StopAnim();
-                        });
-
-                        pData.Release();
-                    });
-
-                    System.Threading.Tasks.Task.Run(async () =>
-                    {
-                        var vData = (root as Vehicle).GetMainData();
-
-                        if (!await vData.WaitAsync())
-                            return;
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (root?.Exists != true)
-                                return;
-
-                            vData.ForcedSpeed = 0f;
-                        });
-
-                        vData.Release();
-                    });
-                })
+                                vData.Release();
+                            });
+                        }
+                    }
+                }
             },
 
             {
-                new Types[] {Types.VehicleTrunk },
+                Types.PushVehicleFront,
 
-                ((Entity root, Entity target, Types type) =>
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
                 {
-                    System.Threading.Tasks.Task.Run(async () =>
                     {
-                        var pData = (target as Player).GetMainData();
+                        true,
 
-                        if (!await pData.WaitAsync())
-                            return;
-
-                        await NAPI.Task.RunAsync(() =>
+                        (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            if (root?.Exists != true || target?.Exists != true)
-                                return;
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var pData = (target as Player).GetMainData();
 
-                            pData.PlayAnim(Animations.GeneralTypes.LieInTrunk);
-                        });
+                                if (!await pData.WaitAsync())
+                                    return;
 
-                        pData.Release();
-                    });
-                },
+                                await System.Threading.Tasks.Task.Run(async () =>
+                                {
+                                    var vData = (root as Vehicle).GetMainData();
 
-                (Entity root, Entity target, Types type) =>
-                {
-                    System.Threading.Tasks.Task.Run(async () =>
+                                    if (!await vData.WaitAsync())
+                                        return;
+
+                                    await NAPI.Task.RunAsync(() =>
+                                    {
+                                        if (root?.Exists != true || target?.Exists != true)
+                                            return;
+
+                                        var baseSpeed = -Settings.PUSHING_VEHICLE_STRENGTH_MIN;
+                                        var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
+
+                                        vData.ForcedSpeed = baseSpeed - strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
+
+                                        pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
+                                    });
+
+                                    vData.Release();
+                                });
+
+                                pData.Release();
+                            });
+                        }
+                    },
+
                     {
-                        var pData = (target as Player).GetMainData();
+                        false,
 
-                        if (!await pData.WaitAsync())
-                            return;
-
-                        await NAPI.Task.RunAsync(() =>
+                        (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            if (target?.Exists != true)
-                                return;
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var pData = (target as Player).GetMainData();
 
-                            pData.StopAnim();
-                        });
+                                if (!await pData.WaitAsync())
+                                    return;
 
-                        pData.Release();
-                    });
-                })
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (target?.Exists != true)
+                                        return;
+
+                                    pData.StopAnim();
+                                });
+
+                                pData.Release();
+                            });
+
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var vData = (root as Vehicle).GetMainData();
+
+                                if (!await vData.WaitAsync())
+                                    return;
+
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (root?.Exists != true)
+                                        return;
+
+                                    vData.ForcedSpeed = 0f;
+                                });
+
+                                vData.Release();
+                            });
+                        }
+                    }
+                }
             },
 
             {
-                new Types[] {Types.Carry },
+                Types.VehicleTrunk,
 
-                ((Entity root, Entity target, Types type) =>
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
                 {
-                    System.Threading.Tasks.Task.Run(async () =>
                     {
-                        var pData = (target as Player).GetMainData();
+                        true,
 
-                        if (!await pData.WaitAsync())
-                            return;
-
-                        await System.Threading.Tasks.Task.Run(async () =>
+                        (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            var tData = (root as Player).GetMainData();
-
-                            if (!await tData.WaitAsync())
-                                return;
-
-                            await NAPI.Task.RunAsync(() =>
+                            System.Threading.Tasks.Task.Run(async () =>
                             {
-                                if (root?.Exists != true || target?.Exists != true)
+                                var pData = (target as Player).GetMainData();
+
+                                if (!await pData.WaitAsync())
                                     return;
 
-                                pData.PlayAnim(Animations.GeneralTypes.CarryB);
-                                tData.PlayAnim(Animations.GeneralTypes.CarryA);
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (root?.Exists != true || target?.Exists != true)
+                                        return;
+
+                                    pData.PlayAnim(Animations.GeneralTypes.LieInTrunk);
+                                });
+
+                                pData.Release();
+                            });
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (Entity root, Entity target, Types type, object[] args) =>
+                        {
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var pData = (target as Player).GetMainData();
+
+                                if (!await pData.WaitAsync())
+                                    return;
+
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (target?.Exists != true)
+                                        return;
+
+                                    pData.StopAnim();
+                                });
+
+                                pData.Release();
+                            });
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.Carry,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (Entity root, Entity target, Types type, object[] args) =>
+                        {
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var pData = (target as Player).GetMainData();
+
+                                if (!await pData.WaitAsync())
+                                    return;
+
+                                await System.Threading.Tasks.Task.Run(async () =>
+                                {
+                                    var tData = (root as Player).GetMainData();
+
+                                    if (!await tData.WaitAsync())
+                                        return;
+
+                                    await NAPI.Task.RunAsync(() =>
+                                    {
+                                        if (root?.Exists != true || target?.Exists != true)
+                                            return;
+
+                                        pData.PlayAnim(Animations.GeneralTypes.CarryB);
+                                        tData.PlayAnim(Animations.GeneralTypes.CarryA);
+                                    });
+
+                                    tData.Release();
+                                });
+
+                                pData.Release();
+                            });
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (Entity root, Entity target, Types type, object[] args) =>
+                        {
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var pData = (target as Player).GetMainData();
+
+                                if (!await pData.WaitAsync())
+                                    return;
+
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (target?.Exists != true)
+                                        return;
+
+                                    pData.StopAnim();
+                                });
+
+                                pData.Release();
                             });
 
-                            tData.Release();
-                        });
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                var tData = (root as Player).GetMainData();
 
-                        pData.Release();
-                    });
-                },
+                                if (!await tData.WaitAsync())
+                                    return;
 
-                (Entity root, Entity target, Types type) =>
-                {
-                    System.Threading.Tasks.Task.Run(async () =>
-                    {
-                        var pData = (target as Player).GetMainData();
+                                await NAPI.Task.RunAsync(() =>
+                                {
+                                    if (root?.Exists != true)
+                                        return;
 
-                        if (!await pData.WaitAsync())
-                            return;
+                                    tData.StopAnim();
+                                });
 
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (target?.Exists != true)
-                                return;
-
-                            pData.StopAnim();
-                        });
-
-                        pData.Release();
-                    });
-
-                    System.Threading.Tasks.Task.Run(async () =>
-                    {
-                        var tData = (root as Player).GetMainData();
-
-                        if (!await tData.WaitAsync())
-                            return;
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (root?.Exists != true)
-                                return;
-
-                            tData.StopAnim();
-                        });
-
-                        tData.Release();
-                    });
-                })
+                                tData.Release();
+                            });
+                        }
+                    }
+                }
             },
+
+            {
+                Types.ItemCigMouth,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+                        
+                        (entity, entity2, type, args) =>
+                        {
+                            if (args.Length == 0)
+                                return;
+
+                            int maxTime = (int)args[0];
+                            int maxPuffs = (int)args[1];
+
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("Player::Smoke::Start", maxTime, maxPuffs);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (args.Length == 0)
+                            {
+                                if (entity is Player player)
+                                {
+                                    player.TriggerEvent("Player::Smoke::Stop");
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ItemCigHand,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (args.Length == 0)
+                                return;
+
+                            int maxTime = (int)args[0];
+                            int maxPuffs = (int)args[1];
+
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("Player::Smoke::Start", maxTime, maxPuffs);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (args.Length == 0)
+                            {
+                                if (entity is Player player)
+                                {
+                                    player.TriggerEvent("Player::Smoke::Stop");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         };
 
-        private static Action<Entity, Entity, Types> GetOffAction(Types type) => Actions.Where(x => x.Key.Contains(type)).Select(x => x.Value.Off).FirstOrDefault();
-        private static Action<Entity, Entity, Types> GetOnAction(Types type) => Actions.Where(x => x.Key.Contains(type)).Select(x => x.Value.On).FirstOrDefault();
+        private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type) => Actions.GetValueOrDefault(type)?[false];
+
+        private static Action<Entity, Entity, Types, object[]> GetOnAction(Types type) => Actions.GetValueOrDefault(type)?[true];
 
         #region Entities
         /// <summary>Получить информацию о привязке сущности к другой сущности</summary>
@@ -333,7 +544,7 @@ namespace BCRPServer.Sync
             entity.SetSharedData(AttachedEntitiesKey, list);
             target.SetData("IsAttachedTo::Entity", (entity, type));
 
-            GetOnAction(type)?.Invoke(entity, target, type);
+            GetOnAction(type)?.Invoke(entity, target, type, EmptyArgs);
 
             return true;
         }
@@ -361,7 +572,7 @@ namespace BCRPServer.Sync
             entity.SetSharedData(AttachedEntitiesKey, list);
             target.SetData("IsAttachedTo::Entity", ((Entity, Types)?)null);
 
-            GetOffAction(item.Type)?.Invoke(entity, target, item.Type);
+            GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
 
             return true;
         }
@@ -390,7 +601,7 @@ namespace BCRPServer.Sync
                     target.SetData("IsAttachedTo::Entity", ((Entity, Types)?)null);
                 }
 
-                GetOffAction(item.Type)?.Invoke(entity, target, item.Type);
+                GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
             }
 
             list.Clear();
@@ -409,7 +620,7 @@ namespace BCRPServer.Sync
         /// <param name="type">Тип прикрепления</param>
         /// <param name="detachAfter">Открепить после (время в мс.), -1 - если не требуется</param>
         /// <returns>-1, если произошла ошибка, число > 0 - ID привязки в противном случае</returns>
-        public static int AttachObject(Entity entity, uint model, Types type, int detachAfter = -1)
+        public static int AttachObject(Entity entity, uint model, Types type, int detachAfter = -1, params object[] args)
         {
             if (entity?.Exists != true)
                 return - 1;
@@ -419,32 +630,58 @@ namespace BCRPServer.Sync
 
             var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey).ToList<AttachmentObjectNet>();
 
-            var rand = new Random();
-            var id = -1;
-            int counter = 0;
+            var ids = entity.GetData<Queue<int>>(AttachedObjectsIDsKey);
 
-            do
+            int id;
+
+            if (!ids.TryDequeue(out id))
             {
-                if (counter >= 1000)
-                    return -1;
-
-                id = rand.Next(0, 30000);
+                id = list.Count;
             }
-            while (list.Where(x => x.Id == id).Any());
+            else
+            {
+                entity.SetData(AttachedObjectsIDsKey, ids);
+            }
 
             var newAttachment = new AttachmentObjectNet(id, model, type);
+
             list.Add(newAttachment);
+
+            GetOnAction(type)?.Invoke(entity, null, type, args);
 
             entity.SetSharedData(AttachedObjectsKey, list);
 
             if (detachAfter != -1)
-                NAPI.Task.Run(() =>
-                {
-                    if (entity?.Exists != true)
-                        return;
+            {
+                var cancels = entity.GetData<Dictionary<int, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
-                    entity.DetachObject(id);
-                }, detachAfter);
+                var cts = new CancellationTokenSource();
+
+                cancels.Add(id, cts);
+
+                entity.SetData(AttachedObjectsCancelsKey, cancels);
+
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    try
+                    {
+                        await System.Threading.Tasks.Task.Delay(detachAfter, cts.Token);
+
+                        NAPI.Task.Run(() =>
+                        {
+                            if (entity?.Exists != true)
+                                return;
+
+                            entity.DetachObject(id);
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                });
+
+            }
 
             return id;
         }
@@ -453,7 +690,7 @@ namespace BCRPServer.Sync
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <param name="entity">Сущность</param>
         /// <param name="id">ID привязки</param>
-        public static bool DetachObject(Entity entity, int id)
+        public static bool DetachObject(Entity entity, int id, params object[] args)
         {
             if (entity?.Exists != true)
                 return false;
@@ -467,9 +704,30 @@ namespace BCRPServer.Sync
             if (item == null)
                 return false;
 
+            var ids = entity.GetData<Queue<int>>(AttachedObjectsIDsKey);
+            var cancels = entity.GetData<Dictionary<int, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+
+            var cts = cancels.GetValueOrDefault(id);
+
+            if (cts != null)
+            {
+                cts.Cancel();
+                cts.Dispose();
+
+                cancels.Remove(id);
+
+                entity.SetData(AttachedObjectsCancelsKey, cancels);
+            }
+
+            ids.Enqueue(id);
+
+            entity.SetData(AttachedObjectsIDsKey, ids);
+
             list.Remove(item);
 
             entity.SetSharedData(AttachedObjectsKey, list);
+
+            GetOffAction(item.Type)?.Invoke(entity, null, item.Type, args);
 
             return true;
         }
@@ -485,11 +743,34 @@ namespace BCRPServer.Sync
             if (!entity.HasSharedData(AttachedObjectsKey))
                 return false;
 
+            var cancels = entity.GetData<Dictionary<int, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+
+            foreach (var x in cancels)
+            {
+                x.Value.Cancel();
+                x.Value.Dispose();
+            }
+
+            cancels.Clear();
+
+            entity.SetData(AttachedObjectsCancelsKey, cancels);
+
             var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey).ToList<AttachmentObjectNet>();
+
+            foreach (var x in list)
+            {
+                GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
+            }
 
             list.Clear();
 
             entity.SetSharedData(AttachedObjectsKey, list);
+
+            var ids = entity.GetData<Queue<int>>(AttachedObjectsIDsKey);
+
+            ids.Clear();
+
+            entity.SetData(AttachedObjectsIDsKey, ids);
 
             return true;
         }

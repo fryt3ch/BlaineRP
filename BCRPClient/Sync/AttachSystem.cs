@@ -717,7 +717,7 @@ namespace BCRPClient.Sync
                     {
                         Sync.WeaponSystem.DisabledFiring = true;
 
-                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.MinValue);
+                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
                     }),
 
                     new Action(() =>
@@ -729,11 +729,16 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
+                        if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
+                            return;
+
                         var target = Player.LocalPlayer.GetData<List<AttachmentObject>>(AttachedObjectsKey).Where(x => x.Type == Types.ItemCigHand).Select(x => x.Object).FirstOrDefault();
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (target?.Exists != true || bind.IsPressed || Player.LocalPlayer.IsInWater())
+                        var puffs = Player.LocalPlayer.GetData<int>("Smoke::Data::Puffs");
+
+                        if (target?.Exists != true || bind.IsPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
                         {
                             GameEvents.Update -= GetRootActions(Types.ItemCigHand).Value.Loop.Invoke;
 
@@ -765,7 +770,7 @@ namespace BCRPClient.Sync
                                 }
                             }
 
-                            Utils.DrawText(Locale.General.Animations.TextDoPuffSmoke, 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.TextDoPuffSmoke, puffs), 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
                             Utils.DrawText(Locale.General.Animations.TextToMouthSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
                             Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
                         }
@@ -779,7 +784,7 @@ namespace BCRPClient.Sync
                 (
                     new Action(() =>
                     {
-                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.MinValue);
+                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
                     }),
 
                     new Action(() =>

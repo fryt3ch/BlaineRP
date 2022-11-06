@@ -492,14 +492,28 @@ namespace BCRPServer.CEF
                                     ((Game.Items.StatusChanger)item).Apply(pData);
                                 });
 
-                                if ((item as Game.Items.IStackable).Amount == 1)
+                                if (item is Game.Items.IStackable itemStackable)
                                 {
-                                    item.Delete();
+                                    if (itemStackable.Amount == 1)
+                                    {
+                                        item.Delete();
 
-                                    item = null;
+                                        item = null;
+                                    }
+                                    else
+                                        itemStackable.Amount -= 1;
                                 }
-                                else
-                                    (item as Game.Items.IStackable).Amount -= 1;
+                                else if (item is Game.Items.IConsumable itemConsumable)
+                                {
+                                    if (itemConsumable.Amount == 1)
+                                    {
+                                        item.Delete();
+
+                                        item = null;
+                                    }
+                                    else
+                                        itemConsumable.Amount -= 1;
+                                }
 
                                 if (group == Groups.Bag)
                                 {
@@ -817,7 +831,7 @@ namespace BCRPServer.CEF
                                 var maxAmount = toItem.Data.MaxAmmo;
 
                                 if (amount == -1 || amount > fromAmmo.Amount)
-                                    amount = toItem.Ammo;
+                                    amount = fromAmmo.Amount;
 
                                 if (toItem.Ammo == maxAmount)
                                     return Results.Error;

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BCRPClient.Data
@@ -13,6 +14,26 @@ namespace BCRPClient.Data
         {
             public class ItemData
             {
+                /// <summary>Этот интерфейс реализуют классы таких предметов, которые могут хранить в себе другие предметы</summary>
+                public interface IContainer
+                {
+                    public float MaxWeight { get; }
+                }
+
+                /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны стакаться</summary>
+                public interface IStackable
+                {
+                    /// <summary>Максимальное кол-во единиц предмета в стаке</summary>
+                    public int MaxAmount { get; set; }
+                }
+
+                /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
+                /// <remarks>Не использовать одновременно с IStackable!</remarks>
+                public interface IConsumable
+                {
+                    public int MaxAmount { get; set; }
+                }
+
                 public string Name { get; set; }
 
                 public float Weight { get; set; }
@@ -41,6 +62,11 @@ namespace BCRPClient.Data
         }
 
         public interface ITagged
+        {
+
+        }
+
+        public interface IConsumable
         {
 
         }
@@ -242,11 +268,39 @@ namespace BCRPClient.Data
 
         public class Weapon : Item, ITagged, IWearable
         {
+            new public class ItemData : Item.ItemData
+            {
+                public int MaxAmmo { get; set; }
+
+                public string AmmoID { get; set; }
+
+                public uint Hash { get; set; }
+
+                public ItemData(string Name, float Weight, string AmmoID, int MaxAmmo, uint Hash) : base(Name, Weight)
+                {
+                    this.MaxAmmo = MaxAmmo;
+
+                    this.AmmoID = AmmoID;
+
+                    this.Hash = Hash;
+                }
+            }
+
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
         public class Ammo : Item, IStackable
         {
+            new public class ItemData : Item.ItemData, Item.ItemData.IStackable
+            {
+                public int MaxAmount { get; set; }
+
+                public ItemData(string Name, float Weight, int MaxAmount) : base(Name, Weight)
+                {
+                    this.MaxAmount = MaxAmount;
+                }
+            }
+
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
@@ -254,10 +308,11 @@ namespace BCRPClient.Data
         {
             new public class ItemData : Clothes.ItemData
             {
+                public int MaxStrength { get; set; }
 
-                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, int MaxStrength, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
                 {
-
+                    this.MaxStrength = MaxStrength;
                 }
             }
 
@@ -289,10 +344,24 @@ namespace BCRPClient.Data
         {
             new public class ItemData : Clothes.ItemData
             {
-
                 public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
                 {
 
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Numberplate : Item, ITagged
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public int Number { get; set; }
+
+                public ItemData(string Name, float Weight, int Number) : base(Name, Weight)
+                {
+                    this.Number = Number;
                 }
             }
 
@@ -304,8 +373,56 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class StatusChanger : Item, IStackable
+        public abstract class StatusChanger : Item
         {
+            new public class ItemData : Item.ItemData
+            {
+                public int Satiety { get; set; }
+
+                public int Mood { get; set; }
+
+                public int Health { get; set; }
+
+                public ItemData(string Name, float Weight, int Satiety = 0, int Mood = 0, int Health = 0) : base(Name, Weight)
+                {
+                    this.Satiety = Satiety;
+                    this.Mood = Mood;
+                    this.Health = Health;
+                }
+            }
+        }
+
+        public class Food : StatusChanger, IStackable
+        {
+            new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+            {
+                public int MaxAmount { get; set; }
+
+                public Sync.Animations.FastTypes Animation { get; set; }
+
+                public Sync.AttachSystem.Types AttachType { get; set; }
+
+                public ItemData(string Name, float Weight, int Satiety, int Mood, int Health, int MaxAmount) : base(Name, Weight, Satiety, Mood, Health)
+                {
+                    this.MaxAmount = MaxAmount;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Cigarettes : StatusChanger, IConsumable
+        {
+            new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
+            {
+                public int MaxAmount { get; set; }
+
+                public ItemData(string Name, float Weight, int Mood, int MaxAmount) : base(Name, Weight, 0, Mood, 0)
+                {
+                    this.MaxAmount = MaxAmount;
+                }
+            }
+
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 

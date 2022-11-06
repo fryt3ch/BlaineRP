@@ -666,6 +666,9 @@ namespace BCRPServer
             AttachedEntities = new List<Sync.AttachSystem.AttachmentEntityNet>();
             AttachedObjects = new List<Sync.AttachSystem.AttachmentObjectNet>();
 
+            Player.SetData(Sync.AttachSystem.AttachedObjectsIDsKey, new Queue<int>());
+            Player.SetData(Sync.AttachSystem.AttachedObjectsCancelsKey, new Dictionary<int, CancellationTokenSource>());
+
             IsInvalid = false;
         }
 

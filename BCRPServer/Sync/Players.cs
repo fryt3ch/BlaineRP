@@ -1519,6 +1519,8 @@ namespace BCRPServer.Sync
                     return;
 
                 pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
+
+                player.TriggerEvent("Player::Smoke::Puff");
             });
 
             pData.Release();
@@ -1566,7 +1568,7 @@ namespace BCRPServer.Sync
                     if (player?.Exists != true)
                         return;
 
-                    player.DetachObject(attachData.Id);
+                    player.DetachObject(attachData.Id, false);
                     player.AttachObject(attachData.Model, AttachSystem.Types.ItemCigMouth);
                 }, 500);
             }
@@ -1577,7 +1579,7 @@ namespace BCRPServer.Sync
                     if (player?.Exists != true)
                         return;
 
-                    player.DetachObject(attachData.Id);
+                    player.DetachObject(attachData.Id, false);
                     player.AttachObject(attachData.Model, AttachSystem.Types.ItemCigHand);
                 }, 500);
             }

@@ -905,17 +905,23 @@ namespace BCRPServer
         public static float DistanceXY(this Vector3 pos1, Vector3 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
 
         /// <inheritdoc cref="Sync.AttachSystem.AttachObject(Entity, string, Sync.AttachSystem.Types, int)"/>
-        public static int AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter = -1) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter);
+        public static int AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter = -1, params object[] args) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter, args);
+        
         /// <inheritdoc cref="Sync.AttachSystem.DetachObject(Entity, string)"/>
-        public static void DetachObject(this Entity entity, int id) => Sync.AttachSystem.DetachObject(entity, id);
+        public static void DetachObject(this Entity entity, int id, params object[] args) => Sync.AttachSystem.DetachObject(entity, id, args);
+        
         /// <inheritdoc cref="Sync.AttachSystem.AttachEntity(Entity, int, Sync.AttachSystem.Types)"/>
         public static void AttachEntity(this Entity entity, Entity target, Sync.AttachSystem.Types type) => Sync.AttachSystem.AttachEntity(entity, target, type);
+        
         /// <inheritdoc cref="Sync.AttachSystem.DetachEntity(Entity, int)"/>
         public static void DetachEntity(this Entity entity, Entity target) => Sync.AttachSystem.DetachEntity(entity, target);
+        
         /// <inheritdoc cref="Sync.AttachSystem.DetachAllEntities(Entity)"/>
         public static bool DetachAllEntities(this Entity entity) => Sync.AttachSystem.DetachAllEntities(entity);
+        
         /// <inheritdoc cref="Sync.AttachSystem.DetachAllObjects(Entity)"/>
         public static bool DetachAllObjects(this Entity entity) => Sync.AttachSystem.DetachAllObjects(entity);
+        
         /// <inheritdoc cref="Sync.AttachSystem.GetEntityAttachmentData(Entity, Entity)"/>
         public static Sync.AttachSystem.AttachmentEntityNet GetAttachmentData(this Entity entity, Entity target) => Sync.AttachSystem.GetEntityAttachmentData(entity, target);
 

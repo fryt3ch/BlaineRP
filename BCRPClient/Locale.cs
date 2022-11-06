@@ -120,7 +120,7 @@ namespace BCRPClient
 
                 public static string CancelTextPushVehicle = "Нажмите W/A/S/D, чтобы перестать толкать";
 
-                public static string TextDoPuffSmoke = "Нажмите ЛКМ, чтобы сделать затяжку";
+                public static string TextDoPuffSmoke = "Нажмите ЛКМ, чтобы сделать затяжку [{0}]";
                 public static string TextToMouthSmoke = "Нажмите ALT, чтобы зажать зубами";
                 public static string TextToHandSmoke = "Нажмите ALT, чтобы взять в руку";
                 public static string CancelTextSmoke = "Нажмите {0}, чтобы перестать курить";

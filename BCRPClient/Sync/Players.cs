@@ -773,6 +773,36 @@ namespace BCRPClient.Sync
             #endregion
 
             #region Local Player Events
+
+            Events.Add("Player::Smoke::Start", (object[] args) =>
+            {
+                var maxTime = (int)args[0];
+                var maxPuffs = (int)args[1];
+
+                Player.LocalPlayer.SetData("Smoke::Data::Puffs", maxPuffs);
+                Player.LocalPlayer.SetData("Smoke::Data::CTask", new AsyncTask(() => Events.CallRemote(""), maxTime, false, 0));
+            });
+
+            Events.Add("Player::Smoke::Stop", (object[] args) =>
+            {
+                Player.LocalPlayer.ResetData("Smoke::Data::Puffs");
+
+                Player.LocalPlayer.GetData<AsyncTask>("Smoke::Data::CTask")?.Cancel();
+
+                Player.LocalPlayer.ResetData("Smoke::Data::CTask");
+            });
+
+            Events.Add("Player::Smoke::Puff", (object[] args) =>
+            {
+                AsyncTask.RunSlim(() =>
+                {
+                    if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
+                        return;
+
+                    Player.LocalPlayer.SetData("Smoke::Data::Puffs", Player.LocalPlayer.GetData<int>("Smoke::Data::Puffs") - 1);
+                }, 3000);
+            });
+
             Events.Add("Players::CloseAll", (object[] args) =>
             {
                 RAGE.Game.Ui.SetPauseMenuActive(false);

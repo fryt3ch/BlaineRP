@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Org.BouncyCastle.Bcpg;
+using Org.BouncyCastle.Bcpg.Sig;
+using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -82,6 +84,26 @@ namespace BCRPServer.Game.Items
 
         public abstract class ItemData
         {
+            /// <summary>Этот интерфейс реализуют классы таких предметов, которые могут хранить в себе другие предметы</summary>
+            public interface IContainer
+            {
+                public float MaxWeight { get; }
+            }
+
+            /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны стакаться</summary>
+            public interface IStackable
+            {
+                /// <summary>Максимальное кол-во единиц предмета в стаке</summary>
+                public int MaxAmount { get; set; }
+            }
+
+            /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
+            /// <remarks>Не использовать одновременно с IStackable!</remarks>
+            public interface IConsumable
+            {
+                public int MaxAmount { get; set; }
+            }
+
             /// <summary>Стандартная модель</summary>
             public static uint DefaultModel = NAPI.Util.GetHashKey("prop_drug_package_02");
 
@@ -96,6 +118,8 @@ namespace BCRPServer.Game.Items
 
             /// <summary>Все модели</summary>
             private uint[] Models { get; set; }
+
+            public abstract string ClientData { get; }
 
             public ItemData(string Name, float Weight, params uint[] Models)
             {
@@ -236,6 +260,10 @@ namespace BCRPServer.Game.Items
     /// <remarks>Не использовать одновременно с IStackable!</remarks>
     public interface IConsumable
     {
+        /// <summary>Максимальное кол-во единиц предмета</summary>
+        [JsonIgnore]
+        public int MaxAmount { get; }
+
         /// <summary>Кол-во оставшихся единиц предмета</summary>
         public int Amount { get; set; }
     }
@@ -287,20 +315,21 @@ namespace BCRPServer.Game.Items
             public bool CanUseInVehicle { get; set; }
 
             /// <summary>Подходящие типы для крепления оружия на игрока</summary>
-            [JsonIgnore]
             public Sync.AttachSystem.Types[] AttachTypes { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {(AmmoID == null ? "null" : $"\"{AmmoID}\"")}, {MaxAmmo}, {Hash}";
 
             /// <summary>Создать новое оружие</summary>
             /// <param name="ItemType">Глобальный тип предмета</param>
             /// <param name="TopType">Тип оружия</param>
-            /// <param name="AmmoType">Тип патронов (если нет - null)</param>
+            /// <param name="AmmoID">Тип патронов (если нет - null)</param>
             /// <param name="Hash">Хэш оружия</param>
             /// <param name="MaxAmmo">Максимальное кол-во патронов</param>
             /// <param name="CanUseInVehicle">Может ли использоваться в транспорте?</param>
-            public ItemData(string Name, float Weight, string Model, TopTypes TopType, string AmmoType, uint Hash, int MaxAmmo, bool CanUseInVehicle = false) : base(Name, Weight, Model)
+            public ItemData(string Name, float Weight, string Model, TopTypes TopType, string AmmoID, uint Hash, int MaxAmmo, bool CanUseInVehicle = false) : base(Name, Weight, Model)
             {
                 this.TopType = TopType;
-                this.AmmoID = AmmoType;
+                this.AmmoID = AmmoID;
 
                 this.CanUseInVehicle = CanUseInVehicle;
 
@@ -531,22 +560,26 @@ namespace BCRPServer.Game.Items
     #region Ammo
     public class Ammo : Item, IStackable
     {
-        new public class ItemData : Item.ItemData
+        new public class ItemData : Item.ItemData, Item.ItemData.IStackable
         {
-            public ItemData(string Name, float Weight, string Model) : base(Name, Weight, Model)
-            {
+            public int MaxAmount { get; set; }
 
+            public override string ClientData => $"\"{Name}\", {Weight}f, {MaxAmount}";
+
+            public ItemData(string Name, float Weight, string Model, int MaxAmount = 1024) : base(Name, Weight, Model)
+            {
+                this.MaxAmount = MaxAmount;
             }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "am_5.56", new ItemData("Патроны 5.56мм", 0.01f, "w_am_case") },
-            { "am_7.62", new ItemData("Патроны 7.62мм", 0.01f, "w_am_case") },
-            { "am_9", new ItemData("Патроны 9мм", 0.01f, "w_am_case") },
-            { "am_11.43", new ItemData("Патроны 11.43мм", 0.015f, "w_am_case") },
-            { "am_12", new ItemData("Патроны 12мм", 0.015f, "w_am_case") },
-            { "am_12.7", new ItemData("Патроны 12.7мм", 0.015f, "w_am_case") },
+            { "am_5.56", new ItemData("Патроны 5.56мм", 0.01f, "w_am_case", 1024) },
+            { "am_7.62", new ItemData("Патроны 7.62мм", 0.01f, "w_am_case", 1024) },
+            { "am_9", new ItemData("Патроны 9мм", 0.01f, "w_am_case", 1024) },
+            { "am_11.43", new ItemData("Патроны 11.43мм", 0.015f, "w_am_case", 512) },
+            { "am_12", new ItemData("Патроны 12мм", 0.015f, "w_am_case", 512) },
+            { "am_12.7", new ItemData("Патроны 12.7мм", 0.015f, "w_am_case", 256) },
         };
 
         public static ItemData GetData(string id) => (ItemData)IDList[id];
@@ -558,7 +591,7 @@ namespace BCRPServer.Game.Items
         public override float Weight { get => Amount * BaseWeight; }
 
         [JsonIgnore]
-        public int MaxAmount => 999;
+        public int MaxAmount => Data.MaxAmount;
 
         public int Amount { get; set; }
 
@@ -654,6 +687,8 @@ namespace BCRPServer.Game.Items
         new public class ItemData : Clothes.ItemData, Clothes.ItemData.IToggleable
         {
             public ExtraData ExtraData { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(ExtraData == null ? "null" : $"new Hat.ItemData.ExtraData({ExtraData.Drawable}, {ExtraData.BestTorso})")}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
 
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, 0.1f, "prop_proxy_hat_01", Sex, Drawable, Textures, SexAlternativeID)
             {
@@ -843,6 +878,8 @@ namespace BCRPServer.Game.Items
             public int BestTorso { get; set; }
 
             public ExtraData ExtraData { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {BestTorso}, {(ExtraData == null ? "null" : $"new Top.ItemData.ExtraData({ExtraData.Drawable}, {ExtraData.BestTorso})")}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
 
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, 0.3f, "prop_ld_shirt_01", Sex, Drawable, Textures, SexAlternativeID)
             {
@@ -1379,6 +1416,8 @@ namespace BCRPServer.Game.Items
 
             public ExtraData ExtraData { get; set; }
 
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(BestTop == null ? "null" : $"new Top.ItemData({BestTop.Sex.ToString().ToLower()}, {BestTop.Drawable}, new int[] {{ {string.Join(", ", BestTop.Textures)} }}, {BestTorso}, {(BestTop.ExtraData == null ? "null" : $"new Under.ItemData.ExtraData({BestTop.ExtraData.Drawable}, {BestTop.ExtraData.BestTorso})")}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")})")} , {BestTorso}, {(ExtraData == null ? "null" : $"new Under.ItemData.ExtraData({ExtraData.Drawable}, {ExtraData.BestTorso})")}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, Top.ItemData BestTop, int BestTorso, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, 0.2f, "prop_ld_tshirt_02", Sex, Drawable, Textures, SexAlternativeID)
             {
                 this.BestTop = BestTop;
@@ -1556,6 +1595,8 @@ namespace BCRPServer.Game.Items
         {
             public Dictionary<int, int> BestTorsos { get; set; }
 
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, new Dictionary<int, int>() {{ {string.Join(", ", BestTorsos.Select(x => $"{{ {x.Key}, {x.Value} }}"))} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, Dictionary<int, int> BestTorsos, string SexAlternativeID = null) : base(Name, 0.1f, "prop_ld_tshirt_02", Sex, Drawable, Textures, SexAlternativeID)
             {
                 this.BestTorsos = BestTorsos;
@@ -1720,6 +1761,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.4f, "p_laz_j02_s", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -1936,6 +1979,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.3f, "prop_ld_shoe_01", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -2142,6 +2187,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.2f, "p_jewel_necklace_02", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -2237,6 +2284,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.2f, "prop_cs_sol_glasses", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -2347,6 +2396,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.1f, "prop_jewel_02b", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -2449,6 +2500,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.1f, "prop_jewel_02b", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -2534,6 +2587,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Clothes.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.1f, "p_tmom_earrings_s", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
@@ -2671,6 +2726,8 @@ namespace BCRPServer.Game.Items
 
             public int DrawableTop { get; set; }
 
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {MaxStrength}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, int DrawableTop, int MaxStrength, string SexAlternativeID = null) : base(Name, Weight, "prop_armour_pickup", Sex, Drawable, Textures, SexAlternativeID)
             {
                 this.DrawableTop = DrawableTop;
@@ -2777,6 +2834,8 @@ namespace BCRPServer.Game.Items
             /// <summary>Максимальный вес содержимого</summary>
             public float MaxWeight { get; set; }
 
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {MaxSlots}, {MaxWeight}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, byte MaxSlots, float MaxWeight, string SexAlternativeID = null) : base(Name, 0.25f, "prop_cs_heist_bag_01", Sex, Drawable, Textures, SexAlternativeID)
             {
                 this.MaxSlots = MaxSlots;
@@ -2857,6 +2916,8 @@ namespace BCRPServer.Game.Items
         new public class ItemData : Clothes.ItemData
         {
             public int DrawableWeapon { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
 
             public ItemData(string Name, bool Sex, int Drawable, int[] Textures, int DrawableWeapon, string SexAlternativeID = null) : base(Name, 0.15f, "prop_holster_01", Sex, Drawable, Textures, SexAlternativeID)
             {
@@ -2974,6 +3035,8 @@ namespace BCRPServer.Game.Items
         {
             public int Number { get; set; }
 
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Number}";
+
             public ItemData(string Name, string Model, int Number) : base(Name, 0.15f, Model)
             {
                 this.Number = Number;
@@ -3046,6 +3109,8 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Item.ItemData
         {
+            public override string ClientData => $"\"{Name}\", {Weight}f";
+
             public ItemData(string Name, float Weight, string Model) : base(Name, Weight, Model) { }
         }
 
@@ -3090,51 +3155,25 @@ namespace BCRPServer.Game.Items
     }
     #endregion
 
-    public class Cigarettes : Item, IConsumable
+    public abstract class StatusChanger : Item
     {
-        public int Amount { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public Cigarettes(string ID, ItemData Data, Type Type) : base(ID, Data, Type)
-        {
-
-        }
-    }
-
-    public class StatusChanger : Item, IStackable
-    {
-        new public class ItemData : Item.ItemData
+        new public abstract class ItemData : Item.ItemData
         {
             public int Satiety { get; set; }
 
             public int Mood { get; set; }
 
-            public int EffectTime { get; set; }
+            public int Health { get; set; }
 
-            public Sync.Animations.FastTypes Animation { get; set; }
-
-            public Sync.AttachSystem.Types? AttachType { get; set; }
-
-            public int AttachTime { get; set; }
-
-            public int AttachModelIdx { get; set; }
-
-            public ItemData(string Name, float Weight, string[] Models, int Satiety = 0, int Mood = 0, int EffectTime = 0, Sync.Animations.FastTypes Animation = Sync.Animations.FastTypes.None, Sync.AttachSystem.Types? AttachType = null, int AttachTime = -1, int AttachModelIdx = 0) : base(Name, Weight, Models)
+            public ItemData(string Name, float Weight, string[] Models, int Satiety = 0, int Mood = 0, int Health = 0) : base(Name, Weight, Models)
             {
                 this.Satiety = Satiety;
                 this.Mood = Mood;
-
-                this.EffectTime = EffectTime;
-
-                this.Animation = Animation;
-
-                this.AttachType = AttachType;
-                this.AttachTime = AttachTime;
-
-                this.AttachModelIdx = AttachModelIdx;
+                this.Health = Health;
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+/*        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
             { "sc_burger", new ItemData("Бургер", 0.15f, new string[] { "prop_cs_burger_01" }, 25, 0, 0, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger, 6000) },
             { "sc_chips", new ItemData("Чипсы",0.15f, new string[] { "prop_food_bs_chips" }, 15, 0, 0, Sync.Animations.FastTypes.ItemChips, Sync.AttachSystem.Types.ItemChips, 6000) },
@@ -3148,21 +3187,14 @@ namespace BCRPServer.Game.Items
             //{ "sc_joint", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 50, 0, Sync.Animations.FastTypes.None, Sync.AttachSystem.Types.ItemJoint, 6000) },
 
             { "sc_beer", new ItemData("Пиво", 0.15f, new string[] { "prop_sh_beer_pissh_01" }, 5, 50, 0, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer, 6000) },
-        };
+        };*/
 
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
-        [JsonIgnore]
-        new public float Weight { get => Amount * base.BaseWeight; }
+        public abstract void Apply(PlayerData pData);
 
-        [JsonIgnore]
-        public int MaxAmount => 999;
-
-        public int Amount { get; set; }
-
-        public void Apply(PlayerData pData)
-        {
+/*        {
             var player = pData.Player;
 
             if (player?.Exists != true)
@@ -3197,11 +3229,139 @@ namespace BCRPServer.Game.Items
             {
                 pData.PlayAnim(Data.Animation);
             }
-        }
+        }*/
 
-        public StatusChanger(string ID) : base(ID, IDList[ID], typeof(StatusChanger))
+        public StatusChanger(string ID, Item.ItemData Data, Type Type) : base(ID, Data, Type)
         {
 
+        }
+    }
+
+    public class Food : StatusChanger, IStackable
+    {
+        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+        {
+            public int MaxAmount { get; set; }
+
+            public Sync.Animations.FastTypes Animation { get; set; }
+
+            public Sync.AttachSystem.Types AttachType { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Satiety}, {Mood}, {Health}, {MaxAmount}";
+
+            public ItemData(string Name, float Weight, string Model, int Satiety, int Mood, int Health, int MaxAmount, Sync.Animations.FastTypes Animation, Sync.AttachSystem.Types AttachType) : base(Name, Weight, new string[] { Model }, Satiety, Mood, Health)
+            {
+                this.MaxAmount = MaxAmount;
+
+                this.Animation = Animation;
+
+                this.AttachType = AttachType;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "f_burger", new ItemData("Бургер", 0.15f, "", 25, 0, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
+        };
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; }
+
+        [JsonIgnore]
+        public int MaxAmount => Data.MaxAmount;
+
+        public int Amount { get; set; }
+
+        public override void Apply(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            var data = Data;
+
+            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation]);
+
+            pData.PlayAnim(data.Animation);
+
+            if (Data.Satiety > 0)
+            {
+                var satietyDiff = Utils.GetCorrectDiff(pData.Satiety, Data.Satiety, 0, 100);
+
+                if (satietyDiff != 0)
+                {
+                    pData.Satiety += satietyDiff;
+                }
+            }
+
+            if (Data.Mood > 0)
+            {
+                var moodDiff = Utils.GetCorrectDiff(pData.Mood, Data.Mood, 0, 100);
+
+                if (moodDiff != 0)
+                {
+                    pData.Mood += moodDiff;
+                }
+            }
+        }
+
+        public Food(string ID) : base(ID, IDList[ID], typeof(Food))
+        {
+            this.Amount = MaxAmount;
+        }
+    }
+
+    public class Cigarettes : StatusChanger, IConsumable
+    {
+        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
+        {
+            public int MaxAmount { get; set; }
+
+            public int MaxPuffs { get; set; }
+
+            public int MaxTime { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Mood}, {MaxAmount}";
+
+            public ItemData(string Name, float Weight, string[] Models, int Mood, int MaxPuffs, int MaxTime, int MaxAmount) : base(Name, Weight, Models, 0, Mood, 0)
+            {
+                this.MaxAmount = MaxAmount;
+
+                this.MaxPuffs = MaxPuffs;
+                this.MaxTime = MaxTime;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "cigs_0", new ItemData("Пачка сигарет", 0.15f, new string[] { "prop_cigar_pack_01", "prop_amb_ciggy_01", "ng_proc_cigarette01a" }, 25, 15, 300000, 20) },
+        };
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; }
+
+        [JsonIgnore]
+        public int MaxAmount => Data.MaxAmount;
+
+        public int Amount { get; set; }
+
+        public override void Apply(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            var data = Data;
+
+            player.AttachObject(data.GetModelAt(2), Sync.AttachSystem.Types.ItemCigMouth, -1, data.MaxTime, data.MaxPuffs);
+
+            var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
+
+            if (moodDiff != 0)
+            {
+                pData.Mood += moodDiff;
+            }
+        }
+
+        public Cigarettes(string ID) : base(ID, IDList[ID], typeof(Cigarettes))
+        {
+            this.Amount = MaxAmount;
         }
     }
 
@@ -3497,69 +3657,7 @@ namespace BCRPServer.Game.Items
                     if (!AllTypes.ContainsKey(id[0]))
                         AllTypes.Add(id[0], x);
 
-                    string dataArgs = $"\"{t.Value.Name}\", {t.Value.Weight}f";
-
-                    if (typeof(Clothes).IsAssignableFrom(x))
-                    {
-                        var tClothes = (Clothes.ItemData)t.Value;
-
-                        dataArgs += $", {tClothes.Sex.ToString().ToLower()}, {tClothes.Drawable}, new int[] {{{string.Join(", ", tClothes.Textures)}}}{{addArgs}}, {(tClothes.SexAlternativeID == null ? "null" : $"\"{tClothes.SexAlternativeID}\"")}";
-
-                        string addArgs = "";
-
-                        if (x == typeof(Hat))
-                        {
-                            var hClothes = (Hat.ItemData)t.Value;
-
-                            if (hClothes.ExtraData != null)
-                                addArgs += $", new {x.Name}.ItemData.ExtraData({hClothes.ExtraData.Drawable}, {hClothes.ExtraData.BestTorso})";
-                            else
-                                addArgs += $", null";
-                        }
-                        else if (x == typeof(Top))
-                        {
-                            var hClothes = (Top.ItemData)t.Value;
-
-                            addArgs += $", {hClothes.BestTorso}";
-
-                            if (hClothes.ExtraData != null)
-                                addArgs += $", new {x.Name}.ItemData.ExtraData({hClothes.ExtraData.Drawable}, {hClothes.ExtraData.BestTorso})";
-                            else
-                                addArgs += $", null";
-                        }
-                        else if (x == typeof(Under))
-                        {
-                            var hClothes = (Under.ItemData)t.Value;
-
-                            if (hClothes.BestTop != null)
-                                addArgs += $", new Top.ItemData({hClothes.BestTop.Sex.ToString().ToLower()}, {hClothes.BestTop.Drawable}, new int[] {{{string.Join(", ", hClothes.BestTop.Textures)}}}, {hClothes.BestTop.BestTorso}, {(hClothes.BestTop.ExtraData == null ? "null" : $"new {x.Name}.ItemData.ExtraData({hClothes.BestTop.ExtraData.Drawable}, {hClothes.BestTop.ExtraData.BestTorso})")}, {(hClothes.BestTop.SexAlternativeID == null ? "null" : $"\"{hClothes.BestTop.SexAlternativeID}\"")})";
-                            else
-                                addArgs += $", null";
-
-                            addArgs += $", {hClothes.BestTorso}";
-
-                            if (hClothes.ExtraData != null)
-                                addArgs += $", new {x.Name}.ItemData.ExtraData({hClothes.ExtraData.Drawable}, {hClothes.ExtraData.BestTorso})";
-                            else
-                                addArgs += $", null";
-                        }
-                        else if (x == typeof(Gloves))
-                        {
-                            var hClothes = (Gloves.ItemData)t.Value;
-
-                            addArgs += $", new Dictionary<int, int>() {{ {string.Join("\n,", hClothes.BestTorsos.Select(x => $"{{ {x.Key}, {x.Value} }}"))} }}";
-                        }
-                        else if (x == typeof(Bag))
-                        {
-                            var bClothes = (Bag.ItemData)t.Value;
-
-                            addArgs += $", {bClothes.MaxSlots}, {bClothes.MaxWeight}f";
-                        }
-
-                        dataArgs = dataArgs.Replace("{addArgs}", addArgs);
-                    }
-
-                    lines.Insert(++insIdx, $"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({dataArgs}));");
+                    lines.Insert(++insIdx, $"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({t.Value.ClientData}));");
                 }
             }
 
