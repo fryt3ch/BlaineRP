@@ -325,11 +325,7 @@ namespace BCRPServer.Game
 
             var obj = await NAPI.Task.RunAsync(() =>
             {
-                var obj = NAPI.Object.CreateObject(item.Model, position, rotation, 255, Utils.Dimensions.Stuff);
-
-                NAPI.ClientEvent.TriggerClientEventForAll("IOG::Add", obj.Handle);
-
-                return obj;
+                return NAPI.Object.CreateObject(item.Model, position, rotation, 255, Utils.Dimensions.Stuff);
             });
 
             var iog = new ItemOnGround(item, obj, controller);

@@ -1072,9 +1072,9 @@ namespace BCRPServer.Sync
 
                             player.Teleport(business.Position, true, Utils.Dimensions.Main);
                         }, 1000);
-
-                        player.TriggerEvent("Shop::Close::Server");
                     }
+
+                    player.TriggerEvent("Shop::Close::Server");
                 });
             });
 
@@ -1096,7 +1096,7 @@ namespace BCRPServer.Sync
 
             await Task.Run(async () =>
             {
-                if (pData.CurrentBusiness == null)
+                if (pData.CurrentBusiness == null || amount <= 0)
                     return;
 
                 var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
@@ -1108,6 +1108,8 @@ namespace BCRPServer.Sync
 
                 if (price == -1)
                     return;
+
+                price *= amount;
 
                 bool paid = await Task.Run(async () =>
                 {

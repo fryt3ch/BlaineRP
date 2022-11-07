@@ -79,6 +79,9 @@ namespace BCRPClient.Sync
             ItemSmoothie,
             ItemMilkshake,
             ItemMilk,
+
+            ItemBandage,
+            ItemMedKit,
         }
 
         public enum GeneralTypes
@@ -356,6 +359,9 @@ namespace BCRPClient.Sync
             { FastTypes.ItemPizza, new Animation("amb@code_human_wander_eating_donut_fat@male@idle_a", "idle_a", 8f, 1f, 6000, 49, 0f, false, false, false) },
             { FastTypes.ItemCola, new Animation("amb@world_human_drinking@coffee@female@idle_a", "idle_a", 8f, 1f, 6000, 49, 0f, false, false, false) },
             { FastTypes.ItemBeer, new Animation("amb@world_human_drinking@beer@male@idle_a", "idle_b", 8f, 1f, 6000, 49, 0f, false, false, false) },
+
+            { FastTypes.ItemBandage, new Animation("oddjobs@bailbond_hobotwitchy", "base", 8f, 1f, 4000, 49, 0f, false, false, false) },
+            { FastTypes.ItemMedKit, new Animation("anim@amb@office@boardroom@crew@female@var_b@base@", "idle_a", 8f, 1f, 7000, 49, 0f, false, false, false) },
         };
 
         private static Dictionary<GeneralTypes, Animation> GeneralAnimsList = new Dictionary<GeneralTypes, Animation>()

@@ -3,11 +3,7 @@ using GTANetworkAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using Org.BouncyCastle.Bcpg;
-using Org.BouncyCastle.Bcpg.Sig;
-using Org.BouncyCastle.Utilities.Encoders;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -102,6 +98,15 @@ namespace BCRPServer.Game.Items
             public interface IConsumable
             {
                 public int MaxAmount { get; set; }
+            }
+
+            public interface IDependent
+            {
+                /// <summary>ID предмета, от которого зависит данный предмет</summary>
+                public string DependentByID { get; set;  }
+
+                /// <summary>Необходимое кол-во зависимого предмета для траты</summary>
+                public int DependentByAmount { get; set; }
             }
 
             /// <summary>Стандартная модель</summary>
@@ -266,6 +271,17 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Кол-во оставшихся единиц предмета</summary>
         public int Amount { get; set; }
+    }
+
+    public interface IDependent
+    {
+        /// <summary>ID предмета, от которого зависит данный предмет</summary>
+        [JsonIgnore]
+        public string DependentByID { get; }
+
+        /// <summary>Необходимое кол-во зависимого предмета для траты</summary>
+        [JsonIgnore]
+        public int DependentByAmount { get; }
     }
     #endregion
 
@@ -3173,63 +3189,10 @@ namespace BCRPServer.Game.Items
             }
         }
 
-/*        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
-        {
-            { "sc_burger", new ItemData("Бургер", 0.15f, new string[] { "prop_cs_burger_01" }, 25, 0, 0, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger, 6000) },
-            { "sc_chips", new ItemData("Чипсы",0.15f, new string[] { "prop_food_bs_chips" }, 15, 0, 0, Sync.Animations.FastTypes.ItemChips, Sync.AttachSystem.Types.ItemChips, 6000) },
-            { "sc_pizza", new ItemData("Пицца", 0.15f, new string[] { "v_res_tt_pizzaplate" }, 50, 15, 0, Sync.Animations.FastTypes.ItemPizza, Sync.AttachSystem.Types.ItemPizza, 6000) },
-            { "sc_chocolate", new ItemData("Шоколадка", 0.15f, new string[] { "prop_candy_pqs" }, 10, 20, 0, Sync.Animations.FastTypes.ItemChocolate, Sync.AttachSystem.Types.ItemChocolate, 6000) },
-            { "sc_hotdog", new ItemData("Хот-дог", 0.15f, new string[] { "prop_cs_hotdog_01" }, 10, 20, 0, Sync.Animations.FastTypes.ItemChocolate, Sync.AttachSystem.Types.ItemChocolate, 6000) },
-
-            { "sc_cola", new ItemData("Кола", 0.15f, new string[] { "prop_food_juice01" }, 5, 20, 0, Sync.Animations.FastTypes.ItemCola, Sync.AttachSystem.Types.ItemCola, 6000) },
-
-            { "sc_cigs", new ItemData("Пачка сигарет", 0.15f, new string[] { "prop_cigar_pack_01", "prop_amb_ciggy_01", "ng_proc_cigarette01a" }, 0, 25, 0, Sync.Animations.FastTypes.None, Sync.AttachSystem.Types.ItemCigMouth, -1, 2) },
-            //{ "sc_joint", new StatusChanger.ItemData(Item.Types.Cigarettes, 0, 50, 0, Sync.Animations.FastTypes.None, Sync.AttachSystem.Types.ItemJoint, 6000) },
-
-            { "sc_beer", new ItemData("Пиво", 0.15f, new string[] { "prop_sh_beer_pissh_01" }, 5, 50, 0, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer, 6000) },
-        };*/
-
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         public abstract void Apply(PlayerData pData);
-
-/*        {
-            var player = pData.Player;
-
-            if (player?.Exists != true)
-                return;
-
-            if (Data.Satiety > 0)
-            {
-                var satietyDiff = Utils.GetCorrectDiff(pData.Satiety, Data.Satiety, 0, 100);
-
-                if (satietyDiff != 0)
-                {
-                    pData.Satiety += satietyDiff;
-                }
-            }
-
-            if (Data.Mood > 0)
-            {
-                var moodDiff = Utils.GetCorrectDiff(pData.Mood, Data.Mood, 0, 100);
-
-                if (moodDiff != 0)
-                {
-                    pData.Mood += moodDiff;
-                }
-            }
-
-            if (Data.AttachType != null)
-            {
-                player.AttachObject(base.Data.GetModelAt(Data.AttachModelIdx), (Sync.AttachSystem.Types)Data.AttachType, Data.AttachTime);
-            }
-
-            if (Data.Animation != Sync.Animations.FastTypes.None)
-            {
-                pData.PlayAnim(Data.Animation);
-            }
-        }*/
 
         public StatusChanger(string ID, Item.ItemData Data, Type Type) : base(ID, Data, Type)
         {
@@ -3261,7 +3224,15 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "f_burger", new ItemData("Бургер", 0.15f, "", 25, 0, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
+            { "f_burger", new ItemData("Бургер", 0.15f, "prop_cs_burger_01", 25, 0, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
+            { "f_chips", new ItemData("Чипсы",0.15f, "prop_food_bs_chips", 15, 0, 0, 64, Sync.Animations.FastTypes.ItemChips, Sync.AttachSystem.Types.ItemChips) },
+            { "f_pizza", new ItemData("Пицца", 0.15f, "v_res_tt_pizzaplate", 50, 15, 0, 64, Sync.Animations.FastTypes.ItemPizza, Sync.AttachSystem.Types.ItemPizza) },
+            { "f_chocolate", new ItemData("Шоколадка", 0.15f,  "prop_candy_pqs", 10, 20, 0, 64, Sync.Animations.FastTypes.ItemChocolate, Sync.AttachSystem.Types.ItemChocolate) },
+            { "f_hotdog", new ItemData("Хот-дог", 0.15f, "prop_cs_hotdog_01", 10, 20, 0, 64, Sync.Animations.FastTypes.ItemChocolate, Sync.AttachSystem.Types.ItemChocolate) },
+
+            { "f_cola", new ItemData("Кола", 0.15f, "prop_food_juice01", 5, 20, 0, 64, Sync.Animations.FastTypes.ItemCola, Sync.AttachSystem.Types.ItemCola) },
+
+            { "f_beer", new ItemData("Пиво", 0.15f, "prop_sh_beer_pissh_01", 5, 50, 0, 64, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer) },
         };
 
         [JsonIgnore]
@@ -3269,6 +3240,9 @@ namespace BCRPServer.Game.Items
 
         [JsonIgnore]
         public int MaxAmount => Data.MaxAmount;
+
+        [JsonIgnore]
+        public override float Weight { get => BaseWeight * Amount; }
 
         public int Amount { get; set; }
 
@@ -3284,7 +3258,7 @@ namespace BCRPServer.Game.Items
 
             if (Data.Satiety > 0)
             {
-                var satietyDiff = Utils.GetCorrectDiff(pData.Satiety, Data.Satiety, 0, 100);
+                var satietyDiff = Utils.GetCorrectDiff(pData.Satiety, data.Satiety, 0, 100);
 
                 if (satietyDiff != 0)
                 {
@@ -3294,7 +3268,7 @@ namespace BCRPServer.Game.Items
 
             if (Data.Mood > 0)
             {
-                var moodDiff = Utils.GetCorrectDiff(pData.Mood, Data.Mood, 0, 100);
+                var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
 
                 if (moodDiff != 0)
                 {
@@ -3309,10 +3283,12 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Cigarettes : StatusChanger, IConsumable
+    public class CigarettesPack : StatusChanger, IConsumable
     {
         new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
         {
+            public const int OneCigModelIdx = 1;
+
             public int MaxAmount { get; set; }
 
             public int MaxPuffs { get; set; }
@@ -3321,7 +3297,7 @@ namespace BCRPServer.Game.Items
 
             public override string ClientData => $"\"{Name}\", {Weight}f, {Mood}, {MaxAmount}";
 
-            public ItemData(string Name, float Weight, string[] Models, int Mood, int MaxPuffs, int MaxTime, int MaxAmount) : base(Name, Weight, Models, 0, Mood, 0)
+            public ItemData(string Name, string[] Models, int Mood, int MaxPuffs, int MaxTime, int MaxAmount) : base(Name, 0.1f, Models, 0, Mood, 0)
             {
                 this.MaxAmount = MaxAmount;
 
@@ -3332,7 +3308,9 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "cigs_0", new ItemData("Пачка сигарет", 0.15f, new string[] { "prop_cigar_pack_01", "prop_amb_ciggy_01", "ng_proc_cigarette01a" }, 25, 15, 300000, 20) },
+            { "cigs_0", new ItemData("Сигареты Redwood", new string[] { "v_ret_ml_cigs", "ng_proc_cigarette01a" }, 25, 15, 300000, 20) },
+
+            { "cigs_1", new ItemData("Сигареты Chartman", new string[] { "prop_cigar_pack_01", "prop_sh_cigar_01" }, 25, 15, 300000, 20) },
         };
 
         [JsonIgnore]
@@ -3349,7 +3327,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.GetModelAt(2), Sync.AttachSystem.Types.ItemCigMouth, -1, data.MaxTime, data.MaxPuffs);
+            player.AttachObject(data.GetModelAt(ItemData.OneCigModelIdx), Sync.AttachSystem.Types.ItemCigMouth, -1, data.MaxTime, data.MaxPuffs);
 
             var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
 
@@ -3359,9 +3337,166 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public Cigarettes(string ID) : base(ID, IDList[ID], typeof(Cigarettes))
+        public CigarettesPack(string ID) : base(ID, IDList[ID], typeof(CigarettesPack))
         {
             this.Amount = MaxAmount;
+        }
+    }
+
+    public class Cigarette : StatusChanger, IStackable
+    {
+        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+        {
+            public int MaxAmount { get; set; }
+
+            public int MaxPuffs { get; set; }
+
+            public int MaxTime { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Mood}, {MaxAmount}";
+
+            public ItemData(string Name, string Model, int Mood, int MaxPuffs, int MaxTime, int MaxAmount) : base(Name, 0.01f, new string[] { Model }, 0, Mood, 0)
+            {
+                this.MaxAmount = MaxAmount;
+
+                this.MaxPuffs = MaxPuffs;
+                this.MaxTime = MaxTime;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "cig_0", new ItemData("Сигарета Redwood", "ng_proc_cigarette01a", 25, 15, 300000, 20) },
+
+            { "cig_1", new ItemData("Сигарета Chartman", "prop_sh_cigar_01", 25, 15, 300000, 20) },
+        };
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; }
+
+        [JsonIgnore]
+        public int MaxAmount => Data.MaxAmount;
+
+        [JsonIgnore]
+        public override float Weight { get => BaseWeight * Amount; }
+
+        public int Amount { get; set; }
+
+        public override void Apply(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            var data = Data;
+
+            player.AttachObject(data.Model, Sync.AttachSystem.Types.ItemCigMouth, -1, data.MaxTime, data.MaxPuffs);
+
+            var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
+
+            if (moodDiff != 0)
+            {
+                pData.Mood += moodDiff;
+            }
+        }
+
+        public Cigarette(string ID) : base(ID, IDList[ID], typeof(Cigarette))
+        {
+
+        }
+    }
+
+    public class Healing : StatusChanger, IStackable
+    {
+        new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+        {
+            public int MaxAmount { get; set; }
+
+            public Sync.Animations.FastTypes Animation { get; set; }
+
+            public Sync.AttachSystem.Types AttachType { get; set; }
+
+            public bool RemovesWounded { get; set; }
+
+            public bool RemovesKnocked { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Health}, {MaxAmount}";
+
+            public ItemData(string Name, float Weight, string Model, int Health, bool RemovesWounded, bool RemovesKnocked, int MaxAmount, Sync.Animations.FastTypes Animation, Sync.AttachSystem.Types AttachType) : base(Name, Weight, new string[] { Model }, 0, 0, Health)
+            {
+                this.MaxAmount = MaxAmount;
+
+                this.Animation = Animation;
+
+                this.AttachType = AttachType;
+
+                this.RemovesWounded = RemovesWounded;
+                this.RemovesKnocked = RemovesKnocked;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "med_b_0", new ItemData("Бинт", 0.1f, "prop_gaffer_arm_bind", 10, true, false, 256, Sync.Animations.FastTypes.ItemBandage, Sync.AttachSystem.Types.ItemBandage) },
+
+            { "med_kit_0", new ItemData("Аптечка", 0.25f, "prop_ld_health_pack", 50, false, false, 128, Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) },
+            { "med_kit_1", new ItemData("Аптечка ПП", 0.25f, "prop_ld_health_pack", 50, true, true, 128, Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) },
+            { "med_kit_2", new ItemData("Аптечка EMS", 0.25f, "prop_ld_health_pack", 85, true, true, 128, Sync.Animations.FastTypes.ItemMedKit, Sync.AttachSystem.Types.ItemMedKit) },
+        };
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; }
+
+        [JsonIgnore]
+        public int MaxAmount => Data.MaxAmount;
+
+        [JsonIgnore]
+        public override float Weight { get => BaseWeight * Amount; }
+
+        public int Amount { get; set; }
+
+        public override void Apply(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            var data = Data;
+
+            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation]);
+
+            pData.PlayAnim(data.Animation);
+
+            var hp = player.Health;
+
+            var healthDiff = Utils.GetCorrectDiff(hp, data.Health, 0, 100);
+
+            if (healthDiff != 0)
+            {
+                player.SetHealth(hp + healthDiff);
+            }
+        }
+
+        public void ApplyToOther(PlayerData pData, PlayerData tData)
+        {
+            var player = pData.Player;
+            var target = tData.Player;
+
+            var data = Data;
+
+            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation]);
+
+            pData.PlayAnim(data.Animation);
+
+            var hp = target.Health;
+
+            var healthDiff = Utils.GetCorrectDiff(hp, data.Health, 0, 100);
+
+            if (healthDiff != 0)
+            {
+                target.SetHealth(hp + healthDiff);
+            }
+        }
+
+        public Healing(string ID) : base(ID, IDList[ID], typeof(Healing))
+        {
+
         }
     }
 
@@ -3377,9 +3512,6 @@ namespace BCRPServer.Game.Items
         /// <inheritdoc cref="CreateItem(string, int, int, bool)"/>
         public static async Task<Item> GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false)
         {
-            if (pData == null)
-                return null;
-
             var player = pData.Player;
 
             var item = await Task.Run(async () =>
@@ -3396,8 +3528,6 @@ namespace BCRPServer.Game.Items
 
                 var interfaces = type.GetInterfaces();
 
-                var inv = pData.Items;
-
                 var totalWeight = 0f;
                 var totalFreeSlots = 0;
 
@@ -3407,7 +3537,7 @@ namespace BCRPServer.Game.Items
                 if (!weapon && amount == 0)
                     return null;
 
-                foreach (var x in inv)
+                foreach (var x in pData.Items)
                     if (x != null)
                         totalWeight += x.Weight;
                     else
@@ -3419,7 +3549,7 @@ namespace BCRPServer.Game.Items
                 {
                     var ammoType = ((Weapon.ItemData)Weapon.IDList[id]).AmmoID;
 
-                    weightOk = totalWeight + data.Weight + (ammoType == null ? 0 : (Ammo.IDList[ammoType].Weight * amount)) < Settings.MAX_INVENTORY_WEIGHT;
+                    weightOk = totalWeight + data.Weight + (ammoType == null ? 0f : (Ammo.IDList[ammoType].Weight * amount)) < Settings.MAX_INVENTORY_WEIGHT;
                 }
                 else
                     weightOk = totalWeight + data.Weight * amount < Settings.MAX_INVENTORY_WEIGHT;
@@ -3539,6 +3669,7 @@ namespace BCRPServer.Game.Items
                 else
                 {
                     item.UID = 0;
+
                     return item;
                 }
             });

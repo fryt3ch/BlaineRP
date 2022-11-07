@@ -41,6 +41,9 @@ namespace BCRPServer.Sync
             ItemSmoothie,
             ItemMilkshake,
             ItemMilk,
+
+            ItemBandage,
+            ItemMedKit,
         }
 
         public enum GeneralTypes
@@ -306,6 +309,9 @@ namespace BCRPServer.Sync
 
             { FastTypes.SmokePuffCig, 3000 },
             { FastTypes.SmokeTransitionCig, 1000 },
+
+            { FastTypes.ItemBandage, 4000 },
+            { FastTypes.ItemMedKit, 7000 },
         };
 
         /// <summary>Проиграть быструю анимацию на игроке</summary>

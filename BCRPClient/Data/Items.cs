@@ -411,13 +411,43 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class Cigarettes : StatusChanger, IConsumable
+        public class CigarettesPack : StatusChanger, IConsumable
         {
             new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
             {
                 public int MaxAmount { get; set; }
 
                 public ItemData(string Name, float Weight, int Mood, int MaxAmount) : base(Name, Weight, 0, Mood, 0)
+                {
+                    this.MaxAmount = MaxAmount;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Cigarette : StatusChanger, IStackable
+        {
+            new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+            {
+                public int MaxAmount { get; set; }
+
+                public ItemData(string Name, float Weight, int Mood, int MaxAmount) : base(Name, Weight, 0, Mood, 0)
+                {
+                    this.MaxAmount = MaxAmount;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Healing : StatusChanger, IStackable
+        {
+            new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
+            {
+                public int MaxAmount { get; set; }
+
+                public ItemData(string Name, float Weight, int Health, int MaxAmount) : base(Name, Weight, 0, 0, Health)
                 {
                     this.MaxAmount = MaxAmount;
                 }

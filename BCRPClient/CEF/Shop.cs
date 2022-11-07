@@ -93,6 +93,11 @@ namespace BCRPClient.CEF
         private static Dictionary<int, (int, int)> RealClothes;
         private static Dictionary<int, (int, int)> RealAccessories;
 
+        private static Dictionary<Types, string> JsEnumTypes = new Dictionary<Types, string>()
+        {
+            { Types.Market, "convenience" },
+        };
+
         private static Dictionary<Types, object> Prices = new Dictionary<Types, object>()
         {
             {
@@ -1203,9 +1208,52 @@ namespace BCRPClient.CEF
 
                         new Dictionary<string, int>()
                         {
+                            { "f_burger", 100 },
+                        }
+                    },
+
+                    {
+                        SectionTypes.Drink,
+
+                        new Dictionary<string, int>()
+                        {
 
                         }
-                    }
+                    },
+
+                    {
+                        SectionTypes.Ingredients,
+
+                        new Dictionary<string, int>()
+                        {
+
+                        }
+                    },
+
+                    {
+                        SectionTypes.Medical,
+
+                        new Dictionary<string, int>()
+                        {
+                            { "med_b_0", 100 },
+
+                            { "med_kit_0", 100 },
+                            { "med_kit_1", 100 },
+                        }
+                    },
+
+                    {
+                        SectionTypes.Other,
+
+                        new Dictionary<string, int>()
+                        {
+                            { "cigs_0", 100 },
+                            { "cigs_1", 100 },
+
+                            { "cig_0", 100 },
+                            { "cig_1", 100 },
+                        }
+                    },
                 }
                 #endregion
             },
@@ -1229,9 +1277,9 @@ namespace BCRPClient.CEF
                 await Show(type, margin, heading);
             });
 
-            Events.Add("Shop::Close::Server", (object[] args) => Close(false));
+            Events.Add("Shop::Close::Server", (object[] args) => Close(true, false));
 
-            Events.Add("Shop::Close", (object[] args) => { Close(true); });
+            Events.Add("Shop::Close", (object[] args) => { Close(false, true); });
 
             Events.Add("Shop::Choose", (object[] args) =>
             {
@@ -1342,10 +1390,23 @@ namespace BCRPClient.CEF
             {
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
 
-                if (pData == null || CurrentItem == null)
+                if (pData == null)
                     return;
 
                 bool useCash = (bool)args[0];
+
+                string itemId = CurrentItem;
+                int variation = CurrentVariation;
+                int amount = 1;
+
+                if (args.Length > 1)
+                {
+                    itemId = (string)args[1];
+                    amount = (int)args[2];
+                }
+
+                if (itemId == null)
+                    return;
 
                 if (DateTime.Now.Subtract(LastBuyRequested).TotalMilliseconds > 5000)
                 {
@@ -1358,7 +1419,7 @@ namespace BCRPClient.CEF
                     if (LastSent.IsSpam(1000, false, false))
                         return;
 
-                    Events.CallRemote("Shop::Buy", CurrentItem, CurrentVariation, 1, useCash);
+                    Events.CallRemote("Shop::Buy", itemId, variation, amount, useCash);
 
                     LastBuyRequested = DateTime.MinValue;
                 }
@@ -1374,10 +1435,10 @@ namespace BCRPClient.CEF
 
             CurrentType = type;
 
-            await Browser.Render(Browser.IntTypes.Shop, true);
-
             if (heading != null)
             {
+                await Browser.Render(Browser.IntTypes.Shop, true);
+
                 DefaultHeading = (float)heading;
 
                 Additional.ExtraColshape.InteractionColshapesAllowed = false;
@@ -1561,10 +1622,28 @@ namespace BCRPClient.CEF
                     }
                 }, 1500, false, 0)).Run();
             }
+            else
+            {
+                var prices = GetPrices<Dictionary<SectionTypes, Dictionary<string, int>>>(type);
+
+                if (prices == null)
+                    return;
+
+                await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
+
+                CEF.Cursor.Show(true, true);
+
+                CEF.Browser.Window.ExecuteJs("Retail.draw", JsEnumTypes[type], prices.Select(x => x.Value.Select(y => new object[] { y.Key, Data.Items.GetName(y.Key), y.Value * margin, (Data.Items.GetData(y.Key) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y.Key).Weight, false })), null, false);
+
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
+            }
         }
 
-        public static void Close(bool request = true)
+        public static void Close(bool ignoreTimeout = false, bool request = true)
         {
+            if (CurrentType == Types.None)
+                return;
+
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
             if (pData == null)
@@ -1611,7 +1690,40 @@ namespace BCRPClient.CEF
                     RealAccessories.Clear();
                 }
 
-                Browser.Render(Browser.IntTypes.Shop, false);
+                if (Browser.IsRendered(Browser.IntTypes.Shop))
+                {
+                    Browser.Render(Browser.IntTypes.Shop, false);
+
+                    Additional.ExtraColshape.InteractionColshapesAllowed = false;
+
+                    Additional.SkyCamera.FadeScreen(true);
+
+                    (new AsyncTask(() =>
+                    {
+                        GameEvents.Render -= CharacterCreation.PlayerLookCursor;
+                        GameEvents.Render -= GameEvents.DisableAllControls;
+
+                        CEF.Chat.Show(true);
+
+                        if (!Settings.Interface.HideHUD)
+                            CEF.HUD.ShowHUD(true);
+
+                        KeyBinds.EnableAll();
+
+                        Additional.Camera.Disable();
+
+                        Additional.SkyCamera.FadeScreen(false);
+                    }, 1500, false, 0)).Run();
+
+                    (new AsyncTask(() =>
+                    {
+                        Additional.ExtraColshape.InteractionColshapesAllowed = true;
+                    }, 2500, false, 0)).Run();
+                }
+                else
+                {
+                    Browser.Render(Browser.IntTypes.Retail, false);
+                }
 
                 CurrentType = Types.None;
 
@@ -1621,32 +1733,6 @@ namespace BCRPClient.CEF
                 TempBinds.Clear();
 
                 Cursor.Show(false, false);
-
-                Additional.ExtraColshape.InteractionColshapesAllowed = false;
-
-                Additional.SkyCamera.FadeScreen(true);
-
-                (new AsyncTask(() =>
-                {
-                    GameEvents.Render -= CharacterCreation.PlayerLookCursor;
-                    GameEvents.Render -= GameEvents.DisableAllControls;
-
-                    CEF.Chat.Show(true);
-
-                    if (!Settings.Interface.HideHUD)
-                        CEF.HUD.ShowHUD(true);
-
-                    KeyBinds.EnableAll();
-
-                    Additional.Camera.Disable();
-
-                    Additional.SkyCamera.FadeScreen(false);
-                }, 1500, false, 0)).Run();
-
-                (new AsyncTask(() =>
-                {
-                    Additional.ExtraColshape.InteractionColshapesAllowed = true;
-                }, 2500, false, 0)).Run();
             }
         }
 

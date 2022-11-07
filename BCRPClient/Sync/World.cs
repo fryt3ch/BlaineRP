@@ -34,7 +34,6 @@ namespace BCRPClient.Sync
                 if (x.GetSharedData<bool>("IOG"))
                 {
                     x.NotifyStreaming = true;
-                    x.SetData("IOG", true);
                 }
             }
 
@@ -113,23 +112,19 @@ namespace BCRPClient.Sync
             _EnabledItemsOnGround = false;
 
             #region Events
-            Events.Add("IOG::Add", (object[] args) =>
+            Events.AddDataHandler("IOG", (Entity entity, object value, object oldValue) =>
             {
-                if (!Preloaded)
+                if (entity.Type != RAGE.Elements.Type.Object)
                     return;
 
-                var iog = (MapObject)args[0];
+                MapObject obj = entity as MapObject;
 
-                if (iog == null)
-                    return;
-
-                iog.SetData("IOG", true);
-                iog.NotifyStreaming = true;
+                obj.NotifyStreaming = true;
             });
 
             Events.AddDataHandler("Amount", (Entity entity, object value, object oldValue) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object || !entity.HasData("IOG"))
+                if (entity.Type != RAGE.Elements.Type.Object || !entity.HasSharedData("IOG"))
                     return;
 
                 MapObject obj = entity as MapObject;
@@ -183,7 +178,7 @@ namespace BCRPClient.Sync
             #region New IOG Stream
             Events.OnEntityStreamIn += ((Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object || entity.IsLocal || !entity.HasData("IOG"))
+                if (entity.Type != RAGE.Elements.Type.Object || entity.IsLocal || !entity.HasSharedData("IOG"))
                     return;
 
                 var obj = entity as MapObject;
@@ -206,7 +201,7 @@ namespace BCRPClient.Sync
 
             Events.OnEntityStreamOut += ((Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object || entity.IsLocal || !entity.HasData("IOG"))
+                if (entity.Type != RAGE.Elements.Type.Object || entity.IsLocal || !entity.HasSharedData("IOG"))
                     return;
 
                 var obj = entity as MapObject;

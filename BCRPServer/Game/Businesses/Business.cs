@@ -1114,6 +1114,24 @@ namespace BCRPServer.Game.Businesses
                 }
             },
             #endregion
+
+            {
+                Types.Market,
+
+                new Dictionary<string, int>()
+                {
+                    { "f_burger", 100 },
+
+                    { "med_b_0", 100 },
+                    { "med_kit_0", 100 },
+                    { "med_kit_1", 100 },
+
+                    { "cigs_0", 100 },
+                    { "cigs_1", 100 },
+                    { "cig_0", 100 },
+                    { "cig_1", 100 },
+                }
+            }
         };
 
         public enum Types
@@ -1121,6 +1139,8 @@ namespace BCRPServer.Game.Businesses
             ClothesShop1 = 0,
             ClothesShop2,
             ClothesShop3,
+
+            Market,
         }
 
         public static Dictionary<int, Business> All;
@@ -1184,9 +1204,9 @@ namespace BCRPServer.Game.Businesses
         /// <returns>Цена предмета, если предмета нет в данном бизнесе, то -1</returns>
         public int GetItemPrice(string id, bool addMargin = true)
         {
-            int price = -1;
+            int price;
 
-            if (!AllPrices[Type].TryGetValue(id, out price))
+            if (id == null || !AllPrices[Type].TryGetValue(id, out price))
                 return -1;
 
             if (addMargin)
@@ -1265,6 +1285,8 @@ namespace BCRPServer.Game.Businesses
             new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f));
             #endregion
 
+            new Market(15, new Vector3(549.1185f, 2671.407f, 42.1565f));
+
             for (int i = 1; i < All.Count + 1; i++)
             {
                 All[i] = MySQL.GetBusiness(All[i]);
@@ -1314,114 +1336,124 @@ namespace BCRPServer.Game.Businesses
         }
     }
 
-/*    public class Masks : Business
+    public class Market : Business
     {
-        public static Dictionary<string, int> Prices = new Dictionary<string, int>()
-        {
-
-        };
-
         private static int Counter = 1;
 
-        public Masks(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo)
+        public Market(int ID, Vector3 Position) : base(ID, Position, Types.Market)
         {
-            Blip = NAPI.Blip.CreateBlip(362, Position, 1f, 5, "", 255, 0, true);
-
             SubID = Counter++;
         }
     }
 
-    public class Bags : Business
-    {
-        public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+    /*    public class Masks : Business
         {
+            public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+            {
 
-        };
+            };
 
-        private static int Counter = 1;
+            private static int Counter = 1;
 
-        public Bags(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
-        {
-            Blip = NAPI.Blip.CreateBlip(676, Position, 1f, 5, "", 255, 0, true);
+            public Masks(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo)
+            {
+                Blip = NAPI.Blip.CreateBlip(362, Position, 1f, 5, "", 255, 0, true);
 
-            SubID = Counter++;
+                SubID = Counter++;
+            }
         }
-    }
 
-    public class Jewellery : Business
-    {
-        public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+        public class Bags : Business
         {
+            public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+            {
 
-        };
+            };
 
-        private static int Counter = 1;
+            private static int Counter = 1;
 
-        public Jewellery(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
-        {
-            Blip = NAPI.Blip.CreateBlip(617, Position, 1f, 5, "", 255, 0, true);
+            public Bags(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
+            {
+                Blip = NAPI.Blip.CreateBlip(676, Position, 1f, 5, "", 255, 0, true);
 
-            SubID = Counter++;
+                SubID = Counter++;
+            }
         }
-    }
 
-    public class Shop : Business
-    {
-        public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+        public class Jewellery : Business
         {
+            public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+            {
 
-        };
+            };
 
-        private static int Counter = 1;
+            private static int Counter = 1;
 
-        public Shop(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
-        {
-            Blip = NAPI.Blip.CreateBlip(11, Position, 1f, 5, "", 255, 0, true);
+            public Jewellery(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
+            {
+                Blip = NAPI.Blip.CreateBlip(617, Position, 1f, 5, "", 255, 0, true);
 
-            SubID = Counter++;
+                SubID = Counter++;
+            }
         }
-    }
 
-    public class WeaponShop : Business
-    {
-        public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+        public class Shop : Business
         {
+            public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+            {
 
-        };
+            };
 
-        private static int Counter = 1;
+            private static int Counter = 1;
 
-        public WeaponShop(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
-        {
-            Blip = NAPI.Blip.CreateBlip(110, Position, 1f, 5, "", 255, 0, true);
+            public Shop(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
+            {
+                Blip = NAPI.Blip.CreateBlip(11, Position, 1f, 5, "", 255, 0, true);
 
-            SubID = Counter++;
+                SubID = Counter++;
+            }
         }
-    }
 
-    public class Petrol : Business
-    {
-        public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+        public class WeaponShop : Business
         {
+            public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+            {
 
-        };
+            };
 
-        private static int Counter = 1;
+            private static int Counter = 1;
 
-        public Petrol(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
-        {
-            Blip = NAPI.Blip.CreateBlip(361, Position, 1f, 5, "", 255, 0, true);
+            public WeaponShop(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
+            {
+                Blip = NAPI.Blip.CreateBlip(110, Position, 1f, 5, "", 255, 0, true);
 
-            SubID = Counter++;
+                SubID = Counter++;
+            }
         }
-    }
 
-    public class Farm : Business
-    {
-        public Farm(int ID, Vector3 PositionInfo, Vector3 Position) : base(ID, PositionInfo, Position)
+        public class Petrol : Business
         {
-            Blip = NAPI.Blip.CreateBlip(73, PositionInfo, 1f, 0, "");
+            public static Dictionary<string, int> Prices = new Dictionary<string, int>()
+            {
 
+            };
+
+            private static int Counter = 1;
+
+            public Petrol(int ID, Vector3 Position, Vector3 PositionInfo, Vector3 PositionEnter) : base(ID, PositionInfo, PositionEnter)
+            {
+                Blip = NAPI.Blip.CreateBlip(361, Position, 1f, 5, "", 255, 0, true);
+
+                SubID = Counter++;
+            }
         }
-    }*/
+
+        public class Farm : Business
+        {
+            public Farm(int ID, Vector3 PositionInfo, Vector3 Position) : base(ID, PositionInfo, Position)
+            {
+                Blip = NAPI.Blip.CreateBlip(73, PositionInfo, 1f, 0, "");
+
+            }
+        }*/
 }

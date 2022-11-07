@@ -56,6 +56,9 @@ namespace BCRPServer.Sync
             ItemSmoothie,
             ItemMilkshake,
             ItemMilk,
+
+            ItemBandage,
+            ItemMedKit,
         }
         #endregion
 

@@ -21,6 +21,8 @@ namespace BCRPClient.Data
                 ClothesShop1 = 0,
                 ClothesShop2,
                 ClothesShop3,
+
+                Market,
             }
 
             public Types Type { get; set; }
@@ -130,6 +132,22 @@ namespace BCRPClient.Data
             }
         }
 
+        public class Market : Business
+        {
+            private static int Counter = 1;
+
+            public Market(int Id, Vector3 Position, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.Market)
+            {
+                this.Blip = new Blip(439, Position, "", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                SubId = Counter++;
+            }
+        }
+
         public Locations()
         {
             #region Clothes (Cheap)
@@ -157,6 +175,8 @@ namespace BCRPClient.Data
             new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f), new Vector3(-718f, -160f, 36f), new Vector3(-708.95f, -151.6612f, 37.415f), 114f, "Лана", "csb_anita");
             new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f), new Vector3(-152.62f, -304f, 37.91f), new Vector3(-165f, -303.2f, 39.73328f), 251f, "Лана", "csb_anita");
             #endregion
+
+            new Market(15, new Vector3(546.2691f, 2674.628f, 42f), new Vector3(546.2691f, 2674.628f, 42f), new Vector3(549.1185f, 2671.407f, 42.1565f), 91.55f, "Лана", "csb_anita");
         }
     }
 }

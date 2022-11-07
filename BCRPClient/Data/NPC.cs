@@ -77,7 +77,7 @@ namespace BCRPClient.Data
 
             if (Type == Types.Seller)
             {
-                this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 1.5f, 2f, false, new Utils.ExtraColour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+                this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Utils.ExtraColour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
 
                 this.Colshape.ActionType = Additional.ExtraColshape.ActionTypes.NpcDialogue;
                 this.Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.NpcDialogue;

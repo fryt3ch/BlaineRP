@@ -47,6 +47,9 @@ namespace BCRPClient.Sync
             ItemSmoothie,
             ItemMilkshake,
             ItemMilk,
+
+            ItemBandage,
+            ItemMedKit,
         }
 
         #region Classes
@@ -204,6 +207,9 @@ namespace BCRPClient.Sync
                     gEntity.SetData("PtfxHandle", ptfxHandle);
                 })
             },
+
+            { Types.ItemBandage, new AttachmentData(36029, new Vector3(-0.04f, 0f, -0.01f), new Vector3(160f, 0f, 90f), false, false, false, 2, true) },
+            { Types.ItemMedKit, new AttachmentData(36029, new Vector3(0.03f, 0.01f, 0.12f), new Vector3(180f, -10f, 90f), false, false, false, 2, true) },
 
             { Types.ItemChips, new AttachmentData(28422, new Vector3(-0.04f, 0.02f, -0.04f), new Vector3(15f, 20f, 10f), false, false, false, 2, true) },
             { Types.ItemBurger, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
