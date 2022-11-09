@@ -109,23 +109,27 @@ namespace BCRPClient.CEF
 
                 CloseMenu();
 
+                var vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle;
+
+                if (vehicle == null)
+                    return;
+
                 switch (action)
                 {
                     case OutVehicleActions.Doors:
-                        Sync.Vehicles.Lock(null, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.Lock(null, vehicle);
                     break;
 
                     case OutVehicleActions.DoorsOpen:
-                        Sync.Vehicles.Lock(false, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.Lock(false, vehicle);
                     break;
 
                     case OutVehicleActions.DoorsClose:
-                        Sync.Vehicles.Lock(true, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.Lock(true, vehicle);
                     break;
 
                     case OutVehicleActions.Push:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Vehicle)
-                            Sync.PushVehicle.Toggle(BCRPClient.Interaction.CurrentEntity as Vehicle);
+                        Sync.PushVehicle.Toggle(vehicle);
                     break;
 
                     case OutVehicleActions.Trunk:
@@ -133,7 +137,7 @@ namespace BCRPClient.CEF
                     break;
 
                     case OutVehicleActions.TrunkOpen:
-                        Sync.Vehicles.ToggleTrunkLock(false, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleTrunkLock(false, vehicle);
                     break;
 
                     case OutVehicleActions.TrunkLook:
@@ -141,35 +145,39 @@ namespace BCRPClient.CEF
                     break;
 
                     case OutVehicleActions.TrunkClose:
-                        Sync.Vehicles.ToggleTrunkLock(true, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleTrunkLock(true, vehicle);
                     break;
 
                     case OutVehicleActions.HoodOpen:
-                        Sync.Vehicles.ToggleHoodLock(false, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleHoodLock(false, vehicle);
                     break;
 
                     case OutVehicleActions.HoodClose:
-                        Sync.Vehicles.ToggleHoodLock(true, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleHoodLock(true, vehicle);
                     break;
 
                     case OutVehicleActions.SeatOne:
-                        Sync.Vehicles.SeatTo(0, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(0, vehicle);
                     break;
 
                     case OutVehicleActions.SeatTwo:
-                        Sync.Vehicles.SeatTo(1, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(1, vehicle);
                     break;
 
                     case OutVehicleActions.SeatThree:
-                        Sync.Vehicles.SeatTo(2, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(2, vehicle);
                     break;
 
                     case OutVehicleActions.SeatFour:
-                        Sync.Vehicles.SeatTo(3, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(3, vehicle);
                     break;
 
                     case OutVehicleActions.SeatTrunk:
-                        Sync.Vehicles.SeatTo(int.MaxValue, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(int.MaxValue, vehicle);
+                    break;
+
+                    case OutVehicleActions.Gas:
+                        CEF.Gas.RequestShow(vehicle);
                     break;
                 }
             });
@@ -183,50 +191,55 @@ namespace BCRPClient.CEF
                 if (action != InVehicleActions.Passengers)
                     CloseMenu();
 
+                var vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle;
+
+                if (vehicle == null)
+                    return;
+
                 switch (action)
                 {
                     case InVehicleActions.Doors:
-                        Sync.Vehicles.Lock(null, BCRPClient.Interaction.CurrentEntity);
-                        break;
+                        Sync.Vehicles.Lock(null, vehicle);
+                    break;
 
                     case InVehicleActions.DoorsOpen:
-                        Sync.Vehicles.Lock(false, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.Lock(false, vehicle);
                     break;
 
                     case InVehicleActions.DoorsClose:
-                        Sync.Vehicles.Lock(true, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.Lock(true, vehicle);
                     break;
 
                     case InVehicleActions.TrunkOpen:
-                        Sync.Vehicles.ToggleTrunkLock(false, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleTrunkLock(false, vehicle);
                     break;
 
                     case InVehicleActions.TrunkClose:
-                        Sync.Vehicles.ToggleTrunkLock(true, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleTrunkLock(true, vehicle);
                     break;
 
                     case InVehicleActions.HoodOpen:
-                        Sync.Vehicles.ToggleHoodLock(false, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleHoodLock(false, vehicle);
                     break;
 
                     case InVehicleActions.HoodClose:
-                        Sync.Vehicles.ToggleHoodLock(true, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.ToggleHoodLock(true, vehicle);
                     break;
 
                     case InVehicleActions.SeatOne:
-                        Sync.Vehicles.SeatTo(0, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(0, vehicle);
                     break;
 
                     case InVehicleActions.SeatTwo:
-                        Sync.Vehicles.SeatTo(1, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(1, vehicle);
                     break;
 
                     case InVehicleActions.SeatThree:
-                        Sync.Vehicles.SeatTo(2, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(2, vehicle);
                     break;
 
                     case InVehicleActions.SeatFour:
-                        Sync.Vehicles.SeatTo(3, BCRPClient.Interaction.CurrentEntity);
+                        Sync.Vehicles.SeatTo(3, vehicle);
                     break;
 
                     case InVehicleActions.Passengers:
@@ -235,6 +248,10 @@ namespace BCRPClient.CEF
 
                     case InVehicleActions.Park:
 
+                    break;
+
+                    case InVehicleActions.Gas:
+                        CEF.Gas.RequestShow(vehicle);
                     break;
                 }
             });
@@ -275,91 +292,78 @@ namespace BCRPClient.CEF
                 if (pData == null)
                     return;
 
+                var player = BCRPClient.Interaction.CurrentEntity as Player;
+
+                if (player == null)
+                    return;
+
                 switch (action)
                 {
                     case PlayerActions.Handshake:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Handshake);
-                    break;
+                        Sync.Offers.Request(player, Sync.Offers.Types.Handshake);
+                        break;
 
                     case PlayerActions.Trade:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Exchange);
+                        Sync.Offers.Request(player, Sync.Offers.Types.Exchange);
                         break;
 
                     case PlayerActions.Carry:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Carry);
+                        Sync.Offers.Request(player, Sync.Offers.Types.Carry);
                         break;
 
                     case PlayerActions.Money:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
+                        if (pData.Cash <= 0)
                         {
-                            if (pData.Cash <= 0)
-                            {
-                                CEF.Notification.Show("Trade::NotEnoughMoney");
+                            CEF.Notification.Show("Trade::NotEnoughMoney");
 
-                                return;
-                            }
-
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, (BCRPClient.Interaction.CurrentEntity as Player).GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1);
+                            return;
                         }
+
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1);
                         break;
 
                     case PlayerActions.Money_50:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
+                        if (pData.Cash < 50)
                         {
-                            if (pData.Cash < 50)
-                            {
-                                CEF.Notification.Show("Trade::NotEnoughMoney");
+                            CEF.Notification.Show("Trade::NotEnoughMoney");
 
-                                return;
-                            }
-
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Cash, 50);
+                            return;
                         }
+
+                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 50);
                         break;
 
                     case PlayerActions.Money_150:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
+                        if (pData.Cash < 150)
                         {
-                            if (pData.Cash < 150)
-                            {
-                                CEF.Notification.Show("Trade::NotEnoughMoney");
+                            CEF.Notification.Show("Trade::NotEnoughMoney");
 
-                                return;
-                            }
-
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Cash, 150);
+                            return;
                         }
+
+                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 150);
                         break;
 
                     case PlayerActions.Money_300:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
+                        if (pData.Cash < 300)
                         {
-                            if (pData.Cash < 300)
-                            {
-                                CEF.Notification.Show("Trade::NotEnoughMoney");
+                            CEF.Notification.Show("Trade::NotEnoughMoney");
 
-                                return;
-                            }
-
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Cash, 300);
+                            return;
                         }
+
+                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 300);
                         break;
 
                     case PlayerActions.Money_1000:
-                        if (BCRPClient.Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Player)
+                        if (pData.Cash < 1000)
                         {
-                            if (pData.Cash < 1000)
-                            {
-                                CEF.Notification.Show("Trade::NotEnoughMoney");
+                            CEF.Notification.Show("Trade::NotEnoughMoney");
 
-                                return;
-                            }
-
-                            Sync.Offers.Request(BCRPClient.Interaction.CurrentEntity as Player, Sync.Offers.Types.Cash, 1000);
+                            return;
                         }
+
+                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 1000);
                         break;
                 }
             });

@@ -3287,7 +3287,7 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
         {
-            public const int OneCigModelIdx = 1;
+            public const int UseCigModelIdx = 1;
 
             public int MaxAmount { get; set; }
 
@@ -3295,22 +3295,26 @@ namespace BCRPServer.Game.Items
 
             public int MaxTime { get; set; }
 
+            public Sync.AttachSystem.Types AttachType { get; set; }
+
             public override string ClientData => $"\"{Name}\", {Weight}f, {Mood}, {MaxAmount}";
 
-            public ItemData(string Name, string[] Models, int Mood, int MaxPuffs, int MaxTime, int MaxAmount) : base(Name, 0.1f, Models, 0, Mood, 0)
+            public ItemData(string Name, string[] Models, int Mood, int MaxPuffs, int MaxTime, Sync.AttachSystem.Types AttachType, int MaxAmount) : base(Name, 0.1f, Models, 0, Mood, 0)
             {
                 this.MaxAmount = MaxAmount;
 
                 this.MaxPuffs = MaxPuffs;
                 this.MaxTime = MaxTime;
+
+                this.AttachType = AttachType;
             }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "cigs_0", new ItemData("Сигареты Redwood", new string[] { "v_ret_ml_cigs", "ng_proc_cigarette01a" }, 25, 15, 300000, 20) },
+            { "cigs_0", new ItemData("Сигареты Redwood", new string[] { "v_ret_ml_cigs", "ng_proc_cigarette01a" }, 25, 15, 300000, Sync.AttachSystem.Types.ItemCigMouth, 20) },
 
-            { "cigs_1", new ItemData("Сигареты Chartman", new string[] { "prop_cigar_pack_01", "prop_sh_cigar_01" }, 25, 15, 300000, 20) },
+            { "cigs_1", new ItemData("Сигареты Chartman", new string[] { "prop_cigar_pack_01", "prop_sh_cigar_01" }, 25, 15, 300000, Sync.AttachSystem.Types.ItemCig1Mouth, 20) },
         };
 
         [JsonIgnore]
@@ -3327,7 +3331,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.GetModelAt(ItemData.OneCigModelIdx), Sync.AttachSystem.Types.ItemCigMouth, -1, data.MaxTime, data.MaxPuffs);
+            player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, data.MaxTime, data.MaxPuffs);
 
             var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
 
@@ -3345,30 +3349,55 @@ namespace BCRPServer.Game.Items
 
     public class Cigarette : StatusChanger, IStackable
     {
+        public static Dictionary<Sync.AttachSystem.Types, Sync.AttachSystem.Types> DependentTypes = new Dictionary<Sync.AttachSystem.Types, Sync.AttachSystem.Types>()
+        {
+            { Sync.AttachSystem.Types.ItemCigMouth, Sync.AttachSystem.Types.ItemCigHand },
+            { Sync.AttachSystem.Types.ItemCig1Mouth, Sync.AttachSystem.Types.ItemCig1Hand },
+            { Sync.AttachSystem.Types.ItemCig2Mouth, Sync.AttachSystem.Types.ItemCig2Hand },
+            { Sync.AttachSystem.Types.ItemCig3Mouth, Sync.AttachSystem.Types.ItemCig3Hand },
+
+            { Sync.AttachSystem.Types.ItemCigHand, Sync.AttachSystem.Types.ItemCigMouth },
+            { Sync.AttachSystem.Types.ItemCig1Hand, Sync.AttachSystem.Types.ItemCig1Mouth },
+            { Sync.AttachSystem.Types.ItemCig2Hand, Sync.AttachSystem.Types.ItemCig2Mouth },
+            { Sync.AttachSystem.Types.ItemCig3Hand, Sync.AttachSystem.Types.ItemCig3Mouth },
+        };
+
+        public static List<Sync.AttachSystem.Types> AttachTypes { get; set; } = new List<Sync.AttachSystem.Types>(Cigarette.DependentTypes.Keys);
+
         new public class ItemData : StatusChanger.ItemData, Item.ItemData.IStackable
         {
+            public const int UseCigModelIdx = 1;
+
             public int MaxAmount { get; set; }
 
             public int MaxPuffs { get; set; }
 
             public int MaxTime { get; set; }
 
+            public Sync.AttachSystem.Types AttachType { get; set; }
+
             public override string ClientData => $"\"{Name}\", {Weight}f, {Mood}, {MaxAmount}";
 
-            public ItemData(string Name, string Model, int Mood, int MaxPuffs, int MaxTime, int MaxAmount) : base(Name, 0.01f, new string[] { Model }, 0, Mood, 0)
+            public ItemData(string Name, string[] Models, int Mood, int MaxPuffs, int MaxTime, Sync.AttachSystem.Types AttachType, int MaxAmount) : base(Name, 0.01f, Models, 0, Mood, 0)
             {
                 this.MaxAmount = MaxAmount;
 
                 this.MaxPuffs = MaxPuffs;
                 this.MaxTime = MaxTime;
+
+                this.AttachType = AttachType;
             }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "cig_0", new ItemData("Сигарета Redwood", "ng_proc_cigarette01a", 25, 15, 300000, 20) },
+            { "cig_0", new ItemData("Сигарета Redwood", new string[] { "prop_cs_ciggy_01", "ng_proc_cigarette01a" }, 25, 15, 300000, Sync.AttachSystem.Types.ItemCigMouth, 20) },
 
-            { "cig_1", new ItemData("Сигарета Chartman", "prop_sh_cigar_01", 25, 15, 300000, 20) },
+            { "cig_1", new ItemData("Сигарета Chartman", new string[] { "prop_sh_cigar_01", "prop_sh_cigar_01" }, 25, 15, 300000, Sync.AttachSystem.Types.ItemCig1Mouth, 20) },
+
+            { "cig_c_0", new ItemData("Сигара", new string[] { "prop_cigar_02", "prop_cigar_01" }, 25, 15, 300000, Sync.AttachSystem.Types.ItemCig2Mouth, 20) },
+
+            { "cig_j_0", new ItemData("Косяк", new string[] { "p_cs_joint_02", "prop_sh_joint_01" }, 25, 15, 300000, Sync.AttachSystem.Types.ItemCig3Mouth, 20) },
         };
 
         [JsonIgnore]
@@ -3388,7 +3417,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.Model, Sync.AttachSystem.Types.ItemCigMouth, -1, data.MaxTime, data.MaxPuffs);
+            player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, data.MaxTime, data.MaxPuffs);
 
             var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
 

@@ -295,29 +295,9 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Hud.switchMicro", state);
         }
 
-        /// <summary>Переключить иконку настроения</summary>
-        /// <param name="state">true - показать, false - скрыть</param>
-        public static void SwitchMood(bool state)
+        public static void SwitchStatusIcon(StatusTypes type, bool state)
         {
-            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Mood, state);
-        }
-        /// <summary>Переключить иконку голода</summary>
-        /// <param name="state">true - показать, false - скрыть</param>
-        public static void SwitchFood(bool state)
-        {
-            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Food, state);
-        }
-        /// <summary>Переключить иконку плохого самочувствия</summary>
-        /// <param name="state">true - показать, false - скрыть</param>
-        public static void SwitchSeek(bool state)
-        {
-            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Sick, state);
-        }
-        /// <summary>Переключить иконку ранения</summary>
-        /// <param name="state">true - показать, false - скрыть</param>
-        public static void SwitchWounded(bool state)
-        {
-            Browser.Window.ExecuteJs("Hud.setState", StatusTypes.Wounded, state);
+            Browser.Window.ExecuteJs("Hud.setState", (int)type, state);
         }
 
         /// <summary>Переключить иконку патронов</summary>

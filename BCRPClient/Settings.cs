@@ -105,13 +105,19 @@ namespace BCRPClient
             {
                 public static Types Type = Types.Default;
                 public static Color Color = Color.FromArgb(255, 255, 255);
+                public static float Alpha = 1f;
+                public static float Scale = 0.5f;
             }
 
             public static Types _Type;
             public static Color _Color;
+            public static float _Alpha;
+            public static float _Scale;
 
             public static Types Type { get => _Type; set { if (value != _Type) Additional.Storage.SetData("Settings::Interface::Aim::Type", value); _Type = value; } }
             public static Color Color { get => _Color; set { if (value != _Color) Additional.Storage.SetData("Settings::Interface::Aim::Color", value); _Color = value; } }
+            public static float Alpha { get => _Alpha; set { if (value != _Alpha) Additional.Storage.SetData("Settings::Interface::Aim::Alpha", value); _Alpha = value; } }
+            public static float Scale { get => _Scale; set { if (value != _Scale) Additional.Storage.SetData("Settings::Interface::Aim::Scale", value); _Scale = value; } }
         }
         #endregion
 
@@ -231,6 +237,8 @@ namespace BCRPClient
 
             Aim.Type = Additional.Storage.GetData<Aim.Types?>("Settings::Interface::Aim::Type") ?? Aim.Default.Type;
             Aim.Color = Additional.Storage.GetData<Color?>("Settings::Interface::Aim::Color") ?? Aim.Default.Color;
+            Aim.Alpha = Additional.Storage.GetData<float?>("Settings::Interface::Aim::Alpha") ?? Aim.Default.Alpha;
+            Aim.Scale = Additional.Storage.GetData<float?>("Settings::Interface::Aim::Scale") ?? Aim.Default.Scale;
 
             Chat.UseFilter = Additional.Storage.GetData<bool?>("Settings::Chat::UseFilter") ?? Chat.Default.UseFilter;
             Chat.ShowTime = Additional.Storage.GetData<bool?>("Settings::Chat::ShowTime") ?? Chat.Default.ShowTime;
@@ -295,6 +303,8 @@ namespace BCRPClient
 
             Aim.Type = Aim.Default.Type;
             Aim.Color = Aim.Default.Color;
+            Aim.Alpha = Aim.Default.Alpha;
+            Aim.Scale = Aim.Default.Scale;
 
             Chat.UseFilter = Chat.Default.UseFilter;
             Chat.ShowTime = Chat.Default.ShowTime;

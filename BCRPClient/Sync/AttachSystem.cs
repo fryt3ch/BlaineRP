@@ -32,7 +32,14 @@ namespace BCRPClient.Sync
             VehicleTrunk, VehicleTrunkForced,
 
             ItemCigHand,
+            ItemCig1Hand,
+            ItemCig2Hand,
+            ItemCig3Hand,
+
             ItemCigMouth,
+            ItemCig1Mouth,
+            ItemCig2Mouth,
+            ItemCig3Mouth,
 
             ItemBurger,
             ItemChips,
@@ -183,15 +190,46 @@ namespace BCRPClient.Sync
             { Types.VehicleTrunkForced, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
             {
-                Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.020f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, (args) =>
+                Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
                     Utils.RequestPtfx("core");
 
-                    var ptfxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.050f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false);
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.05f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false));
+                })
+            },
 
-                    gEntity.SetData("PtfxHandle", ptfxHandle);
+            {
+                Types.ItemCig1Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f + 0.0365f, -0.008f), new Vector3(100f, 0f, -80f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.125f, 0f, 0f, 0f, 0f, 0f, 0.05f, false, false, false));
+                })
+            },
+
+            {
+                Types.ItemCig2Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, -100f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.05f, 0f, 0f, 0f, 0f, 0f, 0.075f, false, false, false));
+                })
+            },
+
+            {
+                Types.ItemCig3Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.09f, 0f, 0f, 0f, 0f, 0f, 0.06f, false, false, false));
                 })
             },
 
@@ -202,9 +240,40 @@ namespace BCRPClient.Sync
 
                     Utils.RequestPtfx("core");
 
-                    var ptfxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.050f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false);
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.05f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false));
+                })
+            },
 
-                    gEntity.SetData("PtfxHandle", ptfxHandle);
+            {
+                Types.ItemCig1Mouth, new AttachmentData(47419, new Vector3(0.001f, 0.036f, 0.005f), new Vector3(55f, 0f, -70f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.125f, 0f, 0f, 0f, 0f, 0f, 0.05f, false, false, false));
+                })
+            },
+
+            {
+                Types.ItemCig2Mouth, new AttachmentData(47419, new Vector3(0.01f, 0f, 0f), new Vector3(50f, 0f, -80f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.05f, 0f, 0f, 0f, 0f, 0f, 0.075f, false, false, false));
+                })
+            },
+
+            {
+                Types.ItemCig3Mouth, new AttachmentData(47419, new Vector3(0.01f, 0f, 0f), new Vector3(50f, 0f, 80f), false, false, false, 2, true, (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.09f, 0f, 0f, 0f, 0f, 0f, 0.06f, false, false, false));
                 })
             },
 
@@ -567,10 +636,23 @@ namespace BCRPClient.Sync
             }
         }
 
-        private static Dictionary<Types[], (Action On, Action Off, Action Loop)?> TargetActions = new Dictionary<Types[], (Action On, Action Off, Action Loop)?>()
+        private static Dictionary<Types, Types> SameActionsTypes = new Dictionary<Types, Types>()
+        {
+            { Types.PushVehicleBack, Types.PushVehicleFront },
+
+            { Types.ItemCig1Hand, Types.ItemCigHand },
+            { Types.ItemCig2Hand, Types.ItemCigHand },
+            { Types.ItemCig3Hand, Types.ItemCigHand },
+
+            { Types.ItemCig1Mouth, Types.ItemCigMouth },
+            { Types.ItemCig2Mouth, Types.ItemCigMouth },
+            { Types.ItemCig3Mouth, Types.ItemCigMouth },
+        };
+
+        private static Dictionary<Types, (Action On, Action Off, Action Loop)?> TargetActions = new Dictionary<Types, (Action On, Action Off, Action Loop)?>()
         {
             {
-                new Types[] { Types.PushVehicleFront, Types.PushVehicleBack },
+                Types.PushVehicleFront,
 
                 (
                     new Action(() =>
@@ -611,7 +693,7 @@ namespace BCRPClient.Sync
             },
 
             {
-                new Types[] { Types.VehicleTrunk },
+                Types.VehicleTrunk,
 
                 (
                     new Action(() =>
@@ -645,7 +727,7 @@ namespace BCRPClient.Sync
             },
 
             {
-                new Types[] { Types.Carry },
+                Types.Carry,
 
                 (
                     new Action(() =>
@@ -679,10 +761,10 @@ namespace BCRPClient.Sync
             },
         };
 
-        private static Dictionary<Types[], (Action On, Action Off, Action Loop)?> RootActions = new Dictionary<Types[], (Action On, Action Off, Action Loop)?>()
+        private static Dictionary<Types, (Action On, Action Off, Action Loop)?> RootActions = new Dictionary<Types, (Action On, Action Off, Action Loop)?>()
         {
             {
-                new Types[] { Types.Carry },
+                Types.Carry,
 
                 (
                     new Action(() =>
@@ -716,7 +798,7 @@ namespace BCRPClient.Sync
             },
 
             {
-                new Types[] { Types.ItemCigHand },
+                Types.ItemCigHand,
 
                 (
                     new Action(() =>
@@ -738,13 +820,11 @@ namespace BCRPClient.Sync
                         if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
                             return;
 
-                        var target = Player.LocalPlayer.GetData<List<AttachmentObject>>(AttachedObjectsKey).Where(x => x.Type == Types.ItemCigHand).Select(x => x.Object).FirstOrDefault();
-
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
                         var puffs = Player.LocalPlayer.GetData<int>("Smoke::Data::Puffs");
 
-                        if (target?.Exists != true || bind.IsPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
+                        if (bind.IsPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
                         {
                             GameEvents.Update -= GetRootActions(Types.ItemCigHand).Value.Loop.Invoke;
 
@@ -785,7 +865,7 @@ namespace BCRPClient.Sync
             },
 
             {
-                new Types[] { Types.ItemCigMouth },
+               Types.ItemCigMouth,
 
                 (
                     new Action(() =>
@@ -800,11 +880,9 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
-                        var target = Player.LocalPlayer.GetData<List<AttachmentObject>>(AttachedObjectsKey).Where(x => x.Type == Types.ItemCigMouth).Select(x => x.Object).FirstOrDefault();
-
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (target?.Exists != true || bind.IsPressed || Player.LocalPlayer.IsInWater())
+                        if (bind.IsPressed || Player.LocalPlayer.IsInWater())
                         {
                             GameEvents.Update -= GetRootActions(Types.ItemCigMouth).Value.Loop.Invoke;
 
@@ -837,9 +915,39 @@ namespace BCRPClient.Sync
             },
         };
 
-        private static (Action On, Action Off, Action Loop)? GetTargetActions(Types type) => TargetActions.Where(x => x.Key.Contains(type)).Select(x => x.Value).FirstOrDefault();
+        private static (Action On, Action Off, Action Loop)? GetTargetActions(Types type)
+        {
+            var action = TargetActions.GetValueOrDefault(type);
 
-        private static (Action On, Action Off, Action Loop)? GetRootActions(Types type) => RootActions.Where(x => x.Key.Contains(type)).Select(x => x.Value).FirstOrDefault();
+            if (action == null)
+            {
+                Types sType;
+
+                if (SameActionsTypes.TryGetValue(type, out sType))
+                    return TargetActions.GetValueOrDefault(sType);
+
+                return null;
+            }
+
+            return action;
+        }
+
+        private static (Action On, Action Off, Action Loop)? GetRootActions(Types type)
+        {
+            var action = RootActions.GetValueOrDefault(type);
+
+            if (action == null)
+            {
+                Types sType;
+
+                if (SameActionsTypes.TryGetValue(type, out sType))
+                    return RootActions.GetValueOrDefault(sType);
+
+                return null;
+            }
+
+            return action;
+        }
 
         public static void TargetAction(Types type, Entity root)
         {

@@ -198,7 +198,7 @@ namespace BCRPClient.Sync
 
                         if (value <= 25)
                         {
-                            CEF.HUD.SwitchFood(true);
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, true);
 
                             if (value % 5 == 0)
                                 CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowSatiety, false, 5000);
@@ -213,7 +213,7 @@ namespace BCRPClient.Sync
                         {
                             HungryHandler -= HungryUpdate;
 
-                            CEF.HUD.SwitchFood(false);
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
                         }
                     }
                 }
@@ -233,13 +233,13 @@ namespace BCRPClient.Sync
 
                         if (value <= 25)
                         {
-                            CEF.HUD.SwitchMood(true);
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, true);
 
                             if (value % 5 == 0)
                                 CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowMood, false, 5000);
                         }
                         else
-                            CEF.HUD.SwitchMood(false);
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
                     }
                 }
             }
@@ -360,7 +360,7 @@ namespace BCRPClient.Sync
                     {
                         if (value)
                         {
-                            CEF.HUD.SwitchWounded(true);
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, true);
 
                             CEF.Notification.ShowHint(Locale.Notifications.Players.States.Wounded, false);
 
@@ -373,7 +373,7 @@ namespace BCRPClient.Sync
                         {
                             RAGE.Game.Graphics.StopScreenEffect("DeathFailMPDark");
 
-                            CEF.HUD.SwitchWounded(false);
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, false);
 
                             WoundedHandler -= WoundedUpdate;
                         }
@@ -780,7 +780,7 @@ namespace BCRPClient.Sync
                 var maxPuffs = (int)args[1];
 
                 Player.LocalPlayer.SetData("Smoke::Data::Puffs", maxPuffs);
-                Player.LocalPlayer.SetData("Smoke::Data::CTask", new AsyncTask(() => Events.CallRemote(""), maxTime, false, 0));
+                Player.LocalPlayer.SetData("Smoke::Data::CTask", new AsyncTask(() => Events.CallRemote("Players::Smoke::Stop"), maxTime, false, 0));
             });
 
             Events.Add("Player::Smoke::Stop", (object[] args) =>
@@ -794,6 +794,20 @@ namespace BCRPClient.Sync
 
             Events.Add("Player::Smoke::Puff", (object[] args) =>
             {
+                AsyncTask.RunSlim(async () =>
+                {
+                    if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
+                        return;
+
+                    Utils.RequestPtfx("core");
+
+                    var fxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntityBone("exp_grd_bzgas_smoke", Player.LocalPlayer.Handle, 0f, 0f, 0f, 0f, 0f, 0f, Player.LocalPlayer.GetBoneIndex(20279), 0.15f, false, false, false);
+
+                    await RAGE.Game.Invoker.WaitAsync(1000);
+
+                    RAGE.Game.Graphics.StopParticleFxLooped(fxHandle, false);
+                }, 2000);
+
                 AsyncTask.RunSlim(() =>
                 {
                     if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))

@@ -990,7 +990,10 @@ namespace BCRPServer.Sync
                 if (business == null)
                     return;
 
-                await pData.UnequipActiveWeapon();
+                if (business is Game.Businesses.IEnterable enterable)
+                {
+                    await pData.UnequipActiveWeapon();
+                }
 
                 await NAPI.Task.RunAsync(() =>
                 {
@@ -1002,12 +1005,12 @@ namespace BCRPServer.Sync
 
                     pData.CurrentBusiness = id;
 
-                    player.CloseAll();
-
-                    Sync.Microphone.DisableMicrophone(pData);
-
-                    if (business.ViewParams != null)
+                    if (business is Game.Businesses.IEnterable enterable)
                     {
+                        player.CloseAll();
+
+                        Sync.Microphone.DisableMicrophone(pData);
+
                         pData.IsInvincible = true;
 
                         NAPI.Task.Run(() =>
@@ -1015,16 +1018,20 @@ namespace BCRPServer.Sync
                             if (player?.Exists != true)
                                 return;
 
-                            player.Heading = business.ViewParams.Value.Heading;
+                            player.Heading = enterable.Heading;
 
-                            player.Teleport(business.ViewParams.Value.Position, false, Utils.GetPrivateDimension(player));
+                            player.Teleport(enterable.EnterPosition, false, Utils.GetPrivateDimension(player));
 
                         }, 1000);
 
-                        player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, business.ViewParams.Value.Heading);
+                        player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.Heading);
                     }
                     else
+                    {
+                        player.CloseAll();
+
                         player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin);
+                    }
                 });
             });
 
@@ -1056,13 +1063,13 @@ namespace BCRPServer.Sync
 
                 pData.CurrentBusiness = null;
 
-                NAPI.Task.Run(() =>
+                if (business is Game.Businesses.IEnterable enterable)
                 {
-                    if (player?.Exists != true)
-                        return;
-
-                    if (business.ViewParams != null)
+                    NAPI.Task.Run(() =>
                     {
+                        if (player?.Exists != true)
+                            return;
+
                         pData.IsInvincible = false;
 
                         NAPI.Task.Run(() =>
@@ -1072,10 +1079,20 @@ namespace BCRPServer.Sync
 
                             player.Teleport(business.Position, true, Utils.Dimensions.Main);
                         }, 1000);
-                    }
 
-                    player.TriggerEvent("Shop::Close::Server");
-                });
+                        player.TriggerEvent("Shop::Close::Server");
+                    });
+                }
+                else
+                {
+                    NAPI.Task.Run(() =>
+                    {
+                        if (player?.Exists != true)
+                            return;
+
+                        player.TriggerEvent("Shop::Close::Server");
+                    });
+                }
             });
 
             pData.Release();
@@ -1104,34 +1121,123 @@ namespace BCRPServer.Sync
                 if (business == null)
                     return;
 
-                int price = business.GetItemPrice(id, true);
-
-                if (price == -1)
-                    return;
-
-                price *= amount;
-
-                bool paid = await Task.Run(async () =>
+                if (business is Game.Businesses.Shop shop)
                 {
-                    if (business.Owner != -1)
+                    int price = shop.GetPrice(id, true);
+
+                    if (price == -1)
+                        return;
+
+                    price *= amount;
+
+                    bool paid = await Task.Run(async () =>
                     {
-                        // operations with materials
+                        if (business.Owner != -1)
+                        {
+                            // operations with materials
+                        }
+
+                        if (useCash)
+                            return await pData.AddCash(-price, true);
+                        else
+                            return false;
+
+                    });
+
+                    if (paid)
+                    {
+
                     }
-
-                    if (useCash)
-                        return await pData.AddCash(-price, true);
                     else
-                        return false;
+                        return;
 
-                });
+                    var item = await Game.Items.Items.GiveItem(pData, id, variation, amount, false);
 
-                if (!paid)
+                    if (item == null && business is Game.Businesses.ClothesShop)
+                    {
+                        pData.Gifts.Add(await Game.Items.Gift.Give(pData, Game.Items.Gift.Types.Item, id, variation, amount, Game.Items.Gift.SourceTypes.Shop, true, true));
+                    }
+                }
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("GasStation::Enter")]
+        public static async Task GasStationEnter(Player player, Vehicle vehicle, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await Task.Run(async () =>
+            {
+                if (pData.CurrentBusiness != null)
                     return;
 
-                var item = await Game.Items.Items.GiveItem(pData, id, variation, amount, false);
+                var gs = Game.Businesses.Business.Get(id) as Game.Businesses.GasStation;
 
-                if (item == null)
-                    pData.Gifts.Add(await Game.Items.Gift.Give(pData, Game.Items.Gift.Types.Item, id, variation, amount, Game.Items.Gift.SourceTypes.Shop, true, true));
+                if (gs == null)
+                    return;
+
+                await NAPI.Task.RunAsync(() =>
+                {
+                    if (player?.Exists != true)
+                        return;
+
+                    if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.Position) > 50f)
+                        return;
+
+                    player.CloseAll();
+
+                    player.TriggerEvent("GasStation::Show", gs.Margin);
+                });
+            });
+
+            pData.Release();
+        }
+
+        [RemoteEvent("GasStation::Buy")]
+        public static async Task GasStationBuy(Player player, Vehicle vehicle, string id, int amount, bool useCash)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await Task.Run(async () =>
+            {
+                if (pData.CurrentBusiness == null || amount <= 0)
+                    return;
+
+                var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
+
+                if (business == null)
+                    return;
+
+                if (business is Game.Businesses.GasStation gs)
+                {
+                    int price = gs.GetGasPrice(id, true);
+
+                    if (price == -1)
+                        return;
+                }
+
+                var vData = vehicle.GetMainData();
+
+                if (!await vData.WaitAsync())
+                    return;
             });
 
             pData.Release();
@@ -1484,14 +1590,17 @@ namespace BCRPServer.Sync
                 if (player?.Exists != true)
                     return;
 
-                var attachData = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.ItemCigHand || x.Type == AttachSystem.Types.ItemCigMouth).FirstOrDefault();
+                foreach (var x in pData.AttachedObjects)
+                {
+                    if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
+                    {
+                        player.DetachObject(x.Id);
 
-                if (attachData == null)
-                    return;
+                        pData.StopAnim();
 
-                player.DetachObject(attachData.Id);
-
-                pData.StopAnim();
+                        break;
+                    }
+                }
             });
 
             pData.Release();
@@ -1515,14 +1624,17 @@ namespace BCRPServer.Sync
                 if (player?.Exists != true)
                     return;
 
-                var attachData = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.ItemCigHand || x.Type == AttachSystem.Types.ItemCigMouth).FirstOrDefault();
+                foreach (var x in pData.AttachedObjects)
+                {
+                    if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
+                    {
+                        pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
 
-                if (attachData == null)
-                    return;
+                        player.TriggerEvent("Player::Smoke::Puff");
 
-                pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
-
-                player.TriggerEvent("Player::Smoke::Puff");
+                        break;
+                    }
+                }
             });
 
             pData.Release();
@@ -1546,14 +1658,17 @@ namespace BCRPServer.Sync
                 if (player?.Exists != true)
                     return null;
 
-                var attachData = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.ItemCigHand || x.Type == AttachSystem.Types.ItemCigMouth).FirstOrDefault();
+                foreach (var x in pData.AttachedObjects)
+                {
+                    if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
+                    {
+                        pData.PlayAnim(Animations.FastTypes.SmokeTransitionCig);
 
-                if (attachData == null)
-                    return null;
+                        return x;
+                    }
+                }
 
-                pData.PlayAnim(Animations.FastTypes.SmokeTransitionCig);
-
-                return attachData;
+                return null;
             });
 
             if (attachData == null)
@@ -1563,28 +1678,16 @@ namespace BCRPServer.Sync
                 return;
             }
 
-            if (attachData.Type == AttachSystem.Types.ItemCigHand)
-            {
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
+            var oppositeType = Game.Items.Cigarette.DependentTypes[attachData.Type];
 
-                    player.DetachObject(attachData.Id, false);
-                    player.AttachObject(attachData.Model, AttachSystem.Types.ItemCigMouth);
-                }, 500);
-            }
-            else
+            await NAPI.Task.RunAsync(() =>
             {
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
+                if (player?.Exists != true)
+                    return;
 
-                    player.DetachObject(attachData.Id, false);
-                    player.AttachObject(attachData.Model, AttachSystem.Types.ItemCigHand);
-                }, 500);
-            }
+                player.DetachObject(attachData.Id, false);
+                player.AttachObject(attachData.Model, oppositeType);
+            }, 500);
 
             pData.Release();
         }

@@ -779,9 +779,9 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Belt
-        public static void ToggleBelt(bool IgnoreIf = false)
+        public static void ToggleBelt(bool ignoreIf = false)
         {
-            if (!IgnoreIf)
+            if (!ignoreIf)
             {
                 if (Player.LocalPlayer.Vehicle?.Exists != true || !Utils.IsCar(Player.LocalPlayer.Vehicle))
                     return;
@@ -817,33 +817,31 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Lock
-        public static void Lock(bool? forceStatus = null, Entity entity = null)
+        public static void Lock(bool? forceStatus = null, Vehicle vehicle = null)
         {
             if (LastDoorsLockToggled.IsSpam(1000, false, false))
                 return;
 
             LastDoorsLockToggled = DateTime.Now;
 
-            Vehicle veh = Player.LocalPlayer.Vehicle;
-
-            if (entity == null)
+            if (vehicle == null)
             {
-                if (veh?.Exists == true && veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+                vehicle = Player.LocalPlayer.Vehicle;
+
+                if (vehicle?.Exists == true && vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
-                    Events.CallRemote("Vehicles::ToggleDoorsLockSync", veh);
+                    Events.CallRemote("Vehicles::ToggleDoorsLockSync", vehicle);
 
                     return;
                 }
 
-                veh = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                vehicle = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
             }
-            else if (entity.Type == RAGE.Elements.Type.Vehicle)
-                veh = (Vehicle)entity;
 
-            if (veh?.Exists != true)
+            if (vehicle?.Exists != true)
                 return;
 
-            var data = GetData(veh);
+            var data = GetData(vehicle);
 
             if (data == null)
                 return;
@@ -860,19 +858,19 @@ namespace BCRPClient.Sync
                 }
             }
 
-            Events.CallRemote("Vehicles::ToggleDoorsLockSync", veh);
+            Events.CallRemote("Vehicles::ToggleDoorsLockSync", vehicle);
         }
         #endregion
 
         #region Engine
-        public static void Engine(bool IgnoreIf = false)
+        public static void Engine(bool ignoreIf = false)
         {
             Vehicle veh = Player.LocalPlayer.Vehicle;
 
             if (veh?.Exists != true)
                 return;
 
-            if (!IgnoreIf)
+            if (ignoreIf)
             {
                 if (LastEngineToggled.IsSpam(1000, false, false))
                     return;
@@ -940,38 +938,31 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Trunk Lock
-        public static void ToggleTrunkLock(bool? forceStatus = null, Entity entity = null)
+        public static void ToggleTrunkLock(bool? forceStatus = null, Vehicle vehicle = null)
         {
             if (LastDoorsLockToggled.IsSpam(1000, false, false))
                 return;
 
             LastDoorsLockToggled = DateTime.Now;
 
-            Vehicle veh = Player.LocalPlayer.Vehicle;
-
-            if (entity == null)
+            if (vehicle == null)
             {
-                if (veh?.Exists == true && veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+                vehicle = Player.LocalPlayer.Vehicle;
+
+                if (vehicle?.Exists == true && vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
-                    Events.CallRemote("Vehicles::ToggleTrunkLockSync", veh);
+                    Events.CallRemote("Vehicles::ToggleTrunkLockSync", vehicle);
 
                     return;
                 }
 
-                veh = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
-            }
-            else if (entity.Type == RAGE.Elements.Type.Vehicle)
-            {
-                veh = (Vehicle)entity;
-
-                if (Player.LocalPlayer.Vehicle != veh && Vector3.Distance(veh.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
-                    veh = null;
+                vehicle = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
             }
 
-            if (veh?.Exists != true)
+            if (vehicle?.Exists != true)
                 return;
 
-            var data = GetData(veh);
+            var data = GetData(vehicle);
 
             if (data == null)
                 return;
@@ -988,43 +979,36 @@ namespace BCRPClient.Sync
                 }
             }
 
-            Events.CallRemote("Vehicles::ToggleTrunkLockSync", veh);
+            Events.CallRemote("Vehicles::ToggleTrunkLockSync", vehicle);
         }
         #endregion
 
         #region Hood Lock
-        public static void ToggleHoodLock(bool? forceStatus = null, Entity entity = null)
+        public static void ToggleHoodLock(bool? forceStatus = null, Vehicle vehicle = null)
         {
             if (LastDoorsLockToggled.IsSpam(1000, false, false))
                 return;
 
             LastDoorsLockToggled = DateTime.Now;
 
-            Vehicle veh = Player.LocalPlayer.Vehicle;
-
-            if (entity == null)
+            if (vehicle == null)
             {
-                if (veh?.Exists == true && veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+                vehicle = Player.LocalPlayer.Vehicle;
+
+                if (vehicle?.Exists == true && vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
-                    Events.CallRemote("Vehicles::ToggleHoodLockSync", veh);
+                    Events.CallRemote("Vehicles::ToggleHoodLockSync", vehicle);
 
                     return;
                 }
 
-                veh = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
-            }
-            else if (entity.Type == RAGE.Elements.Type.Vehicle)
-            {
-                veh = (Vehicle)entity;
-
-                if (Player.LocalPlayer.Vehicle != veh && Vector3.Distance(veh.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
-                    veh = null;
+                vehicle = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
             }
 
-            if (veh?.Exists != true)
+            if (vehicle?.Exists != true)
                 return;
 
-            var data = GetData(veh);
+            var data = GetData(vehicle);
 
             if (data == null)
                 return;
@@ -1041,7 +1025,7 @@ namespace BCRPClient.Sync
                 }
             }
 
-            Events.CallRemote("Vehicles::ToggleHoodLockSync", veh);
+            Events.CallRemote("Vehicles::ToggleHoodLockSync", vehicle);
         }
         #endregion
 
@@ -1049,18 +1033,16 @@ namespace BCRPClient.Sync
 
         #region Vehicle Menu Methods
         #region Shuffle Seat
-        public static void SeatTo(int seatId, Entity entity)
+        public static void SeatTo(int seatId, Vehicle vehicle)
         {
-            if (entity == null || entity.Type != RAGE.Elements.Type.Vehicle)
+            if (vehicle == null)
                 return;
 
-            Vehicle veh = (Vehicle)entity;
-
-            if (Vector3.Distance(Player.LocalPlayer.Position, veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(Player.LocalPlayer.Position, vehicle.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             var data = Players.GetData(Player.LocalPlayer);
-            var vehData = GetData(veh);
+            var vehData = GetData(vehicle);
 
             if (data == null || vehData == null)
                 return;
@@ -1068,26 +1050,26 @@ namespace BCRPClient.Sync
             // to trunk
             if (seatId == int.MaxValue)
             {
-                Events.CallRemote("Players::GoToTrunk", BCRPClient.Interaction.CurrentEntity as Vehicle);
+                Events.CallRemote("Players::GoToTrunk", vehicle);
 
                 return;
             }
 
-            if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+            if (vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
             {
                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Passengers.IsDriver);
 
                 return;
             }
 
-            if (!veh.IsSeatFree(seatId - 1, 0))
+            if (!vehicle.IsSeatFree(seatId - 1, 0))
             {
                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Passengers.SomeoneSeating);
 
                 return;
             }
 
-            if (Player.LocalPlayer.Vehicle == veh)
+            if (Player.LocalPlayer.Vehicle == vehicle)
             {
                 if (data.BeltOn)
                 {
@@ -1100,7 +1082,7 @@ namespace BCRPClient.Sync
             }
             else
             {
-                Utils.JsEval("mp.players.local.taskEnterVehicle", veh.Handle, 5000, seatId - 1, 2f, 1, 0);
+                Utils.JsEval("mp.players.local.taskEnterVehicle", vehicle.Handle, 5000, seatId - 1, 2f, 1, 0);
             }
         }
         #endregion

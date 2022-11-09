@@ -188,12 +188,17 @@ namespace BCRPClient.CEF
                     case "sett-aimType":
                         Settings.Aim.Type = (Settings.Aim.Types)int.Parse((string)args[1]);
                     break;
+
+                    case "sett-aimScale":
+                        Settings.Aim.Scale = args[1] is float ? (float)args[1] : (int)args[1];
+                    break;
                 }
             });
 
             Events.Add("Menu::UpdateAimColor", (object[] args) =>
             {
                 Settings.Aim.Color = ((string)args[0]).ToColor();
+                Settings.Aim.Alpha = args[1] is float ? (float)args[1] : (int)args[1];
             });
             #endregion
 
@@ -336,7 +341,8 @@ namespace BCRPClient.CEF
             UpdateInput("sett-3D", Settings.Audio.SoundVolume);
 
             Browser.Window.ExecuteJs("Menu.setAim", Settings.Aim.Type);
-            //Browser.Window.ExecuteJs($"Menu.colorWheel.color.hexString = '{Settings.Aim.Color.ToHEX()}';");
+            Browser.Window.ExecuteJs("Menu.setAimSize", Settings.Aim.Scale);
+            Browser.Window.ExecuteJs($"Menu.setColor", Settings.Aim.Color.ToHEX(), Settings.Aim.Alpha);
 
             Utils.ConsoleOutput(Settings.Aim.Color.ToHEX());
         }

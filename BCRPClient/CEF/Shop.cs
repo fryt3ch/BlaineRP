@@ -14,11 +14,14 @@ namespace BCRPClient.CEF
         //(если магаз не транспортный последние 4 параметра можно либо не передавать вообще, либо передавать как null)
         //- добавлены разделы магазинов машин(6, 7, 8, 9)
 
-        public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Shop); }
+        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Shop, Browser.IntTypes.Retail); }
+
+        public static bool IsActiveShop { get => Browser.IsActive(Browser.IntTypes.Shop); }
+
+        public static bool IsActiveRetail { get => Browser.IsActive(Browser.IntTypes.Retail); }
 
         private static Additional.Camera.StateTypes[] AllowedCameraStates;
 
-        private static DateTime LastBuyRequested;
         private static DateTime LastSent;
 
         /// <summary>ID текущего предмета</summary>
@@ -1263,7 +1266,6 @@ namespace BCRPClient.CEF
         {
             TempBinds = new List<int>();
 
-            LastBuyRequested = DateTime.Now;
             LastSent = DateTime.Now;
 
             CurrentType = Types.None;
@@ -1408,21 +1410,17 @@ namespace BCRPClient.CEF
                 if (itemId == null)
                     return;
 
-                if (DateTime.Now.Subtract(LastBuyRequested).TotalMilliseconds > 5000)
-                {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.Money.AdmitToBuy, 5000);
+                if (LastSent.IsSpam(1000, false, false))
+                    return;
 
-                    LastBuyRequested = DateTime.Now;
-                }
-                else
-                {
-                    if (LastSent.IsSpam(1000, false, false))
-                        return;
+                Events.CallRemote("Shop::Buy", itemId, variation, amount, useCash);
+            });
 
-                    Events.CallRemote("Shop::Buy", itemId, variation, amount, useCash);
+            var t = 1f;
 
-                    LastBuyRequested = DateTime.MinValue;
-                }
+            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+            {
+                SetPricesCoef(t += 0.25f);
             });
         }
 
@@ -1633,7 +1631,7 @@ namespace BCRPClient.CEF
 
                 CEF.Cursor.Show(true, true);
 
-                CEF.Browser.Window.ExecuteJs("Retail.draw", JsEnumTypes[type], prices.Select(x => x.Value.Select(y => new object[] { y.Key, Data.Items.GetName(y.Key), y.Value * margin, (Data.Items.GetData(y.Key) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y.Key).Weight, false })), null, false);
+                CEF.Browser.Window.ExecuteJs("Retail.draw", JsEnumTypes[type], prices.Select(x => x.Value.Select(y => new object[] { y.Key, Data.Items.GetName(y.Key), y.Value, (Data.Items.GetData(y.Key) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y.Key).Weight, false })), null, false);
 
                 TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
             }
@@ -1740,6 +1738,18 @@ namespace BCRPClient.CEF
         /// <typeparam name="T">Тип выходных данных (Dictionary(string, int) or Dictionary(SectionTypes, Dictionary(string, int))></typeparam>
         /// <param name="type">Тип магазина</param>
         private static T GetPrices<T>(Types type) => Prices[type] is T ? (T)Prices[type] : default(T);
+
+        private static void SetPricesCoef(float newCoef)
+        {
+            if (IsActiveShop)
+            {
+                CEF.Browser.Window.ExecuteJs("Shop.priceCoef", newCoef);
+            }
+            else if (IsActiveRetail)
+            {
+                CEF.Browser.Window.ExecuteJs("Retail.priceCoef", newCoef);
+            }
+        }
 
         private static void OnTickMouse()
         {

@@ -916,6 +916,8 @@ namespace BCRPClient
                 public static string ClothesShopUnderExtraNotNeedTop = "Данная нижняя одежда может изменять состояние только если на вас нет верхней одежды!";
                 public static string ClothesShopUnderExtraNeedTop = "Данная нижняя одежда может изменять состояние только если на вас есть верхняя одежда!";
 
+                public static string GasStationColshape = "В этой зоне вы можете заправить свой транспорт";
+
                 public static string AuthCursor = "Не видно курсор? Нажми {0}";
             }
 
@@ -1165,6 +1167,12 @@ namespace BCRPClient
 
                     public static string Warning = "Ваше Т/С не припарковано!\nОно может оказаться на штрафстоянке";
                 }
+
+                public static string FullOfGasDef = "Бак вашего Т/С уже полон!";
+                public static string FullOfGasElectrical = "Ваше Т/С уже полностью заряжено!";
+
+                public static string NotAtGasStationError = "Вы не на заправке!";
+                public static string InVehicleError = "Выйдите из транспорта, чтобы заправить его!";
 
                 public static string NotAllowed = "У вас нет ключей от этого транспорта!";
             }

@@ -73,7 +73,7 @@ namespace BCRPClient
 
             Events.OnPlayerCreateWaypoint += (Vector3 position) =>
             {
-                WaypointPosition = RAGE.Elements.Entities.Blips.All.Where(x => x?.Exists == true && x.Position.X == position.X && x.Position.Y == position.Y).FirstOrDefault()?.Position ?? position;
+                WaypointPosition = RAGE.Elements.Entities.Blips.All.Where(x => x?.Exists == true && x.Position.X == position.X && x.Position.Y == position.Y).FirstOrDefault()?.GetCoords() ?? position;
 
                 //Utils.ConsoleOutput(WaypointPosition);
 

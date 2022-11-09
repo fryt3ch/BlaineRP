@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BCRPClient.CEF;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -376,6 +377,12 @@ namespace BCRPClient.Additional
             /// <summary>Никакой, в таком случае нужно в ручную прописывать действия через OnEnter/OnExit</summary>
             None = -1,
 
+            /// <summary>Зеленая (безопасная) зона</summary>
+            GreenZone,
+
+            /// <summary>Область, в которой можно заправлять транспорт (на заправках)</summary>
+            GasStation,
+
             /// <summary>Межкомнатная дверь в доме/квартире</summary>
             HouseDoorLock,
 
@@ -442,6 +449,71 @@ namespace BCRPClient.Additional
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
         {
             {
+                ActionTypes.GasStation,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is int data)
+                            {
+                                Player.LocalPlayer.SetData("CurrentGasStation", data);
+
+                                //CEF.Notification.ShowHint(Locale.Notifications.Hints.GasStationColshape, false, 2500);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentGasStation");
+
+                            CEF.Gas.Close();
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.GreenZone,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            Sync.WeaponSystem.DisabledFiring = true;
+
+                            Player.LocalPlayer.SetData("InGreenZone", true);
+
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.GreenZone, true);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Sync.WeaponSystem.DisabledFiring = false;
+
+                            Player.LocalPlayer.ResetData("InGreenZone");
+
+                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.GreenZone, false);
+                        }
+                    },
+                }
+            },
+
+            {
                 ActionTypes.IPL,
 
                 new Dictionary<bool, Action<ExtraColshape>>()
@@ -451,12 +523,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is Sync.IPLManager.IPLInfo))
-                                return;
-
-                            var ipl = (Sync.IPLManager.IPLInfo)cs.Data;
-
-                            ipl?.Load();
+                            if (cs.Data is Sync.IPLManager.IPLInfo ipl)
+                            {
+                                ipl.Load();
+                            }
                         }
                     },
 
@@ -465,12 +535,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is Sync.IPLManager.IPLInfo))
-                                return;
-
-                            var ipl = (Sync.IPLManager.IPLInfo)cs.Data;
-
-                            ipl?.Unload();
+                            if (cs.Data is Sync.IPLManager.IPLInfo ipl)
+                            {
+                                ipl.Unload();
+                            }
                         }
                     },
                 }
@@ -486,12 +554,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is int))
-                                return;
-
-                            var doorIdx = (int)cs.Data;
-
-                            Player.LocalPlayer.SetData("House::CurrentDoorIdx", doorIdx);
+                            if (cs.Data is int doorIdx)
+                            {
+                                Player.LocalPlayer.SetData("House::CurrentDoorIdx", doorIdx);
+                            }
                         }
                     },
 
@@ -516,12 +582,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is int))
-                                return;
-
-                            var doorIdx = (int)cs.Data;
-
-                            Player.LocalPlayer.SetData("House::CurrentDoorIdx", doorIdx);
+                            if (cs.Data is int doorIdx)
+                            {
+                                Player.LocalPlayer.SetData("House::CurrentDoorIdx", doorIdx);
+                            }
                         }
                     },
 
@@ -546,12 +610,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is int))
-                                return;
-
-                            var businessId = (int)cs.Data;
-
-                            Player.LocalPlayer.SetData("CurrentBusiness", businessId);
+                            if (cs.Data is int businessId)
+                            {
+                                Player.LocalPlayer.SetData("CurrentBusiness", businessId);
+                            }
                         }
                     },
 
@@ -576,12 +638,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is int))
-                                return;
-
-                            var businessId = (int)cs.Data;
-
-                            Player.LocalPlayer.SetData("CurrentBusiness", businessId);
+                            if (cs.Data is int businessId)
+                            {
+                                Player.LocalPlayer.SetData("CurrentBusiness", businessId);
+                            }
                         }
                     },
 
@@ -666,12 +726,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is Data.NPC))
-                                return;
-
-                            var npc = (Data.NPC)cs.Data;
-
-                            Player.LocalPlayer.SetData("CurrentNPC", npc);
+                            if (cs.Data is Data.NPC npc)
+                            {
+                                Player.LocalPlayer.SetData("CurrentNPC", npc);
+                            }
                         }
                     },
 

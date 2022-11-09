@@ -41,7 +41,14 @@ namespace BCRPServer.Sync
             VehicleTrunk, VehicleTrunkForced,
 
             ItemCigHand,
+            ItemCig1Hand,
+            ItemCig2Hand,
+            ItemCig3Hand,
+
             ItemCigMouth,
+            ItemCig1Mouth,
+            ItemCig2Mouth,
+            ItemCig3Mouth,
 
             ItemBurger,
             ItemChips,
@@ -96,6 +103,17 @@ namespace BCRPServer.Sync
                 this.Type = Type;
             }
         }
+
+        private static Dictionary<Types, Types> SameActionsTypes = new Dictionary<Types, Types>()
+        {
+            { Types.ItemCig1Hand, Types.ItemCigHand },
+            { Types.ItemCig2Hand, Types.ItemCigHand },
+            { Types.ItemCig3Hand, Types.ItemCigHand },
+
+            { Types.ItemCig1Mouth, Types.ItemCigMouth },
+            { Types.ItemCig2Mouth, Types.ItemCigMouth },
+            { Types.ItemCig3Mouth, Types.ItemCigMouth },
+        };
 
         private static Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>> Actions = new Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>>()
         {
@@ -503,9 +521,39 @@ namespace BCRPServer.Sync
             }
         };
 
-        private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type) => Actions.GetValueOrDefault(type)?[false];
+        private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type)
+        {
+            var action = Actions.GetValueOrDefault(type);
 
-        private static Action<Entity, Entity, Types, object[]> GetOnAction(Types type) => Actions.GetValueOrDefault(type)?[true];
+            if (action == null)
+            {
+                Types sType;
+
+                if (SameActionsTypes.TryGetValue(type, out sType))
+                    return Actions.GetValueOrDefault(sType)?[false];
+
+                return null;
+            }
+
+            return action[false];
+        }
+
+        private static Action<Entity, Entity, Types, object[]> GetOnAction(Types type)
+        {
+            var action = Actions.GetValueOrDefault(type);
+
+            if (action == null)
+            {
+                Types sType;
+
+                if (SameActionsTypes.TryGetValue(type, out sType))
+                    return Actions.GetValueOrDefault(sType)?[true];
+
+                return null;
+            }
+
+            return action[true];
+        }
 
         #region Entities
         /// <summary>Получить информацию о привязке сущности к другой сущности</summary>

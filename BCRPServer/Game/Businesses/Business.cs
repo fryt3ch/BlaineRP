@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Game.Items;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,142 @@ namespace BCRPServer.Game.Businesses
     {
         public static string AllNames { get; set; }
 
+        public enum Types
+        {
+            ClothesShop1 = 0,
+            ClothesShop2,
+            ClothesShop3,
+
+            Market,
+
+            GasStation,
+        }
+
+        public static Dictionary<int, Business> All;
+
+        /// <summary>Тип бизнеса</summary>
+        public Types Type { get; set; }
+
+        /// <summary>ID бизнеса (уникальный)</summary>
+        public int ID { get; set; }
+
+        /// <summary>2й ID бизнеса</summary>
+        /// <remarks>Уникален лишь для каждого вида бизнеса</remarks>
+        public int SubID { get; set; }
+
+        /// <summary>Название</summary>
+        public string Name { get; set; }
+
+        /// <summary>Название + SubID</summary>
+        /// <value>Строка вида: Name #SubID</value>
+        public string NameAndSubID { get => Name ?? " " + $" #{SubID}"; }
+
+        /// <summary>CID владельца</summary>
+        /// <remarks>Если владельца нет, то -1</remarks>
+        public int Owner { get; set; }
+
+        public string OwnerName { get => Owner == -1 ? Locale.Businesses.Government : "Игрок"; }
+
+        /// <summary>Наличных в кассе</summary>
+        public int Cash { get; set; }
+
+        /// <summary>Денег в банке</summary>
+        public int Bank { get; set; }
+
+        /// <summary>Кол-во материалов</summary>
+        public int Materials { get; set; }
+
+        /// <summary>Кол-во заказанных материалов</summary>
+        public int OrderedMaterials { get; set; }
+
+        /// <summary>Гос. цена</summary>
+        public int Price { get; set; }
+
+        /// <summary>Наценка на товары</summary>
+        /// <remarks>m*X=N, где m - стандартная цена товара, X - наценка, а N - итоговая цена товара</remarks>
+        public float Margin { get; set; }
+
+        /// <summary>Позиция бизнеса</summary>
+        public Vector3 Position { get; set; }
+
+        /// <summary>Информация о прибыли за последний месяц</summary>
+        /// <remarks>Массив длиной 31, где индекс - (день месяца - 1), а значение - прибыль за этот день (если значение -1, то нет данных)</remarks>
+        public int[] Statistics { get; set; }
+
+        public Business(int ID, Vector3 Position, Types Type, int Price = 100)
+        {
+            this.Price = Price;
+
+            this.ID = ID;
+
+            this.Type = Type;
+
+            this.Position = Position;
+
+            All.Add(ID, this);
+        }
+
+        public static int LoadAll()
+        {
+            if (All != null)
+                return All.Count;
+
+            All = new Dictionary<int, Business>();
+
+            #region Clothes (Cheap)
+            new ClothesShop1(1, new Vector3(1198f, 2701f, 38f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(3, new Vector3(-1093.5f, 2703.7f, 19f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(4, new Vector3(1685.5f, 4820.2f, 42f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(5, new Vector3(-1.5f, 6517.2f, 31.2f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+
+            new ClothesShop1(11, new Vector3(-817.3f, -1079.856f, 11.133f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(12, new Vector3(83.64771f, -1391.713f, 29.41865f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(13, new Vector3(416.7564f, -807.4344f, 29.38187f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            #endregion
+
+            #region Clothes (Expensive)
+            new ClothesShop2(2, new Vector3(618.5f, 2747.7f, 42f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
+            new ClothesShop2(14, new Vector3(-3167.542f, 1057.887f, 20.85858f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
+
+            new ClothesShop2(9, new Vector3(128.3956f, -207.6191f, 54.58f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
+            new ClothesShop2(10, new Vector3(-1202.328f, -778.6373f, 17.33572f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
+
+            #endregion
+
+            #region Clothes (Brand)
+            new ClothesShop3(6, new Vector3(-1456f, -232f, 49.5f), new Vector3(-1447.433f, -243.1756f, 49.82227f), null, 70f);
+            new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f), new Vector3(-1447.433f, -243.1756f, 49.82227f), null, 70f);
+            new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f), new Vector3(-1447.433f, -243.1756f, 49.82227f), null, 70f);
+            #endregion
+
+            new Market(15, new Vector3(549.1185f, 2671.407f, 42.1565f));
+
+            new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), new Vector3(263.9698f, 2607.402f, 44.98298f));
+
+            for (int i = 1; i < All.Count + 1; i++)
+            {
+                All[i] = MySQL.GetBusiness(All[i]);
+            }
+
+            AllNames = All.ToDictionary(x => x.Key, x => x.Value.Name).SerializeToJson();
+
+            return All.Count;
+        }
+
+        public static Business Get(int id) => All.GetValueOrDefault(id);
+    }
+
+    public interface IEnterable
+    {
+        public Vector3 EnterPosition { get; set; }
+
+        public Vector3 ExitPosition { get; set; }
+
+        public float Heading { get; set; }
+    }
+
+    public abstract class Shop : Business
+    {
         private static Dictionary<Types, Dictionary<string, int>> AllPrices = new Dictionary<Types, Dictionary<string, int>>()
         {
             #region ClothesShop1
@@ -1131,78 +1268,19 @@ namespace BCRPServer.Game.Businesses
                     { "cig_0", 100 },
                     { "cig_1", 100 },
                 }
-            }
+            },
+
+            {
+                Types.GasStation,
+
+                new Dictionary<string, int>()
+                {
+
+                }
+            },
         };
 
-        public enum Types
-        {
-            ClothesShop1 = 0,
-            ClothesShop2,
-            ClothesShop3,
-
-            Market,
-        }
-
-        public static Dictionary<int, Business> All;
-
-        /// <summary>Тип бизнеса</summary>
-        public Types Type { get; set; }
-
-        /// <summary>ID бизнеса (уникальный)</summary>
-        public int ID { get; set; }
-
-        /// <summary>2й ID бизнеса</summary>
-        /// <remarks>Уникален лишь для каждого вида бизнеса</remarks>
-        public int SubID { get; set; }
-
-        /// <summary>Название</summary>
-        public string Name { get; set; }
-
-        /// <summary>Название + SubID</summary>
-        /// <value>Строка вида: Name #SubID</value>
-        public string NameAndSubID { get => Name ?? " " + $" #{SubID}"; }
-
-        /// <summary>CID владельца</summary>
-        /// <remarks>Если владельца нет, то -1</remarks>
-        public int Owner { get; set; }
-
-        public string OwnerName { get => Owner == -1 ? Locale.Businesses.Government : "Игрок"; }
-
-        /// <summary>Наличных в кассе</summary>
-        public int Cash { get; set; }
-
-        /// <summary>Денег в банке</summary>
-        public int Bank { get; set; }
-
-        /// <summary>Кол-во материалов</summary>
-        public int Materials { get; set; }
-
-        /// <summary>Кол-во заказанных материалов</summary>
-        public int OrderedMaterials { get; set; }
-
-        /// <summary>Гос. цена</summary>
-        public int Price { get; set; }
-
-        /// <summary>Наценка на товары</summary>
-        /// <remarks>m*X=N, где m - стандартная цена товара, X - наценка, а N - итоговая цена товара</remarks>
-        public float Margin { get; set; }
-
-        /// <summary>Позиция бизнеса</summary>
-        public Vector3 Position { get; set; }
-
-        /// <summary>Параметры просмотра магазина</summary>
-        /// <remarks>Таковых может и не быть, тогда - null</remarks>
-        public (Vector3 Position, float Heading)? ViewParams { get; set; }
-
-        /// <summary>Информация о прибыли за последний месяц</summary>
-        /// <remarks>Массив длиной 31, где индекс - (день месяца - 1), а значение - прибыль за этот день (если значение -1, то нет данных)</remarks>
-        public int[] Statistics { get; set; }
-
-        /// <summary>Метод для получения цены предмета, который продается в бизнесе</summary>
-        /// <param name="id">ID предмета</param>
-        /// <param name="addMargin">Учитывать ли наценку?</param>
-        /// <returns>Цена предмета, если предмета нет в данном бизнесе, то -1</returns>
-        public int GetItemPrice(string id, bool addMargin = true)
+        public int GetPrice(string id, bool addMargin = true)
         {
             int price;
 
@@ -1215,133 +1293,100 @@ namespace BCRPServer.Game.Businesses
                 return price;
         }
 
-        public Business(int ID, Vector3 Position, Types Type)
+        public Shop(int ID, Vector3 Position, Types Type) : base(ID, Position, Type)
         {
-            this.ID = ID;
 
-            this.Type = Type;
-
-            this.Position = Position;
-
-            All.Add(ID, this);
         }
-
-        public static int LoadAll()
-        {
-            if (All != null)
-                return All.Count;
-
-            All = new Dictionary<int, Business>();
-
-            /*            #region Clothes (Cheap)
-                        new ClothesShop1(1, new Vector3(1198f, 2701f, 38f), new Vector3(1200f, 2701f, 37f), new Vector3(1200f, 2709f, 37f), new Vector3(1201.885f, 2710.143f, 38.2226f), 105f);
-                        new ClothesShop1(3, new Vector3(-1093.5f, 2703.7f, 19f), new Vector3(-1096f, 2702.9f, 18f), new Vector3(-1098.262f, 2711.9f, 18.1f), new Vector3(-1097.523f, 2714.026f, 19.108f), 150f);
-                        new ClothesShop1(4, new Vector3(1685.5f, 4820.2f, 42f), new Vector3(1683.5f, 4822.3f, 41f), new Vector3(1693f, 4819.4f, 41), new Vector3(1694.727f, 4817.582f, 42.06f), 20f);
-                        new ClothesShop1(5, new Vector3(-1.5f, 6517.2f, 31.2f), new Vector3(-0.26f, 6519.46f, 30.5f), new Vector3(1.65f, 6511.2f, 30.8f), new Vector3(1f, 6508.753f, 31.87f), 325);
-
-                        new ClothesShop1(11, new Vector3(-817.3f, -1079.856f, 11.133f), new Vector3(-815.1346f, -1079.327f, 10.13754f), new Vector3(-818.9189f, -1072.85f, 10.32811f), new Vector3(-817.8808f, -1070.944f, 11.32811f), 135f);
-                        new ClothesShop1(12, new Vector3(83.64771f, -1391.713f, 29.41865f), new Vector3(83.63f, -1389.665f, 28.4166f), new Vector3(76.45f, -1389.611f, 28.37614f), new Vector3(75.42346f, -1387.689f, 29.37614f), 195.8f);
-                        new ClothesShop1(13, new Vector3(416.7564f, -807.4344f, 29.38187f), new Vector3(416.326f, -805.2744f, 28.37296f), new Vector3(424.4864f, -809.5862f, 28.49113f), new Vector3(425.6321f, -811.4822f, 29.49114f), 11f);
-                        #endregion
-
-                        #region Clothes (Expensive)
-                        new ClothesShop2(2, new Vector3(618.5f, 2747.7f, 42f), new Vector3(622f, 2744.5f, 41f), new Vector3(614.7f, 2762f, 41f), new Vector3(613.035f, 2761.843f, 42.088f), 265f);
-                        new ClothesShop2(14, new Vector3(-3167.542f, 1057.887f, 20.85858f), new Vector3(-3164.073f, 1059.789f, 19.84639f), new Vector3(-3170.448f, 1044.651f, 19.86322f), new Vector3(-3169.008f, 1044.211f, 20.86322f), 48.6f);
-
-                        new ClothesShop2(9, new Vector3(128.3956f, -207.6191f, 54.58f), new Vector3(127.03f, -205.91f, 53.55547f), new Vector3(125.87f, -222.8f, 53.55785f), new Vector3(127.3073f, -223.18f, 54.55783f), 66f);
-                        new ClothesShop2(10, new Vector3(-1202.328f, -778.6373f, 17.33572f), new Vector3(-1203.283f, -781.6449f, 16.3305f), new Vector3(-1193.731f, -768.7763f, 16.31905f), new Vector3(-1194.725f, -767.6141f, 17.31629f), 208f);
-
-                        #endregion
-
-                        #region Clothes (Brand)
-                        new ClothesShop3(6, new Vector3(-1456f, -232f, 49.5f), new Vector3(-1455.7f, -228.9f, 48.25f), new Vector3(-1450f, -237f, 48.8f), new Vector3(-1448.824f, -237.893f, 49.81332f), 45f);
-                        new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f), new Vector3(-718f, -160f, 36f), new Vector3(-710.46f, -152.51f, 36.415f), new Vector3(-708.95f, -151.6612f, 37.415f), 114f);
-                        new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f), new Vector3(-152.62f, -304f, 37.91f), new Vector3(-163.4376f, -303.7032f, 38.7333f), new Vector3(-165f, -303.2f, 39.73328f), 251f);
-                        #endregion*/
-
-            #region Clothes (Cheap)
-            new ClothesShop1(1, new Vector3(1198f, 2701f, 38f));
-            new ClothesShop1(3, new Vector3(-1093.5f, 2703.7f, 19f));
-            new ClothesShop1(4, new Vector3(1685.5f, 4820.2f, 42f));
-            new ClothesShop1(5, new Vector3(-1.5f, 6517.2f, 31.2f));
-
-            new ClothesShop1(11, new Vector3(-817.3f, -1079.856f, 11.133f));
-            new ClothesShop1(12, new Vector3(83.64771f, -1391.713f, 29.41865f));
-            new ClothesShop1(13, new Vector3(416.7564f, -807.4344f, 29.38187f));
-            #endregion
-
-            #region Clothes (Expensive)
-            new ClothesShop2(2, new Vector3(618.5f, 2747.7f, 42f));
-            new ClothesShop2(14, new Vector3(-3167.542f, 1057.887f, 20.85858f));
-
-            new ClothesShop2(9, new Vector3(128.3956f, -207.6191f, 54.58f));
-            new ClothesShop2(10, new Vector3(-1202.328f, -778.6373f, 17.33572f));
-
-            #endregion
-
-            #region Clothes (Brand)
-            new ClothesShop3(6, new Vector3(-1456f, -232f, 49.5f));
-            new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f));
-            new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f));
-            #endregion
-
-            new Market(15, new Vector3(549.1185f, 2671.407f, 42.1565f));
-
-            for (int i = 1; i < All.Count + 1; i++)
-            {
-                All[i] = MySQL.GetBusiness(All[i]);
-            }
-
-            AllNames = All.ToDictionary(x => x.Key, x => x.Value.Name).SerializeToJson();
-
-            return All.Count;
-        }
-
-        public static Business Get(int id) => All.ContainsKey(id) ? All[id] : null;
     }
 
-    public class ClothesShop1 : Business
+    public abstract class ClothesShop : Shop, IEnterable
+    {
+        public Vector3 EnterPosition { get; set; }
+
+        public Vector3 ExitPosition { get; set; }
+
+        public float Heading { get; set; }
+
+        public ClothesShop(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading, Types Type) : base(ID, Position, Type)
+        {
+            this.EnterPosition = EnterPosition;
+
+            this.ExitPosition = ExitPosition;
+
+            this.Heading = Heading;
+        }
+    }
+
+    public class ClothesShop1 : ClothesShop
     {
         private static int Counter = 1;
 
-        public ClothesShop1(int ID, Vector3 Position) : base(ID, Position, Types.ClothesShop1)
+        public ClothesShop1(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading) : base(ID, Position, EnterPosition, ExitPosition, Heading, Types.ClothesShop1)
         {
-            ViewParams = (new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
-
             SubID = Counter++;
         }
     }
 
-    public class ClothesShop2 : Business
+    public class ClothesShop2 : ClothesShop
     {
         private static int Counter = 1;
 
-        public ClothesShop2(int ID, Vector3 Position) : base(ID, Position, Types.ClothesShop2)
+        public ClothesShop2(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading) : base(ID, Position, EnterPosition, ExitPosition, Heading, Types.ClothesShop2)
         {
-            ViewParams = (new Vector3(617.65f, 2766.828f, 42.0881f), 176f);
-
             SubID = Counter++;
         }
     }
 
-    public class ClothesShop3 : Business
+    public class ClothesShop3 : ClothesShop
     {
         private static int Counter = 1;
 
-        public ClothesShop3(int ID, Vector3 Position) : base(ID, Position, Types.ClothesShop2)
+        public ClothesShop3(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading) : base(ID, Position, EnterPosition, ExitPosition, Heading, Types.ClothesShop2)
         {
-            ViewParams = (new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f);
-
             SubID = Counter++;
         }
     }
 
-    public class Market : Business
+    public class Market : Shop
     {
         private static int Counter = 1;
 
         public Market(int ID, Vector3 Position) : base(ID, Position, Types.Market)
         {
+            SubID = Counter++;
+        }
+    }
+
+    public class GasStation : Shop
+    {
+        private static int Counter = 1;
+
+        private static Dictionary<string, int> GasPrices = new Dictionary<string, int>()
+        {
+            { "gas_p", 10 },
+
+            { "gas_e", 5 },
+        };
+
+        public Vector3 GasolinesPosition { get; set; }
+
+        public int GetGasPrice(string id, bool addMargin)
+        {
+            int price;
+
+            if (id == null || !GasPrices.TryGetValue(id, out price))
+                return -1;
+
+            if (addMargin)
+                return (int)Math.Floor(price * Margin);
+            else
+                return price;
+        }
+
+        public GasStation(int ID, Vector3 Position, Vector3 GasolinesPosition) : base(ID, Position, Types.GasStation)
+        {
+            this.GasolinesPosition = GasolinesPosition;
+
             SubID = Counter++;
         }
     }

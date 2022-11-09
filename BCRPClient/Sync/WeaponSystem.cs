@@ -347,15 +347,19 @@ namespace BCRPClient.Sync
 
                     if (Settings.Aim.Type == Settings.Aim.Types.Cross)
                     {
+                        float scale = 3f * Settings.Aim.Scale;
+
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, 1.5f * 32 / GameEvents.ScreenResolution.X, 1.5f * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.R, Settings.Aim.Color.G, Settings.Aim.Color.B, 255, 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.R, Settings.Aim.Color.G, Settings.Aim.Color.B, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
                     else if (Settings.Aim.Type == Settings.Aim.Types.Dot)
                     {
+                        float scale = 1f * Settings.Aim.Scale;
+
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, 0.5f * 32 / GameEvents.ScreenResolution.X, 0.5f * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.R, Settings.Aim.Color.G, Settings.Aim.Color.B, 255, 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.R, Settings.Aim.Color.G, Settings.Aim.Color.B, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -407,7 +411,7 @@ namespace BCRPClient.Sync
         }
 
         #region Stuff
-        public static void DisableFiring() => RAGE.Game.Player.DisablePlayerFiring(true);
+        private static void DisableFiring() => RAGE.Game.Player.DisablePlayerFiring(true);
 
         public static void UpdateWeapon()
         {
@@ -526,6 +530,9 @@ namespace BCRPClient.Sync
             if (gun == null || sourceEntity == null || targetEntity == null)
                 return;
 
+            if (Player.LocalPlayer.HasData("InGreenZone"))
+                return;
+
             if (sourceEntity.Type == RAGE.Elements.Type.Player)
             {
                 sourcePlayer = sourceEntity as Player;
@@ -641,6 +648,9 @@ namespace BCRPClient.Sync
             //Utils.ConsoleOutput($"SourceEntity: {sourceEntity.Type}, TargetEntityRID: {targetEntity.Type}, TargetPlayerRID: {targetPlayer.Type}, Damage: {damage}");
 
             cancel.Cancel = true;
+
+            if (Player.LocalPlayer.HasData("InGreenZone"))
+                return;
 
             if (targetEntity?.Type == RAGE.Elements.Type.Vehicle)
             {
