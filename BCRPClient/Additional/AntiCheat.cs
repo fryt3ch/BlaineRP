@@ -25,7 +25,7 @@ namespace BCRPClient.Additional
         private static uint LastAllowedDimension;
         private static int LastAllowedHP;
         private static int LastAllowedArm;
-        private static int LastAllowedTransparency;
+        public static int LastAllowedAlpha;
         public static bool LastAllowedInvincible { get; private set; }
 
         private static uint LastAllowedWeapon;
@@ -34,7 +34,7 @@ namespace BCRPClient.Additional
         private static Stack<bool> AllowTP;
         private static Stack<bool> AllowHP;
         private static Stack<bool> AllowArm;
-        private static Stack<bool> AllowTransparency;
+        private static Stack<bool> AllowAlpha;
         private static Stack<bool> AllowWeapon;
 
         private static List<(Vehicle, bool)> AllowVehicleHealth;
@@ -45,7 +45,7 @@ namespace BCRPClient.Additional
             AllowTP = new Stack<bool>();
             AllowHP = new Stack<bool>();
             AllowArm = new Stack<bool>();
-            AllowTransparency = new Stack<bool>();
+            AllowAlpha = new Stack<bool>();
             AllowWeapon = new Stack<bool>();
 
             AllowVehicleHealth = new List<(Vehicle, bool)>();
@@ -53,7 +53,7 @@ namespace BCRPClient.Additional
             AllowTP.Push(false);
             AllowHP.Push(false);
             AllowArm.Push(false);
-            AllowTransparency.Push(false);
+            AllowAlpha.Push(false);
             AllowWeapon.Push(false);
 
             #region Events
@@ -162,21 +162,22 @@ namespace BCRPClient.Additional
             #endregion
 
             #region Transparency
-            Events.Add("AC::State::Transparency", (object[] args) =>
+            Events.Add("AC::State::Alpha", (object[] args) =>
             {
                 var value = (int)args[0];
 
-                LastAllowedTransparency = value;
-                Player.LocalPlayer.SetAlpha(value, true);
+                LastAllowedAlpha = value;
 
-                AllowTransparency.Push(true);
+                Player.LocalPlayer.SetAlpha(value, false);
+
+                AllowAlpha.Push(true);
 
                 (new AsyncTask(() =>
                 {
-                    AllowTransparency.Pop();
+                    AllowAlpha.Pop();
 
-                    if (AllowTransparency.Count == 0)
-                        AllowTransparency.Push(false);
+                    if (AllowAlpha.Count == 0)
+                        AllowAlpha.Push(false);
                 }, 2000, false)).Run();
             });
             #endregion
@@ -285,7 +286,7 @@ namespace BCRPClient.Additional
             LastAllowedHP = player.GetRealHealth();
             LastAllowedArm = player.GetArmour();
             LastAllowedDimension = player.Dimension;
-            LastAllowedTransparency = 255;
+            LastAllowedAlpha = 255;
             LastAllowedWeapon = Sync.WeaponSystem.UnarmedHash;
             LastAllowedAmmo = 0;
 
@@ -356,10 +357,10 @@ namespace BCRPClient.Additional
             #endregion
 
             #region Transparency
-            if (!AllowTransparency.Peek())
+            if (!AllowAlpha.Peek())
             {
-                if (Player.LocalPlayer.GetAlpha() != LastAllowedTransparency)
-                    Player.LocalPlayer.SetAlpha(LastAllowedTransparency, true);
+                if (Player.LocalPlayer.GetAlpha() != LastAllowedAlpha)
+                    Player.LocalPlayer.SetAlpha(LastAllowedAlpha, false);
             }
             #endregion
 

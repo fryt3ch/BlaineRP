@@ -28,7 +28,7 @@ namespace BCRPServer.CEF
             Undress(player, true);
 
             player.Teleport(Position, true);
-            player.SetTransparency(255);
+            player.SetAlpha(255);
 
             player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, true, "CharacterCreation::StartNew");
         }
@@ -92,7 +92,7 @@ namespace BCRPServer.CEF
 
                 tData.StepType = TempData.StepTypes.CharacterSelection;
 
-                player.SetTransparency(0);
+                player.SetAlpha(0);
 
                 player.TriggerEvent("CharacterCreation::Close");
                 player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::ShowCharacterChoosePage", false);

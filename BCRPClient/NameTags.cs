@@ -77,7 +77,7 @@ namespace BCRPClient
                     }
                 }
 
-                if (pData == null || player.GetAlpha() != 255)
+                if (pData == null || !player.IsVisible())
                     continue;
 
                 float x = nametag.ScreenX;

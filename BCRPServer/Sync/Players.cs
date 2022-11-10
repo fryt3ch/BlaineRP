@@ -56,7 +56,7 @@ namespace BCRPServer.Sync
 
                     player.SetData("Spam::Counter", 0);
 
-                    player.SetTransparency(0);
+                    player.SetAlpha(0);
                     player.Teleport(new Vector3(-749.78f, 5818.21f, 0), false, Utils.GetPrivateDimension(player));
                     player.Name = player.SocialClubName;
 
@@ -318,8 +318,8 @@ namespace BCRPServer.Sync
             pData.Release();
         }
 
-        [ServerEvent(Event.PlayerDeath)]
-        private static async Task OnPlayerDeath(Player player, Player killer, uint reason)
+        [RemoteEvent("Players::OnDeath")]
+        private static async Task OnPlayerDeath(Player player, Player killer)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1028,7 +1028,7 @@ namespace BCRPServer.Sync
                     }
                     else
                     {
-                        player.CloseAll();
+                        player.CloseAll(true);
 
                         player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin);
                     }
@@ -1186,6 +1186,8 @@ namespace BCRPServer.Sync
                 if (gs == null)
                     return;
 
+                pData.CurrentBusiness = id;
+
                 await NAPI.Task.RunAsync(() =>
                 {
                     if (player?.Exists != true)
@@ -1194,7 +1196,7 @@ namespace BCRPServer.Sync
                     if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.Position) > 50f)
                         return;
 
-                    player.CloseAll();
+                    player.CloseAll(true);
 
                     player.TriggerEvent("GasStation::Show", gs.Margin);
                 });
@@ -1203,8 +1205,8 @@ namespace BCRPServer.Sync
             pData.Release();
         }
 
-        [RemoteEvent("GasStation::Buy")]
-        public static async Task GasStationBuy(Player player, Vehicle vehicle, string id, int amount, bool useCash)
+        [RemoteEvent("GasStation::Exit")]
+        public static async Task GasStationExit(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1218,26 +1220,93 @@ namespace BCRPServer.Sync
 
             await Task.Run(async () =>
             {
-                if (pData.CurrentBusiness == null || amount <= 0)
+                if (pData.CurrentBusiness == null)
                     return;
 
-                var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
+                pData.CurrentBusiness = null;
+            });
 
-                if (business == null)
+            pData.Release();
+        }
+
+        [RemoteEvent("GasStation::Buy")]
+        public static async Task GasStationBuy(Player player, Vehicle vehicle, int fNum, int amount, bool useCash)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!await pData.WaitAsync())
+                return;
+
+            await Task.Run(async () =>
+            {
+                if (pData.CurrentBusiness == null || amount <= 0 || !Enum.IsDefined(typeof(Game.Data.Vehicles.Vehicle.FuelTypes), fNum))
                     return;
 
-                if (business is Game.Businesses.GasStation gs)
-                {
-                    int price = gs.GetGasPrice(id, true);
+                var gs = Game.Businesses.Business.Get((int)pData.CurrentBusiness) as Game.Businesses.GasStation;
 
-                    if (price == -1)
-                        return;
-                }
+                if (gs == null)
+                    return;
+
+                var fType = (Game.Data.Vehicles.Vehicle.FuelTypes)fNum;
+
+                int price = gs.GetGasPrice(fType, true);
+
+                if (price == -1)
+                    return;
+
+                price *= amount;
 
                 var vData = vehicle.GetMainData();
 
                 if (!await vData.WaitAsync())
                     return;
+
+                bool paid = await Task.Run(async () =>
+                {
+                    if (gs.Owner != -1)
+                    {
+                        // operations with materials
+                    }
+
+                    if (useCash)
+                        return await pData.AddCash(-price, true);
+                    else
+                        return false;
+
+                });
+
+                if (paid)
+                {
+                    await NAPI.Task.RunAsync(() =>
+                    {
+                        if (player?.Exists != true || vehicle?.Exists != true)
+                            return;
+
+                        var newFuel = vData.FuelLevel + amount;
+
+                        if (newFuel > vData.Data.Tank)
+                            newFuel = vData.Data.Tank;
+
+                        vData.FuelLevel = newFuel;
+
+                        player.CloseAll(true);
+                    });
+
+                    vData.Release();
+
+                    pData.CurrentBusiness = null;
+                }
+                else
+                {
+                    vData.Release();
+
+                    return;
+                }
             });
 
             pData.Release();

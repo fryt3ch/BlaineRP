@@ -350,7 +350,7 @@ namespace BCRPClient.Sync
                         float scale = 3f * Settings.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.R, Settings.Aim.Color.G, Settings.Aim.Color.B, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -359,7 +359,7 @@ namespace BCRPClient.Sync
                         float scale = 1f * Settings.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
-                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.R, Settings.Aim.Color.G, Settings.Aim.Color.B, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
+                            RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
                         else
                             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
@@ -369,16 +369,27 @@ namespace BCRPClient.Sync
 
             Events.OnPlayerDeath += (Player player, uint reason, Player killer, Events.CancelEventArgs cancel) =>
             {
+                cancel.Cancel = true;
+
                 if (player?.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                if ((killer == null || killer.Handle == Player.LocalPlayer.Handle) && DateTime.Now.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
-                    killer = LastAttackerInfo.Player;
+                if (Sync.Players.GetData(player) == null)
+                {
+                    player.Resurrect();
+                }
+                else
+                {
+                    if ((killer == null || killer.Handle == Player.LocalPlayer.Handle) && DateTime.Now.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
+                        killer = LastAttackerInfo.Player;
 
-                if (Sync.Players.GetData(killer) == null)
-                    killer = Player.LocalPlayer;
+                    if (Sync.Players.GetData(killer) == null)
+                        killer = Player.LocalPlayer;
 
-                Additional.Scaleform.ShowWasted(reason, killer);
+                    Additional.Scaleform.ShowWasted(reason, killer);
+
+                    Events.CallRemote("Players::OnDeath", killer);
+                }
             };
 
             Events.OnPlayerWeaponShot += (Vector3 targetPos, Player target, Events.CancelEventArgs cancel) =>

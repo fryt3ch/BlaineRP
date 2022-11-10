@@ -394,7 +394,7 @@ namespace BCRPClient.Data
         [Command("anim", true, "Смена измерения", "playanim")]
         public static void PlayAnim(string dict, string name, float sp, float spMult, int dur, int fg, float pRate, bool p1 = false, bool p2 = false, bool p3 = false)
         {
-            Utils.RequestAnimDict(dict);
+            Utils.RequestAnimDict(dict).GetAwaiter().GetResult();
 
             Player.LocalPlayer.TaskPlayAnim(dict, name, sp, spMult, dur, fg, pRate, p1, p2, p3);
 
@@ -810,7 +810,7 @@ namespace BCRPClient.Data
                 Additional.ExtraColshapes.TempPolygon?.Delete();
             }
 
-            Additional.ExtraColshapes.TempPolygon = new Additional.Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.ExtraColour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            Additional.ExtraColshapes.TempPolygon = new Additional.Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Additional.ExtraColshapes.PolygonCreationTask = new AsyncTask(() =>
             {
@@ -897,7 +897,7 @@ namespace BCRPClient.Data
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            new Additional.Circle(newVertice, radius, false, new Utils.ExtraColour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            new Additional.Circle(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Circle_2D] Pos: {newVertice} | Radius: {radius}");
         }
@@ -911,7 +911,7 @@ namespace BCRPClient.Data
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            new Additional.Cylinder(newVertice, radius, height, false, new Utils.ExtraColour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            new Additional.Cylinder(newVertice, radius, height, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Tube_3D] Pos: {newVertice} | Radius: {radius} | Height: {height}");
         }
@@ -925,7 +925,7 @@ namespace BCRPClient.Data
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            new Additional.Sphere(newVertice, radius, false, new Utils.ExtraColour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
+            new Additional.Sphere(newVertice, radius, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
 
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Sphere_3D] Pos: {newVertice} | Radius: {radius}");
         }
@@ -941,7 +941,7 @@ namespace BCRPClient.Data
 
             if (sX != 0 && sY != 0)
             {
-                Additional.Polygon.CreateCuboid(newVertice, sX, sY, height, Player.LocalPlayer.GetHeading(), false, new Utils.ExtraColour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
+                Additional.Polygon.CreateCuboid(newVertice, sX, sY, height, Player.LocalPlayer.GetHeading(), false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
 
                 Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_3D] Pos: {newVertice} | Width: {sX} | Depth: {sY} | Height: {height}");
             }
@@ -953,7 +953,7 @@ namespace BCRPClient.Data
             }
             else
             {
-                Additional.Polygon.CreateCuboid(Additional.ExtraColshapes.TempPosition, newVertice, Player.LocalPlayer.GetHeading(), false, new Utils.ExtraColour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
+                Additional.Polygon.CreateCuboid(Additional.ExtraColshapes.TempPosition, newVertice, Player.LocalPlayer.GetHeading(), false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
 
                 Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_3D] Pos2: {newVertice}");
 
@@ -1052,6 +1052,17 @@ namespace BCRPClient.Data
                 pos.Z -= 1f;
 
             Events.CallLocal("Chat::ShowServerMessage", string.Format(Locale.Notifications.Commands.Position, pos.X, pos.Y, pos.Z, Player.LocalPlayer.GetHeading()));
+        }
+
+        [Command("posv", true, "Получить текущую позицию (veh)", "position")]
+        public static void PositionVehicle()
+        {
+            var pos = Player.LocalPlayer.Vehicle?.Position;
+
+            if (pos == null)
+                return;
+
+            Events.CallLocal("Chat::ShowServerMessage", string.Format(Locale.Notifications.Commands.Position, pos.X, pos.Y, pos.Z, Player.LocalPlayer.Vehicle.GetHeading()));
         }
 
         [Command("objpos", true, "Получить текущую позицию объекта типа", "objectpos")]

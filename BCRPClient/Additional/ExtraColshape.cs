@@ -40,7 +40,7 @@ namespace BCRPClient.Additional
                 var pos = RAGE.Util.Json.Deserialize<Vector3>(cs.GetSharedData<string>("Position"));
                 var isVisible = cs.GetSharedData<bool>("IsVisible");
                 var dim = RAGE.Util.Json.Deserialize<uint>(cs.GetSharedData<string>("Dimension"));
-                var colour = RAGE.Util.Json.Deserialize<Utils.ExtraColour>(cs.GetSharedData<string>("Colour"));
+                var colour = RAGE.Util.Json.Deserialize<Utils.Colour>(cs.GetSharedData<string>("Colour"));
 
                 if (type == ExtraColshape.Types.Circle)
                 {
@@ -239,7 +239,7 @@ namespace BCRPClient.Additional
                 if (data == null)
                     return;
 
-                data.Colour = RAGE.Util.Json.Deserialize<Utils.ExtraColour>((string)value);
+                data.Colour = RAGE.Util.Json.Deserialize<Utils.Colour>((string)value);
             });
 
             Events.OnPlayerEnterColshape += (Colshape cs, Events.CancelEventArgs cancel) =>
@@ -330,11 +330,11 @@ namespace BCRPClient.Additional
         /// <summary>Получить колшейп по его держателю</summary>
         public static ExtraColshape Get(Colshape colshape) => All.GetValueOrDefault(colshape);
 
-        public static Action<ExtraColshape> GetEnterAction(ActionTypes aType) => Actions.ContainsKey(aType) ? (Actions[aType].ContainsKey(true) ? Actions[aType][true] : null) : null;
+        public static Action<ExtraColshape> GetEnterAction(ActionTypes aType) => Actions.GetValueOrDefault(aType)?.GetValueOrDefault(true);
 
-        public static Action<ExtraColshape> GetExitAction(ActionTypes aType) => Actions.ContainsKey(aType) ? (Actions[aType].ContainsKey(false) ? Actions[aType][false] : null) : null;
+        public static Action<ExtraColshape> GetExitAction(ActionTypes aType) => Actions.GetValueOrDefault(aType)?.GetValueOrDefault(false);
 
-        public static Func<bool> GetInteractionFunc(InteractionTypes iType) => InteractionFuncs.ContainsKey(iType) ? InteractionFuncs[iType] : null;
+        public static Func<bool> GetInteractionFunc(InteractionTypes iType) => InteractionFuncs.GetValueOrDefault(iType);
 
         /// <summary>Типы колшейпов</summary>
         public enum Types
@@ -769,7 +769,7 @@ namespace BCRPClient.Additional
         public uint Dimension { get; set; }
 
         /// <summary>Цвет</summary>
-        public Utils.ExtraColour Colour { get; set; }
+        public Utils.Colour Colour { get; set; }
 
         /// <summary>Видимый ли?</summary>
         /// <remarks>Если колшейп видимый, то его будут видеть все игроки, иначе - только администраторы, и то, при включенной настройке на стороне клиента</remarks>
@@ -823,7 +823,7 @@ namespace BCRPClient.Additional
             }
         }
 
-        public ExtraColshape(Types Type, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null, InteractionTypes InteractionType = InteractionTypes.None, ActionTypes ActionType = ActionTypes.None)
+        public ExtraColshape(Types Type, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null, InteractionTypes InteractionType = InteractionTypes.None, ActionTypes ActionType = ActionTypes.None)
         {
             this.Colshape = Colshape ?? new RAGE.Elements.SphereColshape(Vector3.Zero, 0f, Settings.STUFF_DIMENSION);
 
@@ -939,7 +939,7 @@ namespace BCRPClient.Additional
     {
         public float Radius { get; set; }
 
-        public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Sphere, IsVisible, Colour, Dimension, Colshape)
+        public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Sphere, IsVisible, Colour, Dimension, Colshape)
         {
             this.Radius = Radius;
 
@@ -978,7 +978,7 @@ namespace BCRPClient.Additional
     {
         public float Radius { get; set; }
 
-        public Circle(Vector3 Position, float Radius, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Circle, IsVisible, Colour, Dimension, Colshape)
+        public Circle(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Circle, IsVisible, Colour, Dimension, Colshape)
         {
             this.Radius = Radius;
 
@@ -1020,7 +1020,7 @@ namespace BCRPClient.Additional
         public float Radius { get; set; }
         public float Height { get; set; }
 
-        public Cylinder(Vector3 Position, float Radius, float Height, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Cylinder, IsVisible, Colour, Dimension, Colshape)
+        public Cylinder(Vector3 Position, float Radius, float Height, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Cylinder, IsVisible, Colour, Dimension, Colshape)
         {
             this.Radius = Radius;
             this.Height = Height;
@@ -1076,7 +1076,7 @@ namespace BCRPClient.Additional
 
         public bool Is3D { get => Height > 0; }
 
-        public Polygon(List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Polygon, IsVisible, Colour, Dimension, Colshape)
+        public Polygon(List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Polygon, IsVisible, Colour, Dimension, Colshape)
         {
             this.Height = Height;
 
@@ -1094,7 +1094,7 @@ namespace BCRPClient.Additional
             SetHeading(Heading);
         }
 
-        public static Polygon CreateCuboid(Vector3 Position, float Width, float Depth, float Height, float Heading, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION)
+        public static Polygon CreateCuboid(Vector3 Position, float Width, float Depth, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION)
         {
             var vertices = new List<Vector3>()
                 {
@@ -1107,7 +1107,7 @@ namespace BCRPClient.Additional
             return new Polygon(vertices, Height, Heading, IsVisible, Colour, Dimension);
         }
 
-        public static Polygon CreateCuboid(Vector3 Position1, Vector3 Position2, float Heading, bool IsVisible, Utils.ExtraColour Colour, uint Dimension = Settings.MAIN_DIMENSION)
+        public static Polygon CreateCuboid(Vector3 Position1, Vector3 Position2, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION)
         {
             var middlePos = Position1.GetMiddle(Position2);
 

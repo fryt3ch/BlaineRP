@@ -34,6 +34,8 @@ namespace BCRPClient
             RAGE.Chat.Activate(false);
             RAGE.Chat.Show(false);
 
+            Player.LocalPlayer.SetVisible(true, false);
+
             RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
 
             RAGE.Game.Misc.SetFadeOutAfterDeath(false);
@@ -52,6 +54,8 @@ namespace BCRPClient
 
             Events.OnPlayerSpawn += (RAGE.Events.CancelEventArgs cancel) =>
             {
+                var pos = Player.LocalPlayer.Position;
+
                 if (Additional.SkyCamera.ShouldBeFadedOut && !Additional.SkyCamera.IsFadedOut)
                 {
                     RAGE.Game.Cam.DoScreenFadeOut(0);

@@ -775,7 +775,7 @@ namespace BCRPServer
 
                     Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, Game.Businesses.Business.AllNames, Familiars, licenses, skills, inventory, info, vehicles, gifts);
 
-                    Player.SetTransparency(255);
+                    Player.SetAlpha(255);
 
                     Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 

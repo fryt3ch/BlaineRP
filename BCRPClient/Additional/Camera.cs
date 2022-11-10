@@ -5,7 +5,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static BCRPClient.Additional.Camera;
 using static BCRPClient.Additional.Camera.State;
 
 namespace BCRPClient.Additional
@@ -53,6 +52,10 @@ namespace BCRPClient.Additional
             public object SourceParams { get; set; }
             public object TargetParams { get; set; }
 
+            public Action<object[]> OnAction { get; set; }
+
+            public Action<object[]> OffAction { get; set; }
+
             /// <summary>Состояние камеры</summary>
             /// <param name="Position">Позиция камеры (если задана основная сущность, то этот параметр - смещение, а не сама позиция)</param>
             /// <param name="Rotation">Поворот камеры (если null, то будет использоваться 0 0 0)</param>
@@ -92,26 +95,89 @@ namespace BCRPClient.Additional
             LeftHand,
             WholePed,
 
+            WholeVehicle,
+            FrontVehicle,
+            FrontVehicleOpenHood,
+            BackVehicle,
+            BackVehicleOpenTrunk,
+            RightVehicle,
+            LeftVehicle,
+            TopVehicle,
+
             NpcTalk,
         }
 
         public static Dictionary<StateTypes, State> States = new Dictionary<StateTypes, State>()
         {
-            { StateTypes.Foots, new State(new Vector3(0f, 0f, -0.5f), null, 40, new Vector3(0f, 0f, -0.75f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.Foots, new State(new Vector3(0f, 0f, -0.5f), null, 40, new Vector3(0f, 0f, -0.75f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Legs, new State(null, null, 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.Legs, new State(null, null, 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Body, new State(null, null, 60, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.Body, new State(null, null, 60, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Head, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
+            { StateTypes.Head, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
 
-            { StateTypes.LeftHand, new State(null, null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
+            { StateTypes.LeftHand, new State(null, null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
 
-            { StateTypes.RightHand, new State(null, null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 57005, MinFov = 10 } },
+            { StateTypes.RightHand, new State(null, null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 57005, MinFov = 10 } },
 
-            { StateTypes.WholePed, new State(null, null, 80, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.5f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.WholePed, new State(null, null, 80, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.5f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.NpcTalk, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Both, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = 1.2f, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
+            { StateTypes.NpcTalk, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Both, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
+
+            { StateTypes.WholeVehicle, new State(new Vector3(0, 0, 2.5f), null, 50, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.FrontVehicle, new State(new Vector3(0, 0, 0), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.FrontVehicleOpenHood, new State(new Vector3(0, 0, 2f), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+            
+                OnAction = (args) =>
+                {
+                    if (SourceEntity is Vehicle veh)
+                    {
+                        if (veh.DoesHaveDoor(4) > 0)
+                            veh.SetDoorOpen(4, false, false);
+                    }
+                },
+
+                OffAction = (args) =>
+                {
+                    if (SourceEntity is Vehicle veh)
+                    {
+                        if (veh.DoesHaveDoor(4) > 0)
+                            veh.SetDoorShut(4, false);
+                    }
+                }
+            } },
+
+            { StateTypes.BackVehicleOpenTrunk, new State(new Vector3(0, 0, 2f), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+
+                OnAction = (args) =>
+                {
+                    if (SourceEntity is Vehicle veh)
+                    {
+                        if (veh.DoesHaveDoor(5) > 0)
+                            veh.SetDoorOpen(5, false, false);
+                    }
+                },
+
+                OffAction = (args) =>
+                {
+                    if (SourceEntity is Vehicle veh)
+                    {
+                        if (veh.DoesHaveDoor(4) > 0)
+                            veh.SetDoorShut(5, false);
+                    }
+                }
+            } },
+
+            { StateTypes.BackVehicle, new State(new Vector3(0, 0, 0), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.RightVehicle, new State(new Vector3(0, 0, 0), null, 80, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.LeftVehicle, new State(new Vector3(0, 0, 0), null, 80, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.TopVehicle, new State(new Vector3(0, 0, 5.5f), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
         };
 
         /// <summary>Минимально возможный FOV</summary>
@@ -141,6 +207,8 @@ namespace BCRPClient.Additional
         /// <summary>Хэш стандартной камеры</summary>
         private static uint DefaultScriptedCameraHash = RAGE.Game.Misc.GetHashKey("DEFAULT_SCRIPTED_CAMERA");
 
+        private static Entity SourceEntity { get; set; }
+
         private static AsyncTask SourceTask { get; set; }
         private static AsyncTask TargetTask { get; set; }
         private static AsyncTask ExecuteTasksSchedule { get; set; }
@@ -159,7 +227,7 @@ namespace BCRPClient.Additional
             IsActive = false;
         }
 
-        public static void Enable(StateTypes startType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0)
+        public static void Enable(StateTypes startType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null)
         {
             if (IsActive)
             {
@@ -186,7 +254,7 @@ namespace BCRPClient.Additional
             if (transitionTime < 0)
                 transitionTime = state.TransitionTime;
 
-            ApplyState(state, sourceEntity, targetEntity, transitionTime);
+            ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams);
 
             RAGE.Game.Cam.SetCamActive(ID, true);
 
@@ -218,19 +286,25 @@ namespace BCRPClient.Additional
             IsActive = false;
 
             CurrentState = null;
+
+            SourceEntity = null;
         }
 
-        public static void FromState(StateTypes sType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0)
+        public static void FromState(StateTypes sType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null)
         {
             if (!IsActive)
             {
-                Enable(sType, sourceEntity, targetEntity, transitionTime);
+                Enable(sType, sourceEntity, targetEntity, 0, sourceParams, targetParams);
 
                 return;
             }
 
-            if (CurrentState == sType)
-                return;
+            if (CurrentState != null)
+            {
+                var curState = States[(StateTypes)CurrentState];
+
+                curState.OffAction?.Invoke(null);
+            }
 
             CurrentState = sType;
 
@@ -257,20 +331,24 @@ namespace BCRPClient.Additional
 
                 UsedCams.Add(oldCam);
 
-                ApplyState(state, sourceEntity, targetEntity, transitionTime);
+                ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams);
 
                 RAGE.Game.Cam.SetCamActiveWithInterp(ID, oldCam, transitionTime, 4, 1);
             }
             else
             {
-                ApplyState(state, sourceEntity, targetEntity, transitionTime);
+                ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams);
 
                 RAGE.Game.Cam.SetCamActive(ID, true);
             }
         }
 
-        private static void ApplyState(State state, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0)
+        private static void ApplyState(State state, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null)
         {
+            SourceEntity = sourceEntity;
+
+            state.OnAction?.Invoke(null);
+
             var sEntity = Utils.GetGameEntity(sourceEntity);
             var tEntity = Utils.GetGameEntity(targetEntity);
 
@@ -283,24 +361,24 @@ namespace BCRPClient.Additional
 
             if (transitionTime > 0)
             {
-                ExecuteTask(true, sEntity, RenderTypes.None, state.SourceBehaviourType, state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
-                ExecuteTask(false, tEntity, RenderTypes.None, state.TargetBehaviourType, state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
+                ExecuteTask(true, sEntity, RenderTypes.None, state.SourceBehaviourType, sourceParams ?? state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
+                ExecuteTask(false, tEntity, RenderTypes.None, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
 
                 ExecuteTasksSchedule = new AsyncTask(() =>
                 {
                     if (state.SourceRenderType != RenderTypes.None)
-                        ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
+                        ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
 
                     if (state.TargetRenderType != RenderTypes.None)
-                        ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
+                        ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
                 }, transitionTime, false, 0);
 
                 ExecuteTasksSchedule.Run();
             }
             else
             {
-                ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
-                ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
+                ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
+                ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
             }
         }
 
@@ -314,15 +392,18 @@ namespace BCRPClient.Additional
                 {
                     if (bType == BehaviourTypes.FrontOf)
                     {
-                        pos = GetFrontOf(RAGE.Game.Entity.GetEntityCoords(entity.Handle, false), RAGE.Game.Entity.GetEntityHeading(entity.Handle), (float)args) + position;
+                        if (args is float[] arr)
+                        {
+                            pos = GetFrontOf(RAGE.Game.Entity.GetEntityCoords(entity.Handle, false), RAGE.Game.Entity.GetEntityHeading(entity.Handle) + arr[0], arr[1]) + position;
+                        }
                     }
                     else if (bType == BehaviourTypes.PointAt)
                     {
-                        pos = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false);
+                        pos = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false) + position;
                     }
                     else if (bType == BehaviourTypes.PointBone)
                     {
-                        pos = (Utils.GetBonePositionOfEntity(entity, (int)args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
+                        pos = (Utils.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                     }
                 }
 
@@ -334,7 +415,10 @@ namespace BCRPClient.Additional
             else
             {
                 Vector3 LastPosition = null;
-                float LastHeading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
+                float LastHeading = entity == null ? 0f : RAGE.Game.Entity.GetEntityHeading(entity.Handle);
+
+                if (args is float[] arr)
+                    LastHeading += arr[0];
 
                 var task = new AsyncTask(() =>
                 {
@@ -346,28 +430,36 @@ namespace BCRPClient.Additional
                         if (bType == BehaviourTypes.FrontOf)
                         {
                             Vector3 pos = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false);
-                            float heading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
+
+                            float heading = 0f;
+                            float dist = 0f;
+
+                            if (args is float[] arr)
+                            {
+                                heading = RAGE.Game.Entity.GetEntityHeading(entity.Handle) + arr[0];
+                                dist = arr[1];
+                            }
 
                             if (type == RenderTypes.Both)
                             {
-                                LastPosition = GetFrontOf(pos, heading, (float)args) + position;
+                                LastPosition = GetFrontOf(pos, heading, dist) + position;
                                 LastHeading = heading;
                             }
                             else if (type == RenderTypes.Position)
                             {
                                 if (LastHeading == heading)
                                 {
-                                    LastPosition = GetFrontOf(pos, heading, (float)args) + position;
+                                    LastPosition = GetFrontOf(pos, heading, dist) + position;
                                 }
                             }
                         }
                         else if (bType == BehaviourTypes.PointAt)
                         {
-                            LastPosition = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false);
+                            LastPosition = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false) + position;
                         }
                         else if (bType == BehaviourTypes.PointBone)
                         {
-                            LastPosition = (Utils.GetBonePositionOfEntity(entity, (int)args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
+                            LastPosition = (Utils.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                         }
 
                         if (LastPosition != null)

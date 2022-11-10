@@ -13,14 +13,17 @@ namespace BCRPClient.CEF
     class Browser : Events.Script
     {
         public const string CurrentServer = "sandy";
+
         public const string DefaultServer = "default";
 
         public static RAGE.Ui.HtmlWindow Window { get; private set; }
 
         private static HashSet<IntTypes> ActiveInterfaces { get; set; }
+
         private static HashSet<IntTypes> RenderedInterfaces { get; set; }
 
         private static bool _IsAnyCEFActive { get; set; }
+
         public static bool IsAnyCEFActive
         {
             get => _IsAnyCEFActive;
@@ -51,37 +54,68 @@ namespace BCRPClient.CEF
             Documents,
             NPC,
             Interaction, Interaction_Character, Interaction_Vehicle_In, Interaction_Vehicle_Out, Interaction_Passengers,
-            Shop, Retail,
+            Shop, Retail, Tuning,
             VehicleMisc,
             Death,
             Chat,
             Menu,
+            MenuBusiness, MenuGarage, MenuBank, MenuHome,
+            Estate, EstateAgency,
+            Elevator,
+            ATM,
+            BlipsMenu,
             Notifications,
         }
 
         private static Dictionary<IntTypes, string> IntNames = new Dictionary<IntTypes, string>()
         {
             { IntTypes.Login, "login" }, { IntTypes.Registration, "reg" }, { IntTypes.CharacterSelection, "char_selection" }, { IntTypes.StartPlace, "start_place" },
+            
             { IntTypes.CharacterCreation, "char_creation" },
+            
             { IntTypes.HUD, "hud" }, { IntTypes.HUD_Top, "hud_top" }, { IntTypes.HUD_Quest, "hud_quest" }, { IntTypes.HUD_Help, "hud_help" }, { IntTypes.HUD_Speedometer, "hud_spd" }, { IntTypes.HUD_Interact, "hud_interact" }, { IntTypes.HUD_Menu, "hud_menu" }, { IntTypes.HUD_Left, "hud_left" },
+            
             { IntTypes.Inventory, "inventory" }, { IntTypes.Inventory_Full, "full_inventory" }, { IntTypes.CratesInventory, "crates_inventory" }, { IntTypes.Trade, "trade" },
+            
             { IntTypes.ActionBox, "actionbox" },
+            
             { IntTypes.Animations, "anims" },
+            
             { IntTypes.Documents, "docs" },
+            
             { IntTypes.NPC, "npc" },
+            
             { IntTypes.Interaction, "interaction" }, { IntTypes.Interaction_Character, "char_interaction" }, { IntTypes.Interaction_Vehicle_In, "iv_interaction" }, { IntTypes.Interaction_Vehicle_Out, "ov_interaction" }, { IntTypes.Interaction_Passengers, "pass_interaction"},
-            { IntTypes.Shop, "shop" }, { IntTypes.Retail, "retail" },
+            
+            { IntTypes.Shop, "shop" }, { IntTypes.Retail, "retail" }, { IntTypes.Tuning, "tuning" },
+            
             { IntTypes.VehicleMisc, "car_maint" },
+            
             { IntTypes.Death, "death" },
+            
             { IntTypes.Chat, "chat" },
+            
             { IntTypes.Menu, "menu" },
+            
+            { IntTypes.MenuBusiness, "menu_biz" }, { IntTypes.MenuGarage, "menu_gar" }, { IntTypes.MenuBank, "menu_bank" }, { IntTypes.MenuHome, "menu_home" },
+            
+            { IntTypes.Estate, "estate" }, { IntTypes.EstateAgency, "est_agency" },
+            
+            { IntTypes.Elevator, "elevator" },
+            
+            { IntTypes.ATM, "atm" },
+            
+            { IntTypes.BlipsMenu, "blips" },
+            
             { IntTypes.Notifications, "notifications" },
         };
 
         private static Dictionary<IntTypes, IntTypes> RenderDependencies = new Dictionary<IntTypes, IntTypes>()
         {
             { IntTypes.CratesInventory, IntTypes.Inventory_Full }, { IntTypes.Inventory, IntTypes.Inventory_Full }, { IntTypes.Trade, IntTypes.Inventory_Full },
+            
             { IntTypes.Interaction_Character, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_In, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_Out, IntTypes.Interaction }, { IntTypes.Interaction_Passengers, IntTypes.Interaction },
+            
             { IntTypes.HUD_Top, IntTypes.HUD }, { IntTypes.HUD_Quest, IntTypes.HUD }, { IntTypes.HUD_Help, IntTypes.HUD }, { IntTypes.HUD_Speedometer, IntTypes.HUD }, { IntTypes.HUD_Interact, IntTypes.HUD }, { IntTypes.HUD_Menu, IntTypes.HUD }, { IntTypes.HUD_Left, IntTypes.HUD },
         };
 
@@ -101,9 +135,9 @@ namespace BCRPClient.CEF
 
                 await Render(IntTypes.Notifications, true, true);
 
-                await Render(CEF.Browser.IntTypes.HUD, true);
+                await Render(IntTypes.HUD, true);
 
-                await Render(CEF.Browser.IntTypes.Menu, true);
+                await Render(IntTypes.Menu, true);
 
                 Window.ExecuteJs("Menu.selectOption", "menu-char");
                 Window.ExecuteJs("Menu.drawSkills", new object[] { Sync.Players.MaxSkills.Select(x => new object[] { x.Key, x.Value } ) });
@@ -113,6 +147,7 @@ namespace BCRPClient.CEF
                 CEF.HUD.Update += CEF.HUD.UpdateHUD;
 
                 GameEvents.ScreenResolutionChange += (x, y) => Window.ExecuteCachedJs("resizeAll();");
+
                 GameEvents.ScreenResolutionChange += (x, y) => CEF.HUD.UpdateLeftHUDPos();
 
                 Window.Active = true;
@@ -138,7 +173,9 @@ namespace BCRPClient.CEF
 
         #region Utils
         public static bool IsRendered(IntTypes type) => RenderedInterfaces.Contains(type);
+
         public static bool IsActive(IntTypes type) => ActiveInterfaces.Contains(type);
+
         public static bool IsActiveAnd(params IntTypes[] types)
         {
             for (int i = 0; i < types.Length; i++)
@@ -147,6 +184,7 @@ namespace BCRPClient.CEF
 
             return true;
         }
+
         public static bool IsActiveOr(params IntTypes[] types)
         {
             for (int i = 0; i < types.Length; i++)
@@ -156,14 +194,14 @@ namespace BCRPClient.CEF
             return false;
         }
 
-        public static async System.Threading.Tasks.Task Switch(IntTypes type, bool state, params object[] args)
+        public static async System.Threading.Tasks.Task Switch(IntTypes type, bool state)
         {
             if (state)
             {
-                if (RenderDependencies.ContainsKey(type))
-                {
-                    IntTypes mType = RenderDependencies[type];
+                IntTypes mType;
 
+                if (RenderDependencies.TryGetValue(type, out mType))
+                {
                     while (!IsRendered(mType))
                         await RAGE.Game.Invoker.WaitAsync(0);
                 }
@@ -185,10 +223,7 @@ namespace BCRPClient.CEF
 
             Utils.ConsoleOutput($"v-switch: {state}, {type}");
 
-            if (args.Length == 0)
-                Window.ExecuteJs("switchTemplate", state, IntNames[type]);
-            else
-                Window.ExecuteJs("switchTemplate", state, IntNames[type], args);
+            Window.ExecuteJs("switchTemplate", state, IntNames[type]);
         }
 
         public static async System.Threading.Tasks.Task Render(IntTypes type, bool state, bool switchAfter = false)
@@ -200,7 +235,7 @@ namespace BCRPClient.CEF
             if (state)
             {
                 while (!RenderedInterfaces.Contains(type))
-                    await RAGE.Game.Invoker.WaitAsync(0);
+                    await RAGE.Game.Invoker.WaitAsync(25);
 
                 if (switchAfter)
                     Switch(type, true);

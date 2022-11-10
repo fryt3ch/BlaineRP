@@ -448,8 +448,8 @@ namespace BCRPServer
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerArmour(Player, int)"/>
         public static void SetArmour(this Player player, int value) => Additional.AntiCheat.SetPlayerArmour(player, value);
 
-        /// <inheritdoc cref="Additional.AntiCheat.SetPlayerTransparency(Player, int)"/>
-        public static void SetTransparency(this Player player, int value) => Additional.AntiCheat.SetPlayerTransparency(player, value);
+        /// <inheritdoc cref="Additional.AntiCheat.SetPlayerAlpha(Player, int)"/>
+        public static void SetAlpha(this Player player, int value) => Additional.AntiCheat.SetPlayerAlpha(player, value);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerWeapon(Player, WeaponHash, int)"/>
         public static void SetWeapon(this Player player, uint hash, int ammo = 0) => Additional.AntiCheat.SetPlayerWeapon(player, hash, ammo);
@@ -1001,7 +1001,7 @@ namespace BCRPServer
 
         /// <summary>Метод, который закрывает все активные интерфейсы на стороне клиента</summary>
         /// <param name="player"></param>
-        public static void CloseAll(this Player player) => player.TriggerEvent("Players::CloseAll");
+        public static void CloseAll(this Player player, bool onlyInterfaces = false) => player.TriggerEvent("Player::CloseAll", onlyInterfaces);
 
         public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == NAPI.MainThreadId;
 

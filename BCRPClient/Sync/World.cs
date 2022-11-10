@@ -15,6 +15,7 @@ namespace BCRPClient.Sync
         public static MapObject ClosestItemOnGround { get; set; }
 
         private static bool _EnabledItemsOnGround;
+
         /// <summary>Включено ли взаимодействие с предметами на земле в данный момент?</summary>
         public static bool EnabledItemsOnGround { get => _EnabledItemsOnGround; set { if (!_EnabledItemsOnGround && value) { GameEvents.Render -= ItemsOnGroundRender; GameEvents.Render += ItemsOnGroundRender; } else if (_EnabledItemsOnGround && !value) GameEvents.Render -= ItemsOnGroundRender; _EnabledItemsOnGround = value; ClosestItemOnGround = null; } }
 

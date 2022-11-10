@@ -40,14 +40,6 @@ namespace BCRPServer
                 Vehicles.Add(vehicle, data);
         }
 
-        public enum FuelTypes
-        {
-            /// <summary>Бензин</summary>
-            Petrol = 0,
-            /// <summary>Электричество</summary>
-            Electricity,
-        }
-
         public enum OwnerTypes
         {
             /// <summary>Основной владелец</summary>

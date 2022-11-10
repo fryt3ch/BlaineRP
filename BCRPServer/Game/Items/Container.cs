@@ -34,8 +34,11 @@ namespace BCRPServer.Game.Items
         public class Data
         {
             public int Slots { get; set; }
+
             public float MaxWeight { get; set; }
+
             public AllowedItemTypes AllowedItemsType { get; set; }
+
             public ContainerTypes ContainerType { get; set; }
 
             public Data(int Slots, float MaxWeight, AllowedItemTypes AllowedItemsType, ContainerTypes ContainerType)
@@ -52,6 +55,7 @@ namespace BCRPServer.Game.Items
         private static Dictionary<AllowedItemTypes, Type> AllowedItemsDict = new Dictionary<AllowedItemTypes, Type>()
         {
             { AllowedItemTypes.All, typeof(Game.Items.Item) },
+
             { AllowedItemTypes.Wardrobe, typeof(Game.Items.Clothes) },
         };
 
@@ -361,10 +365,10 @@ namespace BCRPServer.Game.Items
             if (item == null)
                 return true;
 
-            if (this.AllowedItemType == typeof(Game.Items.Item))
-                return true;
+/*            if (this.AllowedItemType == typeof(Game.Items.Item))
+                return true;*/
 
-            return item.GetType() == this.AllowedItemType;
+            return this.AllowedItemType.IsAssignableFrom(item.Type);
         }
 
         /// <summary>Метод для обновления сущности держателя контейнера</summary>

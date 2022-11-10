@@ -343,8 +343,6 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Menu.setAim", Settings.Aim.Type);
             Browser.Window.ExecuteJs("Menu.setAimSize", Settings.Aim.Scale);
             Browser.Window.ExecuteJs($"Menu.setColor", Settings.Aim.Color.ToHEX(), Settings.Aim.Alpha);
-
-            Utils.ConsoleOutput(Settings.Aim.Color.ToHEX());
         }
 
         public static void UpdateKeyBindsData()
@@ -376,7 +374,7 @@ namespace BCRPClient.CEF
                 return Data.Items.GetName(gid) ?? "null" + (amount > 1 ? $" x{amount}" : "");
 
             if (type == GiftTypes.Vehicle)
-                return Data.Vehicles.Get(gid)?.Name ?? "null";
+                return Data.Vehicles.GetById(gid)?.Name ?? "null";
 
             if (type == GiftTypes.Money)
                 return Locale.Notifications.Money.Header + $" {amount}$";
@@ -419,7 +417,7 @@ namespace BCRPClient.CEF
 
             foreach (var x in vehicles)
             {
-                var vData = Data.Vehicles.Get(x);
+                var vData = Data.Vehicles.GetById(x);
 
                 if (vData == null)
                     continue;

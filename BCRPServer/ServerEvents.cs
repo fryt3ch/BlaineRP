@@ -17,8 +17,8 @@ namespace BCRPServer
         public static Queue<uint> FreeContainersIDs { get; set; }
         public static Queue<int> FreeVehiclesIDs { get; set; }
 
-        public static List<string> UsedNumberplates { get; set; }
-        public static List<string> UsedWeaponTags { get; set; }
+        public static List<string> UsedNumberplates { get; set; } = new List<string>();
+        public static List<string> UsedWeaponTags { get; set; } = new List<string>();
 
         public static Dictionary<int, PlayerData.PlayerInfo> AllPlayers { get; set; }
 

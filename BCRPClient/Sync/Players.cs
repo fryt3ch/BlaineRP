@@ -799,7 +799,7 @@ namespace BCRPClient.Sync
                     if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
                         return;
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     var fxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntityBone("exp_grd_bzgas_smoke", Player.LocalPlayer.Handle, 0f, 0f, 0f, 0f, 0f, 0f, Player.LocalPlayer.GetBoneIndex(20279), 0.15f, false, false, false);
 
@@ -817,8 +817,10 @@ namespace BCRPClient.Sync
                 }, 3000);
             });
 
-            Events.Add("Players::CloseAll", (object[] args) =>
+            Events.Add("Player::CloseAll", (object[] args) =>
             {
+                bool onlyInterfaces = (bool)args[0];
+
                 RAGE.Game.Ui.SetPauseMenuActive(false);
 
                 CEF.HUD.Menu.Switch(false);
@@ -828,15 +830,21 @@ namespace BCRPClient.Sync
                 CEF.Death.Close();
                 CEF.Animations.Close();
                 CEF.ActionBox.Close(true);
+                CEF.Shop.Close(true, true);
+                CEF.Gas.Close(true);
 
                 Data.NPC.CurrentNPC?.SwitchDialogue(false);
 
                 Sync.Phone.Off();
-                Sync.PushVehicle.Off();
-                Sync.Crouch.Off();
-                Sync.Crawl.Off();
 
-                Sync.Finger.Stop();
+                if (!onlyInterfaces)
+                {
+                    Sync.PushVehicle.Off();
+                    Sync.Crouch.Off();
+                    Sync.Crawl.Off();
+
+                    Sync.Finger.Stop();
+                }
             });
 
             Events.AddDataHandler("Anim::Fast", (Entity entity, object value, object oldValue) =>

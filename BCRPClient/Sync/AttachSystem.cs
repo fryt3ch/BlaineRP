@@ -190,88 +190,88 @@ namespace BCRPClient.Sync
             { Types.VehicleTrunkForced, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
             {
-                Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, (args) =>
+                Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.05f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCig1Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f + 0.0365f, -0.008f), new Vector3(100f, 0f, -80f), false, false, false, 2, true, (args) =>
+                Types.ItemCig1Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f + 0.0365f, -0.008f), new Vector3(100f, 0f, -80f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.125f, 0f, 0f, 0f, 0f, 0f, 0.05f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCig2Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, -100f), false, false, false, 2, true, (args) =>
+                Types.ItemCig2Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, -100f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.05f, 0f, 0f, 0f, 0f, 0f, 0.075f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCig3Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, (args) =>
+                Types.ItemCig3Hand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.09f, 0f, 0f, 0f, 0f, 0f, 0.06f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCigMouth, new AttachmentData(47419, new Vector3(0.015f, -0.009f, 0.003f), new Vector3(55f, 0f, 110f), false, false, false, 2, true, (args) =>
+                Types.ItemCigMouth, new AttachmentData(47419, new Vector3(0.015f, -0.009f, 0.003f), new Vector3(55f, 0f, 110f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.05f, 0f, 0f, 0f, 0f, 0f, 0.04f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCig1Mouth, new AttachmentData(47419, new Vector3(0.001f, 0.036f, 0.005f), new Vector3(55f, 0f, -70f), false, false, false, 2, true, (args) =>
+                Types.ItemCig1Mouth, new AttachmentData(47419, new Vector3(0.001f, 0.036f, 0.005f), new Vector3(55f, 0f, -70f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.125f, 0f, 0f, 0f, 0f, 0f, 0.05f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCig2Mouth, new AttachmentData(47419, new Vector3(0.01f, 0f, 0f), new Vector3(50f, 0f, -80f), false, false, false, 2, true, (args) =>
+                Types.ItemCig2Mouth, new AttachmentData(47419, new Vector3(0.01f, 0f, 0f), new Vector3(50f, 0f, -80f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  0.05f, 0f, 0f, 0f, 0f, 0f, 0.075f, false, false, false));
                 })
             },
 
             {
-                Types.ItemCig3Mouth, new AttachmentData(47419, new Vector3(0.01f, 0f, 0f), new Vector3(50f, 0f, 80f), false, false, false, 2, true, (args) =>
+                Types.ItemCig3Mouth, new AttachmentData(47419, new Vector3(0.01f, 0f, 0f), new Vector3(50f, 0f, 80f), false, false, false, 2, true, async (args) =>
                 {
                     var gEntity = (MapObject)args[0];
 
-                    Utils.RequestPtfx("core");
+                    await Utils.RequestPtfx("core");
 
                     gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("exp_grd_bzgas_smoke", gEntity.Handle,  -0.09f, 0f, 0f, 0f, 0f, 0f, 0.06f, false, false, false));
                 })
@@ -511,9 +511,9 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Object Methods
-        public static void AttachObject(int id, uint hash, Entity target, Types type, bool streamIn = false)
+        public static async void AttachObject(int id, uint hash, Entity target, Types type, bool streamIn = false)
         {
-            Utils.RequestModel(hash);
+            await Utils.RequestModel(hash);
 
             GameEntity gTarget = Utils.GetGameEntity(target);
 

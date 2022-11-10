@@ -743,12 +743,12 @@ namespace BCRPServer.Sync
                 if (toggle)
                 {
                     if (player.Transparency == 0)
-                        player.SetTransparency(255);
+                        player.SetAlpha(255);
                     else
-                        player.SetTransparency(0);
+                        player.SetAlpha(0);
                 }
                 else
-                    player.SetTransparency(state ? 0 : 255);
+                    player.SetAlpha(state ? 0 : 255);
 
                 pData.IsInvisible = player.Transparency == 0;
             });

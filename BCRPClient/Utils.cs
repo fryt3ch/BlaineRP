@@ -23,41 +23,40 @@ namespace BCRPClient
         public static bool IsGameWindowFocused { get => RAGE.Ui.Windows.Focused; }
 
         #region Colours
-        public class ExtraColour
+        public class Colour
         {
+            /// <summary>Красный</summary>
             public byte Red { get; set; }
+
+            /// <summary>Зеленый</summary>
             public byte Green { get; set; }
+
+            /// <summary>Синий</summary>
             public byte Blue { get; set; }
+
+            /// <summary>Непрозрачность</summary>
             public byte Alpha { get; set; }
 
-            public ExtraColour(byte Red, byte Green, byte Blue, byte Alpha = 255)
+            public Colour(byte Red, byte Green, byte Blue, byte Alpha = 255)
             {
                 this.Red = Red;
                 this.Green = Green;
                 this.Blue = Blue;
+
                 this.Alpha = Alpha;
             }
 
-            //public ExtraColour(Color color) => FromSystemColor(color);
+            public Color ToSystemColour() => Color.FromArgb(Alpha, Red, Green, Blue);
 
-            public Color ToSystemColor() => Color.FromArgb(Alpha, Red, Green, Blue);
-            public static Color ToSystemColor(ExtraColour eColour) => eColour.ToSystemColor();
-            public void FromSystemColor(Color color)
-            {
-                Red = color.R;
-                Green = color.G;
-                Blue = color.B;
-
-                Alpha = color.A;
-            }
+            public static Colour FromSystemColour(Color colour) => new Colour(colour.R, colour.G, colour.B, colour.A);
         }
 
-        public static ExtraColour WhiteColor = new ExtraColour(255, 255, 255);
-        public static ExtraColour BlackColor = new ExtraColour(0, 0, 0);
-        public static ExtraColour RedColor = new ExtraColour(255, 0, 0);
-        public static ExtraColour BlueColor = new ExtraColour(0, 0, 255);
-        public static ExtraColour GreenColor = new ExtraColour(0, 255, 0);
-        public static ExtraColour YellowColor = new ExtraColour(255, 255, 0);
+        public static Colour WhiteColor = new Colour(255, 255, 255);
+        public static Colour BlackColor = new Colour(0, 0, 0);
+        public static Colour RedColor = new Colour(255, 0, 0);
+        public static Colour BlueColor = new Colour(0, 0, 255);
+        public static Colour GreenColor = new Colour(0, 255, 0);
+        public static Colour YellowColor = new Colour(255, 255, 0);
         #endregion
 
         public const uint MP_MALE_MODEL = 0x705E61F2;
@@ -113,19 +112,19 @@ namespace BCRPClient
             return null;
         }
 
-        public static Vector3 GetBonePositionOfEntity(GameEntity entity, int boneId)
+        public static Vector3 GetBonePositionOfEntity(GameEntity entity, object boneId)
         {
-            if (entity.Type == RAGE.Elements.Type.Player)
+            if (entity is Player player)
             {
-                return (entity as Player).GetBoneCoords(boneId, 0f, 0f, 0f);
+                return player.GetBoneCoords((int)boneId, 0f, 0f, 0f);
             }
-            else if (entity.Type == RAGE.Elements.Type.Ped)
+            else if (entity is Ped ped)
             {
-                return (entity as Ped).GetBoneCoords(boneId, 0f, 0f, 0f);
+                return ped.GetBoneCoords((int)boneId, 0f, 0f, 0f);
             }
-            else if (entity.Type == RAGE.Elements.Type.Vehicle)
+            else if (entity is Vehicle vehicle)
             {
-                return (entity as Vehicle).GetWorldPositionOfBone(boneId);
+                return vehicle.GetWorldPositionOfBone(vehicle.GetBoneIndexByName((string)boneId));
             }
 
             return null;
@@ -338,7 +337,7 @@ namespace BCRPClient
         public static bool IsPasswordValid(string str) => PasswordPattern.IsMatch(str);
         public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
 
-        public static void RequestAnimDict(string name)
+        public static async System.Threading.Tasks.Task RequestAnimDict(string name)
         {
             if (RAGE.Game.Streaming.HasAnimDictLoaded(name))
                 return;
@@ -346,10 +345,10 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestAnimDict(name);
 
             while (!RAGE.Game.Streaming.HasAnimDictLoaded(name))
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
         }
 
-        public static void RequestClipSet(string name)
+        public static async System.Threading.Tasks.Task RequestClipSet(string name)
         {
             if (RAGE.Game.Streaming.HasClipSetLoaded(name))
                 return;
@@ -357,10 +356,10 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestClipSet(name);
 
             while (!RAGE.Game.Streaming.HasClipSetLoaded(name))
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
         }
 
-        public static void RequestModel(uint hash)
+        public static async System.Threading.Tasks.Task RequestModel(uint hash)
         {
             if (RAGE.Game.Streaming.HasModelLoaded(hash))
                 return;
@@ -368,10 +367,10 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestModel(hash);
 
             while (!RAGE.Game.Streaming.HasModelLoaded(hash))
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
         }
 
-        public static void RequestPtfx(string name)
+        public static async System.Threading.Tasks.Task RequestPtfx(string name)
         {
             if (RAGE.Game.Streaming.HasNamedPtfxAssetLoaded(name))
             {
@@ -383,7 +382,7 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestNamedPtfxAsset(name);
 
             while (!RAGE.Game.Streaming.HasNamedPtfxAssetLoaded(name))
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
 
             RAGE.Game.Graphics.UseParticleFxAssetNextCall(name);
         }
@@ -548,7 +547,7 @@ namespace BCRPClient
         /// <summary>Метод для исполнения кода в JS версии RAGE</summary>
         /// <remarks>Код, который выполнит данная версия метода, обязан возвращать значение! Для этого в коде необходимо завести переменную returnValue и присваивать ей значение</remarks>
         /// <param name="code">Код</param>
-        public static T JsEval<T>(string code)
+        public static async System.Threading.Tasks.Task<T> JsEval<T>(string code)
         {
             Additional.Storage.LastData = null;
             Additional.Storage.GotData = false;
@@ -556,7 +555,7 @@ namespace BCRPClient
             Events.CallLocal("RAGE::Eval", code + "mp.events.callLocal(\"Storage::Temp\", JSON.stringify(returnValue));");
 
             while (!Additional.Storage.GotData)
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
 
             return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<T>(Additional.Storage.LastData) : default(T);
         }
@@ -571,7 +570,7 @@ namespace BCRPClient
         /// <remarks>Данный метод отличается от обычного наличием приема параметров, которые сериализируются в JSON строки</remarks>
         /// <param name="function">Название функции</param>
         /// <param name="args">Аргументы</param>
-        public static T JsEval<T>(string function, params object[] args)
+        public static async System.Threading.Tasks.Task<T> JsEval<T>(string function, params object[] args)
         {
             Additional.Storage.LastData = null;
             Additional.Storage.GotData = false;
@@ -579,7 +578,7 @@ namespace BCRPClient
             Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify({function}({string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))}));");
 
             while (!Additional.Storage.GotData)
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
 
             return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<T>(Additional.Storage.LastData) : default(T);
         }
@@ -800,10 +799,11 @@ namespace BCRPClient
         /// <summary>Конвертировать Color в строку HEX</summary>
         /// <param name="color"></param>
         /// <returns>Строка, уже содержащая # в начале</returns>
-        public static string ToHEX(this Color color) => "#" + color.R.ToString("X2") + color.G.ToString("X2") + color.B.ToString("X2");
+        public static string ToHEX(this Utils.Colour colour) => "#" + colour.Red.ToString("X2") + colour.Green.ToString("X2") + colour.Blue.ToString("X2");
+
         /// <summary>Конвертировать строку HEX в Color</summary>
-        /// <param name="color"></param>
-        public static Color ToColor(this string color) => Color.FromArgb(int.Parse(color.Substring(1).ToUpper(), System.Globalization.NumberStyles.AllowHexSpecifier));
+        /// <param name="colour"></param>
+        public static Utils.Colour ToColor(this string colour) => Utils.Colour.FromSystemColour(Color.FromArgb(int.Parse(colour.Substring(1).ToUpper(), System.Globalization.NumberStyles.AllowHexSpecifier)));
 
         /// <summary>Найти расстояние между двумя точками в 2D пространстве</summary>
         /// <param name="pos1">Точка 1</param>

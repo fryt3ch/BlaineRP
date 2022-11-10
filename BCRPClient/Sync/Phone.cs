@@ -50,11 +50,7 @@ namespace BCRPClient.Sync
 
         public Phone()
         {
-            Toggled = false;
             LastSwitchTime = DateTime.Now;
-
-            Utils.RequestAnimDict(AnimDict);
-            Utils.RequestAnimDict(AnimDictVehicle);
 
             RAGE.Game.Mobile.DestroyMobilePhone();
 
@@ -166,7 +162,7 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static void On(bool ready = false, Player player = null)
+        public static async void On(bool ready = false, Player player = null)
         {
             if (!ready)
             {
@@ -192,8 +188,8 @@ namespace BCRPClient.Sync
                     return;
                 }
 
-                Utils.RequestAnimDict(AnimDict);
-                Utils.RequestAnimDict(AnimDictVehicle);
+                await Utils.RequestAnimDict(AnimDict);
+                await Utils.RequestAnimDict(AnimDictVehicle);
 
                 player.TaskPlayAnim(player.IsInAnyVehicle(false) ? AnimDict : AnimDictVehicle, AnimTextReadBase, 8f, 1f, -1, 50, 0f, false, false, false);
             }

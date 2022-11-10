@@ -48,7 +48,12 @@ namespace BCRPClient.Sync
         {
             Vehicle Vehicle = null;
 
-            public VehicleData(Vehicle Vehicle) => this.Vehicle = Vehicle;
+            public VehicleData(Vehicle Vehicle)
+            {
+                this.Vehicle = Vehicle;
+
+                this.Data = BCRPClient.Data.Vehicles.GetByModel(Vehicle.Model);
+            }
 
             #region Vehicle Data
             public bool IsInvincible
@@ -95,22 +100,36 @@ namespace BCRPClient.Sync
                 }
             }
 
+            public Data.Vehicles.Vehicle Data { get; set; }
+
             public bool TrunkLocked { get => Vehicle.GetData<bool>("Trunk::Locked"); set => Vehicle.SetData("Trunk::Locked", value); }
+
             public bool HoodLocked { get => Vehicle.GetData<bool>("Hood::Locked"); set => Vehicle.SetData("Hood::Locked", value); }
+
             public bool LightsOn { get => Vehicle.GetData<bool>("Lights::On"); set { Vehicle.SetData("Lights::On", value); Vehicle.SetLights(value ? 2 : 1); } }
+
             public bool LeftIndicatorOn { get => Vehicle.GetData<bool>("Indicators::LeftOn"); set { Vehicle.SetData("Indicators::LeftOn", value); Vehicle.SetIndicatorLights(1, value); } }
+
             public bool RightIndicatorOn { get => Vehicle.GetData<bool>("Indicators::RightOn"); set { Vehicle.SetData("Indicators::RightOn", value); Vehicle.SetIndicatorLights(0, value); } }
+
             public int Radio { get => Vehicle.GetData<int>("Radio"); set => Vehicle.SetData("Radio", value); }
+
             public float ForcedSpeed { get => Vehicle.GetData<float>("ForcedSpeed"); set => Vehicle.SetData("ForcedSpeed", value); }
+
             public float FuelLevel { get => Vehicle.GetData<float>("Fuel::Level"); set => Vehicle.SetData("Fuel::Level", value); }
+
             public float Mileage { get => Vehicle.GetData<float>("Mileage"); set => Vehicle.SetData("Mileage", value); }
+
             public float DirtLevel { get => Vehicle.GetData<float>("Dirt::Level"); set { Vehicle.SetData("Dirt::Level", value); Vehicle.SetDirtLevel(value); } }
+
             public int[] DoorsStates { get => Vehicle.GetData<int[]>("Doors::States"); set => Vehicle.SetData("Doors::States", value); }
 
             public uint? TID { get => Vehicle.GetData<uint?>("ContainerID"); set => Vehicle.SetData("ContainerID", value); }
+
             public int VID { get => Vehicle.GetData<int>("VID"); set => Vehicle.SetData("VID", value); }
 
             public float LastAllowedHealth { get => Vehicle.GetData<float>("LastAllowedHealth"); set => Vehicle.SetData("LasAllowedHealth", value); }
+
             public float LastHealth { get => Vehicle.GetData<float>("LastHealth"); set => Vehicle.SetData("LastHealth", value); }
             #endregion
 
@@ -191,7 +210,7 @@ namespace BCRPClient.Sync
                 if (entity.Type != RAGE.Elements.Type.Vehicle)
                     return;
 
-                var veh = entity as Vehicle;
+                var veh = (Vehicle)entity;
 
                 var data = GetData(veh);
 

@@ -16,11 +16,11 @@ namespace BCRPClient.CEF
 
         private static Vehicle TargetVehicle { get; set; }
 
-        private static Dictionary<string, int> Prices { get; set; } = new Dictionary<string, int>()
+        private static Dictionary<Data.Vehicles.Vehicle.FuelTypes, int> Prices { get; set; } = new Dictionary<Data.Vehicles.Vehicle.FuelTypes, int>()
         {
-            { "gas_p", 10 }, // petrol
+            { Data.Vehicles.Vehicle.FuelTypes.Petrol, 10 },
 
-            { "gas_e", 5 }, // electricity
+            { Data.Vehicles.Vehicle.FuelTypes.Electricity, 5 },
         };
 
         private static List<int> TempBinds { get; set; }
@@ -41,9 +41,14 @@ namespace BCRPClient.CEF
                 if (stationId == -1)
                     return;
 
+                var vData = Sync.Vehicles.GetData(TargetVehicle);
+
+                if (vData == null || vData.Data == null)
+                    return;
+
                 if (!LastSent.IsSpam(500, false, false))
                 {
-                    Events.CallRemote("GasStation::Buy", TargetVehicle, "gas_p", amount, byCash);
+                    Events.CallRemote("GasStation::Buy", TargetVehicle, (int)vData.Data.FuelType, amount, byCash);
 
                     LastSent = DateTime.Now;
                 }
@@ -86,12 +91,19 @@ namespace BCRPClient.CEF
 
             var vData = Sync.Vehicles.GetData(vehicle);
 
-            if (vData == null)
+            if (vData == null || vData.Data == null)
                 return;
 
             if (Player.LocalPlayer.Vehicle != null)
             {
                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.InVehicleError, 2500);
+
+                return;
+            }
+
+            if (vData.FuelLevel == vData.Data.Tank)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? Locale.Notifications.Vehicles.FullOfGasElectrical : Locale.Notifications.Vehicles.FullOfGasDef, 2500);
 
                 return;
             }
@@ -111,9 +123,16 @@ namespace BCRPClient.CEF
             if (IsActive || TargetVehicle == null)
                 return;
 
+            var vData = Sync.Vehicles.GetData(TargetVehicle);
+
+            if (vData == null || vData.Data == null)
+                return;
+
+            int maxFuel = (int)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
+
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { new object[] { 100, 10 * margin } });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { new object[] { maxFuel, Prices[vData.Data.FuelType] * margin } });
 
             CEF.Cursor.Show(true, true);
 
@@ -123,10 +142,17 @@ namespace BCRPClient.CEF
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
-        public static void Close()
+        public static void Close(bool ignoreTimeout = false)
         {
             if (!IsActive)
                 return;
+
+            if (!ignoreTimeout && LastSent.IsSpam(1000))
+            {
+                return;
+            }
+
+            Events.CallRemote("GasStation::Exit");
 
             CEF.Cursor.Show(false, false);
 

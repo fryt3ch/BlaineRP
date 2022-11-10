@@ -441,7 +441,7 @@ namespace BCRPClient.CEF
 
             Cursor.Show(false, false);
 
-            GameEvents.Render -= PlayerLookCursor;
+            GameEvents.Render -= ClearTasksRender;
 
             Additional.Camera.Disable();
 
@@ -493,8 +493,8 @@ namespace BCRPClient.CEF
 
             CursorTask = null;
 
-            GameEvents.Render -= PlayerLookCursor;
-            GameEvents.Render += PlayerLookCursor;
+            GameEvents.Render -= ClearTasksRender;
+            GameEvents.Render += ClearTasksRender;
 
             CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
 
@@ -545,7 +545,7 @@ namespace BCRPClient.CEF
             CurrentCameraStateNum = camStateNum;
         }
 
-        public static void PlayerLookCursor()
+        public static void ClearTasksRender()
         {
             RAGE.Elements.Player.LocalPlayer.ClearTasks();
         }

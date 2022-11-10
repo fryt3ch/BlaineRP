@@ -232,6 +232,20 @@ namespace BCRPServer
 
                     usedItems.RemoveAll(x => x == 0);
 
+                    foreach (var x in GetItems(usedItems.ToArray()))
+                    {
+                        //Console.WriteLine(x.Type);
+
+                        if (x is Game.Items.Numberplate np)
+                        {
+                            ServerEvents.UsedNumberplates.Add(np.Tag);
+                        }
+                        else if (x is Game.Items.Weapon weapon)
+                        {
+                            ServerEvents.UsedWeaponTags.Add(weapon.Tag);
+                        }
+                    }
+
                     var toDelete = new List<uint>();
 
                     foreach (var x in allItems.Keys.Except(usedItems))
@@ -1587,7 +1601,7 @@ namespace BCRPServer
                             vehData.RegistrationDate = regDate;
                             vehData.Keys = keys;
 
-                            numberplate?.Setup(vehData.Vehicle);
+                            numberplate?.Setup(vehData);
 
                             vehData.Vehicle.Rotation = lastData.Park.Rotation;
 

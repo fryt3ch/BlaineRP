@@ -21,6 +21,7 @@ namespace BCRPServer.Game.Data
             {
                 /// <summary>Кол-во слотов в багажнике</summary>
                 public int Slots { get; set; }
+
                 /// <summary>Максимальный вес багажника</summary>
                 public float MaxWeight { get; set; }
 
@@ -81,10 +82,10 @@ namespace BCRPServer.Game.Data
             /// <returns>Объект класса VehicleData, если транспорт был создан, null - в противном случае</returns>
             public static VehicleData Create(string ID, Vector3 pos, Vector3 rot, uint dimension)
             {
-                if (!All.ContainsKey(ID))
-                    return null;
+                var vehParams = All.GetValueOrDefault(ID);
 
-                var vehParams = All[ID];
+                if (vehParams == null)
+                    return null;
 
                 var veh = NAPI.Vehicle.CreateVehicle(vehParams.Model, pos, 0, 0, 0, "", 255, true, false, Utils.Dimensions.Stuff);
 
@@ -120,9 +121,6 @@ namespace BCRPServer.Game.Data
             /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
             public static Tuning GetTuning(GTANetworkAPI.Vehicle vehicle, bool moddable = true)
             {
-                if (vehicle?.Exists != true)
-                    return null;
-
                 Tuning temp = new Tuning();
 
                 temp.Color1 = vehicle.CustomPrimaryColor;
@@ -141,9 +139,6 @@ namespace BCRPServer.Game.Data
             /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
             public Tuning Apply(GTANetworkAPI.Vehicle vehicle)
             {
-                if (vehicle?.Exists != true)
-                    return null;
-
                 vehicle.CustomPrimaryColor = Color1;
                 vehicle.CustomSecondaryColor = Color2;
 
@@ -157,7 +152,7 @@ namespace BCRPServer.Game.Data
         /// <summary>Метод для получения объекта класса Vehile</summary>
         /// <param name="id">ID транспорта (см. Game.Data.Vehicles.All)</param>
         /// <returns>Объект класса Vehicle, если ID найден, null - в противном случае</returns>
-        public static Vehicle GetData(string id) => All.ContainsKey(id) ? All[id] : null;
+        public static Vehicle GetData(string id) => All.GetValueOrDefault(id);
 
         public static int LoadAll()
         {

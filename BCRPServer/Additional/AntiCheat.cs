@@ -93,12 +93,12 @@ namespace BCRPServer.Additional
         /// <param name="player">Сущность игрока</param>
         /// <param name="value">От 0 до 255 (255 - полностью виден)</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void SetPlayerTransparency(Player player, int value)
+        public static void SetPlayerAlpha(Player player, int value)
         {
             if (player?.Exists != true)
                 return;
 
-            player.TriggerEvent("AC::State::Transparency", value);
+            player.TriggerEvent("AC::State::Alpha", value);
 
             player.Transparency = value;
         }

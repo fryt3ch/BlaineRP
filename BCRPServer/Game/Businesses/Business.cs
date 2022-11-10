@@ -21,6 +21,8 @@ namespace BCRPServer.Game.Businesses
             Market,
 
             GasStation,
+
+            CarShop1,
         }
 
         public static Dictionary<int, Business> All;
@@ -95,34 +97,36 @@ namespace BCRPServer.Game.Businesses
             All = new Dictionary<int, Business>();
 
             #region Clothes (Cheap)
-            new ClothesShop1(1, new Vector3(1198f, 2701f, 38f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
-            new ClothesShop1(3, new Vector3(-1093.5f, 2703.7f, 19f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
-            new ClothesShop1(4, new Vector3(1685.5f, 4820.2f, 42f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
-            new ClothesShop1(5, new Vector3(-1.5f, 6517.2f, 31.2f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(1, new Vector3(1198f, 2701f, 38f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
+            new ClothesShop1(3, new Vector3(-1093.5f, 2703.7f, 19f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
+            new ClothesShop1(4, new Vector3(1685.5f, 4820.2f, 42f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
+            new ClothesShop1(5, new Vector3(-1.5f, 6517.2f, 31.2f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
 
-            new ClothesShop1(11, new Vector3(-817.3f, -1079.856f, 11.133f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
-            new ClothesShop1(12, new Vector3(83.64771f, -1391.713f, 29.41865f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
-            new ClothesShop1(13, new Vector3(416.7564f, -807.4344f, 29.38187f), new Vector3(1190.645f, 2714.381f, 39.222f), null, 176f);
+            new ClothesShop1(11, new Vector3(-817.3f, -1079.856f, 11.133f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
+            new ClothesShop1(12, new Vector3(83.64771f, -1391.713f, 29.41865f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
+            new ClothesShop1(13, new Vector3(416.7564f, -807.4344f, 29.38187f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f);
             #endregion
 
             #region Clothes (Expensive)
-            new ClothesShop2(2, new Vector3(618.5f, 2747.7f, 42f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
-            new ClothesShop2(14, new Vector3(-3167.542f, 1057.887f, 20.85858f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
+            new ClothesShop2(2, new Vector3(618.5f, 2747.7f, 42f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f);
+            new ClothesShop2(14, new Vector3(-3167.542f, 1057.887f, 20.85858f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f);
 
-            new ClothesShop2(9, new Vector3(128.3956f, -207.6191f, 54.58f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
-            new ClothesShop2(10, new Vector3(-1202.328f, -778.6373f, 17.33572f), new Vector3(617.65f, 2766.828f, 42.0881f), null, 176f);
+            new ClothesShop2(9, new Vector3(128.3956f, -207.6191f, 54.58f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f);
+            new ClothesShop2(10, new Vector3(-1202.328f, -778.6373f, 17.33572f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f);
 
             #endregion
 
             #region Clothes (Brand)
-            new ClothesShop3(6, new Vector3(-1456f, -232f, 49.5f), new Vector3(-1447.433f, -243.1756f, 49.82227f), null, 70f);
-            new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f), new Vector3(-1447.433f, -243.1756f, 49.82227f), null, 70f);
-            new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f), new Vector3(-1447.433f, -243.1756f, 49.82227f), null, 70f);
+            new ClothesShop3(6, new Vector3(-1456f, -232f, 49.5f), new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f);
+            new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f), new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f);
+            new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f), new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f);
             #endregion
 
             new Market(15, new Vector3(549.1185f, 2671.407f, 42.1565f));
 
             new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), new Vector3(263.9698f, 2607.402f, 44.98298f));
+
+            new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Vector3(-55.08611f, -1111.217f, 26.05543f), 36.2f);
 
             for (int i = 1; i < All.Count + 1; i++)
             {
@@ -140,8 +144,6 @@ namespace BCRPServer.Game.Businesses
     public interface IEnterable
     {
         public Vector3 EnterPosition { get; set; }
-
-        public Vector3 ExitPosition { get; set; }
 
         public float Heading { get; set; }
     }
@@ -1303,15 +1305,11 @@ namespace BCRPServer.Game.Businesses
     {
         public Vector3 EnterPosition { get; set; }
 
-        public Vector3 ExitPosition { get; set; }
-
         public float Heading { get; set; }
 
-        public ClothesShop(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading, Types Type) : base(ID, Position, Type)
+        public ClothesShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type) : base(ID, Position, Type)
         {
             this.EnterPosition = EnterPosition;
-
-            this.ExitPosition = ExitPosition;
 
             this.Heading = Heading;
         }
@@ -1321,7 +1319,7 @@ namespace BCRPServer.Game.Businesses
     {
         private static int Counter = 1;
 
-        public ClothesShop1(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading) : base(ID, Position, EnterPosition, ExitPosition, Heading, Types.ClothesShop1)
+        public ClothesShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop1)
         {
             SubID = Counter++;
         }
@@ -1331,7 +1329,7 @@ namespace BCRPServer.Game.Businesses
     {
         private static int Counter = 1;
 
-        public ClothesShop2(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading) : base(ID, Position, EnterPosition, ExitPosition, Heading, Types.ClothesShop2)
+        public ClothesShop2(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop2)
         {
             SubID = Counter++;
         }
@@ -1341,7 +1339,7 @@ namespace BCRPServer.Game.Businesses
     {
         private static int Counter = 1;
 
-        public ClothesShop3(int ID, Vector3 Position, Vector3 EnterPosition, Vector3 ExitPosition, float Heading) : base(ID, Position, EnterPosition, ExitPosition, Heading, Types.ClothesShop2)
+        public ClothesShop3(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop2)
         {
             SubID = Counter++;
         }
@@ -1361,20 +1359,20 @@ namespace BCRPServer.Game.Businesses
     {
         private static int Counter = 1;
 
-        private static Dictionary<string, int> GasPrices = new Dictionary<string, int>()
+        private static Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int> GasPrices = new Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int>()
         {
-            { "gas_p", 10 },
+            { Game.Data.Vehicles.Vehicle.FuelTypes.Petrol, 10 },
 
-            { "gas_e", 5 },
+            { Game.Data.Vehicles.Vehicle.FuelTypes.Electricity, 5 },
         };
 
         public Vector3 GasolinesPosition { get; set; }
 
-        public int GetGasPrice(string id, bool addMargin)
+        public int GetGasPrice(Game.Data.Vehicles.Vehicle.FuelTypes fType, bool addMargin)
         {
             int price;
 
-            if (id == null || !GasPrices.TryGetValue(id, out price))
+            if (!GasPrices.TryGetValue(fType, out price))
                 return -1;
 
             if (addMargin)
@@ -1388,6 +1386,27 @@ namespace BCRPServer.Game.Businesses
             this.GasolinesPosition = GasolinesPosition;
 
             SubID = Counter++;
+        }
+    }
+
+    public abstract class CarShop : Shop, IEnterable
+    {
+        public Vector3 EnterPosition { get; set; }
+
+        public float Heading { get; set; }
+
+        public CarShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type) : base(ID, Position, Type)
+        {
+            this.EnterPosition = EnterPosition;
+            this.Heading = Heading;
+        }
+    }
+
+    public class CarShop1 : CarShop
+    {
+        public CarShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.CarShop1)
+        {
+
         }
     }
 

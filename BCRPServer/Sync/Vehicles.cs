@@ -35,10 +35,7 @@ namespace BCRPServer.Sync
                     if (player?.Exists != true || veh?.Exists != true)
                         return;
 
-                    if (pData.VehicleSeat != -1)
-                        return;
-
-                    if (vData.Locked || vData.Passengers[seatId]?.Exists == true)
+                    if (pData.VehicleSeat != -1 || seatId < 0 || seatId >= veh.MaxOccupants || vData.Locked || vData.Passengers[seatId]?.Exists == true)
                     {
                         player.WarpOutOfVehicle();
 

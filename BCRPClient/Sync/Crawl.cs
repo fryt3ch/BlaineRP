@@ -37,11 +37,7 @@ namespace BCRPClient.Sync
 
         public Crawl()
         {
-            Toggled = false;
             LastSwitchTime = DateTime.Now;
-
-            Utils.RequestAnimDict(AnimDict);
-            Utils.RequestAnimDict(MoveAnimDict);
         }
 
         public static void Toggle()
@@ -61,7 +57,7 @@ namespace BCRPClient.Sync
             LastSwitchTime = DateTime.Now;
         }
 
-        public static void On(bool ready = false)
+        public static async void On(bool ready = false)
         {
             if (!ready)
             {
@@ -75,8 +71,8 @@ namespace BCRPClient.Sync
             }
             else
             {
-                Utils.RequestAnimDict(AnimDict);
-                Utils.RequestAnimDict(MoveAnimDict);
+                await Utils.RequestAnimDict(AnimDict);
+                await Utils.RequestAnimDict(MoveAnimDict);
 
                 GameEvents.Render -= OnTick;
                 GameEvents.Render += OnTick;

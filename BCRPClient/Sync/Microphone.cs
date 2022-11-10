@@ -37,9 +37,6 @@ namespace BCRPClient.Sync
             Listeners = new List<Player>();
             Talkers = new List<Player>();
 
-            Utils.RequestAnimDict(AnimDict);
-            Utils.RequestAnimDict(AnimDictNormal);
-
             // Changing Volume Of Talkers
             new AsyncTask(() =>
             {
@@ -77,9 +74,6 @@ namespace BCRPClient.Sync
 
                 if (pData == null)
                     return;
-
-                Utils.RequestAnimDict(AnimDict);
-                Utils.RequestAnimDict(AnimDictNormal);
 
                 if (pData.VoiceRange > 0f)
                     SetTalkingAnim(Player.LocalPlayer, true);
@@ -291,15 +285,23 @@ namespace BCRPClient.Sync
         }
         #endregion
 
-        public static void SetTalkingAnim(Player player, bool state)
+        public static async void SetTalkingAnim(Player player, bool state)
         {
             if (player == null)
                 return;
 
             if (state)
+            {
+                await Utils.RequestAnimDict(AnimDict);
+
                 player.PlayFacialAnim(AnimName, AnimDict);
+            }
             else
+            {
+                await Utils.RequestAnimDict(AnimDictNormal);
+
                 player.PlayFacialAnim(AnimNameNormal, AnimDictNormal);
+            }
         }
     }
 }

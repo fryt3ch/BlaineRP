@@ -15,14 +15,14 @@ namespace BCRPClient.Additional
             CurrentHandle = -1;
         }
 
-        public static void ShowShard(string title, string text, int titleColor, int backgroundColor, int duration = -1)
+        public static async void ShowShard(string title, string text, int titleColor, int backgroundColor, int duration = -1)
         {
             Close();
 
             int handle = RAGE.Game.Graphics.RequestScaleformMovie("mp_big_message_freemode");
 
             while (!RAGE.Game.Graphics.HasScaleformMovieLoaded(handle))
-                RAGE.Game.Invoker.Wait(0);
+                await RAGE.Game.Invoker.WaitAsync(25);
 
             CurrentHandle = handle;
 

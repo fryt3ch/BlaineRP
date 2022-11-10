@@ -913,7 +913,7 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static void Set(Player player, WalkstyleTypes walkstyle)
+        public static async void Set(Player player, WalkstyleTypes walkstyle)
         {
             if (player == null)
                 return;
@@ -926,7 +926,7 @@ namespace BCRPClient.Sync
             }
             else
             {
-                Utils.RequestClipSet(WalkstylesList[walkstyle]);
+                await Utils.RequestClipSet(WalkstylesList[walkstyle]);
 
                 player.SetMovementClipset(WalkstylesList[walkstyle], Sync.Crouch.ClipSetSwitchTime);
             }
@@ -937,10 +937,12 @@ namespace BCRPClient.Sync
             if (player == null)
                 return;
 
-            if (!GeneralAnimsList.ContainsKey(type))
+            Animation anim = GeneralAnimsList.GetValueOrDefault(type);
+
+            if (anim == null)
                 return;
 
-            Play(player, GeneralAnimsList[type]);
+            Play(player, anim);
         }
 
         public static void Play(Player player, OtherTypes type)
@@ -948,20 +950,22 @@ namespace BCRPClient.Sync
             if (player == null)
                 return;
 
-            if (!OtherAnimsList.ContainsKey(type))
+            Animation anim = OtherAnimsList.GetValueOrDefault(type);
+
+            if (anim == null)
                 return;
 
-            Play(player, OtherAnimsList[type]);
+            Play(player, anim);
         }
 
-        private static void Play(Player player, Animation anim, int customTime = -1)
+        private static async void Play(Player player, Animation anim, int customTime = -1)
         {
             if (player == null)
                 return;
 
             player.ClearTasks();
 
-            Utils.RequestAnimDict(anim.Dict);
+            await Utils.RequestAnimDict(anim.Dict);
 
             if (player.Handle != Player.LocalPlayer.Handle)
                 player.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);

@@ -18,10 +18,10 @@ namespace BCRPClient.Sync
         private static List<Additional.ExtraColshape> TempColshapes;
         private static List<Blip> TempBlips;
 
-        private static List<(int Handle, Utils.ExtraColour Colour, bool State)> Lights;
+        private static List<(int Handle, Utils.Colour Colour, bool State)> Lights;
         private static List<(string Model, Vector3 Position, bool IsLocked)> Doors;
 
-        private static Utils.ExtraColour DefaultLightColour;
+        private static Utils.Colour DefaultLightColour;
 
         public class Style
         {
@@ -99,7 +99,7 @@ namespace BCRPClient.Sync
 
         public House()
         {
-            DefaultLightColour = new Utils.ExtraColour(255, 187, 96);
+            DefaultLightColour = new Utils.Colour(255, 187, 96);
 
             CurrentHouse = -1;
             HasGarage = false;
@@ -107,7 +107,7 @@ namespace BCRPClient.Sync
             TempColshapes = new List<Additional.ExtraColshape>();
             TempBlips = new List<Blip>();
 
-            Lights = new List<(int Handle, Utils.ExtraColour Color, bool State)>();
+            Lights = new List<(int Handle, Utils.Colour Color, bool State)>();
             Doors = new List<(string Model, Vector3 Position, bool IsLocked)>();
 
             Events.Add("House::Enter", (object[] args) =>
@@ -121,7 +121,7 @@ namespace BCRPClient.Sync
 
                 var dimension = RAGE.Util.Json.Deserialize<uint>((string)args[2]);
 
-                (bool[] Doors, (Utils.ExtraColour Colour, bool State)[] Lights) states = RAGE.Util.Json.Deserialize<(bool[], (Utils.ExtraColour, bool)[])>((string)args[3]);
+                (bool[] Doors, (Utils.Colour Colour, bool State)[] Lights) states = RAGE.Util.Json.Deserialize<(bool[], (Utils.Colour, bool)[])>((string)args[3]);
 
                 var style = Style.Get(sType);
 

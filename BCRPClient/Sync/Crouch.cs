@@ -36,11 +36,7 @@ namespace BCRPClient.Sync
 
         public Crouch()
         {
-            Toggled = false;
             LastSwitchTime = DateTime.Now;
-
-            Utils.RequestClipSet(MovementClipSet);
-            Utils.RequestClipSet(StrafeClipSet);
         }
 
         public static void Toggle()
@@ -60,7 +56,7 @@ namespace BCRPClient.Sync
             LastSwitchTime = DateTime.Now;
         }
 
-        public static void On(bool ready = false, Player player = null)
+        public static async void On(bool ready = false, Player player = null)
         {
             if (!ready)
             {
@@ -84,8 +80,8 @@ namespace BCRPClient.Sync
 
                 player.ResetMovementClipset(ClipSetSwitchTime);
 
-                Utils.RequestClipSet(MovementClipSet);
-                Utils.RequestClipSet(StrafeClipSet);
+                await Utils.RequestClipSet(MovementClipSet);
+                await Utils.RequestClipSet(StrafeClipSet);
 
                 player.SetStealthMovement(false, "DEFAULT_ACTION");
 

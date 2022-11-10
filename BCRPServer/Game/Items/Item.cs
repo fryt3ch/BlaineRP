@@ -3,6 +3,7 @@ using GTANetworkAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Org.BouncyCastle.Asn1;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -258,7 +259,7 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Метод для генерации тэга</summary>
         /// <returns>Тэг</returns>
-        public string GenerateTag();
+        public string GenerateTag(params object[] args);
     }
 
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
@@ -519,7 +520,7 @@ namespace BCRPServer.Game.Items
             player.TriggerEvent("Weapon::TaskReload");
         }
 
-        public string GenerateTag()
+        public string GenerateTag(params object[] args)
         {
             return null;
         }
@@ -3049,13 +3050,13 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Item.ItemData
         {
-            public int Number { get; set; }
+            public int Variation { get; set; }
 
-            public override string ClientData => $"\"{Name}\", {Weight}f, {Number}";
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Variation}";
 
             public ItemData(string Name, string Model, int Number) : base(Name, 0.15f, Model)
             {
-                this.Number = Number;
+                this.Variation = Number;
             }
         }
 
@@ -3074,14 +3075,18 @@ namespace BCRPServer.Game.Items
 
         public string Tag { get; set; }
 
-        public void Setup(Vehicle veh)
+        public void Setup(VehicleData vData)
         {
-            veh.NumberPlateStyle = Data.Number;
+            var veh = vData.Vehicle;
+
+            veh.NumberPlateStyle = Data.Variation;
             veh.NumberPlate = Tag;
         }
 
-        public void Take(Vehicle veh)
+        public void Take(VehicleData vData)
         {
+            var veh = vData.Vehicle;
+
             veh.NumberPlateStyle = 0;
             veh.NumberPlate = null;
         }
@@ -3092,8 +3097,10 @@ namespace BCRPServer.Game.Items
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
         };
 
-        public string GenerateTag()
+        public string GenerateTag(params object[] args)
         {
+            var length = (int)args[0];
+
             Random rand = new Random();
             StringBuilder str = new StringBuilder();
 
@@ -3101,7 +3108,7 @@ namespace BCRPServer.Game.Items
             {
                 str.Clear();
 
-                for (int i = 0; i < 9; i++)
+                for (int i = 0; i < length + 1; i++)
                     str.Append(Chars[rand.Next(0, Chars.Length - 1)]);
             }
             while (ServerEvents.UsedNumberplates.Contains(str.ToString()));
@@ -3145,7 +3152,7 @@ namespace BCRPServer.Game.Items
 
         }
 
-        public string GenerateTag()
+        public string GenerateTag(params object[] args)
         {
             return null;
         }

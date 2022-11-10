@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using static BCRPClient.Locale.Notifications.Money;
 
 namespace BCRPClient.CEF
 {
@@ -37,7 +38,11 @@ namespace BCRPClient.CEF
 
         /// <summary>Цвет текущего предмета</summary>
         /// <remarks>Используется только для транспорта</remarks>
-        private static Color CurrentColor;
+        private static Utils.Colour CurrentColor1;
+
+        private static Utils.Colour CurrentColor2;
+
+        private static Vehicle TempVehicle { get; set; }
 
         /// <summary>Тип текущего магазина</summary>
         private static Types CurrentType;
@@ -50,6 +55,18 @@ namespace BCRPClient.CEF
             ClothesShop3,
 
             Market,
+            
+            GasStation,
+
+            CarShop1,
+
+            WeaponShop,
+
+            FishingShop,
+
+            Bar,
+
+            FurnitureShop,
         }
 
         public enum SectionTypes
@@ -91,14 +108,31 @@ namespace BCRPClient.CEF
 
         private static int CurrentCameraStateNum;
 
-        private static Vehicle CurrentVehicle;
-
         private static Dictionary<int, (int, int)> RealClothes;
         private static Dictionary<int, (int, int)> RealAccessories;
 
-        private static Dictionary<Types, string> JsEnumTypes = new Dictionary<Types, string>()
+        private static Dictionary<Types, string> RetailJsTypes = new Dictionary<Types, string>()
         {
             { Types.Market, "convenience" },
+
+            { Types.GasStation, "gas" },
+
+            { Types.WeaponShop, "weapon" },
+
+            { Types.FishingShop, "fish" },
+
+            { Types.Bar, "bar" },
+
+            { Types.FurnitureShop, "furniture" },
+        };
+
+        private static Dictionary<Types, int> ShopJsTypes = new Dictionary<Types, int>()
+        {
+            { Types.ClothesShop1, 0 },
+            { Types.ClothesShop2, 1 },
+            { Types.ClothesShop3, 2 },
+
+            { Types.CarShop1, 6 },
         };
 
         private static Dictionary<Types, object> Prices = new Dictionary<Types, object>()
@@ -1260,6 +1294,24 @@ namespace BCRPClient.CEF
                 }
                 #endregion
             },
+
+            {
+                Types.GasStation,
+
+                new Dictionary<string, int>()
+                {
+
+                }
+            },
+
+            {
+                Types.CarShop1,
+
+                new Dictionary<string, int>()
+                {
+                    { "buffalo", 100 },
+                }
+            }
         };
 
         public Shop()
@@ -1282,6 +1334,35 @@ namespace BCRPClient.CEF
             Events.Add("Shop::Close::Server", (object[] args) => Close(true, false));
 
             Events.Add("Shop::Close", (object[] args) => { Close(false, true); });
+
+            Events.Add("Shop::UpdateColor", (object[] args) =>
+            {
+                string id = (string)args[0];
+                Utils.Colour colour = ((string)args[1]).ToColor();
+
+                //Utils.ConsoleOutputLimited(id);
+
+                if (CurrentType == Types.CarShop1)
+                {
+                    if (id == "main")
+                    {
+                        CurrentColor1 = colour;
+
+                        TempVehicle.SetCustomPrimaryColour(colour.Red, colour.Green, colour.Blue);
+                    }
+                    else if (id == "extra")
+                    {
+                        CurrentColor2 = colour;
+
+                        TempVehicle.SetCustomSecondaryColour(colour.Red, colour.Green, colour.Blue);
+                    }
+                }
+            });
+
+            Events.Add("Shop::TestDrive", (object[] args) =>
+            {
+
+            });
 
             Events.Add("Shop::Choose", (object[] args) =>
             {
@@ -1321,6 +1402,24 @@ namespace BCRPClient.CEF
 /*                    var variation = CurrentVariation < data.Textures.Length && CurrentVariation >= 0 ? data.Textures[CurrentVariation] : 0;
 
                     Utils.ConsoleOutput($"ID: {CurrentItem}, Var: {CurrentVariation}, Drawable: {data.Drawable}, Texture: {variation}");*/
+                }
+                else if (CurrentType == Types.CarShop1)
+                {
+                    TempVehicle.Destroy();
+
+                    CurrentItem = (string)args[0];
+
+                    var data = Data.Vehicles.GetById(CurrentItem);
+
+                    TempVehicle = new Vehicle(data.Model, Player.LocalPlayer.Position, DefaultHeading, "SHOP", 255, false, 0, 0, Player.LocalPlayer.Dimension);
+
+                    Additional.Camera.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, 0);
+
+                    TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
+
+                    TempVehicle.SetCustomSecondaryColour(CurrentColor2.Red, CurrentColor2.Green, CurrentColor2.Blue);
+
+                    TempVehicle.SetDirtLevel(0f);
                 }
             });
 
@@ -1446,8 +1545,8 @@ namespace BCRPClient.CEF
                 CEF.HUD.ShowHUD(false);
                 CEF.Chat.Show(false);
 
-                GameEvents.Render -= CharacterCreation.PlayerLookCursor;
-                GameEvents.Render += CharacterCreation.PlayerLookCursor;
+                GameEvents.Render -= CharacterCreation.ClearTasksRender;
+                GameEvents.Render += CharacterCreation.ClearTasksRender;
 
                 GameEvents.Render -= GameEvents.DisableAllControls;
                 GameEvents.Render += GameEvents.DisableAllControls;
@@ -1456,11 +1555,7 @@ namespace BCRPClient.CEF
 
                 (new AsyncTask(async () =>
                 {
-                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
-
                     Additional.SkyCamera.FadeScreen(false);
-
-                    CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
 
                     CurrentCameraStateNum = 0;
 
@@ -1490,10 +1585,14 @@ namespace BCRPClient.CEF
                         ChangeView(++CurrentCameraStateNum);
                     }));
 
-                    Browser.Window.ExecuteJs("Shop.draw", type);
+                    Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
                     if (type == Types.ClothesShop1 || type == Types.ClothesShop2 || type == Types.ClothesShop3)
                     {
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+
                         AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
 
                         RealClothes = new Dictionary<int, (int, int)>()
@@ -1613,11 +1712,33 @@ namespace BCRPClient.CEF
                         Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
                         Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
                         Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
-
-                        Browser.Switch(Browser.IntTypes.Shop, true);
-
-                        Cursor.Show(true, true);
                     }
+                    else if (type == Types.CarShop1)
+                    {
+                        Player.LocalPlayer.SetVisible(false, false);
+
+                        CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
+                        CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
+
+                        TempVehicle = new Vehicle(RAGE.Util.Joaat.Hash("buffalo"), Player.LocalPlayer.Position, DefaultHeading, "SHOP", 0, false, 0, 0, Player.LocalPlayer.Dimension);
+
+                        AsyncTask.RunSlim(() => TempVehicle.SetVisible(false, false), 25);
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, GetPrices<Dictionary<string, int>>(type).Select(x =>
+                        {
+                            var data = Data.Vehicles.GetById(x.Key);
+
+                            return new object[] { x.Key, data.Name, x.Value, x.Value, 999, data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
+                        }));
+                    }
+
+                    Browser.Switch(Browser.IntTypes.Shop, true);
+
+                    Cursor.Show(true, true);
                 }, 1500, false, 0)).Run();
             }
             else
@@ -1631,7 +1752,7 @@ namespace BCRPClient.CEF
 
                 CEF.Cursor.Show(true, true);
 
-                CEF.Browser.Window.ExecuteJs("Retail.draw", JsEnumTypes[type], prices.Select(x => x.Value.Select(y => new object[] { y.Key, Data.Items.GetName(y.Key), y.Value, (Data.Items.GetData(y.Key) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y.Key).Weight, false })), null, false);
+                CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], prices.Select(x => x.Value.Select(y => new object[] { y.Key, Data.Items.GetName(y.Key), y.Value, (Data.Items.GetData(y.Key) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y.Key).Weight, false })), null, false);
 
                 TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
             }
@@ -1687,6 +1808,14 @@ namespace BCRPClient.CEF
                     RealClothes.Clear();
                     RealAccessories.Clear();
                 }
+                else if (CurrentType == Types.CarShop1)
+                {
+                    Player.LocalPlayer.SetVisible(true, false);
+
+                    TempVehicle?.Destroy();
+
+                    TempVehicle = null;
+                }
 
                 if (Browser.IsRendered(Browser.IntTypes.Shop))
                 {
@@ -1698,7 +1827,7 @@ namespace BCRPClient.CEF
 
                     (new AsyncTask(() =>
                     {
-                        GameEvents.Render -= CharacterCreation.PlayerLookCursor;
+                        GameEvents.Render -= CharacterCreation.ClearTasksRender;
                         GameEvents.Render -= GameEvents.DisableAllControls;
 
                         CEF.Chat.Show(true);
@@ -1755,7 +1884,7 @@ namespace BCRPClient.CEF
         {
             var curPos = RAGE.Ui.Cursor.Position;
             var dist = curPos.Distance(LastCursorPos);
-            var newHeading = CurrentVehicle == null ? Player.LocalPlayer.GetHeading() : CurrentVehicle.GetHeading();
+            var newHeading = TempVehicle == null ? Player.LocalPlayer.GetHeading() : TempVehicle.GetHeading();
 
             if (curPos.X > LastCursorPos.X)
                 newHeading += dist / 10;
@@ -1778,13 +1907,8 @@ namespace BCRPClient.CEF
                 Additional.Camera.Fov += 1;
             }
 
-            if (newHeading > 360f)
-                newHeading = 0f;
-            else if (newHeading < 0f)
-                newHeading = 360f;
-
-            if (CurrentVehicle != null)
-                CurrentVehicle.SetHeading(newHeading);
+            if (TempVehicle != null)
+                TempVehicle.SetHeading(newHeading);
             else
                 Player.LocalPlayer.SetHeading(newHeading);
 
@@ -1801,9 +1925,11 @@ namespace BCRPClient.CEF
 
             CurrentCameraStateNum = camStateNum;
 
-            if (CurrentVehicle != null)
+            if (TempVehicle != null)
             {
-                CurrentVehicle.SetHeading(DefaultHeading);
+                TempVehicle.SetHeading(DefaultHeading);
+
+                Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1);
             }
             else
             {
