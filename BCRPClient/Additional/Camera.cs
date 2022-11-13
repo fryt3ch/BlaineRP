@@ -96,6 +96,7 @@ namespace BCRPClient.Additional
             WholePed,
 
             WholeVehicle,
+            WholeVehicleOpen,
             FrontVehicle,
             FrontVehicleOpenHood,
             BackVehicle,
@@ -126,6 +127,33 @@ namespace BCRPClient.Additional
             { StateTypes.NpcTalk, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Both, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
 
             { StateTypes.WholeVehicle, new State(new Vector3(0, 0, 2.5f), null, 50, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.WholeVehicleOpen, new State(new Vector3(0, 0, 2.5f), null, 50, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+                
+                OnAction = (args) =>
+                {
+                    if (SourceEntity is Vehicle veh)
+                    {
+                        for (int i = 0; i < 8; i++)
+                        {
+                            if (veh.DoesHaveDoor(i) > 0)
+                                veh.SetDoorOpen(i, false, false);
+                        }
+                    }
+                },
+
+                OffAction = (args) =>
+                {
+                    if (SourceEntity is Vehicle veh)
+                    {
+                        for (int i = 0; i < 8; i++)
+                        {
+                            if (veh.DoesHaveDoor(i) > 0)
+                                veh.SetDoorShut(i, false);
+                        }
+                    }
+                }
+            } },
 
             { StateTypes.FrontVehicle, new State(new Vector3(0, 0, 0), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
@@ -165,7 +193,7 @@ namespace BCRPClient.Additional
                 {
                     if (SourceEntity is Vehicle veh)
                     {
-                        if (veh.DoesHaveDoor(4) > 0)
+                        if (veh.DoesHaveDoor(5) > 0)
                             veh.SetDoorShut(5, false);
                     }
                 }

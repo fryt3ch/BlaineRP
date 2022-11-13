@@ -575,7 +575,7 @@ namespace BCRPClient
             Additional.Storage.LastData = null;
             Additional.Storage.GotData = false;
 
-            Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify({function}({string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))}));");
+            Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify({function}({string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))})));");
 
             while (!Additional.Storage.GotData)
                 await RAGE.Game.Invoker.WaitAsync(25);
@@ -587,10 +587,36 @@ namespace BCRPClient
         /// <remarks>Использовать в случае неработоспособности некоторых нативных функций через C# версию RAGE</remarks>
         /// <param name="hash">Хэш функции</param>
         /// <param name="args">Аргументы</param>
-        public static void InvokeViaJs(ulong hash, params object[] args) => Events.CallLocal("RAGE::Eval", $"mp.game.invoke('{string.Format("0x{0:X}", hash)}', {string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))});");
+        public static void InvokeViaJs(ulong hash, params object[] args)
+        {
+            if (args.Length > 0)
+                Events.CallLocal("RAGE::Eval", $"mp.game.invoke('{string.Format("0x{0:X}", hash)}', {string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))});");
+            else
+                Events.CallLocal("RAGE::Eval", $"mp.game.invoke('{string.Format("0x{0:X}", hash)}');");
+        }
 
         /// <inheritdoc cref="InvokeViaJs(ulong, object[])"></inheritdoc>
         public static void InvokeViaJs(RAGE.Game.Natives hash, params object[] args) => InvokeViaJs((ulong)hash, args);
+
+        public static async System.Threading.Tasks.Task<float> InvokeFloatViaJs(ulong hash, params object[] args)
+        {
+            Additional.Storage.LastData = null;
+            Additional.Storage.GotData = false;
+
+            if (args.Length > 0)
+                Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify(mp.game.invokeFloat('{string.Format("0x{0:X}", hash)}', {string.Join(", ", args.Select(x => RAGE.Util.Json.Serialize(x)))})));");
+            else
+                Events.CallLocal("RAGE::Eval", $"mp.events.callLocal(\"Storage::Temp\", JSON.stringify(mp.game.invokeFloat('{string.Format("0x{0:X}", hash)}')));");
+
+            while (!Additional.Storage.GotData)
+                await RAGE.Game.Invoker.WaitAsync(25);
+
+            Utils.ConsoleOutputLimited(Additional.Storage.LastData);
+
+            return Additional.Storage.LastData != null ? RAGE.Util.Json.Deserialize<float>(Additional.Storage.LastData) : 0f;
+        }
+
+        public static async System.Threading.Tasks.Task<float> InvokeFloatViaJs(RAGE.Game.Natives hash, params object[] args) => await InvokeFloatViaJs((ulong)hash, args);
 
         /// <summary>Функция для отрисовки текста на экране</summary>
         /// <remarks>Вызов необходимо осуществлять каждый кадр!</remarks>

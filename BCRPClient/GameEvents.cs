@@ -40,8 +40,9 @@ namespace BCRPClient
 
             RAGE.Game.Misc.SetFadeOutAfterDeath(false);
             RAGE.Game.Misc.SetFadeOutAfterArrest(false);
-            RAGE.Game.Misc.SetFadeInAfterDeathArrest(false);
-            RAGE.Game.Misc.SetFadeInAfterLoad(false);
+
+            RAGE.Game.Misc.SetFadeInAfterDeathArrest(true);
+            RAGE.Game.Misc.SetFadeInAfterLoad(true);
 
             RAGE.Game.Graphics.TransitionFromBlurred(0);
 
@@ -56,14 +57,7 @@ namespace BCRPClient
             {
                 var pos = Player.LocalPlayer.Position;
 
-                if (Additional.SkyCamera.ShouldBeFadedOut && !Additional.SkyCamera.IsFadedOut)
-                {
-                    RAGE.Game.Cam.DoScreenFadeOut(0);
-                }
-                else if (!Additional.SkyCamera.ShouldBeFadedOut && Additional.SkyCamera.IsFadedOut)
-                {
-                    RAGE.Game.Cam.DoScreenFadeIn(0);
-                }
+                Additional.SkyCamera.WrongFadeCheck();
 
                 // SetPedCanLosePropsOnDamage
                 RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0);
@@ -72,8 +66,6 @@ namespace BCRPClient
 
                 Additional.ExtraColshape.UpdateStreamed();
             };
-
-            Player.LocalPlayer.SetInvincible(true);
 
             Events.OnPlayerCreateWaypoint += (Vector3 position) =>
             {

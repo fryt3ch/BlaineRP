@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,16 +10,25 @@ namespace BCRPClient.Data
 {
     public class Vehicles : Events.Script
     {
-        public enum Types
-        {
-            Car = 0,
-            Moto,
-        }
-
         public class Vehicle
         {
+            public enum Types
+            {
+                Car = 0,
+                Motorcycle,
+                Boat,
+                Plane,
+                Helicopter,
+                Cycle,
+                Trailer,
+                Train,
+                Jetpack,
+                Blimp,
+            }
+
             public enum FuelTypes
             {
+                None = -1,
                 Petrol = 0,
                 Electricity = 1
             }
@@ -43,9 +54,31 @@ namespace BCRPClient.Data
 
             public Types Type { get; set; }
 
-            public string BrandName { get; set; }
+            public string BrandName
+            {
+                get
+                {
+                    var divIdx = Name.IndexOf(' ');
 
-            public string SubName { get; set; }
+                    if (divIdx < 0)
+                        return Name;
+
+                    return Name.Substring(0, divIdx + 1);
+                }
+            }
+
+            public string SubName
+            {
+                get
+                {
+                    var divIdx = Name.IndexOf(' ');
+
+                    if (divIdx < 0)
+                        return "";
+
+                    return Name.Substring(divIdx + 1);
+                }
+            }
 
             public uint Model { get; set; }
 
@@ -55,24 +88,19 @@ namespace BCRPClient.Data
 
             public Trunk TrunkData { get; set; }
 
-            public bool Moddable { get; set; }
+            public bool IsModdable { get; set; }
 
             public bool HasCruiseControl { get; set; }
 
             public bool HasAutoPilot { get; set; }
 
-            public Vehicle(string ID, string Model, string Name, float Tank, FuelTypes FuelType, Trunk TrunkData = null, bool Moddable = true, bool HasCruiseControl = false, bool HasAutoPilot = false, Types Type = Types.Car)
+            public Vehicle(string ID, uint Model, string Name, float Tank, FuelTypes FuelType, Trunk TrunkData = null, bool IsModdable = true, bool HasCruiseControl = false, bool HasAutoPilot = false, Types Type = Types.Car)
             {
                 this.ID = ID;
                 this.Name = Name;
                 this.Type = Type;
 
-                var divider = Name.IndexOf(' ');
-
-                this.BrandName = Name.Substring(0, divider == -1 ? Name.Length : divider + 1);
-                this.SubName = divider == -1 ? "" : Name.Substring(divider + 1);
-
-                this.Model = RAGE.Util.Joaat.Hash(Model);
+                this.Model = Model;
 
                 this.Tank = Tank;
 
@@ -80,24 +108,68 @@ namespace BCRPClient.Data
 
                 this.TrunkData = TrunkData;
 
-                this.Moddable = Moddable;
+                this.IsModdable = IsModdable;
                 this.HasAutoPilot = HasAutoPilot;
                 this.HasCruiseControl = HasCruiseControl;
+
+                All.Add(ID, this);
             }
         }
 
-        private static Dictionary<string, Vehicle> All;
-
-        public Vehicles()
-        {
-            All = new Dictionary<string, Vehicle>()
-            {
-                { "buffalo", new Vehicle("buffalo", "buffalo", "Bravado Buffalo", 80, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25)) }
-            };
-        }
+        public static Dictionary<string, Vehicle> All = new Dictionary<string, Vehicle>();
 
         public static Vehicle GetById(string id) => id == null ? null : All.GetValueOrDefault(id);
 
         public static Vehicle GetByModel(uint model) => All.Where(x => x.Value.Model == model).Select(x => x.Value).FirstOrDefault();
+
+        public Vehicles()
+        {
+            #region TO_REPLACE
+
+            #endregion
+
+/*            foreach (var x in All)
+            {
+                JObject data = new JObject();
+
+                var model = x.Value.Model;
+
+                var name = RAGE.Game.Ui.GetLabelText(RAGE.Game.Vehicle.GetDisplayNameFromVehicleModel(model));
+                var brand = RAGE.Game.Ui.GetLabelText(RAGE.Game.Invoker.Invoke<string>(0xF7AF4F159FF99F97, (int)model));
+
+                if (name == "NULL")
+                    name = x.Key.ToString();
+
+                if (brand != "NULL")
+                    name = $"{brand} {name}";
+
+                data.Add("DisplayName", name);
+
+                //data.Add("DisplayName", null);
+
+                data.Add("MaxSpeed", RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(model));
+                data.Add("MaxBraking", RAGE.Game.Vehicle.GetVehicleModelMaxBraking(model));
+                data.Add("MaxTraction", RAGE.Game.Vehicle.GetVehicleModelMaxTraction(model));
+                data.Add("MaxAcceleration", RAGE.Game.Vehicle.GetVehicleModelAcceleration(model));
+
+                data.Add("_0xBFBA3BA79CFF7EBF", RAGE.Game.Invoker.Invoke<float>(RAGE.Game.Natives._0xBFBA3BA79CFF7EBF, (int)model));
+                data.Add("_0x53409B5163D5B846", RAGE.Game.Invoker.Invoke<float>(RAGE.Game.Natives._0x53409B5163D5B846, (int)model));
+                data.Add("_0xC6AD107DDC9054CC", RAGE.Game.Invoker.Invoke<float>(RAGE.Game.Natives._0xC6AD107DDC9054CC, (int)model));
+                data.Add("_0x5AA3F878A178C4FC", RAGE.Game.Invoker.Invoke<float>(RAGE.Game.Natives._0x5AA3F878A178C4FC, (int)model));
+
+                var seats = RAGE.Game.Vehicle.GetVehicleModelNumberOfSeats(model);
+
+                if (seats < 0)
+                    seats = 0;
+
+                data.Add("MaxNumberOfPassengers", seats == 0 ? 0 : seats - 1);
+                data.Add("MaxOccupants", seats);
+                data.Add("VehicleClass", RAGE.Game.Vehicle.GetVehicleClassFromName(model));
+
+                Events.CallRemote("vehicle_data_p", model.ToString(), JsonConvert.SerializeObject(data));
+            }
+
+            Events.CallRemote("vehicle_data_f", All.Count);*/
+        }
     }
 }

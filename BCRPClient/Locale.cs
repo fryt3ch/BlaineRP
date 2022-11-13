@@ -752,6 +752,12 @@ namespace BCRPClient
                 { CEF.HUD.Menu.Types.Animations, "Меню анимаций" },
             };
         }
+
+        public static class TestDrive
+        {
+            public static string CloseText = "Нажмите ESC, чтобы закончить тест-драйв";
+            public static string TuningText = "Нажмите F4, чтобы открыть меню тюнинга";
+        }
         #endregion
 
         #region Notifications
@@ -1142,6 +1148,7 @@ namespace BCRPClient
                     public static string Unlocked = "Багажник открыт!";
 
                     public static string NoTrunk = "В этом транспорте нет багажника!";
+                    public static string NoPhysicalTrunk = "В этом транспорте нет физического багажника!";
                 }
 
                 public static class Hood
@@ -1157,6 +1164,8 @@ namespace BCRPClient
                     public static string None = "Нет ни одного пассажира!";
                     public static string SomeoneSeating = "Кто-то уже сидит на этом месте!";
                     public static string IsDriver = "Пересаживаться могут только пассажиры!";
+
+                    public static string NotEnterable = "В этот транспорт нельзя садиться!";
                 }
 
                 public static class Park

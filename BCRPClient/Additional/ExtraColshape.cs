@@ -835,7 +835,7 @@ namespace BCRPClient.Additional
             this.InteractionType = InteractionType;
             this.ActionType = ActionType;
 
-            All.Add(this.Colshape, this);
+            All.Add(this.Colshape, this); // the same key problem???
         }
 
         private static void Render()

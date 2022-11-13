@@ -170,5 +170,17 @@ namespace BCRPClient.Additional
                 Events.CallLocal(eventToCall.Name, eventToCall.Args);
             }
         }
+
+        public static void WrongFadeCheck()
+        {
+            if (ShouldBeFadedOut && !IsFadedOut)
+            {
+                RAGE.Game.Cam.DoScreenFadeOut(0);
+            }
+            else if (!ShouldBeFadedOut && IsFadedOut)
+            {
+                RAGE.Game.Cam.DoScreenFadeIn(0);
+            }
+        }
     }
 }

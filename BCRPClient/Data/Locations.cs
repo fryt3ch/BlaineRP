@@ -22,6 +22,16 @@ namespace BCRPClient.Data
                 ClothesShop2,
                 ClothesShop3,
 
+                CarShop1,
+                CarShop2,
+                CarShop3,
+
+                MotoShop,
+
+                BoatShop,
+
+                AeroShop,
+
                 Market,
             }
 
@@ -173,9 +183,89 @@ namespace BCRPClient.Data
         {
             private static int Counter = 1;
 
-            public CarShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop3)
+            public CarShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop1)
             {
                 this.Blip = new Blip(225, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                SubId = Counter++;
+            }
+        }
+
+        public class CarShop2 : Business
+        {
+            private static int Counter = 1;
+
+            public CarShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop2)
+            {
+                this.Blip = new Blip(530, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                SubId = Counter++;
+            }
+        }
+
+        public class CarShop3 : Business
+        {
+            private static int Counter = 1;
+
+            public CarShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop3)
+            {
+                this.Blip = new Blip(523, PositionInfo, "", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                SubId = Counter++;
+            }
+        }
+
+        public class MotoShop : Business
+        {
+            private static int Counter = 1;
+
+            public MotoShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.MotoShop)
+            {
+                this.Blip = new Blip(522, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                SubId = Counter++;
+            }
+        }
+
+        public class BoatShop : Business
+        {
+            private static int Counter = 1;
+
+            public BoatShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.BoatShop)
+            {
+                this.Blip = new Blip(410, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                SubId = Counter++;
+            }
+        }
+
+        public class AeroShop : Business
+        {
+            private static int Counter = 1;
+
+            public AeroShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.AeroShop)
+            {
+                this.Blip = new Blip(602, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -218,6 +308,10 @@ namespace BCRPClient.Data
             new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), new Vector3(263.9698f, 2607.402f, 44.98298f), null, 0f, "", "");
 
             new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Vector3(-54.68786f, -1088.418f, 26.42234f), 155.8f, "Лана", "csb_anita");
+
+            new BoatShop(18, new Vector3(-813.3688f, -1336.428f, 5.150263f), new Vector3(-813.8713f, -1343.797f, 5.150264f), 49.62344f, "Лана", "csb_anita");
+
+            new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1760.724f, 3234.819f, 42.13989f), 314.5554f, "Лана", "csb_anita");
         }
     }
 }

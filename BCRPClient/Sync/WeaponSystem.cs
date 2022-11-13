@@ -374,12 +374,23 @@ namespace BCRPClient.Sync
                 if (player?.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                if (Sync.Players.GetData(player) == null)
+                var pData = Sync.Players.GetData(player);
+
+                if (pData == null || pData.IsInvincible)
                 {
-                    player.Resurrect();
+                    var pos = Player.LocalPlayer.GetCoords(false);
+                    var heading = Player.LocalPlayer.GetHeading();
+
+                    RAGE.Game.Network.NetworkResurrectLocalPlayer(pos.X, pos.Y, pos.Z, heading, true, false, 0);
+
+                    RAGE.Game.Misc.SetFadeOutAfterDeath(false);
+
+                    Events.OnPlayerSpawn?.Invoke(null);
                 }
                 else
                 {
+                    Sync.Players.CloseAll(false);
+
                     if ((killer == null || killer.Handle == Player.LocalPlayer.Handle) && DateTime.Now.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
                         killer = LastAttackerInfo.Player;
 
@@ -510,7 +521,7 @@ namespace BCRPClient.Sync
             LastHealth = curHealth;
             LastArmour = curArmour;
 
-            if (curHealth == 0 && !Player.LocalPlayer.IsDeadOrDying(true))
+            if (curHealth <= 0 && !Player.LocalPlayer.IsDeadOrDying(true))
             {
                 Player.LocalPlayer.SetRealHealth(0);
             }

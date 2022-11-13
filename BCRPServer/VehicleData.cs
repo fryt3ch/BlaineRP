@@ -379,7 +379,7 @@ namespace BCRPServer
                     TID = cont.ID,
                     Numberplate = null,
 
-                    Tuning = Game.Data.Vehicles.Tuning.GetTuning(veh, vehData.Moddable),
+                    Tuning = Game.Data.Vehicles.Tuning.GetTuning(veh, vehData.IsModdable),
                 };
 
                 return data;

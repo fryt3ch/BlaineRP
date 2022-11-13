@@ -17,7 +17,7 @@ namespace BCRPClient.Additional
         private static AsyncTask Loop;
 
         #region Variables
-        private static Vector3 LastPosition;
+        public static Vector3 LastPosition;
         private static int LastHealth;
         private static int LastArmour;
 
@@ -276,8 +276,6 @@ namespace BCRPClient.Additional
         {
             var player = Player.LocalPlayer;
 
-            Sync.Players.PlayerData data = Sync.Players.GetData(player);
-
             LastPosition = player.Position;
             LastArmour = player.GetArmour();
             LastHealth = player.GetRealHealth();
@@ -298,7 +296,7 @@ namespace BCRPClient.Additional
             Loop.Run();
         }
 
-        public static void Check()
+        private static void Check()
         {
             #region Teleport
             if (!AllowTP.Peek())
@@ -328,7 +326,7 @@ namespace BCRPClient.Additional
             #endregion
 
             #region Health
-            if (!AllowHP.Peek())
+            if (!AllowHP.Peek() && !LastAllowedInvincible)
             {
                 var diff = Player.LocalPlayer.GetRealHealth() - LastHealth;
 

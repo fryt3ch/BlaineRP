@@ -19,6 +19,8 @@ namespace BCRPServer
         public const string DIR_CLIENT_SOURCES_PATH = DIR_SOURCES_PATH + @"\BCRPClient";
 
         public const string DIR_CLIENT_ITEMS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Items.cs";
+        public const string DIR_CLIENT_VEHICLES_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Vehicles.cs";
+        public const string DIR_CLIENT_SHOP_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\CEF\Shop.cs";
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;

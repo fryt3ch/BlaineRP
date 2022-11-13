@@ -819,32 +819,7 @@ namespace BCRPClient.Sync
 
             Events.Add("Player::CloseAll", (object[] args) =>
             {
-                bool onlyInterfaces = (bool)args[0];
-
-                RAGE.Game.Ui.SetPauseMenuActive(false);
-
-                CEF.HUD.Menu.Switch(false);
-                CEF.Inventory.Close(true);
-                CEF.Interaction.CloseMenu();
-                CEF.Menu.Close();
-                CEF.Death.Close();
-                CEF.Animations.Close();
-                CEF.ActionBox.Close(true);
-                CEF.Shop.Close(true, true);
-                CEF.Gas.Close(true);
-
-                Data.NPC.CurrentNPC?.SwitchDialogue(false);
-
-                Sync.Phone.Off();
-
-                if (!onlyInterfaces)
-                {
-                    Sync.PushVehicle.Off();
-                    Sync.Crouch.Off();
-                    Sync.Crawl.Off();
-
-                    Sync.Finger.Stop();
-                }
+                CloseAll((bool)args[0]);
             });
 
             Events.AddDataHandler("Anim::Fast", (Entity entity, object value, object oldValue) =>
@@ -1600,6 +1575,34 @@ namespace BCRPClient.Sync
                 return;
 
             player.SetPropIndex(0, hData[2] == "1" ? data.ExtraData?.Drawable ?? data.Drawable : data.Drawable, data.Textures[int.Parse(hData[1])], true);
+        }
+
+        public static void CloseAll(bool onlyInterfaces = false)
+        {
+            RAGE.Game.Ui.SetPauseMenuActive(false);
+
+            CEF.HUD.Menu.Switch(false);
+            CEF.Inventory.Close(true);
+            CEF.Interaction.CloseMenu();
+            CEF.Menu.Close();
+            CEF.Death.Close();
+            CEF.Animations.Close();
+            CEF.ActionBox.Close(true);
+            CEF.Shop.Close(true, true);
+            CEF.Gas.Close(true);
+
+            Data.NPC.CurrentNPC?.SwitchDialogue(false);
+
+            Sync.Phone.Off();
+
+            if (!onlyInterfaces)
+            {
+                Sync.PushVehicle.Off();
+                Sync.Crouch.Off();
+                Sync.Crawl.Off();
+
+                Sync.Finger.Stop();
+            }
         }
     }
 }

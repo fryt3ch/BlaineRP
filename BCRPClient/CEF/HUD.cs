@@ -420,10 +420,8 @@ namespace BCRPClient.CEF
         #region Speedometer Stuff
         public static void SwitchSpeedometer(bool value)
         {
-            if (SpeedometerEnabled == value)
+            if (SpeedometerMustBeEnabled == value)
                 return;
-
-            var veh = Player.LocalPlayer.Vehicle;
 
             if (!value)
             {
@@ -436,23 +434,38 @@ namespace BCRPClient.CEF
                 return;
             }
 
-            if (veh == null)
+            var veh = Player.LocalPlayer.Vehicle;
+
+            if (veh?.Exists != true)
                 return;
 
             var data = Sync.Vehicles.GetData(veh);
 
             if (data == null)
-                return;
+            {
+                Browser.Window.ExecuteJs("Hud.setFuel", 0);
+                Browser.Window.ExecuteJs("Hud.setMileage", 0);
+
+                SwitchEngineIcon(true);
+                SwitchLightsIcon(true);
+                SwitchDoorsIcon(false);
+                SwitchBeltIcon(false);
+
+                SwitchArrowIcon(true, false);
+                SwitchArrowIcon(false, false);
+            }
+            else
+            {
+                SwitchEngineIcon(data.EngineOn);
+                SwitchDoorsIcon(data.DoorsLocked);
+                SwitchBeltIcon(Sync.Players.GetData(Player.LocalPlayer).BeltOn);
+
+                StartUpdateSpeedometerInfo();
+            }
 
             SpeedometerMustBeEnabled = true;
 
-            SwitchEngineIcon(data.EngineOn);
-            SwitchDoorsIcon(data.DoorsLocked);
-            SwitchBeltIcon(Sync.Players.GetData(Player.LocalPlayer).BeltOn);
-
-            StartUpdateSpeedometerInfo();
-
-            Browser.Window.ExecuteJs("Hud.updateSpeedometer", (int)Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
+            Browser.Window.ExecuteJs("Hud.updateSpeedometer", Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
             Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
 
             Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
@@ -471,6 +484,8 @@ namespace BCRPClient.CEF
 
                 await RAGE.Game.Invoker.WaitAsync(Settings.SPEEDOMETER_UPDATE_SPEED);
             }
+
+            //HUD.SwitchSpeedometer(false);
         }
 
         private static async void StartUpdateSpeedometerInfo()

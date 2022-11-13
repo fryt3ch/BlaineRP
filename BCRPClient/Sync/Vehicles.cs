@@ -1,4 +1,5 @@
 ﻿using BCRPClient.CEF;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -234,94 +235,90 @@ namespace BCRPClient.Sync
             #region Stream In
             Events.OnEntityStreamIn += (Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                Vehicle veh = (Vehicle)entity;
-
-                if (veh?.Exists != true || veh.IsLocal)
-                    return;
-
-                #region Required Things For Normal Behaviour
-                RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-                RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-                veh.SetLoadCollisionFlag(true, 0);
-                veh.TrackVisibility();
-
-                veh.SetUndriveable(true);
-                #endregion
-
-                #region Default Settings
-                veh.SetWheelsCanBreak(true);
-                veh.SetDisablePetrolTankDamage(true);
-                #endregion
-
-                VehicleData data = new VehicleData(veh);
-                SetData(veh, data);
-
-                // Custom Sync
-                data.VID = veh.GetSharedData<int>("VID", -999);
-                data.TID = RAGE.Util.Json.Deserialize<uint?>(veh.GetSharedData<string>("TID", null));
-
-                data.IsInvincible = veh.GetSharedData<bool>("IsInvincible");
-
-                data.EngineOn = veh.GetSharedData<bool>("Engine::On");
-                data.DoorsLocked = veh.GetSharedData<bool>("Doors::Locked");
-                data.TrunkLocked = veh.GetSharedData<bool>("Trunk::Locked");
-                data.HoodLocked = veh.GetSharedData<bool>("Hood::Locked");
-
-                data.LeftIndicatorOn = veh.GetSharedData<bool>("Indicators::LeftOn");
-                data.RightIndicatorOn = veh.GetSharedData<bool>("Indicators::RightOn");
-                data.ForcedSpeed = veh.GetSharedData<float>("ForcedSpeed", 0f);
-                data.LightsOn = veh.GetSharedData<bool>("Lights::On");
-                data.Radio = veh.GetSharedData<int>("Radio", 255);
-                data.FuelLevel = veh.GetSharedData<float>("Fuel::Level", 0f);
-                data.Mileage = veh.GetSharedData<float>("Mileage", 0f);
-
-                data.DirtLevel = veh.GetSharedData<float>("Dirt::Level", 0f);
-                data.DoorsStates = (veh.GetSharedData<Newtonsoft.Json.Linq.JArray>("Doors::States")).ToObject<int[]>();
-
-                if (data.Radio == 255)
-                    veh.SetVehRadioStation("OFF");
-                else
-                    veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName(data.Radio));
-
-                #region States Sync
-                #region Tyres Burst
-
-                #endregion
-
-                #region Doors States
-                for (int i = 0; i < 8; i++)
+                if (entity is Vehicle veh)
                 {
-                    if (data.DoorsStates[i] == 0)
-                        veh.SetDoorShut(i, false);
-                    else if (data.DoorsStates[i] == 1)
-                        veh.SetDoorOpen(i, false, false);
+                    if (!veh.Exists || veh.IsLocal)
+                        return;
+
+                    #region Required Things For Normal Behaviour
+                    RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+                    RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+                    veh.SetLoadCollisionFlag(true, 0);
+                    veh.TrackVisibility();
+
+                    veh.SetUndriveable(true);
+                    #endregion
+
+                    #region Default Settings
+                    veh.SetWheelsCanBreak(true);
+                    veh.SetDisablePetrolTankDamage(true);
+                    #endregion
+
+                    VehicleData data = new VehicleData(veh);
+                    SetData(veh, data);
+
+                    // Custom Sync
+                    data.VID = veh.GetSharedData<int>("VID", -999);
+                    data.TID = RAGE.Util.Json.Deserialize<uint?>(veh.GetSharedData<string>("TID", null));
+
+                    data.IsInvincible = veh.GetSharedData<bool>("IsInvincible");
+
+                    data.EngineOn = veh.GetSharedData<bool>("Engine::On");
+                    data.DoorsLocked = veh.GetSharedData<bool>("Doors::Locked");
+                    data.TrunkLocked = veh.GetSharedData<bool>("Trunk::Locked");
+                    data.HoodLocked = veh.GetSharedData<bool>("Hood::Locked");
+
+                    data.LeftIndicatorOn = veh.GetSharedData<bool>("Indicators::LeftOn");
+                    data.RightIndicatorOn = veh.GetSharedData<bool>("Indicators::RightOn");
+                    data.ForcedSpeed = veh.GetSharedData<float>("ForcedSpeed", 0f);
+                    data.LightsOn = veh.GetSharedData<bool>("Lights::On");
+                    data.Radio = veh.GetSharedData<int>("Radio", 255);
+                    data.FuelLevel = veh.GetSharedData<float>("Fuel::Level", 0f);
+                    data.Mileage = veh.GetSharedData<float>("Mileage", 0f);
+
+                    data.DirtLevel = veh.GetSharedData<float>("Dirt::Level", 0f);
+                    data.DoorsStates = (veh.GetSharedData<Newtonsoft.Json.Linq.JArray>("Doors::States")).ToObject<int[]>();
+
+                    if (data.Radio == 255)
+                        veh.SetVehRadioStation("OFF");
                     else
-                        veh.SetDoorBroken(i, true);
+                        veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName(data.Radio));
+
+                    #region States Sync
+                    #region Tyres Burst
+
+                    #endregion
+
+                    #region Doors States
+                    for (int i = 0; i < 8; i++)
+                    {
+                        if (data.DoorsStates[i] == 0)
+                            veh.SetDoorShut(i, false);
+                        else if (data.DoorsStates[i] == 1)
+                            veh.SetDoorOpen(i, false, false);
+                        else
+                            veh.SetDoorBroken(i, true);
+                    }
+                    #endregion
+                    #endregion
                 }
-                #endregion
-                #endregion
             };
             #endregion
 
             #region Stream Out
             Events.OnEntityStreamOut += (Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                if (entity is Vehicle veh)
+                {
+                    var data = GetData(veh);
 
-                Vehicle veh = (Vehicle)entity;
+                    if (data == null)
+                        return;
 
-                var data = GetData(veh);
+                    data.Reset();
 
-                if (data == null)
-                    return;
-
-                GetData(veh).Reset();
-
-                ControlledVehicles.Remove(veh);
+                    ControlledVehicles.Remove(veh);
+                }
             };
             #endregion
             #endregion
@@ -342,55 +339,80 @@ namespace BCRPClient.Sync
                     return;
 
                 data.EngineOn = data.EngineOn; // to make engine work
-
-                //vehicle.SetCanBeDamaged(false);
             };
 
-            Events.OnPlayerEnterVehicle += (Vehicle vehicle, int seatId) =>
+            Events.OnPlayerEnterVehicle += async (Vehicle vehicle, int seatId) =>
             {
                 if (vehicle?.Exists != true)
                     return;
 
                 var data = GetData(vehicle);
 
-                while (data == null)
-                    data = GetData(vehicle);
-
-                if (seatId == -1 || seatId == 0)
+                if (!vehicle.IsLocal)
                 {
-                    HUD.SwitchSpeedometer(true);
-
-                    if (seatId == -1)
+                    while (data == null)
                     {
-                        StartDriverSync();
+                        await RAGE.Game.Invoker.WaitAsync(25);
+
+                        data = GetData(vehicle);
+
+                        if (Player.LocalPlayer.Vehicle == null)
+                            return;
                     }
+
+                    if (seatId == -1 || seatId == 0)
+                    {
+                        HUD.SwitchSpeedometer(true);
+
+                        if (seatId == -1)
+                        {
+                            StartDriverSync();
+                        }
+                    }
+                    else
+                        HUD.SwitchSpeedometer(false);
+
+                    data.EngineOn = data.EngineOn; // to make engine work
+
+                    RadioUpdate -= RadioSync;
+                    RadioUpdate += RadioSync;
+
+                    if (data.Radio == 255)
+                        RAGE.Game.Audio.SetRadioToStationName("OFF");
+                    else
+                        RAGE.Game.Audio.SetRadioToStationIndex(data.Radio);
                 }
                 else
-                    HUD.SwitchSpeedometer(false);
+                {
+                    vehicle.SetEngineOn(true, true, true);
+                    vehicle.SetJetEngineOn(true);
 
-                data.EngineOn = data.EngineOn; // to make engine work
+                    vehicle.SetLights(true);
 
-                RadioUpdate -= RadioSync;
-                RadioUpdate += RadioSync;
-
-                if (data.Radio == 255)
-                    RAGE.Game.Audio.SetRadioToStationName("OFF");
-                else
-                    RAGE.Game.Audio.SetRadioToStationIndex(data.Radio);
-
-/*                if (seatId == -1)
-                    vehicle.SetCanBeDamaged(true);*/
+                    if (seatId == -1 || seatId == 0)
+                    {
+                        HUD.SwitchSpeedometer(true);
+                    }
+                    else
+                        HUD.SwitchSpeedometer(false);
+                }
             };
 
             Events.OnPlayerStartEnterVehicle += (Vehicle vehicle, int seatId, Events.CancelEventArgs cancel) =>
             {
-                var data = GetData(vehicle);
-
-                if (data == null)
-                {
-                    cancel.Cancel = true;
-
+                if (vehicle?.Exists != true)
                     return;
+
+                if (!vehicle.IsLocal)
+                {
+                    var data = GetData(vehicle);
+
+                    if (data == null)
+                    {
+                        cancel.Cancel = true;
+
+                        return;
+                    }
                 }
             };
             #endregion
@@ -1069,10 +1091,29 @@ namespace BCRPClient.Sync
             // to trunk
             if (seatId == int.MaxValue)
             {
-                Events.CallRemote("Players::GoToTrunk", vehicle);
+                if (vehicle.DoesHaveDoor(5) > 0)
+                {
+                    Events.CallRemote("Players::GoToTrunk", vehicle);
+                }
+                else
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Trunk.NoPhysicalTrunk);
+                }
 
                 return;
             }
+
+            var maxSeats = RAGE.Game.Vehicle.GetVehicleModelNumberOfSeats(vehicle.Model);
+
+            if (maxSeats <= 0)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Passengers.NotEnterable);
+
+                return;
+            }
+
+            if (seatId >= maxSeats)
+                seatId = maxSeats - 1;
 
             if (vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
             {

@@ -336,8 +336,6 @@ namespace BCRPServer.Sync
                 if (player?.Exists != true)
                     return;
 
-                player.CloseAll();
-
                 if (pData.Knocked)
                 {
                     player.SetHealth(10);
