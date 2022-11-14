@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -768,6 +769,46 @@ namespace BCRPClient
 
     public static class Extensions
     {
+        public static async System.Threading.Tasks.Task<bool> WaitIsLoaded(this Vehicle vehicle)
+        {
+            await RAGE.Game.Invoker.WaitAsync(500);
+
+            int handle = -1;
+
+            do
+            {
+                if (vehicle?.Exists != true)
+                    return false;
+
+                await RAGE.Game.Invoker.WaitAsync(25);
+
+                handle = vehicle?.Handle ?? -1;
+            }
+            while (handle <= 0);
+
+            return true;
+        }
+
+        public static async System.Threading.Tasks.Task<bool> WaitIsLoaded(this Player player)
+        {
+            await RAGE.Game.Invoker.WaitAsync(500);
+
+            int handle = -1;
+
+            do
+            {
+                if (player?.Exists != true)
+                    return false;
+
+                await RAGE.Game.Invoker.WaitAsync(25);
+
+                handle = player?.Handle ?? -1;
+            }
+            while (handle <= 0);
+
+            return true;
+        }
+
         /// <summary>Получить серверную информацию сущности</summary>
         /// <typeparam name="T">Тип данных</typeparam>
         /// <param name="entity">Сущность</param>

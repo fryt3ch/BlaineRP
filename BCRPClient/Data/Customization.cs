@@ -277,19 +277,19 @@ namespace BCRPClient.Data
         #region Hair
         public static int GetHair(bool sex, int id)
         {
+            var hair = 0;
+
             if (sex)
             {
-                if (!MaleHairs.ContainsKey(id))
-                    return 0;
+                MaleHairs.TryGetValue(id, out hair);
 
-                return MaleHairs[id];
+                return hair;
             }
             else
             {
-                if (!FemaleHairs.ContainsKey(id))
-                    return 0;
+                FemaleHairs.TryGetValue(id, out hair);
 
-                return FemaleHairs[id];
+                return hair;
             }
         }
 
@@ -313,19 +313,19 @@ namespace BCRPClient.Data
 
         public static int GetDefaultHairOverlayId(bool sex, int hairId)
         {
+            var hair = 0;
+
             if (sex)
             {
-                if (!MaleDefaultHairOverlays.ContainsKey(hairId))
-                    return 0;
-                else
-                    return MaleDefaultHairOverlays[hairId];
+                MaleDefaultHairOverlays.TryGetValue(hairId, out hair);
+
+                return hair;
             }
             else
             {
-                if (!FemaleDefaultHairOverlays.ContainsKey(hairId))
-                    return 0;
-                else
-                    return FemaleDefaultHairOverlays[hairId];
+                FemaleDefaultHairOverlays.TryGetValue(hairId, out hair);
+
+                return hair;
             }
         }
         #endregion

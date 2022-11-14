@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Xml.Linq;
+using static BCRPClient.Locale.Notifications.Vehicles;
 
 namespace BCRPClient.Sync
 {
@@ -29,6 +31,28 @@ namespace BCRPClient.Sync
 
         private static GameEvents.UpdateHandler RadioUpdate;
 
+        private static Dictionary<string, Action<VehicleData, object, object>> DataActions = new Dictionary<string, Action<VehicleData, object, object>>();
+
+        private static void InvokeHandler(string dataKey, VehicleData vData, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(vData, value, oldValue);
+
+        private static void AddDataHandler(string dataKey, Action<VehicleData, object, object> action)
+        {
+            Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
+            {
+                if (entity is Vehicle vehicle)
+                {
+                    var data = Sync.Vehicles.GetData(vehicle);
+
+                    if (data == null)
+                        return;
+
+                    action.Invoke(data, value, oldValue);
+                }
+            });
+
+            DataActions.Add(dataKey, action);
+        }
+
         public static VehicleData GetData(Vehicle vehicle)
         {
             if (vehicle == null)
@@ -47,8 +71,6 @@ namespace BCRPClient.Sync
 
         public class VehicleData
         {
-            Vehicle Vehicle = null;
-
             public VehicleData(Vehicle Vehicle)
             {
                 this.Vehicle = Vehicle;
@@ -56,82 +78,42 @@ namespace BCRPClient.Sync
                 this.Data = BCRPClient.Data.Vehicles.GetByModel(Vehicle.Model);
             }
 
+            public Vehicle Vehicle { get; set; }
+
             #region Vehicle Data
-            public bool IsInvincible
-            {
-                get => Vehicle.GetData<bool>("IsInvincible");
+            public bool IsInvincible => Vehicle.GetSharedData<bool>("IsInvincible", false);
 
-                set
-                {
-                    Vehicle.SetData("IsInvincible", value);
+            public bool EngineOn => Vehicle.GetSharedData<bool>("Engine::On", false);
 
-                    Vehicle.SetInvincible(value);
-                    Vehicle.SetCanBeDamaged(!value);
-                }
-            }
+            public bool DoorsLocked => Vehicle.GetSharedData<bool>("Doors::Locked", false);
 
-            public bool EngineOn
-            {
-                get => Vehicle.GetData<bool>("Engine::On");
+            public bool TrunkLocked => Vehicle.GetSharedData<bool>("Trunk::Locked", false);
 
-                set
-                {
-                    Vehicle.SetData("Engine::On", value);
+            public bool HoodLocked => Vehicle.GetSharedData<bool>("Hood::Locked", false);
 
-                    Vehicle.SetEngineOn(value, true, true);
-                    Vehicle.SetJetEngineOn(value);
+            public bool LightsOn => Vehicle.GetSharedData<bool>("Lights::On", false);
 
-                    Vehicle.SetLights(value ? (LightsOn ? 2 : 1) : 1);
+            public bool LeftIndicatorOn => Vehicle.GetSharedData<bool>("Indicators::LeftOn", false);
 
-                    if (Player.LocalPlayer.Vehicle?.Handle == Vehicle.Handle)
-                        HUD.SwitchEngineIcon(value);
-                }
-            }
+            public bool RightIndicatorOn => Vehicle.GetSharedData<bool>("Indicators::RightOn", false);
 
-            public bool DoorsLocked
-            {
-                get => Vehicle.GetData<bool>("Doors::Locked");
+            public int Radio => Vehicle.GetSharedData<int>("Radio", 255);
 
-                set
-                {
-                    Vehicle.SetData("Doors::Locked", value);
+            public float ForcedSpeed => Vehicle.GetSharedData<float>("ForcedSpeed", 0f);
 
-                    if (Player.LocalPlayer.Vehicle?.Handle == Vehicle.Handle)
-                        HUD.SwitchDoorsIcon(value);
-                }
-            }
+            public float FuelLevel => Vehicle.GetSharedData<float>("Fuel::Level", 0f);
 
-            public Data.Vehicles.Vehicle Data { get; set; }
+            public float Mileage => Vehicle.GetSharedData<float>("Mileage", 0f);
 
-            public bool TrunkLocked { get => Vehicle.GetData<bool>("Trunk::Locked"); set => Vehicle.SetData("Trunk::Locked", value); }
-
-            public bool HoodLocked { get => Vehicle.GetData<bool>("Hood::Locked"); set => Vehicle.SetData("Hood::Locked", value); }
-
-            public bool LightsOn { get => Vehicle.GetData<bool>("Lights::On"); set { Vehicle.SetData("Lights::On", value); Vehicle.SetLights(value ? 2 : 1); } }
-
-            public bool LeftIndicatorOn { get => Vehicle.GetData<bool>("Indicators::LeftOn"); set { Vehicle.SetData("Indicators::LeftOn", value); Vehicle.SetIndicatorLights(1, value); } }
-
-            public bool RightIndicatorOn { get => Vehicle.GetData<bool>("Indicators::RightOn"); set { Vehicle.SetData("Indicators::RightOn", value); Vehicle.SetIndicatorLights(0, value); } }
-
-            public int Radio { get => Vehicle.GetData<int>("Radio"); set => Vehicle.SetData("Radio", value); }
-
-            public float ForcedSpeed { get => Vehicle.GetData<float>("ForcedSpeed"); set => Vehicle.SetData("ForcedSpeed", value); }
-
-            public float FuelLevel { get => Vehicle.GetData<float>("Fuel::Level"); set => Vehicle.SetData("Fuel::Level", value); }
-
-            public float Mileage { get => Vehicle.GetData<float>("Mileage"); set => Vehicle.SetData("Mileage", value); }
-
-            public float DirtLevel { get => Vehicle.GetData<float>("Dirt::Level"); set { Vehicle.SetData("Dirt::Level", value); Vehicle.SetDirtLevel(value); } }
-
-            public int[] DoorsStates { get => Vehicle.GetData<int[]>("Doors::States"); set => Vehicle.SetData("Doors::States", value); }
+            public int VID => Vehicle.GetSharedData<int>("VID", int.MinValue);
 
             public uint? TID { get => Vehicle.GetData<uint?>("ContainerID"); set => Vehicle.SetData("ContainerID", value); }
 
-            public int VID { get => Vehicle.GetData<int>("VID"); set => Vehicle.SetData("VID", value); }
-
-            public float LastAllowedHealth { get => Vehicle.GetData<float>("LastAllowedHealth"); set => Vehicle.SetData("LasAllowedHealth", value); }
+            public float LastAllowedHealth { get => Vehicle.GetData<float>("LastAllowedHealth"); set => Vehicle.SetData("LastAllowedHealth", value); }
 
             public float LastHealth { get => Vehicle.GetData<float>("LastHealth"); set => Vehicle.SetData("LastHealth", value); }
+
+            public Data.Vehicles.Vehicle Data { get; set; }
             #endregion
 
             public void Reset() => Vehicle?.ResetData();
@@ -206,38 +188,74 @@ namespace BCRPClient.Sync
                 }
             };
 
-            Events.OnEntityControllerChange += (Entity entity, Player newController) =>
+            Events.OnEntityControllerChange += async (Entity entity, Player newController) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = (Vehicle)entity;
-
-                var data = GetData(veh);
-
-                if (newController != Player.LocalPlayer)
+                if (entity is Vehicle veh)
                 {
-                    ControlledVehicles.Remove(veh);
+                    if (newController?.Handle != Player.LocalPlayer.Handle)
+                    {
+                        ControlledVehicles.Remove(veh);
 
-                    return;
+                        return;
+                    }
+
+                    if (ControlledVehicles.Contains(veh))
+                        return;
+
+                    VehicleData data = null;
+
+                    while ((data = GetData(veh)) == null)
+                    {
+                        await RAGE.Game.Invoker.WaitAsync(25);
+
+                        if (veh?.Exists != true)
+                            return;
+                    }
+
+                    data.LastHealth = veh.GetEngineHealth();
+                    data.LastAllowedHealth = data.LastHealth;
+
+                    ControlledVehicles.Add(veh);
+
+                    InvokeHandler("Engine::On", data, data.EngineOn, null);
+
+                    InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
+                    InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
+
+                    InvokeHandler("Radio", data, data.Radio, null);
+
+                    if (data.TrunkLocked)
+                    {
+                        veh.SetDoorShut(5, false);
+                    }
+                    else
+                    {
+                        veh.SetDoorOpen(5, false, false);
+                    }
+
+                    if (data.HoodLocked)
+                    {
+                        veh.SetDoorShut(4, false);
+                    }
+                    else
+                    {
+                        veh.SetDoorOpen(4, false, false);
+                    }
                 }
-
-                if (data == null)
-                    return;
-
-                data.LastHealth = veh.GetEngineHealth();
-                data.LastAllowedHealth = data.LastHealth;
-
-                ControlledVehicles.Add(veh);
             };
 
             #region New Vehicle Stream
             #region Stream In
-            Events.OnEntityStreamIn += (Entity entity) =>
+            Events.OnEntityStreamIn += async (Entity entity) =>
             {
                 if (entity is Vehicle veh)
                 {
                     if (!veh.Exists || veh.IsLocal)
+                        return;
+
+                    var loaded = await veh.WaitIsLoaded();
+
+                    if (!loaded)
                         return;
 
                     #region Required Things For Normal Behaviour
@@ -255,52 +273,37 @@ namespace BCRPClient.Sync
                     #endregion
 
                     VehicleData data = new VehicleData(veh);
-                    SetData(veh, data);
 
-                    // Custom Sync
-                    data.VID = veh.GetSharedData<int>("VID", -999);
+                    InvokeHandler("IsInvincible", data, data.IsInvincible, null);
+
                     data.TID = RAGE.Util.Json.Deserialize<uint?>(veh.GetSharedData<string>("TID", null));
 
-                    data.IsInvincible = veh.GetSharedData<bool>("IsInvincible");
+                    InvokeHandler("Engine::On", data, data.EngineOn, null);
 
-                    data.EngineOn = veh.GetSharedData<bool>("Engine::On");
-                    data.DoorsLocked = veh.GetSharedData<bool>("Doors::Locked");
-                    data.TrunkLocked = veh.GetSharedData<bool>("Trunk::Locked");
-                    data.HoodLocked = veh.GetSharedData<bool>("Hood::Locked");
+                    InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
+                    InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
 
-                    data.LeftIndicatorOn = veh.GetSharedData<bool>("Indicators::LeftOn");
-                    data.RightIndicatorOn = veh.GetSharedData<bool>("Indicators::RightOn");
-                    data.ForcedSpeed = veh.GetSharedData<float>("ForcedSpeed", 0f);
-                    data.LightsOn = veh.GetSharedData<bool>("Lights::On");
-                    data.Radio = veh.GetSharedData<int>("Radio", 255);
-                    data.FuelLevel = veh.GetSharedData<float>("Fuel::Level", 0f);
-                    data.Mileage = veh.GetSharedData<float>("Mileage", 0f);
+                    InvokeHandler("Radio", data, data.Radio, null);
 
-                    data.DirtLevel = veh.GetSharedData<float>("Dirt::Level", 0f);
-                    data.DoorsStates = (veh.GetSharedData<Newtonsoft.Json.Linq.JArray>("Doors::States")).ToObject<int[]>();
-
-                    if (data.Radio == 255)
-                        veh.SetVehRadioStation("OFF");
-                    else
-                        veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName(data.Radio));
-
-                    #region States Sync
-                    #region Tyres Burst
-
-                    #endregion
-
-                    #region Doors States
-                    for (int i = 0; i < 8; i++)
+                    if (data.TrunkLocked)
                     {
-                        if (data.DoorsStates[i] == 0)
-                            veh.SetDoorShut(i, false);
-                        else if (data.DoorsStates[i] == 1)
-                            veh.SetDoorOpen(i, false, false);
-                        else
-                            veh.SetDoorBroken(i, true);
+                        veh.SetDoorShut(5, false);
                     }
-                    #endregion
-                    #endregion
+                    else
+                    {
+                        veh.SetDoorOpen(5, false, false);
+                    }
+
+                    if (data.HoodLocked)
+                    {
+                        veh.SetDoorShut(4, false);
+                    }
+                    else
+                    {
+                        veh.SetDoorOpen(4, false, false);
+                    }
+
+                    SetData(veh, data);
                 }
             };
             #endregion
@@ -338,7 +341,7 @@ namespace BCRPClient.Sync
                 if (data == null)
                     return;
 
-                data.EngineOn = data.EngineOn; // to make engine work
+                InvokeHandler("Engine::On", data, data.EngineOn, null);
             };
 
             Events.OnPlayerEnterVehicle += async (Vehicle vehicle, int seatId) =>
@@ -356,23 +359,9 @@ namespace BCRPClient.Sync
 
                         data = GetData(vehicle);
 
-                        if (Player.LocalPlayer.Vehicle == null)
+                        if (Player.LocalPlayer.Vehicle == null || Player.LocalPlayer.Vehicle.Handle != vehicle?.Handle)
                             return;
                     }
-
-                    if (seatId == -1 || seatId == 0)
-                    {
-                        HUD.SwitchSpeedometer(true);
-
-                        if (seatId == -1)
-                        {
-                            StartDriverSync();
-                        }
-                    }
-                    else
-                        HUD.SwitchSpeedometer(false);
-
-                    data.EngineOn = data.EngineOn; // to make engine work
 
                     RadioUpdate -= RadioSync;
                     RadioUpdate += RadioSync;
@@ -459,46 +448,33 @@ namespace BCRPClient.Sync
 
             #region Events
 
-            Events.AddDataHandler("IsInvincible", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("IsInvincible", (vData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                var veh = vData.Vehicle;
 
-                var veh = entity as Vehicle;
+                bool state = (bool)value;
 
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.IsInvincible = (bool)value;
+                veh.SetInvincible(state);
+                veh.SetCanBeDamaged(!state);
             });
 
-            Events.AddDataHandler("ForcedSpeed", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("ForcedSpeed", (vData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                var veh = vData.Vehicle;
 
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.ForcedSpeed = (float)value;
+                var fSpeed = (float)value;
 
                 if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                     return;
 
-                if ((float)value >= 8.3f)
+                if ((fSpeed >= 8.3f))
                 {
                     GameEvents.Update -= CruiseControlTick;
                     GameEvents.Update += CruiseControlTick;
 
                     Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.On);
                 }
-                else if ((float)oldValue >= 8.3f)
+                else if (oldValue != null && (float)oldValue >= 8.3f)
                 {
                     GameEvents.Update -= CruiseControlTick;
 
@@ -506,214 +482,105 @@ namespace BCRPClient.Sync
                 }
             });
 
-            #region FuelLevel + Mileage
-            Events.AddDataHandler("Fuel::Level", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Engine::On", (vData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                var veh = vData.Vehicle;
 
-                var veh = entity as Vehicle;
+                var state = (bool)value;
 
-                var vData = GetData(veh);
+                veh.SetEngineOn(state, true, true);
+                veh.SetJetEngineOn(state);
 
-                if (vData == null)
-                    return;
-
-                vData.FuelLevel = (float)value;
-            });
-
-            Events.AddDataHandler("Mileage", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.Mileage = (float)value;
-            });
-
-            Events.AddDataHandler("Engine::On", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.EngineOn = (bool)value;
-            });
-
-            Events.AddDataHandler("Doors::Locked", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.DoorsLocked = (bool)value;
-
-                RAGE.Game.Audio.PlaySoundFromEntity(1, (bool)value ? "Remote_Control_Close" : "Remote_Control_Open", veh.Handle, "PI_Menu_Sounds", true, 0);
-            });
-
-            #endregion
-
-            #region Indicators + Lights
-
-            Events.AddDataHandler("Indicators::LeftOn", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.LeftIndicatorOn = (bool)value;
-            });
-
-            Events.AddDataHandler("Indicators::RightOn", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.RightIndicatorOn = (bool)value;
-            });
-
-            Events.AddDataHandler("Lights::On", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
-
-                var veh = entity as Vehicle;
-
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.LightsOn = (bool)value;
+                veh.SetLights(state ? (vData.LightsOn ? 2 : 1) : 1);
 
                 if (Player.LocalPlayer.Vehicle?.Handle == veh.Handle)
-                    HUD.SwitchLightsIcon((bool)value);
+                    HUD.SwitchEngineIcon(state);
             });
 
-            #endregion
-
-            #region Radio
-            Events.AddDataHandler("Radio", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Doors::Locked", (vData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                var veh = vData.Vehicle;
 
-                var veh = entity as Vehicle;
+                var state = (bool)value;
 
-                var vData = GetData(veh);
+                RAGE.Game.Audio.PlaySoundFromEntity(1, state ? "Remote_Control_Close" : "Remote_Control_Open", veh.Handle, "PI_Menu_Sounds", true, 0);
 
-                if (vData == null)
-                    return;
+                if (Player.LocalPlayer.Vehicle?.Handle == veh.Handle)
+                    HUD.SwitchDoorsIcon(state);
+            });
 
-                vData.Radio = (int)value;
+            AddDataHandler("Indicators::LeftOn", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
 
-                if ((int)value == 255)
+                veh.SetIndicatorLights(1, (bool)value);
+            });
+
+            AddDataHandler("Indicators::RightOn", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                veh.SetIndicatorLights(0, (bool)value);
+            });
+
+            AddDataHandler("Lights::On", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var state = (bool)value;
+
+                veh.SetLights(state ? 2 : 1);
+
+                if (Player.LocalPlayer.Vehicle?.Handle == veh.Handle)
+                    HUD.SwitchLightsIcon(state);
+            });
+
+            AddDataHandler("Radio", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var idx = (int)value;
+
+                if (idx == 255)
                     veh.SetVehRadioStation("OFF");
                 else
-                    veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName((int)value));
+                    veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName(idx));
             });
-            #endregion
 
-            Events.AddDataHandler("Trunk::Locked", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Trunk::Locked", (vData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                var veh = vData.Vehicle;
 
-                var veh = entity as Vehicle;
+                var state = (bool)value;
 
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.TrunkLocked = (bool)value;
-
-                if (vData.DoorsStates[5] != 2)
+                if (state)
                 {
-                    var actualStates = vData.DoorsStates;
-
-                    if (!(bool)value)
-                    {
-                        veh.SetDoorOpen(5, false, false);
-                        actualStates[5] = 1;
-                    }
-                    else
-                    {
-                        veh.SetDoorShut(5, false);
-                        actualStates[5] = 0;
-                    }
-
-                    vData.DoorsStates = actualStates;
+                    veh.SetDoorShut(5, false);
+                }
+                else
+                {
+                    veh.SetDoorOpen(5, false, false);
                 }
             });
 
-            Events.AddDataHandler("Hood::Locked", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Hood::Locked", (vData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Vehicle)
-                    return;
+                var veh = vData.Vehicle;
 
-                var veh = entity as Vehicle;
+                var state = (bool)value;
 
-                var vData = GetData(veh);
-
-                if (vData == null)
-                    return;
-
-                vData.HoodLocked = (bool)value;
-
-                if (vData.DoorsStates[4] != 2)
+                if (state)
                 {
-                    var actualStates = vData.DoorsStates;
-
-                    if (!(bool)value)
-                    {
-                        veh.SetDoorOpen(4, false, false);
-                        actualStates[4] = 1;
-                    }
-                    else
-                    {
-                        veh.SetDoorShut(4, false);
-                        actualStates[4] = 0;
-                    }
-
-                    vData.DoorsStates = actualStates;
+                    veh.SetDoorShut(4, false);
+                }
+                else
+                {
+                    veh.SetDoorOpen(4, false, false);
                 }
             });
 
             #endregion
         }
-
 
         #region Handlers
 
@@ -1198,113 +1065,36 @@ namespace BCRPClient.Sync
                 return;
 
             Vector3 lastPos = veh.Position;
-            DateTime lastSyncedFuelMilleage = DateTime.Now;
-
-            float fuelCounter = 0f;
-            float mileageCounter = 0f;
-
-            await RAGE.Game.Invoker.WaitAsync(2000);
 
             while (Player.LocalPlayer.Vehicle?.Exists == true && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
             {
-                float actualDirtLevel = veh.GetDirtLevel();
-                float diff = (actualDirtLevel - data.DirtLevel);
-
-                #region Dirt Level
-                if (diff >= 0.5f)
-                {
-                    data.DirtLevel = actualDirtLevel;
-
-                    Events.CallRemote("Vehicles::UpdateDirtLevel", actualDirtLevel);
-
-                    //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Info, "Dirt: " + actualDirtLevel.ToString());
-                }
-                #endregion
-
-                #region Tyres Burst
-/*                var actualStates = data.TyresBurst;
-
-                for (int i = 0; i < 8; i++)
-                    actualStates[i] = !veh.IsTyreBurst(i, false) ? 0 : !veh.IsTyreBurst(i, true) ? 1 : 2;
-
-                actualStates[8] = !veh.IsTyreBurst(45, false) ? 0 : !veh.IsTyreBurst(45, true) ? 1 : 2;
-                actualStates[9] = !veh.IsTyreBurst(47, false) ? 0 : !veh.IsTyreBurst(47, true) ? 1 : 2;
-
-                if (!actualStates.SequenceEqual(data.TyresBurst))
-                {
-                    data.TyresBurst = actualStates;
-
-                    Events.CallRemote("Vehicles::UpdateTyresBurst", actualStates);
-
-                    //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Tyres: " + string.Join(" ", actualStates));
-                }*/
-                #endregion
-
-                #region Doors
-                var actualStates = data.DoorsStates;
-
-                for (int i = 0; i < 8; i++)
-                {
-                    if (veh.IsDoorDamaged(i))
-                        actualStates[i] = 2;
-                    else
-                        actualStates[i] = veh.GetDoorAngleRatio(i) > 0.25f ? 1 : 0;
-                }
-
-                if (!actualStates.SequenceEqual(data.DoorsStates))
-                {
-                    data.DoorsStates = actualStates;
-
-                    Events.CallRemote("Vehicles::UpdateDoorsStates", actualStates);
-
-                    //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Doors: " + string.Join(" ", actualStates));
-                }
-                #endregion
-
-                #region Fuel Level + Mileage
                 if (data.EngineOn)
                 {
                     float dist = Math.Abs(Vector3.Distance(lastPos, veh.Position));
                     float fuelDiff = 0.001f * dist;
 
-                    data.FuelLevel -= fuelDiff;
-                    fuelCounter += fuelDiff;
-
-                    data.Mileage += dist;
-                    mileageCounter += dist;
-
-                    if (data.FuelLevel < 0f)
-                        data.FuelLevel = 0f;
-
-                    if (DateTime.Now.Subtract(lastSyncedFuelMilleage).TotalMilliseconds > 2500)
+                    if (fuelDiff > 0)
                     {
-                        if (fuelCounter != 0)
-                            Events.CallRemote("Vehicles::UpdateFuelLevel", fuelCounter);
-
-                        if (mileageCounter != 0)
-                            Events.CallRemote("Vehicles::UpdateMileage", mileageCounter);
-
-                        fuelCounter = 0;
-                        mileageCounter = 0;
-
-                        //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Fuel: " + data.FuelLevel);
-                        //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Mileage: " + data.Mileage);
-
-                        lastSyncedFuelMilleage = DateTime.Now;
+                        Events.CallRemote("Vehicles::UpdateFuelLevel", fuelDiff);
                     }
 
+                    if (dist > 0)
+                    {
+                        Events.CallRemote("Vehicles::UpdateMileage", dist);
+                    }
+
+                    //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Fuel: " + data.FuelLevel);
+                    //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Mileage: " + data.Mileage);
+
                     lastPos = veh.Position;
+
+                    await RAGE.Game.Invoker.WaitAsync(1500);
                 }
-                #endregion
-
-                await RAGE.Game.Invoker.WaitAsync(1000);
+                else
+                {
+                    await RAGE.Game.Invoker.WaitAsync(500);
+                }
             }
-
-            if (fuelCounter != 0)
-                Events.CallRemote("Vehicles::UpdateFuelLevel", fuelCounter);
-
-            if (mileageCounter != 0)
-                Events.CallRemote("Vehicles::UpdateMileage", mileageCounter);
         }
 
         private static void ControlledTick()

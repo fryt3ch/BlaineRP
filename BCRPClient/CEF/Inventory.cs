@@ -188,8 +188,6 @@ namespace BCRPClient.CEF
 
             CurrentGiveMoney = 0;
 
-            GiveItemsData = new object[5][];
-
             ItemSlotsToUpdate = new HashSet<int>();
             ItemSlotsToUpdateCrate = new HashSet<int>();
 
@@ -387,6 +385,8 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType == Types.Trade)
                 {
+                    GiveItemsData = new object[5][];
+
                     Browser.Window.ExecuteJs("Inventory.fillCheckBox", "last", false);
                     Browser.Window.ExecuteJs("Inventory.switchTradeBtn", false);
 
@@ -1118,6 +1118,8 @@ namespace BCRPClient.CEF
                 Browser.Window.ExecuteJs("Inventory.switchCtrl", false);
 
                 ContainerData = null;
+
+                GiveItemsData = null;
 
                 CurrentContainerType = ContainerTypes.None;
 

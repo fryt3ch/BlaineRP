@@ -117,7 +117,7 @@ namespace BCRPServer.Sync
                         return;
 
                     tData.Delete();
-                    aData.Delete();
+                    aData?.Delete();
                 });
             }
             else if (data != null)
@@ -340,13 +340,13 @@ namespace BCRPServer.Sync
                 {
                     player.SetHealth(10);
 
-                    pData.Respawn(player.Position, player.Heading);
+                    pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
                     pData.Knocked = false;
                 }
                 else
                 {
-                    pData.Respawn(player.Position, player.Heading);
+                    pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
                     pData.Knocked = true;
                     pData.IsWounded = false;

@@ -43,7 +43,7 @@ namespace BCRPServer.Additional
 
             if (pData != null)
             {
-                pData.Respawn(pos, player.Heading);
+                pData.Respawn(pos, player.Heading, Utils.RespawnTypes.Teleport);
             }
             else
                 NAPI.Player.SpawnPlayer(player, pos, player.Heading);

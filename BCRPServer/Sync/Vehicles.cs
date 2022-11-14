@@ -424,15 +424,7 @@ namespace BCRPServer.Sync
                     if (vData.IsOwner(pData) == null)
                         return;
 
-                    var doorsStates = vData.DoorsStates;
                     var newState = !vData.TrunkLocked;
-
-                    if (doorsStates[5] != 2)
-                    {
-                        doorsStates[5] = newState ? 0 : 1;
-
-                        vData.DoorsStates = doorsStates;
-                    }
 
                     if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
                     {
@@ -507,15 +499,7 @@ namespace BCRPServer.Sync
                     if (vData.IsOwner(pData) == null)
                         return;
 
-                    var doorsStates = vData.DoorsStates;
                     var newState = !vData.HoodLocked;
-
-                    if (doorsStates[4] != 2)
-                    {
-                        doorsStates[4] = newState ? 0 : 1;
-
-                        vData.DoorsStates = doorsStates;
-                    }
 
                     if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
                     {
@@ -638,82 +622,6 @@ namespace BCRPServer.Sync
                     currentLevel += diff;
 
                     vData.Mileage = currentLevel;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
-        }
-        #endregion
-
-        #region Update States
-        [RemoteEvent("Vehicles::UpdateDirtLevel")]
-        public static async Task UpdateDirtLevel(Player player, float level)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var veh = player.Vehicle;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || player.VehicleSeat != 0)
-                        return;
-
-                    vData.DirtLevel = level;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Vehicles::UpdateDoorsStates")]
-        public static async Task UpdateDoorsStates(Player player, Newtonsoft.Json.Linq.JArray array)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var veh = player.Vehicle;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                var res = array.ToObject<int[]>();
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0)
-                        return;
-
-                    vData.DoorsStates = res;
                 });
 
                 vData.Release();

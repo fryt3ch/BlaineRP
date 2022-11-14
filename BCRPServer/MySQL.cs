@@ -616,7 +616,7 @@ namespace BCRPServer
         #region Character
 
         #region Create
-        public static int AddNewCharacter(PlayerData pData, AccountData aData)
+        public static int AddNewCharacter(PlayerData pData, AccountData aData, bool sex)
         {
             if (aData == null || pData == null)
                 return -1;
@@ -654,7 +654,7 @@ namespace BCRPServer
 
                     cmd.Parameters.AddWithValue("@Name", pData.Name);
                     cmd.Parameters.AddWithValue("@Surname", pData.Surname);
-                    cmd.Parameters.AddWithValue("@Sex", pData.Sex);
+                    cmd.Parameters.AddWithValue("@Sex", sex);
                     cmd.Parameters.AddWithValue("@BirthDate", pData.BirthDate);
                     cmd.Parameters.AddWithValue("@Licenses", JsonConvert.SerializeObject(pData.Licenses));
 
@@ -666,7 +666,7 @@ namespace BCRPServer
 
                     cid = Convert.ToInt32(cmd.LastInsertedId);
 
-                    var pInfo = new PlayerData.PlayerInfo(cid, pData.Name, pData.Surname, pData.LastJoinDate, pData.Fraction, pData.OrganisationID, new List<PlayerData.Punishment>());
+                    var pInfo = new PlayerData.PlayerInfo(cid, pData.Name, pData.Surname, pData.LastJoinDate, PlayerData.FractionTypes.None, -1, new List<PlayerData.Punishment>());
 
                     pData.Info = pInfo;
 

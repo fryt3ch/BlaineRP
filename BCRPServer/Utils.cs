@@ -25,6 +25,14 @@ namespace BCRPServer
             public const uint Demorgan = 2;
         }
 
+        public enum RespawnTypes
+        {
+            /// <summary>Смерть</summary>
+            Death = 0,
+            /// <summary>Телепортация</summary>
+            Teleport,
+        }
+
         /// <summary>Номер первого CID</summary>
         /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, тогда 2999 - последний Remote ID</remarks>
         public static int FirstCID = 3000 * 1;
@@ -949,7 +957,7 @@ namespace BCRPServer
 
         public static bool AnyAnimActive(this PlayerData pData) => pData.CrawlOn || pData.PhoneOn || pData.IsAttachedTo != null || pData.FastAnim != Sync.Animations.FastTypes.None || pData.GeneralAnim != Sync.Animations.GeneralTypes.None || pData.OtherAnim != Sync.Animations.OtherTypes.None;
 
-        public static void Respawn(this PlayerData pData, Vector3 position, float heading)
+        public static void Respawn(this PlayerData pData, Vector3 position, float heading, RespawnTypes rType = RespawnTypes.Teleport)
         {
             if (pData != null)
             {

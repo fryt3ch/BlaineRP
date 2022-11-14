@@ -32,7 +32,7 @@ namespace BCRPClient.Sync
             {
                 var x = RAGE.Elements.Entities.Objects.All[i];
 
-                if (x.GetSharedData<bool>("IOG"))
+                if (x.GetSharedData<bool>("IOG", false))
                 {
                     x.NotifyStreaming = true;
                 }
@@ -179,36 +179,39 @@ namespace BCRPClient.Sync
             #region New IOG Stream
             Events.OnEntityStreamIn += ((Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object || entity.IsLocal || !entity.HasSharedData("IOG"))
-                    return;
+                if (entity is MapObject obj)
+                {
+                    if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
+                        return;
 
-                var obj = entity as MapObject;
+                    obj.FreezePosition(false);
+                    obj.SetActivatePhysicsAsSoonAsItIsUnfrozen(true);
+                    obj.SetHasGravity(true);
+                    obj.SetCollision(true, true);
 
-                obj.FreezePosition(false);
-                obj.SetActivatePhysicsAsSoonAsItIsUnfrozen(true);
-                obj.SetHasGravity(true);
-                obj.SetCollision(true, true);
+                    obj.SetData("Name", Data.Items.GetName(obj.GetSharedData<string>("ID", null)));
+                    obj.SetData("UID", RAGE.Util.Json.Deserialize<uint>(obj.GetSharedData<string>("UID")));
+                    obj.SetData("Amount", obj.GetSharedData<int>("Amount", -1));
 
-                obj.SetData("Name", Data.Items.GetName(obj.GetSharedData<string>("ID", null)));
-                obj.SetData("UID", RAGE.Util.Json.Deserialize<uint>(obj.GetSharedData<string>("UID")));
-                obj.SetData("Amount", obj.GetSharedData<int>("Amount", -1));
+                    if (obj.GetData<string>("Name") == null)
+                        return;
 
-                if (obj.GetData<string>("Name") == null)
-                    return;
-
-                if (!ItemsOnGround.Contains(obj))
-                    ItemsOnGround.Add(obj);
+                    if (!ItemsOnGround.Contains(obj))
+                        ItemsOnGround.Add(obj);
+                }
             });
 
             Events.OnEntityStreamOut += ((Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object || entity.IsLocal || !entity.HasSharedData("IOG"))
-                    return;
+                if (entity is MapObject obj)
+                {
+                    if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
+                        return;
 
-                var obj = entity as MapObject;
+                    obj.ResetData();
 
-                if (ItemsOnGround.Contains(obj))
                     ItemsOnGround.Remove(obj);
+                }
             });
             #endregion
         }

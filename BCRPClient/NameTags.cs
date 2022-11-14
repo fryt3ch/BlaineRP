@@ -60,9 +60,9 @@ namespace BCRPClient
                 {
                     if (Utils.GetScreenCoordFromWorldCoord(player.Position, ref screenX, ref screenY))
                     {
-                        if (data == null)
+                        if (pData == null)
                         {
-                            Utils.DrawText($"ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"ID: {player.RemoteId} | ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
                             continue;
                         }
@@ -77,7 +77,7 @@ namespace BCRPClient
                     }
                 }
 
-                if (pData == null || !player.IsVisible())
+                if (pData == null || player.GetAlpha() != 255)
                     continue;
 
                 float x = nametag.ScreenX;
@@ -119,7 +119,7 @@ namespace BCRPClient
                 if (pData.AdminLevel > -1)
                     Utils.DrawText(Locale.General.Players.AdminLabel, x, y += Interval / 2, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
-                if (RAGE.Game.Player.IsPlayerFreeAimingAtEntity(nametag.Player.Handle))
+                if (RAGE.Game.Player.IsPlayerFreeAimingAtEntity(player.Handle))
                 {
                     y += Interval;
 

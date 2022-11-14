@@ -177,10 +177,6 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool HoodLocked { get => Vehicle.GetSharedData<bool>("Hood::Locked"); set { Vehicle.SetSharedData("Hood::Locked", value); } }
 
-        public float DirtLevel { get => Vehicle.GetSharedData<float>("Dirt::Level"); set { Vehicle.SetSharedData("Dirt::Level", value); } }
-
-        public int[] DoorsStates { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>("Doors::States").ToObject<int[]>(); set => Vehicle.SetSharedData("Doors::States", value); }
-
         public bool IsInvincible { get => Vehicle.GetSharedData<bool>("IsInvincible"); set { Vehicle.SetSharedData("IsInvincible", value); } }
 
         /// <summary>Уникальный ID транспорта</summary>
@@ -221,9 +217,6 @@ namespace BCRPServer
             HoodLocked = true;
 
             Radio = 255;
-
-            DirtLevel = 0.001f;
-            DoorsStates = new int[] { 0, 0, 0, 0, 0, 0, 0, 0 };
 
             ForcedSpeed = 0;
 

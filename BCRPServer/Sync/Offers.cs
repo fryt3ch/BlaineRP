@@ -476,8 +476,10 @@ namespace BCRPServer.Sync
 
             /// <summary>Сущность игрока, который отправил предложение</summary>
             public PlayerData Sender { get; set; }
+
             /// <summary>Сущность игрока, которому отправлено предложение</summary>
             public PlayerData Receiver { get; set; }
+
             /// <summary>Тип предложения</summary>
             public Types Type { get; set; }
 
@@ -485,6 +487,10 @@ namespace BCRPServer.Sync
 
             /// <summary>CancellationTokenSource предложения</summary>
             private CancellationTokenSource CTS { get; set; }
+
+            /// <summary>Существует ли предложение?</summary>
+            /// <remarks>Служит для проверки возможности принятия/отмены предложения на клиентской стороне цели</remarks>
+            public bool Exists { get; set; }
 
             public object Data { get; set; }
             

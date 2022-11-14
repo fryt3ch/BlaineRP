@@ -39,10 +39,11 @@ namespace BCRPClient.Sync
 
             public float GetBodyRatio(PartTypes type)
             {
-                if (BodyRatios?.ContainsKey(type) == true)
-                    return BodyRatios[type];
+                float ratio = 1f;
 
-                return 1f;
+                BodyRatios?.TryGetValue(type, out ratio);
+
+                return ratio;
             }
 
             public Weapon(string Name, string GameName, float BaseDamage, float MaxDistance, float DistanceRatio, float HeadRatio, float ChestRatio, float LimbRatio, bool HasAmmo = true)
@@ -433,8 +434,6 @@ namespace BCRPClient.Sync
         }
 
         #region Stuff
-        private static void DisableFiring() => RAGE.Game.Player.DisablePlayerFiring(true);
-
         public static void UpdateWeapon()
         {
             var weapon = RAGE.Elements.Player.LocalPlayer.GetSelectedWeapon();
@@ -555,11 +554,11 @@ namespace BCRPClient.Sync
             if (Player.LocalPlayer.HasData("InGreenZone"))
                 return;
 
-            if (sourceEntity.Type == RAGE.Elements.Type.Player)
+            if (sourceEntity is Player sP)
             {
-                sourcePlayer = sourceEntity as Player;
+                sourcePlayer = sP;
 
-                if (sourcePlayer?.Exists != true || sourcePlayer.GetSelectedWeapon() != weaponHash)
+                if (!sourcePlayer.Exists || sourcePlayer.GetSelectedWeapon() != weaponHash)
                     return;
 
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -570,9 +569,9 @@ namespace BCRPClient.Sync
 
                 var sPos = sourcePlayer.GetCoords(false);
 
-                if (targetEntity.Type == RAGE.Elements.Type.Player)
+                if (targetEntity is Player targetPlayer)
                 {
-                    if ((targetEntity as Player).Handle != Player.LocalPlayer.Handle)
+                    if (targetPlayer.Handle != Player.LocalPlayer.Handle)
                         return;
 
                     if (pData.IsInvincible)
@@ -588,7 +587,11 @@ namespace BCRPClient.Sync
                     if (!pData.Knocked)
                         cancel.Cancel = false;
 
-                    float boneRatio = gun.GetBodyRatio(PedParts.ContainsKey(boneIdx) ? PedParts[boneIdx] : PartTypes.Limb);
+                    PartTypes pType = PartTypes.Limb;
+
+                    PedParts.TryGetValue(boneIdx, out pType);
+
+                    float boneRatio = gun.GetBodyRatio(pType);
 
                     var customDamage = (int)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio * (sourcePlayer.IsSittingInAnyVehicle() ? IN_VEHICLE_DAMAGE_COEF : 1f)) - (pData.Knocked ? 0 : 1);
 
@@ -623,11 +626,9 @@ namespace BCRPClient.Sync
                         return;
                     }
                 }
-                else if (targetEntity.Type == RAGE.Elements.Type.Vehicle)
+                else if (targetEntity is Vehicle veh)
                 {
-                    var veh = targetEntity as Vehicle;
-
-                    if (veh.Exists != true || veh.Controller?.Handle != Player.LocalPlayer.Handle)
+                    if (!veh.Exists|| veh.Controller?.Handle != Player.LocalPlayer.Handle)
                         return;
 
                     var vData = Sync.Vehicles.GetData(targetEntity as Vehicle);
@@ -642,12 +643,16 @@ namespace BCRPClient.Sync
 
                     float distance = RAGE.Vector3.Distance(pPos, sPos);
 
-                    if (distance > gun.MaxDistance) // don't damage
+                    if (distance > gun.MaxDistance)
                         return;
 
                     cancel.Cancel = false;
 
-                    float boneRatio = VehicleRatios[VehicleParts.ContainsKey(boneIdx) ? VehicleParts[boneIdx] : PartTypes.Limb];
+                    PartTypes pType = PartTypes.Limb;
+
+                    VehicleParts.TryGetValue(boneIdx, out pType);
+
+                    float boneRatio = VehicleRatios[pType];
 
                     var customDamage = (float)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio) - 1;
 

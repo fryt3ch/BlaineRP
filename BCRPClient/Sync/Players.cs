@@ -5,7 +5,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BCRPClient.Sync.AttachSystem;
+using static BCRPClient.Additional.Camera;
+using static BCRPClient.Locale.Notifications.Money;
 
 namespace BCRPClient.Sync
 {
@@ -16,13 +17,16 @@ namespace BCRPClient.Sync
 
         /// <summary>Интервал, в котором будет отниматься здоровье, если игрок ранен</summary>
         private const int WoundedTime = 30000;
+
         /// <summary>Кол-во здоровья, которое будет отниматься каждые WoundedTime мсек., если игрок ранен</summary>
         private const int WoundedReduceHP = 5;
 
         /// <summary>Интервал, в котором будет отниматься здоровье, если игрок голоден</summary>
         private const int HungryTime = 120000;
+
         /// <summary>Кол-во здоровья, которое будет отниматься каждые WoundedTime мсек., если игрок голоден</summary>
         private const int HungryReduceHP = 5;
+
         /// <summary>Кол-во здоровья, ниже которого оно не будет отниматься, если игрок голоден</summary>
         private const int HungryLowestHP = 10;
 
@@ -30,6 +34,28 @@ namespace BCRPClient.Sync
         private static GameEvents.UpdateHandler HungryHandler;
 
         private static List<Player> KnockedPlayers { get; set; }
+
+        private static Dictionary<string, Action<PlayerData, object, object>> DataActions = new Dictionary<string, Action<PlayerData, object, object>>();
+
+        private static void InvokeHandler(string dataKey, PlayerData pData, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(pData, value, oldValue);
+
+        private static void AddDataHandler(string dataKey, Action<PlayerData, object, object> action)
+        {
+            Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
+            {
+                if (entity is Player player)
+                {
+                    var data = Sync.Players.GetData(player);
+
+                    if (data == null)
+                        return;
+
+                    action.Invoke(data, value, oldValue);
+                }
+            });
+
+            DataActions.Add(dataKey, action);
+        }
 
         #region Enums
         public enum FractionTypes
@@ -97,86 +123,72 @@ namespace BCRPClient.Sync
 
         public class PlayerData
         {
-            Player Player = null;
+            public Player Player { get; }
 
             public PlayerData(Player Player) => this.Player = Player;
 
             #region Player Data
-            public int CID
-            {
-                get => Player.GetData<int>("CID");
+            public int CID => Player.GetSharedData<int>("CID", int.MinValue);
 
-                set
-                {
-                    Player.SetData("CID", value);
+            public int Cash => Player.GetSharedData<int>("Cash", 0);
 
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.Menu.SetCID(value);
-                    }
-                }
-            }
+            public int BankBalance => Player.GetSharedData<int>("BankBalance", 0);
 
-            public int Cash
-            {
-                get => Player.GetData<int>("Cash");
+            public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
-                set
-                {
-                    Player.SetData("Cash", value);
+            public FractionTypes Fraction => (FractionTypes)Player.GetSharedData<int>("Fraction", -1);
 
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.HUD.SetCash(value);
-                        CEF.Menu.SetCash(value);
-                    }
-                }
-            }
+            public int Satiety => Player.GetSharedData<int>("Satiety", 0);
 
-            public int BankBalance
-            {
-                get => Player.GetData<int>("BankBalance");
+            public int Mood => Player.GetSharedData<int>("Mood", 0);
 
-                set
-                {
-                    Player.SetData("BankBalance", value);
+            public bool Masked => Player.GetSharedData<bool>("Masked", false);
 
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.HUD.SetBank(value);
-                        CEF.Menu.SetBank(value);
-                    }
-                }
-            }
+            public bool Knocked => Player.GetSharedData<bool>("Knocked", false);
 
-            public bool Sex
-            {
-                get => Player.GetData<bool>("Sex");
+            public bool CrouchOn => Player.GetSharedData<bool>("Crouch::On", false);
 
-                set
-                {
-                    Player.SetData("Sex", value);
+            public bool CrawlOn => Player.GetSharedData<bool>("Crawl::On", false);
 
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.Menu.SetSex(value);
-                    }
-                }
-            }
-            public FractionTypes Fraction
-            {
-                get => Player.GetData<FractionTypes>("Fraction");
+            public float VoiceRange => Player.GetSharedData<float>("VoiceRange", 0f);
 
-                set
-                {
-                    Player.SetData("Fraction", value);
+            public bool IsMuted => VoiceRange < 0f;
 
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.Menu.SetFraction(value);
-                    }
-                }
-            }
+            public bool IsInvalid => Player.GetSharedData<bool>("IsInvalid", false);
+
+            public bool IsInvincible => Player.GetSharedData<bool>("IsInvincible", false);
+
+            public bool IsJailed => Player.GetSharedData<bool>("IsJailed", false);
+
+            public bool IsFrozen => Player.GetSharedData<bool>("IsFrozen", false);
+
+            public string Hat => Player.GetSharedData<string>("Hat", null);
+
+            public bool IsWounded => Player.GetSharedData<bool>("IsWounded", false);
+
+            public bool BeltOn => Player.GetSharedData<bool>("Belt::On", false);
+
+            public bool IsFingerPointing => Player.GetSharedData<bool>("IsFingerPointing", false);
+
+            public int VehicleSeat => Player.GetSharedData<int>("VehicleSeat", -1);
+
+            public bool PhoneOn => Player.GetSharedData<bool>("Phone::On", false);
+
+            public int AdminLevel => Player.GetSharedData<int>("AdminLevel", -1);
+
+            public Sync.Animations.GeneralTypes GeneralAnim => (Sync.Animations.GeneralTypes)Player.GetSharedData<int>("Anim::General", -1);
+
+            public Sync.Animations.FastTypes FastAnim => (Sync.Animations.FastTypes)Player.GetSharedData<int>("Anim::Fast", -1);
+
+            public Sync.Animations.OtherTypes OtherAnim => (Sync.Animations.OtherTypes)Player.GetSharedData<int>("Anim::Other", -1);
+
+            public Sync.Animations.WalkstyleTypes Walkstyle => (Sync.Animations.WalkstyleTypes)Player.GetSharedData<int>("Walkstyle", -1);
+
+            public Sync.Animations.EmotionTypes Emotion => (Sync.Animations.EmotionTypes)Player.GetSharedData<int>("Emotion", -1);
+
+            public int MuteTime { get => Player.GetData<int>("MuteTime"); set => Player.SetData("MuteTime", value); }
+
+            public int JailTime { get => Player.GetData<int>("JailTime"); set => Player.SetData("JailTime", value); }
 
             public List<int> Familiars { get; set; }
 
@@ -184,258 +196,7 @@ namespace BCRPClient.Sync
 
             public List<LicenseTypes> Licenses { get; set; }
 
-            public int Satiety
-            {
-                get => Player.GetData<int>("Satiety");
-
-                set
-                {
-                    Player.SetData("Satiety", value);
-
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.Inventory.UpdateStates();
-
-                        if (value <= 25)
-                        {
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, true);
-
-                            if (value % 5 == 0)
-                                CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowSatiety, false, 5000);
-
-                            if (value == 0)
-                            {
-                                HungryHandler -= HungryUpdate;
-                                HungryHandler += HungryUpdate;
-                            }
-                        }
-                        else
-                        {
-                            HungryHandler -= HungryUpdate;
-
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
-                        }
-                    }
-                }
-            }
-
-            public int Mood
-            {
-                get => Player.GetData<int>("Mood");
-
-                set
-                {
-                    Player.SetData("Mood", value);
-
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        CEF.Inventory.UpdateStates();
-
-                        if (value <= 25)
-                        {
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, true);
-
-                            if (value % 5 == 0)
-                                CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowMood, false, 5000);
-                        }
-                        else
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
-                    }
-                }
-            }
-
-            public bool Masked
-            {
-                get => Player.GetData<bool>("Masked");
-
-                set
-                {
-                    Player.SetData("Masked", value);
-                }
-            }
-
-            public bool Knocked
-            {
-                get => Player.GetData<bool>("Knocked");
-                
-                set
-                {
-                    Player.SetData("Knocked", value);
-
-                    if (value)
-                    {
-                        if (!KnockedPlayers.Contains(Player))
-                            KnockedPlayers.Add(Player);
-                    }
-                    else
-                        KnockedPlayers.Remove(Player);
-                }
-            }
-
-            public bool CrouchOn
-            {
-                get => Player.GetData<bool>("Crouch::On");
-
-                set
-                {
-                    Player.SetData("Crouch::On", value);
-                }
-            }
-
-            public bool CrawlOn
-            {
-                get => Player.GetData<bool>("Crawl::On");
-
-                set
-                {
-                    Player.SetData("Crawl::On", value);
-
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        if (value)
-                        {
-                            Crawl.On(true);
-                        }
-                        else
-                        {
-                            Crawl.Off(true);
-                        }
-                    }
-                }
-            }
-
-            public float VoiceRange
-            {
-                get => Player.GetData<float>("VoiceRange");
-
-                set => Player.SetData("VoiceRange", value);
-            }
-
-            public bool IsMuted { get => VoiceRange < 0f; }
-
-            public bool IsInvalid
-            {
-                get => Player.GetData<bool>("IsInvalid");
-
-                set
-                {
-                    Player.SetData("IsInvalid", value);
-
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        Settings.Special.DisabledPerson = value;
-                    }
-                }
-            }
-
-            public bool IsInvincible
-            {
-                get => Player.GetData<bool>("IsInvincible");
-
-                set
-                {
-                    Player.SetData("IsInvincible", value);
-
-                    if (Player.Handle != Player.LocalPlayer.Handle)
-                    {
-                        Player.SetInvincible(value);
-                        Player.SetCanBeDamaged(!value);
-                    }
-                }
-            }
-
-            public bool IsJailed { get => Player.GetData<bool>("IsJailed"); set => Player.SetData("IsJailed", value); }
-            public bool IsFrozen { get => Player.GetData<bool>("IsFrozen"); set => Player.SetData("IsFrozen", value); }
-            public string Hat { get => Player.GetData<string>("Hat"); set => Player.SetData("Hat", value); }
-
-            public bool IsWounded
-            {
-                get => Player.GetData<bool>("IsWounded");
-
-                set
-                {
-                    Player.SetData("IsWounded", value);
-
-                    if (Player.Handle == Player.LocalPlayer.Handle)
-                    {
-                        if (value)
-                        {
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, true);
-
-                            CEF.Notification.ShowHint(Locale.Notifications.Players.States.Wounded, false);
-
-                            WoundedHandler -= WoundedUpdate;
-                            WoundedHandler += WoundedUpdate;
-
-                            RAGE.Game.Graphics.StartScreenEffect("DeathFailMPDark", 0, true);
-                        }
-                        else
-                        {
-                            RAGE.Game.Graphics.StopScreenEffect("DeathFailMPDark");
-
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, false);
-
-                            WoundedHandler -= WoundedUpdate;
-                        }
-                    }
-                }
-            }
-
-            public bool BeltOn { get => Player.GetData<bool>("Belt::On"); set => Player.SetData("Belt::On", value); }
-            public bool IsFingerPointing { get => Player.GetData<bool>("IsFingerPointing"); set => Player.SetData("IsFingerPointing", value); }
-
-            public int VehicleSeat
-            {
-                get => Player.GetData<int>("VehicleSeat");
-
-                set
-                {
-                    Player.SetData("VehicleSeat", value);
-
-                    if (value >= 0)
-                    {
-                        if (Player.Vehicle?.Exists != true)
-                            return;
-
-                        Player.SetIntoVehicle(Player.Vehicle.Handle, value - 1);
-
-                        (new AsyncTask(() =>
-                        {
-                            Sync.Players.UpdateHat(Player);
-
-                            Phone.TurnVehiclePhone(Player);
-                        }, 250, false, 0)).Run();
-
-                        if (value == 0)
-                        {
-                            if (Player.Handle == Player.LocalPlayer.Handle)
-                                Vehicles.StartDriverSync();
-                        }
-                    }
-                    else
-                    {
-                        Sync.Players.UpdateHat(Player);
-
-                        Phone.TurnVehiclePhone(Player);
-                    }
-                }
-            }
-
-            public bool PhoneOn { get => Player.GetData<bool>("Phone::On"); set => Player.SetData("Phone::On", value); }
-
             public Entity IsAttachedTo { get => Player.GetData<Entity>("IsAttachedTo::Entity"); set => Player.SetData("IsAttachedTo::Entity", value); }
-
-            public int AdminLevel { get => Player.GetData<int>("AdminLevel"); set => Player.SetData("AdminLevel", value); }
-
-            public Sync.Animations.GeneralTypes GeneralAnim { get => Player.GetData<Sync.Animations.GeneralTypes>("Anim::General"); set => Player.SetData("Anim::General", value); }
-            public Sync.Animations.FastTypes FastAnim { get => Player.GetData<Sync.Animations.FastTypes>("Anim::Fast"); set => Player.SetData("Anim::Fast", value); }
-            public Sync.Animations.OtherTypes OtherAnim { get => Player.GetData<Sync.Animations.OtherTypes>("Anim::Other"); set => Player.SetData("Anim::Other", value); }
-
-            public Sync.Animations.WalkstyleTypes Walkstyle { get => Player.GetData<Sync.Animations.WalkstyleTypes>("Walkstyle"); set => Player.SetData("Walkstyle", value); }
-            public Sync.Animations.EmotionTypes Emotion { get => Player.GetData<Sync.Animations.EmotionTypes>("Emotion"); set => Player.SetData("Emotion", value); }
-
-            public int MuteTime { get => Player.GetData<int>("MuteTime"); set => Player.SetData("MuteTime", value); }
-            public int JailTime { get => Player.GetData<int>("JailTime"); set => Player.SetData("JailTime", value); }
 
             public Data.Customization.HairOverlay HairOverlay
             {
@@ -549,49 +310,30 @@ namespace BCRPClient.Sync
                 foreach (var x in data.Skills)
                     CEF.Menu.UpdateSkill(x.Key, x.Value);
 
-                data.CID = player.GetSharedData<int>("CID", -1);
-
                 while (data.CID < 0)
                 {
                     await RAGE.Game.Invoker.WaitAsync(10);
-
-                    data.CID = player.GetSharedData<int>("CID", -1);
                 }
 
-                data.Cash = player.GetSharedData<int>("Cash");
-                data.BankBalance = player.GetSharedData<int>("BankBalance");
-                data.Sex = player.GetSharedData<bool>("Sex");
-                data.Fraction = (FractionTypes)player.GetSharedData<int>("Fraction");
+                InvokeHandler("CID", data, data.CID, null);
 
-                data.Mood = player.GetSharedData<int>("Mood");
-                data.Satiety = player.GetSharedData<int>("Satiety");
+                InvokeHandler("Cash", data, data.Cash, null);
+                InvokeHandler("BankBalance", data, data.BankBalance, null);
 
-                data.Knocked = player.GetSharedData<bool>("Knocked");
-                data.Masked = false;
-                data.IsInvincible = player.GetSharedData<bool>("IsInvincible");
+                InvokeHandler("Sex", data, data.Sex, null);
 
-                data.CrouchOn = false;
-                data.CrawlOn = false;
-                data.VoiceRange = player.GetSharedData<float>("VoiceRange");
-                data.IsWounded = player.GetSharedData<bool>("IsWounded");
+                InvokeHandler("Fraction", data, data.Fraction, null);
 
-                data.BeltOn = false;
-                data.IsFingerPointing = false;
+                InvokeHandler("Mood", data, data.Mood, null);
+                InvokeHandler("Satiety", data, data.Satiety, null);
 
-                data.PhoneOn = false;
+                InvokeHandler("Knocked", data, data.Knocked, null);
 
-                data.FastAnim = (Sync.Animations.FastTypes)player.GetSharedData<int>("Anim::Fast");
-                data.GeneralAnim = (Sync.Animations.GeneralTypes)player.GetSharedData<int>("Anim::General");
-                data.OtherAnim = (Sync.Animations.OtherTypes)player.GetSharedData<int>("Anim::Other");
+                InvokeHandler("Wounded", data, data.IsWounded, null);
 
-                data.AdminLevel = player.GetSharedData<int>("AdminLevel");
-                data.Hat = player.GetSharedData<string>("Hat");
+                InvokeHandler("Anim::General", data, data.GeneralAnim, null);
 
-                data.VehicleSeat = -1;
-
-                data.HairOverlay = Data.Customization.GetHairOverlay(player.IsMale(), player.GetSharedData<int>("Customization::HairOverlay"));
-
-                data.IsAttachedTo = null;
+                data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay"));
 
                 SetData(Player.LocalPlayer, data);
 
@@ -607,7 +349,7 @@ namespace BCRPClient.Sync
 
                 while (data == null)
                 {
-                    await RAGE.Game.Invoker.WaitAsync(50);
+                    await RAGE.Game.Invoker.WaitAsync(25);
 
                     data = GetData(Player.LocalPlayer);
                 }
@@ -627,8 +369,6 @@ namespace BCRPClient.Sync
                 await CEF.Animations.Load();
 
                 Events.CallRemote("Players::CharacterReady", data.IsInvalid, Settings.Other.CurrentEmotion, Settings.Other.CurrentWalkstyle);
-
-                //CEF.Browser.Window.ExecuteJs("Menu.drawColorPicker", Settings.Aim.Color.ToHEX());
 
                 CharacterLoaded = true;
 
@@ -653,122 +393,76 @@ namespace BCRPClient.Sync
             #endregion
 
             #region New Player Stream
-            Events.OnEntityStreamIn += (Entity entity) =>
+            Events.OnEntityStreamIn += async (Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                Player player = entity as Player;
-
-                player.AutoVolume = false;
-                player.Voice3d = false;
-                player.VoiceVolume = 0f;
-
-                if (player?.Exists != true || player.IsLocal)
-                    return;
-
-                PlayerData data = new PlayerData(player);
-
-                data.CID = player.GetSharedData<int>("CID", -1);
-
-                if (data.CID < 0)
-                    return;
-
-                data.Sex = player.IsMale();
-                data.Fraction = (FractionTypes)player.GetSharedData<int>("Fraction", -1);
-                //data.Familiars = new List<int>() { data.CID };
-
-                data.Knocked = player.GetSharedData<bool>("Knocked");
-                data.Masked = player.GetSharedData<bool>("Masked");
-                data.Hat = player.GetSharedData<string>("Hat", null);
-
-                data.CrouchOn = player.GetSharedData<bool>("Crouch::On");
-                data.CrawlOn = player.GetSharedData<bool>("Crawl::On");
-                data.VoiceRange = player.GetSharedData<float>("VoiceRange");
-                data.IsInvalid = player.GetSharedData<bool>("IsInvalid");
-
-                //data.BeltOn = false;
-                data.IsFingerPointing = player.GetSharedData<bool>("IsFingerPointing");
-
-                data.VehicleSeat = player.GetSharedData<int>("VehicleSeat", -1);
-
-                data.PhoneOn = player.GetSharedData<bool>("Phone::On");
-
-                data.AdminLevel = player.GetSharedData<int>("AdminLevel", -1);
-
-                data.GeneralAnim = (Sync.Animations.GeneralTypes)player.GetSharedData<int>("Anim::General", -1);
-                data.OtherAnim = (Sync.Animations.OtherTypes)player.GetSharedData<int>("Anim::Other", -1);
-
-                data.HairOverlay = Data.Customization.GetHairOverlay(player.IsMale(), player.GetSharedData<int>("Customization::HairOverlay", -1));
-
-                if (player.GetAlpha() != 255)
-                    player.SetNoCollisionEntity(Player.LocalPlayer.Handle, false);
-
-                SetData(player, data);
-
-                (new AsyncTask(() =>
+                if (entity is Player player)
                 {
-                    if (player?.Exists != true)
-                        return true;
+                    if (!player.Exists || player.IsLocal)
+                        return;
 
-                    if (player.Handle != 0)
+                    var loaded = await player.WaitIsLoaded();
+
+                    if (!loaded)
+                        return;
+
+                    player.AutoVolume = false;
+                    player.Voice3d = false;
+                    player.VoiceVolume = 0f;
+
+                    PlayerData data = new PlayerData(player);
+
+                    if (data.CID < 0)
+                        return;
+
+                    data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
+
+                    if (player.GetAlpha() != 255)
+                        player.SetNoCollisionEntity(Player.LocalPlayer.Handle, false);
+
+                    if (data.VehicleSeat != -1)
                     {
-                        if (data.VehicleSeat != -1 && player.Vehicle != null)
-                        {
-                            data.VehicleSeat = data.VehicleSeat;
-                        }
-
-                        if (data.VoiceRange > 0f)
-                            Sync.Microphone.AddTalker(player);
-
-                        if (data.CrouchOn)
-                            Crouch.On(true, player);
-
-                        if (data.PhoneOn)
-                            Phone.On(true, player);
-                        
-                        if (data.GeneralAnim != Animations.GeneralTypes.None)
-                            Sync.Animations.Play(player, data.GeneralAnim);
-
-                        if (data.OtherAnim != Animations.OtherTypes.None)
-                            Sync.Animations.Play(player, data.OtherAnim);
-
-                        return true;
+                        InvokeHandler("VehicleSeat", data, data.VehicleSeat, null);
                     }
 
-                    return false;
-                }, 10, true, 500)).Run();
+                    if (data.VoiceRange > 0f)
+                        Sync.Microphone.AddTalker(player);
+
+                    if (data.CrouchOn)
+                        Crouch.On(true, player);
+
+                    if (data.PhoneOn)
+                        Phone.On(true, player);
+
+                    if (data.GeneralAnim != Animations.GeneralTypes.None)
+                        Sync.Animations.Play(player, data.GeneralAnim);
+
+                    if (data.OtherAnim != Animations.OtherTypes.None)
+                        Sync.Animations.Play(player, data.OtherAnim);
+
+                    SetData(player, data);
+                }
             };
 
             Events.OnEntityStreamOut += (Entity entity) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Player)
-                    return;
+                if (entity is Player player)
+                {
+                    player.ClearTasksImmediately();
 
-                Player player = (Player)entity;
+                    player.SetNoCollisionEntity(Player.LocalPlayer.Handle, true);
 
-                var data = GetData(player);
+                    var data = GetData(player);
 
-                if (data == null)
-                    return;
+                    if (data == null)
+                        return;
 
-                Sync.Microphone.RemoveTalker(player);
-                Sync.Microphone.RemoveListener(player, false);
+                    Sync.Microphone.RemoveTalker(player);
+                    Sync.Microphone.RemoveListener(player, false);
 
-                if (data.CrouchOn)
-                    Crouch.Off(true, player);
+                    KnockedPlayers.Remove(player);
 
-                if (data.PhoneOn)
-                    Phone.Off(true, player);
-
-                if (data.GeneralAnim != Animations.GeneralTypes.None)
-                    Animations.Stop(player);
-
-                data.Reset();
-
-                player.SetNoCollisionEntity(Player.LocalPlayer.Handle, true);
-
-                KnockedPlayers.Remove(player);
+                    data.Reset();
+                }
             };
             #endregion
 
@@ -822,19 +516,9 @@ namespace BCRPClient.Sync
                 CloseAll((bool)args[0]);
             });
 
-            Events.AddDataHandler("Anim::Fast", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Anim::Fast", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.FastAnim = (Animations.FastTypes)(int)value;
             });
 
             Events.Add("Player::Skills::Update", (object[] args) =>
@@ -918,248 +602,216 @@ namespace BCRPClient.Sync
                     CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(state ? Locale.Notifications.Players.Administrator.FreezedBy : Locale.Notifications.Players.Administrator.UnfreezedBy, (string)args[1]));
             });
 
-            Events.AddDataHandler("Cash", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("CID", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var player = entity as Player;
+                var cid = (int)value;
 
-                var pData = GetData(player);
+                CEF.Menu.SetCID(cid);
+            });
 
-                if (pData == null)
+            AddDataHandler("Cash", (pData, value, oldValue) =>
+            {
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                pData.Cash = (int)value;
-                var diff = pData.Cash - (oldValue == null ? pData.Cash : (int)oldValue);
+                var cash = (int)value;
+
+                CEF.HUD.SetCash(cash);
+                CEF.Menu.SetCash(cash);
+
+                var diff = cash - (oldValue == null ? cash : (int)oldValue);
 
                 if (diff == 0)
                     return;
 
                 string header = string.Format(diff <= 0 ? Locale.Notifications.Money.Cash.LossHeader : Locale.Notifications.Money.Cash.AddHeader, Math.Abs(diff));
-                string content = string.Format(Locale.Notifications.Money.Cash.Balance, pData.Cash);
+                string content = string.Format(Locale.Notifications.Money.Cash.Balance, cash);
 
                 CEF.Notification.Show(CEF.Notification.Types.Cash, header, content);
             });
 
-            Events.AddDataHandler("BankBalance", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("BankBalance", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var player = entity as Player;
+                var bank = (int)value;
 
-                var pData = GetData(player);
+                CEF.HUD.SetBank(bank);
+                CEF.Menu.SetBank(bank);
 
-                if (pData == null)
-                    return;
-
-                pData.BankBalance = (int)value;
-                var diff = pData.BankBalance - (oldValue == null ? pData.BankBalance : (int)oldValue);
+                var diff = bank - (oldValue == null ? bank : (int)oldValue);
 
                 if (diff == 0)
                     return;
 
                 string header = string.Format(diff <= 0 ? Locale.Notifications.Money.Bank.LossHeader : Locale.Notifications.Money.Bank.AddHeader, Math.Abs(diff));
-                string content = string.Format(Locale.Notifications.Money.Bank.Balance, pData.BankBalance);
+                string content = string.Format(Locale.Notifications.Money.Bank.Balance, bank);
 
                 CEF.Notification.Show(CEF.Notification.Types.Bank, header, content);
             });
 
-            Events.AddDataHandler("Belt::On", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("IsWounded", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var state = (bool)value;
 
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.BeltOn = (bool)value;
-
-                if ((bool)value)
+                if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    GameEvents.Update -= Sync.Vehicles.BeltTick;
-                    GameEvents.Update += Sync.Vehicles.BeltTick;
+                    if (state)
+                    {
+                        CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, true);
+
+                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.Wounded, false);
+
+                        WoundedHandler -= WoundedUpdate;
+                        WoundedHandler += WoundedUpdate;
+
+                        RAGE.Game.Graphics.StartScreenEffect("DeathFailMPDark", 0, true);
+                    }
+                    else
+                    {
+                        RAGE.Game.Graphics.StopScreenEffect("DeathFailMPDark");
+
+                        CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, false);
+
+                        WoundedHandler -= WoundedUpdate;
+                    }
+                }
+            });
+
+            AddDataHandler("Mood", (pData, value, oldValue) =>
+            {
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
+                    return;
+
+                var mood = (int)value;
+
+                if (mood <= 25)
+                {
+                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, true);
+
+                    if (mood % 5 == 0)
+                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowMood, false, 5000);
+                }
+                else
+                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
+
+                CEF.Inventory.UpdateStates();
+            });
+
+            AddDataHandler("Satiety", (pData, value, oldValue) =>
+            {
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
+                    return;
+
+                var satiety = (int)value;
+
+                if (satiety <= 25)
+                {
+                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, true);
+
+                    if (satiety % 5 == 0)
+                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowSatiety, false, 5000);
+
+                    if (satiety == 0)
+                    {
+                        HungryHandler -= HungryUpdate;
+                        HungryHandler += HungryUpdate;
+                    }
                 }
                 else
                 {
-                    GameEvents.Update -= Sync.Vehicles.BeltTick;
+                    HungryHandler -= HungryUpdate;
+
+                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
                 }
 
-                player.SetConfigFlag(32, !(bool)value);
-                HUD.SwitchBeltIcon((bool)value);
-            });
-
-            Events.AddDataHandler("IsWounded", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.IsWounded = (bool)value;
-            });
-
-            Events.AddDataHandler("Mood", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Mood = (int)value;
-            });
-
-            Events.AddDataHandler("Satiety", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Satiety = (int)value;
+                CEF.Inventory.UpdateStates();
             });
             #endregion
 
             #region Streamed Players Data Change
 
-            Events.AddDataHandler("Emotion", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Emotion", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Emotion = (Animations.EmotionTypes)(int)value;
+                var emotion = (Animations.EmotionTypes)(int)value;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    Settings.Other.CurrentEmotion = pData.Emotion;
+                    Settings.Other.CurrentEmotion = emotion;
 
-                    CEF.Animations.ToggleAnim("e-" + Settings.Other.CurrentEmotion.ToString(), true);
+                    CEF.Animations.ToggleAnim("e-" + emotion.ToString(), true);
                 }
 
-                Sync.Animations.Set(player, pData.Emotion);
+                Sync.Animations.Set(player, emotion);
             });
 
-            Events.AddDataHandler("Walkstyle", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Walkstyle", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Walkstyle = (Animations.WalkstyleTypes)(int)value;
+                var wStyle = (Animations.WalkstyleTypes)(int)value;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    Settings.Other.CurrentWalkstyle = pData.Walkstyle;
+                    Settings.Other.CurrentWalkstyle = wStyle;
 
-                    CEF.Animations.ToggleAnim("w-" + Settings.Other.CurrentWalkstyle.ToString(), true);
+                    CEF.Animations.ToggleAnim("w-" + wStyle.ToString(), true);
                 }
 
                 if (!pData.CrouchOn)
-                    Sync.Animations.Set(player, pData.Walkstyle);
+                    Sync.Animations.Set(player, wStyle);
             });
 
-            Events.AddDataHandler("Anim::Other", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Anim::Other", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.OtherAnim = (Sync.Animations.OtherTypes)(int)value;
+                var anim = (Sync.Animations.OtherTypes)(int)value;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    if (pData.OtherAnim == Animations.OtherTypes.None)
+                    if (anim == Animations.OtherTypes.None)
                     {
                         if (oldValue != null)
-                            CEF.Animations.ToggleAnim("a-" + ((Sync.Animations.OtherTypes)(int)oldValue).ToString(), false);
+                            CEF.Animations.ToggleAnim("a-" + anim.ToString(), false);
 
                         GameEvents.Render -= CEF.Animations.Render;
                         KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();
                     }
                     else
                     {
-                        CEF.Animations.ToggleAnim("a-" + pData.OtherAnim.ToString(), true);
+                        CEF.Animations.ToggleAnim("a-" + anim.ToString(), true);
                     }
                 }
 
-                if (pData.OtherAnim == Animations.OtherTypes.None)
+                if (anim == Animations.OtherTypes.None)
                     Sync.Animations.Stop(player);
                 else
-                    Sync.Animations.Play(player, pData.OtherAnim);
+                    Sync.Animations.Play(player, anim);
             });
 
-            Events.AddDataHandler("Anim::General", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Anim::General", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var anim = (Sync.Animations.GeneralTypes)(int)value;
 
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.GeneralAnim = (Sync.Animations.GeneralTypes)(int)value;
-
-                if ((Sync.Animations.GeneralTypes)(int)value == Animations.GeneralTypes.None)
+                if (anim == Animations.GeneralTypes.None)
+                {
                     Sync.Animations.Stop(player);
+                }
                 else
-                    Sync.Animations.Play(player, (Sync.Animations.GeneralTypes)(int)value);
-            });
-
-            Events.AddDataHandler("VehicleSeat", (Entity entity, object value, object oldValue) =>
-            {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.VehicleSeat = (int)value;
+                {
+                    Sync.Animations.Play(player, anim);
+                }
             });
 
             Events.AddDataHandler("Customization::HairOverlay", (Entity entity, object value, object oldValue) =>
@@ -1177,24 +829,16 @@ namespace BCRPClient.Sync
                 pData.HairOverlay = Data.Customization.GetHairOverlay(player.IsMale(), (int)value);
             });
 
-            Events.AddDataHandler("Belt::On", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Belt::On", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var player = entity as Player;
+                var state = (bool)value;
 
-                if (player.Handle != Player.LocalPlayer.Handle)
-                    return;
+                var player = pData.Player;
 
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.BeltOn = (bool)value;
-
-                if ((bool)value)
+                if (state)
                 {
                     GameEvents.Update -= Sync.Vehicles.BeltTick;
                     GameEvents.Update += Sync.Vehicles.BeltTick;
@@ -1204,25 +848,18 @@ namespace BCRPClient.Sync
                     GameEvents.Update -= Sync.Vehicles.BeltTick;
                 }
 
-                player.SetConfigFlag(32, !(bool)value);
-                HUD.SwitchBeltIcon((bool)value);
+                player.SetConfigFlag(32, !state);
+
+                HUD.SwitchBeltIcon(state);
             });
 
-            Events.AddDataHandler("Phone::On", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Phone::On", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var state = (bool)value;
 
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.PhoneOn = (bool)value;
-
-                if ((bool)value)
+                if (state)
                 {
                     Phone.On(true, player);
                 }
@@ -1232,36 +869,32 @@ namespace BCRPClient.Sync
                 }
             });
 
-            Events.AddDataHandler("Crawl::On", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Crawl::On", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var state = (bool)value;
 
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.CrawlOn = (bool)value;
+                if (player.Handle == Player.LocalPlayer.Handle)
+                {
+                    if (state)
+                    {
+                        Crawl.On(true);
+                    }
+                    else
+                    {
+                        Crawl.Off(true);
+                    }
+                }
             });
 
-            Events.AddDataHandler("Crouch::On", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Crouch::On", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var state = (bool)value;
 
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.CrouchOn = (bool)value;
-
-                if (pData.CrouchOn)
+                if (state)
                 {
                     Crouch.On(true, player);
                 }
@@ -1271,111 +904,61 @@ namespace BCRPClient.Sync
                 }
             });
 
-            Events.AddDataHandler("IsInvalid", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("IsInvalid", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
+                var state = (bool)value;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.IsInvalid = (bool)value;
+                if (player.Handle == Player.LocalPlayer.Handle)
+                {
+                    Settings.Special.DisabledPerson = state;
+                }
             });
 
-            Events.AddDataHandler("IsInvisible", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("IsInvisible", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
+                var player = pData.Player;
 
                 player.SetNoCollisionEntity(Player.LocalPlayer.Handle, !(bool)value);
             });
 
-            Events.AddDataHandler("IsInvincible", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("IsInvincible", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.IsInvincible = (bool)value;
             });
 
-            Events.AddDataHandler("Hat", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Hat", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Hat = (string)value;
             });
 
-            Events.AddDataHandler("Sex", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Sex", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var state = (bool)value;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Sex = (bool)value;
+                CEF.Menu.SetSex(state);
             });
 
-            Events.AddDataHandler("Masked", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Masked", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Masked = (bool)value;
             });
 
-            Events.AddDataHandler("Knocked", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Knocked", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var state = (bool)value;
 
-                var pData = GetData(player);
+                if (state)
+                {
+                    if (!KnockedPlayers.Contains(player))
+                        KnockedPlayers.Add(player);
+                }
+                else
+                    KnockedPlayers.Remove(player);
 
-                if (pData == null)
-                    return;
-
-                pData.Knocked = (bool)value;
-
-                if ((bool)value)
+                if (state)
                 {
                     player.SetCanRagdoll(false);
                 }
@@ -1386,7 +969,7 @@ namespace BCRPClient.Sync
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    if ((bool)value)
+                    if (state)
                     {
                         CEF.Death.Show();
 
@@ -1406,69 +989,70 @@ namespace BCRPClient.Sync
                 }
             });
 
-            Events.AddDataHandler("Fraction", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Fraction", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var fraction = (FractionTypes)(int)value;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.Fraction = (FractionTypes)((int)value);
+                if (pData.Player.Handle == Player.LocalPlayer.Handle)
+                    CEF.Menu.SetFraction(fraction);
             });
 
-            Events.AddDataHandler("AdminLevel", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("AdminLevel", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.AdminLevel = (int)value;
             });
 
-            Events.AddDataHandler("VehicleSeat", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("VehicleSeat", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
+                var seat = (int)value;
 
-                var pData = GetData(player);
+                if (seat >= 0)
+                {
+                    if (player.Vehicle?.Exists != true)
+                        return;
 
-                if (pData == null)
-                    return;
+                    player.SetIntoVehicle(player.Vehicle.Handle, seat - 1);
 
-                pData.VehicleSeat = (int)value;
+                    AsyncTask.RunSlim(() =>
+                    {
+                        Sync.Players.UpdateHat(player);
+
+                        Phone.TurnVehiclePhone(player);
+                    }, 250);
+
+                    if (player.Handle == Player.LocalPlayer.Handle)
+                    {
+                        if (seat == 0 || seat == 1)
+                        {
+                            HUD.SwitchSpeedometer(true);
+
+                            if (seat == 0)
+                                Vehicles.StartDriverSync();
+                        }
+                        else
+                            HUD.SwitchSpeedometer(false);
+                    }
+                }
+                else
+                {
+                    Sync.Players.UpdateHat(player);
+
+                    Phone.TurnVehiclePhone(player);
+                }
             });
 
-            Events.AddDataHandler("VoiceRange", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("VoiceRange", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
+                var player = pData.Player;
 
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.VoiceRange = (float)value;
+                var vRange = (float)value;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
                     // Voice Off
-                    if (pData.VoiceRange > 0f)
+                    if (vRange > 0f)
                     {
                         Voice.Muted = false;
 
@@ -1482,7 +1066,7 @@ namespace BCRPClient.Sync
                         Sync.Microphone.SetTalkingAnim(Player.LocalPlayer, true);
                     }
                     // Voice On / Muted
-                    else if (pData.VoiceRange <= 0f)
+                    else if (vRange <= 0f)
                     {
                         Sync.Microphone.StopUpdateListeners();
 
@@ -1494,7 +1078,7 @@ namespace BCRPClient.Sync
 
                         GameEvents.Update -= Sync.Microphone.OnTick;
 
-                        if (pData.VoiceRange < 0f)
+                        if (vRange < 0f)
                         {
                             CEF.HUD.SwitchMicroIcon(null);
                         }
@@ -1502,7 +1086,7 @@ namespace BCRPClient.Sync
                 }
                 else
                 {
-                    if (pData.VoiceRange > 0f)
+                    if (vRange > 0f)
                     {
                         Sync.Microphone.AddTalker(player);
                     }

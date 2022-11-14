@@ -176,7 +176,7 @@ namespace BCRPServer.CEF
 
                         pData.Clothes = newClothes;
 
-                        int CID = await Task.Run(() => MySQL.AddNewCharacter(pData, aData));
+                        int CID = await Task.Run(() => MySQL.AddNewCharacter(pData, aData, sex));
 
                         if (CID == -1)
                             return;
