@@ -43,6 +43,7 @@ namespace BCRPServer.Sync
             if (curAmmo < lastAmmo)
             {
                 weapon.Ammo = curAmmo;
+
                 weapon.Update();
             }
         }

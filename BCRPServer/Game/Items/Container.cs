@@ -1294,7 +1294,7 @@ namespace BCRPServer.Game.Items
                         if (player?.Exists != true)
                             return (null, null, 0);
 
-                        if (!pData.AnyAnimActive())
+                        if (!pData.CanPlayAnim())
                             pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
                         return (player.GetFrontOf(0.6f), player.Rotation, player.Dimension);

@@ -27,9 +27,18 @@ namespace BCRPClient.Sync
             ShowPasport,
         }
 
+        public enum ReplyTypes
+        {
+            Deny = 0,
+            Accept,
+            Busy,
+            AutoCancel,
+        }
+
         private static DateTime LastSent;
 
         private static Player CurrentTarget { get; set; }
+
         public static bool IsActive { get => CurrentTarget != null; }
 
         private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
@@ -69,6 +78,15 @@ namespace BCRPClient.Sync
 
                 if (player?.Exists != true)
                     return;
+
+                if (Utils.IsAnyCefActive(false))
+                {
+                    CurrentTarget = player;
+
+                    Reply(ReplyTypes.Busy);
+
+                    return;
+                }
 
                 Show(player, type, data);
             });
@@ -128,12 +146,12 @@ namespace BCRPClient.Sync
 
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
             {
-                Reply(true, true);
+                Reply(ReplyTypes.Accept);
             }));
 
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
             {
-                Reply(false, true);
+                Reply(ReplyTypes.Deny);
             }));
         }
 
@@ -162,18 +180,18 @@ namespace BCRPClient.Sync
             LastSent = DateTime.Now;
         }
 
-        public static void Reply(bool reply, bool isManual)
+        public static void Reply(ReplyTypes rType = ReplyTypes.AutoCancel)
         {
             if (CurrentTarget == null)
                 return;
 
-            if (!isManual || !LastSent.IsSpam(2000, false, false))
+            if (rType == ReplyTypes.AutoCancel || rType == ReplyTypes.Busy || !LastSent.IsSpam(2000, false, false))
             {
-                Events.CallRemote("Offers::Reply", reply, isManual);
+                Events.CallRemote("Offers::Reply", (int)rType);
 
                 LastSent = DateTime.Now;
 
-                if (!reply)
+                if (rType != ReplyTypes.Accept)
                     GameEvents.Update -= OfferTick;
             }
         }
@@ -182,7 +200,9 @@ namespace BCRPClient.Sync
         {
             if (CurrentTarget?.Exists != true || Vector3.Distance(CurrentTarget.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
             {
-                Reply(false, false);
+                Reply(ReplyTypes.AutoCancel);
+
+                return;
             }
         }
     }

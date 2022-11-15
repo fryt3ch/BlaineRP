@@ -16,8 +16,6 @@ namespace BCRPClient.Sync
 
         public static bool Toggled = false;
 
-        private static float MaxPointDistance = 7.5f;
-
         private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
         {
             Utils.Actions.Knocked,
@@ -82,7 +80,7 @@ namespace BCRPClient.Sync
 
             PushVehicle.Off();
 
-            Events.CallLocal("Players::FingerPointStart");
+            Events.CallLocal("fpoint_toggle", true);
 
             Toggled = true;
             LastSwitchTime = DateTime.Now;
@@ -93,7 +91,7 @@ namespace BCRPClient.Sync
             if (!Toggled)
                 return;
 
-            Events.CallLocal("Players::FingerPointStop");
+            Events.CallLocal("fpoint_toggle", false);
 
             Toggled = false;
         }

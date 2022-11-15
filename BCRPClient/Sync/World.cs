@@ -48,6 +48,14 @@ namespace BCRPClient.Sync
                 Events.CallLocal("ExtraColshape::New", x);
             }
 
+            (new AsyncTask(() =>
+            {
+                for (int i = 0; i < ItemsOnGround.Count; i++)
+                {
+                    ItemsOnGround[i]?.PlaceOnGroundProperly();
+                }
+            }, 2500, true, 0)).Run();
+
             Preloaded = true;
         }
 
@@ -132,65 +140,41 @@ namespace BCRPClient.Sync
 
                 obj.SetData("Amount", (int)value);
             });
-
-            Events.Add("IOG::RequestUpdate", (object[] args) =>
-            {
-                if (!Preloaded)
-                    return;
-
-                MapObject obj = (MapObject)args[0];
-
-                if (obj == null)
-                    return;
-
-                if (!obj.IsStreamed())
-                    return;
-
-                var newPos = obj.GetCoords(true);
-
-                if (obj.Position != newPos)
-                    Events.CallRemote("IOG::Update", obj.GetData<uint>("UID"), RAGE.Util.Json.Serialize(newPos), RAGE.Util.Json.Serialize(obj.GetRotation(2)));
-            });
-
-            Events.Add("IOG::Reset", (object[] args) =>
-            {
-                if (!Preloaded)
-                    return;
-
-                MapObject obj = (MapObject)args[0];
-
-                if (obj == null)
-                    return;
-
-                if (!obj.IsStreamed())
-                    return;
-
-                var pos = obj.Position;
-
-                obj.SetCoords(pos.X, pos.Y, pos.Z, true, false, false, false);
-
-                obj.FreezePosition(false);
-                obj.SetActivatePhysicsAsSoonAsItIsUnfrozen(true);
-                obj.SetHasGravity(true);
-                obj.SetCollision(true, true);
-            });
             #endregion
 
             #region New IOG Stream
-            Events.OnEntityStreamIn += ((Entity entity) =>
+            Events.OnEntityStreamIn += (async (Entity entity) =>
             {
                 if (entity is MapObject obj)
                 {
                     if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
                         return;
 
-                    obj.FreezePosition(false);
-                    obj.SetActivatePhysicsAsSoonAsItIsUnfrozen(true);
-                    obj.SetHasGravity(true);
-                    obj.SetCollision(true, true);
+/*                    var loaded = await obj.WaitIsLoaded();
+
+                    if (!loaded)
+                        return;*/
+
+                    obj.SetCanBeDamaged(false);
+                    obj.SetInvincible(true);
+
+                    obj.PlaceOnGroundProperly();
+
+                    obj.FreezePosition(true);
+
+                    obj.SetCollision(false, true);
+
+                    /*                    obj.SetPhysicsParams(1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f);
+
+                                        obj.FreezePosition(false);
+                                        obj.SetActivatePhysicsAsSoonAsItIsUnfrozen(true);
+                                        obj.SetHasGravity(true);
+                                        obj.SetCollision(true, true);
+
+                                        obj.ApplyForceTo(5, 1f, 1f, 1f, 0f, 0f, 1f, 0, false, true, true, true, true);*/
 
                     obj.SetData("Name", Data.Items.GetName(obj.GetSharedData<string>("ID", null)));
-                    obj.SetData("UID", RAGE.Util.Json.Deserialize<uint>(obj.GetSharedData<string>("UID")));
+                    obj.SetData("UID", obj.GetSharedData<int>("UID").ToUInt32());
                     obj.SetData("Amount", obj.GetSharedData<int>("Amount", -1));
 
                     if (obj.GetData<string>("Name") == null)

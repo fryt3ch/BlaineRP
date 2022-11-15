@@ -167,7 +167,7 @@ namespace BCRPClient.CEF
 
                 RenderedInterfaces.Add(IntNames.Where(x => x.Value == (string)args[0]).First().Key);
 
-                Utils.ConsoleOutput($"v-if: Ready, {IntNames.Where(x => x.Value == (string)args[0]).First().Key}");
+                //Utils.ConsoleOutput($"v-if: Ready, {IntNames.Where(x => x.Value == (string)args[0]).First().Key}");
             });
         }
 
@@ -221,7 +221,7 @@ namespace BCRPClient.CEF
                 IsAnyCEFActive = ActiveInterfaces.Union(NormalInterfaces).Count() > NormalInterfaces.Count;
             }
 
-            Utils.ConsoleOutput($"v-switch: {state}, {type}");
+            //Utils.ConsoleOutput($"v-switch: {state}, {type}");
 
             Window.ExecuteJs("switchTemplate", state, IntNames[type]);
         }
@@ -230,7 +230,7 @@ namespace BCRPClient.CEF
         {
             Window.ExecuteJs("renderTemplate", state, IntNames[type]);
 
-            Utils.ConsoleOutput($"v-if: {state}, {type}");
+            //Utils.ConsoleOutput($"v-if: {state}, {type}");
 
             if (state)
             {

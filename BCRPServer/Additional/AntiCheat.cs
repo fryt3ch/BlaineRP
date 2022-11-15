@@ -25,19 +25,25 @@ namespace BCRPServer.Additional
             if (player?.Exists != true)
                 return;
 
-            var pDim = player.Dimension;
+            if (dimension == null)
+            {
+                player.TriggerEvent("AC::State::TP", pos, toGround);
+            }
+            else
+            {
+                player.TriggerEvent("AC::State::TP", pos, toGround, dimension);
 
-            if (dimension != null)
-                pDim = (uint)dimension;
-
-            player.TriggerEvent("AC::State::TP", pos, toGround, NAPI.Util.ToJson(pDim));
-
-            player.Dimension = pDim;
+                player.Dimension = (uint)dimension;
+            }
 
             if (pos == null)
+            {
                 pos = player.Position;
+            }
             else
+            {
                 player.Position = pos;
+            }
 
             var pData = player.GetMainData();
 
@@ -117,7 +123,7 @@ namespace BCRPServer.Additional
 
             player.RemoveAllWeapons();
 
-            player.TriggerEvent("AC::State::Weapon", NAPI.Util.ToJson(hash), ammo);
+            player.TriggerEvent("AC::State::Weapon", ammo, hash);
 
             NAPI.Player.GivePlayerWeapon(player, hash, ammo);
         }
@@ -133,7 +139,7 @@ namespace BCRPServer.Additional
 
             //amount++;
 
-            player.TriggerEvent("AC::State::Weapon", "-1", amount);
+            player.TriggerEvent("AC::State::Weapon", amount);
 
             //NAPI.Player.SetPlayerCurrentWeaponAmmo(player, amount);
         }

@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -736,7 +737,7 @@ namespace BCRPServer
         #endregion
 
         #region Save On Exit
-        public static void SaveCharacterOnExit(int cid, int timePlayed, int hp, uint dim, float heading, Vector3 pos, int sessionTime, bool knocked, int satiety, int mood)
+        public static void SaveCharacterOnExit(int cid, int timePlayed, int hp, uint dim, float heading, Vector3 pos, int sessionTime, bool knocked, int satiety, int mood, List<int> familiars)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -744,22 +745,14 @@ namespace BCRPServer
 
                 MySqlCommand cmd = conn.CreateCommand();
 
-                cmd.CommandText = "UPDATE characters SET IsOnline=false, TimePlayed=@TimePlayed, LastData=@LastData, Satiety=@Satiety, Mood=@Mood WHERE CID=@CID; ";
-                //cmd.CommandText += "UPDATE inventories SET Items=@Items, Clothes=@Clothes, Accessories=@Accessories, Bag=@Bag, Holster=@Holster, Weapons=@Weapons, Armour=@Armour WHERE CID=@CID;";
+                cmd.CommandText = "UPDATE characters SET IsOnline=false, TimePlayed=@TimePlayed, LastData=@LastData, Satiety=@Satiety, Mood=@Mood, Familiars=@Familiars WHERE CID=@CID; ";
 
                 cmd.Parameters.AddWithValue("@CID", cid);
                 cmd.Parameters.AddWithValue("@TimePlayed", timePlayed);
                 cmd.Parameters.AddWithValue("@LastData", new PlayerData.LastPlayerData() { Health = hp, Dimension = dim, Heading = heading, Position = pos, SessionTime = sessionTime, Knocked = knocked }.SerializeToJson());
                 cmd.Parameters.AddWithValue("@Satiety", satiety);
                 cmd.Parameters.AddWithValue("@Mood", mood);
-
-/*              cmd.Parameters.AddWithValue("@Items", data.Items.Select(x => x?.UID ?? 0).SerializeToJson());
-                cmd.Parameters.AddWithValue("@Clothes", data.Clothes.Select(x => x?.UID ?? 0).SerializeToJson());
-                cmd.Parameters.AddWithValue("@Accessories", data.Accessories.Select(x => x?.UID ?? 0).SerializeToJson());
-                cmd.Parameters.AddWithValue("@Bag", data.Bag?.UID ?? 0);
-                cmd.Parameters.AddWithValue("@Holster", data.Holster?.UID ?? 0);
-                cmd.Parameters.AddWithValue("@Weapons", data.Weapons.Select(x => x?.UID ?? 0).SerializeToJson());
-                cmd.Parameters.AddWithValue("@Armour", data.Armour?.UID ?? 0);*/
+                cmd.Parameters.AddWithValue("@Familiars", familiars.SerializeToJson());
   
                 cmd.ExecuteNonQuery();
             }

@@ -490,7 +490,7 @@ namespace BCRPServer.Game.Items
                 if (amount < 0)
                     amount = 0;
 
-                if (amount <= this.Ammo)
+                if (amount < this.Ammo)
                 {
                     this.Ammo = amount;
 
@@ -2804,6 +2804,9 @@ namespace BCRPServer.Game.Items
             var player = pData.Player;
 
             var value = player.Armor;
+
+            if (value < 0)
+                value = 0;
 
             if (value < Strength)
             {

@@ -111,18 +111,31 @@ namespace BCRPServer
         public class Prototype
         {
             public int CID;
+
             public string Name;
+
             public string Surname;
+
             public DateTime CreationDate { get; set; }
+
             public DateTime LastJoinDate { get; set; }
+
             public bool IsOnline { get; set; } = true;
+
             public int TimePlayed { get; set; } = 0;
+
             public bool Sex { get; set; } = true;
+
             public DateTime BirthDate { get; set; }
+
             public FractionTypes Fraction { get; set; } = FractionTypes.None;
+
             public int OrganisationID { get; set; } = -1;
+
             public int Cash { get; set; } = 550;
-            public Game.Bank.Account BankAccount { get; set; } = null;
+
+            public Game.Bank.Account BankAccount { get; set; }
+
             public List<Punishment> Punishments { get; set; }
 
             public Prototype() { }
@@ -131,11 +144,17 @@ namespace BCRPServer
         public class PlayerInfo
         {
             public int CID { get; set; }
+
             public string Name { get; set; }
+
             public string Surname { get; set; }
+
             public DateTime LastJoinDate { get; set; }
+
             public FractionTypes Fraction { get; set; }
+
             public int OrganisationID { get; set; }
+
             public List<Punishment> Punishments { get; set; }
 
             public PlayerInfo(int CID, string Name, string Surname, DateTime LastJoinDate, FractionTypes Fraction, int OrganisationID, List<Punishment> Punishments)
@@ -163,14 +182,19 @@ namespace BCRPServer
 
             /// <summary>Уникальный ID наказания</summary>
             public int ID { get; set; }
+
             /// <summary>Тип наказания</summary>
             public Types Type { get; set; }
+
             /// <summary>Причина наказания</summary>
             public string Reason { get; set; }
+
             /// <summary>Дата выдачи наказания</summary>
             public DateTime StartDate { get; set; }
+
             /// <summary>Дата окончания наказания/summary>
             public DateTime EndDate { get; set; }
+
             /// <summary>CID администратора, выдавшего наказание</summary>
             public int AdminID { get; set; }
 
@@ -193,10 +217,13 @@ namespace BCRPServer
         {
             /// <summary>Последнее измерение</summary>
             public uint Dimension;
+
             /// <summary>Последние координаты</summary>
             public Vector3 Position;
+
             /// <summary>Последний поворот</summary>
             public float Heading;
+
             /// <summary>Последнее здоровье</summary>
             public int Health;
 
@@ -239,15 +266,18 @@ namespace BCRPServer
         {
             get
             {
-                if (Weapons == null)
-                    return null;
-
                 if (Weapons[0]?.Equiped == true)
+                {
                     return (Weapons[0], CEF.Inventory.Groups.Weapons, 0);
+                }
                 else if (Weapons[1]?.Equiped == true)
+                {
                     return (Weapons[1], CEF.Inventory.Groups.Weapons, 1);
-                else if ((Holster?.Items[0] as Game.Items.Weapon)?.Equiped == true)
-                    return (Holster.Items[0] as Game.Items.Weapon, CEF.Inventory.Groups.Holster, 2);
+                }
+                else if (Holster?.Items[0] is Game.Items.Weapon weapon && weapon.Equiped)
+                {
+                    return (weapon, CEF.Inventory.Groups.Holster, 2);
+                }
 
                 return null;
             }
@@ -339,10 +369,8 @@ namespace BCRPServer
         /// <value>Кол-во минут</value>
         public int TimePlayed { get; set; }
 
-
         /// <summary>Дата создания игрока</summary>
         public DateTime CreationDate { get; set; }
-
 
         /// <summary>Дата рождения игрока</summary>
         public DateTime BirthDate { get; set; }
@@ -457,6 +485,10 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool IsWounded { get => Player.GetOwnSharedData<bool>("IsWounded"); set { Player.SetOwnSharedData("IsWounded", value); } }
 
+        /// <summary>Ползет ли игрок?</summary>
+        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
+        public bool CrawlOn { get => Player.GetOwnSharedData<bool>("Crawl::On"); set { Player.SetOwnSharedData("Crawl::On", value); } }
+
         /// <summary>Текущая анимация игрока (Fast)</summary>
         /// <remarks>НЕ синхронизуется с игроками ВНЕ зоны стрима (т.к. проигрывается быстро)</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -519,15 +551,11 @@ namespace BCRPServer
 
         /// <summary>Без сознания ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool Knocked { get => Player.GetSharedData<bool>("Knocked"); set { Player.SetSharedData("Knocked", value); } }
+        public bool IsKnocked { get => Player.GetSharedData<bool>("Knocked"); set { Player.SetSharedData("Knocked", value); } }
 
         /// <summary>Приседает ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool CrouchOn { get => Player.GetSharedData<bool>("Crouch::On"); set { Player.SetSharedData("Crouch::On", value); } }
-
-        /// <summary>Ползет ли игрок?</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool CrawlOn { get => Player.GetSharedData<bool>("Crawl::On"); set { Player.SetSharedData("Crawl::On", value); } }
 
         /// <summary>Дальность микрофона игрока</summary>
         /// <remarks>Если микрофон игроком не используется: 0, если в муте: -1</remarks>
@@ -541,10 +569,6 @@ namespace BCRPServer
         /// <summary>Проблемы ли у игрока со слухом/речью?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool IsInvalid { get => Player.GetSharedData<bool>("IsInvalid"); set { Player.SetSharedData("IsInvalid", value); } }
-
-        /// <summary>Показывает ли игрок пальцем?</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsFingerPointing { get => Player.GetSharedData<bool>("IsFingerPointing"); set { Player.SetSharedData("IsFingerPointing", value); } }
 
         /// <summary>Использует ли игрок телефон?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -564,7 +588,7 @@ namespace BCRPServer
 
         /// <summary>Является ли игрок невидимым?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsInvisible { get => Player.GetSharedData<bool>("IsInvisible"); set { Player.SetSharedData("IsInvisible", value); } }
+        public bool IsInvisible { get => Player.GetSharedData<bool>("IsInvisible"); set { Player.SetSharedData("IsInvisible", value); Player.SetAlpha(value ? 0 : 255); } }
 
         /// <summary>Является ли игрок бессмертным?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -649,12 +673,11 @@ namespace BCRPServer
 
             Hat = null;
             Masked = false;
-            Knocked = false;
+            IsKnocked = false;
             CrouchOn = false;
             CrawlOn = false;
             VoiceRange = 0f;
             BeltOn = false;
-            IsFingerPointing = false;
             PhoneOn = false;
             VehicleSeat = -1;
 

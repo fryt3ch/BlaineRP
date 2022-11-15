@@ -116,7 +116,15 @@ namespace BCRPClient.Sync
             public Data.Vehicles.Vehicle Data { get; set; }
             #endregion
 
-            public void Reset() => Vehicle?.ResetData();
+            public void Reset()
+            {
+                if (Vehicle == null)
+                    return;
+
+                ControlledVehicles.Remove(Vehicle);
+
+                Vehicle.ResetData();
+            }
         }
 
         public Vehicles()
@@ -258,6 +266,13 @@ namespace BCRPClient.Sync
                     if (!loaded)
                         return;
 
+                    var data = GetData(veh);
+
+                    if (data != null)
+                    {
+                        data.Reset();
+                    }
+
                     #region Required Things For Normal Behaviour
                     RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
                     RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
@@ -272,11 +287,11 @@ namespace BCRPClient.Sync
                     veh.SetDisablePetrolTankDamage(true);
                     #endregion
 
-                    VehicleData data = new VehicleData(veh);
+                    data = new VehicleData(veh);
 
                     InvokeHandler("IsInvincible", data, data.IsInvincible, null);
 
-                    data.TID = RAGE.Util.Json.Deserialize<uint?>(veh.GetSharedData<string>("TID", null));
+                    data.TID = veh.GetSharedData<int?>("TID", null).ToUInt32();
 
                     InvokeHandler("Engine::On", data, data.EngineOn, null);
 
@@ -319,8 +334,6 @@ namespace BCRPClient.Sync
                         return;
 
                     data.Reset();
-
-                    ControlledVehicles.Remove(veh);
                 }
             };
             #endregion
@@ -617,13 +630,13 @@ namespace BCRPClient.Sync
 
                 if (speed < Settings.MIN_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, string.Format(Locale.Notifications.Vehicles.CruiseControl.MinSpeed, Settings.MIN_CRUISE_CONTROL_SPEED));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, string.Format(Locale.Notifications.Vehicles.CruiseControl.MinSpeed, Math.Floor(Settings.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
                 else if (speed > Settings.MAX_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, string.Format(Locale.Notifications.Vehicles.CruiseControl.MaxSpeed, Settings.MAX_CRUISE_CONTROL_SPEED));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, string.Format(Locale.Notifications.Vehicles.CruiseControl.MaxSpeed, Math.Floor(Settings.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }

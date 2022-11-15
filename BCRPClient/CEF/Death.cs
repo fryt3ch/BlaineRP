@@ -42,7 +42,7 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task Show()
         {
-            if (IsActive || Sync.Players.GetData(Player.LocalPlayer)?.Knocked != true)
+            if (IsActive || Sync.Players.GetData(Player.LocalPlayer)?.IsKnocked != true)
                 return;
 
             await Browser.Render(Browser.IntTypes.Death, true);

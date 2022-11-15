@@ -186,11 +186,13 @@ namespace BCRPClient
                 public static bool ColshapesVisible = false;
                 public static bool RaytraceEnabled = false;
 
-                public static HashSet<string> FavoriteAnimations = new HashSet<string>();
+                public static HashSet<string> FavoriteAnimations => new HashSet<string>();
                 public static Sync.Animations.EmotionTypes CurrentEmotion = Sync.Animations.EmotionTypes.None;
                 public static Sync.Animations.WalkstyleTypes CurrentWalkstyle = Sync.Animations.WalkstyleTypes.None;
 
-                public static List<string> FamiliarNPCs = new List<string>();
+                public static List<string> FamiliarNPCs => new List<string>();
+
+                public static List<CEF.BlipsMenu.LocalBlip> LocalBlips => new List<CEF.BlipsMenu.LocalBlip>();
             }
 
             private static HashSet<string> _FavoriteAnimations;
@@ -198,6 +200,8 @@ namespace BCRPClient
             private static Sync.Animations.WalkstyleTypes _CurrentWalkstyle;
 
             private static List<string> _FamiliarNPCs;
+
+            private static List<CEF.BlipsMenu.LocalBlip> _LocalBlips;
 
             private static bool _AutoTeleportMarker;
             private static bool _DebugLabels;
@@ -216,6 +220,8 @@ namespace BCRPClient
             public static Sync.Animations.WalkstyleTypes CurrentWalkstyle { get => _CurrentWalkstyle; set { if (value != _CurrentWalkstyle) Additional.Storage.SetData("Settings::Animations::Walkstyle", value.ToString()); _CurrentWalkstyle = value; } }
 
             public static List<string> FamiliarNPCs { get => _FamiliarNPCs; set { Additional.Storage.SetData("Settings::FamiliarNPCs", value); _FamiliarNPCs = value; } }
+
+            public static List<CEF.BlipsMenu.LocalBlip> LocalBlips { get => _LocalBlips; set { Additional.Storage.SetData("Settings::LocalBlips", value); _LocalBlips = value; } }
         }
         #endregion
         #endregion
@@ -282,6 +288,14 @@ namespace BCRPClient
 
                 if (data != null)
                     data.IsFamiliar = true;
+            }
+
+            Other.LocalBlips = Additional.Storage.GetData<List<CEF.BlipsMenu.LocalBlip>>("Settings::LocalBlips") ?? Other.Default.LocalBlips;
+
+            foreach (var x in Other.LocalBlips)
+            {
+                if (x.Enabled)
+                    x.Toggle(true);
             }
         }
         #endregion

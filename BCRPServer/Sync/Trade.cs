@@ -92,7 +92,7 @@ namespace BCRPServer.Sync
 
                 if (result.Result == CEF.Inventory.Results.Success)
                 {
-                    await offer.Cancel(true, false, false);
+                    await offer.Cancel(true, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
                     await NAPI.Task.RunAsync(() =>
                     {
@@ -113,7 +113,7 @@ namespace BCRPServer.Sync
                 {
                     if (result.Result == CEF.Inventory.Results.Error)
                     {
-                        await offer.Cancel(false, false, false);
+                        await offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
                         await NAPI.Task.RunAsync(() =>
                         {

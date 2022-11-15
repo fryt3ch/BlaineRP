@@ -750,6 +750,8 @@ namespace BCRPClient
                 { CEF.HUD.Menu.Types.Inventory, "Инвентарь" },
                 { CEF.HUD.Menu.Types.Phone, "Телефон" },
                 { CEF.HUD.Menu.Types.Animations, "Меню анимаций" },
+
+                { CEF.HUD.Menu.Types.BlipsMenu, "Мои метки" },
             };
         }
 

@@ -134,7 +134,7 @@ namespace BCRPServer.Sync
                 Vector3 pos = player.Position;
                 uint dim = player.Dimension;
                 float heading = player.Heading;
-                bool knocked = data.Knocked;
+                bool knocked = data.IsKnocked;
 
                 int arm = player.Armor;
                 WeaponHash weapon = player.CurrentWeapon;
@@ -246,30 +246,36 @@ namespace BCRPServer.Sync
 
                     if (data.Armour != null)
                     {
-                        if (arm < 0 || arm > data.Armour.Strength)
+                        if (arm < 0)
                             arm = 0;
 
-                        data.Armour.Strength = arm;
+                        if (arm < data.Armour.Strength)
+                        {
+                            data.Armour.Strength = arm;
 
-                        if (data.Armour.Strength == 0)
-                            data.Armour.Delete();
-                        else
-                            data.Armour.Update();
+                            if (data.Armour.Strength == 0)
+                                data.Armour.Delete();
+                            else
+                                data.Armour.Update();
+                        }
                     }
 
                     var weapon = data.ActiveWeapon;
 
                     if (weapon != null)
                     {
-                        if (ammo < 0 || ammo > weapon.Value.WeaponItem.Ammo)
+                        if (ammo < 0)
                             ammo = 0;
 
-                        weapon.Value.WeaponItem.Ammo = ammo;
+                        if (ammo < weapon.Value.WeaponItem.Ammo)
+                        {
+                            weapon.Value.WeaponItem.Ammo = ammo;
 
-                        weapon.Value.WeaponItem.Update();
+                            weapon.Value.WeaponItem.Update();
+                        }
                     }
 
-                    MySQL.SaveCharacterOnExit(cid, data.TimePlayed, hp, dim, heading, pos, data.LastData.SessionTime, knocked, satiety, mood);
+                    MySQL.SaveCharacterOnExit(cid, data.TimePlayed, hp, dim, heading, pos, data.LastData.SessionTime, knocked, satiety, mood, data.Familiars);
 
                     data.Delete();
                     aData.Delete();
@@ -336,19 +342,19 @@ namespace BCRPServer.Sync
                 if (player?.Exists != true)
                     return;
 
-                if (pData.Knocked)
+                if (pData.IsKnocked)
                 {
                     player.SetHealth(10);
 
                     pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
-                    pData.Knocked = false;
+                    pData.IsKnocked = false;
                 }
                 else
                 {
                     pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
-                    pData.Knocked = true;
+                    pData.IsKnocked = true;
                     pData.IsWounded = false;
 
                     player.SetHealth(50);
@@ -430,30 +436,6 @@ namespace BCRPServer.Sync
         }
 
         #region Finger
-        [RemoteEvent("Players::ToggleFingerPointSync")]
-        public static async Task ToggleFingerPointing(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                pData.IsFingerPointing = !pData.IsFingerPointing;
-            });
-
-            pData.Release();
-        }
-
         [RemoteEvent("fpsu")]
         public static void FingerUpdate(Player sender, float camPitch, float camHeading)
         {
@@ -882,7 +864,7 @@ namespace BCRPServer.Sync
                 if (player?.Exists != true)
                     return;
 
-                if (isGun && !pData.IsWounded && !pData.Knocked && (new Random()).NextDouble() <= Settings.WOUND_CHANCE)
+                if (isGun && !pData.IsWounded && !pData.IsKnocked && (new Random()).NextDouble() <= Settings.WOUND_CHANCE)
                 {
                     pData.IsWounded = true;
                 }

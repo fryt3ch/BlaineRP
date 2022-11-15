@@ -32,7 +32,18 @@ namespace BCRPClient.CEF
                 Menu_Apartments,
                 /// <summary>Анимации</summary>
                 Animations,
+                /// <summary>Меню локальных меток</summary>
+                BlipsMenu,
             }
+
+            private static Dictionary<Types, Action> Actions = new Dictionary<Types, Action>()
+            {
+                { Types.Menu, () => CEF.Menu.Show(CEF.Menu.SectionTypes.Last) },
+
+                { Types.Documents, () => CEF.Documents.Show() },
+
+                { Types.BlipsMenu, () => CEF.BlipsMenu.Show() },
+            };
 
             public static List<Types> CurrentTypes { get; private set; }
 
@@ -80,16 +91,7 @@ namespace BCRPClient.CEF
                         return;
                     }
 
-                    switch (type)
-                    {
-                        case Types.Menu:
-                            CEF.Menu.Show(CEF.Menu.SectionTypes.Last);
-                            break;
-
-                        case Types.Documents:
-                            CEF.Documents.Show();
-                            break;
-                    }
+                    Actions.GetValueOrDefault(type)?.Invoke();
                 });
             }
 
@@ -137,7 +139,7 @@ namespace BCRPClient.CEF
 
                     KeyBinds.Get(KeyBinds.Types.Menu).Disable();
 
-                    CEF.Browser.Window.ExecuteJs("Hud.drawMenu", new object[] { types.Select(x => new object[] { x, Locale.HudMenu.Names[x] }) });
+                    CEF.Browser.Window.ExecuteJs("Hud.drawMenu", new object[] { types.Select(x => new object[] { x, Locale.HudMenu.Names.GetValueOrDefault(x) ?? "null" }) });
 
                     var cPos = RAGE.Ui.Cursor.Position;
 

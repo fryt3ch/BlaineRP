@@ -13,6 +13,8 @@ namespace BCRPClient.Sync
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
 
+        public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack };
+
         public enum Types
         {
             PushVehicleFront,

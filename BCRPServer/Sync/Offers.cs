@@ -54,7 +54,7 @@ namespace BCRPServer.Sync
 
                         async (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, false);
+                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
 
                             if (pData == null || tData == null)
                                 return;
@@ -70,7 +70,7 @@ namespace BCRPServer.Sync
                                 if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                     return;
 
-                                if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.AnyAnimActive() && !tData.AnyAnimActive())
+                                if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
                                 {
                                     tPlayer.Position = sPlayer.GetFrontOf(0.85f);
                                     tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
@@ -96,7 +96,7 @@ namespace BCRPServer.Sync
 
                         async (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, false);
+                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
 
                             if (pData == null || tData == null)
                                 return;
@@ -112,7 +112,7 @@ namespace BCRPServer.Sync
                                 if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                     return;
 
-                                if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.AnyAnimActive() && !tData.AnyAnimActive())
+                                if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
                                 {
                                     sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
 
@@ -135,7 +135,7 @@ namespace BCRPServer.Sync
 
                         async (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, false);
+                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
 
                             if (pData == null || tData == null)
                                 return;
@@ -189,7 +189,7 @@ namespace BCRPServer.Sync
 
                         async (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, true);
+                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, true);
 
                             if (pData == null || tData == null)
                                 return;
@@ -215,7 +215,7 @@ namespace BCRPServer.Sync
 
                                 return true;
                             }))
-                                await offer.Cancel(true, false, false);
+                                await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
                         }
                     },
 
@@ -253,6 +253,14 @@ namespace BCRPServer.Sync
             SourceHasOffer, TargetHasOffer,
             NotEnoughMoneySource, NotEnoughMoneyTarget,
             Success,
+        }
+
+        public enum ReplyTypes
+        {
+            Deny = 0,
+            Accept,
+            Busy,
+            AutoCancel,
         }
 
         public class Offer
@@ -488,10 +496,6 @@ namespace BCRPServer.Sync
             /// <summary>CancellationTokenSource предложения</summary>
             private CancellationTokenSource CTS { get; set; }
 
-            /// <summary>Существует ли предложение?</summary>
-            /// <remarks>Служит для проверки возможности принятия/отмены предложения на клиентской стороне цели</remarks>
-            public bool Exists { get; set; }
-
             public object Data { get; set; }
             
             /// <summary>Новое предложение</summary>
@@ -523,7 +527,7 @@ namespace BCRPServer.Sync
                         {
                             await Semaphore.WaitAsync();
 
-                            await Cancel(false, false, false);
+                            await Cancel(false, false, ReplyTypes.AutoCancel, false);
 
                             Semaphore.Release();
                         }
@@ -536,38 +540,48 @@ namespace BCRPServer.Sync
             }
 
             /// <summary>Метод для отмены предложения и удаления его из списка активных предложения</summary>
-            public async Task Cancel(bool success = false, bool byPlayer = false, bool justCancelCts = false)
+            public async Task Cancel(bool success = false, bool isSender = false, ReplyTypes rType = ReplyTypes.AutoCancel, bool justCancelCts = false)
             {
                 bool ctsNull = CTS == null;
 
                 if (ctsNull && OfferActions[Type].ContainsKey(false))
-                    await OfferActions[Type][false].Invoke(Sender, Receiver, this);
+                {
+                    await OfferActions[Type].GetValueOrDefault(false)?.Invoke(Sender, Receiver, this);
+                }
 
                 CTS?.Cancel();
                 CTS = null;
 
+                var sender = Sender?.Player;
+                var receiver = Receiver?.Player;
+
                 await NAPI.Task.RunAsync(() =>
                 {
-                    if (Sender?.Player?.Exists == true)
+                    if (sender?.Exists == true)
                     {
-                        Sender.Player.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
+                        sender.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
 
                         if (!success)
                         {
-                            if (byPlayer)
-                                Sender.Player.Notify("Offer::CancelBy");
-                            else
-                                Sender.Player.Notify("Offer::Cancel");
+                            if (rType == ReplyTypes.Deny && !isSender)
+                                sender.Notify("Offer::CancelBy");
+                            else if (isSender || rType == ReplyTypes.AutoCancel)
+                                sender.Notify("Offer::Cancel");
+                            else if (rType == ReplyTypes.Busy)
+                                sender.Notify("Offer::TargetBusy");
                         }
                     }
 
-                    if (Receiver?.Player?.Exists == true)
+                    if (receiver?.Exists == true)
                     {
-                        Receiver.Player.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
+                        receiver.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
 
                         if (!success)
                         {
-                            Receiver.Player.Notify("Offer::Cancel");
+                            if (rType == ReplyTypes.Deny && isSender)
+                                receiver.Notify("Offer::CancelBy");
+                            else if (rType != ReplyTypes.Busy)
+                                receiver.Notify("Offer::Cancel");
                         }
                     }
                 });
@@ -593,7 +607,7 @@ namespace BCRPServer.Sync
             {
                 await Semaphore.WaitAsync();
 
-                var offer = AllOffers.Where(x => x.Sender == pData || x.Receiver == pData).FirstOrDefault();
+                var offer = Get(pData);
 
                 Semaphore.Release();
 
@@ -792,7 +806,7 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("Offers::Reply")]
-        public static async Task Reply(Player player, bool reply, bool isManual)
+        public static async Task Reply(Player player, int rTypeNum)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -808,6 +822,11 @@ namespace BCRPServer.Sync
 
             await Task.Run(async () =>
             {
+                if (!Enum.IsDefined(typeof(ReplyTypes), rTypeNum))
+                    return;
+
+                var rType = (ReplyTypes)rTypeNum;
+
                 var offer = Offer.Get(pData);
 
                 if (offer == null)
@@ -815,20 +834,20 @@ namespace BCRPServer.Sync
 
                 var tData = offer.Sender == pData ? offer.Receiver : offer.Sender;
 
-                if (isManual && pData == offer.Receiver)
+                if (pData == offer.Receiver)
                 {
-                    if (reply)
+                    if (rType == ReplyTypes.Accept)
                     {
                         await offer.Execute();
                     }
                     else
                     {
-                        await offer.Cancel(false, true, false);
+                        await offer.Cancel(false, false, rType, false);
                     }
                 }
                 else
                 {
-                    await offer.Cancel(false, false, false);
+                    await offer.Cancel(false, true, rType, false);
                 }
             });
 

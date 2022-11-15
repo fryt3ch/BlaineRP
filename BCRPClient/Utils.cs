@@ -440,19 +440,25 @@ namespace BCRPClient
 
         public enum Actions
         {
-            Knocked = 0,Frozen,
+            Knocked = 0, Frozen,
             InVehicle,
             InWater, HasWeapon, Crouch, Crawl, Shooting, Climbing,
             Cuffed, Falling, Jumping, Ragdoll, Scenario, OtherAnimation, Animation, FastAnimation, PushingVehicle, OnFoot, Reloading, Finger,
+            HasItemInHands, IsAttachedTo,
         }
 
         private static Dictionary<Actions, Func<bool>> ActionsFuncs = new Dictionary<Actions, Func<bool>>()
         {
-            { Actions.Knocked, () => Sync.Players.GetData(Player.LocalPlayer)?.Knocked == true },
-            { Actions.Frozen, () => Sync.Players.GetData(Player.LocalPlayer)?.IsFrozen == true },
+            { Actions.Knocked, () => Sync.Players.GetData(Player.LocalPlayer)?.IsKnocked ?? false },
+
+            { Actions.Frozen, () => Sync.Players.GetData(Player.LocalPlayer)?.IsFrozen ?? false},
+
             { Actions.Crouch, () => Crouch.Toggled },
+
             { Actions.Crawl, () => Crawl.Toggled },
+
             { Actions.Finger, () => Finger.Toggled },
+
             { Actions.PushingVehicle, () => PushVehicle.Toggled },
 
             {
@@ -494,45 +500,63 @@ namespace BCRPClient
             { Actions.Scenario, () => false },
 
             { Actions.InVehicle, () => Player.LocalPlayer.IsInAnyVehicle(true) || Player.LocalPlayer.IsInAnyVehicle(false) },
+
             { Actions.InWater, () => Player.LocalPlayer.IsInWater() || Player.LocalPlayer.IsDiving() },
+
             { Actions.HasWeapon, () => Player.LocalPlayer.HasWeapon() },
+
             { Actions.Shooting, () => Player.LocalPlayer.IsShooting() },
+
             { Actions.Cuffed, () => Player.LocalPlayer.IsCuffed() },
+
             { Actions.Climbing, () => Player.LocalPlayer.IsClimbing() },
+
             { Actions.Falling, () => Player.LocalPlayer.IsFalling() || Player.LocalPlayer.IsJumpingOutOfVehicle() || Player.LocalPlayer.IsInParachuteFreeFall() },
+
             { Actions.Jumping, () => Player.LocalPlayer.IsJumping() },
+
             { Actions.Ragdoll, () => Player.LocalPlayer.IsRagdoll() },
+
             { Actions.OnFoot, () => !Player.LocalPlayer.IsOnFoot() },
 
             { Actions.Reloading, () => WeaponSystem.Reloading },
+
+            { Actions.IsAttachedTo, () => Player.LocalPlayer.GetAttachedTo() > 0 },
+
+            { Actions.HasItemInHands, () => Player.LocalPlayer.GetData<List<Sync.AttachSystem.AttachmentObject>>(Sync.AttachSystem.AttachedObjectsKey)?.Where(x => !Sync.AttachSystem.StaticObjectsTypes.Contains(x.Type)).Any() ?? false },
         };
 
         /// <summary>Метод для проверки, может ли локальный игрок делать что-либо в данный момент</summary>
         /// <returns>Возврвает true, есле выполняются следующие условия, false - в противном случае</returns>
         public static bool CanDoSomething(params Actions[] actions)
         {
-/*          
-            var atc = new Utils.Actions[]
-            {
-                Utils.Actions.Knocked,
-                Utils.Actions.Frozen,
-                Utils.Actions.Cuffed,
+            /*          
+                var atc = new Utils.Actions[]
+                {
+                    Utils.Actions.Knocked,
+                    Utils.Actions.Frozen,
+                    Utils.Actions.Cuffed,
 
-                Utils.Actions.Crouch,
-                Utils.Actions.Crawl,
-                Utils.Actions.Finger,
-                Utils.Actions.PushingVehicle,
+                    Utils.Actions.Crouch,
+                    Utils.Actions.Crawl,
+                    Utils.Actions.Finger,
+                    Utils.Actions.PushingVehicle,
 
-                Utils.Actions.Animation,
-                Utils.Actions.CustomAnimation,
-                Utils.Actions.Scenario,
+                    Utils.Actions.Animation,
+                    Utils.Actions.FastAnimation,
+                    Utils.Actions.CustomAnimation,
+                    Utils.Actions.Scenario,
+                    Utils.Actions.CustomScenario,
+                            
+                    Utils.Actions.IsAttachedTo,
+                    Utils.Actions.HasItemInHands,
 
-                Utils.Actions.InVehicle,
-                Utils.Actions.InWater,
-                Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.HasWeapon,
-                Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-            };
-*/
+                    Utils.Actions.InVehicle,
+                    Utils.Actions.InWater,
+                    Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.HasWeapon,
+                    Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
+                };
+            */
 
             foreach (var x in actions)
                 if (ActionsFuncs[x].Invoke())
@@ -769,7 +793,7 @@ namespace BCRPClient
 
     public static class Extensions
     {
-        public static async System.Threading.Tasks.Task<bool> WaitIsLoaded(this Vehicle vehicle)
+        public static async System.Threading.Tasks.Task<bool> WaitIsLoaded(this GameEntity gEntity)
         {
             await RAGE.Game.Invoker.WaitAsync(500);
 
@@ -777,32 +801,12 @@ namespace BCRPClient
 
             do
             {
-                if (vehicle?.Exists != true)
+                if (gEntity?.Exists != true)
                     return false;
 
                 await RAGE.Game.Invoker.WaitAsync(25);
 
-                handle = vehicle?.Handle ?? -1;
-            }
-            while (handle <= 0);
-
-            return true;
-        }
-
-        public static async System.Threading.Tasks.Task<bool> WaitIsLoaded(this Player player)
-        {
-            await RAGE.Game.Invoker.WaitAsync(500);
-
-            int handle = -1;
-
-            do
-            {
-                if (player?.Exists != true)
-                    return false;
-
-                await RAGE.Game.Invoker.WaitAsync(25);
-
-                handle = player?.Handle ?? -1;
+                handle = gEntity?.Handle ?? -1;
             }
             while (handle <= 0);
 
@@ -988,8 +992,11 @@ namespace BCRPClient
         public static bool GetScreenPosition(this Entity entity, ref float x, ref float y) => Utils.GetScreenCoordFromWorldCoord(entity.Position, ref x, ref y);
 
         public static Vector3 GetRealPosition(this Ped ped) => ped?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
+
         public static Vector3 GetRealPosition(this Player player) => player?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
+
         public static Vector3 GetRealPosition(this Vehicle vehicle) => vehicle?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
+
         public static Vector3 GetRealPosition(this MapObject mapObject) => mapObject?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
 
         public static void SetName(this Blip blip, string name)
@@ -1009,5 +1016,24 @@ namespace BCRPClient
         public static string GetName(this Blip blip) => blip.GetData<string>("Name");
 
         public static bool GetSex(this Player player) => player.Model == Utils.MP_MALE_MODEL;
+
+        public static uint ToUInt32(this int value)
+        {
+            unchecked
+            {
+                return (uint)value;
+            }
+        }
+
+        public static uint? ToUInt32(this int? value)
+        {
+            if (value == null)
+                return null;
+
+            unchecked
+            {
+                return (uint)value.Value;
+            }
+        }
     }
 }

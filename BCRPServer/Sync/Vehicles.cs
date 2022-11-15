@@ -221,7 +221,7 @@ namespace BCRPServer.Sync
 
                     bool newState = !vData.Locked;
 
-                    if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
+                    if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
                     {
                         player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
@@ -426,7 +426,7 @@ namespace BCRPServer.Sync
 
                     var newState = !vData.TrunkLocked;
 
-                    if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
+                    if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
                     {
                         player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
@@ -501,7 +501,7 @@ namespace BCRPServer.Sync
 
                     var newState = !vData.HoodLocked;
 
-                    if (player.Vehicle == null && !pData.AnyAnimActive() && pData.ActiveWeapon == null)
+                    if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
                     {
                         player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 

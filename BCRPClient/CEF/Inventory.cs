@@ -1005,15 +1005,13 @@ namespace BCRPClient.CEF
                 }
             }
             else
-                if (!Utils.CanDoSomething(ActionsToCheckInventory))
+                if (!Utils.CanDoSomething(ActionsToCheckInventory) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
                     return;
 
             LastShowed = DateTime.Now;
 
             if (type == Types.Inventory)
             {
-                Events.CallRemote("Inventory::Show", Player.LocalPlayer.GetAmmoInWeapon(Player.LocalPlayer.GetSelectedWeapon()));
-
                 Events.CallLocal("Inventory::Show", (int)Types.Inventory);
             }
             else if (type == Types.ItemOnGround)
@@ -1126,7 +1124,7 @@ namespace BCRPClient.CEF
                 if (callRemote && CurrentType == Types.Container)
                     Events.CallRemote("Container::Close");
                 else if (callRemote && CurrentType == Types.Trade)
-                    Sync.Offers.Reply(false, false);
+                    Sync.Offers.Reply(Sync.Offers.ReplyTypes.AutoCancel);
 
                 ActionBox.Close(true);
                 Browser.Switch(Browser.IntTypes.Inventory, false);

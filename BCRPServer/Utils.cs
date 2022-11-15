@@ -955,7 +955,7 @@ namespace BCRPServer
         /// <inheritdoc cref="Sync.Animations.Set(PlayerData, Sync.Animations.WalkstyleTypes, bool)"/>
         public static void SetWalkstyle(this PlayerData pData, Sync.Animations.WalkstyleTypes type) => Sync.Animations.Set(pData, type, false);
 
-        public static bool AnyAnimActive(this PlayerData pData) => pData.CrawlOn || pData.PhoneOn || pData.IsAttachedTo != null || pData.FastAnim != Sync.Animations.FastTypes.None || pData.GeneralAnim != Sync.Animations.GeneralTypes.None || pData.OtherAnim != Sync.Animations.OtherTypes.None;
+        public static bool CanPlayAnim(this PlayerData pData) => pData.CrawlOn || pData.PhoneOn || pData.IsAttachedTo != null || pData.FastAnim != Sync.Animations.FastTypes.None || pData.GeneralAnim != Sync.Animations.GeneralTypes.None || pData.OtherAnim != Sync.Animations.OtherTypes.None;
 
         public static void Respawn(this PlayerData pData, Vector3 position, float heading, RespawnTypes rType = RespawnTypes.Teleport)
         {
@@ -963,12 +963,19 @@ namespace BCRPServer
             {
                 var player = pData.Player;
 
-                var offer = pData.ActiveOffer.GetAwaiter().GetResult();
-
-                if (offer != null)
+                Task.Run(async () =>
                 {
-                    offer.Cancel(false, false, false);
-                }
+                    await Sync.Offers.Semaphore.WaitAsync();
+
+                    var offer = Sync.Offers.Offer.Get(pData);
+
+                    if (offer != null)
+                    {
+                        await offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
+                    }
+
+                    Sync.Offers.Semaphore.Release();
+                });
 
                 pData.IsAttachedTo?.Entity?.DetachEntity(player);
 
@@ -1025,6 +1032,25 @@ namespace BCRPServer
                 diff = -currentValue;
 
             return diff;
+        }
+
+        public static uint ToUInt32(this int value)
+        {
+            unchecked
+            {
+                return (uint)value;
+            }
+        }
+
+        public static uint? ToUInt32(this int? value)
+        {
+            if (value == null)
+                return null;
+
+            unchecked
+            {
+                return (uint)value.Value;
+            }
         }
     }
 }

@@ -13,23 +13,31 @@ namespace BCRPClient.Additional
 
     class AntiCheat : Events.Script
     {
-        private static GameEvents.UpdateHandler Update;
-        private static AsyncTask Loop;
+        private static GameEvents.UpdateHandler Update { get; set; }
+        private static AsyncTask Loop { get; set; }
 
         #region Variables
-        public static Vector3 LastPosition;
-        private static int LastHealth;
-        private static int LastArmour;
+        public static Vector3 LastPosition { get; set; }
 
-        private static Vector3 LastAllowedPos;
-        private static uint LastAllowedDimension;
-        private static int LastAllowedHP;
-        private static int LastAllowedArm;
-        public static int LastAllowedAlpha;
-        public static bool LastAllowedInvincible { get; private set; }
+        private static int LastHealth { get; set; }
 
-        private static uint LastAllowedWeapon;
-        public static int LastAllowedAmmo;
+        private static int LastArmour { get; set; }
+
+        private static Vector3 LastAllowedPos { get; set; }
+
+        private static uint LastAllowedDimension { get; set; }
+
+        private static int LastAllowedHP { get; set; }
+
+        private static int LastAllowedArm { get; set; }
+
+        private static int LastAllowedAlpha { get; set; }
+
+        private static bool LastAllowedInvincible { get; set; }
+
+        private static uint LastAllowedWeapon { get; set; }
+
+        public static int LastAllowedAmmo { get; set; }
 
         private static Stack<bool> AllowTP;
         private static Stack<bool> AllowHP;
@@ -58,11 +66,11 @@ namespace BCRPClient.Additional
 
             #region Events
             #region Teleport
-            Events.Add("AC::State::TP", (object[] args) =>
+            Events.Add("AC::State::TP", async (object[] args) =>
             {
                 LastAllowedPos = (Vector3)args[0] ?? Player.LocalPlayer.Position;
                 var onGround = (bool)args[1];
-                LastAllowedDimension = RAGE.Util.Json.Deserialize<uint>((string)args[2]);
+                LastAllowedDimension = args.Length > 2 ? ((int)args[2]).ToUInt32() : Player.LocalPlayer.Dimension;
 
                 Player.LocalPlayer.Position = LastAllowedPos;
 
@@ -73,48 +81,17 @@ namespace BCRPClient.Additional
 
                 AllowTP.Push(true);
 
-                /*                int counter = 0;
+                await RAGE.Game.Invoker.WaitAsync(2000);
 
-                                if (onGround)
-                                {
-                                    // To wait some time before location is streamed
-                                    (new AsyncTask(() =>
-                                    {
-                                        float z = LastAllowedPos.Z;
+                AllowTP.Pop();
 
-                                        RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, ref z, false);
-
-                                        counter++;
-
-                                        if (z != 0 && z != 20)
-                                        {
-                                            LastAllowedPos = new Vector3(LastAllowedPos.X, LastAllowedPos.Y, z);
-
-                                            Player.LocalPlayer.Position = LastAllowedPos;
-
-                                            return true;
-                                        }
-
-                                        if (counter > 10)
-                                            return true;
-
-                                        return false;
-
-                                    }, 250, true)).Run();
-                                }*/
-
-                (new AsyncTask(() =>
-                {
-                    AllowTP.Pop();
-
-                    if (AllowTP.Count == 0)
-                        AllowTP.Push(false);
-                }, 2000, false)).Run();
+                if (AllowTP.Count == 0)
+                    AllowTP.Push(false);
             });
             #endregion
 
             #region Health
-            Events.Add("AC::State::HP", (object[] args) =>
+            Events.Add("AC::State::HP", async (object[] args) =>
             {
                 var value = (int)args[0];
 
@@ -123,18 +100,17 @@ namespace BCRPClient.Additional
 
                 AllowHP.Push(true);
 
-                (new AsyncTask(() =>
-                {
-                    AllowHP.Pop();
+                await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (AllowHP.Count == 0)
-                        AllowHP.Push(false);
-                }, 2000, false)).Run();
+                AllowHP.Pop();
+
+                if (AllowHP.Count == 0)
+                    AllowHP.Push(false);
             });
             #endregion
 
             #region Armour
-            Events.Add("AC::State::Arm", (object[] args) =>
+            Events.Add("AC::State::Arm", async (object[] args) =>
             {
                 var value = (int)args[0];
 
@@ -145,24 +121,22 @@ namespace BCRPClient.Additional
 
                 AllowArm.Push(true);
 
-                (new AsyncTask(() =>
-                {
-                    Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
-                    Sync.WeaponSystem.OnDamage += Sync.WeaponSystem.ArmourCheck;
-                }, 100, false)).Run();
+                await RAGE.Game.Invoker.WaitAsync(100);
 
-                (new AsyncTask(() =>
-                {
-                    AllowArm.Pop();
+                Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
+                Sync.WeaponSystem.OnDamage += Sync.WeaponSystem.ArmourCheck;
 
-                    if (AllowArm.Count == 0)
-                        AllowArm.Push(false);
-                }, 2000, false)).Run();
+                await RAGE.Game.Invoker.WaitAsync(1900);
+
+                AllowArm.Pop();
+
+                if (AllowArm.Count == 0)
+                    AllowArm.Push(false);
             });
             #endregion
 
             #region Transparency
-            Events.Add("AC::State::Alpha", (object[] args) =>
+            Events.Add("AC::State::Alpha", async (object[] args) =>
             {
                 var value = (int)args[0];
 
@@ -172,13 +146,12 @@ namespace BCRPClient.Additional
 
                 AllowAlpha.Push(true);
 
-                (new AsyncTask(() =>
-                {
-                    AllowAlpha.Pop();
+                await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (AllowAlpha.Count == 0)
-                        AllowAlpha.Push(false);
-                }, 2000, false)).Run();
+                AllowAlpha.Pop();
+
+                if (AllowAlpha.Count == 0)
+                    AllowAlpha.Push(false);
             });
             #endregion
 
@@ -193,12 +166,14 @@ namespace BCRPClient.Additional
             });
 
             #region Weapon
-            Events.Add("AC::State::Weapon", (object[] args) =>
+            Events.Add("AC::State::Weapon", async (object[] args) =>
             {
-                if ((string)args[0] != "-1")
-                    LastAllowedWeapon = RAGE.Util.Json.Deserialize<uint>((string)args[0]);
+                LastAllowedAmmo = (int)args[0];
 
-                LastAllowedAmmo = (int)args[1];
+                if (args.Length > 1)
+                {
+                    LastAllowedWeapon = ((int)args[1]).ToUInt32();
+                }
 
                 Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
 
@@ -228,18 +203,17 @@ namespace BCRPClient.Additional
                     GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
                 }
 
-                (new AsyncTask(() =>
-                {
-                    AllowWeapon.Pop();
+                await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    if (AllowWeapon.Count == 0)
-                        AllowWeapon.Push(false);
-                }, 2000, false)).Run();
+                AllowWeapon.Pop();
+
+                if (AllowWeapon.Count == 0)
+                    AllowWeapon.Push(false);
             });
             #endregion
             #endregion
 
-            Events.Add("AC::Vehicle::Health", (object[] args) =>
+            Events.Add("AC::Vehicle::Health", async (object[] args) =>
             {
                 var vehicle = (Vehicle)args[0];
                 var value = (float)args[1];
@@ -265,10 +239,9 @@ namespace BCRPClient.Additional
 
                 AllowVehicleHealth.Add((vehicle, true));
 
-                (new AsyncTask(() =>
-                {
-                    AllowVehicleHealth.Remove((vehicle, true));
-                }, 2000, false)).Run();
+                await RAGE.Game.Invoker.WaitAsync(2000);
+
+                AllowVehicleHealth.Remove((vehicle, true));
             });
         }
 

@@ -70,7 +70,7 @@ namespace BCRPClient
                         Utils.DrawText($"ID: {player.RemoteId} | CID: {pData.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                         Utils.DrawText($"HP: {player.GetRealHealth()} | Arm: {player.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
-                        Utils.DrawText($"IsInvincible: {pData.IsInvincible} | IsFrozen: {pData.IsFrozen} | IsKnocked: {pData.Knocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"IsInvincible: {pData.IsInvincible} | IsFrozen: {pData.IsFrozen} | IsKnocked: {pData.IsKnocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                         Utils.DrawText($"Voice: {(pData.VoiceRange < 0f ? "muted" : (pData.VoiceRange == 0f ? "off" : $"{pData.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
                         Utils.DrawText($"Fraction: {pData.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);

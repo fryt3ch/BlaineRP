@@ -224,6 +224,8 @@ namespace BCRPClient.Sync
         public static DateTime LastSentPedDamage;
         public static DateTime LastSentVehicleDamage;
 
+        public static DateTime LastArmourLoss;
+
         private static int _DisabledFiringCounter { get; set; }
         public static bool DisabledFiring
         {
@@ -283,6 +285,8 @@ namespace BCRPClient.Sync
             RAGE.Elements.Player.LocalPlayer.SetSuffersCriticalHits(false);
 
             RAGE.Game.Player.DisablePlayerVehicleRewards();
+
+            LastArmourLoss = DateTime.Now;
 
             LastSentReload = DateTime.Now;
             LastSentUpdate = DateTime.Now;
@@ -392,7 +396,7 @@ namespace BCRPClient.Sync
                 {
                     Sync.Players.CloseAll(false);
 
-                    if ((killer == null || killer.Handle == Player.LocalPlayer.Handle) && DateTime.Now.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
+                    if ((killer?.Exists != true || killer.Handle == Player.LocalPlayer.Handle) && DateTime.Now.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
                         killer = LastAttackerInfo.Player;
 
                     if (Sync.Players.GetData(killer) == null)
@@ -529,6 +533,9 @@ namespace BCRPClient.Sync
                 return;
 
             OnDamage?.Invoke(healthLoss, armourLoss);
+
+            if (armourLoss > 0)
+                LastArmourLoss = DateTime.Now;
         }
 
         public static void ArmourCheck(int healthLoss, int armourLoss)
@@ -584,7 +591,7 @@ namespace BCRPClient.Sync
                     if (distance > gun.MaxDistance)
                         return;
 
-                    if (!pData.Knocked)
+                    if (!pData.IsKnocked)
                         cancel.Cancel = false;
 
                     PartTypes pType = PartTypes.Limb;
@@ -593,7 +600,7 @@ namespace BCRPClient.Sync
 
                     float boneRatio = gun.GetBodyRatio(pType);
 
-                    var customDamage = (int)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio * (sourcePlayer.IsSittingInAnyVehicle() ? IN_VEHICLE_DAMAGE_COEF : 1f)) - (pData.Knocked ? 0 : 1);
+                    var customDamage = (int)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio * (sourcePlayer.IsSittingInAnyVehicle() ? IN_VEHICLE_DAMAGE_COEF : 1f)) - (pData.IsKnocked ? 0 : 1);
 
                     if (customDamage >= 0)
                     {
@@ -606,7 +613,7 @@ namespace BCRPClient.Sync
                         var hp = Player.LocalPlayer.GetRealHealth();
                         var arm = Player.LocalPlayer.GetArmour();
 
-                        if (hp <= 20 && !pData.Knocked)
+                        if (hp <= 20 && !pData.IsKnocked)
                         {
                             Player.LocalPlayer.SetInvincible(true);
 

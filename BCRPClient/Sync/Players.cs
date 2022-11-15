@@ -5,8 +5,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BCRPClient.Additional.Camera;
-using static BCRPClient.Locale.Notifications.Money;
 
 namespace BCRPClient.Sync
 {
@@ -144,7 +142,7 @@ namespace BCRPClient.Sync
 
             public bool Masked => Player.GetSharedData<bool>("Masked", false);
 
-            public bool Knocked => Player.GetSharedData<bool>("Knocked", false);
+            public bool IsKnocked => Player.GetSharedData<bool>("Knocked", false);
 
             public bool CrouchOn => Player.GetSharedData<bool>("Crouch::On", false);
 
@@ -156,8 +154,6 @@ namespace BCRPClient.Sync
 
             public bool IsInvalid => Player.GetSharedData<bool>("IsInvalid", false);
 
-            public bool IsInvincible => Player.GetSharedData<bool>("IsInvincible", false);
-
             public bool IsJailed => Player.GetSharedData<bool>("IsJailed", false);
 
             public bool IsFrozen => Player.GetSharedData<bool>("IsFrozen", false);
@@ -167,8 +163,6 @@ namespace BCRPClient.Sync
             public bool IsWounded => Player.GetSharedData<bool>("IsWounded", false);
 
             public bool BeltOn => Player.GetSharedData<bool>("Belt::On", false);
-
-            public bool IsFingerPointing => Player.GetSharedData<bool>("IsFingerPointing", false);
 
             public int VehicleSeat => Player.GetSharedData<int>("VehicleSeat", -1);
 
@@ -185,6 +179,10 @@ namespace BCRPClient.Sync
             public Sync.Animations.WalkstyleTypes Walkstyle => (Sync.Animations.WalkstyleTypes)Player.GetSharedData<int>("Walkstyle", -1);
 
             public Sync.Animations.EmotionTypes Emotion => (Sync.Animations.EmotionTypes)Player.GetSharedData<int>("Emotion", -1);
+
+            public bool IsInvisible => Player.GetSharedData<bool>("IsInvisible", false);
+
+            public bool IsInvincible => Player.GetSharedData<bool>("IsInvincible", false);
 
             public int MuteTime { get => Player.GetData<int>("MuteTime"); set => Player.SetData("MuteTime", value); }
 
@@ -216,7 +214,22 @@ namespace BCRPClient.Sync
             }
             #endregion
 
-            public void Reset() => Player?.ResetData();
+            public void Reset()
+            {
+                if (Player == null)
+                    return;
+
+                Player.ClearTasksImmediately();
+
+                Player.SetNoCollisionEntity(Player.LocalPlayer.Handle, false);
+
+                Sync.Microphone.RemoveTalker(Player);
+                Sync.Microphone.RemoveListener(Player, false);
+
+                KnockedPlayers.Remove(Player);
+
+                Player.ResetData();
+            }
         }
 
         public static PlayerData GetData(Player player)
@@ -327,7 +340,7 @@ namespace BCRPClient.Sync
                 InvokeHandler("Mood", data, data.Mood, null);
                 InvokeHandler("Satiety", data, data.Satiety, null);
 
-                InvokeHandler("Knocked", data, data.Knocked, null);
+                InvokeHandler("Knocked", data, data.IsKnocked, null);
 
                 InvokeHandler("Wounded", data, data.IsWounded, null);
 
@@ -361,7 +374,7 @@ namespace BCRPClient.Sync
                     CEF.Menu.TimePlayed += 1;
                 }, 60000, true, 60000)).Run();
 
-                CEF.HUD.Menu.SetCurrentTypes(HUD.Menu.Types.Menu, HUD.Menu.Types.Documents);
+                CEF.HUD.Menu.SetCurrentTypes(HUD.Menu.Types.Menu, HUD.Menu.Types.Documents, HUD.Menu.Types.BlipsMenu);
 
                 Settings.Load();
                 KeyBinds.LoadAll();
@@ -405,19 +418,25 @@ namespace BCRPClient.Sync
                     if (!loaded)
                         return;
 
+                    var data = GetData(player);
+
+                    if (data != null)
+                    {
+                        data.Reset();
+                    }
+
                     player.AutoVolume = false;
                     player.Voice3d = false;
                     player.VoiceVolume = 0f;
 
-                    PlayerData data = new PlayerData(player);
+                    data = new PlayerData(player);
 
                     if (data.CID < 0)
                         return;
 
-                    data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
+                    InvokeHandler("IsInvisible", data, data.IsInvisible, null);
 
-                    if (player.GetAlpha() != 255)
-                        player.SetNoCollisionEntity(Player.LocalPlayer.Handle, false);
+                    data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
 
                     if (data.VehicleSeat != -1)
                     {
@@ -447,19 +466,10 @@ namespace BCRPClient.Sync
             {
                 if (entity is Player player)
                 {
-                    player.ClearTasksImmediately();
-
-                    player.SetNoCollisionEntity(Player.LocalPlayer.Handle, true);
-
                     var data = GetData(player);
 
                     if (data == null)
                         return;
-
-                    Sync.Microphone.RemoveTalker(player);
-                    Sync.Microphone.RemoveListener(player, false);
-
-                    KnockedPlayers.Remove(player);
 
                     data.Reset();
                 }
@@ -590,7 +600,7 @@ namespace BCRPClient.Sync
 
                 if (state)
                 {
-                    Events.CallLocal("Players::CloseAll");
+                    CloseAll(false);
 
                     GameEvents.Render -= GameEvents.DisableAllControls;
                     GameEvents.Render += GameEvents.DisableAllControls;
@@ -814,19 +824,9 @@ namespace BCRPClient.Sync
                 }
             });
 
-            Events.AddDataHandler("Customization::HairOverlay", (Entity entity, object value, object oldValue) =>
+            AddDataHandler("Customization::HairOverlay", (pData, value, oldValue) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Player)
-                    return;
-
-                var player = entity as Player;
-
-                var pData = GetData(player);
-
-                if (pData == null)
-                    return;
-
-                pData.HairOverlay = Data.Customization.GetHairOverlay(player.IsMale(), (int)value);
+                pData.HairOverlay = Data.Customization.GetHairOverlay(pData.Sex, (int)value);
             });
 
             AddDataHandler("Belt::On", (pData, value, oldValue) =>
@@ -922,11 +922,6 @@ namespace BCRPClient.Sync
                 player.SetNoCollisionEntity(Player.LocalPlayer.Handle, !(bool)value);
             });
 
-            AddDataHandler("IsInvincible", (pData, value, oldValue) =>
-            {
-
-            });
-
             AddDataHandler("Hat", (pData, value, oldValue) =>
             {
 
@@ -934,6 +929,9 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Sex", (pData, value, oldValue) =>
             {
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
+                    return;
+
                 var state = (bool)value;
 
                 CEF.Menu.SetSex(state);
@@ -1115,11 +1113,21 @@ namespace BCRPClient.Sync
 
         private static void WoundedUpdate()
         {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null || pData.IsInvincible)
+                return;
+
             Player.LocalPlayer.SetRealHealth(Player.LocalPlayer.GetRealHealth() - WoundedReduceHP);
         }
 
         private static void HungryUpdate()
         {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null || pData.IsInvincible)
+                return;
+
             var currentHp = Player.LocalPlayer.GetRealHealth();
 
             if (currentHp <= HungryLowestHP)
