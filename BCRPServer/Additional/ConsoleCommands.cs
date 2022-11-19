@@ -17,19 +17,28 @@ namespace BCRPServer.Additional
             { "exit", () =>
                 {
                     ServerEvents.IsRestarting = true;
+
                     Active = false;
 
-                    NAPI.Task.Run(() =>
+                    NAPI.Task.Run(async () =>
                     {
                         Console.WriteLine("Server is shutting down...");
 
                         foreach (var player in NAPI.Pools.GetAllPlayers())
-                            Utils.KickSilent(player, "Сервер был отключён!", 2000);
-
-                        NAPI.Task.Run(() =>
                         {
-                            Environment.Exit(0);
-                        }, Settings.SERVER_STOP_DELAY);
+                            Utils.KickSilent(player, "Сервер был отключён!", 2000);
+                        }
+
+                        foreach (var vehicle in VehicleData.All.Values)
+                            vehicle?.Delete(false);
+
+                        await Task.Delay(Settings.SERVER_STOP_DELAY);
+
+                        await MySQL.Wait();
+
+                        MySQL.DoAllQueries();
+
+                        Environment.Exit(0);
                     });
                 }
             },

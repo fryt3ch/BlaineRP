@@ -1,14 +1,73 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static BCRPServer.Locale.Chat;
 
 namespace BCRPServer.Game.Items
 {
     public class Gift
     {
+        private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
+
+        public static Dictionary<uint, Gift> All { get; private set; } = new Dictionary<uint, Gift>();
+
+        private static uint LastAddedMaxId { get; set; }
+
+        public static uint MoveNextId()
+        {
+            uint id;
+
+            if (!FreeIDs.TryDequeue(out id))
+            {
+                id = ++LastAddedMaxId;
+            }
+
+            return id;
+        }
+
+        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+
+        public static void AddOnLoad(Gift gift)
+        {
+            if (gift == null)
+                return;
+
+            All.Add(gift.ID, gift);
+
+            if (gift.ID > LastAddedMaxId)
+                LastAddedMaxId = gift.ID;
+        }
+
+        public static void Add(Gift gift)
+        {
+            if (gift == null)
+                return;
+
+            All.Add(gift.ID, gift);
+
+            MySQL.GiftAdd(gift);
+        }
+
+        public static void Remove(Gift gift)
+        {
+            if (gift == null)
+                return;
+
+            var id = gift.ID;
+
+            AddFreeId(id);
+
+            All.Remove(id);
+
+            MySQL.GiftDelete(gift);
+        }
+
+        public static List<Gift> GetAllByCID(int cid) => All.Values.Where(x => x?.CID == cid).ToList();
+
+        public static Gift Get(uint id) => All.GetValueOrDefault(id);
+
         public enum Types
         {
             /// <summary>Предмет</summary>
@@ -28,7 +87,7 @@ namespace BCRPServer.Game.Items
         }
 
         /// <summary>ID подарка</summary>
-        public int ID { get; set; }
+        public uint ID { get; set; }
 
         /// <summary>CID владельца</summary>
         public int CID { get; set; }
@@ -51,14 +110,22 @@ namespace BCRPServer.Game.Items
         public SourceTypes SourceType { get; set; }
 
         /// <summary>Конструктор для MySQL</summary>
-        public Gift(int CID, int ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(CID, SourceType, Type, GID, Variation, Amount)
+        public Gift(int CID, uint ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(CID, SourceType, Type, GID, Variation, Amount)
         {
             this.ID = ID;
+
+            this.Amount = Amount;
+            this.Type = Type;
+            this.GID = GID;
+            this.Variation = Variation;
+            this.Amount = Amount;
+
+            this.SourceType = SourceType;
         }
 
         public Gift(int CID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
         {
-            this.ID = -1;
+            this.ID = MoveNextId();
 
             this.CID = CID;
             this.Amount = Amount;
@@ -71,7 +138,7 @@ namespace BCRPServer.Game.Items
         }
 
         /// <summary>Метод для удаления подарка</summary>
-        public async Task Delete() => await MySQL.DeleteGift(this);
+        public void Delete() => Remove(this);
 
         /// <summary>Метод для выдачи подарка игроку</summary>
         /// <param name="pData">PlayerData игрока</param>
@@ -82,22 +149,15 @@ namespace BCRPServer.Game.Items
         /// <param name="sType">Источник выдачи</param>
         /// <param name="notify">Уведомить ли игрока?</param>
         /// <param name="spaceHint">Уведомить, но с подсказкой об освобождении места в инвентаре?</param>
-        public static async Task<Gift> Give(PlayerData pData, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false, bool spaceHint = false)
+        public static Gift Give(PlayerData pData, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false, bool spaceHint = false)
         {
             var player = pData.Player;
 
-            var gift = MySQL.AddGift(new Gift(pData.CID, sType, type, GID, variation, amount));
+            var gift = new Gift(pData.CID, sType, type, GID, variation, amount);
 
-            if (gift == null)
-                return null;
+            Add(gift);
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                player.TriggerEvent("Menu::Gifts::Update", true, gift.ID, notify, spaceHint, (int)type, GID, amount, (int)sType);
-            });
+            player.TriggerEvent("Menu::Gifts::Update", true, gift.ID, notify, spaceHint, (int)type, GID, amount, (int)sType);
 
             return gift;
         }
@@ -105,11 +165,11 @@ namespace BCRPServer.Game.Items
         /// <summary>Метод для распаковки подарка</summary>
         /// <param name="pData">PlayerData игрока</param>
         /// <returns>true - если подарок распакован успешно, false - в противном случае</returns>
-        public async Task<bool> Collect(PlayerData pData)
+        public bool Collect(PlayerData pData)
         {
             if (Type == Types.Item)
             {
-                return await Game.Items.Items.GiveItem(pData, GID, Variation, Amount, false) != null;
+                return Game.Items.Items.GiveItem(pData, GID, Variation, Amount, false) != null;
             }
             else if (Type == Types.Vehicle)
             {
@@ -117,7 +177,7 @@ namespace BCRPServer.Game.Items
             }
             else if (Type == Types.Money)
             {
-                return await pData.AddCash(Amount);
+                return pData.AddCash(Amount);
             }
 
             return false;

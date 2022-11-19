@@ -66,7 +66,7 @@ namespace BCRPClient.CEF
         public static DateTime CreationDate { get; set; }
         public static DateTime BirthDate { get; set; }
 
-        public static List<Data.Vehicles.Vehicle> OwnedVehicles;
+        public static List<(int VID, Data.Vehicles.Vehicle Data)> OwnedVehicles;
         public static Dictionary<int, (string Reason, string Name)> Gifts;
 
         private static int TempBindEsc;
@@ -101,7 +101,7 @@ namespace BCRPClient.CEF
 
             _TimePlayed = 0;
 
-            OwnedVehicles = new List<Data.Vehicles.Vehicle>();
+            OwnedVehicles = new List<(int, Data.Vehicles.Vehicle)>();
             Gifts = new Dictionary<int, (string Reason, string Name)>();
 
             #region Events
@@ -395,7 +395,7 @@ namespace BCRPClient.CEF
         public static void Load(params object[] args)
         {
             var info = RAGE.Util.Json.Deserialize<(int timePlayed, DateTime creationDate, DateTime birtDate)>((string)args[0]);
-            var vehicles = RAGE.Util.Json.Deserialize<List<string>>((string)args[1]);
+            var vehicles = RAGE.Util.Json.Deserialize<List<(int VID, string ID)>>((string)args[1]);
             var gifts = RAGE.Util.Json.Deserialize<List<(int id, int type, string gid, int amount, int reason)>>((string)args[2]);
 
             Browser.Window.ExecuteJs("Menu.setOrganisation", Locale.General.Players.FractionNames[Sync.Players.FractionTypes.None]);
@@ -417,12 +417,12 @@ namespace BCRPClient.CEF
 
             foreach (var x in vehicles)
             {
-                var vData = Data.Vehicles.GetById(x);
+                var vData = Data.Vehicles.GetById(x.ID);
 
                 if (vData == null)
                     continue;
 
-                OwnedVehicles.Add(vData);
+                OwnedVehicles.Add((x.VID, vData));
 
                 Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "veh", vData.Type.ToString(), vData.BrandName, vData.SubName, "Luxe", 100 } });
             }

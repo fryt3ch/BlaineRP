@@ -122,6 +122,8 @@ namespace BCRPServer
         /// <summary>Стандартное настроение игрока (от 0 до 100)</summary>
         public const int CHARACTER_DEFAULT_MOOD = 100;
 
+        public const int MIN_VEHICLE_SLOTS = 1;
+
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 
         public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES { get => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M }; }

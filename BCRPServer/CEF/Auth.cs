@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,101 +24,80 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if ((tData.StepType != TempData.StepTypes.None) || tData.AccountData != null)
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (password == null || login == null || password == null)
+                return;
+
+            mail = mail.ToLower();
+
+            if (!Utils.IsMailValid(mail) || !Utils.IsLoginValid(login) || !Utils.IsPasswordValid(password))
+                return;
+
+            tData.BlockRemoteCalls = true;
+
+            var hwid = player.Serial;
+            var scid = player.SocialClubId.ToString();
+            var ip = player.Address;
+
+            await MySQL.WaitGlobal();
+
+            await Task.Run(async () =>
             {
-                if (player?.Exists != true)
-                    return;
+                password = Utils.ToMD5(password);
 
-                if ((tData.StepType != TempData.StepTypes.None) || player.GetAccountData() != null)
-                    return;
+                var aRes = await MySQL.AccountAdd(scid, hwid, login, password, mail, Utils.GetCurrentTime(), ip);
 
-                if (password == null || login == null || password == null)
-                    return;
-
-                var hwid = player.Serial;
-
-                mail = mail.ToLower();
-
-                if (!Utils.IsMailValid(mail) || !Utils.IsLoginValid(login) || !Utils.IsPasswordValid(password))
-                    return;
-
-                await MySQL.WaitGlobal();
-
-                await Task.Run(async () =>
+                NAPI.Task.Run(() =>
                 {
-                    if (!MySQL.IsLoginFree(login))
-                    {
-                        NAPI.Task.RunSafe(() => player?.Notify("Auth::LoginNotFree"));
-
+                    if (player?.Exists != true)
                         return;
-                    }
 
-                    if (!MySQL.IsMailFree(mail))
+                    tData.BlockRemoteCalls = false;
+
+                    if (aRes.Result == MySQL.AuthResults.RegOk)
                     {
-                        NAPI.Task.RunSafe(() => player?.Notify("Auth::MailNotFree"));
+                        tData.LoginCTS?.Cancel();
 
-                        return;
-                    }
+                        tData.AccountData = aRes.AccountData;
 
-                    password = Utils.ToMD5(password);
+                        tData.ActualToken = GenerateToken(tData.AccountData, hwid);
 
-                    tData.LoginCTS?.Cancel();
-
-                    tData.StepType = TempData.StepTypes.CharacterSelection;
-
-                    await NAPI.Task.RunAsync(async () =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        var aData = new AccountData(player)
-                        {
-                            SCID = player.SocialClubId.ToString(),
-                            HWID = player.Serial,
-                            Login = login,
-                            Password = password,
-                            Mail = mail,
-                            RegistrationDate = Utils.GetCurrentTime(),
-                            RegistrationIP = player.Address,
-                            LastIP = player.Address,
-                            AdminLevel = -1,
-                            BCoins = 0
-                        };
-
-                        player.SetAccountData(aData);
-
-                        aData.ID = await Task.Run(() => MySQL.AddNewAccount(aData));
-
-                        tData.ActualToken = GenerateToken(aData, hwid);
-
-                        tData.Characters = new PlayerData.Prototype[3];
+                        tData.Characters = new PlayerData.PlayerInfo[3];
 
                         var cData = new object[3];
 
                         for (int i = 0; i < cData.Length; i++)
                             cData[i] = new object[14];
 
-                        NAPI.Task.RunSafe(() =>
+                        player.TriggerEvent("Auth::CloseRegistrationPage", true);
+                        player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.ToString("d"), tData.AccountData.BCoins, cData.SerializeToJson());
+
+                        player.TriggerEvent("Auth::SaveLogin", tData.AccountData.Login);
+                        player.TriggerEvent("Auth::SaveToken", tData.ActualToken);
+
+                        tData.StepType = TempData.StepTypes.CharacterSelection;
+                    }
+                    else
+                    {
+                        if (aRes.Result == MySQL.AuthResults.RegMailNotFree)
                         {
-                            if (player?.Exists != true)
-                                return;
+                            player.Notify("Auth::MailNotFree");
 
-                            player.TriggerEvent("Auth::CloseRegistrationPage", true);
-                            player.TriggerEvent("Auth::ShowCharacterChoosePage", true, aData.Login, aData.RegistrationDate.ToString("d"), aData.BCoins, cData.SerializeToJson());
+                            return;
+                        }
+                        else if (aRes.Result == MySQL.AuthResults.RegLoginNotFree)
+                        {
+                            player.Notify("Auth::LoginNotFree");
 
-                            player.TriggerEvent("Auth::SaveLogin", aData.Login);
-                            player.TriggerEvent("Auth::SaveToken", tData.ActualToken);
-                        });
-                    });
+                            return;
+                        }
+                    }
                 });
-
-                MySQL.ReleaseGlobal();
             });
 
-            tData.Release();
+            MySQL.ReleaseGlobal();
         }
         #endregion
 
@@ -132,124 +112,105 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if (tData.AccountData == null || (tData.StepType != TempData.StepTypes.None))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (login == null || password == null)
+                return;
+
+            var hwid = player.Serial;
+
+            tData.LoginAttempts--;
+
+            if (tData.LoginAttempts <= 0)
             {
-                if (player?.Exists != true)
-                    return;
+                player.KickSilent();
 
-                var aData = player.GetAccountData();
+                return;
+            }
 
-                if (aData == null || (tData.StepType != TempData.StepTypes.None))
-                    return;
+            if (login != tData.AccountData.Login)
+            {
+                player.Notify("Auth::WrongLogin", tData.LoginAttempts);
 
-                if (login == null || password == null)
-                    return;
+                return;
+            }
 
-                var hwid = player.Serial;
+            if (password == tData.ActualToken)
+                password = DecryptToken(password, hwid);
+            else
+                password = Utils.ToMD5(password);
 
-                tData.LoginAttempts--;
+            if (password != tData.AccountData.Password)
+            {
+                player.Notify("Auth::WrongPassword", tData.LoginAttempts);
 
-                if (tData.LoginAttempts <= 0)
-                {
-                    player.KickSilent();
+                return;
+            }
 
-                    return;
-                }
+            tData.LoginCTS?.Cancel();
 
-                if (login != aData.Login)
-                {
-                    player.Notify("Auth::WrongLogin", tData.LoginAttempts);
+            tData.StepType = TempData.StepTypes.CharacterSelection;
 
-                    return;
-                }
+            tData.AccountData.LastIP = player.Address;
 
-                if (password == tData.ActualToken)
-                    password = DecryptToken(password, hwid);
-                else
-                    password = Utils.ToMD5(password);
-
-                if (password != aData.Password)
-                {
-                    player.Notify("Auth::WrongPassword", tData.LoginAttempts);
-
-                    return;
-                }
-
-                tData.LoginCTS?.Cancel();
-
-                tData.StepType = TempData.StepTypes.CharacterSelection;
-
-                aData.LastIP = player.Address;
-
-                await Task.Run(async () =>
-                {
-                    aData.UpdateOnEnter();
-
-                    tData.Characters = MySQL.GetAllCharacters(aData.ID);
-
-                    var cData = new object[3][];
-
-                    for (int i = 0; i < cData.Length; i++)
-                        if (tData.Characters[i] != null)
-                        {
-                            var lastBan = tData.Characters[i].Punishments.Where(x => x.Type == PlayerData.Punishment.Types.Ban && x.GetSecondsLeft() > 0).FirstOrDefault();
-
-                            cData[i] = new object[14]
-                            {
-                                tData.Characters[i].Name + " " + tData.Characters[i].Surname,
-                                tData.Characters[i].BankAccount == null ? 0 : tData.Characters[i].BankAccount.Balance,
-                                tData.Characters[i].Cash,
-                                tData.Characters[i].Sex,
-                                tData.Characters[i].BirthDate.GetTotalYears(),
-                                tData.Characters[i].Fraction == PlayerData.FractionTypes.None ? Locale.General.Auth.NoFraction : tData.Characters[i].Fraction.ToString(),
-                                (tData.Characters[i].TimePlayed / 60f).ToString("0.0"),
-                                tData.Characters[i].CID,
-                                lastBan != null,
-                                tData.Characters[i].IsOnline,
-                                null,
-                                null,
-                                null,
-                                null,
-                            };
-
-                            if (lastBan != null)
-                            {
-                                cData[i][10] = lastBan.Reason;
-                                cData[i][11] = lastBan.AdminID.ToString();
-                                cData[i][12] = lastBan.StartDate.ToString();
-                                cData[i][13] = lastBan.EndDate.ToString();
-                            }
-                        }
-                        else
-                            cData[i] = new object[14] { null, null, null, null, null, null, null, null, null, null, null, null, null, null };
-
-                    var newToken = GenerateToken(aData, hwid);
-                    var jsonData = cData.SerializeToJson();
-
-                    NAPI.Task.RunSafe(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Auth::CloseLoginPage", true);
-                        player.TriggerEvent("Auth::ShowCharacterChoosePage", true, aData.Login, aData.RegistrationDate.ToString("d"), aData.BCoins, jsonData);
-
-                        player.TriggerEvent("Auth::SaveLogin", aData.Login);
-                        player.TriggerEvent("Auth::SaveToken", newToken);
-                    });
-                });
+            Task.Run(() =>
+            {
+                tData.AccountData.UpdateOnEnter();
             });
 
-            tData.Release();
+            var cData = new object[3][];
+
+            for (int i = 0; i < cData.Length; i++)
+            {
+                if (tData.Characters[i] != null)
+                {
+                    var lastBan = tData.Characters[i].Punishments.Where(x => x.Type == PlayerData.Punishment.Types.Ban && x.GetSecondsLeft() > 0).FirstOrDefault();
+
+                    cData[i] = new object[14]
+                    {
+                            tData.Characters[i].Name + " " + tData.Characters[i].Surname,
+                            tData.Characters[i].BankAccount == null ? 0 : tData.Characters[i].BankAccount.Balance,
+                            tData.Characters[i].Cash,
+                            tData.Characters[i].Sex,
+                            tData.Characters[i].BirthDate.GetTotalYears(),
+                            tData.Characters[i].Fraction == PlayerData.FractionTypes.None ? Locale.General.Auth.NoFraction : tData.Characters[i].Fraction.ToString(),
+                            (tData.Characters[i].TimePlayed / 60f).ToString("0.0"),
+                            tData.Characters[i].CID,
+                            lastBan != null,
+                            tData.Characters[i].IsOnline,
+                            null,
+                            null,
+                            null,
+                            null,
+                    };
+
+                    if (lastBan != null)
+                    {
+                        cData[i][10] = lastBan.Reason;
+                        cData[i][11] = lastBan.AdminID.ToString();
+                        cData[i][12] = lastBan.StartDate.ToString();
+                        cData[i][13] = lastBan.EndDate.ToString();
+                    }
+                }
+                else
+                    cData[i] = new object[14] { null, null, null, null, null, null, null, null, null, null, null, null, null, null };
+            }
+
+            var newToken = GenerateToken(tData.AccountData, hwid);
+            var jsonData = cData.SerializeToJson();
+
+            player.TriggerEvent("Auth::CloseLoginPage", true);
+            player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.ToString("d"), tData.AccountData.BCoins, jsonData);
+
+            player.TriggerEvent("Auth::SaveLogin", tData.AccountData.Login);
+            player.TriggerEvent("Auth::SaveToken", newToken);
         }
         #endregion
 
         #region Character Choose Attempt
         [RemoteEvent("Auth::OnCharacterChooseAttempt")]
-        private async Task OnCharacterChooseAttempt(Player player, int num)
+        private static async Task OnCharacterChooseAttempt(Player player, int num)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -258,75 +219,54 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if ((tData.StepType != TempData.StepTypes.CharacterSelection) || tData.AccountData == null)
                 return;
 
-            await Task.Run(async () =>
+            int charNum = num - 1;
+
+            if (charNum < 0 || charNum > 2)
+                return;
+
+            if (tData.Characters[charNum] != null) // character exists
             {
-                var aData = player.GetAccountData();
+                var activeBan = tData.Characters[charNum].Punishments.Where(x => x.Type == PlayerData.Punishment.Types.Ban && x.GetSecondsLeft() > 0).FirstOrDefault();
 
-                if ((tData.StepType != TempData.StepTypes.CharacterSelection)|| aData == null)
+                if (activeBan != null || tData.Characters[charNum].IsOnline)
                     return;
 
-                int charNum = num - 1;
+                var data = PlayerData.PlayerInfo.Get(tData.Characters[charNum].CID);
 
-                if (charNum < 0 || charNum > 2)
+                if (data == null)
                     return;
 
-                if (tData.Characters[charNum] != null) // character exists
-                {
-                    var activeBan = tData.Characters[charNum].Punishments.Where(x => x.Type == PlayerData.Punishment.Types.Ban && x.GetSecondsLeft() > 0).FirstOrDefault();
+                tData.StepType = TempData.StepTypes.StartPlace;
 
-                    if (activeBan != null || tData.Characters[charNum].IsOnline)
-                        return;
+                tData.PlayerData = new PlayerData(player, data);
 
-                    var data = MySQL.GetCharacterByCID(player, tData.Characters[charNum].CID);
+                MySQL.CharacterUpdateOnEnter(data);
 
-                    if (data == null)
-                        return;
+                player.TriggerEvent("Auth::SaveLastCharacter", num);
 
-                    tData.StepType = TempData.StepTypes.StartPlace;
+                tData.ShowStartPlace();
+            }
+            else // create new character
+            {
+                int charactersCount = tData.Characters.Where(x => x != null).Count();
 
-                    tData.PlayerData = data;
+                if (charNum != charactersCount)
+                    return;
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                tData.StepType = TempData.StepTypes.CharacterCreation;
 
-                        player.TriggerEvent("Auth::SaveLastCharacter", num);
+                player.TriggerEvent("Auth::CloseCharacterChoosePage", false);
 
-                        tData.ShowStartPlace();
-                    });
-                }
-                else // create new character
-                {
-                    int charactersCount = tData.Characters.Where(x => x != null).Count();
-
-                    if (charNum != charactersCount)
-                        return;
-
-                    tData.StepType = TempData.StepTypes.CharacterCreation;
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Auth::CloseCharacterChoosePage", false);
-                        player.SetData("CharacterCreation::New", true);
-
-                        CharacterCreation.StartNew(player);
-                    });
-                }
-            });
-
-            tData.Release();
+                CharacterCreation.StartNew(player);
+            }
         }
         #endregion
 
         [RemoteEvent("Auth::StartPlace")]
-        private async Task StartPlaceSelect(Player player, bool start, int type)
+        private static void StartPlaceSelect(Player player, bool start, int type)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -335,75 +275,51 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if (tData.StepType != TempData.StepTypes.StartPlace)
                 return;
 
-            await Task.Run(async () =>
+            if (start)
             {
-                if (tData.StepType != TempData.StepTypes.StartPlace)
+                if (tData.PositionToSpawn == null)
                     return;
 
-                if (start)
+                var pData = tData.PlayerData;
+
+                pData.LastData.Position = tData.PositionToSpawn;
+                pData.LastData.Dimension = tData.DimensionToSpawn;
+
+                pData.AccountData = tData.AccountData;
+
+                tData.Delete();
+
+                player.SetMainData(pData);
+
+                pData.SetReady();
+            }
+            else
+            {
+                if (!Enum.IsDefined(typeof(TempData.StartPlaceTypes), type))
+                    return;
+
+                var sType = (TempData.StartPlaceTypes)type;
+
+                if (sType == TempData.StartPlaceTypes.Last)
                 {
-                    if (tData.PositionToSpawn == null)
-                        return;
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        tData.Remove();
-
-                        Task.Run(async () =>
-                        {
-                            if (!await tData.WaitAsync())
-                                return;
-
-                            tData.Delete();
-                        });
-
-                        tData.PlayerData.LastData.Position = tData.PositionToSpawn;
-                        tData.PlayerData.LastData.Dimension = tData.DimensionToSpawn;
-
-                        player.SetMainData(tData.PlayerData);
-
-                        tData.PlayerData.SetReady();
-                    });
+                    tData.PositionToSpawn = tData.PlayerData.LastData.Position;
+                    tData.DimensionToSpawn = tData.PlayerData.LastData.Dimension;
+                }
+                else if (sType == TempData.StartPlaceTypes.Spawn)
+                {
+                    tData.PositionToSpawn = Utils.DefaultSpawnPosition;
+                    tData.DimensionToSpawn = Utils.Dimensions.Main;
                 }
                 else
-                {
-                    if (!Enum.IsDefined(typeof(TempData.StartPlaceTypes), type))
-                        return;
+                    return;
 
-                    var sType = (TempData.StartPlaceTypes)type;
+                player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
 
-                    if (sType == TempData.StartPlaceTypes.Last)
-                    {
-                        tData.PositionToSpawn = tData.PlayerData.LastData.Position;
-                        tData.DimensionToSpawn = tData.PlayerData.LastData.Dimension;
-                    }
-                    else if (sType == TempData.StartPlaceTypes.Spawn)
-                    {
-                        tData.PositionToSpawn = Utils.DefaultSpawnPosition;
-                        tData.DimensionToSpawn = Utils.Dimensions.Main;
-                    }
-                    else
-                        return;
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
-
-                        player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, false, "Auth::StartPlace::Allow", type);
-                    });
-                }
-            });
-
-            tData.Release();
+                player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, false, "Auth::StartPlace::Allow", type);
+            }
         }
 
         #region Stuff

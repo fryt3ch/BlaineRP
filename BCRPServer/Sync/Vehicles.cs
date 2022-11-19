@@ -11,7 +11,7 @@ namespace BCRPServer.Sync
     {
         #region Player Enter Vehicle
         [ServerEvent(Event.PlayerEnterVehicle)]
-        private static async Task PlayerEntered(Player player, Vehicle veh, sbyte seatId)
+        private static void PlayerEntered(Player player, Vehicle veh, sbyte seatId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -20,52 +20,36 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            if (pData.VehicleSeat != -1 || seatId < 0 || seatId >= veh.MaxOccupants || vData.Locked || vData.Passengers[seatId]?.Exists == true)
             {
-                var vData = veh.GetMainData();
+                player.WarpOutOfVehicle();
 
-                if (!await vData.WaitAsync())
-                    return;
+                return;
+            }
 
-                await NAPI.Task.RunAsync(async () =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true)
-                        return;
+            vData.AddPassenger(seatId, pData);
 
-                    if (pData.VehicleSeat != -1 || seatId < 0 || seatId >= veh.MaxOccupants || vData.Locked || vData.Passengers[seatId]?.Exists == true)
-                    {
-                        player.WarpOutOfVehicle();
+            if (vData.IsInvincible)
+                vData.IsInvincible = false;
 
-                        return;
-                    }
+            var curWeapon = pData.ActiveWeapon;
 
-                    vData.AddPassenger(seatId, pData);
-
-                    if (vData.IsInvincible)
-                        vData.IsInvincible = false;
-
-                    var curWeapon = pData.ActiveWeapon;
-
-                    if (curWeapon != null)
-                    {
-                        if (!curWeapon.Value.WeaponItem.Data.CanUseInVehicle)
-                            await pData.InventoryAction(curWeapon.Value.Group, curWeapon.Value.Slot, 5);
-                    }
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            if (curWeapon != null)
+            {
+                if (!curWeapon.Value.WeaponItem.Data.CanUseInVehicle)
+                    pData.InventoryAction(curWeapon.Value.Group, curWeapon.Value.Slot, 5);
+            }
         }
         #endregion
 
         #region Player Exit Vehicle
         [ServerEvent(Event.PlayerExitVehicle)]
-        private static async Task PlayerExited(Player player, Vehicle veh)
+        private static void PlayerExited(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -74,37 +58,21 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
+            vData.RemovePassenger(pData);
 
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true)
-                        return;
-
-                    vData.RemovePassenger(pData.VehicleSeat);
-
-                    if (!vData.IsInvincible && !vData.Passengers.Where(x => x?.Exists == true).Any())
-                        vData.IsInvincible = true;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            if (!vData.IsInvincible && !vData.Passengers.Where(x => x?.Exists == true).Any())
+                vData.IsInvincible = true;
         }
         #endregion
 
         #region Engine
         [RemoteEvent("Vehicles::ToggleEngineSync")]
-        private static async Task ToggleEngineRemote(Player player)
+        private static void ToggleEngineRemote(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -115,28 +83,15 @@ namespace BCRPServer.Sync
 
             Vehicle veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
+            if (pData.VehicleSeat != 0)
+                return;
 
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0)
-                        return;
-
-                    ToggleEngine(pData, vData);
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            ToggleEngine(pData, vData);
         }
 
         public static void ToggleEngine(PlayerData pData, VehicleData vData, bool? forceStatus = null)
@@ -164,15 +119,12 @@ namespace BCRPServer.Sync
                     {
                         vData.EngineOn = true;
 
-                        if (player?.Exists == true)
-                        {
-                            Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.EngineOn);
-                            player.Notify("Engine::On");
-                        }
+                        Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOn);
+                        player.Notify("Engine::On");
                     }
-                    else if (player?.Exists == true)
+                    else
                     {
-                        Chat.SendLocal(Chat.Type.Do, player, Locale.Chat.Vehicle.OutOfFuel);
+                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.OutOfFuel);
                         player.Notify("Engine::OutOfFuel");
                     }
                 }
@@ -180,11 +132,8 @@ namespace BCRPServer.Sync
                 {
                     vData.EngineOn = false;
 
-                    if (player?.Exists == true)
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.EngineOff);
-                        player.Notify("Engine::Off");
-                    }
+                    Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOff);
+                    player.Notify("Engine::Off");
                 }
             }
         }
@@ -192,7 +141,7 @@ namespace BCRPServer.Sync
 
         #region Doors Lock
         [RemoteEvent("Vehicles::ToggleDoorsLockSync")]
-        public static async Task ToggleDoorsLock(Player player, Vehicle veh)
+        public static void ToggleDoorsLock(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -201,57 +150,44 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            if (vData.IsOwner(pData) == null)
+                return;
+
+            bool newState = !vData.Locked;
+
+            if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                var vData = veh.GetMainData();
+                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
-                if (!await vData.WaitAsync())
-                    return;
+                pData.PlayAnim(Animations.FastTypes.VehLocking);
+            }
 
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE)))
-                        return;
+            if (newState)
+            {
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.Locked);
+                player.Notify("Doors::Locked");
+            }
+            else
+            {
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.Unlocked);
+                player.Notify("Doors::Unlocked");
+            }
 
-                    if (vData.IsOwner(pData) == null)
-                        return;
-
-                    bool newState = !vData.Locked;
-
-                    if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
-                    {
-                        player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
-
-                        pData.PlayAnim(Animations.FastTypes.VehLocking);
-                    }
-
-                    if (newState)
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.Locked);
-                        player.Notify("Doors::Locked");
-                    }
-                    else
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.Unlocked);
-                        player.Notify("Doors::Unlocked");
-                    }
-
-                    vData.Locked = newState;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            vData.Locked = newState;
         }
         #endregion
 
         #region Indicators + Lights
         [RemoteEvent("Vehicles::ToggleIndicator")]
-        public static async Task ToggleIndicator(Player player, int type)
+        public static void ToggleIndicator(Player player, int type)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -262,66 +198,53 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            if (pData.VehicleSeat != 0 || type < 0 || type > 2 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
+                return;
+
+            bool leftOn = vData.LeftIndicatorOn;
+            bool rightOn = vData.RightIndicatorOn;
+
+            if (type != 2)
             {
-                var vData = veh.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
+                if (type == 1)
                 {
-                    if (player?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0 || type < 0 || type > 2 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
-                        return;
+                    if (rightOn)
+                        vData.RightIndicatorOn = false;
 
-                    bool leftOn = vData.LeftIndicatorOn;
-                    bool rightOn = vData.RightIndicatorOn;
+                    if (!(rightOn && leftOn))
+                        vData.LeftIndicatorOn = !leftOn;
+                }
+                else
+                {
+                    if (leftOn)
+                        vData.LeftIndicatorOn = false;
 
-                    if (type != 2)
-                    {
-                        if (type == 1)
-                        {
-                            if (rightOn)
-                                vData.RightIndicatorOn = false;
-
-                            if (!(rightOn && leftOn))
-                                vData.LeftIndicatorOn = !leftOn;
-                        }
-                        else
-                        {
-                            if (leftOn)
-                                vData.LeftIndicatorOn = false;
-
-                            if (!(rightOn && leftOn))
-                                vData.RightIndicatorOn = !rightOn;
-                        }
-                    }
-                    else
-                    {
-                        if (leftOn && rightOn)
-                        {
-                            vData.LeftIndicatorOn = false;
-                            vData.RightIndicatorOn = false;
-                        }
-                        else
-                        {
-                            vData.LeftIndicatorOn = true;
-                            vData.RightIndicatorOn = true;
-                        }
-                    }
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+                    if (!(rightOn && leftOn))
+                        vData.RightIndicatorOn = !rightOn;
+                }
+            }
+            else
+            {
+                if (leftOn && rightOn)
+                {
+                    vData.LeftIndicatorOn = false;
+                    vData.RightIndicatorOn = false;
+                }
+                else
+                {
+                    vData.LeftIndicatorOn = true;
+                    vData.RightIndicatorOn = true;
+                }
+            }
         }
 
         [RemoteEvent("Vehicles::ToggleLights")]
-        public static async Task ToggleLights(Player player)
+        public static void ToggleLights(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -332,34 +255,21 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
+            if (pData.VehicleSeat != 0 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
+                return;
 
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
-                        return;
-
-                    vData.LightsOn = !vData.LightsOn;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            vData.LightsOn = !vData.LightsOn;
         }
         #endregion
 
         #region Radio
         [RemoteEvent("Vehicles::SetRadio")]
-        public static async Task SetRadio(Player player, int ind)
+        public static void SetRadio(Player player, int ind)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -370,34 +280,18 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true)
-                        return;
-
-                    vData.Radio = ind;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            vData.Radio = ind;
         }
         #endregion
 
         #region Trunk Lock
         [RemoteEvent("Vehicles::ToggleTrunkLockSync")]
-        public static async Task ToggleTrunk(Player player, Vehicle veh)
+        public static void ToggleTrunk(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -406,73 +300,57 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
+            if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
 
-                if (!await vData.WaitAsync())
+            if (vData.IsOwner(pData) == null)
+                return;
+
+            var newState = !vData.TrunkLocked;
+
+            if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
+            {
+                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+
+                pData.PlayAnim(Animations.FastTypes.VehLocking);
+            }
+
+            if (newState)
+            {
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.TrunkOff);
+                player.Notify("Trunk::Locked");
+            }
+            else
+            {
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.TrunkOn);
+                player.Notify("Trunk::Unlocked");
+            }
+
+            vData.TrunkLocked = newState;
+
+            var tid = vData.TID;
+
+            // Clear All Trunk Observers If Closed
+            if (newState && tid != null)
+            {
+                var cont = Game.Items.Container.Get((uint)tid);
+
+                if (cont == null)
                     return;
 
-                await NAPI.Task.RunAsync(async () =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE)))
-                        return;
-
-                    if (vData.IsOwner(pData) == null)
-                        return;
-
-                    var newState = !vData.TrunkLocked;
-
-                    if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
-                    {
-                        player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
-
-                        pData.PlayAnim(Animations.FastTypes.VehLocking);
-                    }
-
-                    if (newState)
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.TrunkOff);
-                        player.Notify("Trunk::Locked");
-                    }
-                    else
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.TrunkOn);
-                        player.Notify("Trunk::Unlocked");
-                    }
-
-                    vData.TrunkLocked = newState;
-
-                    var tid = vData.TID;
-
-                    // Clear All Trunk Observers If Closed
-                    if (newState && tid != null)
-                        await Task.Run(async () =>
-                        {
-                            var cont = Game.Items.Container.Get((uint)tid);
-
-                            if (!await cont.WaitAsync())
-                                return;
-
-                            cont.ClearAllObservers();
-
-                            cont.Release();
-                        });
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+                cont.ClearAllObservers();
+            }
         }
         #endregion
 
         #region Hood Lock
         [RemoteEvent("Vehicles::ToggleHoodLockSync")]
-        public static async Task ToggleHood(Player player, Vehicle veh)
+        public static void ToggleHood(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -481,57 +359,44 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            if (vData.IsOwner(pData) == null)
+                return;
+
+            var newState = !vData.HoodLocked;
+
+            if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                var vData = veh.GetMainData();
+                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
-                if (!await vData.WaitAsync())
-                    return;
+                pData.PlayAnim(Animations.FastTypes.VehLocking);
+            }
 
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE)))
-                        return;
+            if (newState)
+            {
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.HoodOff);
+                player.Notify("Hood::Locked");
+            }
+            else
+            {
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.HoodOn);
+                player.Notify("Hood::Unlocked");
+            }
 
-                    if (vData.IsOwner(pData) == null)
-                        return;
-
-                    var newState = !vData.HoodLocked;
-
-                    if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
-                    {
-                        player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
-
-                        pData.PlayAnim(Animations.FastTypes.VehLocking);
-                    }
-
-                    if (newState)
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.HoodOff);
-                        player.Notify("Hood::Locked");
-                    }
-                    else
-                    {
-                        Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.HoodOn);
-                        player.Notify("Hood::Unlocked");
-                    }
-
-                    vData.HoodLocked = newState;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            vData.HoodLocked = newState;
         }
         #endregion
 
         #region Fuel Level + Mileage
         [RemoteEvent("Vehicles::UpdateFuelLevel")]
-        public static async Task UpdateFuelLevel(Player player, float diff)
+        public static void UpdateFuelLevel(Player player, float diff)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -542,50 +407,37 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            if (pData.VehicleSeat != 0)
+                return;
+
+            if (!vData.EngineOn)
+                return;
+
+            float currentLevel = vData.FuelLevel;
+
+            if (diff <= 0f || diff > 1f)
+                return;
+
+            currentLevel -= diff;
+
+            if (currentLevel < 0f)
+                currentLevel = 0f;
+
+            vData.FuelLevel = currentLevel;
+
+            if (currentLevel == 0f)
             {
-                var vData = veh.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0)
-                        return;
-
-                    if (!vData.EngineOn)
-                        return;
-
-                    float currentLevel = vData.FuelLevel;
-
-                    if (diff <= 0f || diff > 1f)
-                        return;
-
-                    currentLevel -= diff;
-
-                    if (currentLevel < 0f)
-                        currentLevel = 0f;
-
-                    vData.FuelLevel = currentLevel;
-
-                    if (currentLevel == 0f)
-                    {
-                        ToggleEngine(pData, vData, false);
-                    }
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+                ToggleEngine(pData, vData, false);
+            }
         }
 
         [RemoteEvent("Vehicles::UpdateMileage")]
-        public static async Task UpdateMileage(Player player, float diff)
+        public static void UpdateMileage(Player player, float diff)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -596,44 +448,31 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
+            if (pData.VehicleSeat != 0)
+                return;
 
-                if (!await vData.WaitAsync())
-                    return;
+            if (!vData.EngineOn)
+                return;
 
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0)
-                        return;
+            float currentLevel = vData.Mileage;
 
-                    if (!vData.EngineOn)
-                        return;
+            if (diff <= 0f || diff > 1000f)
+                return;
 
-                    float currentLevel = vData.Mileage;
+            currentLevel += diff;
 
-                    if (diff <= 0f || diff > 1000f)
-                        return;
-
-                    currentLevel += diff;
-
-                    vData.Mileage = currentLevel;
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+            vData.Mileage = currentLevel;
         }
         #endregion
 
         #region Shuffle Seat
         [RemoteEvent("Vehicles::ShuffleSeat")]
-        public static async Task ShuffleSeat(Player player, int seatId)
+        public static void ShuffleSeat(Player player, int seatId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -644,66 +483,36 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var vData = veh.GetMainData();
+            var currentSeat = pData.VehicleSeat;
 
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true)
-                        return;
-
-                    var currentSeat = pData.VehicleSeat;
-
-                    if (currentSeat == seatId || currentSeat == 0)
-                        return;
-
-                    var seats = vData.Passengers;
-
-                    if (seats[seatId]?.Exists == true)
-                        return;
-
-                    if (veh.MaxPassengers + 1 < seatId + 1)
-                        return;
-
-                    vData.RemovePassenger(currentSeat);
-
-                    player.SetIntoVehicle(veh, seatId);
-                    vData.AddPassenger(seatId, pData);
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Vehicles::SeatToTrunk")]
-        public static async Task SeatToTrunk(Player player, Vehicle veh)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
+            if (currentSeat == seatId || currentSeat == 0)
                 return;
 
-            var pData = sRes.Data;
+            var seats = vData.Passengers;
 
-            if (!await pData.WaitAsync())
+            if (seats[seatId]?.Exists == true)
                 return;
 
-            pData.Release();
+            if (veh.MaxPassengers + 1 < seatId + 1)
+                return;
+
+            vData.RemovePassenger(pData);
+
+            player.SetIntoVehicle(veh, seatId);
+
+            if (seatId != 0)
+                vData.AddPassenger(seatId, pData);
         }
         #endregion
 
         #region Kick Player
         [RemoteEvent("Vehicles::KickPlayer")]
-        public static async Task KickPlayer(Player player, Player target)
+        public static void KickPlayer(Player player, Player target)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -714,51 +523,33 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            var tData = target.GetMainData();
+
+            if (tData == null)
+                return;
+
+            if (pData.VehicleSeat != 0)
+                return;
+
+            if (target.Vehicle != player.Vehicle)
+                return;
+
+            if (Sync.Chat.SendLocal(Chat.Types.TryPlayer, player, Locale.Chat.Vehicle.Kick, target))
             {
-                var vData = veh.GetMainData();
+                //vData.RemovePassenger(tData.VehicleSeat);
 
-                if (!await vData.WaitAsync())
-                    return;
-
-                var tData = target.GetMainData();
-
-                if (!await tData.WaitAsync())
-                {
-                    vData.Release();
-
-                    return;
-                }    
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || target?.Exists != true || veh?.Exists != true || pData.VehicleSeat != 0)
-                        return;
-
-                    if (target.Vehicle != player.Vehicle)
-                        return;
-
-                    if (Sync.Chat.SendLocal(Chat.Type.TryPlayer, player, Locale.Chat.Vehicle.Kick, target))
-                    {
-                        vData.RemovePassenger(tData.VehicleSeat);
-                        target.WarpOutOfVehicle();
-                    }
-                });
-
-                tData.Release();
-
-                vData.Release();
-            });
-
-            pData.Release();
+                target.WarpOutOfVehicle();
+            }
         }
         #endregion
 
         [RemoteEvent("Vehicles::Park")]
-        public static async Task Park(Player player)
+        public static void Park(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -769,33 +560,17 @@ namespace BCRPServer.Sync
 
             var veh = player.Vehicle;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await Task.Run(async () =>
+            if (vData.IsOwner(pData) == null)
             {
-                var vData = veh.GetMainData();
+                player.Notify("Vehicle::NotAllowed");
 
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || veh?.Exists != true)
-                        return;
-
-                    if (vData.IsOwner(pData) == null)
-                    {
-                        player.Notify("Vehicle::NotAllowed");
-
-                        return;
-                    }
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
+                return;
+            }
         }
     }
 }

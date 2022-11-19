@@ -18,13 +18,9 @@ namespace BCRPServer.Sync
         /// <summary>Список всех активных предложений</summary>
         public static List<Offer> AllOffers { get; private set; }
 
-        public static SemaphoreSlim Semaphore { get; private set; }
-
         public Offers()
         {
             AllOffers = new List<Offer>();
-
-            Semaphore = new SemaphoreSlim(1, 1);
         }
 
         public enum Types
@@ -42,19 +38,19 @@ namespace BCRPServer.Sync
             Cash,
         }
 
-        private static Dictionary<Types, Dictionary<bool, Func<PlayerData, PlayerData, Offer, Task>>> OfferActions = new Dictionary<Types, Dictionary<bool, Func<PlayerData, PlayerData, Offer, Task>>>()
+        private static Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>> OfferActions = new Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>>()
         {
             {
                 Types.Handshake,
 
-                new Dictionary<bool, Func<PlayerData, PlayerData, Offer, Task>>()
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
                 {
                     {
                         true,
 
-                        async (pData, tData, offer) =>
+                        (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
 
                             if (pData == null || tData == null)
                                 return;
@@ -62,25 +58,22 @@ namespace BCRPServer.Sync
                             var sPlayer = pData.Player;
                             var tPlayer = tData.Player;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
                             {
-                                if (sPlayer?.Exists != true || tPlayer?.Exists != true)
-                                    return;
+                                tPlayer.Position = sPlayer.GetFrontOf(0.85f);
+                                tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
 
-                                if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                                    return;
+                                pData.PlayAnim(Animations.FastTypes.Handshake);
+                                tData.PlayAnim(Animations.FastTypes.Handshake);
+                            }
 
-                                if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
-                                {
-                                    tPlayer.Position = sPlayer.GetFrontOf(0.85f);
-                                    tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
-
-                                    pData.PlayAnim(Animations.FastTypes.Handshake);
-                                    tData.PlayAnim(Animations.FastTypes.Handshake);
-                                }
-
-                                pData.AddFamiliar(tData);
-                            });
+                            pData.AddFamiliar(tData);
                         }
                     }
                 }
@@ -89,14 +82,14 @@ namespace BCRPServer.Sync
             {
                 Types.Carry,
 
-                new Dictionary<bool, Func<PlayerData, PlayerData, Offer, Task>>()
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
                 {
                     {
                         true,
 
-                        async (pData, tData, offer) =>
+                        (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
 
                             if (pData == null || tData == null)
                                 return;
@@ -104,22 +97,16 @@ namespace BCRPServer.Sync
                             var sPlayer = pData.Player;
                             var tPlayer = tData.Player;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
                             {
-                                if (sPlayer?.Exists != true || tPlayer?.Exists != true)
-                                    return;
-
-                                if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                                    return;
-
-                                if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
-                                {
-                                    sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
-
-/*                                    pData.PlayAnim(Animations.GeneralTypes.CarryA);
-                                    tData.PlayAnim(Animations.GeneralTypes.CarryB);*/
-                                }
-                            });
+                                sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
+                            }
                         }
                     }
                 }
@@ -128,14 +115,14 @@ namespace BCRPServer.Sync
             {
                 Types.Cash,
 
-                new Dictionary<bool, Func<PlayerData, PlayerData, Offer, Task>>()
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
                 {
                     {
                         true,
 
                         async (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
 
                             if (pData == null || tData == null)
                                 return;
@@ -143,37 +130,20 @@ namespace BCRPServer.Sync
                             var sPlayer = pData.Player;
                             var tPlayer = tData.Player;
 
-                            var cash = await NAPI.Task.RunAsync(() =>
-                            {
-                                if (sPlayer?.Exists != true || tPlayer?.Exists != true)
-                                    return 0;
-
-                                if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                                    return 0;
-
-                                int cash = (offer.Data as int?) ?? 0;
-
-                                if (cash <= 0)
-                                    return 0;
-
-                                return cash;
-                            });
-
-                            if (cash == 0)
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                                 return;
 
-                            await Task.Run(async () =>
-                            {
-                                if (await pData.AddCash(-cash, true))
-                                {
-                                    await tData.AddCash(cash, true);
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
 
-/*                                    if (sPlayer.Vehicle == null && !pData.AnyAnimActive())
-                                    {
-                                        // anim
-                                    }*/
-                                }
-                            });
+                            int cash = (offer.Data as int?) ?? 0;
+
+                            if (cash <= 0)
+                                return;
+
+                            pData.AddCash(-cash, true);
+
+                            tData.AddCash(cash, true);
                         }
                     }
                 }
@@ -182,14 +152,14 @@ namespace BCRPServer.Sync
             {
                 Types.Exchange,
 
-                new Dictionary<bool, Func<PlayerData, PlayerData, Offer, Task>>()
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
                 {
                     {
                         true,
 
-                        async (pData, tData, offer) =>
+                        (pData, tData, offer) =>
                         {
-                            await offer.Cancel(true, false, ReplyTypes.AutoCancel, true);
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, true);
 
                             if (pData == null || tData == null)
                                 return;
@@ -197,32 +167,28 @@ namespace BCRPServer.Sync
                             var sPlayer = pData.Player;
                             var tPlayer = tData.Player;
 
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            sPlayer.CloseAll();
+                            tPlayer.CloseAll();
+
+                            sPlayer.TriggerEvent("Inventory::Show", 3);
+                            tPlayer.TriggerEvent("Inventory::Show", 3);
+
                             offer.TradeData = new Offer.Trade();
 
-                            if (!await NAPI.Task.RunAsync(() =>
-                            {
-                                if (sPlayer?.Exists != true || tPlayer?.Exists != true)
-                                    return false;
-
-                                if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                                    return false;
-
-                                sPlayer.CloseAll();
-                                tPlayer.CloseAll();
-
-                                sPlayer.TriggerEvent("Inventory::Show", 3);
-                                tPlayer.TriggerEvent("Inventory::Show", 3);
-
-                                return true;
-                            }))
-                                await offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
                         }
                     },
 
                     {
                         false,
 
-                        async (pData, tData, offer) =>
+                        (pData, tData, offer) =>
                         {
                             offer.TradeData = null;
 
@@ -232,14 +198,11 @@ namespace BCRPServer.Sync
                             var sPlayer = pData.Player;
                             var tPlayer = tData.Player;
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (sPlayer?.Exists != true || tPlayer?.Exists != true)
-                                    return;
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
 
-                                sPlayer.CloseAll();
-                                tPlayer.CloseAll();
-                            });
+                            sPlayer.CloseAll();
+                            tPlayer.CloseAll();
                         }
                     }
                 }
@@ -291,7 +254,7 @@ namespace BCRPServer.Sync
                 public bool SenderReady { get; set; }
                 public bool ReceiverReady { get; set; }
 
-                public async Task<(CEF.Inventory.Results Result, PlayerData PlayerError)> Execute(PlayerData pData, PlayerData tData)
+                public (CEF.Inventory.Results Result, PlayerData PlayerError) Execute(PlayerData pData, PlayerData tData)
                 {
                     var senderFreeSlots = pData.Items.Where(x => x == null).Count();
 
@@ -322,11 +285,8 @@ namespace BCRPServer.Sync
                     if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
                         return (CEF.Inventory.Results.NoSpace, tData);
 
-                    var moneyRes = await NAPI.Task.RunAsync<(CEF.Inventory.Results Result, PlayerData PlayerError)>(() =>
+                    var moneyRes = ((Func<(CEF.Inventory.Results Result, PlayerData PlayerError)>)(() =>
                     {
-                        if (pData.Player?.Exists != true || tData.Player?.Exists != true)
-                            return (CEF.Inventory.Results.Error, null);
-
                         if (pData.Cash < SenderMoney)
                             return (CEF.Inventory.Results.NotEnoughMoney, pData);
 
@@ -334,21 +294,21 @@ namespace BCRPServer.Sync
                             return (CEF.Inventory.Results.NotEnoughMoney, tData);
 
                         return (CEF.Inventory.Results.Success, null);
-                    });
+                    })).Invoke();
 
                     if (moneyRes.Result != CEF.Inventory.Results.Success)
                         return moneyRes;
 
                     if (ReceiverMoney > 0)
                     {
-                        await pData.AddCash(ReceiverMoney, true);
-                        await tData.AddCash(-ReceiverMoney, true);
+                        pData.AddCash(ReceiverMoney, true);
+                        tData.AddCash(-ReceiverMoney, true);
                     }
 
                     if (SenderMoney > 0)
                     {
-                        await tData.AddCash(SenderMoney, true);
-                        await pData.AddCash(-SenderMoney, true);
+                        tData.AddCash(SenderMoney, true);
+                        pData.AddCash(-SenderMoney, true);
                     }
 
                     var senderSlotsToUpdate = new List<(int, string)>();
@@ -368,7 +328,7 @@ namespace BCRPServer.Sync
                                     break;
                                 }
 
-                            senderItems[i].ItemRoot = await Game.Items.Items.CreateItem(senderItems[i].ItemRoot.ID, 0, senderItems[i].Amount, false);
+                            senderItems[i].ItemRoot = Game.Items.Items.CreateItem(senderItems[i].ItemRoot.ID, 0, senderItems[i].Amount, false);
 
                             if (senderItems[i].ItemRoot == null)
                                 return (CEF.Inventory.Results.Error, null);
@@ -401,7 +361,7 @@ namespace BCRPServer.Sync
                                     break;
                                 }
 
-                            receiverItems[i].ItemRoot = await Game.Items.Items.CreateItem(receiverItems[i].ItemRoot.ID, 0, receiverItems[i].Amount, false);
+                            receiverItems[i].ItemRoot = Game.Items.Items.CreateItem(receiverItems[i].ItemRoot.ID, 0, receiverItems[i].Amount, false);
 
                             if (receiverItems[i].ItemRoot == null)
                                 return (CEF.Inventory.Results.Error, null);
@@ -450,20 +410,14 @@ namespace BCRPServer.Sync
                         }
                     }
 
-                    MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, false);
-                    MySQL.UpdatePlayerInventory(tData, true, false, false, false, false, false, false);
+                    MySQL.CharacterItemsUpdate(pData.Info);
+                    MySQL.CharacterItemsUpdate(tData.Info);
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (pData.Player?.Exists != true || tData.Player?.Exists != true)
-                            return;
+                    for (int i = 0; i < senderSlotsToUpdate.Count; i++)
+                        pData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
 
-                        for (int i = 0; i < senderSlotsToUpdate.Count; i++)
-                            pData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
-
-                        for (int i = 0; i < receiverSlotsToUpdate.Count; i++)
-                            tData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
-                    });
+                    for (int i = 0; i < receiverSlotsToUpdate.Count; i++)
+                        tData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
 
                     return (CEF.Inventory.Results.Success, null);
                 }
@@ -525,11 +479,13 @@ namespace BCRPServer.Sync
 
                         if (CTS?.IsCancellationRequested == false)
                         {
-                            await Semaphore.WaitAsync();
+                            NAPI.Task.Run(() =>
+                            {
+                                if (CTS == null)
+                                    return;
 
-                            await Cancel(false, false, ReplyTypes.AutoCancel, false);
-
-                            Semaphore.Release();
+                                Cancel(false, false, ReplyTypes.AutoCancel, false);
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -540,13 +496,13 @@ namespace BCRPServer.Sync
             }
 
             /// <summary>Метод для отмены предложения и удаления его из списка активных предложения</summary>
-            public async Task Cancel(bool success = false, bool isSender = false, ReplyTypes rType = ReplyTypes.AutoCancel, bool justCancelCts = false)
+            public void Cancel(bool success = false, bool isSender = false, ReplyTypes rType = ReplyTypes.AutoCancel, bool justCancelCts = false)
             {
                 bool ctsNull = CTS == null;
 
-                if (ctsNull && OfferActions[Type].ContainsKey(false))
-                {
-                    await OfferActions[Type].GetValueOrDefault(false)?.Invoke(Sender, Receiver, this);
+                if (ctsNull)
+                {               
+                    OfferActions[Type].GetValueOrDefault(false)?.Invoke(Sender, Receiver, this);
                 }
 
                 CTS?.Cancel();
@@ -555,36 +511,33 @@ namespace BCRPServer.Sync
                 var sender = Sender?.Player;
                 var receiver = Receiver?.Player;
 
-                await NAPI.Task.RunAsync(() =>
+                if (sender?.Exists == true)
                 {
-                    if (sender?.Exists == true)
+                    sender.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
+
+                    if (!success)
                     {
-                        sender.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
-
-                        if (!success)
-                        {
-                            if (rType == ReplyTypes.Deny && !isSender)
-                                sender.Notify("Offer::CancelBy");
-                            else if (isSender || rType == ReplyTypes.AutoCancel)
-                                sender.Notify("Offer::Cancel");
-                            else if (rType == ReplyTypes.Busy)
-                                sender.Notify("Offer::TargetBusy");
-                        }
+                        if (rType == ReplyTypes.Deny && !isSender)
+                            sender.Notify("Offer::CancelBy");
+                        else if (isSender || rType == ReplyTypes.AutoCancel)
+                            sender.Notify("Offer::Cancel");
+                        else if (rType == ReplyTypes.Busy)
+                            sender.Notify("Offer::TargetBusy");
                     }
+                }
 
-                    if (receiver?.Exists == true)
+                if (receiver?.Exists == true)
+                {
+                    receiver.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
+
+                    if (!success)
                     {
-                        receiver.TriggerEvent("Offer::Reply::Server", false, justCancelCts, ctsNull);
-
-                        if (!success)
-                        {
-                            if (rType == ReplyTypes.Deny && isSender)
-                                receiver.Notify("Offer::CancelBy");
-                            else if (rType != ReplyTypes.Busy)
-                                receiver.Notify("Offer::Cancel");
-                        }
+                        if (rType == ReplyTypes.Deny && isSender)
+                            receiver.Notify("Offer::CancelBy");
+                        else if (rType != ReplyTypes.Busy)
+                            receiver.Notify("Offer::Cancel");
                     }
-                });
+                }
 
                 if (justCancelCts)
                     return;
@@ -592,26 +545,12 @@ namespace BCRPServer.Sync
                 AllOffers.Remove(this);
             }
 
-            public async Task Execute()
+            public void Execute()
             {
                 if (CTS == null)
                     return;
 
-                await OfferActions[Type][true].Invoke(Sender, Receiver, this);
-            }
-
-            /// <summary>Метод для получения активного предложения игрока</summary>
-            /// <param name="player">Сущность игрока</param>
-            /// <returns>Если существует предложение, которое игрок отправил или получил - объект класса Offer, null - в противном случае</returns>
-            public static async Task<Offer> GetAsync(PlayerData pData)
-            {
-                await Semaphore.WaitAsync();
-
-                var offer = Get(pData);
-
-                Semaphore.Release();
-
-                return offer;
+                OfferActions[Type][true].Invoke(Sender, Receiver, this);
             }
 
             public static Offer Get(PlayerData pData) => AllOffers.Where(x => x.Sender == pData || x.Receiver == pData).FirstOrDefault();
@@ -627,7 +566,7 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("Offers::Send")]
-        public static async Task Send(Player player, Player target, int type, string data)
+        private static void Send(Player player, Player target, int type, string data)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -637,17 +576,12 @@ namespace BCRPServer.Sync
             var pData = sRes.Data;
             var tData = target.GetMainData();
 
-            if (tData == null)
+            if (tData == null || tData.Player?.Exists != true)
                 return;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Semaphore.WaitAsync();
 
             object dataObj = null;
 
-            ReturnTypes res = await Task.Run(async () =>
+            ReturnTypes res = ((Func<ReturnTypes>)(() =>
             {
                 if (!Enum.IsDefined(typeof(Types), type))
                     return ReturnTypes.Error;
@@ -675,36 +609,25 @@ namespace BCRPServer.Sync
                     }
                 }
 
-                var res = await NAPI.Task.RunAsync(() =>
+                if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                    return ReturnTypes.Error;
+
+                if (pData.IsBusy)
+                    return ReturnTypes.SourceBusy;
+
+                if (tData.IsBusy)
+                    return ReturnTypes.TargetBusy;
+
+                if (oType == Types.Cash)
                 {
-                    if (pData.Player?.Exists != true || tData.Player?.Exists != true)
+                    int cash = (dataObj as int?) ?? 0;
+
+                    if (cash < 0 || cash == 0)
                         return ReturnTypes.Error;
 
-                    if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                        return ReturnTypes.Error;
-
-                    if (pData.IsBusy)
-                        return ReturnTypes.SourceBusy;
-
-                    if (tData.IsBusy)
-                        return ReturnTypes.TargetBusy;
-
-                    if (oType == Types.Cash)
-                    {
-                        int cash = (dataObj as int?) ?? 0;
-
-                        if (cash < 0 || cash == 0)
-                            return ReturnTypes.Error;
-
-                        if (pData.Cash < cash)
-                            return ReturnTypes.NotEnoughMoneySource;
-                    }
-
-                    return ReturnTypes.Success;
-                });
-
-                if (res != ReturnTypes.Success)
-                    return res;
+                    if (pData.Cash < cash)
+                        return ReturnTypes.NotEnoughMoneySource;
+                }
 
                 if (Offer.Get(pData) != null)
                     return ReturnTypes.SourceHasOffer;
@@ -715,98 +638,52 @@ namespace BCRPServer.Sync
                 Offer.Create(pData, tData, oType, -1, dataObj);
 
                 return ReturnTypes.Success;
-            });
+            })).Invoke();
 
             switch (res)
             {
                 case ReturnTypes.Success:
                     data = dataObj.SerializeToJson();
 
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true || target?.Exists != true)
-                            return;
+                    target.TriggerEvent("Offer::Show", player.Handle, type, data);
 
-                        target.TriggerEvent("Offer::Show", player.Handle, type, data);
-
-                        player.TriggerEvent("Offer::Reply::Server", true, false, false);
-                        player.Notify("Offer::Sent");
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", true, false, false);
+                    player.Notify("Offer::Sent");
                     break;
 
                 case ReturnTypes.SourceBusy:
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                        player.Notify("Player::Busy");
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Player::Busy");
                     break;
 
                 case ReturnTypes.TargetBusy:
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                        player.Notify("Offer::TargetBusy");
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Offer::TargetBusy");
                     break;
 
                 case ReturnTypes.SourceHasOffer:
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                        player.Notify("Offer::HasOffer");
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Offer::HasOffer");
                     break;
 
                 case ReturnTypes.TargetHasOffer:
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                        player.Notify("Offer::TargetHasOffer");
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Offer::TargetHasOffer");
                     break;
 
                 case ReturnTypes.Error:
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
                     break;
 
                 case ReturnTypes.NotEnoughMoneySource:
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                        player.Notify("Trade::NotEnoughMoney");
-                    });
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Trade::NotEnoughMoney");
                     break;
             }
-
-            Semaphore.Release();
-
-            pData.Release();
         }
 
         [RemoteEvent("Offers::Reply")]
-        public static async Task Reply(Player player, int rTypeNum)
+        private static void Reply(Player player, int rTypeNum)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -815,45 +692,33 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!(await pData.WaitAsync()))
+            if (!Enum.IsDefined(typeof(ReplyTypes), rTypeNum))
                 return;
 
-            await Semaphore.WaitAsync();
+            var rType = (ReplyTypes)rTypeNum;
 
-            await Task.Run(async () =>
+            var offer = Offer.Get(pData);
+
+            if (offer == null)
+                return;
+
+            var tData = offer.Sender == pData ? offer.Receiver : offer.Sender;
+
+            if (pData == offer.Receiver)
             {
-                if (!Enum.IsDefined(typeof(ReplyTypes), rTypeNum))
-                    return;
-
-                var rType = (ReplyTypes)rTypeNum;
-
-                var offer = Offer.Get(pData);
-
-                if (offer == null)
-                    return;
-
-                var tData = offer.Sender == pData ? offer.Receiver : offer.Sender;
-
-                if (pData == offer.Receiver)
+                if (rType == ReplyTypes.Accept)
                 {
-                    if (rType == ReplyTypes.Accept)
-                    {
-                        await offer.Execute();
-                    }
-                    else
-                    {
-                        await offer.Cancel(false, false, rType, false);
-                    }
+                   offer.Execute();
                 }
                 else
                 {
-                    await offer.Cancel(false, true, rType, false);
+                    offer.Cancel(false, false, rType, false);
                 }
-            });
-
-            Semaphore.Release();
-
-            pData.Release();
+            }
+            else
+            {
+                offer.Cancel(false, true, rType, false);
+            }
         }
     }
 }

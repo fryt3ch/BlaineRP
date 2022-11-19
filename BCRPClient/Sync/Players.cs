@@ -369,7 +369,7 @@ namespace BCRPClient.Sync
 
                 (new AsyncTask(() =>
                 {
-                    Events.CallRemote("Players::UpdateTime");
+                    Events.CallRemote("Player::UpdateTime");
 
                     CEF.Menu.TimePlayed += 1;
                 }, 60000, true, 60000)).Run();
@@ -1000,7 +1000,7 @@ namespace BCRPClient.Sync
 
             });
 
-            AddDataHandler("VehicleSeat", (pData, value, oldValue) =>
+            AddDataHandler("VehicleSeat", async (pData, value, oldValue) =>
             {
                 var player = pData.Player;
 
@@ -1024,10 +1024,31 @@ namespace BCRPClient.Sync
                     {
                         if (seat == 0 || seat == 1)
                         {
-                            HUD.SwitchSpeedometer(true);
+                            var veh = Player.LocalPlayer.Vehicle;
 
-                            if (seat == 0)
-                                Vehicles.StartDriverSync();
+                            Sync.Vehicles.VehicleData vData = null;
+
+                            do
+                            {
+                                vData = Sync.Vehicles.GetData(veh);
+
+                                if (vData == null)
+                                {
+                                    await RAGE.Game.Invoker.WaitAsync(100);
+
+                                    continue;
+                                }
+                                else
+                                {
+                                    HUD.SwitchSpeedometer(true);
+
+                                    if (seat == 0)
+                                        Vehicles.StartDriverSync();
+
+                                    break;
+                                }
+                            }
+                            while (veh?.Exists == true && veh.GetPedInSeat(seat - 1, 0) == Player.LocalPlayer.Handle);
                         }
                         else
                             HUD.SwitchSpeedometer(false);

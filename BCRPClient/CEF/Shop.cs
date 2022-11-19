@@ -377,7 +377,9 @@ namespace BCRPClient.CEF
 
                     CurrentCameraStateNum = 0;
 
-                    Additional.Camera.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, 0);
+                    var t = new float[] { (Additional.Camera.States[AllowedCameraStates[CurrentCameraStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+
+                    Additional.Camera.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, 0, t, null);
 
                     TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -921,7 +923,9 @@ namespace BCRPClient.CEF
                 while (TempVehicle?.Exists != true)
                     await RAGE.Game.Invoker.WaitAsync(25);
 
-                Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+                var t = new float[] { (Additional.Camera.States[Additional.Camera.StateTypes.WholeVehicle].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+
+                Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null);
 
                 TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -1036,7 +1040,9 @@ namespace BCRPClient.CEF
             {
                 TempVehicle.SetHeading(DefaultHeading);
 
-                Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1);
+                var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+
+                Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null);
             }
             else
             {

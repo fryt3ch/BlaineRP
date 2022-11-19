@@ -122,17 +122,17 @@ namespace BCRPServer.CEF
             return res == null ? null : res.Invoke(pData, slot);
         }
 
-        private static Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>> Actions { get; set; } = new Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>>()
+        private static Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>> Actions { get; set; } = new Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>>()
         {
             {
                 typeof(Game.Items.Weapon),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
                 {
                     {
                         5,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
                             var weapons = pData.Weapons;
@@ -158,30 +158,24 @@ namespace BCRPServer.CEF
                                 if (newSlot == -1)
                                     return Results.Error;
 
-                                return await Replace(pData, newSlot != 2 ? Groups.Weapons : Groups.Holster, newSlot, group, slot, -1);
+                                return Replace(pData, newSlot != 2 ? Groups.Weapons : Groups.Holster, newSlot, group, slot, -1);
                             }
                             else if (group == Groups.Weapons)
                             {
-                                await NAPI.Task.RunAsync(() =>
+                                if (weapons[slot].Equiped)
                                 {
-                                    if (player?.Exists != true)
-                                        return;
+                                    weapons[slot].Unequip(pData);
 
-                                    if (weapons[slot].Equiped)
+                                    player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
+                                }
+                                else
+                                {
+                                    if (player.Vehicle != null && !weapons[slot].Data.CanUseInVehicle)
                                     {
-                                        weapons[slot].Unequip(pData);
-
-                                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
+                                        player.Notify("Weapon::InVehicleRestricted");
                                     }
                                     else
                                     {
-                                        if (player.Vehicle != null && !weapons[slot].Data.CanUseInVehicle)
-                                        {
-                                            player.Notify("Weapon::InVehicleRestricted");
-
-                                            return;
-                                        }
-
                                         int idxToCheck = slot == 0 ? 1 : 0;
 
                                         if (weapons[idxToCheck]?.Equiped == true)
@@ -201,40 +195,37 @@ namespace BCRPServer.CEF
 
                                         player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
                                     }
-                                });
+                                }
 
                                 return Results.Success;
                             }
                             else if (group == Groups.Holster)
                             {
-                                await NAPI.Task.RunAsync(() =>
+                                if (((Game.Items.Weapon)holster.Items[0]).Equiped)
                                 {
-                                    if (((Game.Items.Weapon)holster.Items[0]).Equiped)
+                                    ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
+
+                                    player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                }
+                                else
+                                {
+                                    if (weapons[0]?.Equiped == true)
                                     {
-                                        ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
+                                        weapons[0].Unequip(pData);
 
-                                        player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 0, Game.Items.Item.ToClientJson(weapons[0], Groups.Weapons));
                                     }
-                                    else
+                                    else if (weapons[1]?.Equiped == true)
                                     {
-                                        if (weapons[0]?.Equiped == true)
-                                        {
-                                            weapons[0].Unequip(pData);
+                                        weapons[1].Unequip(pData);
 
-                                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 0, Game.Items.Item.ToClientJson(weapons[0], Groups.Weapons));
-                                        }
-                                        else if (weapons[1]?.Equiped == true)
-                                        {
-                                            weapons[1].Unequip(pData);
-
-                                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 1, Game.Items.Item.ToClientJson(weapons[1], Groups.Weapons));
-                                        }
-
-                                        ((Game.Items.Weapon)holster.Items[0]).Equip(pData);
-
-                                        player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 1, Game.Items.Item.ToClientJson(weapons[1], Groups.Weapons));
                                     }
-                                });
+
+                                    ((Game.Items.Weapon)holster.Items[0]).Equip(pData);
+
+                                    player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                }
 
                                 return Results.Success;
                             }
@@ -246,7 +237,7 @@ namespace BCRPServer.CEF
                     {
                         6,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var items = pData.Items;
                             var player = pData.Player;
@@ -275,7 +266,7 @@ namespace BCRPServer.CEF
                                 if (ammoIdx == -1)
                                     return Results.Error;
 
-                                return await Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
+                                return Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
                             }
                             else if (group == Groups.Holster)
                             {
@@ -299,7 +290,7 @@ namespace BCRPServer.CEF
                                 if (ammoIdx == -1)
                                     return Results.Error;
 
-                                return await Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
+                                return Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
                             }
 
                             return Results.Error;
@@ -311,12 +302,12 @@ namespace BCRPServer.CEF
             {
                 typeof(Game.Items.Clothes),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
                 {
                     {
                         5,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
 
@@ -326,24 +317,18 @@ namespace BCRPServer.CEF
 
                                 if (AccessoriesSlots.TryGetValue(item.Type, out slotTo))
                                 {
-                                    return await Replace(pData, Groups.Accessories, slotTo, group, slot, -1);
+                                    return Replace(pData, Groups.Accessories, slotTo, group, slot, -1);
                                 }
                                 else
                                 {
-                                    return await Replace(pData, Groups.Clothes, ClothesSlots[item.Type], group, slot, -1);
+                                    return Replace(pData, Groups.Clothes, ClothesSlots[item.Type], group, slot, -1);
                                 }
                             }
                             else if (group == Groups.Clothes || group == Groups.Accessories)
                             {
-                                if ((item is Game.Items.Clothes.IToggleable tItem))
+                                if (item is Game.Items.Clothes.IToggleable tItem)
                                 {
-                                    NAPI.Task.Run(() =>
-                                    {
-                                        if (player?.Exists != true)
-                                            return;
-
-                                        tItem?.Action(pData);
-                                    });
+                                    tItem.Action(pData);
                                 }
 
                                 return Results.Success;
@@ -358,18 +343,18 @@ namespace BCRPServer.CEF
             {
                 typeof(Game.Items.Bag),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
                 {
                     {
                         5,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
 
                             if (group == Groups.Items)
                             {
-                                return await Replace(pData, Groups.BagItem, 0, group, slot, -1);
+                                return Replace(pData, Groups.BagItem, 0, group, slot, -1);
                             }
 
                             return Results.Error;
@@ -381,18 +366,18 @@ namespace BCRPServer.CEF
             {
                 typeof(Game.Items.Holster),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
                 {
                     {
                         5,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
 
                             if (group == Groups.Items || group == Groups.Bag)
                             {
-                                return  await Replace(pData, Groups.HolsterItem, 0, group, slot, -1);
+                                return Replace(pData, Groups.HolsterItem, 0, group, slot, -1);
                             }
 
                             return Results.Error;
@@ -404,18 +389,18 @@ namespace BCRPServer.CEF
             {
                 typeof(Game.Items.Armour),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
                 {
                     {
                         5,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
 
                             if (group == Groups.Items || group == Groups.Bag)
                             {
-                                return  await Replace(pData, Groups.Armour, 0, group, slot, -1);
+                                return Replace(pData, Groups.Armour, 0, group, slot, -1);
                             }
 
                             return Results.Error;
@@ -427,24 +412,18 @@ namespace BCRPServer.CEF
             {
                 typeof(Game.Items.StatusChanger),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Task<Results>>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
                 {
                     {
                         5,
 
-                        async (pData, item, group, slot, args) =>
+                        (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
 
                             if (group == Groups.Items || group == Groups.Bag)
                             {
-                                await NAPI.Task.RunAsync(() =>
-                                {
-                                    if (player?.Exists != true)
-                                        return;
-
-                                    ((Game.Items.StatusChanger)item).Apply(pData);
-                                });
+                                ((Game.Items.StatusChanger)item).Apply(pData);
 
                                 if (item is Game.Items.IStackable itemStackable)
                                 {
@@ -488,7 +467,7 @@ namespace BCRPServer.CEF
                                     {
                                         pData.Items[slot] = null;
 
-                                        MySQL.UpdatePlayerInventory(pData, true);
+                                        MySQL.CharacterItemsUpdate(pData.Info);
                                     }
                                     else
                                     {
@@ -498,13 +477,7 @@ namespace BCRPServer.CEF
 
                                 var upd = Game.Items.Item.ToClientJson(item, group);
 
-                                NAPI.Task.RunSafe(() =>
-                                {
-                                    if (player?.Exists != true)
-                                        return;
-
-                                    player.TriggerEvent("Inventory::Update", (int)group, slot, upd);
-                                });
+                                player.TriggerEvent("Inventory::Update", (int)group, slot, upd);
 
                                 return Results.Success;
                             }
@@ -516,17 +489,17 @@ namespace BCRPServer.CEF
             },
         };
 
-        private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>>()
+        private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>>()
         {
             {
                 Groups.Items,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -587,7 +560,9 @@ namespace BCRPServer.CEF
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                                pData.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+
+                                MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
                             #region Replace
@@ -601,16 +576,8 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -619,7 +586,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -641,9 +608,6 @@ namespace BCRPServer.CEF
 
                             float curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
                             float maxWeight = pData.Bag.Data.MaxWeight;
-
-                            bool wasDeleted = false;
-                            bool wasCreated = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -682,7 +646,7 @@ namespace BCRPServer.CEF
 
                                         pData.Items[slotFrom] = null;
 
-                                        wasDeleted = true;
+                                        MySQL.CharacterItemsUpdate(pData.Info);
                                     }
                                 }
 
@@ -704,9 +668,9 @@ namespace BCRPServer.CEF
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                                pData.Bag.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
 
-                                wasCreated = true;
+                                pData.Bag.Update();
                             }
                             #endregion
                             #region Replace
@@ -721,27 +685,16 @@ namespace BCRPServer.CEF
                                 pData.Items[slotFrom] = toItem;
                                 pData.Bag.Items[slotTo] = fromItem;
 
-                                wasDeleted = true; wasCreated = true;
+                                pData.Bag.Update();
+                                MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-                            });
-
-                            if (wasDeleted)
-                                MySQL.UpdatePlayerInventory(pData, true);
-
-                            if (wasCreated)
-                                pData.Bag.Update();
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -750,7 +703,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Weapons,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -764,9 +717,6 @@ namespace BCRPServer.CEF
 
                             var toItem = pData.Weapons[slotTo];
 
-                            bool wasDeleted = false;
-                            bool wasReplaced = false;
-
                             #region Replace
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
@@ -775,8 +725,6 @@ namespace BCRPServer.CEF
 
                                 pData.Weapons[slotTo] = fromWeapon;
                                 pData.Items[slotFrom] = toItem;
-
-                                wasReplaced = true;
                             }
                             #endregion
                             #region Load
@@ -802,13 +750,13 @@ namespace BCRPServer.CEF
 
                                     if (fromAmmo.Amount == 0)
                                     {
-                                        wasDeleted = true;
-
                                         fromItem.Delete();
 
                                         fromItem = null;
 
                                         pData.Items[slotFrom] = null;
+
+                                        MySQL.CharacterItemsUpdate(pData.Info);
                                     }
                                 }
 
@@ -819,36 +767,25 @@ namespace BCRPServer.CEF
                             else
                                 return Results.Error;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        pData.Weapons[slotTo].Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    pData.Weapons[slotTo].Equip(pData);
                                 }
                                 else
-                                {
-                                    pData.Weapons[slotTo].UpdateAmmo(pData);
+                                    weapon.Unwear(pData);
+                            }
+                            else
+                            {
+                                pData.Weapons[slotTo].UpdateAmmo(pData);
 
-                                    pData.Weapons[slotTo].Wear(pData);
-                                }
+                                pData.Weapons[slotTo].Wear(pData);
+                            }
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                            });
-
-                            if (wasDeleted)
-                                MySQL.UpdatePlayerInventory(pData, true);
-                            else if (wasReplaced)
-                                MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, true, false);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -857,7 +794,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Holster,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -874,9 +811,6 @@ namespace BCRPServer.CEF
                             if (fromItem.IsTemp)
                                 return Results.TempItem;
 
-                            bool wasDeleted = false;
-                            bool wasReplaced = false;
-
                             #region Replace
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
@@ -890,8 +824,6 @@ namespace BCRPServer.CEF
                                 pData.Items[slotFrom] = toItem;
 
                                 pData.Holster.Update();
-
-                                wasReplaced = true;
                             }
                             #endregion
                             #region Load
@@ -917,13 +849,13 @@ namespace BCRPServer.CEF
 
                                     if (fromAmmo.Amount == 0)
                                     {
-                                        wasDeleted = true;
-
                                         fromItem.Delete();
 
                                         fromItem = null;
 
                                         pData.Items[slotFrom] = null;
+
+                                        MySQL.CharacterItemsUpdate(pData.Info);
                                     }
                                 }
 
@@ -934,34 +866,25 @@ namespace BCRPServer.CEF
                             else
                                 return Results.Error;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        ((Game.Items.Weapon)pData.Holster.Items[0]).Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    ((Game.Items.Weapon)pData.Holster.Items[0]).Equip(pData);
                                 }
                                 else
-                                {
-                                    ((Game.Items.Weapon)pData.Holster.Items[0]).UpdateAmmo(pData);
+                                    weapon.Unwear(pData);
+                            }
+                            else
+                            {
+                                ((Game.Items.Weapon)pData.Holster.Items[0]).UpdateAmmo(pData);
 
-                                    ((Game.Items.Weapon)pData.Holster.Items[0]).Wear(pData);
-                                }
+                                ((Game.Items.Weapon)pData.Holster.Items[0]).Wear(pData);
+                            }
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom,  Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                            });
-
-                            if (wasDeleted || wasReplaced)
-                                MySQL.UpdatePlayerInventory(pData, true);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom,  Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -970,7 +893,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Clothes,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1001,19 +924,11 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
-
-                                (pData.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
-                                pData.Clothes[slotTo].Wear(pData);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, true);
+                            (pData.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
+                            pData.Clothes[slotTo].Wear(pData);
 
                             return Results.Success;
                         }
@@ -1022,7 +937,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Accessories,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1053,19 +968,11 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
-
-                                (pData.Accessories[slotTo] as Game.Items.Clothes)?.Unwear(pData);
-                                pData.Accessories[slotTo].Wear(pData);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, true);
+                            (pData.Accessories[slotTo] as Game.Items.Clothes)?.Unwear(pData);
+                            pData.Accessories[slotTo].Wear(pData);
 
                             return Results.Success;
                         }
@@ -1074,7 +981,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.HolsterItem,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1097,26 +1004,18 @@ namespace BCRPServer.CEF
                             pData.Holster = fromHolster;
                             pData.Items[slotFrom] = toItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
+
+                            pData.Holster.Wear(pData);
+
+                            if (pData.Items[slotFrom] is Game.Items.Holster holster && ((Game.Items.Weapon)holster.Items[0])?.Equiped == true)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
+                                ((Game.Items.Weapon)pData.Holster.Items[0])?.Equip(pData);
+                            }
 
-                                (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
-
-                                pData.Holster.Wear(pData);
-
-                                if (pData.Items[slotFrom] is Game.Items.Holster holster && ((Game.Items.Weapon)holster.Items[0])?.Equiped == true)
-                                {
-                                    ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
-                                    ((Game.Items.Weapon)pData.Holster.Items[0])?.Equip(pData);
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, true);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             return Results.Success;
                         }
@@ -1125,7 +1024,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.BagItem,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1151,19 +1050,11 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd2);
-
-                                (pData.Items[slotFrom] as Game.Items.Bag)?.Unwear(pData);
-                                pData.Bag.Wear(pData);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, true);
+                            (pData.Items[slotFrom] as Game.Items.Bag)?.Unwear(pData);
+                            pData.Bag.Wear(pData);
 
                             return Results.Success;
                         }
@@ -1172,7 +1063,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Armour,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1197,19 +1088,11 @@ namespace BCRPServer.CEF
 
                             var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            (pData.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
+                            pData.Armour.Wear(pData);
 
-                                (pData.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
-                                pData.Armour.Wear(pData);
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, true);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
 
                             return Results.Success;
                         }
@@ -1220,12 +1103,12 @@ namespace BCRPServer.CEF
             {
                 Groups.Bag,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1241,9 +1124,6 @@ namespace BCRPServer.CEF
                                 return Results.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
-
-                            bool wasCreated = false;
-                            bool wasDeleted = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -1268,13 +1148,13 @@ namespace BCRPServer.CEF
 
                                     if (fromStackable.Amount == 0)
                                     {
-                                        wasDeleted = true;
-
                                         fromItem.Delete();
 
                                         fromItem = null;
 
                                         pData.Bag.Items[slotFrom] = null;
+
+                                        pData.Bag.Update();
                                     }
                                 }
 
@@ -1285,12 +1165,12 @@ namespace BCRPServer.CEF
                             #region Split
                             else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount) // split to new item
                             {
-                                wasCreated = true;
-
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                                pData.Bag.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+
+                                pData.Bag.Update();
                             }
                             #endregion
                             #region Replace
@@ -1298,25 +1178,14 @@ namespace BCRPServer.CEF
                             {
                                 pData.Bag.Items[slotFrom] = toItem;
                                 pData.Bag.Items[slotTo] = fromItem;
-
-                                wasCreated = true;
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-                            });
-
-                            if (wasCreated || wasDeleted)
-                                pData.Bag.Update();
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -1325,7 +1194,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1346,8 +1215,6 @@ namespace BCRPServer.CEF
                                 return Results.Error;
 
                             float curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
-
-                            bool wasDeleted = false, wasCreated = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -1386,7 +1253,7 @@ namespace BCRPServer.CEF
 
                                         pData.Bag.Items[slotFrom] = null;
 
-                                        wasDeleted = true;
+                                        pData.Bag.Update();
                                     }
                                 }
 
@@ -1408,9 +1275,9 @@ namespace BCRPServer.CEF
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+                                pData.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
 
-                                wasCreated = true;
+                                MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
                             #region Replace
@@ -1425,27 +1292,16 @@ namespace BCRPServer.CEF
                                 pData.Bag.Items[slotFrom] = toItem;
                                 pData.Items[slotTo] = fromItem;
 
-                                wasDeleted = true; wasCreated = true;
+                                MySQL.CharacterItemsUpdate(pData.Info);
+                                pData.Bag.Update();
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-                            });
-
-                            if (wasCreated)
-                                MySQL.UpdatePlayerInventory(pData, true);
-
-                            if (wasDeleted)
-                                pData.Bag.Update();
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -1454,7 +1310,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Weapons,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {                            
                             var player = pData.Player;
 
@@ -1471,9 +1327,6 @@ namespace BCRPServer.CEF
 
                             var toItem = pData.Weapons[slotTo];
 
-                            bool wasDeleted = false;
-                            bool wasReplaced = false;
-
                             #region Replace
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
@@ -1483,7 +1336,8 @@ namespace BCRPServer.CEF
                                 pData.Weapons[slotTo] = fromWeapon;
                                 pData.Bag.Items[slotFrom] = toItem;
 
-                                wasReplaced = true;
+                                MySQL.CharacterWeaponsUpdate(pData.Info);
+                                pData.Bag.Update();
                             }
                             #endregion
                             #region Load
@@ -1509,13 +1363,13 @@ namespace BCRPServer.CEF
 
                                     if (fromAmmo.Amount == 0)
                                     {
-                                        wasDeleted = true;
-
                                         fromItem.Delete();
 
                                         fromItem = null;
 
                                         pData.Bag.Items[slotFrom] = null;
+
+                                        pData.Bag.Update();
                                     }
                                 }
 
@@ -1526,39 +1380,25 @@ namespace BCRPServer.CEF
                             else
                                 return Results.Error;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        pData.Weapons[slotTo].Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    pData.Weapons[slotTo].Equip(pData);
                                 }
                                 else
-                                {
-                                    pData.Weapons[slotTo].UpdateAmmo(pData);
-
-                                    pData.Weapons[slotTo].Wear(pData);
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                            });
-
-                            if (wasDeleted)
-                                pData.Bag.Update();
-                            else if (wasReplaced)
-                            {
-                                pData.Bag.Update();
-                                MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                                    weapon.Unwear(pData);
                             }
+                            else
+                            {
+                                pData.Weapons[slotTo].UpdateAmmo(pData);
+
+                                pData.Weapons[slotTo].Wear(pData);
+                            }
+
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -1567,7 +1407,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Holster,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {                            
                             var player = pData.Player;
 
@@ -1584,9 +1424,6 @@ namespace BCRPServer.CEF
 
                             var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
-                            bool wasDeleted = false;
-                            bool wasReplaced = false;
-
                             #region Replace
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
@@ -1600,8 +1437,7 @@ namespace BCRPServer.CEF
                                 pData.Bag.Items[slotFrom] = toItem;
 
                                 pData.Holster.Update();
-
-                                wasReplaced = true;
+                                pData.Bag.Update();
                             }
                             #endregion
                             #region Load
@@ -1627,13 +1463,13 @@ namespace BCRPServer.CEF
 
                                     if (fromAmmo.Amount == 0)
                                     {
-                                        wasDeleted = true;
-
                                         fromItem.Delete();
 
                                         fromItem = null;
 
                                         pData.Bag.Items[slotFrom] = null;
+
+                                        pData.Bag.Update();
                                     }
                                 }
 
@@ -1644,34 +1480,25 @@ namespace BCRPServer.CEF
                             else
                                 return Results.Error;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
                                 }
                                 else
-                                {
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
+                                    weapon.Unwear(pData);
+                            }
+                            else
+                            {
+                                (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
 
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                                }
+                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                            }
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                            });
-
-                            if (wasDeleted || wasReplaced)
-                                pData.Bag.Update();
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -1680,7 +1507,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Clothes,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {                            
                             var player = pData.Player;
 
@@ -1714,20 +1541,14 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
-
-                                (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
-                                pData.Clothes[slotTo].Wear(pData);
-                            });
+                            (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
+                            pData.Clothes[slotTo].Wear(pData);
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, true);
+                            MySQL.CharacterClothesUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -1736,7 +1557,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Accessories,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {                            
                             var player = pData.Player;
 
@@ -1770,20 +1591,14 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
-
-                                (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
-                                pData.Accessories[slotTo].Wear(pData);
-                            });
+                            (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
+                            pData.Accessories[slotTo].Wear(pData);
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, true);
+                            MySQL.CharacterAccessoriesUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -1792,7 +1607,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.HolsterItem,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {                            
                             var player = pData.Player;
 
@@ -1815,26 +1630,20 @@ namespace BCRPServer.CEF
                             pData.Holster = fromHolster;
                             pData.Bag.Items[slotFrom] = toItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            (pData.Bag.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
+                            pData.Holster.Wear(pData);
+
+                            if (pData.Bag.Items[slotFrom] != null && ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                            }
 
-                                (pData.Bag.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
-                                pData.Holster.Wear(pData);
-
-                                if (pData.Bag.Items[slotFrom] != null && ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                                {
-                                    ((pData.Bag.Items[slotFrom] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                            });
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
+                            MySQL.CharacterHolsterUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -1843,7 +1652,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Armour,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1871,20 +1680,14 @@ namespace BCRPServer.CEF
 
                             var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            (pData.Bag.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
+                            pData.Armour.Wear(pData);
 
-                                (pData.Bag.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
-                                pData.Armour.Wear(pData);
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
-                            });
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+                            MySQL.CharacterArmourUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -1895,12 +1698,12 @@ namespace BCRPServer.CEF
             {
                 Groups.Weapons,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Weapons,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1920,22 +1723,14 @@ namespace BCRPServer.CEF
                             pData.Weapons[slotTo] = fromItem;
                             pData.Weapons[slotFrom] = toItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Weapons[slotFrom]?.Equiped == true)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                pData.Weapons[slotFrom].Unequip(pData);
+                                pData.Weapons[slotTo].Equip(pData);
+                            }
 
-                                if (pData.Weapons[slotFrom]?.Equiped == true)
-                                {
-                                    pData.Weapons[slotFrom].Unequip(pData);
-                                    pData.Weapons[slotTo].Equip(pData);
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -1944,7 +1739,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Holster,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -1970,26 +1765,20 @@ namespace BCRPServer.CEF
                             pData.Holster.Items[0] = fromItem;
                             pData.Weapons[slotFrom] = toItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Weapons[slotFrom]?.Equiped == true)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                pData.Weapons[slotFrom].Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
+                            }
+                            else
+                                (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
 
-                                if (pData.Weapons[slotFrom]?.Equiped == true)
-                                {
-                                    pData.Weapons[slotFrom].Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
-                                }
-                                else
-                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                            });
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             pData.Holster.Update();
 
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                            MySQL.CharacterWeaponsUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -1998,7 +1787,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2014,9 +1803,6 @@ namespace BCRPServer.CEF
                                 return Results.Error;
 
                             var toItem = pData.Items[slotTo];
-
-                            bool wasCreated = false;
-                            bool wasReplaced = false;
 
                             bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
 
@@ -2077,11 +1863,11 @@ namespace BCRPServer.CEF
                                     }
 
                                     fromItem.Ammo -= amount;
-                                    pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
+                                    pData.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
 
                                     fromItem.Update();
 
-                                    wasCreated = true;
+                                    MySQL.CharacterItemsUpdate(pData.Info);
                                 }
                             }
                             #endregion
@@ -2093,45 +1879,31 @@ namespace BCRPServer.CEF
 
                                 pData.Items[slotTo] = fromItem;
                                 pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
-
-                                wasReplaced = true;
                             }
                             #endregion
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Items[slotTo] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Items[slotTo] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        pData.Weapons[slotFrom]?.Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    pData.Weapons[slotFrom]?.Equip(pData);
                                 }
                                 else
+                                    weapon.Unwear(pData);
+                            }
+                            else
+                            {
+                                if (pData.Weapons[slotFrom] != null)
                                 {
-                                    if (pData.Weapons[slotFrom] != null)
-                                    {
-                                        pData.Weapons[slotFrom].UpdateAmmo(pData);
+                                    pData.Weapons[slotFrom].UpdateAmmo(pData);
 
-                                        pData.Weapons[slotFrom].Wear(pData);
-                                    }
+                                    pData.Weapons[slotFrom].Wear(pData);
                                 }
+                            }
 
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                            });
-
-                            if (wasCreated)
-                                MySQL.UpdatePlayerInventory(pData, true);
-                            else if (wasReplaced)
-                                MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, true, false);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -2140,7 +1912,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2159,9 +1931,6 @@ namespace BCRPServer.CEF
 
                             if (fromItem.IsTemp)
                                 return Results.TempItem;
-
-                            bool wasCreated = false;
-                            bool wasReplaced = false;
 
                             bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
 
@@ -2221,11 +1990,11 @@ namespace BCRPServer.CEF
                                     }
 
                                     fromItem.Ammo -= amount;
-                                    pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
+                                    pData.Bag.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
 
                                     fromItem.Update();
 
-                                    wasCreated = true;
+                                    pData.Bag.Update();
                                 }
                             }
                             #endregion
@@ -2238,46 +2007,34 @@ namespace BCRPServer.CEF
                                 pData.Bag.Items[slotTo] = fromItem;
                                 pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
 
-                                wasReplaced = true;
-                                wasCreated = true;
+                                pData.Bag.Update();
+                                MySQL.CharacterWeaponsUpdate(pData.Info);
                             }
                             #endregion
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        pData.Weapons[slotFrom]?.Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    pData.Weapons[slotFrom]?.Equip(pData);
                                 }
                                 else
+                                    weapon.Unwear(pData);
+                            }
+                            else
+                            {
+                                if (pData.Weapons[slotFrom] != null)
                                 {
-                                    if (pData.Weapons[slotFrom] != null)
-                                    {
-                                        pData.Weapons[slotFrom].UpdateAmmo(pData);
+                                    pData.Weapons[slotFrom].UpdateAmmo(pData);
 
-                                        pData.Weapons[slotFrom].Wear(pData);
-                                    }
+                                    pData.Weapons[slotFrom].Wear(pData);
                                 }
+                            }
 
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                            });
-
-                            if (wasCreated)
-                                pData.Bag.Update();
-
-                            if (wasReplaced)
-                                MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -2288,12 +2045,12 @@ namespace BCRPServer.CEF
             {
                 Groups.Holster,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Weapons,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2316,26 +2073,20 @@ namespace BCRPServer.CEF
                             pData.Holster.Items[0] = toItem;
                             pData.Weapons[slotTo] = fromItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Weapons[slotTo].Equiped)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                pData.Weapons[slotTo].Unequip(pData);
+                                (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                            }
+                            else
+                                pData.Weapons[slotTo].Unwear(pData);
 
-                                if (pData.Weapons[slotTo].Equiped)
-                                {
-                                    pData.Weapons[slotTo].Unequip(pData);
-                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                }
-                                else
-                                    pData.Weapons[slotTo].Unwear(pData);
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                            });
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             pData.Holster.Update();
 
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                            MySQL.CharacterWeaponsUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -2344,7 +2095,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2362,9 +2113,6 @@ namespace BCRPServer.CEF
                             var toItem = pData.Items[slotTo];
 
                             bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
-
-                            bool wasCreated = false;
-                            bool wasReplaced = false;
 
                             #region Extract
                             if (amount != -1 || extractToExisting)
@@ -2420,11 +2168,11 @@ namespace BCRPServer.CEF
                                     }
 
                                     fromItem.Ammo -= amount;
-                                    pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
-
-                                    wasCreated = true;
+                                    pData.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
 
                                     fromItem.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
                                 }
                             }
                             #endregion
@@ -2437,45 +2185,33 @@ namespace BCRPServer.CEF
                                 pData.Items[slotTo] = fromItem;
                                 pData.Holster.Items[0] = (Game.Items.Weapon)toItem;
 
-                                wasReplaced = true;
+                                MySQL.CharacterItemsUpdate(pData.Info);
+                                pData.Holster.Update();
                             }
                             #endregion
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Items[slotTo] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Items[slotTo] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
                                 else
-                                {
-                                    if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
-                                    {
-                                        (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
-
-                                        (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                                    }
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                            });
-
-                            if (wasReplaced)
-                            {
-                                pData.Holster.Update();
-
-                                MySQL.UpdatePlayerInventory(pData, true, false, false, false, false, false, false);
+                                    weapon.Unwear(pData);
                             }
+                            else
+                            {
+                                if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
+                                {
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
+
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                }
+                            }
+
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -2484,7 +2220,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2502,9 +2238,6 @@ namespace BCRPServer.CEF
                             var toItem = pData.Bag.Items[slotTo];
 
                             bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
-
-                            bool wasCreated = false;
-                            bool wasReplaced = false;
 
                             #region Extract
                             if (amount != -1 || extractToExisting)
@@ -2562,11 +2295,11 @@ namespace BCRPServer.CEF
                                     }
 
                                     fromItem.Ammo -= amount;
-                                    pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
-
-                                    wasCreated = true;
+                                    pData.Bag.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.Data.AmmoID, 0, amount);
 
                                     fromItem.Update();
+
+                                    pData.Bag.Update();
                                 }
                             }
                             #endregion
@@ -2579,46 +2312,34 @@ namespace BCRPServer.CEF
                                 pData.Bag.Items[slotTo] = fromItem;
                                 pData.Holster.Items[0] = (Game.Items.Weapon)toItem;
 
-                                wasReplaced = true;
-                                wasCreated = true;
+                                pData.Bag.Update();
+                                pData.Holster.Update();
                             }
                             #endregion
 
-                            await NAPI.Task.RunAsync(() =>
+                            if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
                             {
-                                if (player?.Exists != true)
-                                    return;
-
-                                if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
+                                if (weapon.Equiped)
                                 {
-                                    if (weapon.Equiped)
-                                    {
-                                        weapon.Unequip(pData);
-                                        (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                    }
-                                    else
-                                        weapon.Unwear(pData);
+                                    weapon.Unequip(pData);
+                                    (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
                                 else
-                                {
-                                    if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
-                                    {
-                                        (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
-
-                                        (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
-                                    }
-                                }
-
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
-                            });
-
-                            if (wasReplaced || wasCreated)
-                            {
-                                pData.Holster.Update();
-                                pData.Bag.Update();
+                                    weapon.Unwear(pData);
                             }
+                            else
+                            {
+                                if ((pData.Holster.Items[0] as Game.Items.Weapon) != null)
+                                {
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).UpdateAmmo(pData);
+
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                }
+                            }
+
+
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -2629,12 +2350,12 @@ namespace BCRPServer.CEF
             {
                 Groups.Armour,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2662,19 +2383,11 @@ namespace BCRPServer.CEF
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
+                            pData.Armour?.Wear(pData);
 
-                                (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
-                                pData.Armour?.Wear(pData);
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
 
                             return Results.Success;
                         }
@@ -2683,7 +2396,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2717,20 +2430,14 @@ namespace BCRPServer.CEF
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
+                            pData.Armour?.Wear(pData);
 
-                                (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
-                                pData.Armour?.Wear(pData);
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                            });
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+                            MySQL.CharacterArmourUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -2741,12 +2448,12 @@ namespace BCRPServer.CEF
             {
                 Groups.Clothes,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2775,19 +2482,11 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                                (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                                pData.Clothes[slotFrom]?.Wear(pData);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, true, false, false, false, false, false);
+                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            pData.Clothes[slotFrom]?.Wear(pData);
 
                             return Results.Success;
                         }
@@ -2796,7 +2495,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2834,20 +2533,14 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-
-                                (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                                pData.Clothes[slotFrom]?.Wear(pData);
-                            });
+                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            pData.Clothes[slotFrom]?.Wear(pData);
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, true, false, false, false, false, false);
+                            MySQL.CharacterClothesUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -2858,12 +2551,12 @@ namespace BCRPServer.CEF
             {
                 Groups.Accessories,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2892,20 +2585,12 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                                (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                                (pData.Accessories[slotFrom])?.Wear(pData);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, true, false, false, false, false);
-
+                            (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            (pData.Accessories[slotFrom])?.Wear(pData);
+     
                             return Results.Success;
                         }
                     },
@@ -2913,7 +2598,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -2951,20 +2636,14 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
-
-                                (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
-                                pData.Accessories[slotFrom]?.Wear(pData);
-                            });
+                            (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
+                            pData.Accessories[slotFrom]?.Wear(pData);
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, true, false, false, false, false);
+                            MySQL.CharacterAccessoriesUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -2975,12 +2654,12 @@ namespace BCRPServer.CEF
             {
                 Groups.BagItem,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -3006,19 +2685,11 @@ namespace BCRPServer.CEF
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            await NAPI.Task.RunAsync (() =>
-                            {
-                                if (player?.Exists != true)
-                                    return;
+                            player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd1);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
 
-                                player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd1);
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
-
-                                (pData.Items[slotTo] as Game.Items.Bag).Unwear(pData);
-                                pData.Bag?.Wear(pData);
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, true, false, false, false);
+                            (pData.Items[slotTo] as Game.Items.Bag).Unwear(pData);
+                            pData.Bag?.Wear(pData);
 
                             return Results.Success;
                         }
@@ -3029,12 +2700,12 @@ namespace BCRPServer.CEF
             {
                 Groups.HolsterItem,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Task<Results>>>()
+                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
                 {
                     {
                         Groups.Items,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -3057,25 +2728,17 @@ namespace BCRPServer.CEF
                             pData.Holster = (Game.Items.Holster)toItem;
                             pData.Items[slotTo] = fromItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            (pData.Items[slotTo] as Game.Items.Holster).Unwear(pData);
+                            pData.Holster?.Wear(pData);
+
+                            if (((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                ((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                            }
 
-                                (pData.Items[slotTo] as Game.Items.Holster).Unwear(pData);
-                                pData.Holster?.Wear(pData);
-
-                                if (((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                                {
-                                    ((pData.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                            });
-
-                            MySQL.UpdatePlayerInventory(pData, true, false, false, false, true, false, false);
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             return Results.Success;
                         }
@@ -3084,7 +2747,7 @@ namespace BCRPServer.CEF
                     {
                         Groups.Bag,
 
-                        async (pData, slotTo, slotFrom, amount) =>
+                        (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -3107,26 +2770,20 @@ namespace BCRPServer.CEF
                             pData.Holster = (Game.Items.Holster)toItem;
                             pData.Bag.Items[slotTo] = fromItem;
 
-                            await NAPI.Task.RunAsync(() =>
+                            (pData.Bag.Items[slotTo] as Game.Items.Holster).Unwear(pData);
+                            pData.Holster?.Wear(pData);
+
+                            if (((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
                             {
-                                if (player?.Exists != true)
-                                    return;
+                                ((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
+                                (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
+                            }
 
-                                (pData.Bag.Items[slotTo] as Game.Items.Holster).Unwear(pData);
-                                pData.Holster?.Wear(pData);
-
-                                if (((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon)?.Equiped == true)
-                                {
-                                    ((pData.Bag.Items[slotTo] as Game.Items.Holster).Items[0] as Game.Items.Weapon).Unequip(pData);
-                                    (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
-                                }
-
-                                player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                                player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
-                            });
+                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             pData.Bag.Update();
-                            MySQL.UpdatePlayerInventory(pData, false, false, false, false, true, false, false);
+                            MySQL.CharacterHolsterUpdate(pData.Info);
 
                             return Results.Success;
                         }
@@ -3135,12 +2792,12 @@ namespace BCRPServer.CEF
             },
         };
 
-        private static Dictionary<Groups, Func<PlayerData, int, int, Task<Game.Items.Item>>> DropActions = new Dictionary<Groups, Func<PlayerData, int, int, Task<Game.Items.Item>>>()
+        private static Dictionary<Groups, Func<PlayerData, int, int, Game.Items.Item>> DropActions = new Dictionary<Groups, Func<PlayerData, int, int, Game.Items.Item>>()
         {
             {
                 Groups.Items,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3167,7 +2824,7 @@ namespace BCRPServer.CEF
                             pData.Items[slot] = item;
 
                             item.Update();
-                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
+                            item = Game.Items.Items.CreateItem(item.ID, 0, amount);
                         }
                         else
                             pData.Items[slot] = null;
@@ -3177,15 +2834,9 @@ namespace BCRPServer.CEF
 
                     var upd = Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items);
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Items, slot, upd);
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Items, slot, upd);
-                    });
-
-                    MySQL.UpdatePlayerInventory(pData, true);
+                    MySQL.CharacterItemsUpdate(pData.Info);
 
                     return item;
                 }
@@ -3194,7 +2845,7 @@ namespace BCRPServer.CEF
             {
                 Groups.Bag,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3221,7 +2872,7 @@ namespace BCRPServer.CEF
                             pData.Bag.Items[slot] = item;
 
                             item.Update();
-                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
+                            item = Game.Items.Items.CreateItem(item.ID, 0, amount);
                         }
                         else
                             pData.Bag.Items[slot] = null;
@@ -3231,13 +2882,7 @@ namespace BCRPServer.CEF
 
                     var upd = Game.Items.Item.ToClientJson(pData.Bag.Items[slot], Groups.Bag);
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slot, upd);
-                    });
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slot, upd);
 
                     pData.Bag.Update();
 
@@ -3248,7 +2893,7 @@ namespace BCRPServer.CEF
             {
                 Groups.Weapons,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3263,22 +2908,16 @@ namespace BCRPServer.CEF
                     if (item.Equiped)
                         Sync.WeaponSystem.UpdateAmmo(pData, item, false);
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
-
-                        if (item.Equiped)
-                            item.Unequip(pData, false, false);
-                        else
-                            item.Unwear(pData);
-                    });
+                    if (item.Equiped)
+                        item.Unequip(pData, false, false);
+                    else
+                        item.Unwear(pData);
 
                     pData.Weapons[slot] = null;
 
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, true, false);
+                    MySQL.CharacterWeaponsUpdate(pData.Info);
 
                     return item;
                 }
@@ -3287,7 +2926,7 @@ namespace BCRPServer.CEF
             {
                 Groups.Holster,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3302,18 +2941,12 @@ namespace BCRPServer.CEF
                     if (item.Equiped)
                         Sync.WeaponSystem.UpdateAmmo(pData, item, false);
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
-
-                        if (item.Equiped)
-                            item.Unequip(pData, false, false);
-                        else
-                            item.Unwear(pData);
-                    });
+                    if (item.Equiped)
+                        item.Unequip(pData, false, false);
+                    else
+                        item.Unwear(pData);
 
                     pData.Holster.Items[0] = null;
 
@@ -3326,7 +2959,7 @@ namespace BCRPServer.CEF
             {
                 Groups.Clothes,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3338,19 +2971,13 @@ namespace BCRPServer.CEF
                     if (item == null)
                         return null;
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
-
-                        item.Unwear(pData);
-                    });
+                    item.Unwear(pData);
 
                     pData.Clothes[slot] = null;
 
-                    MySQL.UpdatePlayerInventory(pData, false, true);
+                    MySQL.CharacterClothesUpdate(pData.Info);
 
                     return item;
                 }
@@ -3359,7 +2986,7 @@ namespace BCRPServer.CEF
             {
                 Groups.Accessories,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3371,19 +2998,13 @@ namespace BCRPServer.CEF
                     if (item == null)
                         return null;
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
-
-                        item.Unwear(pData);
-                    });
+                    item.Unwear(pData);
 
                     pData.Accessories[slot] = null;
 
-                    MySQL.UpdatePlayerInventory(pData, false, false, true);
+                    MySQL.CharacterAccessoriesUpdate(pData.Info);
 
                     return item;
                 }
@@ -3392,7 +3013,7 @@ namespace BCRPServer.CEF
             {
                 Groups.BagItem,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3401,19 +3022,13 @@ namespace BCRPServer.CEF
                     if (item == null)
                         return null;
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
-
-                        item.Unwear(pData);
-                    });
+                    item.Unwear(pData);
 
                     pData.Bag = null;
 
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, true);
+                    MySQL.CharacterBagUpdate(pData.Info);
 
                     return item;
                 }
@@ -3422,7 +3037,7 @@ namespace BCRPServer.CEF
             {
                 Groups.HolsterItem,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3434,21 +3049,15 @@ namespace BCRPServer.CEF
                     if ((pData.Holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
                         Sync.WeaponSystem.UpdateAmmo(pData, pData.Holster.Items[0] as Game.Items.Weapon, false);
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
+                    item.Unwear(pData);
 
-                        item.Unwear(pData);
-
-                        (item.Items[0] as Game.Items.Weapon)?.Unequip(pData, false, false);
-                    });
+                    (item.Items[0] as Game.Items.Weapon)?.Unequip(pData, false, false);
 
                     pData.Holster = null;
 
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, true);
+                    MySQL.CharacterHolsterUpdate(pData.Info);
 
                     return item;
                 }
@@ -3457,7 +3066,7 @@ namespace BCRPServer.CEF
             {
                 Groups.Armour,
 
-                async (pData, slot, amount) =>
+                (pData, slot, amount) =>
                 {
                     var player = pData.Player;
 
@@ -3466,19 +3075,13 @@ namespace BCRPServer.CEF
                     if (item == null)
                         return null;
 
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    player.TriggerEvent("Inventory::Update", (int)Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
 
-                        player.TriggerEvent("Inventory::Update", (int)Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
-
-                        item.Unwear(pData);
-                    });
+                    item.Unwear(pData);
 
                     pData.Armour = null;
 
-                    MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
+                    MySQL.CharacterArmourUpdate(pData.Info);
 
                     return item;
                 }
@@ -3493,41 +3096,32 @@ namespace BCRPServer.CEF
         /// <param name="from">Группа, откуда переместить</param>
         /// <param name="slotFrom">Слот, откуда переместить</param>
         /// <param name="amount">Кол-во для перемещения (-1 - предмет целиком)</param>
-        public static async Task<Results> Replace(PlayerData pData, Groups to, int slotTo, Groups from, int slotFrom, int amount)
+        public static Results Replace(PlayerData pData, Groups to, int slotTo, Groups from, int slotFrom, int amount)
         {
             var player = pData.Player;
 
-            var res = await Task.Run(async () =>
-            {
-                if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
-                    return Results.Error;
-
-                var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
-
-                if (action != null)
-                    return await action.Invoke(pData, slotTo, slotFrom, amount);
-
+            if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
                 return Results.Error;
-            });
+
+            var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
+
+            var res = Results.Error;
+
+            if (action != null)
+                res = action.Invoke(pData, slotTo, slotFrom, amount);
 
             var notification = ResultsNotifications.GetValueOrDefault(res);
 
             if (notification == null)
                 return res;
 
-            NAPI.Task.Run(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                player.Notify(notification);
-            });
+            player.Notify(notification);
 
             return res;
         }
 
         [RemoteEvent("Inventory::Replace")]
-        private static async Task ReplaceRemote(Player player, int to, int slotTo, int from, int slotFrom, int amount)
+        private static void ReplaceRemote(Player player, int to, int slotTo, int from, int slotFrom, int amount)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -3536,26 +3130,18 @@ namespace BCRPServer.CEF
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
                 return;
 
-            await Task.Run(async () =>
+            var offer = pData.ActiveOffer;
+
+            if (offer != null)
             {
-                if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
+                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
                     return;
+            }
 
-                var offer = await pData.ActiveOffer;
-
-                if (offer != null)
-                {
-                    if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                        return;
-                }
-
-                await Replace(pData, (Groups)to, slotTo, (Groups)from, slotFrom, amount);
-            });
-
-            pData.Release();
+            Replace(pData, (Groups)to, slotTo, (Groups)from, slotFrom, amount);
         }
         #endregion
 
@@ -3565,38 +3151,35 @@ namespace BCRPServer.CEF
         /// <param name="group">Группа</param>
         /// <param name="slot">Слот</param>
         /// <param name="action">Действие (минимум - 5)</param>
-        public static async Task<Results> Action(PlayerData pData, Groups group, int slot, int action = 5, params object[] args)
+        public static Results Action(PlayerData pData, Groups group, int slot, int action = 5, params object[] args)
         {
             var player = pData.Player;
 
-            return await Task.Run(async () =>
+            var item = GetPlayerItem(pData, group, slot);
+
+            if (item == null)
+                return Results.Error;
+
+            var a1 = Actions.GetValueOrDefault(item.Type);
+
+            if (a1 == null)
             {
-                var item = GetPlayerItem(pData, group, slot);
-
-                if (item == null)
-                    return Results.Error;
-
-                var a1 = Actions.GetValueOrDefault(item.Type);
+                a1 = Actions.GetValueOrDefault(item.Type.BaseType);
 
                 if (a1 == null)
-                {
-                    a1 = Actions.GetValueOrDefault(item.Type.BaseType);
-
-                    if (a1 == null)
-                        return Results.Error;
-                }
-
-                var a2 = a1.GetValueOrDefault(action);
-
-                if (a2 == null)
                     return Results.Error;
+            }
 
-                return await a2.Invoke(pData, item, group, slot, args);
-            });
+            var a2 = a1.GetValueOrDefault(action);
+
+            if (a2 == null)
+                return Results.Error;
+
+            return a2.Invoke(pData, item, group, slot, args);
         }
 
         [RemoteEvent("Inventory::Action")]
-        private static async Task ActionRemote(Player player, int group, int slot, int action)
+        private static void ActionRemote(Player player, int group, int slot, int action)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -3605,29 +3188,21 @@ namespace BCRPServer.CEF
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Groups), group) || slot < 0 || action < 5)
                 return;
 
-            await Task.Run(async () =>
+            if (pData.CurrentBusiness != null)
+                return;
+
+            var offer = pData.ActiveOffer;
+
+            if (offer != null)
             {
-                if (!Enum.IsDefined(typeof(Groups), group) || slot < 0 || action < 5)
+                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
                     return;
+            }
 
-                if (pData.CurrentBusiness != null)
-                    return;
-
-                var offer = await pData.ActiveOffer;
-
-                if (offer != null)
-                {
-                    if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                        return;
-                }
-
-                await Action(pData, (Groups)group, slot, action);
-            });
-
-            pData.Release();
+            Action(pData, (Groups)group, slot, action);
         }
         #endregion
 
@@ -3637,61 +3212,43 @@ namespace BCRPServer.CEF
         /// <param name="group">Группа</param>
         /// <param name="slot">Слот</param>
         /// <param name="amount">Кол-во (минимум - 1, -1 - предмет целиком)</param>
-        public static async Task Drop(PlayerData pData, Groups group, int slot, int amount)
+        public static void Drop(PlayerData pData, Groups group, int slot, int amount)
         {
             if (pData == null)
                 return;
 
             var player = pData.Player;
 
-            await Task.Run(async () =>
+            if (amount < 1 || slot < 0)
+                return;
+
+            var action = DropActions.GetValueOrDefault(group);
+
+            if (action == null)
+                return;
+
+            Game.Items.Item item = action.Invoke(pData, slot, amount);
+
+            if (item == null)
+                return;
+
+            if (item.IsTemp)
             {
-                if (amount < 1 || slot < 0)
-                    return;
+                item = null;
 
-                var action = DropActions.GetValueOrDefault(group);
+                player.Notify("Inventory::TempItemDeleted");
 
-                if (action == null)
-                    return;
+                return;
+            }
 
-                Game.Items.Item item = await action.Invoke(pData, slot, amount);
+            if (!pData.CanPlayAnim())
+                pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
-                if (item == null)
-                    return;
-
-                if (item.IsTemp)
-                {
-                    item = null;
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.Notify("Inventory::TempItemDeleted");
-                    });
-
-                    return;
-                }
-
-                (Vector3 FrontOf, Vector3 Rotation, uint Dimension) dropData = await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return (null, null, 0);
-
-                    if (!pData.CanPlayAnim())
-                        pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
-
-                    return (player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
-                });
-
-                if (dropData.FrontOf != null)
-                    await Game.World.AddItemOnGround(player, item, dropData.FrontOf, dropData.Rotation, dropData.Dimension);
-            });
+            Game.World.AddItemOnGround(player, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
 
         [RemoteEvent("Inventory::Drop")]
-        private static async Task DropRemote(Player player, int slotStr, int slot, int amount)
+        private static void DropRemote(Player player, int slotStr, int slot, int amount)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -3700,32 +3257,24 @@ namespace BCRPServer.CEF
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
                 return;
 
-            await Task.Run(async () =>
+            var offer = pData.ActiveOffer;
+
+            if (offer != null)
             {
-                if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
+                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
                     return;
+            }
 
-                var offer = await pData.ActiveOffer;
-
-                if (offer != null)
-                {
-                    if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                        return;
-                }
-
-                await Drop(pData, (Groups)slotStr, slot, amount);
-            });
-
-            pData.Release();
+            Drop(pData, (Groups)slotStr, slot, amount);
         }
         #endregion
 
         #region Take
         [RemoteEvent("Inventory::Take")]
-        private static async Task TakeRemote(Player player, uint UID, int amount)
+        private static void TakeRemote(Player player, uint UID, int amount)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -3734,147 +3283,108 @@ namespace BCRPServer.CEF
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var offer = pData.ActiveOffer;
+
+            if (offer != null)
+            {
+                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
+                    return;
+            }
+
+            var item = Game.World.GetItemOnGround(UID);
+
+            if (item == null)
                 return;
 
-            await Game.World.IOGSemaphore.WaitAsync();
+            if (!player.AreEntitiesNearby(item.Object, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
 
-            await Task.Run(async () =>
+            var items = pData.Items;
+
+            var curWeight = items.Sum(x => x?.Weight ?? 0f);
+
+            var freeIdx = Array.FindIndex(items, x => x == null);
+
+            var curAmount = (item.Item as Game.Items.IStackable)?.Amount ?? 1;
+
+            if (amount > curAmount)
+                amount = curAmount;
+
+            if (item.Item is Game.Items.IStackable)
             {
-                var offer = await pData.ActiveOffer;
-
-                if (offer != null)
-                {
-                    if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                        return;
-                }
-
-                var item = Game.World.GetItemOnGround(UID);
-
-                if (item == null)
-                    return;
-
-                var items = pData.Items;
-
-                var curWeight = items.Sum(x => x?.Weight ?? 0f);
-
-                var freeIdx = Array.FindIndex(items, x => x == null);
-
-                var curAmount = (item.Item as Game.Items.IStackable)?.Amount ?? 1;
-
                 if (amount > curAmount)
                     amount = curAmount;
 
-                if (item.Item is Game.Items.IStackable)
+                if (curWeight + amount * item.Item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
                 {
-                    if (amount > curAmount)
-                        amount = curAmount;
-
-                    if (curWeight + amount * item.Item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
-                    {
-                        amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.BaseWeight);
-                    }
-
-                    for (int i = 0; i < items.Length; i++)
-                        if (items[i] != null && items[i].ID == item.Item.ID && (items[i] as Game.Items.IStackable).Amount + amount <= (items[i] as Game.Items.IStackable).MaxAmount)
-                        {
-                            freeIdx = i;
-
-                            break;
-                        }
-                }
-                else
-                {
-                    if (curWeight + item.Item.Weight > Settings.MAX_INVENTORY_WEIGHT)
-                    {
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.Notify("Inventory::NoSpace");
-                        });
-
-                        return;
-                    }
+                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.BaseWeight);
                 }
 
-                if (freeIdx == -1 || amount == 0)
-                {
-                    NAPI.Task.Run(() =>
+                for (int i = 0; i < items.Length; i++)
+                    if (items[i] != null && items[i].ID == item.Item.ID && (items[i] as Game.Items.IStackable).Amount + amount <= (items[i] as Game.Items.IStackable).MaxAmount)
                     {
-                        if (player?.Exists != true)
-                            return;
+                        freeIdx = i;
 
-                        player.Notify("Inventory::NoSpace");
-                    });
+                        break;
+                    }
+            }
+            else
+            {
+                if (curWeight + item.Item.Weight > Settings.MAX_INVENTORY_WEIGHT)
+                {
+                    player.Notify("Inventory::NoSpace");
 
                     return;
                 }
+            }
 
-                var result = await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return false;
+            if (freeIdx == -1 || amount == 0)
+            {
+                player.Notify("Inventory::NoSpace");
 
-                    if (!player.AreEntitiesNearby(item.Object, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                        return false;
+                return;
+            }
 
-                    if (!pData.CanPlayAnim())
-                        pData.PlayAnim(Sync.Animations.FastTypes.Pickup);
+            if (!pData.CanPlayAnim())
+                pData.PlayAnim(Sync.Animations.FastTypes.Pickup);
 
-                    if (amount == curAmount)
-                        item.Delete(items[freeIdx] != null);
-                    else
-                    {
-                        (item.Item as Game.Items.IStackable).Amount -= amount;
+            if (amount == curAmount)
+                item.Delete(items[freeIdx] != null);
+            else
+            {
+                (item.Item as Game.Items.IStackable).Amount -= amount;
 
-                        item.UpdateAmount();
-                    }
+                item.UpdateAmount();
+            }
 
-                    return true;
-                });
-
-                if (!result)
-                    return;
-
-                if (amount == curAmount)
-                {
-                    if (items[freeIdx] == null)
-                        items[freeIdx] = item.Item;
-                    else
-                    {
-                        (items[freeIdx] as Game.Items.IStackable).Amount += amount;
-
-                        items[freeIdx].Update();
-                    }
-                }
+            if (amount == curAmount)
+            {
+                if (items[freeIdx] == null)
+                    items[freeIdx] = item.Item;
                 else
                 {
-                    if (items[freeIdx] == null)
-                        items[freeIdx] = await Game.Items.Items.CreateItem(item.Item.ID, 0, amount);
-                    else
-                    {
-                        (items[freeIdx] as Game.Items.IStackable).Amount += amount;
+                    (items[freeIdx] as Game.Items.IStackable).Amount += amount;
 
-                        items[freeIdx].Update();
-                    }
+                    items[freeIdx].Update();
                 }
-
-
-                var upd = Game.Items.Item.ToClientJson(items[freeIdx], Groups.Items);
-
-                NAPI.Task.Run(() =>
+            }
+            else
+            {
+                if (items[freeIdx] == null)
+                    items[freeIdx] = Game.Items.Items.CreateItem(item.Item.ID, 0, amount);
+                else
                 {
-                    player?.TriggerEvent("Inventory::Update", (int)Groups.Items, freeIdx, upd);
-                });
+                    (items[freeIdx] as Game.Items.IStackable).Amount += amount;
 
-                MySQL.UpdatePlayerInventory(pData, true);
-            });
+                    items[freeIdx].Update();
+                }
+            }
 
-            Game.World.IOGSemaphore.Release();
+            var upd = Game.Items.Item.ToClientJson(items[freeIdx], Groups.Items);
 
-            pData.Release();
+            player.TriggerEvent("Inventory::Update", (int)Groups.Items, freeIdx, upd);
+
+            MySQL.CharacterItemsUpdate(pData.Info);
         }
         #endregion
     }

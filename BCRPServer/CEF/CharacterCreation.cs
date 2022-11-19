@@ -15,6 +15,7 @@ namespace BCRPServer.CEF
         private static Dictionary<bool, string[][]> DefaultClothes = new Dictionary<bool, string[][]>()
         {
             { true, new string[][] { new string[] { "hat_m_0", "hat_m_8", "hat_m_39" }, new string[] { "top_m_0", "under_m_2", "under_m_5" }, new string[] { "pants_m_0", "pants_m_2", "pants_m_11" }, new string[] { "shoes_m_5", "shoes_m_1", "shoes_m_3" } } },
+            
             { false, new string[][] { new string[] { "hat_f_1", "hat_f_13", "hat_f_6" }, new string[] { "top_f_5", "under_f_2", "under_f_1" }, new string[] { "pants_f_0", "pants_f_4", "pants_f_7" }, new string[] { "shoes_f_0", "shoes_f_2", "shoes_f_5" } } },
         };
         #endregion
@@ -35,7 +36,7 @@ namespace BCRPServer.CEF
 
         #region Set Sex
         [RemoteEvent("CharacterCreation::SetSex")]
-        public static async Task SetSex(Player player, bool sex)
+        public static void SetSex(Player player, bool sex)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -44,33 +45,22 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if (tData.StepType != TempData.StepTypes.CharacterCreation)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
+            player.SetSkin(sex ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01);
+            player.SetCustomization(sex, Game.Data.Customization.Defaults.HeadBlend, Game.Data.Customization.Defaults.EyeColor, Game.Data.Customization.Defaults.HairStyle.Color, Game.Data.Customization.Defaults.HairStyle.Color2, Game.Data.Customization.Defaults.FaceFeatures, Game.Data.Customization.Defaults.HeadOverlays, Game.Data.Customization.Defaults.Decorations);
 
-                if ((tData.StepType != TempData.StepTypes.CharacterCreation) || player.GetAccountData() == null)
-                    return;
+            if (!sex)
+                player.UpdateHeadBlend(0f, 0.5f, 0f);
 
-                player.SetSkin(sex ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01);
-                player.SetCustomization(sex, Game.Data.Customization.Defaults.HeadBlend, Game.Data.Customization.Defaults.EyeColor, Game.Data.Customization.Defaults.HairStyle.Color, Game.Data.Customization.Defaults.HairStyle.Color2, Game.Data.Customization.Defaults.FaceFeatures, Game.Data.Customization.Defaults.HeadOverlays, Game.Data.Customization.Defaults.Decorations);
-
-                if (!sex)
-                    player.UpdateHeadBlend(0f, 0.5f, 0f);
-
-                Undress(player, sex);
-            });
-
-            tData.Release();
+            Undress(player, sex);
         }
         #endregion
 
         #region Exit
         [RemoteEvent("CharacterCreation::Exit")]
-        public static async Task Exit(Player player)
+        public static void Exit(Player player)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -79,32 +69,21 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if (tData.StepType != TempData.StepTypes.CharacterCreation)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
+            tData.StepType = TempData.StepTypes.CharacterSelection;
 
-                if ((tData.StepType != TempData.StepTypes.CharacterCreation) || player.GetAccountData() == null)
-                    return;
+            player.SetAlpha(0);
 
-                tData.StepType = TempData.StepTypes.CharacterSelection;
-
-                player.SetAlpha(0);
-
-                player.TriggerEvent("CharacterCreation::Close");
-                player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::ShowCharacterChoosePage", false);
-            });
-
-            tData.Release();
+            player.TriggerEvent("CharacterCreation::Close");
+            player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::ShowCharacterChoosePage", false);
         }
         #endregion
 
         #region Create
         [RemoteEvent("CharacterCreation::Create")]
-        public static async Task Create(Player player, string name, string surname, int age, bool sex, byte eyeColor, string hBlendData, string hOverlaysData, string hStyleData, string fFeaturesData, string clothesData)
+        public static void Create(Player player, string name, string surname, int age, bool sex, byte eyeColor, string hBlendData, string hOverlaysData, string hStyleData, string fFeaturesData, string clothesData)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -113,109 +92,59 @@ namespace BCRPServer.CEF
 
             var tData = sRes.Data;
 
-            if (!await tData.WaitAsync())
+            if ((tData.StepType != TempData.StepTypes.CharacterCreation) || tData.AccountData == null)
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            try
             {
-                if (player?.Exists != true)
+                var hBlend = NAPI.Util.FromJson<HeadBlend>(hBlendData);
+                var fFeatures = NAPI.Util.FromJson<float[]>(fFeaturesData);
+                var hOverlays = NAPI.Util.FromJson<Dictionary<int, HeadOverlay>>(hOverlaysData);
+                var hStyle = NAPI.Util.FromJson<Game.Data.Customization.HairStyle>(hStyleData);
+                var clothes = NAPI.Util.FromJson<string[]>(clothesData);
+
+                if (clothes.Length != 4 || !IsCustomizationValid(hBlend, hOverlays, fFeatures, hStyle, eyeColor) || name == null || surname == null || !Utils.IsNameValid(name) || !Utils.IsNameValid(surname) || age < 18 || age >= 100)
                     return;
 
-                var aData = player.GetAccountData();
+                for (int i = 0; i < clothes.Length; i++)
+                    if (clothes[i] != null && !DefaultClothes[sex][i].Contains(clothes[i]))
+                        clothes[i] = null;
 
-                if ((tData.StepType != TempData.StepTypes.CharacterCreation) || aData == null)
-                    return;
+                var newClothes = new Game.Items.Clothes[5];
 
-                await Task.Run(async () =>
+                if (clothes[0] != null)
+                    newClothes[0] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[0], 0, 1);
+
+                if (clothes[1] != null)
                 {
-                    try
-                    {
-                        var hBlend = NAPI.Util.FromJson<HeadBlend>(hBlendData);
-                        var fFeatures = NAPI.Util.FromJson<float[]>(fFeaturesData);
-                        var hOverlays = NAPI.Util.FromJson<Dictionary<int, HeadOverlay>>(hOverlaysData);
-                        var hStyle = NAPI.Util.FromJson<Game.Data.Customization.HairStyle>(hStyleData);
-                        var clothes = NAPI.Util.FromJson<string[]>(clothesData);
+                    newClothes[Game.Items.Items.GetType(clothes[1]) == typeof(Game.Items.Top) ? 1 : 2] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[1], 0, 1);
+                }
 
-                        if (clothes.Length != 4 || !IsCustomizationValid(hBlend, hOverlays, fFeatures, hStyle, eyeColor) || name == null || surname == null || !Utils.IsNameValid(name) || !Utils.IsNameValid(surname) || age < 18 || age >= 100)
-                            return;
+                if (clothes[2] != null)
+                    newClothes[3] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[2], 0, 1);
 
-                        for (int i = 0; i < clothes.Length; i++)
-                            if (clothes[i] != null && !DefaultClothes[sex][i].Contains(clothes[i]))
-                                clothes[i] = null;
+                if (clothes[3] != null)
+                    newClothes[4] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[3], 0, 1);
 
-                        var newClothes = new Game.Items.Clothes[5];
+                var pData = new PlayerData(player, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
 
-                        if (clothes[0] != null)
-                            newClothes[0] = (Game.Items.Clothes)await Game.Items.Items.CreateItem(clothes[0], 0, 1);
+                PlayerData.PlayerInfo.Add(pData.Info);
 
-                        if (clothes[1] != null)
-                        {
-                            newClothes[Game.Items.Items.GetType(clothes[1]) == typeof(Game.Items.Top) ? 1 : 2] = (Game.Items.Clothes)await Game.Items.Items.CreateItem(clothes[1], 0, 1);
-                        }
+                player.TriggerEvent("CharacterCreation::Close");
+                player.TriggerEvent("FadeScreen", true);
 
-                        if (clothes[2] != null)
-                            newClothes[3] = (Game.Items.Clothes)await Game.Items.Items.CreateItem(clothes[2], 0, 1);
+                tData.Delete();
 
-                        if (clothes[3] != null)
-                            newClothes[4] = (Game.Items.Clothes)await Game.Items.Items.CreateItem(clothes[3], 0, 1);
+                player.SetMainData(pData);
 
-                        var pData = await NAPI.Task.RunAsync<PlayerData>(() =>
-                        {
-                            if (player?.Exists != true)
-                                return null;
+                pData.SetReady();
+            }
+            catch (Exception ex)
+            {
+                Utils.KickSilent(player, ex.Message);
 
-                            var data = new PlayerData(player);
-
-                            data.New(name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle);
-
-                            return data;
-                        });
-
-                        if (pData == null)
-                            return;
-
-                        pData.Clothes = newClothes;
-
-                        int CID = await Task.Run(() => MySQL.AddNewCharacter(pData, aData, sex));
-
-                        if (CID == -1)
-                            return;
-
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.TriggerEvent("CharacterCreation::Close");
-                            player.TriggerEvent("FadeScreen", true);
-
-                            pData.CID = CID;
-
-                            tData.Remove();
-
-                            Task.Run(async () =>
-                            {
-                                if (!await tData.WaitAsync())
-                                    return;
-
-                                tData.Delete();
-                            });
-
-                            player.SetMainData(pData);
-
-                            pData.SetReady();
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.KickSilent(player, ex.Message);
-
-                        return;
-                    }
-                });
-            });
-
-            tData.Release();
+                return;
+            }
         }
         #endregion
 

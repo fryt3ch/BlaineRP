@@ -191,7 +191,7 @@ namespace BCRPClient.Sync
                 await Utils.RequestAnimDict(AnimDict);
                 await Utils.RequestAnimDict(AnimDictVehicle);
 
-                player.TaskPlayAnim(player.IsInAnyVehicle(false) ? AnimDict : AnimDictVehicle, AnimTextReadBase, 8f, 1f, -1, 50, 0f, false, false, false);
+                player.TaskPlayAnim(player.IsInAnyVehicle(false) ? AnimDictVehicle : AnimDict, AnimTextReadBase, 8f, 1f, -1, 50, 0f, false, false, false);
             }
         }
 

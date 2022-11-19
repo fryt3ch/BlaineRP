@@ -14,9 +14,13 @@ namespace BCRPServer
 
         public enum StepTypes
         {
+            /// <summary>Регистрация/вход</summary>
             None = -1,
+            /// <summary>Выбор персонажа</summary>
             CharacterSelection,
+            /// <summary>Создание персонажа</summary>
             CharacterCreation,
+            /// <summary>Выбор места спавна</summary>
             StartPlace,
         }
 
@@ -52,52 +56,62 @@ namespace BCRPServer
             if (player == null)
                 return;
 
-            TempData existing;
-
-            if (Players.TryGetValue(player, out existing))
-                existing = data;
+            if (Players.ContainsKey(player))
+            {
+                Players[player] = data;
+            }
             else
+            {
                 Players.Add(player, data);
-        }
-
-        public void Remove()
-        {
-            if (Player == null)
-                return;
-
-            Players.Remove(Player);
+            }
         }
 
         public void Delete()
         {
+            if (Player != null)
+            {
+                Players.Remove(Player);
+            }
+
             if (LoginCTS != null)
             {
                 LoginCTS.Cancel();
-            }
 
-            Semaphore?.Dispose();
+                LoginCTS = null;
+            }
         }
 
-        /// <summary>Сущность игрока</summary>
         public Player Player { get; set; }
 
         public StepTypes StepType { get; set; }
 
         public CancellationTokenSource LoginCTS { get; set; }
+
         public int LoginAttempts { get; set; }
+
         public string ActualToken { get; set; }
 
-        public SemaphoreSlim Semaphore { get; set; }
+        public PlayerData.PlayerInfo[] Characters { get; set; }
 
-        public PlayerData.Prototype[] Characters { get; set; }
+        public AccountData AccountData { get; set; }
+
         public PlayerData PlayerData { get; set; }
 
         public Vector3 PositionToSpawn { get; set; }
+
         public uint DimensionToSpawn { get; set; }
+
+        public bool BlockRemoteCalls { get; set; }
+
+        public byte SpamCounter { get; set; }
 
         public TempData(Player Player)
         {
             this.Player = Player;
+
+            SpamCounter = 0;
+
+            BlockRemoteCalls = true;
 
             DimensionToSpawn = Utils.Dimensions.Main;
 
@@ -105,9 +119,9 @@ namespace BCRPServer
 
             LoginAttempts = Settings.AUTH_ATTEMPTS;
 
-            Semaphore = new SemaphoreSlim(1, 1);
-
             LoginCTS = new CancellationTokenSource();
+
+            Characters = new PlayerData.PlayerInfo[3];
 
             Task.Run(async () =>
             {
@@ -115,33 +129,27 @@ namespace BCRPServer
                 {
                     await Task.Delay(Settings.AUTH_TIMEOUT_TIME, LoginCTS.Token);
 
-                    if (!await this.WaitAsync())
-                        return;
-
-                    if (LoginCTS?.IsCancellationRequested == false)
+                    NAPI.Task.Run(() =>
                     {
-                        LoginCTS.Cancel();
-                        LoginCTS.Dispose();
-                        LoginCTS = null;
+                        if (Player?.Exists != true)
+                            return;
 
-                        await NAPI.Task.RunAsync(() =>
-                        {
-                            if (StepType < StepTypes.CharacterSelection)
-                                Utils.KickSilent(Player, "Время на вход вышло!");
-                        });
-                    }
-
-                    this.Release();
+                        if (StepType < StepTypes.CharacterSelection)
+                            Utils.KickSilent(Player, "Время на вход вышло!");
+                    });
                 }
                 catch (Exception ex)
+                {
+
+                }
+                finally
                 {
                     if (LoginCTS != null)
                     {
                         LoginCTS.Cancel();
-                        LoginCTS.Dispose();
-                    }
 
-                    LoginCTS = null;
+                        LoginCTS = null;
+                    }
                 }
             });
         }

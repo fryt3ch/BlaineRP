@@ -13,7 +13,60 @@ namespace BCRPServer.Game.Items
     {
         /// <summary>Все загруженные контейнеры</summary>
         /// <value>Словарь, где ключ - UID контейнера, а значение - объект класса Container</value>
-        public static Dictionary<uint, Container> AllContainers { get; set; }
+        public static Dictionary<uint, Container> All { get; private set; } = new Dictionary<uint, Container>();
+
+        private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
+
+        private static uint LastAddedMaxId { get; set; }
+
+        public static uint MoveNextId()
+        {
+            uint id;
+
+            if (!FreeIDs.TryDequeue(out id))
+            {
+                id = ++LastAddedMaxId;
+            }
+
+            return id;
+        }
+
+        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+
+        public static void AddOnLoad(Container cont)
+        {
+            if (cont == null)
+                return;
+
+            All.Add(cont.ID, cont);
+
+            if (cont.ID > LastAddedMaxId)
+                LastAddedMaxId = cont.ID;
+        }
+
+        public static void Add(Container cont)
+        {
+            if (cont == null)
+                return;
+
+            All.Add(cont.ID, cont);
+
+            MySQL.ContainerAdd(cont);
+        }
+
+        public static void Remove(Container cont)
+        {
+            if (cont == null)
+                return;
+
+            var id = cont.ID;
+
+            AddFreeId(id);
+
+            All.Remove(id);
+
+            MySQL.ContainerDelete(cont);
+        }
 
         public enum AllowedItemTypes
         {
@@ -75,7 +128,7 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Игроки, в данный момент просматривающие контейнер</summary>
         /// <value>Список сущностей игроков</value>
-        public List<Player> PlayersObserving { get; set; }
+        public List<PlayerData> PlayersObserving { get; set; }
 
         /// <summary>Максимальный вес контейнера</summary>
         public float MaxWeight { get => ContData.MaxWeight; }
@@ -91,11 +144,8 @@ namespace BCRPServer.Game.Items
 
         public Data ContData { get; set; }
 
-
         /// <summary>Сущность держателя контейнера</summary>
         public Entity Entity { get; set; }
-
-        public SemaphoreSlim Semaphore { get; set; }
 
         /// <summary>Метод для проверки, есть ли у игрока возможность просматривать контейнер</summary>
         public bool IsAccessableFor(PlayerData pData)
@@ -172,15 +222,9 @@ namespace BCRPServer.Game.Items
         }
 
         /// <summary>Метод для проверки, рядом ли игрок (см. MaxDistance) </summary>
-        public bool IsNear(Player player)
+        public bool IsNear(PlayerData pData)
         {
-            if (player == null)
-                return false;
-
-            var pData = player.GetMainData();
-
-            if (pData == null)
-                return false;
+            var player = pData.Player;
 
             if (Entity?.Exists == true)
                 return player.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
@@ -193,43 +237,56 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public Container()
+        public Container(string SID)
         {
-            PlayersObserving = new List<Player>();
+            this.ID = MoveNextId();
 
-            Semaphore = new SemaphoreSlim(1, 1);
-        }
-
-        public Container(string SID) : this()
-        {
             this.SID = SID;
             this.ContData = AllSIDs[SID];
+
+            PlayersObserving = new List<PlayerData>();
 
             this.Items = new Item[ContData.Slots];
         }
 
+        public Container(string SID, uint ID, Item[] Items)
+        {
+            this.ID = ID;
+
+            this.SID = SID;
+            this.ContData = AllSIDs[SID];
+
+            PlayersObserving = new List<PlayerData>();
+
+            this.Items = Items;
+        }
+
+        public Container()
+        {
+
+        }
+
         /// <summary>Метод для добавления игрока в качестве смотрящего контейнер</summary>
         /// <returns>true - если игрок был успешно добавлен, false - в противном случае</returns>
-        public async Task<bool> AddPlayerObserving(PlayerData pData)
+        public bool AddPlayerObserving(PlayerData pData)
         {
             var player = pData.Player;
 
-            if (pData.CurrentContainer != null || PlayersObserving.Contains(player))
+            if (pData.CurrentContainer != null || PlayersObserving.Contains(pData))
                 return false;
 
-            await NAPI.Task.RunAsync(() =>
+            foreach (var x in PlayersObserving)
             {
-                foreach (var x in PlayersObserving.ToList())
-                {
-                    if (x?.Exists != true || !x.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                        RemovePlayerObserving(x);
-                }
-            });
+                var target = x?.Player;
+
+                if (target?.Exists != true || !target.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                    RemovePlayerObserving(x);
+            }
 
             if (PlayersObserving.Count >= Settings.CONTAINER_MAX_PLAYERS)
                 return false;
 
-            PlayersObserving.Add(player);
+            PlayersObserving.Add(pData);
 
             pData.CurrentContainer = this.ID;
 
@@ -237,27 +294,21 @@ namespace BCRPServer.Game.Items
         }
 
         /// <summary>Метод для удаления игрока в качестве смотрящего контейнер</summary>
-        public void RemovePlayerObserving(Player player)
+        public void RemovePlayerObserving(PlayerData pData)
         {
-            PlayersObserving.Remove(player);
+            var player = pData.Player;
 
-            NAPI.Task.RunSafe(() =>
-            {
-                if (player?.Exists != true)
-                    return;
+            PlayersObserving.Remove(pData);
 
-                player?.TriggerEvent("Inventory::Close");
+            player.TriggerEvent("Inventory::Close");
 
-                var pData = player.GetMainData();
-
-                pData.CurrentContainer = null;
-            });
+            pData.CurrentContainer = null;
         }
 
         /// <summary>Метод для очистки всех игроков, смотрящих контейнер</summary>
         public void ClearAllObservers()
         {
-            foreach (var player in PlayersObserving.ToList())
+            foreach (var player in PlayersObserving)
                 RemovePlayerObserving(player);
         }
 
@@ -266,19 +317,13 @@ namespace BCRPServer.Game.Items
         /// <returns>UID добавленного контейнера</returns>
         /// <param name="cont">Объект класса Container</param>
         /// <param name="owner">Сущность держателя контейнера</param>
-        public static async Task<Container> Create(Container cont, Entity owner = null)
+        public static Container Create(string sid, Entity owner = null)
         {
-            cont = MySQL.AddContainer(cont);
+            var cont = new Container(sid);
 
             cont.Entity = owner;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (AllContainers.ContainsKey(cont.ID))
-                    AllContainers[cont.ID] = cont;
-                else
-                    AllContainers.Add(cont.ID, cont);
-            });
+            Add(cont);
 
             return cont;
         }
@@ -287,66 +332,22 @@ namespace BCRPServer.Game.Items
         /// <remarks>Также, если контейнер не загружен, метод попытается загрузить его из базы данных</remarks>
         /// <returns>Объект класса Container, если таковой был найден, null - в противном случае</returns>
         /// <param name="id">UID контейнера</param>
-        public static Container Get(uint id)
-        {
-            if (AllContainers.ContainsKey(id))
-                return AllContainers[id];
-            else
-                return null;
-        }
-
-        /// <summary>Метод для получения контейнера</summary>
-        /// <remarks>Также, если контейнер не загружен, метод попытается загрузить его из базы данных</remarks>
-        /// <returns>Объект класса Container, если таковой был найден, null - в противном случае</returns>
-        /// <param name="id">UID контейнера</param>
-        /// <param name="owner">Сущность держателя контейнера (для обновления)</param>
-        public static Container Load(uint id, Entity owner = null)
-        {
-            var cont = MySQL.LoadContainerByID(id);
-
-            if (cont == null)
-                return null;
-
-            cont.Entity = owner;
-
-            NAPI.Task.RunAsync(() =>
-            {
-                if (AllContainers.ContainsKey(id))
-                    AllContainers[id] = cont;
-                else
-                    AllContainers.Add(id, cont);
-            }).GetAwaiter().GetResult();
-
-            return cont;
-        }
+        public static Container Get(uint id) => All.GetValueOrDefault(id);
 
         /// <summary>Метод для обновления предметов в контейнере в базе данных</summary>
-        public void Update() => MySQL.UpdateContainer(this);
+        public void Update() => MySQL.ContainerUpdate(this);
 
         /// <summary>Метод для удаления контейнера</summary>
-        /// <param name="completely">true - удалить из базы данных, false - выгрузить из сервера</param>
-        public async Task Delete(bool completely = false)
+        public void Delete()
         {
-            await NAPI.Task.RunAsync(() =>
-            {
-                AllContainers.Remove(this.ID);
-            });
-
-            await this.WaitAsync();
-
-            this.Semaphore?.Dispose();
-
             ClearAllObservers();
 
-            if (completely)
-                MySQL.DeleteContainer(this);
+            Remove(this);
         }
 
         /// <summary>Метод для удаления ВСЕХ предметов из контейнера</summary>
-        public async Task Clear()
+        public void Clear()
         {
-            await this.WaitAsync();
-
             ClearAllObservers();
 
             foreach (var item in Items)
@@ -355,8 +356,6 @@ namespace BCRPServer.Game.Items
             Items = new Item[Items.Length];
 
             Update();
-
-            this.Release();
         }
 
         /// <summary>Метод для проверки, допустим ли предмет для хранения в контейнере</summary>
@@ -364,9 +363,6 @@ namespace BCRPServer.Game.Items
         {
             if (item == null)
                 return true;
-
-/*            if (this.AllowedItemType == typeof(Game.Items.Item))
-                return true;*/
 
             return this.AllowedItemType.IsAssignableFrom(item.Type);
         }
@@ -380,17 +376,17 @@ namespace BCRPServer.Game.Items
 
         public string ToClientJson() => (new object[] { ContainerType, MaxWeight, Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Container)) }).SerializeToJson();
 
-        private static Dictionary<CEF.Inventory.Groups, Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>> ReplaceActions = new Dictionary<CEF.Inventory.Groups, Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>>()
+        private static Dictionary<CEF.Inventory.Groups, Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, CEF.Inventory.Results>>> ReplaceActions = new Dictionary<CEF.Inventory.Groups, Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, CEF.Inventory.Results>>>()
         {
             {
                 CEF.Inventory.Groups.Items,
 
-                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>()
+                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, CEF.Inventory.Results>>()
                 {
                     {
                         CEF.Inventory.Groups.Container,
 
-                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        (pData, cont, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -412,9 +408,6 @@ namespace BCRPServer.Game.Items
 
                             float curWeight = cont.Weight;
                             float maxWeight = cont.MaxWeight;
-
-                            bool wasDeleted = false;
-                            bool wasCreated = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -453,7 +446,7 @@ namespace BCRPServer.Game.Items
 
                                         pData.Items[slotFrom] = null;
 
-                                        wasDeleted = true;
+                                        MySQL.CharacterItemsUpdate(pData.Info);
                                     }
                                 }
 
@@ -475,9 +468,9 @@ namespace BCRPServer.Game.Items
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+                                cont.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
 
-                                wasCreated = true;
+                                cont.Update();
                             }
                             #endregion
                             #region Replace
@@ -492,31 +485,25 @@ namespace BCRPServer.Game.Items
                                 pData.Items[slotFrom] = toItem;
                                 cont.Items[slotTo] = fromItem;
 
-                                wasDeleted = true; wasCreated = true;
+                                MySQL.CharacterItemsUpdate(pData.Info);
+                                cont.Update();
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], CEF.Inventory.Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
 
-                            await NAPI.Task.RunAsync(() =>
+                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
+
+                            foreach (var x in cont.PlayersObserving)
                             {
-                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotFrom, upd1);
+                                var target = x?.Player;
 
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
+                                if (target?.Exists != true)
+                                    continue;
 
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
-                                }
-                            });
-
-                            if (wasDeleted)
-                                MySQL.UpdatePlayerInventory(pData, true);
-
-                            if (wasCreated)
-                                cont.Update();
+                                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
+                            }
 
                             return CEF.Inventory.Results.Success;
                         }
@@ -527,12 +514,12 @@ namespace BCRPServer.Game.Items
             {
                 CEF.Inventory.Groups.Bag,
 
-                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>()
+                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, CEF.Inventory.Results>>()
                 {
                     {
                         CEF.Inventory.Groups.Container,
 
-                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        (pData, cont, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -551,9 +538,6 @@ namespace BCRPServer.Game.Items
 
                             float curWeight = cont.Weight;
                             float maxWeight = cont.MaxWeight;
-
-                            bool wasDeleted = false;
-                            bool wasCreated = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -592,7 +576,7 @@ namespace BCRPServer.Game.Items
 
                                         pData.Bag.Items[slotFrom] = null;
 
-                                        wasDeleted = true;
+                                        pData.Bag.Update();
                                     }
                                 }
 
@@ -614,9 +598,9 @@ namespace BCRPServer.Game.Items
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+                                cont.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
 
-                                wasCreated = true;
+                                cont.Update();
                             }
                             #endregion
                             #region Replace
@@ -631,31 +615,25 @@ namespace BCRPServer.Game.Items
                                 pData.Bag.Items[slotFrom] = toItem;
                                 cont.Items[slotTo] = fromItem;
 
-                                wasDeleted = true; wasCreated = true;
+                                pData.Bag.Update();
+                                cont.Update();
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], CEF.Inventory.Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
 
-                            await NAPI.Task.RunAsync (() =>
+                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotFrom, upd1);
+
+                            foreach (var x in cont.PlayersObserving.ToList())
                             {
-                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotFrom, upd1);
+                                var target = x?.Player;
 
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
+                                if (target?.Exists != true)
+                                    continue;
 
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
-                                }
-                            });
-
-                            if (wasDeleted)
-                                pData.Bag.Update();
-
-                            if (wasCreated)
-                                cont.Update();
+                                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
+                            }
 
                             return CEF.Inventory.Results.Success;
                         }
@@ -666,12 +644,12 @@ namespace BCRPServer.Game.Items
             {
                 CEF.Inventory.Groups.Container,
 
-                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, Task<CEF.Inventory.Results>>>()
+                new Dictionary<CEF.Inventory.Groups, Func<PlayerData, Container, int, int, int, CEF.Inventory.Results>>()
                 {
                     {
                         CEF.Inventory.Groups.Container,
 
-                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        (pData, cont, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -687,9 +665,6 @@ namespace BCRPServer.Game.Items
                                 return CEF.Inventory.Results.Error;
 
                             var toItem = cont.Items[slotTo];
-
-                            bool wasCreated = false;
-                            bool wasDeleted = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -714,13 +689,13 @@ namespace BCRPServer.Game.Items
 
                                     if (fromStackable.Amount == 0)
                                     {
-                                        wasDeleted = true;
-
                                         fromItem.Delete();
 
                                         fromItem = null;
 
                                         cont.Items[slotFrom] = null;
+
+                                        cont.Update();
                                     }
                                 }
 
@@ -731,12 +706,12 @@ namespace BCRPServer.Game.Items
                             #region Split To New
                             else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount)
                             {
-                                wasCreated = true;
-
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                cont.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+                                cont.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount);
+
+                                cont.Update();
                             }
                             #endregion
                             #region Replace
@@ -744,28 +719,22 @@ namespace BCRPServer.Game.Items
                             {
                                 cont.Items[slotFrom] = toItem;
                                 cont.Items[slotTo] = fromItem;
-
-                                wasCreated = true;
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
                             var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], CEF.Inventory.Groups.Container);
 
-                            await NAPI.Task.RunAsync(() =>
+                            foreach (var x in cont.PlayersObserving.ToList())
                             {
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
+                                var target = x?.Player;
 
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
-                                }
-                            });
+                                if (target?.Exists != true)
+                                    continue;
 
-                            if (wasCreated || wasDeleted)
-                                cont.Update();
+                                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotTo, upd2);
+                            }
 
                             return CEF.Inventory.Results.Success;
                         }
@@ -774,7 +743,7 @@ namespace BCRPServer.Game.Items
                     {
                         CEF.Inventory.Groups.Items,
 
-                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        (pData, cont, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -795,8 +764,6 @@ namespace BCRPServer.Game.Items
                                 return CEF.Inventory.Results.Error;
 
                             float curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
-
-                            bool wasDeleted = false, wasCreated = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -835,7 +802,7 @@ namespace BCRPServer.Game.Items
 
                                         cont.Items[slotFrom] = null;
 
-                                        wasDeleted = true;
+                                        cont.Update();
                                     }
                                 }
 
@@ -857,9 +824,9 @@ namespace BCRPServer.Game.Items
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                pData.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+                                pData.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
 
-                                wasCreated = true;
+                                MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
                             #region Replace
@@ -874,31 +841,25 @@ namespace BCRPServer.Game.Items
                                 cont.Items[slotFrom] = toItem;
                                 pData.Items[slotTo] = fromItem;
 
-                                wasDeleted = true; wasCreated = true;
+                                cont.Update();
+                                MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], CEF.Inventory.Groups.Items);
 
-                            await NAPI.Task.RunAsync(() =>
+                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotTo, upd2);
+
+                            foreach (var x in cont.PlayersObserving)
                             {
-                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, slotTo, upd2);
+                                var target = x?.Player;
 
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
+                                if (target?.Exists != true)
+                                    continue;
 
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
-                                }
-                            });
-
-                            if (wasCreated)
-                                MySQL.UpdatePlayerInventory(pData, true);
-
-                            if (wasDeleted)
-                                cont.Update();
+                                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                            }
 
                             return CEF.Inventory.Results.Success;
                         }
@@ -907,7 +868,7 @@ namespace BCRPServer.Game.Items
                     {
                         CEF.Inventory.Groups.Bag,
 
-                        async (pData, cont, slotTo, slotFrom, amount) =>
+                        (pData, cont, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
@@ -929,8 +890,6 @@ namespace BCRPServer.Game.Items
 
                             float curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
                             float maxWeight = pData.Bag.Data.MaxWeight;
-
-                            bool wasDeleted = false, wasCreated = false;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -969,7 +928,7 @@ namespace BCRPServer.Game.Items
 
                                         cont.Items[slotFrom] = null;
 
-                                        wasDeleted = true;
+                                        cont.Update();
                                     }
                                 }
 
@@ -991,9 +950,9 @@ namespace BCRPServer.Game.Items
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
 
-                                pData.Bag.Items[slotTo] = await Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
+                                pData.Bag.Items[slotTo] = Game.Items.Items.CreateItem(fromItem.ID, 0, amount); // but wait for that :)
 
-                                wasCreated = true;
+                                pData.Bag.Update();
                             }
                             #endregion
                             #region Replace
@@ -1008,31 +967,25 @@ namespace BCRPServer.Game.Items
                                 cont.Items[slotFrom] = toItem;
                                 pData.Bag.Items[slotTo] = fromItem;
 
-                                wasDeleted = true; wasCreated = true;
+                                cont.Update();
+                                pData.Bag.Update();
                             }
                             #endregion
 
                             var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], CEF.Inventory.Groups.Container);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], CEF.Inventory.Groups.Bag);
 
-                            await NAPI.Task.RunAsync(() =>
+                            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotTo, upd2);
+
+                            foreach (var x in cont.PlayersObserving.ToList())
                             {
-                                player?.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Bag, slotTo, upd2);
+                                var target = x?.Player;
 
-                                foreach (var x in cont.PlayersObserving.ToList())
-                                {
-                                    if (x?.Exists != true)
-                                        continue;
+                                if (target?.Exists != true)
+                                    continue;
 
-                                    x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
-                                }
-                            });
-
-                            if (wasCreated)
-                                pData.Bag.Update();
-
-                            if (wasDeleted)
-                                cont.Update();
+                                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slotFrom, upd1);
+                            }
 
                             return CEF.Inventory.Results.Success;
                         }
@@ -1043,7 +996,7 @@ namespace BCRPServer.Game.Items
 
         #region Show
         [RemoteEvent("Container::Show")]
-        private static async Task Show(Player player, uint uid)
+        private static void Show(Player player, uint uid)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1052,71 +1005,38 @@ namespace BCRPServer.Game.Items
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentContainer != null)
                 return;
 
-            await Task.Run(async () =>
+            var cont = Get(uid);
+
+            if (cont == null)
+                return;
+
+            if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
             {
-                if (pData.CurrentContainer != null)
-                    return;
+                if (cont.Entity?.Type == EntityType.Vehicle)
+                    player.Notify("Vehicle::NotAllowed");
 
-                var cont = Get(uid);
+                return;
+            }
 
-                if (!await cont.WaitAsync())
-                    return;
+            if (!cont.AddPlayerObserving(pData))
+            {
+                player.Notify("Container::Wait");
 
-                await Task.Run(async () =>
-                {
-                    var res = await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return false;
+                return;
+            }
 
-                        var res = cont.IsNear(player) && cont.IsAccessableFor(pData);
+            string result = cont.ToClientJson();
 
-                        if (!res)
-                        {
-                            if (cont.Entity?.Type == EntityType.Vehicle)
-                                player.Notify("Vehicle::NotAllowed");
-                        }
-
-                        return res;
-                    });
-
-                    if (!res)
-                        return;
-
-                    if (!await cont.AddPlayerObserving(pData))
-                    {
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.Notify("Container::Wait");
-                        });
-
-                        return;
-                    }
-
-                    string result = cont.ToClientJson();
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        player?.TriggerEvent("Inventory::Show", 1, result);
-                    });
-                });
-
-                cont.Release();
-            });
-
-            pData.Release();
+            player.TriggerEvent("Inventory::Show", 1, result);
         }
         #endregion
 
         #region Replace
         [RemoteEvent("Container::Replace")]
-        private static async Task Replace(Player player, int toStr, int slotTo, int fromStr, int slotFrom, int amount)
+        private static void Replace(Player player, int toStr, int slotTo, int fromStr, int slotFrom, int amount)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1125,88 +1045,57 @@ namespace BCRPServer.Game.Items
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentContainer == null)
                 return;
 
-            await Task.Run(async () =>
+            var offer = pData.ActiveOffer;
+
+            if (offer != null)
             {
-                if (pData.CurrentContainer == null)
+                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
                     return;
+            }
 
-                var offer = await pData.ActiveOffer;
+            if (!Enum.IsDefined(typeof(CEF.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(CEF.Inventory.Groups), fromStr))
+                return;
 
-                if (offer != null)
-                {
-                    if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                        return;
-                }
+            if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
+                return;
 
-                if (!Enum.IsDefined(typeof(CEF.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(CEF.Inventory.Groups), fromStr))
-                    return;
+            CEF.Inventory.Groups to = (CEF.Inventory.Groups)toStr;
+            CEF.Inventory.Groups from = (CEF.Inventory.Groups)fromStr;
 
-                if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
-                    return;
+            var cont = Get((uint)pData.CurrentContainer);
 
-                CEF.Inventory.Groups to = (CEF.Inventory.Groups)toStr;
-                CEF.Inventory.Groups from = (CEF.Inventory.Groups)fromStr;
+            if (cont == null)
+                return;
 
-                var cont = Get((uint)pData.CurrentContainer);
+            if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
+            {
+                player.TriggerEvent("Inventory::Close");
 
-                if (!await cont.WaitAsync())
-                    return;
+                return;
+            }
 
-                var res = await Task.Run(async () =>
-                {
-                    if (cont == null)
-                        return CEF.Inventory.Results.Error;
+            var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
 
-                    var res = await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return false;
-
-                        var res = cont.IsNear(player) && cont.IsAccessableFor(pData);
-
-                        if (!res)
-                            player.TriggerEvent("Inventory::Close");
-
-                        return res;
-                    });
-
-                    if (!res)
-                        return CEF.Inventory.Results.Error;
-
-                    var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
-
-                    if (action != null)
-                        return await action.Invoke(pData, cont, slotTo, slotFrom, amount);
-
-                    return CEF.Inventory.Results.Error;
-                });
-
-                cont.Release();
+            if (action != null)
+            {
+                var res = action.Invoke(pData, cont, slotTo, slotFrom, amount);
 
                 var notification = CEF.Inventory.ResultsNotifications.GetValueOrDefault(res);
 
                 if (notification == null)
                     return;
 
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    player.Notify(notification);
-                });
-            });
-
-            pData.Release();
+                player.Notify(notification);
+            }
         }
         #endregion
 
         #region Drop
         [RemoteEvent("Container::Drop")]
-        private static async Task Drop(Player player, int slot, int amount)
+        private static void Drop(Player player, int slot, int amount)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1215,105 +1104,76 @@ namespace BCRPServer.Game.Items
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentContainer == null || amount < 1 || slot < 0)
                 return;
 
-            await Task.Run(async () =>
+            var cont = Get((uint)pData.CurrentContainer);
+
+            if (cont == null)
+                return;
+
+            if (slot >= cont.Items.Length)
+                return;
+
+            var item = cont.Items[slot];
+
+            if (item == null)
+                return;
+
+            if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
             {
-                if (pData.CurrentContainer == null || amount < 1 || slot < 0)
-                    return;
+                player.TriggerEvent("Inventory::Close");
 
-                var cont = Get((uint)pData.CurrentContainer);
+                return;
+            }
 
-                if (!await cont.WaitAsync())
-                    return;
+            if (item is Game.Items.IStackable itemStackable)
+            {
+                int curAmount = itemStackable.Amount;
 
-                await Task.Run(async () =>
+                if (amount > curAmount)
+                    amount = curAmount;
+
+                curAmount -= amount;
+
+                if (curAmount > 0)
                 {
-                    if (slot >= cont.Items.Length)
-                        return;
+                    itemStackable.Amount = curAmount;
+                    cont.Items[slot] = item;
 
-                    var item = cont.Items[slot];
+                    item.Update();
+                    item = Game.Items.Items.CreateItem(item.ID, 0, amount);
+                }
+                else
+                    cont.Items[slot] = null;
+            }
+            else
+                cont.Items[slot] = null;
 
-                    if (item == null)
-                        return;
+            var upd = Game.Items.Item.ToClientJson(cont.Items[slot], CEF.Inventory.Groups.Container);
 
-                    var res = await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return false;
+            foreach (var x in cont.PlayersObserving)
+            {
+                var target = x?.Player;
 
-                        var res = cont.IsNear(player) && cont.IsAccessableFor(pData);
+                if (target?.Exists != true)
+                    return;
 
-                        if (!res)
-                            player.TriggerEvent("Inventory::Close");
+                target.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slot, upd);
+            }
 
-                        return res;
-                    });
+            cont.Update();
 
-                    if (item is Game.Items.IStackable itemStackable)
-                    {
-                        int curAmount = itemStackable.Amount;
+            if (!pData.CanPlayAnim())
+                pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
-                        if (amount > curAmount)
-                            amount = curAmount;
-
-                        curAmount -= amount;
-
-                        if (curAmount > 0)
-                        {
-                            itemStackable.Amount = curAmount;
-                            cont.Items[slot] = item;
-
-                            item.Update();
-                            item = await Game.Items.Items.CreateItem(item.ID, 0, amount);
-                        }
-                        else
-                            cont.Items[slot] = null;
-                    }
-                    else
-                        cont.Items[slot] = null;
-
-                    var upd = Game.Items.Item.ToClientJson(cont.Items[slot], CEF.Inventory.Groups.Container);
-
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        foreach (var x in cont.PlayersObserving.ToList())
-                        {
-                            if (x?.Exists != true)
-                                return;
-
-                            x.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Container, slot, upd);
-                        }
-                    });
-
-                    cont.Update();
-
-                    (Vector3 FrontOf, Vector3 Rotation, uint Dimension) dropData = await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return (null, null, 0);
-
-                        if (!pData.CanPlayAnim())
-                            pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
-
-                        return (player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
-                    });
-
-                    if (dropData.FrontOf != null)
-                        await Game.World.AddItemOnGround(player, item, dropData.FrontOf, dropData.Rotation, dropData.Dimension);
-                });
-
-                cont.Release();
-            });
-
-            pData.Release();
+            Game.World.AddItemOnGround(player, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
         #endregion
 
         #region Close
         [RemoteEvent("Container::Close")]
-        private static async Task OnClose(Player player)
+        private static void OnClose(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1322,25 +1182,12 @@ namespace BCRPServer.Game.Items
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentContainer == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                if (pData.CurrentContainer == null)
-                    return;
+            var cont = Get((uint)pData.CurrentContainer);
 
-                var cont = Get((uint)pData.CurrentContainer);
-
-                if (!await cont.WaitAsync())
-                    return;
-
-                cont.RemovePlayerObserving(player);
-
-                cont.Release();
-            });
-
-            pData.Release();
+            cont.RemovePlayerObserving(pData);
         }
         #endregion
     }

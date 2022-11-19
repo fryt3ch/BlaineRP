@@ -127,38 +127,28 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player player)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var pData = player.GetMainData();
 
-                                if (!await pData.WaitAsync())
+                                if (pData == null)
                                     return;
 
-                                await System.Threading.Tasks.Task.Run(async () =>
+                                if (root is Vehicle veh)
                                 {
-                                    var vData = (root as Vehicle).GetMainData();
+                                    var vData = veh.GetMainData();
 
-                                    if (!await vData.WaitAsync())
+                                    if (vData == null)
                                         return;
 
-                                    await NAPI.Task.RunAsync(() =>
-                                    {
-                                        if (root?.Exists != true || target?.Exists != true)
-                                            return;
+                                    var baseSpeed = Settings.PUSHING_VEHICLE_STRENGTH_MIN;
+                                    var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
 
-                                        var baseSpeed = Settings.PUSHING_VEHICLE_STRENGTH_MIN;
-                                        var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
+                                    vData.ForcedSpeed = baseSpeed + strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
 
-                                        vData.ForcedSpeed = baseSpeed + strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
-
-                                        pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
-                                    });
-
-                                    vData.Release();
-                                });
-
-                                pData.Release();
-                            });
+                                    pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
+                                }
+                            }
                         }
                     },
 
@@ -167,41 +157,25 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player player)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var pData = player.GetMainData();
 
-                                if (!await pData.WaitAsync())
-                                    return;
-
-                                await NAPI.Task.RunAsync(() =>
+                                if (pData != null)
                                 {
-                                    if (target?.Exists != true)
-                                        return;
-
                                     pData.StopAnim();
-                                });
+                                }
+                            }
 
-                                pData.Release();
-                            });
-
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (root is Vehicle veh)
                             {
-                                var vData = (root as Vehicle).GetMainData();
+                                var vData = veh.GetMainData();
 
-                                if (!await vData.WaitAsync())
-                                    return;
-
-                                await NAPI.Task.RunAsync(() =>
+                                if (vData != null)
                                 {
-                                    if (root?.Exists != true)
-                                        return;
-
                                     vData.ForcedSpeed = 0f;
-                                });
-
-                                vData.Release();
-                            });
+                                }
+                            }
                         }
                     }
                 }
@@ -217,38 +191,28 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player player)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var pData = player.GetMainData();
 
-                                if (!await pData.WaitAsync())
+                                if (pData == null)
                                     return;
 
-                                await System.Threading.Tasks.Task.Run(async () =>
+                                if (root is Vehicle veh)
                                 {
-                                    var vData = (root as Vehicle).GetMainData();
+                                    var vData = veh.GetMainData();
 
-                                    if (!await vData.WaitAsync())
+                                    if (vData == null)
                                         return;
 
-                                    await NAPI.Task.RunAsync(() =>
-                                    {
-                                        if (root?.Exists != true || target?.Exists != true)
-                                            return;
+                                    var baseSpeed = -Settings.PUSHING_VEHICLE_STRENGTH_MIN;
+                                    var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
 
-                                        var baseSpeed = -Settings.PUSHING_VEHICLE_STRENGTH_MIN;
-                                        var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
+                                    vData.ForcedSpeed = baseSpeed - strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
 
-                                        vData.ForcedSpeed = baseSpeed - strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
-
-                                        pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
-                                    });
-
-                                    vData.Release();
-                                });
-
-                                pData.Release();
-                            });
+                                    pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
+                                }
+                            }
                         }
                     },
 
@@ -257,41 +221,25 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player player)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var pData = player.GetMainData();
 
-                                if (!await pData.WaitAsync())
-                                    return;
-
-                                await NAPI.Task.RunAsync(() =>
+                                if (pData != null)
                                 {
-                                    if (target?.Exists != true)
-                                        return;
-
                                     pData.StopAnim();
-                                });
+                                }
+                            }
 
-                                pData.Release();
-                            });
-
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (root is Vehicle veh)
                             {
-                                var vData = (root as Vehicle).GetMainData();
+                                var vData = veh.GetMainData();
 
-                                if (!await vData.WaitAsync())
-                                    return;
-
-                                await NAPI.Task.RunAsync(() =>
+                                if (vData != null)
                                 {
-                                    if (root?.Exists != true)
-                                        return;
-
                                     vData.ForcedSpeed = 0f;
-                                });
-
-                                vData.Release();
-                            });
+                                }
+                            }
                         }
                     }
                 }
@@ -307,23 +255,15 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player player)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var pData = player.GetMainData();
 
-                                if (!await pData.WaitAsync())
+                                if (pData == null)
                                     return;
 
-                                await NAPI.Task.RunAsync(() =>
-                                {
-                                    if (root?.Exists != true || target?.Exists != true)
-                                        return;
-
-                                    pData.PlayAnim(Animations.GeneralTypes.LieInTrunk);
-                                });
-
-                                pData.Release();
-                            });
+                                pData.PlayAnim(Animations.GeneralTypes.LieInTrunk);
+                            }
                         }
                     },
 
@@ -332,23 +272,15 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player player)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var pData = player.GetMainData();
 
-                                if (!await pData.WaitAsync())
+                                if (pData == null)
                                     return;
 
-                                await NAPI.Task.RunAsync(() =>
-                                {
-                                    if (target?.Exists != true)
-                                        return;
-
-                                    pData.StopAnim();
-                                });
-
-                                pData.Release();
-                            });
+                                pData.StopAnim();
+                            }
                         }
                     }
                 }
@@ -364,34 +296,25 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+
+                            if (target is Player tPlayer)
                             {
-                                var pData = (target as Player).GetMainData();
-
-                                if (!await pData.WaitAsync())
-                                    return;
-
-                                await System.Threading.Tasks.Task.Run(async () =>
+                                if (root is Player player)
                                 {
-                                    var tData = (root as Player).GetMainData();
+                                    var pData = player.GetMainData();
 
-                                    if (!await tData.WaitAsync())
+                                    if (pData == null)
                                         return;
 
-                                    await NAPI.Task.RunAsync(() =>
-                                    {
-                                        if (root?.Exists != true || target?.Exists != true)
-                                            return;
+                                    var tData = tPlayer.GetMainData();
 
-                                        pData.PlayAnim(Animations.GeneralTypes.CarryB);
-                                        tData.PlayAnim(Animations.GeneralTypes.CarryA);
-                                    });
+                                    if (tData == null)
+                                        return;
 
-                                    tData.Release();
-                                });
-
-                                pData.Release();
-                            });
+                                    pData.PlayAnim(Animations.GeneralTypes.CarryB);
+                                    tData.PlayAnim(Animations.GeneralTypes.CarryA);
+                                }
+                            }
                         }
                     },
 
@@ -400,41 +323,25 @@ namespace BCRPServer.Sync
 
                         (Entity root, Entity target, Types type, object[] args) =>
                         {
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (target is Player tPlayer)
                             {
-                                var pData = (target as Player).GetMainData();
+                                var tData = tPlayer.GetMainData();
 
-                                if (!await pData.WaitAsync())
-                                    return;
-
-                                await NAPI.Task.RunAsync(() =>
+                                if (tData != null)
                                 {
-                                    if (target?.Exists != true)
-                                        return;
-
-                                    pData.StopAnim();
-                                });
-
-                                pData.Release();
-                            });
-
-                            System.Threading.Tasks.Task.Run(async () =>
-                            {
-                                var tData = (root as Player).GetMainData();
-
-                                if (!await tData.WaitAsync())
-                                    return;
-
-                                await NAPI.Task.RunAsync(() =>
-                                {
-                                    if (root?.Exists != true)
-                                        return;
-
                                     tData.StopAnim();
-                                });
+                                }
+                            }
 
-                                tData.Release();
-                            });
+                            if (root is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData != null)
+                                {
+                                    pData.StopAnim();
+                                }
+                            }
                         }
                     }
                 }
@@ -763,7 +670,6 @@ namespace BCRPServer.Sync
             if (cts != null)
             {
                 cts.Cancel();
-                cts.Dispose();
 
                 cancels.Remove(id);
 
@@ -798,8 +704,7 @@ namespace BCRPServer.Sync
 
             foreach (var x in cancels)
             {
-                x.Value.Cancel();
-                x.Value.Dispose();
+                x.Value?.Cancel();
             }
 
             cancels.Clear();

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -14,6 +15,7 @@ namespace BCRPClient.CEF
 
         public class LocalBlip
         {
+            [JsonIgnore]
             public RAGE.Elements.Blip Blip { get; set; }
 
             public int Sprite { get; set; }
@@ -44,6 +46,7 @@ namespace BCRPClient.CEF
                 this.Enabled = Enabled;
             }
 
+            [JsonConstructor]
             public LocalBlip()
             {
 
@@ -51,13 +54,15 @@ namespace BCRPClient.CEF
 
             public void Toggle(bool state)
             {
+                Blip?.Destroy();
+
                 if (state)
-                {
+                {    
                     Blip = new RAGE.Elements.Blip((uint)Sprite, Position, Name, Scale, Colour, (int)Math.Floor(Alpha * 255), 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
                 }
                 else
                 {
-                    Blip?.Destroy();
+
                 }
             }
         }
@@ -126,7 +131,6 @@ namespace BCRPClient.CEF
 
                 Settings.Other.LocalBlips = allBlips;
 
-                blip.Toggle(false);
                 blip.Toggle(blip.Enabled);
             });
 
@@ -149,7 +153,9 @@ namespace BCRPClient.CEF
 
                 var allBlips = Settings.Other.LocalBlips;
 
-                allBlips[idx]?.Toggle(false);
+                allBlips[idx].Toggle(false);
+
+                allBlips.RemoveAt(idx);
 
                 Settings.Other.LocalBlips = allBlips;
             });
@@ -173,7 +179,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.BlipsMenu, true, true);
 
-            var data = Settings.Other.LocalBlips.Select(x => new object[] { x.Name, x.Enabled, x.Colour, x.Sprite, x.Scale, x.Alpha });
+            var data = Settings.Other.LocalBlips.Select(x => new object[] { x.Name, x.Enabled, "Blip_colour_" + x.Colour, "Blip_" + x.Sprite, x.Scale, x.Alpha });
 
             CEF.Browser.Window.ExecuteJs("Blips.fillBlips", new object[] { data });
 

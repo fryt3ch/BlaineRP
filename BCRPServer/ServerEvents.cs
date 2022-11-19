@@ -13,15 +13,6 @@ namespace BCRPServer
 {
     class ServerEvents : Script
     {
-        public static Queue<uint> FreeItemUIDs { get; set; }
-        public static Queue<uint> FreeContainersIDs { get; set; }
-        public static Queue<int> FreeVehiclesIDs { get; set; }
-
-        public static List<string> UsedNumberplates { get; set; } = new List<string>();
-        public static List<string> UsedWeaponTags { get; set; } = new List<string>();
-
-        public static Dictionary<int, PlayerData.PlayerInfo> AllPlayers { get; set; }
-
         public static bool IsRestarting = false;
 
         /// <summary>Кол-во средств, которое получит безработный игрок</summary>
@@ -35,7 +26,7 @@ namespace BCRPServer
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
 
-            Utils.ConsoleOutput($"~White~Blaine~/~ ~Blue~Role~/~ ~Red~Play~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{Settings.VERSION}~/~");
+            Utils.ConsoleOutput($"~Red~Blaine RolePlay~/~ server mode | Developed by ~Red~frytech~/~ | Version: ~Green~{Settings.VERSION}~/~");
 
             Utils.ConsoleOutput();
 
@@ -65,6 +56,7 @@ namespace BCRPServer
 
             }
 
+            #region Settings Section
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Establishing connection with databases");
             Utils.ConsoleOutput($" | {(MySQL.InitConnection() ? "~Green~Success~/~" : "~Red~Error~/~")}", false);
 
@@ -77,6 +69,11 @@ namespace BCRPServer
             NAPI.Server.SetAutoSpawnOnConnect(false);
             NAPI.Server.SetGlobalServerChat(false);
 
+            NAPI.Server.SetGlobalDefaultCommandMessages(false);
+
+            NAPI.Server.SetLogCommandParamParserExceptions(false);
+            NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
+
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loadings global dimension blips");
             Utils.ConsoleOutput($" | ~Red~[{Game.Map.Blips.LoadAll()}]~/~", false);
 
@@ -84,41 +81,50 @@ namespace BCRPServer
 
             NAPI.World.SetWeather((Weather)new Random().Next(0, 10));
 
+            MySQL.StartService();
+            #endregion
+
+            #region Local Data Load Section
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all items");
             Utils.ConsoleOutput($" | ~Red~[{Game.Items.Items.LoadAll()}]~/~", false);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles");
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
+            #endregion
+
+            #region Database Data Load Section
+            Game.Businesses.Business.LoadAll();
+            Game.Houses.House.LoadAll();
+
+            MySQL.LoadAll();
+            MySQL.UpdateFreeUIDs();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Clearing unused items & Getting free items UID's");
-            var deletedItemsCount = MySQL.LoadFreeItemsUIDs();
-            Utils.ConsoleOutput($" | ~Red~Free UID's: [{FreeItemUIDs.Count}] | Cleared items amount: [{deletedItemsCount}]~/~", false);
+            Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.FreeIDs.Count}]~/~", false);
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Getting free containers UID's");
-            MySQL.LoadFreeContainersUIDs();
-            Utils.ConsoleOutput($" | ~Red~[{FreeContainersIDs.Count}]~/~", false);
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Items.Item.All.Count} items");
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Getting free vehicles UID's");
-            MySQL.LoadFreeVehiclesUIDs();
-            Utils.ConsoleOutput($" | ~Red~[{FreeVehiclesIDs.Count}]~/~", false);
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Items.Container.All.Count} containers");
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading players information");
-            MySQL.LoadPlayersInfo();
-            Utils.ConsoleOutput($" | ~Red~[{AllPlayers.Count}]~/~", false);
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {PlayerData.PlayerInfo.All.Count} players");
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all businesses");
-            Utils.ConsoleOutput($" | ~Red~[{Game.Businesses.Business.LoadAll()}]~/~", false);
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {VehicleData.VehicleInfo.All.Count} vehicles");
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all houses");
-            Utils.ConsoleOutput($" | ~Red~[{Game.Houses.House.LoadAll()}]~/~", false);
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Businesses.Business.All.Count} businesses");
+
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Items.Gift.All.Count} gifts");
+
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Houses.House.All.Count} houses");
+
+            //Utils.ConsoleOutput(AllPlayers.SerializeToJson());
+
+            GC.Collect();
+            #endregion
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
             Utils.ConsoleOutput();
 
             Additional.ConsoleCommands.Activate();
-
-            UsedWeaponTags = new List<string>();
-            UsedNumberplates = new List<string>();
 
             Task.Run(async () =>
             {
@@ -134,53 +140,35 @@ namespace BCRPServer
 
                         NAPI.Task.Run(() =>
                         {
-                            foreach (var pData in PlayerData.Players.Values)
+                            foreach (var pData in PlayerData.All.Values)
                             {
                                 if (pData?.Player?.Exists != true)
-                                    return;
+                                    continue;
 
-                                Sync.Chat.SendServer("PayDay", pData.Player);
+                                var player = pData.Player;
 
-                                Task.Run(async () =>
+                                Sync.Chat.SendServer("PayDay", player);
+
+                                if (pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
                                 {
-                                    if (!await pData.WaitAsync())
-                                        return;
+                                    player.Notify("PayDay::FailTime", minSessionTimeForPaydayMinutes, pData.LastData.SessionTime);
 
-                                    var player = pData.Player;
+                                    continue;
+                                }
 
-                                    if (pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
-                                    {
-                                        NAPI.Task.RunSafe(() =>
-                                        {
-                                            player?.Notify("PayDay::FailTime", minSessionTimeForPaydayMinutes, pData.LastData.SessionTime);
-                                        });
+                                pData.LastData.SessionTime = 0;
 
-                                        pData.Release();
+                                if (pData.BankAccount == null)
+                                {
+                                    player.Notify("PayDay::FailBank");
 
-                                        return;
-                                    }
+                                    continue;
+                                }
 
-                                    pData.LastData.SessionTime = 0;
-
-                                    if (pData.BankAccount == null)
-                                    {
-                                        NAPI.Task.RunSafe(() =>
-                                        {
-                                            player?.Notify("PayDay::FailBank");
-                                        });
-
-                                        pData.Release();
-
-                                        return;
-                                    }
-
-                                    if (pData.Fraction == PlayerData.FractionTypes.None)
-                                    {
-                                        await pData.AddCash(JoblessBenefits);
-                                    }
-
-                                    pData.Release();
-                                });
+/*                                if (pData.Fraction == PlayerData.FractionTypes.None)
+                                {
+                                    pData.AddCash(JoblessBenefits);
+                                }*/
                             }
                         });
                     }
@@ -193,6 +181,8 @@ namespace BCRPServer
                         {
                             NAPI.World.SetWeather(newWeather);
                         });
+
+                        GC.Collect();
                     }
                 }
             });

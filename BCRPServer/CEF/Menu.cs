@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Game.Items;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace BCRPServer.CEF
     class Menu : Script
     {
         [RemoteEvent("Gift::Collect")]
-        private static async Task CollectGift(Player player, int id)
+        private static void CollectGift(Player player, int id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -19,33 +20,19 @@ namespace BCRPServer.CEF
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var gift = pData.Gifts.Where(x => x.ID == id).FirstOrDefault();
+
+            if (gift == null)
                 return;
 
-            await Task.Run(async () =>
+            if (gift.Collect(pData))
             {
-                var gift = pData.Gifts.Where(x => x.ID == id).FirstOrDefault();
+                pData.Gifts.Remove(gift);
 
-                if (gift == null)
-                    return;
+                gift.Delete();
 
-                if (await gift.Collect(pData))
-                {
-                    pData.Gifts.Remove(gift);
-
-                    gift.Delete();
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Menu::Gifts::Update", false, id);
-                    });
-                }
-            });
-
-            pData.Release();
+                player.TriggerEvent("Menu::Gifts::Update", false, id);
+            }
         }
     }
 }

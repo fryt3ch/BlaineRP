@@ -64,6 +64,8 @@ namespace BCRPServer.Game.Data
                 }
             }
 
+            public string ID { get; set; }
+
             /// <summary>Модель транспорта</summary>
             public uint Model { get; set; }
 
@@ -101,6 +103,8 @@ namespace BCRPServer.Game.Data
             /// <param name="HasAutoPilot">Поддерживает ли автопилот?</param>
             public Vehicle(string ID, string Model, string Name, float Tank, FuelTypes FuelType, Trunk TrunkData = null, bool IsModdable = true, bool HasCruiseControl = false, bool HasAutoPilot = false, Types Type = Types.Car)
             {
+                this.ID = ID;
+
                 this.Model = NAPI.Util.GetHashKey(Model);
 
                 this.Name = Name;
@@ -129,14 +133,14 @@ namespace BCRPServer.Game.Data
             /// <param name="dimension">Измерение</param>
             /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
             /// <returns>Объект класса VehicleData, если транспорт был создан, null - в противном случае</returns>
-            public static VehicleData Create(string ID, Vector3 pos, Vector3 rot, uint dimension)
+            public static VehicleData Create(string ID, Vector3 pos, float heading, uint dimension)
             {
                 var vehParams = All.GetValueOrDefault(ID);
 
                 if (vehParams == null)
                     return null;
 
-                var veh = NAPI.Vehicle.CreateVehicle(vehParams.Model, pos, 0, 0, 0, "", 255, true, false, Utils.Dimensions.Stuff);
+                var veh = NAPI.Vehicle.CreateVehicle(vehParams.Model, pos, heading, 0, 0, "", 255, true, false, Utils.Dimensions.Stuff);
 
                 return new VehicleData(veh) { ID = ID };
             }
@@ -151,51 +155,47 @@ namespace BCRPServer.Game.Data
             public Color Color2 { get; set; }
 
             /// <summary>Словарь модификаций, где ключ - индекс модификации, а значение - тип модификации</summary>
-            public Dictionary<int, int> Mods;
+            public Dictionary<byte, byte> Mods;
 
             /// <summary>Индексы всех доступных модификаций</summary>
-            public static List<int> AllMods = new List<int>
+            public static List<byte> AllMods = new List<byte>
             {
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 22, 23, 24, 25, 27, 28, 30, 33, 34, 35, 38, 40, 55, 48
             };
 
             public Tuning()
             {
-                this.Mods = new Dictionary<int, int>();
+
             }
 
-            /// <summary>Метод для получения текущего тюнинга на транспорте</summary>
-            /// <param name="vehicle">Сущность транспорта</param>
-            /// <param name="moddable">Учитывать ли модификации?</param>
-            /// <returns>Объект класса Tuning, если транспорт существует, null - в противном случае</returns>
-            /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-            public static Tuning GetTuning(GTANetworkAPI.Vehicle vehicle, bool moddable = true)
+            public static Tuning CreateNew(Color Color1, Color Color2)
             {
-                Tuning temp = new Tuning();
+                var res = new Tuning();
 
-                temp.Color1 = vehicle.CustomPrimaryColor;
-                temp.Color1 = vehicle.CustomSecondaryColor;
+                res.Color1 = Color1;
+                res.Color2 = Color2;
 
-                if (moddable)
-                    foreach (var x in AllMods)
-                        temp.Mods.Add(x, vehicle.GetMod(x));
+                res.Mods = new Dictionary<byte, byte>();
 
-                return temp;
+                foreach (var x in AllMods)
+                {
+                    res.Mods.Add(x, 255);
+                }
+
+                return res;
             }
 
             /// <summary>Метод для применения тюнинга к сущности транспорта</summary>
             /// <param name="vehicle">Сущность транспорта</param>
             /// <returns>Объект класса Tuning (себя же), если транспорт существует, null - в противном случае</returns>
             /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-            public Tuning Apply(GTANetworkAPI.Vehicle vehicle)
+            public void Apply(GTANetworkAPI.Vehicle vehicle)
             {
                 vehicle.CustomPrimaryColor = Color1;
                 vehicle.CustomSecondaryColor = Color2;
 
                 foreach (var x in Mods)
                     vehicle.SetMod(x.Key, x.Value);
-
-                return this;
             }
         }
 

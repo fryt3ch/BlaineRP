@@ -15,21 +15,22 @@ namespace BCRPServer.Additional
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public static (bool IsSpammer, PlayerData Data) CheckNormal(Player player, int decreaseDelay = 5000)
         {
-            PlayerData pData;
+            PlayerData pData = player.GetMainData();
 
-            if (player?.Exists != true || ((pData = player.GetMainData()) == null))
+            if (pData == null || !player.Exists)
             {
                 Utils.KickSilent(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
 
+            if (pData.BlockRemoteCalls)
+                return (true, null);
+
             if (decreaseDelay <= 0)
                 return (false, pData);
 
-            var curSpams = player.GetData<int>($"Spam::Counter") + 1;
-
-            player.SetData($"Spam::Counter", curSpams);
+            var curSpams = ++pData.SpamCounter;
 
             Console.WriteLine($"SpamCounter: {curSpams}");
 
@@ -40,7 +41,9 @@ namespace BCRPServer.Additional
                 return (true, null);
             }
             else if (curSpams >= Settings.ANTISPAM_WARNING_COUNT)
+            {
                 player.Notify("Spam::Warning", curSpams, Settings.ANTISPAM_MAX_COUNT);
+            }
 
             if (decreaseDelay != -1)
                 NAPI.Task.Run(() =>
@@ -48,9 +51,9 @@ namespace BCRPServer.Additional
                     if (player?.Exists != true)
                         return;
 
-                    curSpams = player.GetData<int>("Spam::Counter");
+                    curSpams = --pData.SpamCounter;
 
-                    player.SetData($"Spam::Counter", --curSpams);
+                    pData.SpamCounter = curSpams;
 
                     Console.WriteLine($"SpamCounter: {curSpams}");
                 }, decreaseDelay);
@@ -65,21 +68,22 @@ namespace BCRPServer.Additional
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public static (bool IsSpammer, TempData Data) CheckTemp(Player player, int decreaseDelay = 5000)
         {
-            TempData tData;
+            TempData tData = TempData.Get(player);
 
-            if (player?.Exists != true || ((tData = TempData.Get(player)) == null))
+            if (tData == null || !player.Exists)
             {
                 Utils.KickSilent(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
 
+            if (tData.BlockRemoteCalls)
+                return (true, null);
+
             if (decreaseDelay <= 0)
                 return (false, tData);
 
-            var curSpams = player.GetData<int>($"Spam::Counter") + 1;
-
-            player.SetData($"Spam::Counter", curSpams);
+            var curSpams = ++tData.SpamCounter;
 
             Console.WriteLine($"SpamCounter: {curSpams}");
 
@@ -90,7 +94,9 @@ namespace BCRPServer.Additional
                 return (true, null);
             }
             else if (curSpams >= Settings.ANTISPAM_WARNING_COUNT)
+            {
                 player.Notify("Spam::Warning", curSpams, Settings.ANTISPAM_MAX_COUNT);
+            }
 
             if (decreaseDelay != -1)
                 NAPI.Task.Run(() =>
@@ -98,9 +104,7 @@ namespace BCRPServer.Additional
                     if (player?.Exists != true)
                         return;
 
-                    curSpams = player.GetData<int>("Spam::Counter");
-
-                    player.SetData($"Spam::Counter", --curSpams);
+                    curSpams = --tData.SpamCounter;
 
                     Console.WriteLine($"SpamCounter: {curSpams}");
                 }, decreaseDelay);

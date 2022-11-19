@@ -29,13 +29,9 @@ namespace BCRPServer.Game
         /// <value>Словарь, где ключ - UID предмета, а значение - объект класса ItemOnGround</value>
         public static Dictionary<uint, ItemOnGround> ItemsOnGround { get; set; }
 
-        public static SemaphoreSlim IOGSemaphore { get; private set; }
-
         public World()
         {
             ItemsOnGround = new Dictionary<uint, ItemOnGround>();
-
-            IOGSemaphore = new SemaphoreSlim(1, 1);
         }
 
         #region Item On Ground
@@ -85,32 +81,27 @@ namespace BCRPServer.Game
                     {
                         await Task.Delay(Settings.IOG_TIME_TO_AUTODELETE, this.DeletionCTS.Token);
 
-                        if (this.DeletionCTS?.IsCancellationRequested == false)
+                        NAPI.Task.Run(() =>
                         {
-                            await IOGSemaphore.WaitAsync();
-
-                            this.DeletionCTS?.Dispose();
+                            this.DeletionCTS?.Cancel();
 
                             var uid = this.Item.UID;
 
-                            await NAPI.Task.RunAsync(() =>
-                            {
-                                this.Object?.Delete();
-                            });
+                            this.Object?.Delete();
 
-                            if (ItemsOnGround.ContainsKey(uid))
-                                ItemsOnGround.Remove(uid);
-
-                            IOGSemaphore.Release();
+                            ItemsOnGround.Remove(uid);
 
                             this.Item.Delete();
 
                             this.Item = null;
-                        }
+                        });
                     }
                     catch (Exception ex)
                     {
-                        this.DeletionCTS.Dispose();
+                        NAPI.Task.Run(() =>
+                        {
+                            this.DeletionCTS?.Cancel();
+                        });
                     }
                 });
             }
@@ -183,8 +174,6 @@ namespace BCRPServer.Game
                 return;
             }
 
-            await IOGSemaphore.WaitAsync();
-
             if (item is Game.Items.IStackable)
             {
                 var existingAll = (await NAPI.Task.RunAsync(() => ItemsOnGround.Where(x => x.Value.Item.ID == item.ID && (x.Value.Object.Dimension == dimension || x.Value.Object.Dimension == Utils.Dimensions.Stuff) && Vector3.Distance(x.Value.Object.Position, position) <= Settings.IOG_MAX_DISTANCE_TO_STACK).Select(x => x.Value))).ToList();
@@ -221,8 +210,6 @@ namespace BCRPServer.Game
 
                         existing.StartDeletionTask();
 
-                        IOGSemaphore.Release();
-
                         return;
                     }
                 }
@@ -242,8 +229,6 @@ namespace BCRPServer.Game
                 if (obj?.Exists == true)
                     obj.Dimension = dimension;
             }, 500);
-
-            IOGSemaphore.Release();
         }
         #endregion
 
@@ -269,37 +254,31 @@ namespace BCRPServer.Game
                 }
                 catch (Exception ex)
                 {
-                    ClearItemsTask.Dispose();
                     ClearItemsTask = null;
 
-                    ClearItemsCTS.Dispose();
                     ClearItemsCTS = null;
 
                     return;
                 }
 
-                await IOGSemaphore.WaitAsync();
-
-                int counter = 0;
-
-                foreach (var x in Game.World.ItemsOnGround.Values.ToList())
-                {
-                    if (x == null)
-                        continue;
-
-                    try
-                    {
-                        x?.Delete(true);
-
-                        counter++;
-                    }
-                    catch (Exception ex) { }
-                }
-
-                IOGSemaphore.Release();
-
                 NAPI.Task.Run(() =>
                 {
+                    int counter = 0;
+
+                    foreach (var x in Game.World.ItemsOnGround.Values)
+                    {
+                        if (x == null)
+                            continue;
+
+                        try
+                        {
+                            x?.Delete(true);
+
+                            counter++;
+                        }
+                        catch (Exception ex) { }
+                    }
+
                     Sync.Chat.SendServer(string.Format(Locale.Chat.Server.ClearItems, counter));
                 });
             });

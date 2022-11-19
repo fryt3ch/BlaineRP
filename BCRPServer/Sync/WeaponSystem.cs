@@ -24,18 +24,10 @@ namespace BCRPServer.Sync
 
             var lastAmmo = weapon.Ammo;
 
-            var curAmmo = NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return -1;
+            var curAmmo = NAPI.Player.GetPlayerWeaponAmmo(player, weapon.Data.Hash);
 
-                var amount = NAPI.Player.GetPlayerWeaponAmmo(player, weapon.Data.Hash);
-
-                if (setUnarmedAfter)
-                    player.SetWeapon((uint)WeaponHash.Unarmed);
-
-                return amount;
-            }).GetAwaiter().GetResult();
+            if (setUnarmedAfter)
+                player.SetWeapon((uint)WeaponHash.Unarmed);
 
             if (curAmmo < 0)
                 return;
@@ -51,7 +43,7 @@ namespace BCRPServer.Sync
 
         #region Reload
         [RemoteEvent("Weapon::Reload")]
-        public static async Task Reload(Player player, int currentAmmo)
+        public static void Reload(Player player, int currentAmmo)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -60,28 +52,20 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var weapon = pData.ActiveWeapon;
+
+            if (weapon == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var weapon = pData.ActiveWeapon;
+            if (currentAmmo > weapon.Value.WeaponItem.Ammo || currentAmmo < 0)
+                currentAmmo = 0;
 
-                if (weapon == null)
-                    return;
+            if (currentAmmo == weapon.Value.WeaponItem.Data.MaxAmmo)
+                return;
 
-                if (currentAmmo > weapon.Value.WeaponItem.Ammo || currentAmmo < 0)
-                    currentAmmo = 0;
+            weapon.Value.WeaponItem.Ammo = currentAmmo;
 
-                if (currentAmmo == weapon.Value.WeaponItem.Data.MaxAmmo)
-                    return;
-
-                weapon.Value.WeaponItem.Ammo = currentAmmo;
-
-                await pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 6);
-            });
-
-            pData.Release();
+            pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 6);
         }
         #endregion
     }

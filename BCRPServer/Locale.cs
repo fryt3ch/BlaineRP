@@ -69,6 +69,21 @@ namespace BCRPServer
 
                 public static string NoFraction = "нет фракции";
             }
+
+            public class GlobalBan
+            {
+                public const string Header = "Глобальная блокировка";
+
+                public static Dictionary<AccountData.GlobalBan.Types, string> TypesNames = new Dictionary<AccountData.GlobalBan.Types, string>()
+                {
+                    { AccountData.GlobalBan.Types.IP, "IP-адрес" },
+                    { AccountData.GlobalBan.Types.HWID, "Серийный номер" },
+                    { AccountData.GlobalBan.Types.SCID, "Social Club" },
+                    { AccountData.GlobalBan.Types.Blacklist, "ЧС проекта" },
+                };
+
+                public static string NotificationText = "ID блокировки: {0}\nТип: {1}\nДата: {2}\nПричина: {3}\nID администратора: #{4}";
+            }
         }
         #endregion
 

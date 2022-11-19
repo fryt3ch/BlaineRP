@@ -4,11 +4,6 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Xml.Linq;
-using static BCRPClient.Locale.Notifications.Vehicles;
 
 namespace BCRPClient.Sync
 {
@@ -398,6 +393,10 @@ namespace BCRPClient.Sync
                     else
                         HUD.SwitchSpeedometer(false);
                 }
+
+                await RAGE.Game.Invoker.WaitAsync(250);
+
+                Sync.Players.UpdateHat(Player.LocalPlayer);
             };
 
             Events.OnPlayerStartEnterVehicle += (Vehicle vehicle, int seatId, Events.CancelEventArgs cancel) =>
@@ -1072,12 +1071,12 @@ namespace BCRPClient.Sync
             if (veh?.Exists != true)
                 return;
 
+            Vector3 lastPos = veh.Position;
+
             var data = GetData(veh);
 
             if (data == null)
                 return;
-
-            Vector3 lastPos = veh.Position;
 
             while (Player.LocalPlayer.Vehicle?.Exists == true && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
             {

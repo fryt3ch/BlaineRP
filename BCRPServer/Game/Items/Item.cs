@@ -20,6 +20,139 @@ namespace BCRPServer.Game.Items
     [JsonConverter(typeof(ItemConverter))]
     public abstract class Item
     {
+        public static Queue<uint> FreeIDs { get; private set; } = new Queue<uint>();
+
+        public static Dictionary<uint, Item> All { get; private set; } = new Dictionary<uint, Item>();
+
+        private static uint LastAddedMaxId { get; set; }
+
+        public static uint MoveNextId()
+        {
+            uint id;
+
+            if (!FreeIDs.TryDequeue(out id))
+            {
+                id = ++LastAddedMaxId;
+            }
+
+            return id;
+        }
+
+        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+
+        public static void AddOnLoad(Item item)
+        {
+            if (item == null)
+                return;
+
+            All.Add(item.UID, item);
+
+            if (item.UID > LastAddedMaxId)
+                LastAddedMaxId = item.UID;
+        }
+
+        public static void Add(Item item)
+        {
+            if (item == null)
+                return;
+
+            All.Add(item.UID, item);
+
+            MySQL.ItemAdd(item);
+        }
+
+        public static void Remove(Item item)
+        {
+            if (item == null)
+                return;
+
+            if (item is Game.Items.IContainer cont)
+            {
+                foreach (var x in cont.Items)
+                {
+                    if (x != null)
+                    {
+                        if (x is Game.Items.Numberplate np)
+                        {
+                            Numberplate.UsedTags.Remove(np.Tag);
+                        }
+                        else if (x is Game.Items.Weapon weapon)
+                        {
+                            Weapon.UsedTags.Remove(weapon.Tag);
+                        }
+
+                        AddFreeId(x.UID);
+
+                        All.Remove(x.UID);
+
+                        MySQL.ItemDelete(x);
+                    }
+                }
+            }
+            else
+            {
+                if (item is Game.Items.Numberplate np)
+                {
+                    Numberplate.UsedTags.Remove(np.Tag);
+                }
+                else if (item is Game.Items.Weapon weapon)
+                {
+                    Weapon.UsedTags.Remove(weapon.Tag);
+                }
+
+                AddFreeId(item.UID);
+
+                All.Remove(item.UID);
+
+                MySQL.ItemDelete(item);
+            }
+        }
+
+        public static void RemoveOnLoad(Item item)
+        {
+            if (item == null)
+                return;
+
+            if (item is Game.Items.IContainer cont)
+            {
+                foreach (var x in cont.Items)
+                {
+                    if (x != null)
+                    {
+                        if (x is Game.Items.Numberplate np)
+                        {
+                            Numberplate.UsedTags.Remove(np.Tag);
+                        }
+                        else if (x is Game.Items.Weapon weapon)
+                        {
+                            Weapon.UsedTags.Remove(weapon.Tag);
+                        }
+
+                        AddFreeId(x.UID);
+
+                        All.Remove(x.UID);
+                    }
+                }
+            }
+            else
+            {
+                if (item is Game.Items.Numberplate np)
+                {
+                    Numberplate.UsedTags.Remove(np.Tag);
+                }
+                else if (item is Game.Items.Weapon weapon)
+                {
+                    Weapon.UsedTags.Remove(weapon.Tag);
+                }
+
+                AddFreeId(item.UID);
+
+                All.Remove(item.UID);
+            }
+        }
+
+        public static Item Get(uint id) => All.GetValueOrDefault(id);
+
         private static Dictionary<CEF.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<CEF.Inventory.Groups, Func<Item, string>>()
         {
             { CEF.Inventory.Groups.Items, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
@@ -178,7 +311,7 @@ namespace BCRPServer.Game.Items
             if (IsTemp)
                 return;
 
-            MySQL.DeleteItem(this);
+            Remove(this);
         }
 
         /// <summary>Метод для обновления предмета в базе данных</summary>
@@ -187,7 +320,7 @@ namespace BCRPServer.Game.Items
             if (IsTemp)
                 return;
 
-            MySQL.UpdateItem(this);
+            MySQL.ItemUpdate(this);
         }
 
         public string ToClientJson(CEF.Inventory.Groups group)
@@ -289,6 +422,8 @@ namespace BCRPServer.Game.Items
     #region Weapon
     public class Weapon : Item, ITagged, IWearable
     {
+        public static List<string> UsedTags { get; private set; } = new List<string>();
+
         new public class ItemData : Item.ItemData
         {
             public enum TopTypes
@@ -451,8 +586,7 @@ namespace BCRPServer.Game.Items
 
             var player = pData.Player;
 
-            if (pData.PhoneOn)
-                Sync.Players.StopUsePhone(player);
+            Sync.Players.StopUsePhone(pData);
 
             Unwear(pData);
 
@@ -2820,22 +2954,6 @@ namespace BCRPServer.Game.Items
             player.SetArmour(0);
         }
 
-        /// <summary>Метод для обновления прочности брони</summary>
-        /// <param name="player">Сущность игрока</param>
-        public void UpdateStrength(PlayerData pData)
-        {
-            var player = pData.Player;
-
-            var value = player.Armor;
-
-            if (value < Strength)
-            {
-                Strength = value;
-
-                this.Update();
-            }
-        }
-
         public Armour(string ID, int Var = 0) : base(ID, IDList[ID], typeof(Armour), Var)
         {
             this.Strength = Data.MaxStrength;
@@ -3051,6 +3169,8 @@ namespace BCRPServer.Game.Items
     #region Numberplate
     public class Numberplate : Item, ITagged
     {
+        public static List<string> UsedTags { get; private set; } = new List<string>();
+
         new public class ItemData : Item.ItemData
         {
             public int Variation { get; set; }
@@ -3114,11 +3234,11 @@ namespace BCRPServer.Game.Items
                 for (int i = 0; i < length + 1; i++)
                     str.Append(Chars[rand.Next(0, Chars.Length - 1)]);
             }
-            while (ServerEvents.UsedNumberplates.Contains(str.ToString()));
+            while (UsedTags.Contains(str.ToString()));
 
             var retStr = str.ToString();
 
-            ServerEvents.UsedNumberplates.Add(retStr);
+            UsedTags.Add(retStr);
 
             return retStr;
         }
@@ -3549,98 +3669,87 @@ namespace BCRPServer.Game.Items
         /// <summary>Создать и выдать предмет игроку</summary>
         /// <param name="player">Сущность игрока, которому необходимо выдать предмет</param>
         /// <inheritdoc cref="CreateItem(string, int, int, bool)"/>
-        public static async Task<Item> GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false)
+        public static Item GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false)
         {
             var player = pData.Player;
 
-            var item = await Task.Run(async () =>
-            {
-                var type = GetType(id, false);
+            var type = GetType(id, false);
 
-                if (type == null)
-                    return null;
+            if (type == null)
+                return null;
 
-                var data = GetData(id, type);
+            var data = GetData(id, type);
 
-                if (data == null)
-                    return null;
+            if (data == null)
+                return null;
 
-                var interfaces = type.GetInterfaces();
+            var interfaces = type.GetInterfaces();
 
-                var totalWeight = 0f;
-                var totalFreeSlots = 0;
+            var totalWeight = 0f;
+            var totalFreeSlots = 0;
 
-                bool stackable = interfaces.Contains(typeof(IStackable));
-                bool weapon = type == typeof(Weapon);
+            bool stackable = interfaces.Contains(typeof(IStackable));
+            bool weapon = type == typeof(Weapon);
 
-                if (!weapon && amount == 0)
-                    return null;
+            if (!weapon && amount == 0)
+                return null;
 
-                foreach (var x in pData.Items)
-                    if (x != null)
-                        totalWeight += x.Weight;
-                    else
-                        totalFreeSlots += 1;
-
-                bool weightOk = false;
-
-                if (weapon)
-                {
-                    var ammoType = ((Weapon.ItemData)Weapon.IDList[id]).AmmoID;
-
-                    weightOk = totalWeight + data.Weight + (ammoType == null ? 0f : (Ammo.IDList[ammoType].Weight * amount)) < Settings.MAX_INVENTORY_WEIGHT;
-                }
+            foreach (var x in pData.Items)
+                if (x != null)
+                    totalWeight += x.Weight;
                 else
-                    weightOk = totalWeight + data.Weight * amount < Settings.MAX_INVENTORY_WEIGHT;
+                    totalFreeSlots += 1;
 
-                if (totalFreeSlots <= 0 || !weightOk)
-                {
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+            bool weightOk = false;
 
-                        player.Notify("Inventory::NoSpace");
-                    });
+            if (weapon)
+            {
+                var ammoType = ((Weapon.ItemData)Weapon.IDList[id]).AmmoID;
 
-                    return null;
+                weightOk = totalWeight + data.Weight + (ammoType == null ? 0f : (Ammo.IDList[ammoType].Weight * amount)) < Settings.MAX_INVENTORY_WEIGHT;
+            }
+            else
+                weightOk = totalWeight + data.Weight * amount < Settings.MAX_INVENTORY_WEIGHT;
 
-                }
-
-                var item = await CreateItem(id, variation, amount, isTemp);
-
-                if (item == null)
-                    return null;
-
-                var freeIdx = -1;
-
-                for (int i = 0; i < pData.Items.Length; i++)
-                    if (pData.Items[i] == null)
-                    {
-                        freeIdx = i;
-
-                        pData.Items[i] = item;
-
-                        break;
-                    }
-
-                amount = (item as Game.Items.IStackable)?.Amount ?? 1;
-
-                var upd = Game.Items.Item.ToClientJson(item, CEF.Inventory.Groups.Items);
-
-                await NAPI.Task.RunAsync(() =>
+            if (totalFreeSlots <= 0 || !weightOk)
+            {
+                NAPI.Task.Run(() =>
                 {
                     if (player?.Exists != true)
                         return;
 
-                    player.TriggerEvent("Item::Added", item.ID, amount);
-                    player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, freeIdx, upd);
+                    player.Notify("Inventory::NoSpace");
                 });
 
-                MySQL.UpdatePlayerInventory(pData, true);
+                return null;
 
-                return item;
-            });
+            }
+
+            var item = CreateItem(id, variation, amount, isTemp);
+
+            if (item == null)
+                return null;
+
+            var freeIdx = -1;
+
+            for (int i = 0; i < pData.Items.Length; i++)
+                if (pData.Items[i] == null)
+                {
+                    freeIdx = i;
+
+                    pData.Items[i] = item;
+
+                    break;
+                }
+
+            amount = (item as Game.Items.IStackable)?.Amount ?? 1;
+
+            var upd = Game.Items.Item.ToClientJson(item, CEF.Inventory.Groups.Items);
+
+            player.TriggerEvent("Item::Added", item.ID, amount);
+            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, freeIdx, upd);
+
+            MySQL.CharacterItemsUpdate(pData.Info);
 
             return item;
         }
@@ -3653,65 +3762,68 @@ namespace BCRPServer.Game.Items
         /// <param name="amount">Кол-во предмета (только для IStakable и Weapon, в противном случае - игнорируется)</param>
         /// <param name="isTemp">Временный ли предмет?<br/>Такой предмет не будет сохраняться в базу данных и его будет нельзя: <br/><br/>1) Разделять (если IStackable или Weapon)<br/>2) Перемещать в IContainer и Game.Items.Container<br/>3) Выбрасывать (предмет удалится, но не появится на земле)<br/>4) Передавать другим игрокам</param>
         /// <returns>Объект класса Item, если предмет был создан, null - в противном случае</returns>
-        public static async Task<Item> CreateItem(string id, int variation = 0, int amount = 1, bool isTemp = false)
+        public static Item CreateItem(string id, int variation = 0, int amount = 1, bool isTemp = false)
         {
-            return await Task.Run<Item>(async () =>
+            var type = GetType(id, false);
+
+            if (type == null)
+                return null;
+
+            var data = GetData(id, type);
+
+            if (data == null)
+                return null;
+
+            var interfaces = type.GetInterfaces();
+
+            bool stackable = interfaces.Contains(typeof(IStackable));
+            bool weapon = type == typeof(Weapon);
+
+            if (!weapon && amount == 0)
+                return null;
+
+            if (!stackable && !weapon)
+                amount = 1;
+
+            Item item = null;
+
+            if (typeof(Clothes).IsAssignableFrom(type))
             {
-                var type = GetType(id, false);
+                item = (Clothes)Activator.CreateInstance(type, id, variation);
+            }
+            else
+                item = (Item)Activator.CreateInstance(type, id);
 
-                if (type == null)
-                    return null;
+            if (stackable)
+            {
+                var maxAmount = (item as IStackable).MaxAmount;
 
-                var data = GetData(id, type);
+                (item as IStackable).Amount = amount > maxAmount ? maxAmount : amount;
+            }
+            else if (weapon)
+            {
+                var maxAmount = (item as Weapon).Data.MaxAmmo;
 
-                if (data == null)
-                    return null;
+                (item as Weapon).Ammo = amount > maxAmount ? maxAmount : amount;
+            }
 
-                var interfaces = type.GetInterfaces();
+            /*            if (!temp && interfaces.Contains(typeof(ITagged)))
+                            (item as ITagged).Tag = (item as ITagged).GenerateTag();*/
 
-                bool stackable = interfaces.Contains(typeof(IStackable));
-                bool weapon = type == typeof(Weapon);
+            if (!isTemp)
+            {
+                item.UID = Item.MoveNextId();
 
-                if (!weapon && amount == 0)
-                    return null;
+                Item.Add(item);
 
-                if (!stackable && !weapon)
-                    amount = 1;
+                return item;
+            }
+            else
+            {
+                item.UID = 0;
 
-                Item item = null;
-
-                if (typeof(Clothes).IsAssignableFrom(type))
-                {
-                    item = (Clothes)Activator.CreateInstance(type, id, variation);
-                }
-                else
-                    item = (Item)Activator.CreateInstance(type, id);
-
-                if (stackable)
-                {
-                    var maxAmount = (item as IStackable).MaxAmount;
-
-                    (item as IStackable).Amount = amount > maxAmount ? maxAmount : amount;
-                }            
-                else if (weapon)
-                {
-                    var maxAmount = (item as Weapon).Data.MaxAmmo;
-
-                    (item as Weapon).Ammo = amount > maxAmount ? maxAmount : amount;
-                }
-
-                /*            if (!temp && interfaces.Contains(typeof(ITagged)))
-                                (item as ITagged).Tag = (item as ITagged).GenerateTag();*/
-
-                if (!isTemp)
-                    return MySQL.AddNewItem(item);
-                else
-                {
-                    item.UID = 0;
-
-                    return item;
-                }
-            });
+                return item;
+            }
         }
         #endregion
 

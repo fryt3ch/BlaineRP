@@ -68,6 +68,12 @@ namespace BCRPClient.Data
 
         #region Admin Commands
 
+        [Command("eval", true, "js eval", "jseval", "jse")]
+        public static void JsEval(string cmd)
+        {
+            Utils.JsEval(cmd);
+        }
+
         #region Vehicle
         [Command("tempvehicle", true, "Выдать себе транспорт (временный)", "tveh", "tvehicle")]
         public static void TempVehicle(string id)

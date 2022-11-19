@@ -170,141 +170,6 @@ namespace BCRPServer
         public static List<T> ToList<T>(this Newtonsoft.Json.Linq.JArray jArray) => jArray.ToObject<List<T>>();
         public static Dictionary<T1, T2> ToDictionary<T1, T2>(this Newtonsoft.Json.Linq.JArray jArray) => jArray.ToObject<Dictionary<T1, T2>>();
 
-        public static async Task<bool> WaitAsync(this Game.Items.Container cont)
-        {
-            if (cont == null)
-                return false;
-
-            try
-            {
-                await cont.Semaphore.WaitAsync();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
-        public static int Release(this Game.Items.Container cont)
-        {
-            if (cont == null)
-                return -1;
-
-            try
-            {
-                return cont.Semaphore.Release();
-            }
-            catch (Exception ex)
-            {
-                return -1;
-            }
-        }
-
-        public static async Task<bool> WaitAsync(this TempData tData)
-        {
-            if (tData == null)
-                return false;
-
-            try
-            {
-                await tData.Semaphore.WaitAsync();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
-        public static int Release(this TempData tData)
-        {
-            if (tData == null)
-                return -1;
-
-            try
-            {
-                return tData.Semaphore.Release();
-            }
-            catch (Exception ex)
-            {
-                return -1;
-            }
-        }
-
-        public static async Task<bool> WaitAsync(this PlayerData pData, int timeout = -1)
-        {
-            if (pData == null)
-                return false;
-
-            try
-            {
-                if (timeout == -1)
-                {
-                    await pData.Semaphore.WaitAsync();
-
-                    return true;
-                }
-                else
-                {
-                    return await pData.Semaphore.WaitAsync(timeout);
-                }
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
-        public static int Release(this PlayerData pData)
-        {
-            if (pData == null)
-                return -1;
-
-            try
-            {
-                return pData.Semaphore.Release();
-            }
-            catch (Exception ex)
-            {
-                return -1;
-            }
-        }
-
-        public static async Task<bool> WaitAsync(this VehicleData vData)
-        {
-            if (vData == null)
-                return false;
-
-            try
-            {
-                await vData.Semaphore.WaitAsync();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
-
-        public static int Release(this VehicleData vData)
-        {
-            if (vData == null)
-                return -1;
-
-            try
-            {
-                return vData.Semaphore.Release();
-            }
-            catch (Exception ex)
-            {
-                return -1;
-            }
-        }
-
         #region Vehicle Stuff
 
         /// <summary>Получить сущность транспорта по VID</summary>
@@ -322,7 +187,7 @@ namespace BCRPServer
         /// <param name="vid">VID или RemoteID</param>
         /// <returns>Объект класса VehicleData, если транспорт найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static VehicleData FindVehicleOnline(int vid) => vid >= FirstVID ? VehicleData.Vehicles.Where(x => x.Value?.VID == vid).Select(x => x.Value).FirstOrDefault() : VehicleData.Vehicles.Where(x => x.Key?.Id == vid).Select(x => x.Value).FirstOrDefault();
+        public static VehicleData FindVehicleOnline(int vid) => vid >= FirstVID ? VehicleData.All.Where(x => x.Value?.VID == vid).Select(x => x.Value).FirstOrDefault() : VehicleData.All.Where(x => x.Key?.Id == vid).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Является ли транспорт автомобилем?</summary>
         /// <param name="vehicle">Сущность транспорта</param>
@@ -405,7 +270,7 @@ namespace BCRPServer
 
         public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args)
         {
-            var players = PlayerData.Players.Keys.Where(x => x != null && AreEntitiesNearby(x, entity, Settings.STREAM_DISTANCE));
+            var players = PlayerData.All.Keys.Where(x => x != null && AreEntitiesNearby(x, entity, Settings.STREAM_DISTANCE));
 
             foreach (var player in players)
                 player.TriggerEvent(eventName, args);
@@ -413,7 +278,7 @@ namespace BCRPServer
 
         public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args)
         {
-            var players = PlayerData.Players.Keys.Where(x => x != null && AreEntitiesNearby(x, entity, distance));
+            var players = PlayerData.All.Keys.Where(x => x != null && AreEntitiesNearby(x, entity, distance));
 
             foreach (var player in players)
                 player.TriggerEvent(eventName, args);
@@ -421,7 +286,7 @@ namespace BCRPServer
 
         public static void TriggerEventToStreamed(this Vector3 pos, uint dimension, string eventName, params object[] args)
         {
-            var players = PlayerData.Players.Keys.Where(x => x != null && x.Dimension == dimension && Vector3.Distance(pos, x.Position) <= Settings.STREAM_DISTANCE);
+            var players = PlayerData.All.Keys.Where(x => x != null && x.Dimension == dimension && Vector3.Distance(pos, x.Position) <= Settings.STREAM_DISTANCE);
 
             foreach (var player in players)
                 player.TriggerEvent(eventName, args);
@@ -489,13 +354,13 @@ namespace BCRPServer
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса PlayerData, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData FindReadyPlayerOnline(int pid) => pid >= FirstCID ? PlayerData.Players.Where(x => x.Value?.CID == pid).Select(x => x.Value).FirstOrDefault() : PlayerData.Players.Where(x => x.Key?.Id == pid).Select(x => x.Value).FirstOrDefault();
+        public static PlayerData FindReadyPlayerOnline(int pid) => pid >= FirstCID ? PlayerData.All.Where(x => x.Value?.CID == pid).Select(x => x.Value).FirstOrDefault() : PlayerData.All.Where(x => x.Key?.Id == pid).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Метод для получения сущности игрока, который в сети</summary>
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса Player, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player FindPlayerOnline(int pid) => pid >= FirstCID ? PlayerData.Players.Where(x => x.Value?.CID == pid).Select(x => x.Key).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
+        public static Player FindPlayerOnline(int pid) => pid >= FirstCID ? PlayerData.All.Where(x => x.Value?.CID == pid).Select(x => x.Key).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
 
         /// <summary>Метод для получения пола игрока</summary>
         /// <param name="player">Сущность игрока</param>
@@ -506,7 +371,7 @@ namespace BCRPServer
         /// <param name="cid">CID</param>
         /// <returns>Объект класса Player, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData.PlayerInfo FindPlayerOffline(int cid) => ServerEvents.AllPlayers.ContainsKey(cid) ? ServerEvents.AllPlayers[cid] : null;
+        public static PlayerData.PlayerInfo FindPlayerOffline(int cid) => PlayerData.PlayerInfo.Get(cid);
 
         /// <inheritdoc cref="Additional.AntiSpam.CheckNormal(Player, int)"/>
         public static (bool IsSpammer, PlayerData Data) CheckSpamAttack(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckNormal(player, decreaseDelay);
@@ -514,103 +379,83 @@ namespace BCRPServer
         public static (bool IsSpammer, TempData Data) CheckSpamAttackTemp(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckTemp(player, decreaseDelay);
 
         /// <inheritdoc cref="CEF.Inventory.Replace(PlayerData, CEF.Inventory.Groups, int, CEF.Inventory.Groups, int, int)"/>
-        public static async Task<CEF.Inventory.Results> InventoryReplace(this PlayerData pData, CEF.Inventory.Groups to, int slotTo, CEF.Inventory.Groups from, int slotFrom, int amount = -1) => await CEF.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
+        public static CEF.Inventory.Results InventoryReplace(this PlayerData pData, CEF.Inventory.Groups to, int slotTo, CEF.Inventory.Groups from, int slotFrom, int amount = -1) => CEF.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
 
         /// <inheritdoc cref="CEF.Inventory.Action(PlayerData, CEF.Inventory.Groups, int, int, object[])"/>
-        public static async Task InventoryAction(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int action = 5, params object[] args) => await CEF.Inventory.Action(pData, slotStr, slot, action, args);
+        public static CEF.Inventory.Results InventoryAction(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int action = 5, params object[] args) => CEF.Inventory.Action(pData, slotStr, slot, action, args);
 
         /// <inheritdoc cref="CEF.Inventory.Drop(PlayerData, CEF.Inventory.Groups, int, int)"/>
-        public static async Task InventoryDrop(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int amount) => await CEF.Inventory.Drop(pData, slotStr, slot, amount);
+        public static void InventoryDrop(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int amount) => CEF.Inventory.Drop(pData, slotStr, slot, amount);
 
         /// <summary>Метод для удаления всего оружия у игрока</summary>
         /// <param name="pData">PlayerData игрока</param>
         /// <param name="fromInventoryToo">Удалить ли всё оружие из инвентаря тоже?</param>
         /// <param name="fromBagToo">Удалить ли всё оружие из надетой сумки тоже?</param>
         /// <returns></returns>
-        public static async Task RemoveAllWeapons(this PlayerData pData, bool fromInventoryToo = false, bool fromBagToo = false)
+        public static void RemoveAllWeapons(this PlayerData pData, bool fromInventoryToo = false, bool fromBagToo = false)
         {
-            if (pData == null)
-                return;
+            pData.UnequipActiveWeapon();
 
-            var player = pData.Player;
+            List<(CEF.Inventory.Groups Group, int Slot)> updList = new List<(CEF.Inventory.Groups Group, int Slot)>();
 
-            await Task.Run(async () =>
+            for (int i = 0; i < pData.Weapons.Length; i++)
             {
-                await pData.UnequipActiveWeapon();
-
-                List<(CEF.Inventory.Groups Group, int Slot)> updList = new List<(CEF.Inventory.Groups Group, int Slot)>();
-
-                for (int i = 0; i < pData.Weapons.Length; i++)
+                if (pData.Weapons[i] != null)
                 {
-                    if (pData.Weapons[i] != null)
-                    {
-                        pData.Weapons[i].Delete();
+                    pData.Weapons[i].Delete();
 
-                        updList.Add((CEF.Inventory.Groups.Weapons, i));
+                    updList.Add((CEF.Inventory.Groups.Weapons, i));
+                }
+            }
+
+            if (pData.Holster?.Items[0] is Game.Items.Weapon)
+            {
+                pData.Holster.Items[0].Delete();
+
+                updList.Add((CEF.Inventory.Groups.Holster, 2));
+            }
+
+            if (fromInventoryToo)
+            {
+                for (int i = 0; i < pData.Items.Length; i++)
+                {
+                    if (pData.Items[i] is Game.Items.Weapon)
+                    {
+                        pData.Items[i].Delete();
+
+                        updList.Add((CEF.Inventory.Groups.Items, i));
                     }
                 }
+            }
 
-                if (pData.Holster?.Items[0] is Game.Items.Weapon)
+            if (fromBagToo && pData.Bag != null)
+            {
+                for (int i = 0; i < pData.Bag.Items.Length; i++)
                 {
-                    pData.Holster.Items[0].Delete();
-
-                    updList.Add((CEF.Inventory.Groups.Holster, 2));
-                }
-
-                if (fromInventoryToo)
-                {
-                    for (int i = 0; i < pData.Items.Length; i++)
+                    if (pData.Bag.Items[i] is Game.Items.Weapon)
                     {
-                        if (pData.Items[i] is Game.Items.Weapon)
-                        {
-                            pData.Items[i].Delete();
+                        pData.Bag.Items[i].Delete();
 
-                            updList.Add((CEF.Inventory.Groups.Items, i));
-                        }
+                        updList.Add((CEF.Inventory.Groups.Bag, i));
                     }
                 }
+            }
 
-                if (fromBagToo && pData.Bag != null)
-                {
-                    for (int i = 0; i < pData.Bag.Items.Length; i++)
-                    {
-                        if (pData.Bag.Items[i] is Game.Items.Weapon)
-                        {
-                            pData.Bag.Items[i].Delete();
-
-                            updList.Add((CEF.Inventory.Groups.Bag, i));
-                        }
-                    }
-                }
-
-                if (updList.Count > 0)
-                {
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        foreach (var x in updList)
-                            player.TriggerEvent("Inventory::Update", (int)x.Group, x.Slot, "null");
-                    });
-                }
-            });
+            foreach (var x in updList)
+                pData.Player.TriggerEvent("Inventory::Update", (int)x.Group, x.Slot, "null");
         }
 
 
         /// <summary>Метод для того, чтобы игрок перестал использовать текущее оружие</summary>
         /// <param name="pData">PlayerData игрока</param>
         /// <returns></returns>
-        public static async Task<bool> UnequipActiveWeapon(this PlayerData pData)
+        public static bool UnequipActiveWeapon(this PlayerData pData)
         {
-            if (pData == null)
-                return false;
-
             var weapon = pData.ActiveWeapon;
 
             if (weapon != null)
             {
-                await pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 5);
+                pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 5);
 
                 return true;
             }
@@ -648,14 +493,16 @@ namespace BCRPServer
         #endregion
 
         #region Data Extansions
-
-        public static AccountData GetAccountData(this Player player) => AccountData.Get(player);
-        public static void SetAccountData(this Player player, AccountData data) => AccountData.Set(player, data);
-
         public static PlayerData GetMainData(this Player player) => PlayerData.Get(player);
+
         public static void SetMainData(this Player player, PlayerData data) => PlayerData.Set(player, data);
 
+        public static TempData GetTempData(this Player player) => TempData.Get(player);
+
+        public static void SetTempData(this Player player, TempData data) => TempData.Set(player, data);
+
         public static VehicleData GetMainData(this Vehicle vehicle) => VehicleData.GetData(vehicle);
+
         public static void SetMainData(this Vehicle vehicle, VehicleData data) => VehicleData.SetData(vehicle, data);
 
         #endregion
@@ -845,7 +692,7 @@ namespace BCRPServer
 
             var dim = entity.Dimension;
 
-            var players = PlayerData.Players.Keys.Where(x => x != null && x.Dimension == dim);
+            var players = PlayerData.All.Keys.Where(x => x != null && x.Dimension == dim);
             var pos = entity.Position;
 
             var minDist = Settings.STREAM_DISTANCE;
@@ -963,19 +810,12 @@ namespace BCRPServer
             {
                 var player = pData.Player;
 
-                Task.Run(async () =>
+                var offer = pData.ActiveOffer;
+
+                if (offer != null)
                 {
-                    await Sync.Offers.Semaphore.WaitAsync();
-
-                    var offer = Sync.Offers.Offer.Get(pData);
-
-                    if (offer != null)
-                    {
-                        await offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
-                    }
-
-                    Sync.Offers.Semaphore.Release();
-                });
+                    offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
+                }
 
                 pData.IsAttachedTo?.Entity?.DetachEntity(player);
 
@@ -1020,7 +860,7 @@ namespace BCRPServer
 
         public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == NAPI.MainThreadId;
 
-        public static void UpdateOnEnter(this AccountData aData) => MySQL.UpdateAccountOnEnter(aData);
+        public static void UpdateOnEnter(this AccountData aData) => MySQL.AccountUpdateOnEnter(aData);
 
         public static T GetRandom<T>(this List<T> list) => list.Count == 0 ? default(T) : list[(new Random()).Next(0, list.Count - 1)];
 

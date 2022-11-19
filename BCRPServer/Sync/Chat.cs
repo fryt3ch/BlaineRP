@@ -14,7 +14,7 @@ namespace BCRPServer.Sync
         private static Random Random = new Random(Utils.GetCurrentTime().Ticks.GetHashCode());
 
         #region All Types
-        public enum Type
+        public enum Types
         {
             /// <summary>/say</summary>
             Say,
@@ -63,7 +63,7 @@ namespace BCRPServer.Sync
 
         #region Send
         [RemoteEvent("Chat::Send")]
-        public static async Task OnChatSend(Player player, int typeNum, string message)
+        public static void OnChatSend(Player player, int typeNum, string message)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -72,25 +72,22 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Types), typeNum))
                 return;
 
-            await Task.Run(async () =>
+            Types type = (Types)typeNum;
+
+            if (type > Types.Admin)
+                return;
+
+            if (type <= Types.Fraction)
             {
-                if (typeNum < 0 || typeNum > 12)
-                    return;
-
-                Type type = (Type)typeNum;
-
-                if (typeNum >= 0 && typeNum <= 8)
-                    NAPI.Task.RunSafe(() => SendLocal(type, player, message, null));
-                else if (type == Type.Goverment || type == Type.Admin) // add if of who can call
-                {
-                    SendGlobal(type, player, message);
-                }
-            });
-
-            pData.Release();
+                SendLocal(type, player, message, null);
+            }
+            else if (type == Types.Goverment || type == Types.Admin) // add if of who can call
+            {
+                SendGlobal(type, player, message);
+            }
         }
         #endregion
 
@@ -102,15 +99,9 @@ namespace BCRPServer.Sync
         /// <param name="message">Сообщение</param>
         /// <param name="targetStr">Строка цели</param>
         /// <param name="time">Время (для наказаний)</param>
-        public static void SendGlobal(Type type, Player sender, string message, string targetStr = null, string time = null)
+        public static void SendGlobal(Types type, Player sender, string message, string targetStr = null, string time = null)
         {
-            NAPI.Task.RunSafe(() =>
-            {
-                if (sender?.Exists != true)
-                    return;
-
-                NAPI.ClientEvent.TriggerClientEventForAll("Chat::ShowGlobalMessage", sender.Name, (int)type, message, targetStr, time);
-            });
+            NAPI.ClientEvent.TriggerClientEventForAll("Chat::ShowGlobalMessage", sender.Name, (int)type, message, targetStr, time);
         }
         #endregion
 
@@ -134,16 +125,16 @@ namespace BCRPServer.Sync
         /// <param name="message">Сообщение</param>
         /// <param name="target">Сущность цели</param>
         /// <returns>true/false если type = Try, true - в любом другом случае</returns>
-        public static bool SendLocal(Type type, Player sender, string message, Player target = null)
+        public static bool SendLocal(Types type, Player sender, string message, Player target = null)
         {
             float range = Settings.CHAT_MAX_RANGE_DEFAULT;
 
-            if (type == Type.Whisper)
+            if (type == Types.Whisper)
                 range = Settings.CHAT_MAX_RANGE_WHISPER;
-            else if (type == Type.Shout)
+            else if (type == Types.Shout)
                 range = Settings.CHAT_MAX_RANGE_LOUD;
 
-            if (type != Type.Try && type != Type.TryPlayer)
+            if (type != Types.Try && type != Types.TryPlayer)
             {
                 if (target != null)
                     NAPI.Task.Run(() =>

@@ -1,4 +1,5 @@
 ﻿using GTANetworkAPI;
+using Org.BouncyCastle.Cms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,72 +22,71 @@ namespace BCRPServer.Sync
         [ServerEvent(Event.PlayerConnected)]
         private static async Task OnPlayerConnected(Player player)
         {
-            if (player?.Exists != true || TempData.Get(player) != null)
+            if (player?.Exists != true || player.GetTempData() != null || player.GetMainData() != null)
                 return;
 
             var scId = player.SocialClubId;
             var ip = player.Address;
             var hwid = player.Serial;
 
-            var bans = await Task.Run(() => MySQL.GetGlobalBans(hwid, ip, scId));
+            var bans = await MySQL.GlobalBansGet(hwid, ip, scId);
 
-            if (bans.Count > 0)
-            {
-                Utils.KickSilent(player, string.Join("\n", bans));
-
-                return;
-            }
-
-            NAPI.Task.RunSafe(async () =>
+            NAPI.Task.Run(async () =>
             {
                 if (player?.Exists != true)
                     return;
 
+                if (bans.Count > 0)
+                {
+                    Utils.KickSilent(player, bans[0].ToString());
+
+                    return;
+                }
+
                 var tData = new TempData(player);
 
-                TempData.Set(player, tData);
+                player.SetTempData(tData);
 
-                if (!await tData.WaitAsync())
-                    return;
+                player.SetAlpha(0);
+                player.Teleport(new Vector3(-749.78f, 5818.21f, 0), false, Utils.GetPrivateDimension(player));
+                player.Name = player.SocialClubName;
 
-                await NAPI.Task.RunAsync(async () =>
+                player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.OutFromPlayer, true, "FadeScreen", false);
+
+                var account = await MySQL.AccountGet(scId);
+
+                NAPI.Task.Run(() =>
                 {
                     if (player?.Exists != true)
                         return;
 
-                    player.SetData("Spam::Counter", 0);
+                    tData.BlockRemoteCalls = false;
 
-                    player.SetAlpha(0);
-                    player.Teleport(new Vector3(-749.78f, 5818.21f, 0), false, Utils.GetPrivateDimension(player));
-                    player.Name = player.SocialClubName;
-
-                    player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.OutFromPlayer, true, "FadeScreen", false);
-
-                    var account = await Task.Run(() => MySQL.GetPlayerAccount(scId));
-
-                    await NAPI.Task.RunAsync(() =>
+                    if (account == null)
                     {
-                        if (player?.Exists != true)
-                            return;
+                        player.TriggerEvent("Auth::ShowRegistrationPage", player.SocialClubName);
+                    }
+                    else
+                    {
+                        int i = -1;
 
-                        player.SetAccountData(account);
-
-                        if (account == null)
+                        foreach (var x in PlayerData.PlayerInfo.GetAllByAID(account.ID))
                         {
-                            player.TriggerEvent("Auth::ShowRegistrationPage", player.SocialClubName);
-                        }
-                        else
-                        {
-                            account.Player = player;
+                            i++;
 
-                            tData.ActualToken = CEF.Auth.GenerateToken(account, hwid);
+                            if (i >= tData.Characters.Length)
+                                break;
 
-                            player.TriggerEvent("Auth::ShowLoginPage", player.SocialClubName);
+                            tData.Characters[i] = x;
                         }
-                    });
+
+                        tData.AccountData = account;
+
+                        tData.ActualToken = CEF.Auth.GenerateToken(account, hwid);
+
+                        player.TriggerEvent("Auth::ShowLoginPage", player.SocialClubName);
+                    }
                 });
-
-                tData.Release();
             });
         }
         #endregion
@@ -98,47 +98,23 @@ namespace BCRPServer.Sync
             if (player?.Exists != true)
                 return;
 
-            var tData = TempData.Get(player);
-            var data = player.GetMainData();
-            var aData = player.GetAccountData();
+            var tData = player.GetTempData();
 
             if (tData != null)
             {
-                tData.Remove();
-
-                if (aData != null)
+                if (tData.PlayerData != null)
                 {
-                    aData.Remove();
+                    tData.PlayerData.Delete();
                 }
 
-                Task.Run(async () =>
-                {
-                    if (!await tData.WaitAsync())
-                        return;
-
-                    tData.Delete();
-                    aData?.Delete();
-                });
+                tData.Delete();
             }
-            else if (data != null)
+            else
             {
-                if (aData != null)
-                {
-                    aData.Remove();
-                }
+                var data = player.GetMainData();
 
-                int cid = data.CID;
-                int hp = player.Health;
-                int mood = data.Mood;
-                int satiety = data.Satiety;
-                Vector3 pos = player.Position;
-                uint dim = player.Dimension;
-                float heading = player.Heading;
-                bool knocked = data.IsKnocked;
-
-                int arm = player.Armor;
-                WeaponHash weapon = player.CurrentWeapon;
-                int ammo = player.GetWeaponAmmo(weapon);
+                if (data == null)
+                    return;
 
                 player.DetachAllEntities();
 
@@ -150,34 +126,30 @@ namespace BCRPServer.Sync
 
                     if (vehData != null)
                     {
-                        vehData.RemovePassenger(data.VehicleSeat);
+                        vehData.RemovePassenger(data);
                     }
                 }
 
                 var items = data.Items;
                 var ownedVehs = data.OwnedVehicles;
 
-                var allVehs = NAPI.Pools.GetAllVehicles();
-                var allPlayers = NAPI.Pools.GetAllPlayers();
-
-                var keysVehs = items.Where(x => x is Game.Items.VehicleKey && !ownedVehs.Contains((x as Game.Items.VehicleKey).VID)).GroupBy(x => (x as Game.Items.VehicleKey).VID).Select(x => x.First() as Game.Items.VehicleKey).ToList();
+                var keysVehs = items.Where(x => x is Game.Items.VehicleKey vKey && !ownedVehs.Where(y => y.VID == vKey.VID).Any()).GroupBy(x => ((Game.Items.VehicleKey)x).VID).Select(x => x.First() as Game.Items.VehicleKey).ToList();
 
                 #region Check&Start Deletion of Owned Vehicles
                 foreach (var vid in ownedVehs)
                 {
-                    var veh = allVehs.Where(x => x.GetMainData()?.VID == vid).FirstOrDefault();
+                    var veh = VehicleData.All.Values.Where(x => x?.VID == vid.VID).FirstOrDefault();
 
                     if (veh == null)
                         continue;
 
-                    var vData = veh.GetMainData();
-                    var keys = vData.Keys;
+                    var keys = veh.Keys;
 
                     bool foundDescendant = false;
 
-                    foreach (var x in allPlayers)
+                    foreach (var x in PlayerData.All.Values)
                     {
-                        var pItems = x.GetMainData()?.Items;
+                        var pItems = x?.Items;
 
                         if (pItems == null)
                             continue;
@@ -195,7 +167,7 @@ namespace BCRPServer.Sync
                     }
 
                     if (!foundDescendant)
-                        vData.StartDeletionTask();
+                        veh.StartDeletionTask();
                 }
                 #endregion
 
@@ -204,18 +176,16 @@ namespace BCRPServer.Sync
                 {
                     var foundDescendant = false;
 
-                    var veh = allVehs.Where(x => x.GetMainData()?.VID == key.VID && x.GetMainData().Keys.Contains(key.UID)).FirstOrDefault();
+                    var veh = VehicleData.All.Values.Where(x => x?.VID == key.VID && x.Keys.Contains(key.UID)).FirstOrDefault();
 
                     if (veh == null)
                         continue;
 
-                    var vData = veh.GetMainData();
+                    var keys = veh.Keys;
 
-                    var keys = vData.Keys;
-
-                    foreach (var x in allPlayers)
+                    foreach (var x in PlayerData.All.Values)
                     {
-                        var pItems = x.GetMainData()?.Items;
+                        var pItems = x?.Items;
 
                         if (items == null)
                             continue;
@@ -233,59 +203,68 @@ namespace BCRPServer.Sync
                     }
 
                     if (!foundDescendant)
-                        vData.StartDeletionTask();
+                        veh.StartDeletionTask();
                 }
                 #endregion
 
-                data.Remove();
-
-                Task.Run(async () =>
+                if (data.Armour != null)
                 {
-                    if (!await data.WaitAsync())
-                        return;
+                    var arm = player.Armor;
 
-                    if (data.Armour != null)
+                    if (arm < 0)
+                        arm = 0;
+
+                    if (arm < data.Armour.Strength)
                     {
-                        if (arm < 0)
-                            arm = 0;
+                        data.Armour.Strength = arm;
 
-                        if (arm < data.Armour.Strength)
+                        if (data.Armour.Strength == 0)
                         {
-                            data.Armour.Strength = arm;
+                            data.Armour.Delete();
 
-                            if (data.Armour.Strength == 0)
-                                data.Armour.Delete();
-                            else
-                                data.Armour.Update();
+                            data.Armour = null;
                         }
+                        else
+                            data.Armour.Update();
                     }
+                }
 
-                    var weapon = data.ActiveWeapon;
+                var aWeapon = data.ActiveWeapon;
 
-                    if (weapon != null)
-                    {
-                        if (ammo < 0)
-                            ammo = 0;
+                if (aWeapon != null)
+                {
+                    aWeapon.Value.WeaponItem.Unequip(data, true, false);
+                }
 
-                        if (ammo < weapon.Value.WeaponItem.Ammo)
-                        {
-                            weapon.Value.WeaponItem.Ammo = ammo;
+                foreach (var x in data.Weapons)
+                {
+                    if (x == null)
+                        continue;
 
-                            weapon.Value.WeaponItem.Update();
-                        }
-                    }
+                    if (x.AttachID != -1)
+                        x.AttachID = -1;
+                }
 
-                    MySQL.SaveCharacterOnExit(cid, data.TimePlayed, hp, dim, heading, pos, data.LastData.SessionTime, knocked, satiety, mood, data.Familiars);
+                data.Info.IsOnline = false;
 
-                    data.Delete();
-                    aData.Delete();
-                });
+                data.Info.LastData.Health = player.Health;
+
+                if (data.Info.LastData.Health < 0 || data.IsKnocked)
+                    data.Info.LastData.Health = 0;
+
+                data.Info.LastData.Position = player.Position;
+                data.Info.LastData.Dimension = player.Dimension;
+                data.Info.LastData.Heading = player.Heading;
+
+                MySQL.CharacterSaveOnExit(data.Info);
+
+                data.Delete();
             }
         }
         #endregion
 
         [RemoteEvent("Players::ArmourBroken")]
-        private static async Task ArmourBroken(Player player)
+        private static void ArmourBroken(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -294,38 +273,24 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var arm = pData.Armour;
+
+            if (arm == null)
                 return;
 
-            await Task.Run(async () =>
-            {
-                var arm = pData.Armour;
+            pData.Armour = null;
 
-                if (arm == null)
-                    return;
+            arm.Unwear(pData);
 
-                pData.Armour = null;
+            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, CEF.Inventory.Groups.Armour));
 
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
+            MySQL.CharacterArmourUpdate(pData.Info);
 
-                    arm.Unwear(pData);
-
-                    player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, CEF.Inventory.Groups.Armour));
-                });
-
-                MySQL.UpdatePlayerInventory(pData, false, false, false, false, false, false, true);
-
-                arm.Delete();
-            });
-
-            pData.Release();
+            arm.Delete();
         }
 
         [RemoteEvent("Players::OnDeath")]
-        private static async Task OnPlayerDeath(Player player, Player killer)
+        private static void OnPlayerDeath(Player player, Player killer)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -334,74 +299,63 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(async () =>
+            if (pData.IsKnocked)
             {
-                if (player?.Exists != true)
-                    return;
+                player.SetHealth(10);
 
-                if (pData.IsKnocked)
+                pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
+
+                pData.IsKnocked = false;
+            }
+            else
+            {
+                pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
+
+                pData.IsKnocked = true;
+                pData.IsWounded = false;
+
+                player.SetHealth(50);
+
+                pData.PlayAnim(Sync.Animations.GeneralTypes.Knocked);
+
+                if (Settings.DROP_WEAPONS_AFTER_DEATH)
                 {
-                    player.SetHealth(10);
-
-                    pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
-
-                    pData.IsKnocked = false;
+                    for (int i = 0; i < pData.Weapons.Length; i++)
+                        if (pData.Weapons[i] != null)
+                            pData.InventoryDrop(CEF.Inventory.Groups.Weapons, i, 1);
                 }
-                else
+
+                if (pData.Holster?.Items[0] != null)
+                    pData.InventoryDrop(CEF.Inventory.Groups.Holster, 0, 1);
+
+                if (Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH > 0f && Settings.MAX_AMMO_TO_DROP_AFTER_DEATH > 0)
                 {
-                    pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
+                    int droppedAmmo = 0;
 
-                    pData.IsKnocked = true;
-                    pData.IsWounded = false;
+                    for (int i = 0; i < pData.Items.Length; i++)
+                        if (pData.Items[i] is Game.Items.Ammo)
+                        {
+                            var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH);
 
-                    player.SetHealth(50);
+                            if (ammoToDrop + droppedAmmo > Settings.MAX_AMMO_TO_DROP_AFTER_DEATH)
+                                ammoToDrop = Settings.MAX_AMMO_TO_DROP_AFTER_DEATH - droppedAmmo;
 
-                    pData.PlayAnim(Sync.Animations.GeneralTypes.Knocked);
+                            if (ammoToDrop == 0)
+                                break;
 
-                    if (Settings.DROP_WEAPONS_AFTER_DEATH)
-                    {
-                        for (int i = 0; i < pData.Weapons.Length; i++)
-                            if (pData.Weapons[i] != null)
-                                await pData.InventoryDrop(CEF.Inventory.Groups.Weapons, i, 1);
-                    }
+                            pData.InventoryDrop(CEF.Inventory.Groups.Items, i, ammoToDrop);
 
-                    if (pData.Holster?.Items[0] != null)
-                        await pData.InventoryDrop(CEF.Inventory.Groups.Holster, 0, 1);
+                            droppedAmmo += ammoToDrop;
 
-                    if (Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH > 0f && Settings.MAX_AMMO_TO_DROP_AFTER_DEATH > 0)
-                    {
-                        int droppedAmmo = 0;
-
-                        for (int i = 0; i < pData.Items.Length; i++)
-                            if (pData.Items[i] is Game.Items.Ammo)
-                            {
-                                var ammoToDrop = (int)Math.Floor((pData.Items[i] as Game.Items.Ammo).Amount * Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH);
-
-                                if (ammoToDrop + droppedAmmo > Settings.MAX_AMMO_TO_DROP_AFTER_DEATH)
-                                    ammoToDrop = Settings.MAX_AMMO_TO_DROP_AFTER_DEATH - droppedAmmo;
-
-                                if (ammoToDrop == 0)
-                                    break;
-
-                                await pData.InventoryDrop(CEF.Inventory.Groups.Items, i, ammoToDrop);
-
-                                droppedAmmo += ammoToDrop;
-
-                                if (droppedAmmo == Settings.MAX_AMMO_TO_DROP_AFTER_DEATH)
-                                    break;
-                            }
-                    }
+                            if (droppedAmmo == Settings.MAX_AMMO_TO_DROP_AFTER_DEATH)
+                                break;
+                        }
                 }
-            });
-
-            pData.Release();
+            }
         }
 
         [RemoteEvent("Players::CharacterReady")]
-        public static async Task CharacterReady(Player player, bool isInvalid, int emotion, int walkstyle)
+        public static void CharacterReady(Player player, bool isInvalid, int emotion, int walkstyle)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -410,29 +364,18 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!player.HasData("CharacterNotReady"))
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
+            player.ResetData("CharacterNotReady");
 
-                if (player.HasData("CharacterReady"))
-                    return;
+            pData.IsInvalid = isInvalid;
+            pData.Emotion = (Sync.Animations.EmotionTypes)emotion;
+            pData.Walkstyle = (Sync.Animations.WalkstyleTypes)walkstyle;
 
-                player.SetData("CharacterReady", true);
+            player.Teleport(pData.LastData.Position, true, Utils.Dimensions.Main);
 
-                pData.IsInvalid = isInvalid;
-                pData.Emotion = (Sync.Animations.EmotionTypes)emotion;
-                pData.Walkstyle = (Sync.Animations.WalkstyleTypes)walkstyle;
-
-                player.Teleport(pData.LastData.Position, true, Utils.Dimensions.Main);
-
-                pData.UpdateWeapons();
-            });
-
-            pData.Release();
+            pData.UpdateWeapons();
         }
 
         #region Finger
@@ -443,7 +386,7 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("Players::FingerPoint::Vehicle")]
-        public static async Task PointAtVehicle(Player player, Vehicle veh)
+        public static void PointAtVehicle(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -452,30 +395,19 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                var vData = veh.GetMainData();
+            if (!player.AreEntitiesNearby(veh, 10f))
+                return;
 
-                if (vData == null)
-                    return;
-
-                if (player?.Exists != true || veh?.Exists != true)
-                    return;
-
-                if (!player.AreEntitiesNearby(veh, 10f))
-                    return;
-
-                Chat.SendLocal(Chat.Type.Me, player, $"{Locale.Chat.Player.PointsAt} {vData.Data.Name} [{vData.Numberplate?.Tag ?? Locale.Chat.Vehicle.NoNumberplate}]", null);
-            });
-
-            pData.Release();
+            Chat.SendLocal(Chat.Types.Me, player, $"{Locale.Chat.Player.PointsAt} {vData.Data.Name} [{vData.Numberplate?.Tag ?? Locale.Chat.Vehicle.NoNumberplate}]", null);
         }
 
         [RemoteEvent("Players::FingerPoint::Player")]
-        public static async Task PointAtPlayer(Player player, Player target)
+        public static void PointAtPlayer(Player player, Player target)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -484,25 +416,17 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (target?.Exists != true)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true || target?.Exists != true)
-                    return;
+            if (!player.AreEntitiesNearby(target, 10f))
+                return;
 
-                if (!player.AreEntitiesNearby(target, 10f))
-                    return;
-
-                Chat.SendLocal(Chat.Type.MePlayer, player, Locale.Chat.Player.PointsAt, target);
-            });
-
-            pData.Release();
+            Chat.SendLocal(Chat.Types.MePlayer, player, Locale.Chat.Player.PointsAt, target);
         }
 
         [RemoteEvent("Players::FingerPoint::Ped")]
-        public static async Task PointAtPed(Player player)
+        public static void PointAtPed(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -511,24 +435,13 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                Chat.SendLocal(Chat.Type.MePlayer, player, Locale.Chat.Player.PointsAtPerson, null);
-            });
-
-            pData.Release();
+            Chat.SendLocal(Chat.Types.MePlayer, player, Locale.Chat.Player.PointsAtPerson, null);
         }
         #endregion
 
         #region Crouch
         [RemoteEvent("Players::ToggleCrouchingSync")]
-        public static async Task ToggleCrouching(Player player, bool state)
+        public static void ToggleCrouching(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -537,27 +450,16 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CrouchOn == state)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                if (pData.CrouchOn == state)
-                    return;
-
-                pData.CrouchOn = state;
-            });
-
-            pData.Release();
+            pData.CrouchOn = state;
         }
         #endregion
 
         #region Crawl
         [RemoteEvent("Players::ToggleCrawlingSync")]
-        public static async Task ToggleCrawling(Player player, bool state)
+        public static void ToggleCrawling(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -566,27 +468,16 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CrawlOn == state)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                if (pData.CrawlOn == state)
-                    return;
-
-                pData.CrawlOn = state;
-            });
-
-            pData.Release();
+            pData.CrawlOn = state;
         }
         #endregion
 
         #region Push Vehicle
         [RemoteEvent("Players::StartPushingVehicleSync")]
-        public static async Task StartPushingVehicle(Player player, Vehicle veh, bool isInFront)
+        public static void StartPushingVehicle(Player player, Vehicle veh, bool isInFront)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -597,37 +488,17 @@ namespace BCRPServer.Sync
 
             var vehData = veh.GetMainData();
 
-            if (!await pData.WaitAsync())
+            if (veh?.Exists != true || veh.EngineStatus || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (!await vehData.WaitAsync())
-            {
-                pData.Release();
-
+            if (pData.IsAttachedTo != null || vehData.ForcedSpeed != 0f)
                 return;
-            }
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                if (veh?.Exists != true || veh.EngineStatus || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                    return;
-
-                if (pData.IsAttachedTo != null || vehData.ForcedSpeed != 0f)
-                    return;
-
-                veh.AttachEntity(player, isInFront ? AttachSystem.Types.PushVehicleFront : AttachSystem.Types.PushVehicleBack);
-            });
-
-            vehData.Release();
-
-            pData.Release();
+            veh.AttachEntity(player, isInFront ? AttachSystem.Types.PushVehicleFront : AttachSystem.Types.PushVehicleBack);
         }
 
         [RemoteEvent("Players::StopPushingVehicleSync")]
-        public static async Task StopPushingVehicle(Player player)
+        public static void StopPushingVehicle(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -636,41 +507,26 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
             var attachData = pData.IsAttachedTo;
 
             if (attachData == null)
-            {
-                pData.Release();
-
                 return;
-            }
 
             var vehicle = attachData.Value.Entity;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
+            if (vehicle?.Exists != true || vehicle.Type != EntityType.Vehicle)
+                return;
 
-                if (vehicle?.Exists != true || vehicle.Type != EntityType.Vehicle)
-                    return;
+            if (attachData.Value.Type != AttachSystem.Types.PushVehicleFront && attachData.Value.Type != AttachSystem.Types.PushVehicleBack)
+                return;
 
-                if (attachData.Value.Type != AttachSystem.Types.PushVehicleFront && attachData.Value.Type != AttachSystem.Types.PushVehicleBack)
-                    return;
-
-                vehicle.DetachEntity(player);
-            });
-
-            pData.Release();
+            vehicle.DetachEntity(player);
         }
         #endregion
 
         #region Belt
         [RemoteEvent("Players::ToggleBelt")]
-        public static async Task ToggleBelt(Player player)
+        public static void ToggleBelt(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -679,49 +535,38 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            Vehicle veh = player.Vehicle;
+
+            bool isBeltOn = !pData.BeltOn;
+
+            if (veh == null && isBeltOn)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
+            if (veh != null && !Utils.IsCar(veh))
+                return;
+
+            pData.BeltOn = isBeltOn;
+            player.TriggerEvent("Players::ToggleBelt", isBeltOn);
+
+            if (isBeltOn)
             {
-                if (player?.Exists != true)
-                    return;
+                player.SetClothes(5, 81, 0);
 
-                Vehicle veh = player.Vehicle;
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOn);
+            }
+            else
+            {
+                player.SetClothes(5, 0, 0);
+                pData.Bag?.Wear(pData);
 
-                bool isBeltOn = !pData.BeltOn;
-
-                if (veh == null && isBeltOn)
-                    return;
-
-                if (veh != null && !Utils.IsCar(veh))
-                    return;
-
-                pData.BeltOn = isBeltOn;
-                player.TriggerEvent("Players::ToggleBelt", isBeltOn);
-
-                if (isBeltOn)
-                {
-                    player.SetClothes(5, 81, 0);
-
-                    Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.BeltOn);
-                }
-                else
-                {
-                    player.SetClothes(5, 0, 0);
-                    pData.Bag?.Wear(pData);
-
-                    Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Vehicle.BeltOff);
-                }
-            });
-
-            pData.Release();
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOff);
+            }
         }
         #endregion
 
         #region Cruise Control
         [RemoteEvent("Players::ToggleCruiseControl")]
-        public static async Task ToggleCruiseControl(Player player, float speed)
+        public static void ToggleCruiseControl(Player player, float speed)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -730,43 +575,29 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            var veh = player?.Vehicle;
+            var veh = player.Vehicle;
 
-            if (veh == null || !await pData.WaitAsync())
+            if (veh == null)
                 return;
 
             var vData = veh.GetMainData();
 
-            if (vData == null || !await vData.WaitAsync())
-            {
-                pData.Release();
-
+            if (vData == null)
                 return;
-            }
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true || veh?.Exists != true)
-                    return;
+            if (!Utils.IsCar(veh))
+                return;
 
-                if (!Utils.IsCar(veh))
-                    return;
-
-                if (vData.ForcedSpeed >= Settings.MIN_CRUISE_CONTROL_SPEED)
-                    vData.ForcedSpeed = 0f;
-                else if (vData.EngineOn && pData.VehicleSeat == 0)
-                    vData.ForcedSpeed = speed > Settings.MAX_CRUISE_CONTROL_SPEED ? Settings.MAX_CRUISE_CONTROL_SPEED : speed;
-            });
-
-            vData.Release();
-
-            pData.Release();
+            if (vData.ForcedSpeed >= Settings.MIN_CRUISE_CONTROL_SPEED)
+                vData.ForcedSpeed = 0f;
+            else if (vData.EngineOn && pData.VehicleSeat == 0)
+                vData.ForcedSpeed = speed > Settings.MAX_CRUISE_CONTROL_SPEED ? Settings.MAX_CRUISE_CONTROL_SPEED : speed;
         }
         #endregion
 
         #region Phone
         [RemoteEvent("Players::TogglePhone")]
-        public static async Task StartUsePhone(Player player, bool state)
+        public static void StartUsePhone(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -775,77 +606,63 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var hadWeapon = pData.UnequipActiveWeapon();
+
+            if (pData.PhoneOn == state)
                 return;
 
-            await Task.Run(async () =>
+            if (state)
             {
-                var hadWeapon = await pData.UnequipActiveWeapon();
-
-                await NAPI.Task.RunAsync(() =>
+                if (hadWeapon)
                 {
-                    if (player?.Exists != true)
-                        return;
-
-                    if (pData.PhoneOn == state)
-                        return;
-
-                    if (state)
+                    NAPI.Task.Run(() =>
                     {
-                        if (hadWeapon)
-                        {
-                            NAPI.Task.Run(() =>
-                            {
-                                pData.PhoneOn = true;
+                        if (player?.Exists != true)
+                            return;
 
-                                player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
+                        pData.PhoneOn = true;
 
-                                Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Player.PhoneOn);
-                            }, 250);
-                        }
-                        else
-                        {
-                            pData.PhoneOn = true;
+                        player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
 
-                            player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
+                        Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
+                    }, 250);
+                }
+                else
+                {
+                    pData.PhoneOn = true;
 
-                            Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Player.PhoneOn);
-                        }
-                    }
-                    else
-                    {
-                        StopUsePhone(player);
-                    }
-                });
-            });
+                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
 
-            pData.Release();
+                    Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
+                }
+            }
+            else
+            {
+                StopUsePhone(pData);
+            }
         }
 
-        public static void StopUsePhone(Player player)
+        public static void StopUsePhone(PlayerData pData)
         {
-            var data = player.GetMainData();
+            var player = pData.Player;
 
-            if (data == null)
+            if (!pData.PhoneOn)
                 return;
 
-            if (!data.PhoneOn)
-                return;
+            pData.PhoneOn = false;
 
-            data.PhoneOn = false;
-
-            var attachedPhone = data.AttachedObjects.Where(x => x.Type == AttachSystem.Types.Phone).FirstOrDefault();
+            var attachedPhone = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.Phone).FirstOrDefault();
 
             if (attachedPhone != null)
                 player.DetachObject(attachedPhone.Id);
 
-            Chat.SendLocal(Chat.Type.Me, player, Locale.Chat.Player.PhoneOff);
+            Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Player.PhoneOff);
         }
         #endregion
 
         /// <summary>Получен урон от игрока</summary>
         [RemoteEvent("Players::GotDamage")]
-        private static async Task GotDamage(Player player, int damage, bool isGun)
+        private static void GotDamage(Player player, int damage, bool isGun)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -853,28 +670,17 @@ namespace BCRPServer.Sync
                 return;
 
             var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
 
             pData.LastDamageTime = Utils.GetCurrentTime();
 
-            await NAPI.Task.RunAsync(() =>
+            if (isGun && !pData.IsWounded && !pData.IsKnocked && (new Random()).NextDouble() <= Settings.WOUND_CHANCE)
             {
-                if (player?.Exists != true)
-                    return;
-
-                if (isGun && !pData.IsWounded && !pData.IsKnocked && (new Random()).NextDouble() <= Settings.WOUND_CHANCE)
-                {
-                    pData.IsWounded = true;
-                }
-            });
-
-            pData.Release();
+                pData.IsWounded = true;
+            }
         }
 
-        [RemoteEvent("Players::UpdateTime")]
-        private static async Task UpdateTime(Player player)
+        [RemoteEvent("Player::UpdateTime")]
+        private static void UpdateTime(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -883,42 +689,28 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            var currentTime = Utils.GetCurrentTime();
+
+            if (currentTime.Subtract(pData.LastJoinDate).TotalSeconds < 60)
                 return;
 
-            await Task.Run(async () =>
+            pData.LastJoinDate = currentTime;
+
+            pData.TimePlayed += 1;
+            pData.LastData.SessionTime += 60;
+
+            if (pData.TimePlayed % 2 == 0)
             {
-                var currentTime = Utils.GetCurrentTime();
+                if (pData.Satiety > 0)
+                    pData.Satiety--;
 
-                if (currentTime.Subtract(pData.LastJoinDate).TotalSeconds < 60)
-                    return;
-
-                pData.LastJoinDate = currentTime;
-
-                pData.TimePlayed += 1;
-                pData.LastData.SessionTime += 60;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    if (pData.TimePlayed % 120 == 0)
-                    {
-                        if (pData.Satiety > 0)
-                            pData.Satiety--;
-
-                        if (pData.Mood > 0)
-                            pData.Mood--;
-                    }
-                });
-            });
-
-            pData.Release();
+                if (pData.Mood > 0)
+                    pData.Mood--;
+            }
         }
 
         [RemoteEvent("Players::SetIsInvalid")]
-        private static async Task SetIsInvalid(Player player, bool state)
+        private static void SetIsInvalid(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -927,28 +719,17 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                pData.IsInvalid = state;
-            });
-
-            pData.Release();
+            pData.IsInvalid = state;
         }
 
         [RemoteEvent("Business::Info")]
-        public static async Task BusinessInfo(Player player, int id)
+        public static void BusinessInfo(Player player, int id)
         {
 
         }
 
         [RemoteEvent("Business::Enter")]
-        public static async Task BusinessEnter(Player player, int id)
+        public static void BusinessEnter(Player player, int id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -957,69 +738,52 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentBusiness != null)
                 return;
 
-            await Task.Run(async () =>
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null)
+                return;
+
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 50f)
+                return;
+
+            pData.CurrentBusiness = id;
+
+            if (business is Game.Businesses.IEnterable enterable)
             {
-                if (pData.CurrentBusiness != null)
-                    return;
+                pData.UnequipActiveWeapon();
 
-                var business = Game.Businesses.Business.Get(id);
+                player.CloseAll();
 
-                if (business == null)
-                    return;
+                Sync.Microphone.DisableMicrophone(pData);
 
-                if (business is Game.Businesses.IEnterable enterable)
-                {
-                    await pData.UnequipActiveWeapon();
-                }
+                pData.IsInvincible = true;
 
-                await NAPI.Task.RunAsync(() =>
+                NAPI.Task.Run(() =>
                 {
                     if (player?.Exists != true)
                         return;
 
-                    if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 50f)
-                        return;
+                    player.Heading = enterable.Heading;
 
-                    pData.CurrentBusiness = id;
+                    player.Teleport(enterable.EnterPosition, false, Utils.GetPrivateDimension(player));
 
-                    if (business is Game.Businesses.IEnterable enterable)
-                    {
-                        player.CloseAll();
+                }, 1000);
 
-                        Sync.Microphone.DisableMicrophone(pData);
+                player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.Heading);
+            }
+            else
+            {
+                player.CloseAll(true);
 
-                        pData.IsInvincible = true;
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.Heading = enterable.Heading;
-
-                            player.Teleport(enterable.EnterPosition, false, Utils.GetPrivateDimension(player));
-
-                        }, 1000);
-
-                        player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.Heading);
-                    }
-                    else
-                    {
-                        player.CloseAll(true);
-
-                        player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin);
-                    }
-                });
-            });
-
-            pData.Release();
+                player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin);
+            }
         }
 
         [RemoteEvent("Business::Exit")]
-        public static async Task BusinessExit(Player player)
+        public static void BusinessExit(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1028,165 +792,38 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentBusiness == null)
                 return;
 
-            await Task.Run(async () =>
+            var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
+
+            if (business == null)
+                return;
+
+            pData.CurrentBusiness = null;
+
+            if (business is Game.Businesses.IEnterable enterable)
             {
-                if (pData.CurrentBusiness == null)
-                    return;
+                pData.IsInvincible = false;
 
-                var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
-
-                if (business == null)
-                    return;
-
-                pData.CurrentBusiness = null;
-
-                if (business is Game.Businesses.IEnterable enterable)
-                {
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        pData.IsInvincible = false;
-
-                        NAPI.Task.Run(() =>
-                        {
-                            if (player?.Exists != true)
-                                return;
-
-                            player.Teleport(business.Position, true, Utils.Dimensions.Main);
-                        }, 1000);
-
-                        player.TriggerEvent("Shop::Close::Server");
-                    });
-                }
-                else
-                {
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.TriggerEvent("Shop::Close::Server");
-                    });
-                }
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Shop::Buy")]
-        public static async Task ShopBuy(Player player, string id, int variation, int amount, bool useCash)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Task.Run(async () =>
-            {
-                if (pData.CurrentBusiness == null || amount <= 0)
-                    return;
-
-                var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
-
-                if (business == null)
-                    return;
-
-                if (business is Game.Businesses.Shop shop)
-                {
-                    int price = shop.GetPrice(id, true);
-
-                    if (price == -1)
-                        return;
-
-                    price *= amount;
-
-                    bool paid = await Task.Run(async () =>
-                    {
-                        if (business.Owner != -1)
-                        {
-                            // operations with materials
-                        }
-
-                        if (useCash)
-                            return await pData.AddCash(-price, true);
-                        else
-                            return false;
-
-                    });
-
-                    if (paid)
-                    {
-
-                    }
-                    else
-                        return;
-
-                    var item = await Game.Items.Items.GiveItem(pData, id, variation, amount, false);
-
-                    if (item == null && business is Game.Businesses.ClothesShop)
-                    {
-                        pData.Gifts.Add(await Game.Items.Gift.Give(pData, Game.Items.Gift.Types.Item, id, variation, amount, Game.Items.Gift.SourceTypes.Shop, true, true));
-                    }
-                }
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("GasStation::Enter")]
-        public static async Task GasStationEnter(Player player, Vehicle vehicle, int id)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Task.Run(async () =>
-            {
-                if (pData.CurrentBusiness != null)
-                    return;
-
-                var gs = Game.Businesses.Business.Get(id) as Game.Businesses.GasStation;
-
-                if (gs == null)
-                    return;
-
-                pData.CurrentBusiness = id;
-
-                await NAPI.Task.RunAsync(() =>
+                NAPI.Task.Run(() =>
                 {
                     if (player?.Exists != true)
                         return;
 
-                    if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.Position) > 50f)
-                        return;
+                    player.Teleport(business.Position, true, Utils.Dimensions.Main);
+                }, 1000);
 
-                    player.CloseAll(true);
-
-                    player.TriggerEvent("GasStation::Show", gs.Margin);
-                });
-            });
-
-            pData.Release();
+                player.TriggerEvent("Shop::Close::Server");
+            }
+            else
+            {
+                player.TriggerEvent("Shop::Close::Server");
+            }
         }
 
-        [RemoteEvent("GasStation::Exit")]
-        public static async Task GasStationExit(Player player)
+        [RemoteEvent("Shop::Buy")]
+        public static void ShopBuy(Player player, string id, int variation, int amount, bool useCash)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1195,105 +832,164 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentBusiness == null || amount <= 0)
                 return;
 
-            await Task.Run(async () =>
+            var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
+
+            if (business == null)
+                return;
+
+            if (business is Game.Businesses.Shop shop)
             {
-                if (pData.CurrentBusiness == null)
-                    return;
-
-                pData.CurrentBusiness = null;
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("GasStation::Buy")]
-        public static async Task GasStationBuy(Player player, Vehicle vehicle, int fNum, int amount, bool useCash)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Task.Run(async () =>
-            {
-                if (pData.CurrentBusiness == null || amount <= 0 || !Enum.IsDefined(typeof(Game.Data.Vehicles.Vehicle.FuelTypes), fNum))
-                    return;
-
-                var gs = Game.Businesses.Business.Get((int)pData.CurrentBusiness) as Game.Businesses.GasStation;
-
-                if (gs == null)
-                    return;
-
-                var fType = (Game.Data.Vehicles.Vehicle.FuelTypes)fNum;
-
-                int price = gs.GetGasPrice(fType, true);
+                int price = shop.GetPrice(id, true);
 
                 if (price == -1)
                     return;
 
                 price *= amount;
 
-                var vData = vehicle.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                bool paid = await Task.Run(async () =>
+                bool paid = ((Func<bool>)(() =>
                 {
-                    if (gs.Owner != -1)
+                    if (business.Owner != -1)
                     {
                         // operations with materials
                     }
 
                     if (useCash)
-                        return await pData.AddCash(-price, true);
+                        return pData.AddCash(-price, true);
                     else
                         return false;
 
-                });
+                })).Invoke();
 
                 if (paid)
                 {
-                    await NAPI.Task.RunAsync(() =>
-                    {
-                        if (player?.Exists != true || vehicle?.Exists != true)
-                            return;
 
-                        var newFuel = vData.FuelLevel + amount;
-
-                        if (newFuel > vData.Data.Tank)
-                            newFuel = vData.Data.Tank;
-
-                        vData.FuelLevel = newFuel;
-
-                        player.CloseAll(true);
-                    });
-
-                    vData.Release();
-
-                    pData.CurrentBusiness = null;
                 }
                 else
-                {
-                    vData.Release();
-
                     return;
-                }
-            });
 
-            pData.Release();
+                var item = Game.Items.Items.GiveItem(pData, id, variation, amount, false);
+
+                if (item == null && business is Game.Businesses.ClothesShop)
+                {
+                    pData.Gifts.Add(Game.Items.Gift.Give(pData, Game.Items.Gift.Types.Item, id, variation, amount, Game.Items.Gift.SourceTypes.Shop, true, true));
+                }
+            }
+        }
+
+        [RemoteEvent("GasStation::Enter")]
+        public static void GasStationEnter(Player player, Vehicle vehicle, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.CurrentBusiness != null)
+                return;
+
+            var gs = Game.Businesses.Business.Get(id) as Game.Businesses.GasStation;
+
+            if (gs == null)
+                return;
+
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.Position) > 50f)
+                return;
+
+            pData.CurrentBusiness = id;
+
+            player.CloseAll(true);
+
+            player.TriggerEvent("GasStation::Show", gs.Margin);
+        }
+
+        [RemoteEvent("GasStation::Exit")]
+        public static void GasStationExit(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.CurrentBusiness == null)
+                return;
+
+            pData.CurrentBusiness = null;
+        }
+
+        [RemoteEvent("GasStation::Buy")]
+        public static void GasStationBuy(Player player, Vehicle vehicle, int fNum, int amount, bool useCash)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.CurrentBusiness == null || amount <= 0 || !Enum.IsDefined(typeof(Game.Data.Vehicles.Vehicle.FuelTypes), fNum))
+                return;
+
+            var gs = Game.Businesses.Business.Get((int)pData.CurrentBusiness) as Game.Businesses.GasStation;
+
+            if (gs == null)
+                return;
+
+            var fType = (Game.Data.Vehicles.Vehicle.FuelTypes)fNum;
+
+            int price = gs.GetGasPrice(fType, true);
+
+            if (price == -1)
+                return;
+
+            price *= amount;
+
+            var vData = vehicle.GetMainData();
+
+            if (vData == null)
+                return;
+
+            bool paid = ((Func<bool>)(() =>
+            {
+                if (gs.Owner != -1)
+                {
+                    // operations with materials
+                }
+
+                if (useCash)
+                    return pData.AddCash(-price, true);
+                else
+                    return false;
+
+            })).Invoke();
+
+            if (paid)
+            {
+                var newFuel = vData.FuelLevel + amount;
+
+                if (newFuel > vData.Data.Tank)
+                    newFuel = vData.Data.Tank;
+
+                vData.FuelLevel = newFuel;
+
+                player.CloseAll(true);
+
+                pData.CurrentBusiness = null;
+            }
+            else
+            {
+                return;
+            }
         }
 
         [RemoteEvent("House::Enter")]
-        public static async Task HouseEnter(Player player, int id)
+        public static void HouseEnter(Player player, int id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1302,51 +998,37 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentHouse != null)
                 return;
 
-            await Task.Run(async () =>
+            var house = Game.Houses.House.Get(id);
+
+            if (house == null)
+                return;
+
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                return;
+
+            pData.CurrentHouse = id;
+
+            player.CloseAll();
+
+            var sData = house.StyleData;
+
+            NAPI.Task.Run(() =>
             {
-                if (pData.CurrentHouse != null)
+                if (player?.Exists != true)
                     return;
 
-                var house = Game.Houses.House.Get(id);
+                player.Heading = sData.Heading;
+                player.Teleport(sData.Position, false, house.Dimension);
+            }, 1000);
 
-                if (house == null)
-                    return;
-
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
-                        return;
-
-                    pData.CurrentHouse = id;
-
-                    player.CloseAll();
-
-                    var sData = house.StyleData;
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.Heading = sData.Heading;
-                        player.Teleport(sData.Position, false, house.Dimension);
-                    }, 1000);
-
-                    player.TriggerEvent("House::Enter", id, sData.Type, NAPI.Util.ToJson(house.Dimension), NAPI.Util.ToJson((house.DoorsStates, house.LightsStates)));
-                });
-            });
-
-            pData.Release();
+            player.TriggerEvent("House::Enter", id, sData.Type, NAPI.Util.ToJson(house.Dimension), NAPI.Util.ToJson((house.DoorsStates, house.LightsStates)));
         }
 
         [RemoteEvent("House::Exit")]
-        public static async Task HouseExit(Player player)
+        public static void HouseExit(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1355,49 +1037,35 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.CurrentHouse == null)
                 return;
 
-            await Task.Run(async () =>
+            var house = Game.Houses.House.Get((int)pData.CurrentHouse);
+
+            if (house == null)
+                return;
+
+            if (player.Dimension != house.Dimension)
+                return;
+
+            pData.CurrentHouse = null;
+
+            //player.CloseAll();
+
+            player.TriggerEvent("House::Exit");
+
+            NAPI.Task.Run(() =>
             {
-                if (pData.CurrentHouse == null)
+                if (player?.Exists != true)
                     return;
 
-                var house = Game.Houses.House.Get((int)pData.CurrentHouse);
-
-                if (house == null)
-                    return;
-
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    if (player.Dimension != house.Dimension)
-                        return;
-
-                    pData.CurrentHouse = null;
-
-                    //player.CloseAll();
-
-                    player.TriggerEvent("House::Exit");
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        player.Heading = house.ExitHeading;
-                        player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main);
-                    }, 1000);
-                });
-            });
-
-            pData.Release();
+                player.Heading = house.ExitHeading;
+                player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main);
+            }, 1000);
         }
 
         [RemoteEvent("Players::PlayAnim")]
-        public static async Task PlayAnim(Player player, bool fast, int anim)
+        public static void PlayAnim(Player player, bool fast, int anim)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1406,28 +1074,14 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Sync.Animations.FastTypes), anim))
                 return;
 
-            await Task.Run(async () =>
-            {
-                if (!Enum.IsDefined(typeof(Sync.Animations.FastTypes), anim))
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    pData.PlayAnim((Sync.Animations.FastTypes)anim);
-                });
-            });
-
-            pData.Release();
+            pData.PlayAnim((Sync.Animations.FastTypes)anim);
         }
 
         [RemoteEvent("Players::SetWalkstyle")]
-        public static async Task SetWalkstyle(Player player, int walkstyle)
+        public static void SetWalkstyle(Player player, int walkstyle)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1436,25 +1090,14 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Sync.Animations.WalkstyleTypes), walkstyle))
                 return;
 
-            await Task.Run(async () =>
-            {
-                if (!Enum.IsDefined(typeof(Sync.Animations.WalkstyleTypes), walkstyle))
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    pData.SetWalkstyle((Animations.WalkstyleTypes)walkstyle);
-                });
-            });
-
-            pData.Release();
+            pData.SetWalkstyle((Animations.WalkstyleTypes)walkstyle);
         }
 
         [RemoteEvent("Players::SetEmotion")]
-        public static async Task SetEmotion(Player player, int emotion)
+        public static void SetEmotion(Player player, int emotion)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1463,25 +1106,14 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
                 return;
 
-            await Task.Run(async () =>
-            {
-                if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    pData.SetEmotion((Animations.EmotionTypes)emotion);
-                });
-            });
-
-            pData.Release();
+            pData.SetEmotion((Animations.EmotionTypes)emotion);
         }
 
         [RemoteEvent("Players::SetAnim")]
-        public static async Task SetAnim(Player player, int anim)
+        public static void SetAnim(Player player, int anim)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1490,25 +1122,14 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!Enum.IsDefined(typeof(Sync.Animations.OtherTypes), anim))
                 return;
 
-            await Task.Run(async () =>
-            {
-                if (!Enum.IsDefined(typeof(Sync.Animations.OtherTypes), anim))
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    pData.PlayAnim((Animations.OtherTypes)anim);
-                });
-            });
-
-            pData.Release();
+            pData.PlayAnim((Animations.OtherTypes)anim);
         }
 
         [RemoteEvent("Players::StopCarry")]
-        public static async Task StopCarry(Player player)
+        public static void StopCarry(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1517,219 +1138,148 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                var attachData = pData.IsAttachedTo;
-
-                if (attachData == null)
-                {
-                    var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry).FirstOrDefault();
-
-                    if (aData == null || aData.EntityType != EntityType.Player)
-                        return;
-
-                    var target = Utils.FindReadyPlayerOnline(aData.Id);
-
-                    if (target == null || target.Player?.Exists != true)
-                        return;
-
-                    player.DetachEntity(target.Player);
-                }
-                else
-                {
-                    if (attachData.Value.Entity?.Exists != true)
-                        return;
-
-                    attachData.Value.Entity.DetachEntity(player);
-                }
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Players::GoToTrunk")]
-        public static async Task GoToTrunk(Player player, Vehicle vehicle)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await Task.Run(async () =>
-            {
-                var attachData = pData.IsAttachedTo;
-
-                if (attachData != null)
-                    return;
-
-                var vData = vehicle.GetMainData();
-
-                if (!await vData.WaitAsync())
-                    return;
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (player?.Exists != true || vehicle?.Exists != true)
-                        return;
-
-                    vehicle.AttachEntity(player, AttachSystem.Types.VehicleTrunk);
-                });
-
-                vData.Release();
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Players::StopInTrunk")]
-        public static async Task StopInTrunk(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                var attachData = pData.IsAttachedTo;
-
-                if (attachData == null || attachData.Value.Type != AttachSystem.Types.VehicleTrunk || attachData.Value.Entity?.Exists != true)
-                    return;
-
-                attachData.Value.Entity.DetachEntity(player);
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Players::Smoke::Stop")]
-        public static async Task StopSmoke(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                foreach (var x in pData.AttachedObjects)
-                {
-                    if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
-                    {
-                        player.DetachObject(x.Id);
-
-                        pData.StopAnim();
-
-                        break;
-                    }
-                }
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Players::Smoke::Puff")]
-        public static async Task SmokeDoPuff(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                foreach (var x in pData.AttachedObjects)
-                {
-                    if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
-                    {
-                        pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
-
-                        player.TriggerEvent("Player::Smoke::Puff");
-
-                        break;
-                    }
-                }
-            });
-
-            pData.Release();
-        }
-
-        [RemoteEvent("Players::Smoke::State")]
-        public static async Task SmokeSetState(Player player, bool state)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
-
-            var attachData = await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true)
-                    return null;
-
-                foreach (var x in pData.AttachedObjects)
-                {
-                    if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
-                    {
-                        pData.PlayAnim(Animations.FastTypes.SmokeTransitionCig);
-
-                        return x;
-                    }
-                }
-
-                return null;
-            });
+            var attachData = pData.IsAttachedTo;
 
             if (attachData == null)
             {
-                pData.Release();
+                var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry).FirstOrDefault();
 
-                return;
+                if (aData == null || aData.EntityType != EntityType.Player)
+                    return;
+
+                var target = Utils.FindReadyPlayerOnline(aData.Id);
+
+                if (target == null || target.Player?.Exists != true)
+                    return;
+
+                player.DetachEntity(target.Player);
             }
+            else
+            {
+                if (attachData.Value.Entity?.Exists != true)
+                    return;
+
+                attachData.Value.Entity.DetachEntity(player);
+            }
+        }
+
+        [RemoteEvent("Players::GoToTrunk")]
+        public static void GoToTrunk(Player player, Vehicle vehicle)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var attachData = pData.IsAttachedTo;
+
+            if (attachData != null)
+                return;
+
+            var vData = vehicle.GetMainData();
+
+            if (vData == null)
+                return;
+
+            vehicle.AttachEntity(player, AttachSystem.Types.VehicleTrunk);
+        }
+
+        [RemoteEvent("Players::StopInTrunk")]
+        public static void StopInTrunk(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var attachData = pData.IsAttachedTo;
+
+            if (attachData == null || attachData.Value.Type != AttachSystem.Types.VehicleTrunk || attachData.Value.Entity?.Exists != true)
+                return;
+
+            attachData.Value.Entity.DetachEntity(player);
+        }
+
+        [RemoteEvent("Players::Smoke::Stop")]
+        public static void StopSmoke(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            foreach (var x in pData.AttachedObjects)
+            {
+                if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
+                {
+                    player.DetachObject(x.Id);
+
+                    pData.StopAnim();
+
+                    break;
+                }
+            }
+        }
+
+        [RemoteEvent("Players::Smoke::Puff")]
+        public static void SmokeDoPuff(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            foreach (var x in pData.AttachedObjects)
+            {
+                if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
+                {
+                    pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
+
+                    player.TriggerEvent("Player::Smoke::Puff");
+
+                    break;
+                }
+            }
+        }
+
+        [RemoteEvent("Players::Smoke::State")]
+        public static void SmokeSetState(Player player, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            Sync.AttachSystem.AttachmentObjectNet attachData = null;
+
+            foreach (var x in pData.AttachedObjects)
+            {
+                if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
+                {
+                    pData.PlayAnim(Animations.FastTypes.SmokeTransitionCig);
+
+                    attachData = x;
+
+                    break;
+                }
+            }
+
+            if (attachData == null)
+                return;
 
             var oppositeType = Game.Items.Cigarette.DependentTypes[attachData.Type];
 
-            await NAPI.Task.RunAsync(() =>
+            NAPI.Task.Run(() =>
             {
                 if (player?.Exists != true)
                     return;
@@ -1737,8 +1287,6 @@ namespace BCRPServer.Sync
                 player.DetachObject(attachData.Id, false);
                 player.AttachObject(attachData.Model, oppositeType);
             }, 500);
-
-            pData.Release();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Game.Items;
+using GTANetworkAPI;
+using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ namespace BCRPServer
 {
     public class PlayerData
     {
-        public static Dictionary<Player, PlayerData> Players { get; private set; } = new Dictionary<Player, PlayerData>();
+        public static Dictionary<Player, PlayerData> All { get; private set; } = new Dictionary<Player, PlayerData>();
 
         /// <summary>Получить PlayerData игрока</summary>
         /// <returns>Объект класса PlayerData если существует, иначе - null</returns>
@@ -19,7 +21,7 @@ namespace BCRPServer
             if (player == null)
                 return null;
 
-            return Players.GetValueOrDefault(player);
+            return All.GetValueOrDefault(player);
         }
 
         /// <summary>Назначить объект класса PlayerData игроку</summary>
@@ -28,27 +30,17 @@ namespace BCRPServer
             if (player == null)
                 return;
 
-            PlayerData existing;
-
-            if (Players.TryGetValue(player, out existing))
-                existing = data;
-            else
-                Players.Add(player, data);
-        }
-
-        public void Remove()
-        {
-            if (Player == null)
-                return;
-
-            Players.Remove(Player);
-
-            Player.ResetData();
+            All.Add(player, data);
         }
 
         public void Delete()
         {
-            this.Semaphore?.Dispose();
+            if (Player == null)
+                return;
+
+            All.Remove(Player);
+
+            Player.ResetData();
         }
 
         #region Enums
@@ -108,75 +100,168 @@ namespace BCRPServer
         #endregion
 
         #region Subclasses
-        public class Prototype
-        {
-            public int CID;
-
-            public string Name;
-
-            public string Surname;
-
-            public DateTime CreationDate { get; set; }
-
-            public DateTime LastJoinDate { get; set; }
-
-            public bool IsOnline { get; set; } = true;
-
-            public int TimePlayed { get; set; } = 0;
-
-            public bool Sex { get; set; } = true;
-
-            public DateTime BirthDate { get; set; }
-
-            public FractionTypes Fraction { get; set; } = FractionTypes.None;
-
-            public int OrganisationID { get; set; } = -1;
-
-            public int Cash { get; set; } = 550;
-
-            public Game.Bank.Account BankAccount { get; set; }
-
-            public List<Punishment> Punishments { get; set; }
-
-            public Prototype() { }
-        }
 
         public class PlayerInfo
         {
+            private static Queue<int> FreeIDs { get; set; } = new Queue<int>();
+
+            public static Dictionary<int, PlayerInfo> All { get; private set; } = new Dictionary<int, PlayerInfo>();
+
+            private static int LastAddedMaxId { get; set; }
+
+            public static int MoveNextId()
+            {
+                int id;
+
+                if (!FreeIDs.TryDequeue(out id))
+                {
+                    id = ++LastAddedMaxId;
+                }
+
+                return id;
+            }
+
+            public static void AddFreeId(int id) => FreeIDs.Enqueue(id);
+
+            public static void AddOnLoad(PlayerInfo pInfo)
+            {
+                if (pInfo == null)
+                    return;
+
+                All.Add(pInfo.CID, pInfo);
+
+                if (pInfo.CID > LastAddedMaxId)
+                    LastAddedMaxId = pInfo.CID;
+            }
+
+            public static void Add(PlayerInfo pInfo)
+            {
+                if (pInfo == null)
+                    return;
+
+                All.Add(pInfo.CID, pInfo);
+
+                MySQL.CharacterAdd(pInfo);
+            }
+
+            public static void Remove(PlayerInfo pInfo)
+            {
+                if (pInfo == null)
+                    return;
+
+                var id = pInfo.CID;
+
+                AddFreeId(id);
+
+                All.Remove(id);
+
+                //MySQL.GiftDelete(pInfo);
+            }
+
+            public static PlayerInfo Get(int id) => All.GetValueOrDefault(id);
+
+            public static List<PlayerInfo> GetAllByAID(int aid) => All.Values.Where(x => x?.AID == aid).ToList();
+
             public int CID { get; set; }
+
+            public int AID { get; set; }
+
+            public DateTime CreationDate { get; set; }
+
+            public int AdminLevel { get; set; }
+
+            public DateTime LastJoinDate { get; set; }
+
+            public bool IsOnline { get; set; }
+
+            public int TimePlayed { get; set; }
 
             public string Name { get; set; }
 
             public string Surname { get; set; }
 
-            public DateTime LastJoinDate { get; set; }
+            public bool Sex { get; set; }
+
+            public DateTime BirthDate { get; set; }
+
+            public List<LicenseTypes> Licenses { get; set; }
 
             public FractionTypes Fraction { get; set; }
 
             public int OrganisationID { get; set; }
 
+            public int Cash { get; set; }
+
+            public Game.Bank.Account BankAccount { get; set; }
+
+            public LastPlayerData LastData { get; set; }
+
+            public List<int> Familiars { get; set; }
+
+            public Dictionary<SkillTypes, int> Skills { get; set; }
+
             public List<Punishment> Punishments { get; set; }
 
-            public PlayerInfo(int CID, string Name, string Surname, DateTime LastJoinDate, FractionTypes Fraction, int OrganisationID, List<Punishment> Punishments)
-            {
-                this.CID = CID;
-                this.Name = Name;
-                this.Surname = Surname;
-                this.LastJoinDate = LastJoinDate;
-                this.Fraction = Fraction;
-                this.OrganisationID = OrganisationID;
+            public List<Game.Items.Gift> Gifts { get; set; }
 
-                this.Punishments = Punishments;
-            }
+
+            public HeadBlend HeadBlend { get; set; }
+
+            public Dictionary<int, HeadOverlay> HeadOverlays { get; set; }
+
+            public float[] FaceFeatures { get; set; }
+
+            public List<Decoration> Decorations { get; set; }
+
+            public Game.Data.Customization.HairStyle HairStyle { get; set; }
+
+            public byte EyeColor { get; set; }
+
+            public List<VehicleData.VehicleInfo> OwnedVehicles { get; set; }
+
+
+            /// <summary>Предметы игрока в карманах</summary>
+            /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
+            public Game.Items.Item[] Items { get; set; }
+
+            /// <summary>Текущая одежда игрока</summary>
+            /// <value>Массив объектов класса Game.Items.Clothes, в котором null - пустой слот. <br/> Индексы: 0 - шапка, 1 - верх, 2 - низ, 3 - штаны, 4 - обувь</value>
+            public Game.Items.Clothes[] Clothes { get; set; }
+
+            /// <summary>Текущие аксессуары игрока</summary>
+            /// <value>Массив объектов класса Game.Items.Clothes, в котором null - пустой слот. <br/> Индексы: 0 - очки, 1 - маска, 2 - серьги, 3 - шея, 4 - часы, 5 - браслет, 6 - кольцо, 7 - перчатки</value>
+            public Game.Items.Clothes[] Accessories { get; set; }
+
+            /// <summary>Текущая сумка игрока</summary>
+            /// <value>Объект класса Game.Items.Bag, null - если отсутствует</value>
+            public Game.Items.Bag Bag { get; set; }
+
+            /// <summary>Текущая кобура игрока</summary>
+            /// <value>Объект класса Game.Items.Holster, null - если отсутствует</value>
+            public Game.Items.Holster Holster { get; set; }
+
+            /// <summary>Текущее оружие игрока (не включает в себя кобуру)</summary>
+            /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>
+            public Game.Items.Weapon[] Weapons { get; set; }
+
+            /// <summary>Текущий бронежилет игрока</summary>
+            /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
+            public Game.Items.Armour Armour { get; set; }
+
+            public PlayerInfo() {}
         }
 
         public class Punishment
         {
             public enum Types
             {
+                /// <summary>Блокировка</summary>
                 Ban = 0,
+                /// <summary>Предупреждение</summary>
                 Warn = 1,
+                /// <summary>Мут</summary>
                 Mute = 2,
+                /// <summary>NonRP тюрьма</summary>
                 NRPPrison = 3
             }
 
@@ -216,23 +301,24 @@ namespace BCRPServer
         public class LastPlayerData
         {
             /// <summary>Последнее измерение</summary>
-            public uint Dimension;
+            public uint Dimension { get; set; }
 
             /// <summary>Последние координаты</summary>
-            public Vector3 Position;
+            public Vector3 Position { get; set; }
 
             /// <summary>Последний поворот</summary>
-            public float Heading;
+            public float Heading { get; set; }
 
             /// <summary>Последнее здоровье</summary>
-            public int Health;
+            public int Health { get; set; }
 
             /// <summary>Время в секундах, наигранное за последнюю сессию</summary>
             /// <remarks>Обнуляется каждый час</remarks>
-            public int SessionTime;
+            public int SessionTime { get; set; }
 
-            /// <summary>Был ли игрок Knocked?</summary>
-            public bool Knocked;
+            public int Satiety { get; set; }
+
+            public int Mood { get; set; }
         }
         #endregion
 
@@ -245,20 +331,20 @@ namespace BCRPServer
         };
 
         /// <summary>Сущность игрока</summary>
-        public Player Player = null;
+        public Player Player { get; set; }
 
         /// <summary>Список наказаний игрока</summary>
-        public List<Punishment> Punishments;
+        public List<Punishment> Punishments { get; set; }
 
         /// <summary>Банковский счёт игрока</summary>
-        public Game.Bank.Account BankAccount;
+        public Game.Bank.Account BankAccount { get; set; }
 
         #region Local Data
         /// <summary>Информация об игроке с момента последнего захода на сервер</summary>
-        public LastPlayerData LastData;
+        public LastPlayerData LastData { get => Info.LastData; set => Info.LastData = value; }
 
         /// <summary>Дата последнего захода игрока на сервер</summary>
-        public DateTime LastJoinDate;
+        public DateTime LastJoinDate { get => Info.LastJoinDate; set => Info.LastJoinDate = value; }
 
         /// <summary>Текущее оружие</summary>
         /// <value>Объект класса Game.Items.Weapon, null - если ничего</value>
@@ -285,14 +371,13 @@ namespace BCRPServer
 
         /// <summary>Знакомые игроки</summary>
         /// <value>Список CID игроков</value>
-        public List<int> Familiars { get; set; }
+        public List<int> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
 
         /// <summary>Сущность, к которой прикреплен игрок</summary>
         public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Player.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { Player.SetData("IsAttachedTo::Entity", value); } }
 
         /// <summary>Транспорт, находящийся в собственности у игрока</summary>
-        /// <value>Список VID</value>
-        public List<int> OwnedVehicles { get; set; }
+        public List<VehicleData.VehicleInfo> OwnedVehicles { get => Info.OwnedVehicles; set => Info.OwnedVehicles = value; }
 
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
@@ -306,58 +391,66 @@ namespace BCRPServer
         /// <value>UID дома, null - если отсутствует</value>
         public int? CurrentHouse { get; set; }
 
+        public int VehicleSlots
+        {
+            get
+            {
+                return Settings.MIN_VEHICLE_SLOTS + 0; // todo
+            }
+        }
+
         #region Customization
-        public HeadBlend HeadBlend { get; set; }
+        public HeadBlend HeadBlend { get => Info.HeadBlend; set => Info.HeadBlend = value; }
 
-        public Dictionary<int, HeadOverlay> HeadOverlays { get; set; }
+        public Dictionary<int, HeadOverlay> HeadOverlays { get => Info.HeadOverlays; set => Info.HeadOverlays = value; }
 
-        public float[] FaceFeatures { get; set; }
+        public float[] FaceFeatures { get => Info.FaceFeatures; set => Info.FaceFeatures = value; }
 
-        public List<Decoration> Decorations { get; set; }
+        public List<Decoration> Decorations { get => Info.Decorations; set => Info.Decorations = value; }
 
-        public Game.Data.Customization.HairStyle HairStyle { get; set; }
+        public Game.Data.Customization.HairStyle HairStyle { get => Info.HairStyle; set => Info.HairStyle = value; }
 
-        public byte EyeColor { get; set; }
+        public byte EyeColor { get => Info.EyeColor; set => Info.EyeColor = value; }
         #endregion
 
         #region Inventory
         /// <summary>Предметы игрока в карманах</summary>
         /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
-        public Game.Items.Item[] Items { get; set; }
+        public Game.Items.Item[] Items { get => Info.Items; set => Info.Items = value; }
 
         /// <summary>Текущая одежда игрока</summary>
         /// <value>Массив объектов класса Game.Items.Clothes, в котором null - пустой слот. <br/> Индексы: 0 - шапка, 1 - верх, 2 - низ, 3 - штаны, 4 - обувь</value>
-        public Game.Items.Clothes[] Clothes { get; set; }
+        public Game.Items.Clothes[] Clothes { get => Info.Clothes; set => Info.Clothes = value; }
 
         /// <summary>Текущие аксессуары игрока</summary>
         /// <value>Массив объектов класса Game.Items.Clothes, в котором null - пустой слот. <br/> Индексы: 0 - очки, 1 - маска, 2 - серьги, 3 - шея, 4 - часы, 5 - браслет, 6 - кольцо, 7 - перчатки</value>
-        public Game.Items.Clothes[] Accessories { get; set; }
+        public Game.Items.Clothes[] Accessories { get => Info.Accessories; set => Info.Accessories = value; }
 
         /// <summary>Текущая сумка игрока</summary>
         /// <value>Объект класса Game.Items.Bag, null - если отсутствует</value>
-        public Game.Items.Bag Bag { get; set; }
+        public Game.Items.Bag Bag { get => Info.Bag; set => Info.Bag = value; }
 
         /// <summary>Текущая кобура игрока</summary>
         /// <value>Объект класса Game.Items.Holster, null - если отсутствует</value>
-        public Game.Items.Holster Holster { get; set; }
+        public Game.Items.Holster Holster { get => Info.Holster; set => Info.Holster = value; }
 
         /// <summary>Текущее оружие игрока (не включает в себя кобуру)</summary>
         /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>
-        public Game.Items.Weapon[] Weapons { get; set; }
+        public Game.Items.Weapon[] Weapons { get => Info.Weapons; set => Info.Weapons = value; }
 
         /// <summary>Текущий бронежилет игрока</summary>
         /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
-        public Game.Items.Armour Armour { get; set; }
+        public Game.Items.Armour Armour { get => Info.Armour; set => Info.Armour = value; }
 
         /// <summary>Текущее оружие игрока (не включает в себя кобуру), которое было временно снято сервером</summary>
         /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>
         public Game.Items.Weapon[] TempWeapons { get; set; }
         #endregion
 
-        public List<Game.Items.Gift> Gifts { get; set; }
+        public List<Game.Items.Gift> Gifts { get => Info.Gifts; set => Info.Gifts = value; }
 
         /// <summary>Активное предложение игрока</summary>
-        public Task<Sync.Offers.Offer> ActiveOffer { get => Sync.Offers.Offer.GetAsync(this); }
+        public Sync.Offers.Offer ActiveOffer { get => Sync.Offers.Offer.Get(this); }
 
         /// <summary>Список игроков, которые являются слушателями (микрофон)</summary>
         public List<Player> Listeners { get; set; }
@@ -367,27 +460,27 @@ namespace BCRPServer
 
         /// <summary>Наигранное время игрока</summary>
         /// <value>Кол-во минут</value>
-        public int TimePlayed { get; set; }
+        public int TimePlayed { get => Info.TimePlayed; set => Info.TimePlayed = value; }
 
         /// <summary>Дата создания игрока</summary>
-        public DateTime CreationDate { get; set; }
+        public DateTime CreationDate { get => Info.CreationDate; set => Info.CreationDate = value; }
 
         /// <summary>Дата рождения игрока</summary>
-        public DateTime BirthDate { get; set; }
+        public DateTime BirthDate { get => Info.BirthDate; set => Info.BirthDate = value; }
 
         /// <summary>Имя игрока</summary>
-        public string Name { get; set; }
+        public string Name { get => Info.Name; set => Info.Name = value; }
 
         /// <summary>Фамилия игрока</summary>
-        public string Surname { get; set; }
+        public string Surname { get => Info.Surname; set => Info.Surname = value; }
 
         /// <summary>Навыки игрока</summary>
         /// <value>Словарь, где ключ - enum SkilType, а значение - от 0 до 100</value>
-        public Dictionary<SkillTypes, int> Skills { get; set; }
+        public Dictionary<SkillTypes, int> Skills { get => Info.Skills; set => Info.Skills = value; }
 
         /// <summary>Лицензии игрока</summary>
         /// <value>Список enum LicenseType</value>
-        public List<LicenseTypes> Licenses { get; set; }
+        public List<LicenseTypes> Licenses { get => Info.Licenses; set => Info.Licenses = value; }
 
         public void AddFamiliar(PlayerData tData)
         {
@@ -396,12 +489,12 @@ namespace BCRPServer
 
             if (!Familiars.Contains(tCid)) ;
             {
-                Player?.TriggerEvent("Player::Familiars::Update", true, tCid);
+                Player.TriggerEvent("Player::Familiars::Update", true, tCid);
             }
 
             if (!tData.Familiars.Contains(pCid))
             {
-                tData.Player?.TriggerEvent("Player::Familiars::Update", true, pCid);
+                tData.Player.TriggerEvent("Player::Familiars::Update", true, pCid);
             }
         }
 
@@ -412,34 +505,34 @@ namespace BCRPServer
 
             if (Familiars.Remove(tCid)) ;
             {
-                Player?.TriggerEvent("Player::Familiars::Update", false, tCid);
+                Player.TriggerEvent("Player::Familiars::Update", false, tCid);
             }
 
             if (tData.Familiars.Remove(pCid))
             {
-                tData.Player?.TriggerEvent("Player::Familiars::Update", false, pCid);
+                tData.Player.TriggerEvent("Player::Familiars::Update", false, pCid);
             }
         }
 
-        public async Task AddLicense(LicenseTypes lType)
+        public void AddLicense(LicenseTypes lType)
         {
             if (Licenses.Contains(lType))
                 return;
 
             Licenses.Add(lType);
 
-            await NAPI.Task.RunAsync(() => Player?.TriggerEvent("Player::Licenses::Update", true, lType));
+            Player.TriggerEvent("Player::Licenses::Update", true, lType);
         }
 
-        public async Task RemoveLicense(LicenseTypes lType)
+        public void RemoveLicense(LicenseTypes lType)
         {
             if (!Licenses.Remove(lType))
                 return;
 
-            await NAPI.Task.RunAsync(() => Player?.TriggerEvent("Player::Licenses::Update", false, lType));
+            Player.TriggerEvent("Player::Licenses::Update", false, lType);
         }
 
-        public async Task UpdateSkill(SkillTypes sType, int updValue)
+        public void UpdateSkill(SkillTypes sType, int updValue)
         {
             updValue = Skills[sType] + updValue;
 
@@ -450,7 +543,7 @@ namespace BCRPServer
 
             Skills[sType] = updValue;
 
-            await NAPI.Task.RunAsync(() => Player?.TriggerEvent("Player::Skills::Update", sType, updValue));
+            Player.TriggerEvent("Player::Skills::Update", sType, updValue);
         }
         #endregion
 
@@ -458,24 +551,24 @@ namespace BCRPServer
         /// <summary>Сытость игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>От 0 до 100</value>
-        public int Satiety { get => Player.GetOwnSharedData<int>("Satiety"); set { Player.SetOwnSharedData("Satiety", value); } }
+        public int Satiety { get => Info.LastData.Satiety; set { Player.SetOwnSharedData("Satiety", value); Info.LastData.Satiety = value; } }
 
         /// <summary>Настроение игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>От 0 до 100</value>
-        public int Mood { get => Player.GetOwnSharedData<int>("Mood"); set { Player.SetOwnSharedData("Mood", value); } }
+        public int Mood { get => Info.LastData.Mood; set { Player.SetOwnSharedData("Mood", value); Info.LastData.Mood = value; } }
 
         public int BankBalance { get => Player.GetOwnSharedData<int>("BankBalance"); set { Player.SetOwnSharedData("BankBalance", value); } }
 
         /// <summary>Наличные игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Кол-во наличных средств</value>
-        public int Cash { get => Player.GetOwnSharedData<int>("Cash"); set { Player.SetOwnSharedData("Cash", value); } }
+        public int Cash { get => Info.Cash; set { Player.SetOwnSharedData("Cash", value); Info.Cash = value; } }
 
         /// <summary>Организация игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>ID организации, -1 - если отсутствует</value>
-        public int OrganisationID { get => Player.GetOwnSharedData<int>("OrganisationID"); set { Player.SetOwnSharedData("OrganisationID", value); } }
+        public int OrganisationID { get => Info.OrganisationID; set { Player.SetOwnSharedData("OrganisationID", value); Info.OrganisationID = value; } }
 
         /// <summary>Пристёгнут ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -498,30 +591,21 @@ namespace BCRPServer
         /// <param name="value">Кол-во (- или +)</param>
         /// <param name="notify">Уведомить ли игрока?</param>
         /// <returns>true, если операция успешна, false - в противном случае</returns>
-        public async ValueTask<bool> AddCash(int value, bool notify = true)
+        public bool AddCash(int value, bool notify = true)
         {
-            if (!await NAPI.Task.RunAsync(() =>
+            var oldValue = Cash;
+
+            if (oldValue + value < 0)
             {
-                if (Player?.Exists != true)
-                    return false;
+                if (notify)
+                    Player.Notify("Cash::NotEnough", oldValue);
 
-                var oldValue = Cash;
-
-                if (oldValue + value < 0)
-                {
-                    if (notify)
-                        Player.Notify("Cash::NotEnough", oldValue);
-
-                    return false;
-                }
-
-                Cash = oldValue + value;
-
-                return true;
-            }))
                 return false;
+            }
 
-            await Task.Run(() => MySQL.SaveCharacter(this, true));
+            Cash = oldValue + value;
+
+            MySQL.CharacterUpdateCash(this.Info);
 
             return true;
         }
@@ -533,17 +617,17 @@ namespace BCRPServer
         /// <summary>CID игрока</summary>
         /// <remarks>Т.к. может использоваться для сохранения данных в БД, set - в основном потоке, get - в любом</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public int CID { get => Info.CID; set { Player.SetSharedData("CID", value); } }
+        public int CID { get => Info.CID; set { Player.SetSharedData("CID", value); Info.CID = value; } }
 
         /// <summary>Пол игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>true - мужчина, false - женщина</value>
-        public bool Sex { get => Player.GetSharedData<bool>("Sex"); set { Player.SetSharedData("Sex", value); Player.SetSkin(value ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01); } }
+        public bool Sex { get => Info.Sex; set { Player.SetSharedData("Sex", value); Player.SetSkin(value ? PedHash.FreemodeMale01 : PedHash.FreemodeFemale01); Info.Sex = value; } }
 
         /// <summary>Фракция игрока</summary>
         /// <remarks>Также вызывает событие Players::SetFraction на клиенте игроков в зоне стрима</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public FractionTypes Fraction { get => (FractionTypes)Player.GetSharedData<int>("Fraction"); set { Player.SetSharedData("Fraction", value); } }
+        public FractionTypes Fraction { get => Info.Fraction; set { Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
 
         /// <summary>В маске ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -576,7 +660,7 @@ namespace BCRPServer
 
         /// <summary>Уровень администратора игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public int AdminLevel { get => Player.GetSharedData<int>("AdminLevel"); set { Player.SetSharedData("AdminLevel", value); } }
+        public int AdminLevel { get => Info.AdminLevel; set { Player.SetSharedData("AdminLevel", value); Info.AdminLevel = value; } }
 
         /// <summary>Место в транспорте, на котором сидит игрок</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -643,14 +727,19 @@ namespace BCRPServer
             }
         }
 
-        public SemaphoreSlim Semaphore { get; set; }
+        public bool BlockRemoteCalls { get; set; }
+
+        public byte SpamCounter { get; set; }
+
+        public AccountData AccountData { get; set; }
         #endregion
 
         public PlayerData(Player Player)
         {
             this.Player = Player;
 
-            Semaphore = new SemaphoreSlim(1, 1);
+            BlockRemoteCalls = false;
+            SpamCounter = 0;
 
             FastAnim = Sync.Animations.FastTypes.None;
             GeneralAnim = Sync.Animations.GeneralTypes.None;
@@ -693,10 +782,37 @@ namespace BCRPServer
             Player.SetData(Sync.AttachSystem.AttachedObjectsCancelsKey, new Dictionary<int, CancellationTokenSource>());
 
             IsInvalid = false;
+
+            Player.SetData("CharacterNotReady", true);
         }
 
-        public void New(string name, string surname, int age, bool sex, HeadBlend hBlend, Dictionary<int, HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle)
+        public PlayerData(Player Player, PlayerInfo Info) : this(Player)
         {
+            this.Info = Info;
+
+            CID = Info.CID;
+
+            Sex = Info.Sex;
+
+            AdminLevel = Info.AdminLevel;
+            Fraction = Info.Fraction;
+            OrganisationID = Info.OrganisationID;
+
+            Cash = Info.Cash;
+            Satiety = Info.LastData.Satiety;
+            Mood = Info.LastData.Mood;
+
+            LastJoinDate = Utils.GetCurrentTime();
+
+            Info.IsOnline = true;
+        }
+
+        public PlayerData(Player Player, string name, string surname, int age, bool sex, HeadBlend hBlend, Dictionary<int, HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
+        {
+            Info = new PlayerInfo();
+
+            CID = PlayerInfo.MoveNextId();
+
             Name = name;
             Surname = surname;
             BirthDate = Utils.GetCurrentTime().Subtract(new TimeSpan(365 * age, 0, 0, 0, 0));
@@ -710,7 +826,7 @@ namespace BCRPServer
             CreationDate = LastJoinDate;
             TimePlayed = 0;
 
-            OwnedVehicles = new List<int>();
+            OwnedVehicles = new List<VehicleData.VehicleInfo>();
 
             Cash = Settings.CHARACTER_DEFAULT_MONEY_CASH;
             Satiety = Settings.CHARACTER_DEFAULT_SATIETY;
@@ -719,7 +835,7 @@ namespace BCRPServer
             Skills = Settings.CHARACTER_DEFAULT_SKILLS;
             Licenses = Settings.CHARACTER_DEFAULT_LICENSES;
 
-            LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = Utils.DefaultSpawnPosition, Heading = Utils.DefaultSpawnHeading, Health = 100 };
+            LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = Utils.DefaultSpawnPosition, Heading = Utils.DefaultSpawnHeading, Health = 100, SessionTime = 0, Mood = Mood, Satiety = Satiety };
 
             Gifts = new List<Game.Items.Gift>();
 
@@ -730,8 +846,8 @@ namespace BCRPServer
             HairStyle = hStyle;
             Decorations = new List<Decoration>();
 
-            Items = new Game.Items.Item[20]; 
-            Clothes = new Game.Items.Clothes[5];
+            Items = new Game.Items.Item[20];
+            Clothes = clothes;
             Accessories = new Game.Items.Clothes[8];
             Weapons = new Game.Items.Weapon[2];
             Bag = null;
@@ -741,78 +857,61 @@ namespace BCRPServer
             Familiars = new List<int>();
 
             Punishments = new List<Punishment>();
+
+            Info.IsOnline = true;
         }
 
         /// <summary>Метод обозначает готовность персонажа к игре</summary>
-        public async Task SetReady()
+        public void SetReady()
         {
-            if (!await this.WaitAsync())
-                return;
+            Player.Name = Name + " " + Surname;
 
-            var res = await NAPI.Task.RunAsync(() =>
+            UpdateCustomization();
+            UpdateClothes();
+
+            Player.TriggerEvent("Players::CloseAuth");
+
+            foreach (var vInfo in OwnedVehicles)
+                vInfo.Spawn();
+
+            string[] inventory = new string[7];
+
+            inventory[0] = Weapons.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Weapons)).SerializeToJson();
+            inventory[1] = Game.Items.Item.ToClientJson(Armour, CEF.Inventory.Groups.Armour);
+            inventory[2] = Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Items)).SerializeToJson();
+            inventory[3] = Clothes.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Clothes)).SerializeToJson();
+            inventory[4] = Accessories.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Accessories)).SerializeToJson();
+            inventory[5] = Game.Items.Item.ToClientJson(Bag, CEF.Inventory.Groups.BagItem);
+            inventory[6] = Game.Items.Item.ToClientJson(Holster, CEF.Inventory.Groups.HolsterItem);
+
+            var licenses = Licenses.SerializeToJson();
+            var skills = Skills.SerializeToJson();
+
+            var info = ((TimePlayed, CreationDate, BirthDate)).SerializeToJson();
+
+            var vehicles = OwnedVehicles.Select(x => (x.VID, x.ID)).SerializeToJson();
+
+            var gifts = Gifts.Select(x => (x.ID, (int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson();
+
+            NAPI.Task.Run(() =>
             {
                 if (Player?.Exists != true)
-                    return false;
+                    return;
 
-                Player.Name = Name + " " + Surname;
+                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, Game.Businesses.Business.AllNames, Familiars, licenses, skills, inventory, info, vehicles, gifts);
 
-                UpdateCustomization();
-                UpdateClothes();
+                Player.SetAlpha(255);
 
-                Player.TriggerEvent("Players::CloseAuth");
+                Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                return true;
-            });
+                Player.Heading = LastData.Heading;
 
-            if (!res)
-                return;
+                Player.Teleport(LastData.Position, true);
 
-            await Task.Run(async () =>
-            {
-                foreach (var vid in OwnedVehicles)
-                    await VehicleData.Load(vid);
+                Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
 
-                string[] inventory = new string[7];
-
-                inventory[0] = Weapons.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Weapons)).SerializeToJson();
-                inventory[1] = Game.Items.Item.ToClientJson(Armour, CEF.Inventory.Groups.Armour);
-                inventory[2] = Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Items)).SerializeToJson();
-                inventory[3] = Clothes.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Clothes)).SerializeToJson();
-                inventory[4] = Accessories.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Accessories)).SerializeToJson();
-                inventory[5] = Game.Items.Item.ToClientJson(Bag, CEF.Inventory.Groups.BagItem);
-                inventory[6] = Game.Items.Item.ToClientJson(Holster, CEF.Inventory.Groups.HolsterItem);
-
-                var licenses = Licenses.SerializeToJson();
-                var skills = Skills.SerializeToJson();
-
-                var info = ((TimePlayed, CreationDate, BirthDate)).SerializeToJson();
-
-                var vehicles = (await NAPI.Task.RunAsync(() => OwnedVehicles.Select(x => Utils.FindVehicleOnline(x)?.ID))).SerializeToJson();
-
-                var gifts = Gifts.Select(x => (x.ID, (int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson();
-
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (Player?.Exists != true)
-                        return;
-
-                    Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, Game.Businesses.Business.AllNames, Familiars, licenses, skills, inventory, info, vehicles, gifts);
-
-                    Player.SetAlpha(255);
-
-                    Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
-
-                    Player.Heading = LastData.Heading;
-
-                    Player.Teleport(LastData.Position, true);
-
-                    Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
-
-                    Player.TriggerEvent("FadeScreen", false);
-                }, 1000);
-            });
-
-            this.Release();
+                Player.TriggerEvent("FadeScreen", false);
+            }, 1000);
         }
 
         /// <summary>Метод раздевает игрока и надевает всю текущую одежду</summary>

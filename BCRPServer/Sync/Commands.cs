@@ -54,7 +54,7 @@ namespace BCRPServer.Sync
 
         #region Vehicles
         [RemoteEvent("Cmd::Vehicle::Temp")]
-        private static async Task TempVehicle(Player player, int pid, string id)
+        private static void TempVehicle(Player player, int pid, string id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -63,25 +63,23 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Vehicle::Temp"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var vType = Game.Data.Vehicles.GetData(id);
+
+            if (vType == null)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::IdNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Vehicle::Temp"))
-                    return;
+                return;
+            }
 
-                if (!Game.Data.Vehicles.All.ContainsKey(id))
-                {
-                    player.Notify("Cmd::IdNotFound");
+            var tData = pData;
 
-                    return;
-                }
-
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            if (pData.CID != pid && player.Id != pid)
+            {
+                tData = Utils.FindReadyPlayerOnline(pid);
 
                 if (tData == null || tData.Player?.Exists != true)
                 {
@@ -89,40 +87,16 @@ namespace BCRPServer.Sync
 
                     return;
                 }
+            }
 
-                var target = tData.Player;
+            var vData = VehicleData.NewTemp(tData, vType, DefColour, DefColour, tData.Player.Position, tData.Player.Heading, tData.Player.Dimension);
 
-                bool otherPlayer = false;
-
-                var pos = target.Position;
-                var rot = target.Rotation;
-                var dim = target.Dimension;
-
-                if (tData.CID != pData.CID)
-                {
-                    otherPlayer = true;
-
-                    if (!await tData.WaitAsync())
-                        return;
-                }
-
-                await Task.Run(async () =>
-                {
-                    var vData = await VehicleData.NewTemp(tData, id, DefColour, pos, rot, dim);
-
-                    if (vData == null)
-                        return;
-                });
-
-                if (otherPlayer)
-                    tData.Release();
-            });
-
-            pData.Release();
+            if (vData == null)
+                return;
         }
 
         [RemoteEvent("Cmd::Vehicle")]
-        private static async Task Vehicle(Player player, int pid, string id)
+        private static void Vehicle(Player player, int pid, string id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -131,25 +105,23 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Vehicle"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var vType = Game.Data.Vehicles.GetData(id);
+
+            if (vType == null)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::IdNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Vehicle"))
-                    return;
+                return;
+            }
 
-                if (!Game.Data.Vehicles.All.ContainsKey(id))
-                {
-                    player.Notify("Cmd::IdNotFound");
+            var tData = pData;
 
-                    return;
-                }
-
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            if (pData.CID != pid && player.Id != pid)
+            {
+                tData = Utils.FindReadyPlayerOnline(pid);
 
                 if (tData == null || tData.Player?.Exists != true)
                 {
@@ -157,41 +129,16 @@ namespace BCRPServer.Sync
 
                     return;
                 }
+            }
 
-                var target = tData.Player;
+            var vData = VehicleData.New(tData, vType, DefColour, DefColour, tData.Player.Position, tData.Player.Heading, tData.Player.Dimension, true);
 
-                bool otherPlayer = false;
-
-                var pos = target.Position;
-                var rot = target.Rotation;
-                var dim = target.Dimension;
-
-
-                if (tData.CID != pData.CID)
-                {
-                    otherPlayer = true;
-
-                    if (!await tData.WaitAsync())
-                        return;
-                }
-
-                await Task.Run(async () =>
-                {
-                    var vData = await VehicleData.New(tData, id, DefColour, pos, rot, dim);
-
-                    if (vData == null)
-                        return;
-                });
-
-                if (otherPlayer)
-                    tData.Release();
-            });
-
-            pData.Release();
+            if (vData == null)
+                return;
         }
 
         [RemoteEvent("Cmd::Vehicle::Delete")]
-        private static async Task VehicleDelete(Player player, int vid, bool completely)
+        private static void VehicleDelete(Player player, int vid, bool completely)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -200,37 +147,23 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Vehicle::Delete"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var vData = Utils.FindVehicleOnline(vid);
+
+            if (vData == null || vData.Vehicle?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Vehicle::Delete"))
-                    return;
+                return;
+            }
 
-                var vData = Utils.FindVehicleOnline(vid);
-
-                if (vData == null || vData.Vehicle?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                await Task.Run(() =>
-                {
-                    vData.Delete(false);
-                });
-            });
-
-            pData.Release();
+            vData.Delete(false);
         }
 
         [RemoteEvent("Cmd::Vehicle::Respawn")]
-        private static async Task VehicleRespawn(Player player, int vid)
+        private static void VehicleRespawn(Player player, int vid)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -239,39 +172,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Vehicle::Respawn"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var vData = Utils.FindVehicleOnline(vid);
+
+            if (vData == null || vData.Vehicle?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Vehicle::Respawn"))
-                    return;
+                return;
+            }
 
-                var vData = Utils.FindVehicleOnline(vid);
-
-                if (vData == null || vData.Vehicle?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                await Task.Run(() =>
-                {
-                    vData.Respawn();
-                });
-            });
-
-            pData.Release();
+            vData.Respawn();
         }
         #endregion
 
         #region Weapon
         [RemoteEvent("Cmd::Weapon::Temp")]
-        private static async Task GiveTempWeapon(Player player, int pid, string id, int ammo)
+        private static void GiveTempWeapon(Player player, int pid, string id, int ammo)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -280,52 +199,27 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Weapon::Temp"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::IdNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Weapon::Temp"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            var target = tData.Player;
 
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::IdNotFound");
-
-                    return;
-                }
-
-
-                var target = tData.Player;
-
-                bool otherPlayer = false;
-
-                if (tData.CID != pData.CID)
-                {
-                    otherPlayer = true;
-
-                    if (!await tData.WaitAsync())
-                        return;
-                }
-
-                await Game.Items.Items.GiveItem(pData, id, 0, ammo, true);
-
-                if (otherPlayer)
-                    tData.Release();
-            });
-
-            pData.Release();
+            Game.Items.Items.GiveItem(pData, id, 0, ammo, true);
         }
         #endregion
 
         #region Items
         [RemoteEvent("Cmd::Item::Temp")]
-        private static async Task GiveTempItem(Player player, int pid, string id, int amount, int variation)
+        private static void GiveTempItem(Player player, int pid, string id, int amount, int variation)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -334,49 +228,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Item::Temp"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (Game.Items.Items.GetType(id) == null)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::IdNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Item::Temp"))
-                    return;
+                return;
+            }
 
-                if (Game.Items.Items.GetType(id) == null)
-                {
-                    player.Notify("Cmd::IdNotFound");
+            var tData = Utils.FindReadyPlayerOnline(pid);
 
-                    return;
-                }
+            var target = tData.Player;
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
-
-                var target = tData.Player;
-
-                bool otherPlayer = false;
-
-                if (tData.CID != pData.CID)
-                {
-                    otherPlayer = true;
-
-                    if (!await tData.WaitAsync())
-                        return;
-                }
-
-                await Game.Items.Items.GiveItem(pData, id, variation, amount, true);
-
-                if (otherPlayer)
-                    tData.Release();
-            });
-
-            pData.Release();
+            Game.Items.Items.GiveItem(pData, id, variation, amount, true);
         }
 
         [RemoteEvent("Cmd::Item")]
-        private static async Task GIveItem(Player player, int pid, string id, int amount, int variation)
+        private static void GIveItem(Player player, int pid, string id, int amount, int variation)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -385,49 +255,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Item::Temp"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (Game.Items.Items.GetType(id) == null)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::IdNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Item::Temp"))
-                    return;
+                return;
+            }
 
-                if (Game.Items.Items.GetType(id) == null)
-                {
-                    player.Notify("Cmd::IdNotFound");
+            var tData = Utils.FindReadyPlayerOnline(pid);
 
-                    return;
-                }
+            var target = tData.Player;
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
-
-                var target = tData.Player;
-
-                bool otherPlayer = false;
-
-                if (tData.CID != pData.CID)
-                {
-                    otherPlayer = true;
-
-                    if (!await tData.WaitAsync())
-                        return;
-                }
-
-                await Game.Items.Items.GiveItem(pData, id, variation, amount, false);
-
-                if (otherPlayer)
-                    tData.Release();
-            });
-
-            pData.Release();
+            Game.Items.Items.GiveItem(pData, id, variation, amount, false);
         }
 
         [RemoteEvent("Cmd::Item::Info")]
-        private static async Task ItemInfo(Player player, string id)
+        private static void ItemInfo(Player player, string id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -436,36 +282,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Item::Info"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var iClass = Game.Items.Items.GetType(id);
+
+            if (iClass == null)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::IdNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Item::Info"))
-                    return;
+                return;
+            }
 
-                var iClass = Game.Items.Items.GetType(id);
+            string interfaces = string.Join(", ", iClass.GetInterfaces().Select(x => x.Name));
 
-                if (iClass == null)
-                {
-                    player.Notify("Cmd::IdNotFound");
-
-                    return;
-                }
-
-                string interfaces = string.Join(", ", iClass.GetInterfaces().Select(x => x.Name));
-
-                player.TriggerEvent("Item::Info", id, iClass.BaseType.Name, iClass.Name, interfaces);
-            });
-
-            pData.Release();
+            player.TriggerEvent("Item::Info", id, iClass.BaseType.Name, iClass.Name, interfaces);
         }
 
         [RemoteEvent("Cmd::Items::Clear")]
-        private static async Task ClearItems(Player player, int delay)
+        private static void ClearItems(Player player, int delay)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -474,35 +309,24 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Items::Clear"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (delay > 60)
+                delay = 60;
+            else if (delay < 0)
             {
-                if (player?.Exists != true)
-                    return;
+                Game.World.ClearAllItemsCancel();
 
-                if (!IsAllowed(pData, "Cmd::Items::Clear"))
-                    return;
+                return;
+            }
 
-                if (delay > 60)
-                    delay = 60;
-                else if (delay < 0)
-                {
-                    Game.World.ClearAllItemsCancel();
-
-                    return;
-                }
-
-                Game.World.ClearAllItems(delay);
-            });
-
-            pData.Release();
+            Game.World.ClearAllItems(delay);
         }
         #endregion
 
         [RemoteEvent("Cmd::TP::Pos")]
-        private static async Task TeleportPosition(Player player, float x, float y, float z, bool toGround)
+        private static void TeleportPosition(Player player, float x, float y, float z, bool toGround)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -511,25 +335,14 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::TP::Pos"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                if (!IsAllowed(pData, "Cmd::TP::Pos"))
-                    return;
-
-                player.Teleport(new Vector3(x, y, z), toGround);
-            });
-
-            pData.Release();
+            player.Teleport(new Vector3(x, y, z), toGround);
         }
 
         [RemoteEvent("Cmd::TP::To")]
-        private static async Task TeleportTo(Player player, int pid)
+        private static void TeleportTo(Player player, int pid)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -538,36 +351,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::TP::To"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::TP::To"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            var target = tData.Player;
 
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                var target = tData.Player;
-
-                player.Teleport(target.Position, false, target.Dimension);
-            });
-
-            pData.Release();
+            player.Teleport(target.Position, false, target.Dimension);
         }
 
         [RemoteEvent("Cmd::TP::To::Veh")]
-        private static async Task TeleportToVeh(Player player, int vid)
+        private static void TeleportToVeh(Player player, int vid)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -576,36 +378,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::TP::To::Veh"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var vData = Utils.FindVehicleOnline(vid);
+
+            if (vData == null || vData.Vehicle?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::TP::To::Veh"))
-                    return;
+                return;
+            }
 
-                var vData = Utils.FindVehicleOnline(vid);
+            var target = vData.Vehicle;
 
-                if (vData == null || vData.Vehicle?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                var target = vData.Vehicle;
-
-                player.Teleport(target.Position, false, target.Dimension);
-            });
-
-            pData.Release();
+            player.Teleport(target.Position, false, target.Dimension);
         }
 
         [RemoteEvent("Cmd::TP::Get")]
-        private static async Task TeleportGetHere(Player player, int pid)
+        private static void TeleportGetHere(Player player, int pid)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -614,36 +405,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::TP::Get"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::TP::Get"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            var target = tData.Player;
 
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                var target = tData.Player;
-
-                target.Teleport(player.Position, false, player.Dimension);
-            });
-
-            pData.Release();
+            target.Teleport(player.Position, false, player.Dimension);
         }
 
         [RemoteEvent("Cmd::TP::Get::Veh")]
-        private static async Task TeleportGetHereVeh(Player player, int vid)
+        private static void TeleportGetHereVeh(Player player, int vid)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -652,37 +432,26 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::TP::Get::Veh"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var vData = Utils.FindVehicleOnline(vid);
+
+            if (vData == null || vData.Vehicle?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::TP::Get::Veh"))
-                    return;
+                return;
+            }
 
-                var vData = Utils.FindVehicleOnline(vid);
+            var target = vData.Vehicle;
 
-                if (vData == null || vData.Vehicle?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                var target = vData.Vehicle;
-
-                target.Position = player.Position;
-                target.Dimension = player.Dimension;
-            });
-
-            pData.Release();
+            target.Position = player.Position;
+            target.Dimension = player.Dimension;
         }
 
         [RemoteEvent("Cmd::TP::Dim")]
-        private static async Task SetDimension(Player player, int pid, uint dimension)
+        private static void SetDimension(Player player, int pid, uint dimension)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -691,36 +460,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::TP::Dim"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::TP::Dim"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            var target = tData.Player;
 
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                var target = tData.Player;
-
-                target.Teleport(null, false, dimension);
-            });
-
-            pData.Release();
+            target.Teleport(null, false, dimension);
         }
 
         [RemoteEvent("Cmd::Invis")]
-        private static async Task Invisibility(Player player, bool toggle, bool state)
+        private static void Invisibility(Player player, bool toggle, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -729,35 +487,24 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Invis"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (toggle)
             {
-                if (player?.Exists != true)
-                    return;
-
-                if (!IsAllowed(pData, "Cmd::Invis"))
-                    return;
-
-                if (toggle)
-                {
-                    if (player.Transparency == 0)
-                        player.SetAlpha(255);
-                    else
-                        player.SetAlpha(0);
-                }
+                if (player.Transparency == 0)
+                    player.SetAlpha(255);
                 else
-                    player.SetAlpha(state ? 0 : 255);
+                    player.SetAlpha(0);
+            }
+            else
+                player.SetAlpha(state ? 0 : 255);
 
-                pData.IsInvisible = player.Transparency == 0;
-            });
-
-            pData.Release();
+            pData.IsInvisible = player.Transparency == 0;
         }
 
         [RemoteEvent("Cmd::GM")]
-        private static async Task GodMode(Player player, bool toggle, bool state)
+        private static void GodMode(Player player, bool toggle, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -766,16 +513,10 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
-
-
-            pData.Release();
         }
 
         [RemoteEvent("Cmd::Clothes")]
-        private static async Task SetClothes(Player player, int slot, int drawable, int texture, bool clothes)
+        private static void SetClothes(Player player, int slot, int drawable, int texture, bool clothes)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -784,33 +525,22 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Clothes"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (slot == -1)
+                pData.UpdateClothes();
+            else
             {
-                if (player?.Exists != true)
-                    return;
-
-                if (!IsAllowed(pData, "Cmd::Clothes"))
-                    return;
-
-                if (slot == -1)
-                    player.GetMainData()?.UpdateClothes();
+                if (clothes)
+                    player.SetClothes(slot, drawable, texture);
                 else
-                {
-                    if (clothes)
-                        player.SetClothes(slot, drawable, texture);
-                    else
-                        player.SetAccessories(slot, drawable, texture);
-                }
-            });
-
-            pData.Release();
+                    player.SetAccessories(slot, drawable, texture);
+            }
         }
 
         [RemoteEvent("Cmd::Health")]
-        private static async Task SetHealth(Player player, int pid, int value)
+        private static void SetHealth(Player player, int pid, int value)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -819,41 +549,30 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
             if (value < 0)
                 value = 0;
             else if (value > 100)
                 value = 100;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (!IsAllowed(pData, "Cmd::Health"))
+                return;
+
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Health"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
+            var target = tData.Player;
 
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                var target = tData.Player;
-
-                target.SetHealth(value);
-            });
-
-            pData.Release();
+            target.SetHealth(value);
         }
 
         [RemoteEvent("Cmd::Mood")]
-        private static async Task Mood(Player player, int pid, int value)
+        private static void Mood(Player player, int pid, int value)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -862,39 +581,28 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
-                return;
-
             if (value < 0)
                 value = 0;
             else if (value > 100)
                 value = 100;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (!IsAllowed(pData, "Cmd::Mood"))
+                return;
+
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Mood"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
-
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                tData.Mood = value;
-            });
-
-            pData.Release();
+            tData.Mood = value;
         }
 
         [RemoteEvent("Cmd::Satiety")]
-        private static async Task Satiety(Player player, int pid, int value)
+        private static void Satiety(Player player, int pid, int value)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -902,40 +610,29 @@ namespace BCRPServer.Sync
                 return;
 
             var pData = sRes.Data;
-
-            if (!await pData.WaitAsync())
-                return;
 
             if (value < 0)
                 value = 0;
             else if (value > 100)
                 value = 100;
 
-            await NAPI.Task.RunAsync(async () =>
+            if (!IsAllowed(pData, "Cmd::Satiety"))
+                return;
+
+            var tData = Utils.FindReadyPlayerOnline(pid);
+
+            if (tData == null || tData.Player?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Satiety"))
-                    return;
+                return;
+            }
 
-                var tData = Utils.FindReadyPlayerOnline(pid);
-
-                if (tData == null || tData.Player?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                tData.Satiety = value;
-            });
-
-            pData.Release();
+            tData.Satiety = value;
         }
 
         [RemoteEvent("Cmd::Kick")]
-        private static async Task Kick(Player player, int pid, string reason, bool silent)
+        private static void Kick(Player player, int pid, string reason, bool silent)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -944,41 +641,30 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Kick"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var target = Utils.FindPlayerOnline(pid);
+
+            if (target?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
+                return;
+            }
 
-                if (!IsAllowed(pData, "Cmd::Kick"))
-                    return;
+            var tData = target.GetMainData();
 
-                var target = Utils.FindPlayerOnline(pid);
+            if (!silent)
+                Chat.SendGlobal(Chat.Types.Kick, player, reason, target.Name + $" ({target.Id})");
+            else
+                Utils.MsgToAdmins(string.Format(Locale.Chat.Admin.SilentKick, player.Name + $" #{pData.CID})", target.Name + $" ({target.Id})", reason));
 
-                if (target?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-                    return;
-                }
-
-                var tData = target.GetMainData();
-
-                if (!silent)
-                    Chat.SendGlobal(Chat.Type.Kick, player, reason, target.Name + $" ({target.Id})");
-                else
-                    Utils.MsgToAdmins(string.Format(Locale.Chat.Admin.SilentKick, player.Name + $" #{pData.CID})", target.Name + $" ({target.Id})", reason));
-
-                Utils.Kick(target, player.Name + $" #{pData.CID})", reason);
-            });
-
-            pData.Release();
+            Utils.Kick(target, player.Name + $" #{pData.CID})", reason);
         }
 
         #region Freeze
         [RemoteEvent("Cmd::Freeze")]
-        private static async Task Freeze(Player player, int pid, bool state)
+        private static void Freeze(Player player, int pid, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -987,36 +673,25 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (!IsAllowed(pData, "Cmd::Freeze"))
                 return;
 
-            await NAPI.Task.RunAsync(async () =>
+            var target = Utils.FindPlayerOnline(pid);
+
+            if (target?.Exists != true)
             {
-                if (player?.Exists != true)
-                    return;
+                player.Notify("Cmd::TargetNotFound");
 
-                if (!IsAllowed(pData, "Cmd::Freeze"))
-                    return;
+                return;
+            }
 
-                var target = Utils.FindPlayerOnline(pid);
+            if (state)
+            {
+                if (target.Vehicle != null)
+                    target.WarpOutOfVehicle();
+            }
 
-                if (target?.Exists != true)
-                {
-                    player.Notify("Cmd::TargetNotFound");
-
-                    return;
-                }
-
-                if (state)
-                {
-                    if (target.Vehicle != null)
-                        target.WarpOutOfVehicle();
-                }
-
-                target.TriggerEvent("Players::Freeze", state, pData.CID);
-            });
-
-            pData.Release();
+            target.TriggerEvent("Players::Freeze", state, pData.CID);
         }
         #endregion
     }

@@ -6,15 +6,17 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using BCRPServer.Game.Items;
 using BCRPServer.Sync;
 using GTANetworkAPI;
 using Newtonsoft.Json;
+using static BCRPServer.PlayerData;
 
 namespace BCRPServer
 {
     public class VehicleData
     {
-        public static Dictionary<Vehicle, VehicleData> Vehicles { get; private set; } = new Dictionary<Vehicle, VehicleData>();
+        public static Dictionary<Vehicle, VehicleData> All { get; private set; } = new Dictionary<Vehicle, VehicleData>();
 
         /// <summary>Получить VehicleData транспорта</summary>
         /// <returns>Объект класса PlayerData если существует, иначе - null</returns>
@@ -23,7 +25,7 @@ namespace BCRPServer
             if (vehicle == null)
                 return null;
 
-            return Vehicles.GetValueOrDefault(vehicle);
+            return All.GetValueOrDefault(vehicle);
         }
 
         /// <summary>Назначить объект класса VehicleData транспорту</summary>
@@ -34,10 +36,10 @@ namespace BCRPServer
 
             VehicleData existing;
 
-            if (Vehicles.TryGetValue(vehicle, out existing))
+            if (All.TryGetValue(vehicle, out existing))
                 existing = data;
             else
-                Vehicles.Add(vehicle, data);
+                All.Add(vehicle, data);
         }
 
         public enum OwnerTypes
@@ -48,33 +50,139 @@ namespace BCRPServer
             HasKey,
         }
 
-        public void RemoveData() => Vehicles.Remove(Vehicle);
+        public void RemoveData() => All.Remove(Vehicle);
 
         #region Subclasses
-        public class ParkData
+        public class VehicleInfo
         {
-            public Vector3 Position { get; set; }
-            public Vector3 Rotation { get; set; }
-            public uint Dimension { get; set; }
+            private static Queue<int> FreeIDs { get; set; } = new Queue<int>();
 
-            public ParkData(Vector3 Position, Vector3 Rotation, uint Dimension)
+            public static Dictionary<int, VehicleInfo> All { get; private set; } = new Dictionary<int, VehicleInfo>();
+
+            private static int LastAddedMaxId { get; set; }
+
+            public static int MoveNextId()
             {
-                this.Position = Position;
-                this.Rotation = Rotation;
+                int id;
 
-                this.Dimension = Dimension;
+                if (!FreeIDs.TryDequeue(out id))
+                {
+                    id = ++LastAddedMaxId;
+                }
+
+                return id;
+            }
+
+            public static void AddFreeId(int id) => FreeIDs.Enqueue(id);
+
+            public static void AddOnLoad(VehicleInfo vInfo)
+            {
+                if (vInfo == null)
+                    return;
+
+                All.Add(vInfo.VID, vInfo);
+
+                if (vInfo.VID > LastAddedMaxId)
+                    LastAddedMaxId = vInfo.VID;
+            }
+
+            public static void Add(VehicleInfo vInfo)
+            {
+                if (vInfo == null)
+                    return;
+
+                All.Add(vInfo.VID, vInfo);
+
+                MySQL.VehicleAdd(vInfo);
+            }
+
+            public static void Remove(VehicleInfo vInfo)
+            {
+                if (vInfo == null)
+                    return;
+
+                var id = vInfo.VID;
+
+                AddFreeId(id);
+
+                All.Remove(id);
+
+                //MySQL.GiftDelete(pInfo);
+            }
+
+            public static VehicleInfo Get(int id) => All.GetValueOrDefault(id);
+
+            public static List<VehicleInfo> GetAllByCID(int cid) => All.Values.Where(x => x?.CID == cid).ToList();
+
+            public int VID { get; set; }
+
+            public string ID { get; set; }
+
+            public int CID { get; set; }
+
+            public List<uint> AllKeys { get; set; }
+
+            public DateTime RegistrationDate { get; set; }
+
+            public uint? TID { get; set; }
+
+            public Game.Items.Numberplate Numberplate { get; set; }
+
+            public Game.Data.Vehicles.Tuning Tuning { get; set; }
+
+            public LastVehicleData LastData { get; set; }
+
+            public VehicleInfo() { }
+
+            public Vehicle CreateVehicle()
+            {
+                var data = Game.Data.Vehicles.All[ID];
+
+                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Pos, LastData.Heading, 0, 0, "", 255, false, false, Utils.Dimensions.Stuff);
+
+                return veh;
+            }
+
+            public VehicleData Spawn()
+            {
+                var vData = VehicleData.All.Values.Where(x => x?.VID == VID).FirstOrDefault();
+
+                if (vData == null)
+                {
+                    vData = new VehicleData(CreateVehicle(), this);
+
+                    NAPI.Task.Run(() =>
+                    {
+                        if (vData.Vehicle?.Exists != true)
+                            return;
+
+                        vData.Vehicle.Dimension = vData.LastData.Dim;
+                    }, 1500);
+
+                    return vData;
+                }
+                else
+                {
+                    vData.CancelDeletionTask();
+
+                    return vData;
+                }
             }
         }
 
         public class LastVehicleData
         {
-            public float FuelLevel { get; set; }
+            public float Fuel { get; set; }
+
             public float Mileage { get; set; }
-            public ParkData Park { get; set; }
+
+            public Vector3 Pos { get; set; }
+
+            public float Heading { get; set; }
+
+            public uint Dim { get; set; }
 
             public LastVehicleData() { }
-
-            public static LastVehicleData Get(VehicleData vData) => new LastVehicleData() { FuelLevel = vData.FuelLevel, Mileage = vData.Mileage, Park = vData.Park };
         }
         #endregion
 
@@ -85,27 +193,24 @@ namespace BCRPServer
         #region Local Data
         /// <summary>Второстепенный ID транспорта</summary>
         /// <value>Не уникальный ID транспорта, а его идентификатор (см. Game.Data.Vehicles)</value>
-        public string ID { get; set; }
+        public string ID { get => Info.ID; set => Info.ID = value; }
 
         /// <summary>Второстепенные данные транспорта</summary>
         public Game.Data.Vehicles.Vehicle Data { get => Game.Data.Vehicles.All[ID]; }
 
         /// <summary>Дата создания транспорта</summary>
-        public DateTime RegistrationDate { get; set; }
-
-        /// <summary>Данные о парковке транспорта</summary>
-        public ParkData Park { get; set; }
+        public DateTime RegistrationDate { get => Info.RegistrationDate; set => Info.RegistrationDate = value; }
 
         /// <summary>Действительные ключи от транспорта</summary>
         /// <value>Список UID предметов Game.Items.VehicleKey</value>
-        public List<uint> Keys { get; set; }
+        public List<uint> Keys { get => Info.AllKeys; set => Info.AllKeys = value; }
 
         /// <summary>Номерной знак транспорта</summary>
         /// <value>Объект класса Game.Items.Numberplate, null - если отсутствует</value>
-        public Game.Items.Numberplate Numberplate { get; set; }
+        public Game.Items.Numberplate Numberplate { get => Info.Numberplate; set => Info.Numberplate = value; }
 
         /// <summary>Тюнинг транспорта</summary>
-        public Game.Data.Vehicles.Tuning Tuning { get; set; }
+        public Game.Data.Vehicles.Tuning Tuning { get => Info.Tuning; set => Info.Tuning = value; }
 
         /// <summary>Токен отмены удаления транспорта с сервера</summary>
         /// <value>Объект класса CancellationTokenSource, null - если отсутствует</value>
@@ -113,15 +218,13 @@ namespace BCRPServer
 
         /// <summary>CID владельца транспорта</summary>
         /// <value>Если есть владелец - его CID (положительное значение), иначе - отрицательное значение</value>
-        public int Owner { get; set; }
-
-        /// <summary>Фракция транспорта</summary>
-        /// <value>FractionType, если транспорт - фракционный, FractionType.None - в противном случае</value>
-        public PlayerData.FractionTypes Fraction { get => Owner < 0 ? (PlayerData.FractionTypes)(-Owner) : PlayerData.FractionTypes.None; }
-
-        public SemaphoreSlim Semaphore { get; set; }
+        public int Owner { get => Info.CID; set => Info.CID = value; }
 
         public Player[] Passengers { get; set; }
+
+        public VehicleInfo Info { get; set; }
+
+        public LastVehicleData LastData { get => Info.LastData; set => Info.LastData = value; }
         #endregion
 
         #region Shared Data
@@ -129,16 +232,16 @@ namespace BCRPServer
         /// <remarks>Фактически, это ID контейнера (см. Game.Items.Container)</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>ID багажника, если отсутвует - null</value>
-        public uint? TID{ get => Vehicle.GetSharedData<int?>("TID").ToUInt32(); set => Vehicle.SetSharedData("TID", value); }
+        public uint? TID { get => Info.TID; set { Vehicle.SetSharedData("TID", value); Info.TID = value; } }
 
         /// <summary>Уровень топлива</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public float FuelLevel { get => Vehicle.GetSharedData<float>("Fuel::Level"); set { Vehicle.SetSharedData("Fuel::Level", value); } }
+        public float FuelLevel { get => Info.LastData.Fuel; set { Vehicle.SetSharedData("Fuel::Level", value); Info.LastData.Fuel = value; } }
 
         /// <summary>Пробег</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Пробег в метрах</value>
-        public float Mileage { get => Vehicle.GetSharedData<float>("Mileage"); set { Vehicle.SetSharedData("Mileage", value); } }
+        public float Mileage { get => Info.LastData.Mileage; set { Vehicle.SetSharedData("Mileage", value); Info.LastData.Mileage = value; } }
 
         /// <summary>Включён ли двигатель?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -182,7 +285,7 @@ namespace BCRPServer
         /// <summary>Уникальный ID транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>VID транспорта, -1 - если отсутствует</value>
-        public int VID { get => Vehicle.GetSharedData<int>("VID"); set => Vehicle.SetSharedData("VID", value); }
+        public int VID { get => Info.VID; set { Vehicle.SetSharedData("VID", value); Info.VID = value; } }
 
         /// <summary>Прикрепленные объекты к транспорту</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -197,7 +300,7 @@ namespace BCRPServer
 
         public void Reset()
         {
-            Vehicle.ResetData();
+            Vehicle?.ResetData();
         }
 
         public VehicleData(Vehicle Vehicle)
@@ -225,69 +328,52 @@ namespace BCRPServer
             AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
             AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
 
-            Semaphore = new SemaphoreSlim(1, 1);
-
             SetData(Vehicle, this);
-
-/*            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await Task.Delay(1000);
-
-                    NAPI.Task.Run(() =>
-                    {
-                        Console.WriteLine($"HP: {Vehicle.Health}, Controller: {Vehicle.Controller?.Id}, IsAlive: {Vehicle.IsInstanceAlive}");
-                    });
-                }
-            });*/
         }
 
-        public static async Task<VehicleData> Load(int vid)
+        public VehicleData(Vehicle Vehicle, VehicleInfo Info) : this(Vehicle)
         {
-            var vData = await NAPI.Task.RunAsync(() => Vehicles.Where(x => x.Value?.VID == vid).Select(x => x.Value).FirstOrDefault());
+            this.Info = Info;
 
-            if (vData == null)
-                return MySQL.GetVehicle(vid);
-            else
+            TID = Info.TID;
+
+            FuelLevel = Info.LastData.Fuel;
+            Mileage = Info.LastData.Mileage;
+
+            VID = Info.VID;
+
+            Tuning.Apply(Vehicle);
+
+            Numberplate?.Setup(this);
+
+            if (TID != null)
             {
-                vData.CancelDeletionTask();
+                var cont = Game.Items.Container.Get((uint)TID);
 
-                return vData;
+                if (cont != null)
+                {
+                    cont.UpdateOwner(Vehicle);
+                }
             }
         }
 
         public void Delete(bool completely)
         {
-            if (!this.WaitAsync().GetAwaiter().GetResult())
-                return;
-
             CancelDeletionTask();
 
-            (PlayerData pData, int VID, uint? TID)? safeData = NAPI.Task.RunAsync(() =>
-            {
-                RemoveData();
-
-                if (Vehicle?.Exists != true)
-                    return null;
-
-                return ((PlayerData pData, int VID, uint? TID)?)(this.Owner > 0 ? Utils.GetPlayerByCID(this.Owner)?.GetMainData() : null, this.VID, this.TID);
-            }).GetAwaiter().GetResult();
-
-            if (safeData == null)
-                return;
+            var vid = VID;
 
             if (completely)
             {
-                if (safeData.Value.VID > 0)
-                    MySQL.DeleteVehicle(safeData.Value.VID);
+                if (vid > 0)
+                    MySQL.DeleteVehicle(vid);
 
                 this.Numberplate?.Delete();
 
-                if (safeData.Value.TID != null)
-                    (Game.Items.Container.Get((uint)safeData.Value.TID))?.Delete(true);
+                if (TID != null)
+                    Game.Items.Container.Get((uint)TID)?.Delete();
 
-                if (safeData.Value.pData != null)
+/*                if (safeData.Value.pData != null)
                 {
                     if (safeData.Value.pData.WaitAsync().GetAwaiter().GetResult())
                     {
@@ -295,23 +381,27 @@ namespace BCRPServer
 
                         safeData.Value.pData.Release();
                     }
-                }
+                }*/
             }
             else
             {
-                if (safeData.Value.VID > 0)
-                    MySQL.UpdateVehicle(this, false, false, false, true, false);
+                if (vid > 0)
+                {
+                    LastData.Pos = Vehicle.Position;
+                    LastData.Heading = Vehicle.Heading;
+                    LastData.Dim = Vehicle.Dimension;
+
+                    MySQL.VehicleDeletionUpdate(this.Info);
+                }
             }
 
-            NAPI.Task.RunAsync(() =>
-            {
-                Reset();
+            Reset();
 
-                Vehicle?.Delete();
-                Vehicle = null;
-            }).GetAwaiter().GetResult();
+            Vehicle.Delete();
 
-            Console.WriteLine($"[VehDeletion] Deleted VID: {safeData.Value.VID}");
+            Vehicle = null;
+
+            Console.WriteLine($"[VehDeletion] Deleted VID: {vid}");
         }
 
         public VehicleData Respawn()
@@ -331,205 +421,102 @@ namespace BCRPServer
 
             Delete(false);
 
-            return MySQL.GetVehicle(vid);
+            //return MySQL.GetVehicle(vid);
+
+            return null;
         }
 
         #region Create New
-        public static async Task<VehicleData> New(PlayerData pData, string id, Color color, Vector3 position, Vector3 rotation, uint dimension, bool setInto = false)
+        public static VehicleData New(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Color color1, Color color2, Vector3 position, float heading, uint dimension, bool setInto = false)
         {
-            if (!Game.Data.Vehicles.All.ContainsKey(id))
-                return null;
-
             var player = pData.Player;
 
-            var vehData = Game.Data.Vehicles.All[id];
-
-            var cont = await Game.Items.Container.Create(new Game.Items.Container(id), null);
-
-            var res = await NAPI.Task.RunAsync<VehicleData>(() =>
+            var vInfo = new VehicleInfo()
             {
-                if (player?.Exists != true)
-                    return null;
+                VID = VehicleInfo.MoveNextId(),
 
-                var veh = NAPI.Vehicle.CreateVehicle(vehData.Model, position, 0f, 0, 0, "", 255, true, true, Utils.Dimensions.Stuff);
+                AllKeys = new List<uint>(),
+                CID = pData.CID,
+                ID = vType.ID,
+                Numberplate = null,
+                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                LastData = new LastVehicleData() { Pos = position, Dim = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f },
+                RegistrationDate = Utils.GetCurrentTime(),
+            };
 
-                veh.NumberPlateStyle = 0;
-                veh.Rotation = rotation;
-                veh.CustomPrimaryColor = color;
-                veh.CustomSecondaryColor = color;
+            Game.Items.Container cont = vType.TrunkData == null ? null : Game.Items.Container.Create(vType.ID, null);
 
-                var data = new VehicleData(veh)
-                {
-                    Owner = pData.CID,
-                    ID = id,
-                    RegistrationDate = Utils.GetCurrentTime(),
-                    Keys = new List<uint>(),
-
-                    FuelLevel = vehData.Tank,
-                    Mileage = 0,
-                    Park = null,
-
-                    TID = cont.ID,
-                    Numberplate = null,
-
-                    Tuning = Game.Data.Vehicles.Tuning.GetTuning(veh, vehData.IsModdable),
-                };
-
-                return data;
-            });
-
-            if (!await res.WaitAsync())
+            if (cont != null)
             {
-                return null;
+                vInfo.TID = cont.ID;
             }
 
-            await Task.Run(async () =>
+            var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
+
+            cont.UpdateOwner(vData.Vehicle);
+
+            VehicleInfo.Add(vInfo);
+
+            pData.OwnedVehicles.Add(vInfo);
+
+            var veh = vData.Vehicle;
+
+            NAPI.Task.Run(() =>
             {
-                var veh = res.Vehicle;
+                if (veh?.Exists != true)
+                    return;
 
-                var vid = MySQL.AddVehicle(res);
+                veh.Dimension = dimension;
 
-                if (await pData.WaitAsync())
-                {
-                    pData.OwnedVehicles.Add(vid);
-                }
+                if (player?.Exists != true || !setInto)
+                    return;
 
-                cont.UpdateOwner(veh);
+                player.SetIntoVehicle(veh, 0);
+            }, 1500);
 
-                await NAPI.Task.RunAsync(() =>
-                {
-                    if (veh?.Exists != true)
-                        return;
-
-                    res.VID = vid;
-                });
-
-                NAPI.Task.Run(() =>
-                {
-                    if (veh?.Exists != true)
-                        return;
-
-                    veh.Dimension = dimension;
-
-                    if (player?.Exists != true || !setInto)
-                        return;
-
-                    player.SetIntoVehicle(veh, 0);
-                }, 1500);
-            });
-
-            res.Release();
-
-            return res;
+            return vData;
         }
 
-        public static async Task<VehicleData> NewRent(PlayerData pData, string id, Color color, Vector3 position, Vector3 rotation, uint dimension, int deleteAfter = -1)
+        public static VehicleData NewTemp(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Color color1, Color color2, Vector3 position, float heading, uint dimension)
         {
             var player = pData.Player;
 
-            if (!Game.Data.Vehicles.All.ContainsKey(id))
-                return null;
-
-            var vehData = Game.Data.Vehicles.All[id];
-
-            var res = await NAPI.Task.RunAsync(() =>
+            var vInfo = new VehicleInfo()
             {
-                if (player?.Exists != true)
-                    return null;
+                VID = -1,
 
-                var veh = NAPI.Vehicle.CreateVehicle(vehData.Model, position, 0f, 0, 0, "RENT", 255, true, true, Utils.Dimensions.Stuff);
+                AllKeys = new List<uint>(),
+                CID = -1,
+                ID = vType.ID,
+                Numberplate = null,
+                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                LastData = new LastVehicleData() { Pos = position, Dim = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f },
+                RegistrationDate = Utils.GetCurrentTime(),
+            };
 
-                veh.NumberPlateStyle = 0;
-                veh.Rotation = rotation;
-                veh.CustomPrimaryColor = color;
-                veh.CustomSecondaryColor = color;
+            var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
-                var data = new VehicleData(veh)
-                {
-                    FuelLevel = vehData.Tank,
-                    Mileage = 0,
-                    Park = null,
+            var veh = vData.Vehicle;
 
-                    Owner = -1,
-                    ID = id,
-                    TID = null,
-                    Numberplate = null,
-                    VID = -1,
-
-                    Tuning = null,
-                };
-
-                NAPI.Task.Run(() =>
-                {
-                    if (veh?.Exists != true)
-                        return;
-
-                    veh.Dimension = dimension;
-
-                    player?.SetIntoVehicle(veh, 0);
-                }, 1000);
-
-                return data;
-            });
-
-            return res;
-        }
-
-        public static async Task<VehicleData> NewTemp(PlayerData pData, string id, Color color, Vector3 position, Vector3 rotation, uint dimension)
-        {
-            var player = pData.Player;
-            
-            if (!Game.Data.Vehicles.All.ContainsKey(id))
-                return null;
-
-            var vehData = Game.Data.Vehicles.All[id];
-
-            var res = await NAPI.Task.RunAsync(() =>
+            NAPI.Task.Run(() =>
             {
+                if (veh?.Exists != true)
+                    return;
+
+                veh.Dimension = dimension;
+
                 if (player?.Exists != true)
-                    return null;
+                    return;
 
-                var veh = NAPI.Vehicle.CreateVehicle(vehData.Model, position, 0f, 0, 0, "BLAINERP", 255, true, true, Utils.Dimensions.Stuff);
+                player.SetIntoVehicle(veh, 0);
+            }, 1500);
 
-                veh.NumberPlateStyle = 1;
-                veh.Rotation = rotation;
-                veh.CustomPrimaryColor = color;
-                veh.CustomSecondaryColor = color;
-
-                var data = new VehicleData(veh)
-                {
-                    FuelLevel = vehData.Tank,
-                    Mileage = 0,
-                    Park = null,
-
-                    Owner = pData.CID,
-                    ID = id,
-                    TID = null,
-                    Numberplate = null,
-                    VID = -1,
-
-                    Tuning = null,
-                };
-
-                NAPI.Task.Run(() =>
-                {
-                    veh.Dimension = dimension;
-
-                    player?.SetIntoVehicle(veh, 0);
-                }, 1000);
-
-                return data;
-            });
-
-            return res;
+            return vData;
         }
 
         public void StartDeletionTask()
         {
             if (CTSDelete != null)
-                return;
-
-            if (!this.WaitAsync().GetAwaiter().GetResult())
                 return;
 
             CTSDelete = new CancellationTokenSource();
@@ -540,27 +527,42 @@ namespace BCRPServer
                 {
                     await Task.Delay(Settings.OWNED_VEHICLE_TIME_TO_AUTODELETE, CTSDelete.Token);
 
-                    if (CTSDelete?.Token.IsCancellationRequested == false)  
+                    if (CTSDelete != null)
+                    {
+                        CTSDelete.Cancel();
+
+                        CTSDelete = null;
+                    }
+
+                    NAPI.Task.Run(() =>
+                    {
                         Delete(false);
+                    });
                 }
                 catch (Exception ex)
                 {
-                    CTSDelete?.Dispose();
+                    if (CTSDelete != null)
+                    {
+                        CTSDelete.Cancel();
 
-                    CTSDelete = null;
+                        CTSDelete = null;
+                    }
                 }
             });
-
-            this.Release();
 
             Console.WriteLine("[VehDeletion] Started deletion");
         }
 
         public void CancelDeletionTask()
         {
-            CTSDelete?.Cancel();
+            if (CTSDelete != null)
+            {
+                CTSDelete.Cancel();
 
-            Console.WriteLine("[VehDeletion] Cancelled deletion");
+                CTSDelete = null;
+
+                Console.WriteLine("[VehDeletion] Cancelled deletion");
+            }
         }
 
         public OwnerTypes? IsOwner(PlayerData pData)
@@ -568,11 +570,13 @@ namespace BCRPServer
             if (this.Owner == pData.CID)
                 return OwnerTypes.Owner;
 
-            var keys = pData.Items.Where(x => x is Game.Items.VehicleKey && (x as Game.Items.VehicleKey).VID == this.VID);
-
-            foreach (var key in keys)
+            foreach (var key in pData.Items.Where(x => x is Game.Items.VehicleKey key && key.VID == this.VID))
+            {
                 if (this.Keys.Contains(key.UID))
+                {
                     return OwnerTypes.HasKey;
+                }
+            }
 
             return null;
         }
@@ -587,46 +591,29 @@ namespace BCRPServer
             if (seatId == -1)
                 return;
 
-            var seats = Passengers;
-
-            if (seatId >= seats.Length)
+            if (seatId >= Passengers.Length)
                 return;
 
-            seats[seatId] = player;
+            Passengers[seatId] = player;
 
             pData.VehicleSeat = seatId;
 
             //NAPI.Util.ConsoleOutput($"added {player.Id} to {seatId}");
         }
 
-        public void RemovePassenger(int seatId)
+        public void RemovePassenger(PlayerData pData)
         {
+            var seatId = pData.VehicleSeat;
+
             if (seatId == -1)
                 return;
 
-            var seats = Passengers;
-
-            if (seatId >= seats.Length)
+            if (seatId >= Passengers.Length)
                 return;
 
-            if (seats[seatId] == null)
-                return;
+            Passengers[seatId] = null;
 
-            var player = seats[seatId];
-
-            seats[seatId] = null;
-
-            Passengers = seats;
-
-            if (player == null)
-                return;
-
-            var data = player.GetMainData();
-
-            if (data == null)
-                return;
-
-            data.VehicleSeat = -1;
+            pData.VehicleSeat = -1;
 
             if (seatId == 0 && ForcedSpeed != 0f)
                 ForcedSpeed = 0f;

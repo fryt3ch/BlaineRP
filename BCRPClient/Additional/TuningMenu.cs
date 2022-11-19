@@ -4,9 +4,6 @@ using RAGE.NUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml;
-using static BCRPClient.Locale;
 
 namespace BCRPClient.Additional
 {
@@ -98,6 +95,7 @@ namespace BCRPClient.Additional
                     { 0, "Полуспортивная" },
                     { 1, "Спортивная" },
                     { 2, "Гоночная" },
+                    { 3, "Раллийная" },
                 })
             },
 
@@ -157,10 +155,6 @@ namespace BCRPClient.Additional
 
             {
                 30, ("Спидометр", null)
-            },
-
-            {
-                34, ("Ручка коробки передач", null)
             },
 
             {

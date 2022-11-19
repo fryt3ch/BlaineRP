@@ -10,7 +10,7 @@ namespace BCRPServer.Sync
     class Microphone : Script
     {
         [RemoteEvent("Microphone::Switch")]
-        public static async Task MicrophoneSwitch(Player player, bool state)
+        public static void MicrophoneSwitch(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -19,33 +19,22 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (pData.IsMuted)
                 return;
 
-            NAPI.Task.Run(() =>
+            if (state)
             {
-                if (player?.Exists != true)
+                var vRange = Settings.MICROPHONE_MAX_RANGE_DEFAULT;
+
+                if (pData.VoiceRange == vRange)
                     return;
 
-                if (pData.IsMuted)
-                    return;
-
-                if (state)
-                {
-                    var vRange = Settings.MICROPHONE_MAX_RANGE_DEFAULT;
-
-                    if (pData.VoiceRange == vRange)
-                        return;
-
-                    pData.VoiceRange = vRange;
-                }
-                else
-                {
-                    DisableMicrophone(pData);
-                }
-            });
-
-            pData.Release();
+                pData.VoiceRange = vRange;
+            }
+            else
+            {
+                DisableMicrophone(pData);
+            }
         }
 
         public static void DisableMicrophone(PlayerData pData)
@@ -71,7 +60,7 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("mal")]
-        public static async Task MicrophoneAddListener(Player player, Player target)
+        public static void MicrophoneAddListener(Player player, Player target)
         {
             var sRes = player.CheckSpamAttack(0);
 
@@ -80,27 +69,19 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (target?.Exists != true || pData.VoiceRange == 0f)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true || target?.Exists != true || pData.VoiceRange == 0f)
-                    return;
+            if (!player.AreEntitiesNearby(target, pData.VoiceRange) || pData.Listeners.Contains(target))
+                return;
 
-                if (!player.AreEntitiesNearby(target, pData.VoiceRange) || pData.Listeners.Contains(target))
-                    return;
+            player.EnableVoiceTo(target);
 
-                player.EnableVoiceTo(target);
-
-                pData.Listeners.Add(target);
-            });
-
-            pData.Release();
+            pData.Listeners.Add(target);
         }
 
         [RemoteEvent("mrl")]
-        public static async Task MicrophoneRemoveListener(Player player, Player target)
+        public static void MicrophoneRemoveListener(Player player, Player target)
         {
             var sRes = player.CheckSpamAttack(0);
 
@@ -109,20 +90,12 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (!await pData.WaitAsync())
+            if (target?.Exists != true)
                 return;
 
-            await NAPI.Task.RunAsync(() =>
-            {
-                if (player?.Exists != true || target?.Exists != true)
-                    return;
+            player.DisableVoiceTo(target);
 
-                player.DisableVoiceTo(target);
-
-                pData.Listeners.Remove(target);
-            });
-
-            pData.Release();
+            pData.Listeners.Remove(target);
         }
     }
 }

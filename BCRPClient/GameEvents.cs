@@ -69,9 +69,29 @@ namespace BCRPClient
 
             Events.OnPlayerCreateWaypoint += (Vector3 position) =>
             {
-                WaypointPosition = RAGE.Elements.Entities.Blips.All.Where(x => x?.Exists == true && x.Position.X == position.X && x.Position.Y == position.Y).FirstOrDefault()?.GetCoords() ?? position;
+                if (position == null)
+                    return;
 
-                //Utils.ConsoleOutput(WaypointPosition);
+                for (int i = 0; i < RAGE.Elements.Entities.Blips.All.Count; i++)
+                {
+                    var blip = RAGE.Elements.Entities.Blips.All[i];
+
+                    if (blip?.Exists != true || blip.Dimension != Player.LocalPlayer.Dimension)
+                        continue;
+
+                    var coords = blip.GetCoords();
+
+                    if (coords.DistanceIgnoreZ(position) <= 5f)
+                    {
+                        position.Z = coords.Z;
+
+                        break;
+                    }
+                }
+
+                WaypointPosition = position;
+                
+                Utils.ConsoleOutput(WaypointPosition);
 
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -81,20 +101,20 @@ namespace BCRPClient
                 if (pData.AdminLevel > -1 && Settings.Other.AutoTeleportMarker)
                     Data.Commands.TeleportMarker();
 
-                if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+/*                if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
                     CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Vehicles.GPS.Header, Locale.Notifications.Vehicles.GPS.RouteReady);
-                }
+                }*/
             };
 
             Events.OnPlayerRemoveWaypoint += () =>
             {
-                WaypointPosition = null;
+                //WaypointPosition = null;
 
-                if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+/*                if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
                     CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Vehicles.GPS.Header, Locale.Notifications.Vehicles.GPS.RouteCancel);
-                }
+                }*/
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
