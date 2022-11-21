@@ -5,6 +5,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace BCRPClient.Sync
 {
@@ -109,6 +110,20 @@ namespace BCRPClient.Sync
             /// <summary>Рыбалка</summary>
             Fishing
         }
+
+        public enum PropertyTypes
+        {
+            /// <summary>Транспорт</summary>
+            Vehicle = 0,
+            /// <summary>Дом</summary>
+            House,
+            /// <summary>Квартира</summary>
+            Apartments,
+            /// <summary>Гараж</summary>
+            Garage,
+            /// <summary>Бизнес</summary>
+            Business,
+        }
         #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
@@ -126,7 +141,7 @@ namespace BCRPClient.Sync
             public PlayerData(Player Player) => this.Player = Player;
 
             #region Player Data
-            public int CID => Player.GetSharedData<int>("CID", int.MinValue);
+            public uint CID => (uint)Player.GetSharedData<int>("CID", 0);
 
             public int Cash => Player.GetSharedData<int>("Cash", 0);
 
@@ -188,7 +203,9 @@ namespace BCRPClient.Sync
 
             public int JailTime { get => Player.GetData<int>("JailTime"); set => Player.SetData("JailTime", value); }
 
-            public List<int> Familiars { get; set; }
+            public Dictionary<uint, Data.Vehicles.Vehicle> OwnedVehicles { get; set; }
+
+            public List<uint> Familiars { get; set; }
 
             public Dictionary<SkillTypes, int> Skills { get; set; }
 
@@ -313,22 +330,38 @@ namespace BCRPClient.Sync
 
                 Data.Locations.Business.LoadNames(RAGE.Util.Json.Deserialize<Dictionary<int, string>>((string)args[1]));
 
-                data.Familiars = ((Newtonsoft.Json.Linq.JArray)args[2]).ToObject<List<int>>();
-                data.Licenses = RAGE.Util.Json.Deserialize<List<LicenseTypes>>((string)args[3]);
-                data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)args[4]);
+                var sData = RAGE.Util.Json.Deserialize<JObject>((string)args[2]);
 
-                CEF.Inventory.Load((Newtonsoft.Json.Linq.JArray)args[5]);
-                CEF.Menu.Load(args[6], args[7], args[8]);
+                data.Familiars = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Familiars"]);
+
+                data.Licenses = RAGE.Util.Json.Deserialize<List<LicenseTypes>>((string)sData["Licenses"]);
+
+                data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)sData["Skills"]);
+
+                data.OwnedVehicles = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Vehicles"]).ToDictionary(x => x.Key, x => Data.Vehicles.GetById(x.Value));
+
+                foreach (var x in data.Skills)
+                    UpdateSkill(x.Key, x.Value);
+
+                UpdateDrivingSkill(data.Licenses.Contains(LicenseTypes.B));
+                UpdateBikeSkill(data.Licenses.Contains(LicenseTypes.A));
+                UpdateFlyingSkill(data.Licenses.Contains(LicenseTypes.Fly));
+
+                CEF.Inventory.Load((JArray)sData["Inventory"]);
+
+                CEF.Menu.Load(data, (int)sData["TimePlayed"], (DateTime)sData["CreationDate"], (DateTime)sData["BirthDate"], RAGE.Util.Json.Deserialize<Dictionary<uint, (int, string, int , int)>>((string)sData["Gifts"]));
+
+                CEF.Menu.SetOrganisation((string)sData["Org"]);
 
                 foreach (var x in data.Skills)
                     CEF.Menu.UpdateSkill(x.Key, x.Value);
 
-                while (data.CID < 0)
+                while (data.CID == 0)
                 {
                     await RAGE.Game.Invoker.WaitAsync(10);
                 }
 
-                InvokeHandler("CID", data, data.CID, null);
+                CEF.Menu.SetCID(data.CID);
 
                 InvokeHandler("Cash", data, data.Cash, null);
                 InvokeHandler("BankBalance", data, data.BankBalance, null);
@@ -431,7 +464,7 @@ namespace BCRPClient.Sync
 
                     data = new PlayerData(player);
 
-                    if (data.CID < 0)
+                    if (data.CID == 0)
                         return;
 
                     InvokeHandler("IsInvisible", data, data.IsInvisible, null);
@@ -546,6 +579,8 @@ namespace BCRPClient.Sync
                 data.Skills[sType] = value;
 
                 CEF.Menu.UpdateSkill(sType, value);
+
+                UpdateSkill(sType, value);
             });
 
             Events.Add("Player::Licenses::Update", (object[] args) =>
@@ -555,17 +590,33 @@ namespace BCRPClient.Sync
                 if (data == null)
                     return;
 
-                bool add = (bool)args[0];
-                int cid = (int)args[1];
+                bool state = (bool)args[0];
 
-                if (add)
+                LicenseTypes lType = (LicenseTypes)(int)args[1];
+
+                if (state)
                 {
-                    if (!data.Familiars.Contains(cid))
-                        data.Familiars.Add(cid);
+                    if (!data.Licenses.Contains(lType))
+                    {
+                        data.Licenses.Add(lType);
+                    }
                 }
                 else
                 {
-                    data.Familiars.Remove(cid);
+                    data.Licenses.Remove(lType);
+                }
+
+                if (lType == LicenseTypes.B)
+                {
+                    UpdateDrivingSkill(state);
+                }
+                else if (lType == LicenseTypes.A)
+                {
+                    UpdateBikeSkill(state);
+                }
+                else if (lType == LicenseTypes.Fly)
+                {
+                    UpdateFlyingSkill(state);
                 }
             });
 
@@ -577,7 +628,7 @@ namespace BCRPClient.Sync
                     return;
 
                 bool add = (bool)args[0];
-                int cid = (int)args[1];
+                uint cid = (uint)(int)args[1];
 
                 if (add)
                 {
@@ -588,6 +639,35 @@ namespace BCRPClient.Sync
                 {
                     data.Familiars.Remove(cid);
                 }
+            });
+
+            Events.Add("Player::Properties::Update", (object[] args) =>
+            {
+                var data = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (data == null)
+                    return;
+
+                bool add = (bool)args[0];
+
+                PropertyTypes pType = (PropertyTypes)(int)args[1];
+
+                if (pType == PropertyTypes.Vehicle)
+                {
+                    var vid = (uint)(int)args[2];
+
+                    if (add)
+                    {
+                        if (!data.OwnedVehicles.ContainsKey(vid))
+                            data.OwnedVehicles.Add(vid, Data.Vehicles.GetById((string)args[3]));
+                    }
+                    else
+                    {
+                        data.OwnedVehicles.Remove(vid);
+                    }
+                }
+
+                CEF.Menu.UpdateProperties(data);
             });
 
             Events.Add("Players::Freeze", (object[] args) =>
@@ -610,16 +690,6 @@ namespace BCRPClient.Sync
 
                 if (args.Length > 1)
                     CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(state ? Locale.Notifications.Players.Administrator.FreezedBy : Locale.Notifications.Players.Administrator.UnfreezedBy, (string)args[1]));
-            });
-
-            AddDataHandler("CID", (pData, value, oldValue) =>
-            {
-                if (pData.Player.Handle != Player.LocalPlayer.Handle)
-                    return;
-
-                var cid = (int)value;
-
-                CEF.Menu.SetCID(cid);
             });
 
             AddDataHandler("Cash", (pData, value, oldValue) =>
@@ -652,6 +722,8 @@ namespace BCRPClient.Sync
 
                 CEF.HUD.SetBank(bank);
                 CEF.Menu.SetBank(bank);
+
+                CEF.ATM.UpdateMoney(bank);
 
                 var diff = bank - (oldValue == null ? bank : (int)oldValue);
 
@@ -1190,6 +1262,30 @@ namespace BCRPClient.Sync
             player.SetPropIndex(0, hData[2] == "1" ? data.ExtraData?.Drawable ?? data.Drawable : data.Drawable, data.Textures[int.Parse(hData[1])], true);
         }
 
+        private static void UpdateSkill(SkillTypes sType, int value)
+        {
+            if (sType == SkillTypes.Strength)
+            {
+                value = (int)Math.Round(0.5f * value); // 20 * a
+
+                RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_STAMINA"), value, true);
+                RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_STRENGTH"), value, true);
+                RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_LUNG_CAPACITY"), value, true);
+            }
+            else if (sType == SkillTypes.Shooting)
+            {
+                value = (int)Math.Round(0.25f * value); // 10 * a
+
+                RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_SHOOTING_ABILITY"), value, true);
+            }
+        }
+
+        private static void UpdateDrivingSkill(bool hasLicense) => RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_DRIVING_ABILITY"), hasLicense ? 50 : 0, true);
+
+        private static void UpdateFlyingSkill(bool hasLicense) => RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_FLYING_ABILITY"), hasLicense ? 50 : 0, true);
+
+        private static void UpdateBikeSkill(bool hasLicense) => RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_WHEELIE_ABILITY"), hasLicense ? 50 : 0, true);
+
         public static void CloseAll(bool onlyInterfaces = false)
         {
             RAGE.Game.Ui.SetPauseMenuActive(false);
@@ -1203,6 +1299,12 @@ namespace BCRPClient.Sync
             CEF.ActionBox.Close(true);
             CEF.Shop.Close(true, true);
             CEF.Gas.Close(true);
+
+            CEF.Documents.Close();
+
+            CEF.BlipsMenu.Close(true);
+            CEF.ATM.Close(true);
+            CEF.Bank.Close(true);
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 

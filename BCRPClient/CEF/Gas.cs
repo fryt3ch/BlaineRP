@@ -108,6 +108,9 @@ namespace BCRPClient.CEF
                 return;
             }
 
+            if (vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.None)
+                return;
+
             TargetVehicle = vehicle;
 
             if (LastSent.IsSpam(1000, false, false))
@@ -132,7 +135,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { new object[] { maxFuel, Prices[vData.Data.FuelType] * margin } });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol, new object[] { maxFuel, Prices[vData.Data.FuelType] * margin } });
 
             CEF.Cursor.Show(true, true);
 

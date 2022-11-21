@@ -64,7 +64,7 @@ namespace BCRPServer.Game.Items
             MySQL.GiftDelete(gift);
         }
 
-        public static List<Gift> GetAllByCID(int cid) => All.Values.Where(x => x?.CID == cid).ToList();
+        public static List<Gift> GetAllByCID(uint cid) => All.Values.Where(x => x?.CID == cid).ToList();
 
         public static Gift Get(uint id) => All.GetValueOrDefault(id);
 
@@ -90,7 +90,7 @@ namespace BCRPServer.Game.Items
         public uint ID { get; set; }
 
         /// <summary>CID владельца</summary>
-        public int CID { get; set; }
+        public uint CID { get; set; }
 
         /// <summary>Тип подарка</summary>
         public Types Type { get; set; }
@@ -110,7 +110,7 @@ namespace BCRPServer.Game.Items
         public SourceTypes SourceType { get; set; }
 
         /// <summary>Конструктор для MySQL</summary>
-        public Gift(int CID, uint ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(CID, SourceType, Type, GID, Variation, Amount)
+        public Gift(uint CID, uint ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(CID, SourceType, Type, GID, Variation, Amount)
         {
             this.ID = ID;
 
@@ -123,7 +123,7 @@ namespace BCRPServer.Game.Items
             this.SourceType = SourceType;
         }
 
-        public Gift(int CID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
+        public Gift(uint CID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
         {
             this.ID = MoveNextId();
 

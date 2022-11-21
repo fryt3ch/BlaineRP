@@ -659,7 +659,7 @@ namespace BCRPClient.CEF
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
 
-                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
+                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
 
                             if (data is Data.Items.Hat.ItemData)
                                 hats.Add(obj);
@@ -716,7 +716,7 @@ namespace BCRPClient.CEF
                         {
                             var data = Data.Vehicles.GetById(x.Key);
 
-                            return new object[] { x.Key, data.Name, x.Value, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
+                            return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
                         }));
                     }
 

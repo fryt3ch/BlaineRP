@@ -59,56 +59,6 @@ namespace BCRPClient.Sync
             Preloaded = true;
         }
 
-        public static bool BusinessInfo()
-        {
-            if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
-                return false;
-
-            if (!Player.LocalPlayer.HasData("CurrentBusiness"))
-                return false;
-
-            Events.CallRemote("Business::ShowInfo", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
-
-            Additional.ExtraColshape.LastSent = DateTime.Now;
-
-            return true;
-        }
-
-        public static void BusinessEnter(int id)
-        {
-            Events.CallRemote("Business::Enter", id);
-        }
-
-        public static bool BusinessEnter()
-        {
-            if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
-                return false;
-
-            if (!Player.LocalPlayer.HasData("CurrentBusiness"))
-                return false;
-
-            Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
-
-            Additional.ExtraColshape.LastSent = DateTime.Now;
-
-            return true;
-        }
-
-        public static bool HouseEnter()
-        {
-            if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
-                return false;
-
-            if (!Player.LocalPlayer.HasData("CurrentHouse"))
-                return false;
-
-            Events.CallRemote("House::Enter", Player.LocalPlayer.GetData<int>("CurrentHouse"));
-
-            Additional.ExtraColshape.LastSent = DateTime.Now;
-
-            return true;
-        }
-
         public World()
         {
             Preloaded = false;

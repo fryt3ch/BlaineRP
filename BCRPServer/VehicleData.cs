@@ -34,15 +34,29 @@ namespace BCRPServer
             if (vehicle == null)
                 return;
 
-            VehicleData existing;
-
-            if (All.TryGetValue(vehicle, out existing))
-                existing = data;
-            else
-                All.Add(vehicle, data);
+            All.Add(vehicle, data);
         }
 
-        public enum OwnerTypes
+        private static void Remove(VehicleData vData)
+        {
+            if (vData == null)
+                return;
+
+            All.Remove(vData.Vehicle);
+
+            vData.Vehicle.Delete();
+
+            vData.Vehicle.ResetData();
+
+            vData.Vehicle = null;
+
+            if (vData.Info != null)
+            {
+                VehicleInfo.Remove(vData.Info);
+            }
+        }
+
+        public enum OwningTypes
         {
             /// <summary>Основной владелец</summary>
             Owner = 0,
@@ -50,20 +64,26 @@ namespace BCRPServer
             HasKey,
         }
 
-        public void RemoveData() => All.Remove(Vehicle);
+        public enum OwnerTypes
+        {
+            Player = 0,
+            PlayerRent,
+            PlayerTemp,
+            Fraction,
+        }
 
         #region Subclasses
         public class VehicleInfo
         {
-            private static Queue<int> FreeIDs { get; set; } = new Queue<int>();
+            private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
 
-            public static Dictionary<int, VehicleInfo> All { get; private set; } = new Dictionary<int, VehicleInfo>();
+            public static Dictionary<uint, VehicleInfo> All { get; private set; } = new Dictionary<uint, VehicleInfo>();
 
-            private static int LastAddedMaxId { get; set; }
+            private static uint LastAddedMaxId { get; set; }
 
-            public static int MoveNextId()
+            public static uint MoveNextId()
             {
-                int id;
+                uint id;
 
                 if (!FreeIDs.TryDequeue(out id))
                 {
@@ -73,7 +93,7 @@ namespace BCRPServer
                 return id;
             }
 
-            public static void AddFreeId(int id) => FreeIDs.Enqueue(id);
+            public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
 
             public static void AddOnLoad(VehicleInfo vInfo)
             {
@@ -101,24 +121,27 @@ namespace BCRPServer
                 if (vInfo == null)
                     return;
 
-                var id = vInfo.VID;
+                var vid = vInfo.VID;
 
-                AddFreeId(id);
+                AddFreeId(vid);
 
-                All.Remove(id);
+                All.Remove(vid);
 
-                //MySQL.GiftDelete(pInfo);
+                if (vid > 0)
+                    MySQL.VehicleDelete(vInfo);
             }
 
-            public static VehicleInfo Get(int id) => All.GetValueOrDefault(id);
+            public static VehicleInfo Get(uint id) => All.GetValueOrDefault(id);
 
-            public static List<VehicleInfo> GetAllByCID(int cid) => All.Values.Where(x => x?.CID == cid).ToList();
+            public static List<VehicleInfo> GetAllByCID(uint cid) => All.Values.Where(x => x != null && (x.OwnerType == OwnerTypes.Player && x.OwnerID == cid)).ToList();
 
-            public int VID { get; set; }
+            public uint VID { get; set; }
 
             public string ID { get; set; }
 
-            public int CID { get; set; }
+            public OwnerTypes OwnerType { get; set; }
+
+            public uint OwnerID { get; set; }
 
             public List<uint> AllKeys { get; set; }
 
@@ -191,6 +214,8 @@ namespace BCRPServer
         public Vehicle Vehicle { get; set; }
 
         #region Local Data
+        public OwnerTypes OwnerType { get => Info.OwnerType; set => Info.OwnerType = value; }
+
         /// <summary>Второстепенный ID транспорта</summary>
         /// <value>Не уникальный ID транспорта, а его идентификатор (см. Game.Data.Vehicles)</value>
         public string ID { get => Info.ID; set => Info.ID = value; }
@@ -217,8 +242,7 @@ namespace BCRPServer
         public CancellationTokenSource CTSDelete { get; set; }
 
         /// <summary>CID владельца транспорта</summary>
-        /// <value>Если есть владелец - его CID (положительное значение), иначе - отрицательное значение</value>
-        public int Owner { get => Info.CID; set => Info.CID = value; }
+        public uint OwnerID { get => Info.OwnerID; set => Info.OwnerID = value; }
 
         public Player[] Passengers { get; set; }
 
@@ -284,8 +308,8 @@ namespace BCRPServer
 
         /// <summary>Уникальный ID транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        /// <value>VID транспорта, -1 - если отсутствует</value>
-        public int VID { get => Info.VID; set { Vehicle.SetSharedData("VID", value); Info.VID = value; } }
+        /// <value>VID транспорта, null - если отсутствует</value>
+        public uint VID { get => Info.VID; set { Vehicle.SetSharedData("VID", value); Info.VID = value; } }
 
         /// <summary>Прикрепленные объекты к транспорту</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -297,11 +321,6 @@ namespace BCRPServer
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
         public List<Sync.AttachSystem.AttachmentEntityNet> AttachedEntities { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedEntitiesKey).ToList<Sync.AttachSystem.AttachmentEntityNet>(); set { Vehicle.SetSharedData(Sync.AttachSystem.AttachedEntitiesKey, value); } }
         #endregion
-
-        public void Reset()
-        {
-            Vehicle?.ResetData();
-        }
 
         public VehicleData(Vehicle Vehicle)
         {
@@ -361,31 +380,35 @@ namespace BCRPServer
         {
             CancelDeletionTask();
 
-            var vid = VID;
-
             if (completely)
             {
-                if (vid > 0)
-                    MySQL.DeleteVehicle(vid);
-
                 this.Numberplate?.Delete();
 
                 if (TID != null)
                     Game.Items.Container.Get((uint)TID)?.Delete();
 
-/*                if (safeData.Value.pData != null)
+                if (OwnerType == OwnerTypes.Player)
                 {
-                    if (safeData.Value.pData.WaitAsync().GetAwaiter().GetResult())
-                    {
-                        safeData.Value.pData.OwnedVehicles.Remove(safeData.Value.VID);
+                    var pInfo = PlayerData.PlayerInfo.Get(OwnerID);
 
-                        safeData.Value.pData.Release();
+                    if (pInfo != null)
+                    {
+                        var pData = Utils.GetPlayerByCID(OwnerID);
+
+                        if (pData == null)
+                        {
+                            pInfo.OwnedVehicles.Remove(Info);
+                        }
+                        else
+                        {
+                            pData.RemoveVehicleProperty(Info);
+                        }
                     }
-                }*/
+                }
             }
             else
             {
-                if (vid > 0)
+                if (VID > 0)
                 {
                     LastData.Pos = Vehicle.Position;
                     LastData.Heading = Vehicle.Heading;
@@ -395,33 +418,31 @@ namespace BCRPServer
                 }
             }
 
-            Reset();
+            Remove(this);
 
-            Vehicle.Delete();
-
-            Vehicle = null;
-
-            Console.WriteLine($"[VehDeletion] Deleted VID: {vid}");
+            Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
         }
 
         public VehicleData Respawn()
         {
-            var veh = Vehicle;
+            /*            var veh = Vehicle;
 
-            var vid = NAPI.Task.RunAsync(() =>
-            {
-                if (veh?.Exists != true)
-                    return -1;
+                        var vid = NAPI.Task.RunAsync(() =>
+                        {
+                            if (veh?.Exists != true)
+                                return -1;
 
-                return VID;
-            }).GetAwaiter().GetResult();
+                            return VID;
+                        }).GetAwaiter().GetResult();
 
-            if (vid < 0)
-                return null;
+                        if (vid < 0)
+                            return null;
 
-            Delete(false);
+                        Delete(false);
 
-            //return MySQL.GetVehicle(vid);
+                        //return MySQL.GetVehicle(vid);
+
+                        return null;*/
 
             return null;
         }
@@ -436,7 +457,8 @@ namespace BCRPServer
                 VID = VehicleInfo.MoveNextId(),
 
                 AllKeys = new List<uint>(),
-                CID = pData.CID,
+                OwnerType = OwnerTypes.Player,
+                OwnerID = pData.CID,
                 ID = vType.ID,
                 Numberplate = null,
                 Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
@@ -457,7 +479,7 @@ namespace BCRPServer
 
             VehicleInfo.Add(vInfo);
 
-            pData.OwnedVehicles.Add(vInfo);
+            pData.AddVehicleProperty(vInfo);
 
             var veh = vData.Vehicle;
 
@@ -483,10 +505,11 @@ namespace BCRPServer
 
             var vInfo = new VehicleInfo()
             {
-                VID = -1,
+                VID = 0,
 
                 AllKeys = new List<uint>(),
-                CID = -1,
+                OwnerType = OwnerTypes.PlayerTemp,
+                OwnerID = pData.CID,
                 ID = vType.ID,
                 Numberplate = null,
                 Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
@@ -565,16 +588,16 @@ namespace BCRPServer
             }
         }
 
-        public OwnerTypes? IsOwner(PlayerData pData)
+        public OwningTypes? IsOwner(PlayerData pData)
         {
-            if (this.Owner == pData.CID)
-                return OwnerTypes.Owner;
+            if (OwnerType == OwnerTypes.Player && OwnerID == pData.CID)
+                return OwningTypes.Owner;
 
             foreach (var key in pData.Items.Where(x => x is Game.Items.VehicleKey key && key.VID == this.VID))
             {
                 if (this.Keys.Contains(key.UID))
                 {
-                    return OwnerTypes.HasKey;
+                    return OwningTypes.HasKey;
                 }
             }
 

@@ -69,8 +69,32 @@ namespace BCRPServer
 
             while (QueriesQueue.TryDequeue(out cmd))
             {
-                commands.Add(cmd);
+                if (cmd != null)
+                    commands.Add(cmd);
             }
+
+/*            for (int i = 0; i < commands.Count; i++)
+            {
+                cmd = commands[i];
+
+                if (cmd.Parameters["ID"].Value is uint id)
+                {
+                    var text = cmd.CommandText;
+
+                    var sameCommands = new List<MySqlCommand>();
+
+                    for (int j = 0; j < commands.Count; j++)
+                    {
+                        var cmd1 = commands[j];
+
+                        if (cmd1.Parameters["ID"].Value is uint && cmd1.CommandText == text)
+                            sameCommands.Add(cmd1);
+                    }
+
+                    for (int j = 0; j < sameCommands.Count - 1; j++)
+                        commands.Remove(sameCommands[j]);
+                }
+            }*/
 
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -160,7 +184,7 @@ namespace BCRPServer
                                 if (data is DBNull)
                                     continue;
 
-                                var uid = Convert.ToUInt32(reader["UID"]);
+                                var uid = Convert.ToUInt32(reader["ID"]);
 
                                 var item = ((string)data).DeserializeFromJson<Game.Items.Item>();
 
@@ -223,10 +247,12 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
-                                var vid = (int)reader["VID"];
-                                var sid = (string)reader["ID"];
+                                var vid = Convert.ToUInt32(reader["ID"]);
+                                var sid = (string)reader["SID"];
 
-                                var cid = (int)reader["CID"];
+                                var oType = (VehicleData.OwnerTypes)(int)reader["OwnerType"];
+
+                                var oId = Convert.ToUInt32(reader["OwnerID"]);
 
                                 var allKeys = ((string)reader["AllKeys"]).DeserializeFromJson<List<uint>>();
 
@@ -248,7 +274,9 @@ namespace BCRPServer
 
                                     AllKeys = allKeys,
 
-                                    CID = cid,
+                                    OwnerType = oType,
+
+                                    OwnerID = oId,
 
                                     RegistrationDate = regDate,
 
@@ -268,7 +296,7 @@ namespace BCRPServer
 
                     cmd.CommandText = "SELECT * FROM customizations;";
 
-                    var customizations = new Dictionary<int, object[]>();
+                    var customizations = new Dictionary<uint, object[]>();
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -276,7 +304,7 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
-                                var cid = (int)reader["CID"];
+                                var cid = Convert.ToUInt32(reader["ID"]);
 
                                 var hBlend = ((string)reader["HeadBlend"]).DeserializeFromJson<HeadBlend>();
                                 var hOverlays = ((string)reader["HeadOverlays"]).DeserializeFromJson<Dictionary<int, HeadOverlay>>();
@@ -300,7 +328,7 @@ namespace BCRPServer
                             {
                                 var id = Convert.ToUInt32(reader["ID"]);
 
-                                var cid = (int)reader["CID"];
+                                var cid = Convert.ToUInt32(reader["CID"]);
                                 var gid = reader["GID"] is DBNull ? null : (string)reader["GID"];
                                 var reason = (Game.Items.Gift.SourceTypes)(int)reader["Reason"];
                                 var type = (Game.Items.Gift.Types)(int)reader["Type"];
@@ -322,9 +350,9 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
-                                var cid = (int)reader["CID"];
+                                var cid = Convert.ToUInt32(reader["ID"]);
 
-                                var aid = (int)reader["AID"];
+                                var aid = Convert.ToUInt32(reader["AID"]);
 
                                 var creationDate = (DateTime)reader["CreationDate"];
 
@@ -356,7 +384,7 @@ namespace BCRPServer
 
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<PlayerData.LastPlayerData>();
 
-                                var familiars = ((string)reader["Familiars"]).DeserializeFromJson<List<int>>();
+                                var familiars = ((string)reader["Familiars"]).DeserializeFromJson<List<uint>>();
 
                                 var skills = ((string)reader["Skills"]).DeserializeFromJson<Dictionary<PlayerData.SkillTypes, int>>();
 
@@ -431,7 +459,7 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
-                                var cid = (int)reader["CID"];
+                                var cid = Convert.ToUInt32(reader["ID"]);
 
                                 var items = ((string)reader["Items"]).DeserializeFromJson<uint[]>();
                                 var clothes = ((string)reader["Clothes"]).DeserializeFromJson<uint[]>();
@@ -501,7 +529,7 @@ namespace BCRPServer
 
                     if (toDelete.Count > 0)
                     {
-                        cmd.CommandText = $"DELETE FROM Items WHERE UID IN ({string.Join(", ", toDelete)})";
+                        cmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(", ", toDelete)})";
 
                         cmd.ExecuteNonQuery();
                     }
@@ -531,7 +559,7 @@ namespace BCRPServer
                 {
                     cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='characters';";
 
-                    int nextAi = Utils.FirstCID;
+                    var nextAi = Utils.FirstCID;
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -539,11 +567,11 @@ namespace BCRPServer
                         {
                             reader.Read();
 
-                            nextAi = (int)Convert.ToUInt32(reader[0]);
+                            nextAi = Convert.ToUInt32(reader[0]);
                         }
                     }
 
-                    for (int i = Utils.FirstCID; i < nextAi; i++)
+                    for (uint i = Utils.FirstCID; i < nextAi; i++)
                     {
                         if (PlayerData.PlayerInfo.Get(i) == null)
                             PlayerData.PlayerInfo.AddFreeId(i);
@@ -554,7 +582,7 @@ namespace BCRPServer
                 {
                     cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='vehicles';";
 
-                    int nextAi = Utils.FirstVID;
+                    var nextAi = Utils.FirstVID;
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -562,11 +590,11 @@ namespace BCRPServer
                         {
                             reader.Read();
 
-                            nextAi = (int)Convert.ToUInt32(reader[0]);
+                            nextAi = Convert.ToUInt32(reader[0]);
                         }
                     }
 
-                    for (int i = Utils.FirstVID; i < nextAi; i++)
+                    for (uint i = Utils.FirstVID; i < nextAi; i++)
                     {
                         if (VehicleData.VehicleInfo.Get(i) == null)
                             VehicleData.VehicleInfo.AddFreeId(i);
@@ -646,7 +674,7 @@ namespace BCRPServer
 
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "SELECT AID FROM accounts WHERE Mail=@Mail LIMIT 1";
+                        cmd.CommandText = "SELECT ID FROM accounts WHERE Mail=@Mail LIMIT 1";
                         cmd.Parameters.AddWithValue("@Mail", mail);
 
                         using (var reader = cmd.ExecuteReader())
@@ -655,7 +683,7 @@ namespace BCRPServer
                                 return (AuthResults.RegMailNotFree, null);
                         }
 
-                        cmd.CommandText = "SELECT AID FROM accounts WHERE Login=@Login LIMIT 1";
+                        cmd.CommandText = "SELECT ID FROM accounts WHERE Login=@Login LIMIT 1";
                         cmd.Parameters.AddWithValue("@Login", login);
 
                         using (var reader = cmd.ExecuteReader())
@@ -682,7 +710,7 @@ namespace BCRPServer
 
                         cmd.ExecuteNonQuery();
 
-                        var id = Convert.ToInt32(cmd.LastInsertedId);
+                        var id = Convert.ToUInt32(cmd.LastInsertedId);
 
                         return (AuthResults.RegOk, new AccountData() { AdminLevel = -1, BCoins = 0, HWID = hwid, ID = id, LastIP = ip, Login = login, Mail = mail, Password = password, RegistrationDate = currentDate, RegistrationIP = ip, SCID = ip });
                     }
@@ -715,7 +743,7 @@ namespace BCRPServer
 
                                 return new AccountData()
                                 {
-                                    ID = (int)reader[0], // AID
+                                    ID = Convert.ToUInt32(reader[0]), // AID
                                     SCID = (string)reader[1], // SCID
                                     HWID = (string)reader[2], // HWID
                                     Login = (string)reader[3], // Login
@@ -742,9 +770,9 @@ namespace BCRPServer
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "UPDATE accounts SET LastIP=@LastIP WHERE AID=@AID";
+                    cmd.CommandText = "UPDATE accounts SET LastIP=@LastIP WHERE ID=@ID";
 
-                    cmd.Parameters.AddWithValue("@AID", aData.ID);
+                    cmd.Parameters.AddWithValue("@ID", aData.ID);
                     cmd.Parameters.AddWithValue("@LastIP", aData.LastIP);
 
                     cmd.ExecuteNonQuery();
@@ -801,7 +829,7 @@ namespace BCRPServer
             });
         }
 
-        public static List<PlayerData.Punishment> GetPunishmentsByCID(int cid)
+        public static List<PlayerData.Punishment> GetPunishmentsByCID(uint cid)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -835,16 +863,18 @@ namespace BCRPServer
         {
             MySqlCommand cmd = new MySqlCommand();
 
-            cmd.CommandText = @"INSERT INTO characters (CID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, 
+            cmd.CommandText = @"INSERT INTO characters (ID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, 
                     Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, BID, LastData, 
                     Satiety, Mood, Familiars, Skills) 
                     VALUES (@CID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, 
                     @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @BID, @LastData, 
                     @Satiety, @Mood, @Familiars, @Skills); 
-                    INSERT INTO customizations (CID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@CID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
-                    INSERT INTO inventories (CID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@CID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour); ";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+                    INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@CID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
+
+                    INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@CID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour); ";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@AID", pInfo.AID);
 
@@ -893,9 +923,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE characters SET IsOnline=true, LastJoinDate=@LastJoinDate WHERE CID=@CID";
+            cmd.CommandText = "UPDATE characters SET IsOnline=true, LastJoinDate=@LastJoinDate WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
             cmd.Parameters.AddWithValue("@LastJoinDate", pInfo.LastJoinDate);
 
             PushQuery(cmd);
@@ -905,9 +935,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE characters SET IsOnline=false, TimePlayed=@TimePlayed, LastData=@LastData, Familiars=@Familiars WHERE CID=@CID;";
+            cmd.CommandText = "UPDATE characters SET IsOnline=false, TimePlayed=@TimePlayed, LastData=@LastData, Familiars=@Familiars WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
             cmd.Parameters.AddWithValue("@TimePlayed", pInfo.TimePlayed);
             cmd.Parameters.AddWithValue("@LastData", pInfo.LastData.SerializeToJson());
             cmd.Parameters.AddWithValue("@Familiars", pInfo.Familiars.SerializeToJson());
@@ -927,9 +957,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE characters SET Cash=@Cash WHERE CID=@CID";
+            cmd.CommandText = "UPDATE characters SET Cash=@Cash WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
             cmd.Parameters.AddWithValue("@Cash", pInfo.Cash);
 
             PushQuery(cmd);
@@ -939,9 +969,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Items=@Items WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Items=@Items WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Items", pInfo.Items.Select(x => x?.UID ?? 0).SerializeToJson());
 
@@ -952,9 +982,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Clothes=@Clothes WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Clothes=@Clothes WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Clothes", pInfo.Clothes.Select(x => x?.UID ?? 0).SerializeToJson());
 
@@ -965,9 +995,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Accessories=@Accessories WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Accessories=@Accessories WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Accessories", pInfo.Accessories.Select(x => x?.UID ?? 0).SerializeToJson());
 
@@ -978,9 +1008,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Weapons=@Weapons WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Weapons=@Weapons WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Weapons", pInfo.Weapons.Select(x => x?.UID ?? 0).SerializeToJson());
 
@@ -991,9 +1021,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Bag=@Bag WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Bag=@Bag WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Bag", pInfo.Bag?.UID ?? 0);
 
@@ -1004,9 +1034,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Holster=@Holster WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Holster=@Holster WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Holster", pInfo.Holster?.UID ?? 0);
 
@@ -1017,9 +1047,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE inventories SET Armour=@Armour WHERE CID=@CID";
+            cmd.CommandText = "UPDATE inventories SET Armour=@Armour WHERE ID=@ID";
 
-            cmd.Parameters.AddWithValue("@CID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Armour", pInfo.Armour?.UID ?? 0);
 
@@ -1035,14 +1065,14 @@ namespace BCRPServer
 
             if (item is Game.Items.IContainer cont)
             {
-                cmd.CommandText = "UPDATE items SET Data=@Data, Items=@Items WHERE UID=@UID;";
+                cmd.CommandText = "UPDATE items SET Data=@Data, Items=@Items WHERE ID=@ID;";
 
                 cmd.Parameters.AddWithValue("@Items", cont.Items.Select(x => x?.UID ?? 0).SerializeToJson());
             }
             else
-                cmd.CommandText = "UPDATE items SET Data=@Data WHERE UID=@UID;";
+                cmd.CommandText = "UPDATE items SET Data=@Data WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@UID", item.UID);
+            cmd.Parameters.AddWithValue("@ID", item.UID);
             cmd.Parameters.AddWithValue("@Data", item.SerializeToJson());
 
             PushQuery(cmd);
@@ -1055,16 +1085,16 @@ namespace BCRPServer
 
             if (item is Game.Items.IContainer cont)
             {
-                cmd.CommandText = "INSERT INTO items (UID, Data, Items) VALUES (@UID, @Data, @Items);";
+                cmd.CommandText = "INSERT INTO items (ID, Data, Items) VALUES (@ID, @Data, @Items);";
 
                 cmd.Parameters.AddWithValue("@Items", cont.Items.Select(x => x?.UID ?? 0).SerializeToJson());
             }
             else
             {
-                cmd.CommandText = "INSERT INTO items (UID, Data) VALUES (@UID, @Data);";
+                cmd.CommandText = "INSERT INTO items (ID, Data) VALUES (@ID, @Data);";
             }
 
-            cmd.Parameters.AddWithValue("@UID", item.UID);
+            cmd.Parameters.AddWithValue("@ID", item.UID);
 
             cmd.Parameters.AddWithValue("@Data", item.SerializeToJson());
 
@@ -1076,9 +1106,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = $"DELETE FROM items WHERE UID=@UID;";
+            cmd.CommandText = $"DELETE FROM items WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@UID", item.UID);
+            cmd.Parameters.AddWithValue("@ID", item.UID);
 
             PushQuery(cmd);
         }
@@ -1130,12 +1160,14 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "INSERT INTO vehicles (VID, ID, CID, AllKeys, RegDate, Numberplate, Tuning, TID, LastData) VALUES (@VID, @ID, @CID, @AllKeys, @RegDate, @Numberplate, @Tuning, @TID, @LastData);";
+            cmd.CommandText = "INSERT INTO vehicles (ID, SID, OwnerType, OwnerID, AllKeys, RegDate, Numberplate, Tuning, TID, LastData) VALUES (@ID, @SID, @OwnerType, @OwnerID, @AllKeys, @RegDate, @Numberplate, @Tuning, @TID, @LastData);";
 
-            cmd.Parameters.AddWithValue("@VID", vInfo.VID);
-            cmd.Parameters.AddWithValue("@ID", vInfo.ID);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
+            cmd.Parameters.AddWithValue("@SID", vInfo.ID);
 
-            cmd.Parameters.AddWithValue("@CID", vInfo.CID);
+            cmd.Parameters.AddWithValue("@OwnerType", (int)vInfo.OwnerType);
+            cmd.Parameters.AddWithValue("@OwnerID", vInfo.OwnerID);
+
             cmd.Parameters.AddWithValue("@AllKeys", vInfo.AllKeys.SerializeToJson());
             cmd.Parameters.AddWithValue("@RegDate", vInfo.RegistrationDate);
             cmd.Parameters.AddWithValue("@Numberplate", vInfo.Numberplate?.UID ?? 0);
@@ -1151,9 +1183,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET AllKeys=@Keys WHERE VID=@VID;";
+            cmd.CommandText = "UPDATE vehicles SET AllKeys=@Keys WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@VID", vInfo.VID);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
             cmd.Parameters.AddWithValue("@Keys", vInfo.AllKeys.SerializeToJson());
 
@@ -1164,9 +1196,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET Numberplate=@Numberplate WHERE VID=@VID;";
+            cmd.CommandText = "UPDATE vehicles SET Numberplate=@Numberplate WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@VID", vInfo.VID);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
             cmd.Parameters.AddWithValue("@Numberplate", vInfo.Numberplate?.UID ?? 0);
 
@@ -1177,11 +1209,12 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET CID=@CID WHERE VID=@VID;";
+            cmd.CommandText = "UPDATE vehicles SET OwnerType=@OwnerType, OwnerID=@OwnerID WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@VID", vInfo.VID);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
-            cmd.Parameters.AddWithValue("@CID", vInfo.CID);
+            cmd.Parameters.AddWithValue("@OwnerType", (int)vInfo.OwnerType);
+            cmd.Parameters.AddWithValue("@OwnerID", vInfo.OwnerID);
 
             PushQuery(cmd);
         }
@@ -1190,9 +1223,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET LastData=@LastData WHERE VID=@VID;";
+            cmd.CommandText = "UPDATE vehicles SET LastData=@LastData WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@VID", vInfo.VID);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
             cmd.Parameters.AddWithValue("@LastData", vInfo.LastData.SerializeToJson());
 
@@ -1203,22 +1236,22 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET Tuning=@TuningWHERE VID=@VID;";
+            cmd.CommandText = "UPDATE vehicles SET Tuning=@TuningWHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@VID", vInfo.VID);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
             cmd.Parameters.AddWithValue("@Tuning", vInfo.Tuning.SerializeToJson());
 
             PushQuery(cmd);
         }
 
-        public static void DeleteVehicle(int vid)
+        public static void VehicleDelete(VehicleData.VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "DELETE FROM vehicles WHERE VID=@VID;";
+            cmd.CommandText = "DELETE FROM vehicles WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@VID", vid);
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
             PushQuery(cmd);
         }
@@ -1245,7 +1278,7 @@ namespace BCRPServer
 
                         reader.Read();
 
-                        business.Owner = (int)reader["CID"];
+                        business.Owner = Convert.ToUInt32(reader["CID"]);
                         business.Name = (string)reader["Name"];
 
                         business.Cash = (int)reader["Cash"];
@@ -1323,9 +1356,9 @@ namespace BCRPServer
 
                         reader.Read();
 
-                        house.Owner = (int)reader["CID"];
+                        house.Owner = Convert.ToUInt32(reader["CID"]);
                         house.StyleType = (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"];
-                        house.Settlers = NAPI.Util.FromJson<List<int>>((string)reader["Settlers"]);
+                        house.Settlers = NAPI.Util.FromJson<List<uint>>((string)reader["Settlers"]);
                         house.IsLocked = (bool)reader["IsLocked"];
                         house.ContainersLocked = (bool)reader["ContainersLocked"];
                         house.Vehicles = NAPI.Util.FromJson<List<int>>((string)reader["Vehicles"]);
@@ -1411,9 +1444,9 @@ namespace BCRPServer
 
                         reader.Read();
 
-                        apartments.Owner = (int)reader["CID"];
+                        apartments.Owner = Convert.ToUInt32(reader["CID"]);
                         apartments.StyleType = (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"];
-                        apartments.Settlers = NAPI.Util.FromJson<List<int>>((string)reader["Settlers"]);
+                        apartments.Settlers = NAPI.Util.FromJson<List<uint>>((string)reader["Settlers"]);
                         apartments.IsLocked = (bool)reader["IsLocked"];
                         apartments.Vehicles = NAPI.Util.FromJson<List<int>>((string)reader["Vehicles"]);
 

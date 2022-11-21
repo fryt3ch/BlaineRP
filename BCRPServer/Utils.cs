@@ -35,11 +35,11 @@ namespace BCRPServer
 
         /// <summary>Номер первого CID</summary>
         /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, тогда 2999 - последний Remote ID</remarks>
-        public static int FirstCID = 3000 * 1;
+        public static uint FirstCID = 3000 * 1;
 
         /// <summary>Номер первого VID</summary>
         /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, а машин у каждого - 100, тогда 299999 - посдений RemoteID</remarks>
-        public static int FirstVID = 3000 * 100;
+        public static uint FirstVID = 3000 * 100;
 
         public const int PlayerPrivateDimBase = 1000;
         public const int HouseDimBase = 10000;
@@ -346,7 +346,7 @@ namespace BCRPServer
         /// <param name="cid">Character ID</param>
         /// <returns>Объект класса Player, если игрок найден на сервере, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player GetPlayerByCID(int cid) => NAPI.Pools.GetAllPlayers().Where(x => x.GetMainData()?.CID == cid).FirstOrDefault();
+        public static PlayerData GetPlayerByCID(uint cid) => PlayerData.All.Values.Where(x => x.CID == cid).FirstOrDefault();
 
         //public static Player GetPlayerByName(string name) => NAPI.Player.GetPlayerFromName(name);
 
@@ -371,7 +371,7 @@ namespace BCRPServer
         /// <param name="cid">CID</param>
         /// <returns>Объект класса Player, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData.PlayerInfo FindPlayerOffline(int cid) => PlayerData.PlayerInfo.Get(cid);
+        public static PlayerData.PlayerInfo FindPlayerOffline(uint cid) => PlayerData.PlayerInfo.Get(cid);
 
         /// <inheritdoc cref="Additional.AntiSpam.CheckNormal(Player, int)"/>
         public static (bool IsSpammer, PlayerData Data) CheckSpamAttack(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckNormal(player, decreaseDelay);

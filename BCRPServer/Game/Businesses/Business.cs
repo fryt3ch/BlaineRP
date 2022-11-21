@@ -53,10 +53,10 @@ namespace BCRPServer.Game.Businesses
         public string NameAndSubID { get => Name ?? " " + $" #{SubID}"; }
 
         /// <summary>CID владельца</summary>
-        /// <remarks>Если владельца нет, то -1</remarks>
-        public int Owner { get; set; }
+        /// <remarks>Если владельца нет, то 0</remarks>
+        public uint Owner { get; set; }
 
-        public string OwnerName { get => Owner == -1 ? Locale.Businesses.Government : "Игрок"; }
+        public string OwnerName { get => Owner == 0 ? Locale.Businesses.Government : "Игрок"; }
 
         /// <summary>Наличных в кассе</summary>
         public int Cash { get; set; }

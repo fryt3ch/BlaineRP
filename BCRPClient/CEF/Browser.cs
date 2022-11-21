@@ -135,9 +135,11 @@ namespace BCRPClient.CEF
 
                 await Render(IntTypes.Notifications, true, true);
 
-                await Render(IntTypes.HUD, true);
+                await Render(IntTypes.HUD, true, false);
 
-                await Render(IntTypes.Menu, true);
+                await Render(IntTypes.Menu, true, false);
+
+                await Render(IntTypes.BlipsMenu, true, false);
 
                 Window.ExecuteJs("Menu.selectOption", "menu-char");
                 Window.ExecuteJs("Menu.drawSkills", new object[] { Sync.Players.MaxSkills.Select(x => new object[] { x.Key, x.Value } ) });

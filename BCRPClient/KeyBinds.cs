@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.CEF;
+using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,6 +29,7 @@ namespace BCRPClient
             { Types.Animations, CEF.HUD.Menu.Types.Animations },
             { Types.Inventory, CEF.HUD.Menu.Types.Inventory },
             { Types.Phone, CEF.HUD.Menu.Types.Phone },
+            { Types.BlipsMenu, CEF.HUD.Menu.Types.BlipsMenu },
         };
 
         public enum Types
@@ -50,6 +52,8 @@ namespace BCRPClient
             Animations,
             CancelAnimation,
             Help,
+            BlipsMenu,
+            AnchorBoat,
 
             weapon0, weapon1, weapon2,
             pockets0, pockets1, pockets2, pockets3, pockets4, pockets5, pockets6, pockets7, pockets8, pockets9, pockets10, pockets11, pockets12, pockets13, pockets14, pockets15, pockets16, pockets17, pockets18, pockets19
@@ -352,7 +356,11 @@ namespace BCRPClient
             { Types.Whistle, new RAGE.Ui.VirtualKeys[] { } },
 
             { Types.Animations, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.U} },
-            { Types.CancelAnimation, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.C} },
+            { Types.CancelAnimation, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.C } },
+
+            { Types.BlipsMenu, new RAGE.Ui.VirtualKeys[] { } },
+
+            { Types.AnchorBoat, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.Z } },
 
             { Types.weapon0, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.N1 } },
             { Types.weapon1, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.N2 } },
@@ -810,6 +818,24 @@ namespace BCRPClient
                     CEF.Menu.Show(CEF.Menu.SectionTypes.Help);
             }, true, true)
             { Description = "Помощь" });
+
+            Add(new Bind(Types.BlipsMenu, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                {
+                    BlipsMenu.Show();
+                }
+            }, true, true)
+            { Description = "Меню меток" });
+
+            Add(new Bind(Types.AnchorBoat, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                {
+                    // todo
+                }
+            }, true, true)
+            { Description = "Якорь (для лодок)" });
 
             // Inventory Binds
             Add(new Bind(Types.weapon0, () =>

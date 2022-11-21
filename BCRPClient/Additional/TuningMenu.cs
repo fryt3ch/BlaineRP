@@ -311,7 +311,9 @@ namespace BCRPClient.Additional
             GameEvents.Update += DrawMenu;
 
             mainMenu.Visible = true;
-            mainMenu.ResetCursorOnOpen = true;
+            mainMenu.MouseControlsEnabled = false;
+            mainMenu.MouseEdgeEnabled = false;
+            mainMenu.FreezeAllInput = false;
 
             mainMenu.OnMenuClose += (sender) =>
             {

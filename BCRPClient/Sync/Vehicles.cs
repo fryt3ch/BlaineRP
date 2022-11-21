@@ -100,7 +100,7 @@ namespace BCRPClient.Sync
 
             public float Mileage => Vehicle.GetSharedData<float>("Mileage", 0f);
 
-            public int VID => Vehicle.GetSharedData<int>("VID", int.MinValue);
+            public uint VID => (uint)Vehicle.GetSharedData<int>("VID", 0);
 
             public uint? TID { get => Vehicle.GetData<uint?>("ContainerID"); set => Vehicle.SetData("ContainerID", value); }
 

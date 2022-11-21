@@ -25,6 +25,8 @@ namespace BCRPClient.Sync
             Cash,
             /// <summary>Показать паспорт</summary>
             ShowPasport,
+            /// <summary>Продажа имущества</summary>
+            PropertySell,
         }
 
         public enum ReplyTypes

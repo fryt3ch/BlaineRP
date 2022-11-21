@@ -159,7 +159,7 @@ namespace BCRPServer.Sync
                 return;
             }
 
-            vData.Delete(false);
+            vData.Delete(completely);
         }
 
         [RemoteEvent("Cmd::Vehicle::Respawn")]
@@ -246,7 +246,7 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("Cmd::Item")]
-        private static void GIveItem(Player player, int pid, string id, int amount, int variation)
+        private static void GiveItem(Player player, int pid, string id, int amount, int variation)
         {
             var sRes = player.CheckSpamAttack();
 

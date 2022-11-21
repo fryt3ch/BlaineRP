@@ -421,6 +421,41 @@ namespace BCRPClient
 
         public static bool IsAnyCefActive(bool checkChatInput = true) => (checkChatInput && CEF.Chat.InputVisible) || CEF.Browser.IsAnyCEFActive;
 
+        /// <summary>Получить handle блипа метки на карте</summary>
+        /// <returns>0, если не найдена</returns>
+        public static int GetWaypointBlip()
+        {
+            if (RAGE.Game.Ui.IsWaypointActive())
+            {
+                var blipIterator = RAGE.Game.Invoker.Invoke<int>(0x186E5D252FA50E7D); // GetWaypointBlipEnumId
+
+                var firstBlip = RAGE.Game.Ui.GetFirstBlipInfoId(blipIterator);
+                var nextBlip = RAGE.Game.Ui.GetNextBlipInfoId(blipIterator);
+
+                for (int i = firstBlip; RAGE.Game.Ui.DoesBlipExist(i); i = nextBlip)
+                {
+                    if (RAGE.Game.Ui.GetBlipInfoIdType(i) == 4)
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>Получить координаты текущей метки на карте</summary>
+        /// <returns>null, если метка не стоит</returns>
+        public static Vector3 GetWaypointPosition()
+        {
+            var blip = GetWaypointBlip();
+
+            if (blip == 0)
+                return null;
+
+            return RAGE.Game.Ui.GetBlipInfoIdCoord(blip);
+        }
+
         public static Vector3 RotatePoint(Vector3 point, Vector3 originPoint, float angle)
         {
             angle = (float)(angle * Math.PI / 180);

@@ -50,7 +50,7 @@ namespace BCRPClient.Additional
                 ShowShard("~r~" + Locale.Scaleform.Wasted.Header, Locale.Scaleform.Wasted.TextSelf, 6, 2);
             }
             else
-                ShowShard("~r~" + Locale.Scaleform.Wasted.Header, string.Format(Locale.Scaleform.Wasted.TextAttacker, killer.GetName(true, false, true), Sync.Players.GetData(killer)?.CID ?? -1), 6, 2);
+                ShowShard("~r~" + Locale.Scaleform.Wasted.Header, string.Format(Locale.Scaleform.Wasted.TextAttacker, killer.GetName(true, false, true), Sync.Players.GetData(killer)?.CID ?? 0), 6, 2);
         }
 
         public static void Close()

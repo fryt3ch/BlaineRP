@@ -7,7 +7,7 @@ namespace BCRPServer
 {
     public class AccountData
     {
-        public int ID { get; set; }
+        public uint ID { get; set; }
 
         public string SCID { get; set; }
 

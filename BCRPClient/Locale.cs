@@ -722,6 +722,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.Interact, "для взаимодействия" },
 
                 { Additional.ExtraColshape.InteractionTypes.NpcDialogue, "чтобы поговорить" },
+
+                { Additional.ExtraColshape.InteractionTypes.ATM, "чтобы воспользоваться банкоматом" },
             };
         }
 

@@ -57,16 +57,16 @@ namespace BCRPServer.Game.Houses
 
         /// <summary>ID дома</summary>
         /// <value>У домов, квартир - разные!</value>
-        public int ID { get; set; }
+        public uint ID { get; set; }
         /// <summary>Тип дома</summary>
         public Types Type { get; set; }
         /// <summary>Тип планировки</summary>
         public Style.Types StyleType { get; set; }
         /// <summary>CID владельца</summary>
-        /// <value>-1 - если нет владельца</value>
-        public int Owner { get; set; }
+        /// <value>0 - если нет владельца</value>
+        public uint Owner { get; set; }
         /// <summary>Список CID сожителей</summary>
-        public List<int> Settlers { get; set; }
+        public List<uint> Settlers { get; set; }
         /// <summary>Баланс дома</summary>
         public int Balance { get; set; }
         /// <summary>Заблокированы ли двери?</summary>
@@ -95,7 +95,7 @@ namespace BCRPServer.Game.Houses
         public uint Fridge { get; set; }
 
         /// <summary>Список FID мебели в доме</summary>
-        public List<int> Furniture { get; set; }
+        public List<uint> Furniture { get; set; }
 
         public (Color Colour, bool State)[] LightsStates { get; set; }
         public bool[] DoorsStates { get; set; }
@@ -112,7 +112,7 @@ namespace BCRPServer.Game.Houses
 
         public uint Dimension { get; set; }
 
-        public HouseBase(int ID, Vector3 GlobalPosition, float ExitHeading, Style.Types StyleType)
+        public HouseBase(uint ID, Vector3 GlobalPosition, float ExitHeading, Style.Types StyleType)
         {
             this.ID = ID;
 
@@ -133,7 +133,7 @@ namespace BCRPServer.Game.Houses
 
         public Garage.Outside GarageOutside { get; set; }
 
-        public House(int HID, Vector3 GlobalPosition, float ExitHeading, Style.Types StyleType, int Price, Garage.Outside GarageOutside = null) : base(HID, GlobalPosition, ExitHeading, StyleType)
+        public House(uint HID, Vector3 GlobalPosition, float ExitHeading, Style.Types StyleType, int Price, Garage.Outside GarageOutside = null) : base(HID, GlobalPosition, ExitHeading, StyleType)
         {
             this.Price = Price;
             this.Dimension = (uint)(HID + Utils.HouseDimBase);
@@ -290,7 +290,7 @@ namespace BCRPServer.Game.Houses
 
             return All.Count;
         }
-        public Apartments(int HID, Vector3 GlobalPosition, float ExitHeading, ApartmentsRoot.Types RootType, Style.Types StyleType, int Price) : base(HID, GlobalPosition, ExitHeading, StyleType)
+        public Apartments(uint HID, Vector3 GlobalPosition, float ExitHeading, ApartmentsRoot.Types RootType, Style.Types StyleType, int Price) : base(HID, GlobalPosition, ExitHeading, StyleType)
         {
             this.RootType = RootType;
 

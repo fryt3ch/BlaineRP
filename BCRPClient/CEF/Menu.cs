@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace BCRPClient.CEF
 {
@@ -66,8 +67,8 @@ namespace BCRPClient.CEF
         public static DateTime CreationDate { get; set; }
         public static DateTime BirthDate { get; set; }
 
-        public static List<(int VID, Data.Vehicles.Vehicle Data)> OwnedVehicles;
-        public static Dictionary<int, (string Reason, string Name)> Gifts;
+        public static List<(uint VID, Data.Vehicles.Vehicle Data)> OwnedVehicles;
+        public static Dictionary<uint, (string Reason, string Name)> Gifts;
 
         private static int TempBindEsc;
 
@@ -101,8 +102,8 @@ namespace BCRPClient.CEF
 
             _TimePlayed = 0;
 
-            OwnedVehicles = new List<(int, Data.Vehicles.Vehicle)>();
-            Gifts = new Dictionary<int, (string Reason, string Name)>();
+            OwnedVehicles = new List<(uint, Data.Vehicles.Vehicle)>();
+            Gifts = new Dictionary<uint, (string Reason, string Name)>();
 
             #region Events
             #region Update Settings
@@ -246,7 +247,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Menu::GetGift", (object[] args) =>
             {
-                int id = (int)args[0];
+                var id = (uint)(int)args[0];
 
                 if (id < 0)
                     return;
@@ -263,7 +264,7 @@ namespace BCRPClient.CEF
             {
                 bool add = (bool)args[0];
 
-                int id = (int)args[1];
+                var id = (uint)(int)args[1];
 
                 if (add)
                 {
@@ -383,49 +384,59 @@ namespace BCRPClient.CEF
         }
 
         public static void SetCash(int value) => Browser.Window.ExecuteJs("Menu.setCash", value);
+
         public static void SetBank(int value) => Browser.Window.ExecuteJs("Menu.setBank", value);
+
         public static void SetSex(bool state) => Browser.Window.ExecuteJs("Menu.setSex", state);
+
         public static void SetName(string value) => Browser.Window.ExecuteJs("Menu.setName", value);
-        public static void SetCID(int value) => Browser.Window.ExecuteJs("Menu.setCID", value);
+
+        public static void SetCID(uint value) => Browser.Window.ExecuteJs("Menu.setCID", value);
+
         public static void SetFraction(Players.FractionTypes type) => Browser.Window.ExecuteJs("Menu.setFraction", Locale.General.Players.FractionNames[type]);
-        public static void SetOrganisation() => Browser.Window.ExecuteJs("Menu.setOrganisation");
+
+        public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? Locale.General.Players.FractionNames[Sync.Players.FractionTypes.None]);
 
         public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs($"Menu.setSkill", type, current);
 
-        public static void Load(params object[] args)
+        public static void Load(Sync.Players.PlayerData pData, int timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
         {
-            var info = RAGE.Util.Json.Deserialize<(int timePlayed, DateTime creationDate, DateTime birtDate)>((string)args[0]);
-            var vehicles = RAGE.Util.Json.Deserialize<List<(int VID, string ID)>>((string)args[1]);
-            var gifts = RAGE.Util.Json.Deserialize<List<(int id, int type, string gid, int amount, int reason)>>((string)args[2]);
+            Browser.Window.ExecuteJs("Menu.setOrganisation", "none"); // temp
 
-            Browser.Window.ExecuteJs("Menu.setOrganisation", Locale.General.Players.FractionNames[Sync.Players.FractionTypes.None]);
+            TimePlayed = timePlayed;
 
-            Browser.Window.ExecuteJs("Menu.setRegDate", info.creationDate.ToString("dd.MM.yyyy"));
+            BirthDate = birthDate;
+            CreationDate = creationDate;
 
-            TimePlayed = info.timePlayed;
-
-            BirthDate = info.birtDate;
-            CreationDate = info.creationDate;
+            Browser.Window.ExecuteJs("Menu.setRegDate", CreationDate.ToString("dd.MM.yyyy"));
 
             if (gifts.Count > 0)
             {
                 foreach (var x in gifts)
-                    Gifts.Add(x.id, (Locale.Notifications.Gifts.SourceNames[(GiftSourceTypes)(int)x.reason], GetGiftName((GiftTypes)x.type, x.gid, x.amount)));
+                    Gifts.Add(x.Key, (Locale.Notifications.Gifts.SourceNames[(GiftSourceTypes)(int)x.Value.Reason], GetGiftName((GiftTypes)x.Value.Type, x.Value.GID, x.Value.Amount)));
 
                 Browser.Window.ExecuteJs("Menu.drawGifts", new object[] { Gifts.Select(x => new object[] { x.Key, x.Value.Reason, x.Value.Name }) });
             }
 
-            foreach (var x in vehicles)
+            UpdateProperties(pData);
+        }
+
+        public static void UpdateProperties(Sync.Players.PlayerData pData = null)
+        {
+            if (pData == null)
+                pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            Browser.Window.ExecuteJs("Menu.clearPropertyTable", "veh");
+
+            foreach (var x in pData.OwnedVehicles)
             {
-                var vData = Data.Vehicles.GetById(x.ID);
-
-                if (vData == null)
-                    continue;
-
-                OwnedVehicles.Add((x.VID, vData));
-
-                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "veh", vData.Type.ToString(), vData.BrandName, vData.SubName, "Luxe", 100 } });
+                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "veh", x.Value.Type.ToString(), x.Value.BrandName, x.Value.SubName, "Luxe", 10000000 } });
             }
+
+            Browser.Window.ExecuteJs("Menu.clearPropertyTable", "est");
         }
     }
 }

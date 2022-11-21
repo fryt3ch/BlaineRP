@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Markup;
-using static BCRPServer.Sync.Offers;
 
 namespace BCRPServer.Sync
 {
@@ -36,6 +35,8 @@ namespace BCRPServer.Sync
             /// <summary>Приглашение в организацию</summary>
             InviteOrganisation,
             Cash,
+            /// <summary>Продажа имущества</summary>
+            PropertySell,
         }
 
         private static Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>> OfferActions = new Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>>()

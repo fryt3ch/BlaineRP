@@ -298,7 +298,7 @@ namespace BCRPClient.Data
                     
                     null,
 
-                    new Button("[Смотреть товары]", () => { Sync.World.BusinessEnter(((Data.Locations.Business)NPC.CurrentNPC.Data).Id); }, true),
+                    new Button("[Смотреть товары]", () => { Events.CallRemote("Business::Enter", (((Data.Locations.Business)NPC.CurrentNPC.Data).Id)); }, true),
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 

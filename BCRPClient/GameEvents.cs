@@ -19,8 +19,14 @@ namespace BCRPClient
         public delegate void UpdateHandler();
         public delegate void ScreenResolutionChangeHandler(int x, int y);
 
+        public delegate void WaypointCreatedHandler(Vector3 position);
+        public delegate void WaypointDeletedHandler();
+
         public static event UpdateHandler Update;
         public static event UpdateHandler Render;
+
+        public static event WaypointCreatedHandler WaypointCreated;
+        public static event WaypointDeletedHandler WaypointDeleted;
 
         public static event ScreenResolutionChangeHandler ScreenResolutionChange;
 
@@ -35,6 +41,8 @@ namespace BCRPClient
             RAGE.Chat.Show(false);
 
             Player.LocalPlayer.SetVisible(true, false);
+
+            RAGE.Game.Ui.SetPauseMenuActive(false);
 
             RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
 
@@ -65,56 +73,6 @@ namespace BCRPClient
                 Sync.AttachSystem.ReattachObjects(Player.LocalPlayer, true);
 
                 Additional.ExtraColshape.UpdateStreamed();
-            };
-
-            Events.OnPlayerCreateWaypoint += (Vector3 position) =>
-            {
-                if (position == null)
-                    return;
-
-                for (int i = 0; i < RAGE.Elements.Entities.Blips.All.Count; i++)
-                {
-                    var blip = RAGE.Elements.Entities.Blips.All[i];
-
-                    if (blip?.Exists != true || blip.Dimension != Player.LocalPlayer.Dimension)
-                        continue;
-
-                    var coords = blip.GetCoords();
-
-                    if (coords.DistanceIgnoreZ(position) <= 5f)
-                    {
-                        position.Z = coords.Z;
-
-                        break;
-                    }
-                }
-
-                WaypointPosition = position;
-                
-                Utils.ConsoleOutput(WaypointPosition);
-
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                if (pData.AdminLevel > -1 && Settings.Other.AutoTeleportMarker)
-                    Data.Commands.TeleportMarker();
-
-/*                if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
-                {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Vehicles.GPS.Header, Locale.Notifications.Vehicles.GPS.RouteReady);
-                }*/
-            };
-
-            Events.OnPlayerRemoveWaypoint += () =>
-            {
-                //WaypointPosition = null;
-
-/*                if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
-                {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Vehicles.GPS.Header, Locale.Notifications.Vehicles.GPS.RouteCancel);
-                }*/
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
@@ -149,42 +107,88 @@ namespace BCRPClient
                 ScreenResolutionChange?.Invoke(x, y);
             }, Settings.SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT, true, 0)).Run();
 
-/*            var dict = new Dictionary<int, bool>();
+            Vector3 lastWaypointPos = null;
 
-            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.L, true, () =>
+            (new AsyncTask(() =>
             {
-                var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
+                var pos = Utils.GetWaypointPosition();
 
-                Utils.ConsoleOutput(ent);
-
-                if (ent <= 0)
-                    return;
-
-                var state = true;
-
-                if (dict.ContainsKey(ent))
+                if (pos != null)
                 {
-                    state = !dict[ent];
+                    if (lastWaypointPos == null || lastWaypointPos.X != pos.X || lastWaypointPos.Y != pos.Y)
+                    {
+                        lastWaypointPos = pos;
 
-                    dict[ent] = state;
+                        WaypointCreated?.Invoke(pos);
+                    }
                 }
-                else
-                    dict.Add(ent, state);
+                else if (lastWaypointPos != null)
+                {
+                    lastWaypointPos = null;
 
-                RAGE.Game.Entity.SetEntityLights(ent, state);
-            });
+                    WaypointDeleted?.Invoke();
+                }
 
-            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.B, true, () =>
+            }, 1000, true, 0)).Run();
+
+            WaypointCreated += (Vector3 position) =>
             {
-                var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
+                Utils.ConsoleOutput(position);
 
-                Utils.ConsoleOutput(ent);
+                WaypointPosition = position;
 
-                if (ent <= 0)
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
                     return;
 
-                RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, ent, true, 255, 0, 0);
-            });*/
+                if (pData.AdminLevel > -1 && Settings.Other.AutoTeleportMarker)
+                    Data.Commands.TeleportMarker();
+            };
+
+            WaypointDeleted += () =>
+            {
+                Utils.ConsoleOutput("DELETED");
+
+                WaypointPosition = null;
+            };
+
+            /*            var dict = new Dictionary<int, bool>();
+
+                        RAGE.Input.Bind(RAGE.Ui.VirtualKeys.L, true, () =>
+                        {
+                            var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
+
+                            Utils.ConsoleOutput(ent);
+
+                            if (ent <= 0)
+                                return;
+
+                            var state = true;
+
+                            if (dict.ContainsKey(ent))
+                            {
+                                state = !dict[ent];
+
+                                dict[ent] = state;
+                            }
+                            else
+                                dict.Add(ent, state);
+
+                            RAGE.Game.Entity.SetEntityLights(ent, state);
+                        });
+
+                        RAGE.Input.Bind(RAGE.Ui.VirtualKeys.B, true, () =>
+                        {
+                            var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
+
+                            Utils.ConsoleOutput(ent);
+
+                            if (ent <= 0)
+                                return;
+
+                            RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, ent, true, 255, 0, 0);
+                        });*/
         }
 
         #region Renders
@@ -250,6 +254,9 @@ namespace BCRPClient
             // Enable Red HUD and Map Title
             RAGE.Game.Ui.SetHudColour(143, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
             RAGE.Game.Ui.SetHudColour(116, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
+
+            // Waypoint
+            RAGE.Game.Ui.SetHudColour(142, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
 
             RAGE.Game.Gxt.Add("PM_PAUSE_HDR", Settings.HUD_MAIN_TEXT);
         }

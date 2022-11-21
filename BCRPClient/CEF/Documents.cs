@@ -79,7 +79,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", true, 0, new object[] { pas, lic, null, null, res, null });
         }
 
-        public static async System.Threading.Tasks.Task ShowPasport(string name, string surname, bool sex, DateTime birthDate, string married, int cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed)
+        public static async System.Threading.Tasks.Task ShowPasport(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed)
         {
             if (IsActive)
                 return;
@@ -114,7 +114,7 @@ namespace BCRPClient.CEF
             TempBinds.Clear();
         }
 
-        public static object[] GetPasportData(string name, string surname, bool sex, DateTime birthDate, string married, int cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed) => new object[] { name, surname, sex ? Locale.General.Documents.SexMale : Locale.General.Documents.SexFemale, birthDate.ToString("dd.MM.yyyy"), married ?? (sex ? Locale.General.Documents.NotMarriedMale : Locale.General.Documents.NotMarriedFemale), cid, dateOfIssue.ToString("dd.MM.yyyy"), boundToMilitaryService, losSantosAllowed };
+        public static object[] GetPasportData(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed) => new object[] { name, surname, sex ? Locale.General.Documents.SexMale : Locale.General.Documents.SexFemale, birthDate.ToString("dd.MM.yyyy"), married ?? (sex ? Locale.General.Documents.NotMarriedMale : Locale.General.Documents.NotMarriedFemale), cid, dateOfIssue.ToString("dd.MM.yyyy"), boundToMilitaryService, losSantosAllowed };
         public static object[] GetResumeData(string name, string surname, string[] data) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" }  }, new object[] { new object[] { "side2-a", "side2-b" } } } };
         public static object[] GetLicensesData(string name, string surname, List<Sync.Players.LicenseTypes> licenses)
         {

@@ -370,6 +370,8 @@ namespace BCRPClient.Additional
             Interact,
 
             NpcDialogue,
+            
+            ATM,
         }
 
         public enum ActionTypes
@@ -398,6 +400,8 @@ namespace BCRPClient.Additional
             IPL,
 
             NpcDialogue,
+
+            ATM,
         }
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
@@ -411,15 +415,54 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.BusinessEnter, Sync.World.BusinessEnter
+                InteractionTypes.BusinessEnter, () =>
+                {
+                    if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentBusiness"))
+                        return false;
+
+                    Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
+
+                    Additional.ExtraColshape.LastSent = DateTime.Now;
+
+                    return true;
+                }
             },
 
             {
-                InteractionTypes.BusinessInfo, Sync.World.BusinessInfo
+                InteractionTypes.BusinessInfo, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentBusiness"))
+                        return false;
+
+                    Events.CallRemote("Business::ShowInfo", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
+
+                    Additional.ExtraColshape.LastSent = DateTime.Now;
+
+                    return true;
+                }
             },
 
             {
-                InteractionTypes.HouseEnter, Sync.World.HouseEnter
+                InteractionTypes.HouseEnter, () =>
+                {
+                    if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentHouse"))
+                        return false;
+
+                    Events.CallRemote("House::Enter", Player.LocalPlayer.GetData<int>("CurrentHouse"));
+
+                    Additional.ExtraColshape.LastSent = DateTime.Now;
+
+                    return true;
+                }
             },
 
             {
@@ -429,6 +472,9 @@ namespace BCRPClient.Additional
             {
                 InteractionTypes.NpcDialogue, () =>
                 {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
                     if (!Player.LocalPlayer.HasData("CurrentNPC"))
                         return false;
 
@@ -441,9 +487,28 @@ namespace BCRPClient.Additional
 
                     npc.ShowDialogue(npc.DefaultDialogueId, false);
 
+                    LastSent = DateTime.Now;
+
                     return true;
                 }
             },
+
+            {
+                InteractionTypes.ATM, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentATM"))
+                        return false;
+
+                    Events.CallRemote("ATM::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ATM>("CurrentATM").Id);
+
+                    LastSent = DateTime.Now;
+
+                    return true;
+                }
+            }
         };
 
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
@@ -739,6 +804,34 @@ namespace BCRPClient.Additional
                         (cs) =>
                         {
                             Player.LocalPlayer.ResetData("CurrentNPC");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.ATM,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is Data.Locations.ATM atm)
+                            {
+                                Player.LocalPlayer.SetData("CurrentATM", atm);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentATM");
                         }
                     },
                 }

@@ -1,5 +1,6 @@
 ﻿using BCRPServer.Game.Items;
 using GTANetworkAPI;
+using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
@@ -97,21 +98,35 @@ namespace BCRPServer
             MM = 7, // Mexican Mafia
             IM = 8, // Italian Mafia
         }
+
+        public enum PropertyTypes
+        {
+            /// <summary>Транспорт</summary>
+            Vehicle = 0,
+            /// <summary>Дом</summary>
+            House,
+            /// <summary>Квартира</summary>
+            Apartments,
+            /// <summary>Гараж</summary>
+            Garage,
+            /// <summary>Бизнес</summary>
+            Business,
+        }
         #endregion
 
         #region Subclasses
 
         public class PlayerInfo
         {
-            private static Queue<int> FreeIDs { get; set; } = new Queue<int>();
+            private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
 
-            public static Dictionary<int, PlayerInfo> All { get; private set; } = new Dictionary<int, PlayerInfo>();
+            public static Dictionary<uint, PlayerInfo> All { get; private set; } = new Dictionary<uint, PlayerInfo>();
 
-            private static int LastAddedMaxId { get; set; }
+            private static uint LastAddedMaxId { get; set; }
 
-            public static int MoveNextId()
+            public static uint MoveNextId()
             {
-                int id;
+                uint id;
 
                 if (!FreeIDs.TryDequeue(out id))
                 {
@@ -121,7 +136,7 @@ namespace BCRPServer
                 return id;
             }
 
-            public static void AddFreeId(int id) => FreeIDs.Enqueue(id);
+            public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
 
             public static void AddOnLoad(PlayerInfo pInfo)
             {
@@ -158,13 +173,13 @@ namespace BCRPServer
                 //MySQL.GiftDelete(pInfo);
             }
 
-            public static PlayerInfo Get(int id) => All.GetValueOrDefault(id);
+            public static PlayerInfo Get(uint id) => All.GetValueOrDefault(id);
 
-            public static List<PlayerInfo> GetAllByAID(int aid) => All.Values.Where(x => x?.AID == aid).ToList();
+            public static List<PlayerInfo> GetAllByAID(uint aid) => All.Values.Where(x => x?.AID == aid).ToList();
 
-            public int CID { get; set; }
+            public uint CID { get; set; }
 
-            public int AID { get; set; }
+            public uint AID { get; set; }
 
             public DateTime CreationDate { get; set; }
 
@@ -196,7 +211,7 @@ namespace BCRPServer
 
             public LastPlayerData LastData { get; set; }
 
-            public List<int> Familiars { get; set; }
+            public List<uint> Familiars { get; set; }
 
             public Dictionary<SkillTypes, int> Skills { get; set; }
 
@@ -218,7 +233,6 @@ namespace BCRPServer
             public byte EyeColor { get; set; }
 
             public List<VehicleData.VehicleInfo> OwnedVehicles { get; set; }
-
 
             /// <summary>Предметы игрока в карманах</summary>
             /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
@@ -371,7 +385,7 @@ namespace BCRPServer
 
         /// <summary>Знакомые игроки</summary>
         /// <value>Список CID игроков</value>
-        public List<int> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
+        public List<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
 
         /// <summary>Сущность, к которой прикреплен игрок</summary>
         public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Player.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { Player.SetData("IsAttachedTo::Entity", value); } }
@@ -545,6 +559,23 @@ namespace BCRPServer
 
             Player.TriggerEvent("Player::Skills::Update", sType, updValue);
         }
+
+        public void AddVehicleProperty(VehicleData.VehicleInfo vInfo)
+        {
+            if (OwnedVehicles.Contains(vInfo))
+                return;
+
+            OwnedVehicles.Add(vInfo);
+
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.Vehicle, vInfo.VID, vInfo.ID);
+        }
+
+        public void RemoveVehicleProperty(VehicleData.VehicleInfo vInfo)
+        {
+            OwnedVehicles.Remove(vInfo);
+
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Vehicle, vInfo.VID);
+        }
         #endregion
 
         #region Own Shared Data
@@ -617,7 +648,7 @@ namespace BCRPServer
         /// <summary>CID игрока</summary>
         /// <remarks>Т.к. может использоваться для сохранения данных в БД, set - в основном потоке, get - в любом</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public int CID { get => Info.CID; set { Player.SetSharedData("CID", value); Info.CID = value; } }
+        public uint CID { get => Info.CID; set { Player.SetSharedData("CID", value); Info.CID = value; } }
 
         /// <summary>Пол игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -854,7 +885,7 @@ namespace BCRPServer
             Holster = null;
             Armour = null;
 
-            Familiars = new List<int>();
+            Familiars = new List<uint>();
 
             Punishments = new List<Punishment>();
 
@@ -874,31 +905,42 @@ namespace BCRPServer
             foreach (var vInfo in OwnedVehicles)
                 vInfo.Spawn();
 
-            string[] inventory = new string[7];
+            JArray inventory = new JArray()
+            {
+                Weapons.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Weapons)).SerializeToJson(),
+                Game.Items.Item.ToClientJson(Armour, CEF.Inventory.Groups.Armour),
+                Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Items)).SerializeToJson(),
+                Clothes.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Clothes)).SerializeToJson(),
+                Accessories.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Accessories)).SerializeToJson(),
+                Game.Items.Item.ToClientJson(Bag, CEF.Inventory.Groups.BagItem),
+                Game.Items.Item.ToClientJson(Holster, CEF.Inventory.Groups.HolsterItem),
+            };
 
-            inventory[0] = Weapons.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Weapons)).SerializeToJson();
-            inventory[1] = Game.Items.Item.ToClientJson(Armour, CEF.Inventory.Groups.Armour);
-            inventory[2] = Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Items)).SerializeToJson();
-            inventory[3] = Clothes.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Clothes)).SerializeToJson();
-            inventory[4] = Accessories.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Accessories)).SerializeToJson();
-            inventory[5] = Game.Items.Item.ToClientJson(Bag, CEF.Inventory.Groups.BagItem);
-            inventory[6] = Game.Items.Item.ToClientJson(Holster, CEF.Inventory.Groups.HolsterItem);
+            JObject data = new JObject();
 
-            var licenses = Licenses.SerializeToJson();
-            var skills = Skills.SerializeToJson();
+            data.Add("Inventory", inventory);
 
-            var info = ((TimePlayed, CreationDate, BirthDate)).SerializeToJson();
+            data.Add("Licenses", Licenses.SerializeToJson());
+            data.Add("Skills", Skills.SerializeToJson());
 
-            var vehicles = OwnedVehicles.Select(x => (x.VID, x.ID)).SerializeToJson();
+            data.Add("TimePlayed", TimePlayed);
+            data.Add("CreationDate", CreationDate);
+            data.Add("BirthDate", CreationDate);
 
-            var gifts = Gifts.Select(x => (x.ID, (int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson();
+            data.Add("Org", OrganisationID == -1 ? null : "todo");
+
+            data.Add("Familiars", Familiars.SerializeToJson());
+
+            data.Add("Vehicles", OwnedVehicles.ToDictionary(x => x.VID, x => x.ID).SerializeToJson());
+
+            data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson());
 
             NAPI.Task.Run(() =>
             {
                 if (Player?.Exists != true)
                     return;
 
-                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, Game.Businesses.Business.AllNames, Familiars, licenses, skills, inventory, info, vehicles, gifts);
+                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, Game.Businesses.Business.AllNames, data.SerializeToJson());
 
                 Player.SetAlpha(255);
 
