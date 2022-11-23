@@ -119,7 +119,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, Types.Range, name, new object[] { minValue, maxValue, step == -1 ? 1 : step, curValue == -1 ? maxValue : curValue });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, Types.Range, name, new object[] { minValue, maxValue, curValue == -1 ? maxValue : curValue, step == -1 ? 1 : step });
 
             CurrentType = Types.Range;
             CurrentContext = context;

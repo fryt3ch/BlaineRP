@@ -11,8 +11,6 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.ATM);
 
-        public static Data.Locations.ATM CurrentATM => Player.LocalPlayer.HasData("CurrentATM") ? Player.LocalPlayer.GetData<Data.Locations.ATM>("CurrentATM") : null;
-
         private static DateTime LastSent;
 
         private static List<int> TempBinds { get; set; }
@@ -25,23 +23,31 @@ namespace BCRPClient.CEF
 
             Events.Add("ATM::Action", (object[] args) =>
             {
+                if (!IsActive)
+                    return;
+
                 string id = (string)args[0];
 
                 int amount = (int)args[1];
 
+                if (amount <= 0)
+                    return;
+
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                if (id == "deposit")
-                {
-
-                }
-                else if (id == "withdraw")
-                {
-
-                }
+                Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);
 
                 LastSent = DateTime.Now;
+            });
+
+            Events.Add("ATM::Show", (object[] args) =>
+            {
+                Sync.Players.CloseAll(true);
+
+                Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
+
+                Show(Convert.ToSingle(args[1]));
             });
         }
 
@@ -56,11 +62,6 @@ namespace BCRPClient.CEF
             var data = Sync.Players.GetData(Player.LocalPlayer);
 
             if (data == null)
-                return;
-
-            var curAtm = CurrentATM;
-
-            if (curAtm == null)
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.ATM, true, true);
@@ -88,6 +89,8 @@ namespace BCRPClient.CEF
                 RAGE.Input.Unbind(x);
 
             TempBinds.Clear();
+
+            Player.LocalPlayer.ResetData("CurrentATM::Id");
         }
 
         public static void UpdateMoney(int value)
@@ -95,7 +98,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("ATM.updateMoney", value);
+            CEF.Browser.Window.ExecuteJs("ATM.updateBalance", value);
         }
     }
 }

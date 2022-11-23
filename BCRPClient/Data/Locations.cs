@@ -12,6 +12,37 @@ namespace BCRPClient.Data
 {
     class Locations : Events.Script
     {
+        public class Bank
+        {
+            public static Dictionary<int, Bank> All = new Dictionary<int, Bank>();
+
+            public int Id { get; set; }
+
+            public List<NPC> Workers { get; set; }
+
+            public Blip Blip { get; set; }
+
+            public Bank(int id, Vector3 BlipPosition, params (Vector3 NpcPosition, float NpcHeading)[] NPCs)
+            {
+                Id = id;
+
+                Blip = new Blip(605, BlipPosition, "Банковское отделение", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                Workers = new List<NPC>();
+
+                for (int i = 0; i < NPCs.Length; i++)
+                {
+                    var npc = new NPC($"bank_w_{Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].NpcPosition, NPCs[i].NpcHeading, Settings.MAIN_DIMENSION);
+
+                    npc.DefaultDialogueId = "bank_preprocess";
+
+                    npc.Data = this;
+
+                    Workers.Add(npc);
+                }
+            }
+        }
+
         public class ATM
         {
             public static Dictionary<int, ATM> All = new Dictionary<int, ATM>();
@@ -131,7 +162,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(73, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -147,7 +178,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(366, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -163,7 +194,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(439, PositionInfo, "", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -179,7 +210,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(52, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -216,7 +247,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(225, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -232,7 +263,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(530, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -248,7 +279,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(523, PositionInfo, "", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -264,7 +295,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(522, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -280,7 +311,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(410, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -296,7 +327,7 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(602, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
 
@@ -465,6 +496,15 @@ namespace BCRPClient.Data
             new ATM(119, new Vector3(1968.3923f, 3743.0784f, 32.343689f), 1f);
             new ATM(120, new Vector3(540.22064f, 2671.683f, 42.15644f), 1f);
             #endregion
+
+            new Bank(0, new Vector3(-111.6786f, 6462.01f, 31.64078f), (new Vector3(-111.2246f, 6469.992f, 31.62671f), 133.712f));
+            new Bank(1, new Vector3(1175.001f, 2708.205f, 38.08792f), (new Vector3(1175.001f, 2708.205f, 38.08792f), 176.3602f));
+            new Bank(2, new Vector3(246.737f, 218.0641f, 106.2868f), (new Vector3(243.6818f, 226.22f, 106.2876f), 154.0384f), (new Vector3(248.7591f, 224.3721f, 106.2876f), 154.0384f), (new Vector3(253.9547f, 222.5404f, 106.2876f), 154.0384f));
+            new Bank(3, new Vector3(-349.6931f, -45.84351f, 49.03683f), (new Vector3(-351.3526f, -51.27759f, 49.0365f), 338.2035f));
+            new Bank(4, new Vector3(315.5918f, -275.0276f, 53.9234f), (new Vector3(313.8149f, -280.5039f, 54.16468f), 338.7193f));
+            new Bank(5, new Vector3(-1215.04f, -326.2117f, 37.67439f), (new Vector3(-1211.996f, -332.0042f, 37.78094f), 25.14937f));
+            new Bank(6, new Vector3(-2968.591f, 482.9666f, 15.4687f), (new Vector3(-2961.119f, 482.9693f, 15.697f), 86.52053f));
+            new Bank(7, new Vector3(151.3286f, -1036.054f, 29.33932f), (new Vector3(149.432f, -1042.05f, 29.36801f), 337.0007f));
         }
     }
 }

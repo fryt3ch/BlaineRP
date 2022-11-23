@@ -724,6 +724,7 @@ namespace BCRPClient.Sync
                 CEF.Menu.SetBank(bank);
 
                 CEF.ATM.UpdateMoney(bank);
+                CEF.Bank.UpdateMoney(bank);
 
                 var diff = bank - (oldValue == null ? bank : (int)oldValue);
 
@@ -862,8 +863,8 @@ namespace BCRPClient.Sync
                 {
                     if (anim == Animations.OtherTypes.None)
                     {
-                        if (oldValue != null)
-                            CEF.Animations.ToggleAnim("a-" + anim.ToString(), false);
+                        if (oldValue is int oldAnim)
+                            CEF.Animations.ToggleAnim("a-" + ((Sync.Animations.OtherTypes)oldAnim).ToString(), false);
 
                         GameEvents.Render -= CEF.Animations.Render;
                         KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();

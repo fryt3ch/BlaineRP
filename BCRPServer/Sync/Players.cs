@@ -104,7 +104,7 @@ namespace BCRPServer.Sync
             {
                 if (tData.PlayerData != null)
                 {
-                    tData.PlayerData.Delete();
+                    tData.PlayerData.Remove();
                 }
 
                 tData.Delete();
@@ -245,8 +245,6 @@ namespace BCRPServer.Sync
                         x.AttachID = -1;
                 }
 
-                data.Info.IsOnline = false;
-
                 data.Info.LastData.Health = player.Health;
 
                 if (data.Info.LastData.Health < 0 || data.IsKnocked)
@@ -258,7 +256,7 @@ namespace BCRPServer.Sync
 
                 MySQL.CharacterSaveOnExit(data.Info);
 
-                data.Delete();
+                data.Remove();
             }
         }
         #endregion

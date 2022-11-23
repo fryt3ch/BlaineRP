@@ -1,5 +1,4 @@
-﻿using BCRPServer.Game.Bank;
-using BCRPServer.Game.Houses;
+﻿using BCRPServer.Game.Houses;
 using GTANetworkAPI;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
@@ -360,8 +359,6 @@ namespace BCRPServer
 
                                 var lastJoinDate = (DateTime)reader["LastJoinDate"];
 
-                                var isOnline = (bool)reader["IsOnline"];
-
                                 var timePlayed = (int)reader["TimePlayed"];
 
                                 var name = (string)reader["Name"];
@@ -379,8 +376,6 @@ namespace BCRPServer
                                 var orgId = (int)reader["OrgID"];
 
                                 var cash = (int)reader["Cash"];
-
-                                var bid = (int)reader["BID"];
 
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<PlayerData.LastPlayerData>();
 
@@ -404,8 +399,6 @@ namespace BCRPServer
 
                                     LastJoinDate = lastJoinDate,
 
-                                    IsOnline = isOnline,
-
                                     TimePlayed = timePlayed,
 
                                     Name = name,
@@ -424,7 +417,7 @@ namespace BCRPServer
 
                                     Cash = cash,
 
-                                    BankAccount = null, // todo
+                                    BankAccount = GetBankAccountByCID(cid),
 
                                     LastData = lastData,
 
@@ -445,6 +438,9 @@ namespace BCRPServer
 
                                     Gifts = Game.Items.Gift.GetAllByCID(cid),
                                 };
+
+                                if (pInfo.BankAccount != null)
+                                    pInfo.BankAccount.PlayerInfo = pInfo;
 
                                 PlayerData.PlayerInfo.AddOnLoad(pInfo);
                             }
@@ -855,6 +851,92 @@ namespace BCRPServer
                 }
             }
         }
+
+        public static Bank.Account GetBankAccountByCID(uint cid)
+        {
+            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            {
+                conn.Open();
+
+                using (MySqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT * FROM bank_accounts WHERE CID=@CID";
+                    cmd.Parameters.AddWithValue("@CID", cid);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        var result = new List<PlayerData.Punishment>();
+
+                        if (reader.HasRows)
+                        {
+                            reader.Read();
+
+                            var balance = (int)reader["Balance"];
+                            var savings = (int)reader["Savings"];
+                            var tariff = (Bank.Tariff.Types)(int)reader["Tariff"];
+                            var std = (bool)reader["STD"];
+
+                            return new Bank.Account()
+                            {
+                                Balance = balance,
+                                SavingsBalance = savings,
+                                Tariff = Bank.Tariff.All[tariff],
+                                SavingsToDebit = std,
+                                MinSavingsBalance = savings,
+                                TotalDayTransactions = 0,
+                            };
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void BankAccountAdd(Bank.Account account)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "INSERT INTO bank_accounts (CID, Balance, Savings, Tariff, STD) VALUES (@CID, @Balance, @Savings, @Tariff, @STD);";
+
+            cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
+
+            cmd.Parameters.AddWithValue("Balance", account.Balance);
+            cmd.Parameters.AddWithValue("Savings", account.SavingsBalance);
+            cmd.Parameters.AddWithValue("Tariff", (int)account.Tariff.Type);
+            cmd.Parameters.AddWithValue("STD", account.SavingsToDebit);
+
+            PushQuery(cmd);
+        }
+
+        public static void BankAccountUpdate(Bank.Account account)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE bank_accounts SET Balance=@Balance, Savings=@Savings, Tariff=@Tariff, STD=@STD) WHERE CID=@CID;";
+
+            cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
+
+            cmd.Parameters.AddWithValue("Balance", account.Balance);
+            cmd.Parameters.AddWithValue("Savings", account.SavingsBalance);
+            cmd.Parameters.AddWithValue("Tariff", (int)account.Tariff.Type);
+            cmd.Parameters.AddWithValue("STD", account.SavingsToDebit);
+
+            PushQuery(cmd);
+        }
+
+        public static void BankAccountDelete(Bank.Account account)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "DELETE FROM bank_accounts WHERE CID=@CID;";
+
+            cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
+
+            PushQuery(cmd);
+        }
         #endregion
 
         #region Character
@@ -864,10 +946,10 @@ namespace BCRPServer
             MySqlCommand cmd = new MySqlCommand();
 
             cmd.CommandText = @"INSERT INTO characters (ID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, 
-                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, BID, LastData, 
+                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, LastData, 
                     Satiety, Mood, Familiars, Skills) 
                     VALUES (@CID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, 
-                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @BID, @LastData, 
+                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @LastData, 
                     @Satiety, @Mood, @Familiars, @Skills); 
 
                     INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@CID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
@@ -878,11 +960,10 @@ namespace BCRPServer
 
             cmd.Parameters.AddWithValue("@AID", pInfo.AID);
 
-            cmd.Parameters.AddWithValue("@IsOnline", pInfo.IsOnline);
+            cmd.Parameters.AddWithValue("@IsOnline", true);
             cmd.Parameters.AddWithValue("@TimePlayed", pInfo.TimePlayed);
             cmd.Parameters.AddWithValue("@Fraction", pInfo.Fraction);
             cmd.Parameters.AddWithValue("@OrgID", pInfo.OrganisationID);
-            cmd.Parameters.AddWithValue("@BID", pInfo.BankAccount?.ID ?? -1);
 
             cmd.Parameters.AddWithValue("@CreationDate", pInfo.CreationDate);
             cmd.Parameters.AddWithValue("@AdminLevel", pInfo.AdminLevel);

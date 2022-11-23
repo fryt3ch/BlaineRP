@@ -34,10 +34,12 @@ namespace BCRPServer
             All.Add(player, data);
         }
 
-        public void Delete()
+        public void Remove()
         {
             if (Player == null)
                 return;
+
+            Info.PlayerData = null;
 
             All.Remove(Player);
 
@@ -177,6 +179,8 @@ namespace BCRPServer
 
             public static List<PlayerInfo> GetAllByAID(uint aid) => All.Values.Where(x => x?.AID == aid).ToList();
 
+            public PlayerData PlayerData { get; set; }
+
             public uint CID { get; set; }
 
             public uint AID { get; set; }
@@ -187,7 +191,7 @@ namespace BCRPServer
 
             public DateTime LastJoinDate { get; set; }
 
-            public bool IsOnline { get; set; }
+            public bool IsOnline => PlayerData != null;
 
             public int TimePlayed { get; set; }
 
@@ -207,7 +211,7 @@ namespace BCRPServer
 
             public int Cash { get; set; }
 
-            public Game.Bank.Account BankAccount { get; set; }
+            public Bank.Account BankAccount { get; set; }
 
             public LastPlayerData LastData { get; set; }
 
@@ -348,10 +352,10 @@ namespace BCRPServer
         public Player Player { get; set; }
 
         /// <summary>Список наказаний игрока</summary>
-        public List<Punishment> Punishments { get; set; }
+        public List<Punishment> Punishments { get => Info.Punishments; set => Info.Punishments = value; }
 
         /// <summary>Банковский счёт игрока</summary>
-        public Game.Bank.Account BankAccount { get; set; }
+        public Bank.Account BankAccount { get => Info.BankAccount; set => Info.BankAccount = value; }
 
         #region Local Data
         /// <summary>Информация об игроке с момента последнего захода на сервер</summary>
@@ -589,7 +593,7 @@ namespace BCRPServer
         /// <value>От 0 до 100</value>
         public int Mood { get => Info.LastData.Mood; set { Player.SetOwnSharedData("Mood", value); Info.LastData.Mood = value; } }
 
-        public int BankBalance { get => Player.GetOwnSharedData<int>("BankBalance"); set { Player.SetOwnSharedData("BankBalance", value); } }
+        public int BankBalance { get => Info.BankAccount?.Balance ?? 0; set { Player.SetOwnSharedData("BankBalance", value); if (Info.BankAccount != null) Info.BankAccount.Balance = value; } }
 
         /// <summary>Наличные игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -804,8 +808,6 @@ namespace BCRPServer
             IsInvisible = false;
             IsInvincible = false;
 
-            BankBalance = 0; // todo
-
             AttachedEntities = new List<Sync.AttachSystem.AttachmentEntityNet>();
             AttachedObjects = new List<Sync.AttachSystem.AttachmentObjectNet>();
 
@@ -835,7 +837,9 @@ namespace BCRPServer
 
             LastJoinDate = Utils.GetCurrentTime();
 
-            Info.IsOnline = true;
+            Info.PlayerData = this;
+
+            BankBalance = Info.BankAccount?.Balance ?? 0;
         }
 
         public PlayerData(Player Player, string name, string surname, int age, bool sex, HeadBlend hBlend, Dictionary<int, HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
@@ -889,7 +893,11 @@ namespace BCRPServer
 
             Punishments = new List<Punishment>();
 
-            Info.IsOnline = true;
+            Info.PlayerData = this;
+
+            BankBalance = 0;
+
+            PlayerInfo.Add(Info);
         }
 
         /// <summary>Метод обозначает готовность персонажа к игре</summary>

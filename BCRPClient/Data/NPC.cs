@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.CEF;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace BCRPClient.Data
             Static = -1,
 
             Quest = 0,
-            Seller,
+            Talkable,
         }
 
         public string Id { get; set; }
@@ -75,7 +76,7 @@ namespace BCRPClient.Data
             if (Dialogues.Length > 0)
                 this.DefaultDialogueId = Dialogues[0];
 
-            if (Type == Types.Seller)
+            if (Type == Types.Talkable)
             {
                 this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
 
@@ -92,9 +93,6 @@ namespace BCRPClient.Data
 
         public NPC()
         {
-/*            new NPC("test", "Анита", Types.Seller, "csb_anita", new Vector3(-718.46f, -157.63f, 37f), 0f, 0,
-                "seller_greeting_0");*/
-
             LastSent = DateTime.MinValue;
 
             TempBinds = new List<int>();
@@ -211,6 +209,9 @@ namespace BCRPClient.Data
         {
             if (state)
             {
+                if (CurrentNPC != null)
+                    return;
+
                 CEF.Notification.ClearAll();
 
                 CurrentNPC = this;
@@ -227,13 +228,11 @@ namespace BCRPClient.Data
 
                 Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
 
-                CEF.NPC.Show();
-
                 TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
             }
             else
             {
-                if (CurrentDialogue == null)
+                if (CurrentNPC == null)
                     return;
 
                 foreach (var x in TempBinds)
@@ -253,14 +252,17 @@ namespace BCRPClient.Data
             }
         }
 
-        public void ShowDialogue(string dialogueId, bool invokeAction = true)
+        public void ShowDialogue(string dialogueId)
         {
+            if (dialogueId == null)
+                return;
+
             var dialogue = Dialogue.Get(dialogueId);
 
             if (dialogue == null)
                 return;
 
-            dialogue.Show(this, invokeAction);
+            dialogue.Show(this);
 
             CurrentDialogue = dialogue;
         }
@@ -289,12 +291,117 @@ namespace BCRPClient.Data
 
     public class Dialogue : Events.Script
     {
+        public enum TimeTypes
+        {
+            Morning = 0,
+            Day,
+            Evening,
+            Night,
+        }
+
+        public static TimeTypes GetCurrentTimeType()
+        {
+            var hours = RAGE.Game.Clock.GetClockHours();
+
+            if (hours >= 6 && hours <= 11)
+                return TimeTypes.Morning;
+            else if (hours >= 12 && hours <= 17)
+                return TimeTypes.Day;
+            else if (hours >= 18 && hours <= 23)
+                return TimeTypes.Evening;
+
+            return TimeTypes.Night;
+        }
+
         public static Dictionary<string, Dialogue> AllDialogues = new Dictionary<string, Dialogue>()
         {
+            #region Bank
+            {
+                "bank_preprocess",
+
+                new Dialogue(null,
+
+                    async (args) =>
+                    {
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        var hasAccount = (bool)await Events.CallRemoteProc("Bank::HasAccount");
+
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        NPC.CurrentNPC.ShowDialogue(hasAccount ? "bank_has_account" : "bank_no_account_0");
+                    }
+
+                    )
+            },
+
+            {
+                "bank_no_account_0",
+
+                new Dialogue("Здравствуйте, могу ли я Вам чем-нибудь помочь?",
+
+                    null,
+
+                    new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }, true),
+
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+
+                    )
+            },
+
+            {
+                "bank_no_account_1",
+
+                new Dialogue("Отлично!\n У нас есть несколько выгодных тарифов, ознакомьтесь с ними и выберите интересующий",
+
+                    null,
+
+                    new Button("[Перейти к тарифам]", () =>
+                    {
+                        if (NPC.CurrentNPC?.Data is Data.Locations.Bank bankData)
+                        {
+                            if (NPC.LastSent.IsSpam(1000, false, false))
+                                return;
+
+                            Events.CallRemote("Bank::Show", false, bankData.Id);
+                        }
+                    }, true),
+
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+
+                    )
+            },
+
+            {
+                "bank_has_account",
+
+                new Dialogue("Здравствуйте, могу ли я Вам чем-нибудь помочь?",
+
+                    null,
+
+                    new Button("[Перейти к управлению счетом]", () =>
+                    {
+                        if (NPC.CurrentNPC?.Data is Data.Locations.Bank bankData)
+                        {
+                            if (NPC.LastSent.IsSpam(1000, false, false))
+                                return;
+
+                            Events.CallRemote("Bank::Show", false, bankData.Id);
+                        }
+                    }, true),
+
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+
+                    )
+            },
+            #endregion
+
             {
                 "seller_clothes_greeting_0",
                 
-                new Dialogue("Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверены, вам понравится!",
+                new Dialogue("Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!",
                     
                     null,
 
@@ -302,7 +409,7 @@ namespace BCRPClient.Data
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
 
                     )
             },
@@ -346,7 +453,7 @@ namespace BCRPClient.Data
 
                     null,
 
-                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_gas_greeting_0", false); }, true),
+                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_gas_greeting_0"); }, true),
 
                     new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
 
@@ -360,7 +467,7 @@ namespace BCRPClient.Data
 
                     null,
 
-                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0", false); }, true),
+                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0"); }, true),
 
                     new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
 
@@ -368,7 +475,7 @@ namespace BCRPClient.Data
             },
         };
 
-        public static Dialogue Get(string id) => AllDialogues.ContainsKey(id) ? AllDialogues[id] : null;
+        public static Dialogue Get(string id) => AllDialogues.GetValueOrDefault(id);
 
         public class Button
         {
@@ -425,6 +532,16 @@ namespace BCRPClient.Data
         {
             foreach (var x in AllDialogues.Keys)
                 AllDialogues[x].Id = x;
+
+            Events.Add("Dialogues::Show", (object[] args) =>
+            {
+                string dialogueId = (string)args[0];
+
+                if (NPC.CurrentNPC == null)
+                    return;
+
+                NPC.CurrentNPC.ShowDialogue(dialogueId);
+            });
         }
 
         public void InvokeButtonAction(int buttonId)
@@ -448,30 +565,33 @@ namespace BCRPClient.Data
         /// <param name="npcHolder">NPC-держатель диалога</param>
         /// <param name="invokeAction">Выполнить ли действие, заданное диалогу? Если true - выполнится действие, если false (или нет действия) - покажется диалог</param>
         /// <param name="args">Аргументы (если выполняется invokeAction, то аргументы для действия, иначе - массив ID кнопок (int), которые нужно показать. Если args пустой, то будут показаны все кнопки</param>
-        public void Show(NPC npcHolder, bool invokeAction = true, params object[] args)
+        public void Show(NPC npcHolder, params object[] args)
         {
-            if (invokeAction && Action != null)
+            Action?.Invoke(args);
+
+            if (Text == null)
+                return;
+
+            var buttons = Buttons;
+
+            if (args.Length > 0)
             {
-                Action.Invoke(args);
+                var newButtons = new List<Button>();
+
+                for (int i = 0; i < args.Length; i++)
+                    if (args[i] is int)
+                        newButtons.Add(Buttons[(int)args[i]]);
+
+                if (newButtons.Count > 0)
+                    buttons = newButtons.ToArray();
             }
-            else
+
+            if (!CEF.NPC.IsActive)
             {
-                var buttons = Buttons;
-
-                if (args.Length > 0)
-                {
-                    var newButtons = new List<Button>();
-
-                    for (int i = 0; i < args.Length; i++)
-                        if (args[i] is int)
-                            newButtons.Add(Buttons[(int)args[i]]);
-
-                    if (newButtons.Count > 0)
-                        buttons = newButtons.ToArray();
-                }
-
-                CEF.NPC.Draw(npcHolder.Name, Text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
+                CEF.NPC.Show();
             }
+
+            CEF.NPC.Draw(npcHolder.Name, Text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
         }
     }
 }

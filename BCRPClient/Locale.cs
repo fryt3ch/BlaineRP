@@ -56,7 +56,7 @@ namespace BCRPClient
                     { Data.NPC.Types.Static, "" },
 
                     { Data.NPC.Types.Quest, "Квестодатель" },
-                    { Data.NPC.Types.Seller, "Продавец" },
+                    { Data.NPC.Types.Talkable, "Продавец" },
                 };
             }
 
@@ -900,7 +900,7 @@ namespace BCRPClient
 
                     public static string Balance = "Всего наличных: {0}$";
 
-                    public static string NotEnough = "У вас недостаточно средств!\nУ вас наличных: {0}";
+                    public static string NotEnough = "Недостаточно средств!\nУ вас наличных: {0}";
                 }
 
                 public static class Bank
@@ -910,9 +910,15 @@ namespace BCRPClient
 
                     public static string Balance = "Всего на счёте: {0}$";
 
-                    public static string NotEnough = "У вас недостаточно средств!\nУ вас на счёте: {0}";
-
+                    public static string NotEnough = "Недостаточно средств!\nУ вас на счёте: {0}";
                     public static string NoAccount = "У вас нет банковского счёта!";
+                    public static string NoAccountTarget = "У получателя нет банковского счёта!";
+                    public static string TargetNotFound = "Неверный идентификатор получателя!";
+
+                    public static string DayLimitExceed = "Превышение максимальной суммы средств для отправки в день по тарифу!";
+                    public static string SavingsDepositMaxExceed = "Превышение максимально возможного баланса сберегательного счёта по тарифу!";
+
+                    public static string SendApprove = "Вы собираетесь отправить ${0} {1} {2}.\nНажмите еще раз для подтверждения";
                 }
 
                 public static string AdmitToBuy = "Вы уверены? Нажмите еще раз,\nчтобы совершить покупку";

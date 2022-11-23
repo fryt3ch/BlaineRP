@@ -23,8 +23,6 @@ namespace BCRPClient.CEF
             Social = 0, Dialogs, Reactions, SeatLie, Sport, Indecent, StandPoses, Dances, Situative, WithWeapon,
         }
 
-        private static Dictionary<AnimSectionTypes, Sync.Animations.OtherTypes[]> AnimSections { get; set; }
-
         private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
         {
             Utils.Actions.Knocked,

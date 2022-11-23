@@ -128,8 +128,6 @@ namespace BCRPServer.CEF
 
                 var pData = new PlayerData(player, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
 
-                PlayerData.PlayerInfo.Add(pData.Info);
-
                 player.TriggerEvent("CharacterCreation::Close");
                 player.TriggerEvent("FadeScreen", true);
 

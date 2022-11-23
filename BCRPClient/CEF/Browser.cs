@@ -148,12 +148,12 @@ namespace BCRPClient.CEF
 
                 CEF.HUD.Update += CEF.HUD.UpdateHUD;
 
-                GameEvents.ScreenResolutionChange += (x, y) => Window.ExecuteCachedJs("resizeAll();");
-
-                GameEvents.ScreenResolutionChange += (x, y) => CEF.HUD.UpdateLeftHUDPos();
+                //GameEvents.ScreenResolutionChange += (x, y) => Window.ExecuteCachedJs("resizeAll();");
 
                 Window.Active = true;
             };
+
+            Events.Add("Resize::UpdateLeftHudPos", (object[] args) => CEF.HUD.UpdateLeftHUDPos());
 
             Events.OnBrowserCreated += (RAGE.Ui.HtmlWindow window) =>
             {

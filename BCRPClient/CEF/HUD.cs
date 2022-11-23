@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 
@@ -401,22 +402,33 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Hud.setOnline", Entities.Players.Count);
         }
 
+        private static float counter = 0f;
+
         public static void UpdateLeftHUDPos()
         {
-            float sfX = 1.0f / 20.0f;
-            float sfY = 1.0f / 20.0f;
+            float sfX = 1f / 20f;
+            float sfY = 1f / 20f;
 
             float safezone = RAGE.Game.Graphics.GetSafeZoneSize();
             float aspectratio = RAGE.Game.Graphics.GetAspectRatio(false);
 
-            float scaleX = 1.0f / GameEvents.ScreenResolution.X, scaleY = 1.0f / GameEvents.ScreenResolution.Y;
+            float scaleX = 1f / GameEvents.ScreenResolution.X, scaleY = 1f / GameEvents.ScreenResolution.Y;
 
             float minimapWidth = scaleX * (GameEvents.ScreenResolution.X / (4 * aspectratio)) * (Minimap.MinimapZoomState == 2 ? 1.6f : 1f);
-            float minimapRigthX = minimapWidth + (scaleX * (GameEvents.ScreenResolution.X * (sfX * (Math.Abs(safezone - 1.0f) * 10f))));
-            float minimapBottomY = 1.0f - scaleY * (GameEvents.ScreenResolution.Y * (sfY * (Math.Abs(safezone - 1.0f) * 10f)));
 
-            Browser.Window.ExecuteJs("Hud.changeLBHpos", ((minimapRigthX * 100f) + 0.5f).ToString().Replace(',', '.') + "vw", (((1.0f - minimapBottomY) * 100f) + 0f).ToString().Replace(',', '.') + "vh");
+            float minimapRigthX = minimapWidth + (scaleX * (GameEvents.ScreenResolution.X * (sfX * (Math.Abs(safezone - 1f) * 10f))));
+            float minimapBottomY = 1f - scaleY * (GameEvents.ScreenResolution.Y * (sfY * (Math.Abs(safezone - 1f) * 10f)));
+
+            /*        width: scaleX * (resolution.x / (4 * aspectRatio)),
+                    height: scaleY * (resolution.y / 5.674),
+                    scaleX: scaleX,
+                    scaleY: scaleY,
+                    leftX: scaleX * (resolution.x * (sfX * (Math.abs(safeZone - 1.0) * 10))),
+                    bottomY: 1.0 - scaleY * (resolution.y * (sfY * (Math.abs(safeZone - 1.0) * 10))),*/
+
+            Browser.Window.ExecuteJs("Hud.changeLBHpos", minimapRigthX * 100f + 1f, (1f - minimapBottomY) * 100f);
         }
+
         #endregion
 
         #region Speedometer Stuff

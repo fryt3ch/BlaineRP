@@ -485,7 +485,7 @@ namespace BCRPClient.Additional
 
                     npc.SwitchDialogue(true);
 
-                    npc.ShowDialogue(npc.DefaultDialogueId, false);
+                    npc.ShowDialogue(npc.DefaultDialogueId);
 
                     LastSent = DateTime.Now;
 
@@ -502,7 +502,7 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("CurrentATM"))
                         return false;
 
-                    Events.CallRemote("ATM::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ATM>("CurrentATM").Id);
+                    Events.CallRemote("Bank::Show", true, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ATM>("CurrentATM").Id);
 
                     LastSent = DateTime.Now;
 

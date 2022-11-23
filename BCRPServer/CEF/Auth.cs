@@ -1,5 +1,4 @@
-﻿using BCRPServer.Game.Bank;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;

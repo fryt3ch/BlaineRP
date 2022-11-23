@@ -1,5 +1,4 @@
-﻿using BCRPServer.Game.Bank;
-using BCRPServer.Game.Items;
+﻿using BCRPServer.Game.Items;
 using GTANetworkAPI;
 using System;
 using System.Collections.Generic;

@@ -190,7 +190,7 @@ namespace BCRPClient
                 public static Sync.Animations.EmotionTypes CurrentEmotion = Sync.Animations.EmotionTypes.None;
                 public static Sync.Animations.WalkstyleTypes CurrentWalkstyle = Sync.Animations.WalkstyleTypes.None;
 
-                public static List<string> FamiliarNPCs => new List<string>();
+                public static HashSet<string> FamiliarNPCs => new HashSet<string>();
 
                 public static List<CEF.BlipsMenu.LocalBlip> LocalBlips => new List<CEF.BlipsMenu.LocalBlip>();
             }
@@ -199,7 +199,7 @@ namespace BCRPClient
             private static Sync.Animations.EmotionTypes _CurrentEmotion;
             private static Sync.Animations.WalkstyleTypes _CurrentWalkstyle;
 
-            private static List<string> _FamiliarNPCs;
+            private static HashSet<string> _FamiliarNPCs;
 
             private static List<CEF.BlipsMenu.LocalBlip> _LocalBlips;
 
@@ -219,7 +219,7 @@ namespace BCRPClient
             public static Sync.Animations.EmotionTypes CurrentEmotion { get => _CurrentEmotion; set { if (value != _CurrentEmotion) Additional.Storage.SetData("Settings::Animations::Emotion", value.ToString()); _CurrentEmotion = value; } }
             public static Sync.Animations.WalkstyleTypes CurrentWalkstyle { get => _CurrentWalkstyle; set { if (value != _CurrentWalkstyle) Additional.Storage.SetData("Settings::Animations::Walkstyle", value.ToString()); _CurrentWalkstyle = value; } }
 
-            public static List<string> FamiliarNPCs { get => _FamiliarNPCs; set { Additional.Storage.SetData("Settings::FamiliarNPCs", value); _FamiliarNPCs = value; } }
+            public static HashSet<string> FamiliarNPCs { get => _FamiliarNPCs; set { Additional.Storage.SetData("Settings::FamiliarNPCs", value); _FamiliarNPCs = value; } }
 
             public static List<CEF.BlipsMenu.LocalBlip> LocalBlips { get => _LocalBlips; set { Additional.Storage.SetData("Settings::LocalBlips", value); _LocalBlips = value; } }
         }
@@ -280,7 +280,7 @@ namespace BCRPClient
             else
                 Other.CurrentWalkstyle = walkstyle;
 
-            Other.FamiliarNPCs = Additional.Storage.GetData<List<string>>("Settings::FamiliarNPCs") ?? Other.Default.FamiliarNPCs;
+            Other.FamiliarNPCs = Additional.Storage.GetData<HashSet<string>>("Settings::FamiliarNPCs") ?? Other.Default.FamiliarNPCs;
 
             foreach (var x in Other.FamiliarNPCs)
             {

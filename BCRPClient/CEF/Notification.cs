@@ -137,16 +137,22 @@ namespace BCRPClient.CEF
 
             { "Park::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.Park.NotAllowed, Locale.Notifications.Vehicles.Header) },
 
-            { "Cash::NotEnough", new Instance(Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.Cash.NotEnough) },
-            { "Bank::NotEnough", new Instance(Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.Bank.NotEnough) },
-            { "Bank::NoAccount", new Instance(Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.Bank.NoAccount) },
+            { "Cash::NotEnough", new Instance(Types.Error, Locale.Notifications.Money.Cash.NotEnough, Locale.Notifications.ErrorHeader) },
 
-            { "Mute", new Instance(Types.Mute, Locale.Notifications.Punishments.Mute.Header, Locale.Notifications.Punishments.GotTimed) },
+            { "Bank::NotEnough", new Instance(Types.Error, Locale.Notifications.Money.Bank.NotEnough, Locale.Notifications.ErrorHeader) },
+            { "Bank::NoAccount", new Instance(Types.Error, Locale.Notifications.Money.Bank.NoAccount, Locale.Notifications.ErrorHeader) },
+            { "Bank::NoAccountTarget", new Instance(Types.Error, Locale.Notifications.Money.Bank.NoAccountTarget, Locale.Notifications.ErrorHeader) },
+            { "Bank::TargetNotFound", new Instance(Types.Error, Locale.Notifications.Money.Bank.TargetNotFound, Locale.Notifications.ErrorHeader) },
+            { "Bank::DayLimitExceed", new Instance(Types.Error, Locale.Notifications.Money.Bank.DayLimitExceed, Locale.Notifications.ErrorHeader) },
+            { "Bank::MaxSavings", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Notifications.ErrorHeader) },
+            { "Bank::SendApprove", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApprove, Locale.Notifications.ApproveHeader) },
+
+/*            { "Mute", new Instance(Types.Mute, Locale.Notifications.Punishments.Mute.Header, Locale.Notifications.Punishments.GotTimed) },
             { "KickBy", new Instance(Types.Information, Locale.Notifications.Punishments.Kick.Header, Locale.Notifications.Punishments.Kick.Got) },
             { "Jail", new Instance(Types.Jail1, Locale.Notifications.Punishments.Jail.Header, Locale.Notifications.Punishments.GotTimed) },
             { "Warn", new Instance(Types.Warn, Locale.Notifications.Punishments.Warn.Header, Locale.Notifications.Punishments.Warn.Got) },
             { "Ban", new Instance(Types.Ban, Locale.Notifications.Punishments.Ban.HeaderCasual, Locale.Notifications.Punishments.GotDated) },
-            { "Ban::Hard", new Instance(Types.Ban, Locale.Notifications.Punishments.Ban.HeaderHard, Locale.Notifications.Punishments.GotDated) },
+            { "Ban::Hard", new Instance(Types.Ban, Locale.Notifications.Punishments.Ban.HeaderHard, Locale.Notifications.Punishments.GotDated) },*/
 
             { "Offer::Sent", new Instance(Types.Success, Locale.Notifications.Offers.Sent, Locale.Notifications.Offers.Header) },
             { "Offer::Cancel", new Instance(Types.Error, Locale.Notifications.Offers.Cancel, Locale.Notifications.Offers.Header) },
