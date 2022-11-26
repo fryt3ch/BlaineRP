@@ -136,7 +136,7 @@ namespace BCRPClient.Sync
 
         public class PlayerData
         {
-            public Player Player { get; }
+            public Player Player { get; private set; }
 
             public PlayerData(Player Player) => this.Player = Player;
 
@@ -203,13 +203,21 @@ namespace BCRPClient.Sync
 
             public int JailTime { get => Player.GetData<int>("JailTime"); set => Player.SetData("JailTime", value); }
 
-            public Dictionary<uint, Data.Vehicles.Vehicle> OwnedVehicles { get; set; }
+            public List<(uint VID, Data.Vehicles.Vehicle Data)> OwnedVehicles { get => Player.LocalPlayer.GetData<List<(uint VID, Data.Vehicles.Vehicle Data)>>("OwnedVehicles"); set => Player.LocalPlayer.SetData("OwnedVehicles", value); }
 
-            public List<uint> Familiars { get; set; }
+            public List<Data.Locations.Business> OwnedBusinesses { get => Player.LocalPlayer.GetData<List<Data.Locations.Business>>("OwnedBusinesses"); set => Player.LocalPlayer.SetData("OwnedBusinesses", value); }
 
-            public Dictionary<SkillTypes, int> Skills { get; set; }
+            public List<Data.Locations.House> OwnedHouses { get => Player.LocalPlayer.GetData<List<Data.Locations.House>>("OwnedHouses"); set => Player.LocalPlayer.SetData("OwnedHouses", value); }
 
-            public List<LicenseTypes> Licenses { get; set; }
+            public List<int> OwnedApartments { get; set; }
+
+            public List<int> OwnedGarages { get; set; }
+
+            public List<uint> Familiars { get => Player.LocalPlayer.GetData<List<uint>>("Familiars"); set => Player.LocalPlayer.SetData("Familiars", value); }
+
+            public Dictionary<SkillTypes, int> Skills { get => Player.LocalPlayer.GetData<Dictionary<SkillTypes, int>>("Skills"); set => Player.LocalPlayer.SetData("Skills", value); }
+
+            public List<LicenseTypes> Licenses { get => Player.LocalPlayer.GetData<List<LicenseTypes>>("Licenses"); set => Player.LocalPlayer.SetData("Licenses", value); }
 
             public Entity IsAttachedTo { get => Player.GetData<Entity>("IsAttachedTo::Entity"); set => Player.SetData("IsAttachedTo::Entity", value); }
 
@@ -302,6 +310,11 @@ namespace BCRPClient.Sync
                 if (CharacterLoaded)
                     return;
 
+                while (!World.Preloaded)
+                {
+                    await RAGE.Game.Invoker.WaitAsync(10);
+                }
+
                 Player.LocalPlayer.AutoVolume = false;
                 Player.LocalPlayer.VoiceVolume = 0f;
 
@@ -328,9 +341,7 @@ namespace BCRPClient.Sync
                 BCRPClient.Settings.MAX_CRUISE_CONTROL_SPEED = settings.Item5;
                 BCRPClient.Settings.MAX_INVENTORY_WEIGHT = settings.Item6;
 
-                Data.Locations.Business.LoadNames(RAGE.Util.Json.Deserialize<Dictionary<int, string>>((string)args[1]));
-
-                var sData = RAGE.Util.Json.Deserialize<JObject>((string)args[2]);
+                var sData = RAGE.Util.Json.Deserialize<JObject>((string)args[1]);
 
                 data.Familiars = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Familiars"]);
 
@@ -338,7 +349,9 @@ namespace BCRPClient.Sync
 
                 data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)sData["Skills"]);
 
-                data.OwnedVehicles = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Vehicles"]).ToDictionary(x => x.Key, x => Data.Vehicles.GetById(x.Value));
+                data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
+                data.OwnedBusinesses = RAGE.Util.Json.Deserialize<List<int>>((string)sData["Businesses"]).Select(x => Data.Locations.Business.All[x]).ToList();
+                data.OwnedHouses = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Houses"]).Select(x => Data.Locations.House.All[x]).ToList();
 
                 foreach (var x in data.Skills)
                     UpdateSkill(x.Key, x.Value);
@@ -382,8 +395,6 @@ namespace BCRPClient.Sync
                 data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay"));
 
                 SetData(Player.LocalPlayer, data);
-
-                Sync.World.Preload();
             });
 
             Events.Add("Players::CharacterReady", async (object[] args) =>
@@ -395,7 +406,7 @@ namespace BCRPClient.Sync
 
                 while (data == null)
                 {
-                    await RAGE.Game.Invoker.WaitAsync(25);
+                    await RAGE.Game.Invoker.WaitAsync(10);
 
                     data = GetData(Player.LocalPlayer);
                 }
@@ -435,6 +446,16 @@ namespace BCRPClient.Sync
                 Additional.ExtraColshape.Activate();
 
                 Additional.Discord.SetDefault();
+
+                await RAGE.Game.Invoker.WaitAsync(500);
+
+                foreach (var x in data.OwnedBusinesses)
+                    x.ToggleOwnerBlip(true);
+
+                foreach (var x in data.OwnedHouses)
+                    x.ToggleOwnerBlip(true);
+
+                //CEF.Menu.UpdateProperties(data);
             });
             #endregion
 
@@ -658,12 +679,19 @@ namespace BCRPClient.Sync
 
                     if (add)
                     {
-                        if (!data.OwnedVehicles.ContainsKey(vid))
-                            data.OwnedVehicles.Add(vid, Data.Vehicles.GetById((string)args[3]));
+                        var t = (vid, Data.Vehicles.GetById((string)args[3]));
+
+                        if (!data.OwnedVehicles.Contains(t))
+                            data.OwnedVehicles.Add(t);
                     }
                     else
                     {
-                        data.OwnedVehicles.Remove(vid);
+                        var idx = data.OwnedVehicles.FindIndex(x => x.VID == vid);
+
+                        if (idx < 0)
+                            return;
+
+                        data.OwnedVehicles.RemoveAt(idx);
                     }
                 }
 
@@ -1306,6 +1334,8 @@ namespace BCRPClient.Sync
             CEF.BlipsMenu.Close(true);
             CEF.ATM.Close(true);
             CEF.Bank.Close(true);
+
+            CEF.Estate.Close(true);
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 

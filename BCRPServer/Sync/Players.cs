@@ -116,6 +116,8 @@ namespace BCRPServer.Sync
                 if (data == null)
                     return;
 
+                data.ActiveOffer?.Cancel(false, true, Offers.ReplyTypes.AutoCancel, false);
+
                 player.DetachAllEntities();
 
                 data.IsAttachedTo?.Entity?.DetachEntity(player);
@@ -747,7 +749,7 @@ namespace BCRPServer.Sync
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 50f)
                 return;
 
-            pData.CurrentBusiness = id;
+            pData.CurrentBusiness = business;
 
             if (business is Game.Businesses.IEnterable enterable)
             {
@@ -790,10 +792,7 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness == null)
-                return;
-
-            var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
+            var business = pData.CurrentBusiness;
 
             if (business == null)
                 return;
@@ -830,10 +829,10 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness == null || amount <= 0)
+            if (amount <= 0)
                 return;
 
-            var business = Game.Businesses.Business.Get((int)pData.CurrentBusiness);
+            var business = pData.CurrentBusiness;
 
             if (business == null)
                 return;
@@ -849,7 +848,7 @@ namespace BCRPServer.Sync
 
                 bool paid = ((Func<bool>)(() =>
                 {
-                    if (business.Owner != -1)
+                    if (business.Owner != null)
                     {
                         // operations with materials
                     }
@@ -898,7 +897,7 @@ namespace BCRPServer.Sync
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.Position) > 50f)
                 return;
 
-            pData.CurrentBusiness = id;
+            pData.CurrentBusiness = gs;
 
             player.CloseAll(true);
 
@@ -931,10 +930,10 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness == null || amount <= 0 || !Enum.IsDefined(typeof(Game.Data.Vehicles.Vehicle.FuelTypes), fNum))
+            if (amount <= 0 || !Enum.IsDefined(typeof(Game.Data.Vehicles.Vehicle.FuelTypes), fNum))
                 return;
 
-            var gs = Game.Businesses.Business.Get((int)pData.CurrentBusiness) as Game.Businesses.GasStation;
+            var gs = pData.CurrentBusiness as Game.Businesses.GasStation;
 
             if (gs == null)
                 return;
@@ -955,7 +954,7 @@ namespace BCRPServer.Sync
 
             bool paid = ((Func<bool>)(() =>
             {
-                if (gs.Owner != -1)
+                if (gs.Owner != null)
                 {
                     // operations with materials
                 }
@@ -987,7 +986,7 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("House::Enter")]
-        public static void HouseEnter(Player player, int id)
+        public static void HouseEnter(Player player, uint id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -996,10 +995,12 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (pData.CurrentHouse != null)
+            var house = pData.CurrentHouse;
+
+            if (house != null)
                 return;
 
-            var house = Game.Houses.House.Get(id);
+            house = Game.Houses.House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
@@ -1007,7 +1008,7 @@ namespace BCRPServer.Sync
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            pData.CurrentHouse = id;
+            pData.CurrentHouse = house;
 
             player.CloseAll();
 
@@ -1022,7 +1023,7 @@ namespace BCRPServer.Sync
                 player.Teleport(sData.Position, false, house.Dimension);
             }, 1000);
 
-            player.TriggerEvent("House::Enter", id, sData.Type, NAPI.Util.ToJson(house.Dimension), NAPI.Util.ToJson((house.DoorsStates, house.LightsStates)));
+            player.TriggerEvent("House::Enter", id, sData.Type, house.Dimension, NAPI.Util.ToJson(house.DoorsStates), NAPI.Util.ToJson(house.LightsStates));
         }
 
         [RemoteEvent("House::Exit")]
@@ -1035,10 +1036,7 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            if (pData.CurrentHouse == null)
-                return;
-
-            var house = Game.Houses.House.Get((int)pData.CurrentHouse);
+            var house = pData.CurrentHouse;
 
             if (house == null)
                 return;

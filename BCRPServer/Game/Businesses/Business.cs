@@ -11,8 +11,6 @@ namespace BCRPServer.Game.Businesses
 {
     public abstract class Business
     {
-        public static string AllNames { get; set; }
-
         public enum Types
         {
             ClothesShop1 = 0,
@@ -41,22 +39,8 @@ namespace BCRPServer.Game.Businesses
         /// <summary>ID бизнеса (уникальный)</summary>
         public int ID { get; set; }
 
-        /// <summary>2й ID бизнеса</summary>
-        /// <remarks>Уникален лишь для каждого вида бизнеса</remarks>
-        public int SubID { get; set; }
-
-        /// <summary>Название</summary>
-        public string Name { get; set; }
-
-        /// <summary>Название + SubID</summary>
-        /// <value>Строка вида: Name #SubID</value>
-        public string NameAndSubID { get => Name ?? " " + $" #{SubID}"; }
-
-        /// <summary>CID владельца</summary>
-        /// <remarks>Если владельца нет, то 0</remarks>
-        public uint Owner { get; set; }
-
-        public string OwnerName { get => Owner == 0 ? Locale.Businesses.Government : "Игрок"; }
+        /// <summary>Владельца</summary>
+        public PlayerData.PlayerInfo Owner { get; set; }
 
         /// <summary>Наличных в кассе</summary>
         public int Cash { get; set; }
@@ -134,18 +118,20 @@ namespace BCRPServer.Game.Businesses
 
             new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), new Vector3(263.9698f, 2607.402f, 44.98298f));
 
-            new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Vector3(-55.08611f, -1111.217f, 26.05543f), 36.2f);
+            new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Vector3(-55.08611f, -1111.217f, 26.05543f), 36.2f,
+                (new Vector3(-41.65706f, -1116.344f, 26.05584f), 3f), (new Vector3(-45.15728f, -1116.411f, 26.05584f), 3f),
+                (new Vector3(-47.71569f, -1116.379f, 26.05584f), 3f), (new Vector3(-50.56787f, -1116.191f, 26.05584f), 3f),
+                (new Vector3(-53.62245f, -1116.565f, 26.05584f), 3f), (new Vector3(-56.34209f, -1116.566f, 26.05584f), 3f),
+                (new Vector3(-59.11841f, -1116.814f, 26.05584f), 3f), (new Vector3(-62.03639f, -1117.178f, 26.05584f), 3f));
 
             new BoatShop(18, new Vector3(-813.3688f, -1336.428f, 5.150263f), new Vector3(-852.8972f, -1335.998f, 0.1195435f), 108.4271f);
 
             new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1770.4f, 3239.908f, 42.02776f), 352.3067f);
 
-            for (int i = 1; i < All.Count + 1; i++)
+            foreach (var x in All.Values)
             {
-                All[i] = MySQL.GetBusiness(All[i]);
+                MySQL.LoadBusiness(x);
             }
-
-            AllNames = All.ToDictionary(x => x.Key, x => x.Value.Name).SerializeToJson();
 
             var lines = new List<string>();
 
@@ -197,6 +183,13 @@ namespace BCRPServer.Game.Businesses
         }
 
         public static Business Get(int id) => All.GetValueOrDefault(id);
+
+        public void UpdateOwner(PlayerData.PlayerInfo pInfo)
+        {
+            Owner = pInfo;
+
+            Game.World.SetSharedData($"Business::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+        }
     }
 
     public interface IEnterable
@@ -2145,48 +2138,38 @@ namespace BCRPServer.Game.Businesses
 
     public class ClothesShop1 : ClothesShop
     {
-        private static int Counter = 1;
-
         public ClothesShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop1)
         {
-            SubID = Counter++;
+
         }
     }
 
     public class ClothesShop2 : ClothesShop
     {
-        private static int Counter = 1;
-
         public ClothesShop2(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop2)
         {
-            SubID = Counter++;
+
         }
     }
 
     public class ClothesShop3 : ClothesShop
     {
-        private static int Counter = 1;
-
         public ClothesShop3(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop2)
         {
-            SubID = Counter++;
+
         }
     }
 
     public class Market : Shop
     {
-        private static int Counter = 1;
-
         public Market(int ID, Vector3 Position) : base(ID, Position, Types.Market)
         {
-            SubID = Counter++;
+
         }
     }
 
     public class GasStation : Shop
     {
-        private static int Counter = 1;
-
         private static Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int> GasPrices = new Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int>()
         {
             { Game.Data.Vehicles.Vehicle.FuelTypes.Petrol, 10 },
@@ -2212,8 +2195,6 @@ namespace BCRPServer.Game.Businesses
         public GasStation(int ID, Vector3 Position, Vector3 GasolinesPosition) : base(ID, Position, Types.GasStation)
         {
             this.GasolinesPosition = GasolinesPosition;
-
-            SubID = Counter++;
         }
     }
 
@@ -2223,16 +2204,20 @@ namespace BCRPServer.Game.Businesses
 
         public float Heading { get; set; }
 
-        public VehicleShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type) : base(ID, Position, Type)
+        public List<(Vector3 Position, float Heading)> AfterBuyPositions { get; set; }
+
+        public VehicleShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type, params (Vector3, float)[] AfterBuyPositions) : base(ID, Position, Type)
         {
             this.EnterPosition = EnterPosition;
             this.Heading = Heading;
+
+            this.AfterBuyPositions = AfterBuyPositions.ToList();
         }
     }
 
     public class CarShop1 : VehicleShop
     {
-        public CarShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.CarShop1)
+        public CarShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, params (Vector3, float)[] AfterBuyPositions) : base(ID, Position, EnterPosition, Heading, Types.CarShop1)
         {
 
         }

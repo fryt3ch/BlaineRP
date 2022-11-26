@@ -417,7 +417,7 @@ namespace BCRPClient.Additional
             {
                 InteractionTypes.BusinessEnter, () =>
                 {
-                    if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
+                    if (LastSent.IsSpam(1000, false, false))
                         return false;
 
                     if (!Player.LocalPlayer.HasData("CurrentBusiness"))
@@ -425,7 +425,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
 
-                    Additional.ExtraColshape.LastSent = DateTime.Now;
+                    LastSent = DateTime.Now;
 
                     return true;
                 }
@@ -442,7 +442,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("Business::ShowInfo", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
 
-                    Additional.ExtraColshape.LastSent = DateTime.Now;
+                    LastSent = DateTime.Now;
 
                     return true;
                 }
@@ -451,15 +451,15 @@ namespace BCRPClient.Additional
             {
                 InteractionTypes.HouseEnter, () =>
                 {
-                    if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
+                    if (LastSent.IsSpam(1000, false, false))
                         return false;
 
                     if (!Player.LocalPlayer.HasData("CurrentHouse"))
                         return false;
 
-                    Events.CallRemote("House::Enter", Player.LocalPlayer.GetData<int>("CurrentHouse"));
+                    CEF.Estate.ShowHouseInfo(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.House>("CurrentHouse"), true);
 
-                    Additional.ExtraColshape.LastSent = DateTime.Now;
+                    LastSent = DateTime.Now;
 
                     return true;
                 }
@@ -731,12 +731,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is string))
+                            if (!(cs.Data is Data.Locations.House house))
                                 return;
 
-                            var houseId = (int)cs.Data;
-
-                            Player.LocalPlayer.SetData("CurrentHouse", houseId);
+                            Player.LocalPlayer.SetData("CurrentHouse", house);
                         }
                     },
 
@@ -900,15 +898,12 @@ namespace BCRPClient.Additional
 
             if (Colshape != null)
             {
-                Streamed.Remove(this);
-                All.Remove(Colshape);
-
                 if (IsInside)
                 {
-                    Colshape.OnExit?.Invoke(null);
-
-                    RAGE.Events.OnPlayerExitColshape?.Invoke(Colshape, null);
+                    Events.OnPlayerExitColshape?.Invoke(Colshape, null);
                 }
+
+                All.Remove(Colshape);
 
                 Colshape.ResetData();
 

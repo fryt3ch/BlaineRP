@@ -225,12 +225,8 @@ namespace BCRPClient
             KeyBinds.LoadMain();
 
             CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, KeyBinds.Get(KeyBinds.Types.Cursor).GetKeyString()), false, 5000);
-        }
 
-        public static void SwitchCaioPerico(bool state)
-        {
-            RAGE.Game.Invoker.Invoke(0x9A9D1BA639675CF1, "HeistIsland", state); // load island, unload original map
-            RAGE.Game.Invoker.Invoke(0x5E1460624D194A38, state); // switching minimap
+            Sync.World.Preload();
         }
 
         public static void DisableAllControls()
@@ -259,6 +255,17 @@ namespace BCRPClient
             RAGE.Game.Ui.SetHudColour(142, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
 
             RAGE.Game.Gxt.Add("PM_PAUSE_HDR", Settings.HUD_MAIN_TEXT);
+
+            RAGE.Game.Ui.SetMinimapComponent(15, true, -1); // Fort Zancudo
+            RAGE.Game.Ui.SetMinimapComponent(6, true, -1); // Vespucci Beach lifeguard building
+            RAGE.Game.Ui.SetMinimapComponent(8, true, -1); // Paleto Bay fire station building
+            RAGE.Game.Ui.SetMinimapComponent(9, true, -1); // Land Act Dam
+            RAGE.Game.Ui.SetMinimapComponent(10, true, -1); // Paleto Forest cable car station
+            RAGE.Game.Ui.SetMinimapComponent(11, true, -1); // Galileo Observatory
+            RAGE.Game.Ui.SetMinimapComponent(12, true, -1); // Engine Rebuils building (Strawberry)
+            RAGE.Game.Ui.SetMinimapComponent(13, true, -1); // Mansion pool (Richman)
+            RAGE.Game.Ui.SetMinimapComponent(7, true, -1); // Beam Me Up (Grand Senora Desert)
+            RAGE.Game.Ui.SetMinimapComponent(14, true, -1); // Beam Me Up 2 (Grand Senora Desert)
         }
 
         private static void PauseMenuWatcher()

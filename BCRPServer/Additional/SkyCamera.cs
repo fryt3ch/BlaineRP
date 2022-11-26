@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BCRPServer.Additional
 {
-    class SkyCamera
+    public class SkyCamera
     {
         public enum SwitchTypes
         {

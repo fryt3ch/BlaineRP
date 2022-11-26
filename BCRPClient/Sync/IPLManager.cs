@@ -15,11 +15,12 @@ namespace BCRPClient.Sync
             public Vector3 Position { get; set; }
             public Additional.ExtraColshape Colshape { get; set; }
 
-            public IPLInfo(string Name, Vector3 Position, Additional.ExtraColshape Colshape, params string[] IPLs)
+            public IPLInfo(string Name, Vector3 Position, float Radius, uint Dimension = uint.MaxValue, params string[] IPLs)
             {
                 this.Name = Name;
                 this.Position = Position;
-                this.Colshape = Colshape;
+
+                this.Colshape = new Additional.Circle(Position, Radius, false, new Utils.Colour(0, 0, 255, 125), Dimension, null);
 
                 this.Colshape.ActionType = Additional.ExtraColshape.ActionTypes.IPL;
 
@@ -66,14 +67,15 @@ namespace BCRPClient.Sync
         {
             All = new List<IPLInfo>()
             {
-                new IPLInfo("Garage_20", new Vector3(1286.137f, 245.5f, -49f), Additional.Polygon.CreateCuboid(new Vector3(1286.137f, 245.5f, -49f), 80f, 80f, 30f, 0f, false, Utils.RedColor, uint.MaxValue), "vw_casino_garage"),
+                new IPLInfo("Garage_20", new Vector3(1286.137f, 245.5f, -49f), 100f, uint.MaxValue, "vw_casino_garage"),
+
+                new IPLInfo(null, new Vector3(-1114.88f, 306.84f, 0f), 200f, uint.MaxValue, "bh1_47_joshhse_unburnt"),
+                new IPLInfo(null, new Vector3(32.02f, 3737.35f, 0f), 200f, uint.MaxValue, "methtrailer_grp1"),
+                new IPLInfo(null, new Vector3(2495.55f, 3157.45f, 0f), 100f, uint.MaxValue, "gr_case2_bunkerclosed"),
             };
 
-            foreach (var x in All)
-            {
-                if (x.Colshape == null)
-                    continue;
-            }
+            //RAGE.Game.Streaming.RequestIpl("ch1_02_closed");
+            //RAGE.Game.Streaming.RequestIpl("dt1_05_hc_remove");
 
             Events.Add("IPL::Switch", (object[] args) =>
             {

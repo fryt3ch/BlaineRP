@@ -13,12 +13,9 @@ namespace BCRPServer.Sync
 {
     public class Offers : Script
     {
-        /// <summary>Список всех активных предложений</summary>
-        public static List<Offer> AllOffers { get; private set; }
-
         public Offers()
         {
-            AllOffers = new List<Offer>();
+
         }
 
         public enum Types
@@ -180,8 +177,6 @@ namespace BCRPServer.Sync
                             tPlayer.TriggerEvent("Inventory::Show", 3);
 
                             offer.TradeData = new Offer.Trade();
-
-                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
                         }
                     },
 
@@ -192,17 +187,19 @@ namespace BCRPServer.Sync
                         {
                             offer.TradeData = null;
 
-                            if (pData == null || tData == null)
-                                return;
+                            if (pData != null)
+                            {
+                                var sPlayer = pData.Player;
 
-                            var sPlayer = pData.Player;
-                            var tPlayer = tData.Player;
+                                sPlayer?.CloseAll();
+                            }
 
-                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
-                                return;
+                            if (tData != null)
+                            {
+                                var tPlayer = tData.Player;
 
-                            sPlayer.CloseAll();
-                            tPlayer.CloseAll();
+                                tPlayer?.CloseAll();
+                            }
                         }
                     }
                 }
@@ -248,6 +245,9 @@ namespace BCRPServer.Sync
                 public TradeItem[] SenderItems { get; set; }
                 public TradeItem[] ReceiverItems { get; set; }
 
+                public List<VehicleData.VehicleInfo> SenderVehicles { get; set; }
+                public List<VehicleData.VehicleInfo> ReceiverVehicles { get; set; }
+
                 public int SenderMoney { get; set; }
                 public int ReceiverMoney { get; set; }
 
@@ -285,19 +285,43 @@ namespace BCRPServer.Sync
                     if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
                         return (CEF.Inventory.Results.NoSpace, tData);
 
-                    var moneyRes = ((Func<(CEF.Inventory.Results Result, PlayerData PlayerError)>)(() =>
+                    if (pData.Cash < SenderMoney)
+                        return (CEF.Inventory.Results.NotEnoughMoney, pData);
+
+                    if (tData.Cash < ReceiverMoney)
+                        return (CEF.Inventory.Results.NotEnoughMoney, tData);
+
+                    foreach (var x in SenderVehicles)
                     {
-                        if (pData.Cash < SenderMoney)
-                            return (CEF.Inventory.Results.NotEnoughMoney, pData);
+                        if (x.OwnerType != VehicleData.OwnerTypes.Player || x.OwnerID != pData.CID)
+                            return (CEF.Inventory.Results.Error, null);
+                    }
 
-                        if (tData.Cash < ReceiverMoney)
-                            return (CEF.Inventory.Results.NotEnoughMoney, tData);
+                    foreach (var x in ReceiverVehicles)
+                    {
+                        if (x.OwnerType != VehicleData.OwnerTypes.Player || x.OwnerID != tData.CID)
+                            return (CEF.Inventory.Results.Error, null);
+                    }
 
-                        return (CEF.Inventory.Results.Success, null);
-                    })).Invoke();
+                    foreach (var x in SenderVehicles)
+                    {
+                        x.OwnerID = tData.CID;
 
-                    if (moneyRes.Result != CEF.Inventory.Results.Success)
-                        return moneyRes;
+                        pData.RemoveVehicleProperty(x);
+                        tData.AddVehicleProperty(x);
+
+                        MySQL.VehicleOwnerUpdate(x);
+                    }
+
+                    foreach (var x in ReceiverVehicles)
+                    {
+                        x.OwnerID = pData.CID;
+
+                        tData.RemoveVehicleProperty(x);
+                        pData.AddVehicleProperty(x);
+
+                        MySQL.VehicleOwnerUpdate(x);
+                    }
 
                     if (ReceiverMoney > 0)
                     {
@@ -427,6 +451,9 @@ namespace BCRPServer.Sync
                     SenderItems = new TradeItem[5];
                     ReceiverItems = new TradeItem[5];
 
+                    SenderVehicles = new List<VehicleData.VehicleInfo>();
+                    ReceiverVehicles = new List<VehicleData.VehicleInfo>();
+
                     SenderMoney = 0;
                     ReceiverMoney = 0;
 
@@ -477,22 +504,22 @@ namespace BCRPServer.Sync
                     {
                         await Task.Delay(Duration, CTS.Token);
 
-                        if (CTS?.IsCancellationRequested == false)
+                        NAPI.Task.Run(() =>
                         {
-                            NAPI.Task.Run(() =>
-                            {
-                                if (CTS == null)
-                                    return;
+                            if (CTS == null)
+                                return;
 
-                                Cancel(false, false, ReplyTypes.AutoCancel, false);
-                            });
-                        }
+                            Cancel(false, false, ReplyTypes.AutoCancel, false);
+                        });
                     }
                     catch (Exception ex)
                     {
 
                     }
                 });
+
+                Sender.ActiveOffer = this;
+                Receiver.ActiveOffer = this;
             }
 
             /// <summary>Метод для отмены предложения и удаления его из списка активных предложения</summary>
@@ -542,7 +569,8 @@ namespace BCRPServer.Sync
                 if (justCancelCts)
                     return;
 
-                AllOffers.Remove(this);
+                Sender.ActiveOffer = null;
+                Receiver.ActiveOffer = null;
             }
 
             public void Execute()
@@ -553,13 +581,9 @@ namespace BCRPServer.Sync
                 OfferActions[Type][true].Invoke(Sender, Receiver, this);
             }
 
-            public static Offer Get(PlayerData pData) => AllOffers.Where(x => x.Sender == pData || x.Receiver == pData).FirstOrDefault();
-
             public static Offer Create(PlayerData pData, PlayerData tData, Types type, int duration = -1, object data = null)
             {
                 var offer = new Offer(pData, tData, type, duration, data);
-
-                AllOffers.Add(offer);
 
                 return offer;
             }
@@ -576,7 +600,7 @@ namespace BCRPServer.Sync
             var pData = sRes.Data;
             var tData = target.GetMainData();
 
-            if (tData == null || tData.Player?.Exists != true)
+            if (tData?.Player?.Exists != true)
                 return;
 
             object dataObj = null;
@@ -629,10 +653,10 @@ namespace BCRPServer.Sync
                         return ReturnTypes.NotEnoughMoneySource;
                 }
 
-                if (Offer.Get(pData) != null)
+                if (pData.ActiveOffer != null)
                     return ReturnTypes.SourceHasOffer;
 
-                if (Offer.Get(tData) != null)
+                if (tData.ActiveOffer != null)
                     return ReturnTypes.TargetHasOffer;
 
                 Offer.Create(pData, tData, oType, -1, dataObj);
@@ -697,12 +721,10 @@ namespace BCRPServer.Sync
 
             var rType = (ReplyTypes)rTypeNum;
 
-            var offer = Offer.Get(pData);
+            var offer = pData.ActiveOffer;
 
             if (offer == null)
                 return;
-
-            var tData = offer.Sender == pData ? offer.Receiver : offer.Sender;
 
             if (pData == offer.Receiver)
             {

@@ -433,10 +433,20 @@ namespace BCRPClient.CEF
 
             foreach (var x in pData.OwnedVehicles)
             {
-                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "veh", x.Value.Type.ToString(), x.Value.BrandName, x.Value.SubName, "Luxe", 10000000 } });
+                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, "Luxe", 10000000 } });
             }
 
             Browser.Window.ExecuteJs("Menu.clearPropertyTable", "est");
+
+            foreach (var x in pData.OwnedBusinesses)
+            {
+                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), "Business", 10000000, x.SubId } });
+            }
+
+            foreach (var x in pData.OwnedHouses)
+            {
+                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), "Дом", Utils.GetStreetName(x.Position), "Luxe", 10000000, x.Id } });
+            }
         }
     }
 }

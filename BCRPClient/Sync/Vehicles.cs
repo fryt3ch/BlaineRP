@@ -4,6 +4,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using static BCRPClient.Utils;
 
 namespace BCRPClient.Sync
 {
@@ -285,6 +286,12 @@ namespace BCRPClient.Sync
                     data = new VehicleData(veh);
 
                     InvokeHandler("IsInvincible", data, data.IsInvincible, null);
+
+                    InvokeHandler("Mods::TSColour", data, veh.GetSharedData("Mods::TSColour"), null);
+                    InvokeHandler("Mods::Turbo", data, veh.GetSharedData("Mods::Turbo"), null);
+                    InvokeHandler("Mods::Xenon", data, veh.GetSharedData("Mods::Xenon"), null);
+
+                    //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
 
                     data.TID = veh.GetSharedData<int?>("TID", null).ToUInt32();
 
@@ -589,6 +596,55 @@ namespace BCRPClient.Sync
                 {
                     veh.SetDoorOpen(4, false, false);
                 }
+            });
+
+            AddDataHandler("Mods::TSColour", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var colour = ((JObject)value).ToObject<Utils.Colour>();
+
+                veh.ToggleMod(20, colour.Alpha == 255);
+
+                veh.SetTyreSmokeColor(colour.Red, colour.Green, colour.Blue);
+            });
+
+            AddDataHandler("Mods::Turbo", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var state = (bool)value;
+
+                veh.ToggleMod(18, state);
+            });
+
+            AddDataHandler("Mods::Xenon", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var colour = (int)value;
+
+                if (colour < -1)
+                {
+                    veh.ToggleMod(22, false);
+                }
+                else
+                {
+                    veh.ToggleMod(22, true);
+
+                    RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, colour);
+                }
+            });
+
+            AddDataHandler("Anchor", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var state = (bool)value;
+
+                RAGE.Game.Invoker.Invoke(0xE3EBAAE484798530, veh.Handle, state);
+
+                veh.SetBoatAnchor(state);
             });
 
             #endregion

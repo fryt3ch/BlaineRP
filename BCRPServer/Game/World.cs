@@ -29,9 +29,21 @@ namespace BCRPServer.Game
         /// <value>Словарь, где ключ - UID предмета, а значение - объект класса ItemOnGround</value>
         public static Dictionary<uint, ItemOnGround> ItemsOnGround { get; set; }
 
+        private static ColShape ServerDataColshape { get; set; }
+
+        public static void SetSharedData<T>(string key, T data) => ServerDataColshape.SetSharedData(key, data);
+
+        public static T GetSharedData<T>(string key) => ServerDataColshape.GetSharedData<T>(key);
+
         public World()
         {
             ItemsOnGround = new Dictionary<uint, ItemOnGround>();
+
+            ServerDataColshape = NAPI.ColShape.CreateCylinderColShape(new Vector3(0f, 0f, 0f), 0f, 0f, Utils.Dimensions.Stuff);
+
+            SetSharedData("ServerData", true);
+
+            SetSharedData("House_1::Owner", "asasdasdasdasdaasdda");
         }
 
         #region Item On Ground
@@ -151,17 +163,7 @@ namespace BCRPServer.Game
         #endregion
 
         #region Create
-        public static async Task AddItemOnGround(Items.Item item, Vector3 position, Vector3 rotation, uint dimension) => await AddItemOnGround(null, item, position, rotation, dimension);
-
-        public static async Task AddItemOnGround(Player controller, Items.Item item)
-        {
-            if (controller == null)
-                return;
-
-            await AddItemOnGround(controller, item, controller.GetFrontOf(BaseOffsetCoeff), controller.Rotation, controller.Dimension);
-        }
-
-        public static async Task AddItemOnGround(Player controller, Items.Item item, Vector3 position, Vector3 rotation, uint dimension)
+        public static void AddItemOnGround(PlayerData pData, Items.Item item, Vector3 position, Vector3 rotation, uint dimension)
         {
             if (item == null)
                 return;
@@ -176,7 +178,7 @@ namespace BCRPServer.Game
 
             if (item is Game.Items.IStackable)
             {
-                var existingAll = (await NAPI.Task.RunAsync(() => ItemsOnGround.Where(x => x.Value.Item.ID == item.ID && (x.Value.Object.Dimension == dimension || x.Value.Object.Dimension == Utils.Dimensions.Stuff) && Vector3.Distance(x.Value.Object.Position, position) <= Settings.IOG_MAX_DISTANCE_TO_STACK).Select(x => x.Value))).ToList();
+                var existingAll = ItemsOnGround.Where(x => x.Value.Item.ID == item.ID && (x.Value.Object.Dimension == dimension || x.Value.Object.Dimension == Utils.Dimensions.Stuff) && Vector3.Distance(x.Value.Object.Position, position) <= Settings.IOG_MAX_DISTANCE_TO_STACK).Select(x => x.Value).ToList();
 
                 if (existingAll != null && existingAll.Any())
                 {
@@ -215,10 +217,7 @@ namespace BCRPServer.Game
                 }
             }
 
-            var obj = await NAPI.Task.RunAsync(() =>
-            {
-                return NAPI.Object.CreateObject(item.Model, position, rotation, 255, Utils.Dimensions.Stuff);
-            });
+            var obj = NAPI.Object.CreateObject(item.Model, position, rotation, 255, Utils.Dimensions.Stuff);
 
             var iog = new ItemOnGround(item, obj);
 

@@ -134,31 +134,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                38, ("Гидравлика", null)
-            },
-
-            {
-                27, ("Внешняя отделка", null)
-            },
-
-            {
-                28, ("Орнаменты", null)
-            },
-
-            {
                 32, ("Кресла", null)
-            },
-
-            {
-                29, ("Приборная панель", null)
-            },
-
-            {
-                30, ("Спидометр", null)
-            },
-
-            {
-                37, ("Багажник", null)
             },
 
             {
@@ -235,7 +211,7 @@ namespace BCRPClient.Additional
             {
                 int totalMods = veh.GetNumMods(x.Key);
 
-                if (totalMods > 0 || x.Key == 22)
+                if (totalMods > 0 || x.Key == 22 || x.Key == 18)
                 {
                     var subMenu = MenuPool.AddSubMenu(mainMenu, x.Value.Name);
 

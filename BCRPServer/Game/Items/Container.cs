@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BCRPServer.Game.Items
 {
-    class Container : Script
+    public class Container : Script
     {
         /// <summary>Все загруженные контейнеры</summary>
         /// <value>Словарь, где ключ - UID контейнера, а значение - объект класса Container</value>
@@ -171,45 +171,36 @@ namespace BCRPServer.Game.Items
             {
                 if (SID == "h_locker")
                 {
-                    if (pData.CurrentHouse == null)
-                        return false;
-
-                    var house = Game.Houses.House.Get((int)pData.CurrentHouse);
+                    var house = pData.CurrentHouse;
 
                     if (house == null || house.Locker != ID)
                         return false;
 
-                    if (house.Owner == pData.CID)
+                    if (house.Owner == pData.Info)
                         return true;
 
                     return !house.ContainersLocked;
                 }
                 else if (SID == "h_wardrobe")
                 {
-                    if (pData.CurrentHouse == null)
-                        return false;
-
-                    var house = Game.Houses.House.Get((int)pData.CurrentHouse);
+                    var house = pData.CurrentHouse;
 
                     if (house == null || house.Wardrobe != ID)
                         return false;
 
-                    if (house.Owner == pData.CID)
+                    if (house.Owner == pData.Info)
                         return true;
 
                     return !house.ContainersLocked;
                 }
                 else if (SID == "h_fridge")
                 {
-                    if (pData.CurrentHouse == null)
-                        return false;
-
-                    var house = Game.Houses.House.Get((int)pData.CurrentHouse);
+                    var house = pData.CurrentHouse;
 
                     if (house == null || house.Fridge != ID)
                         return false;
 
-                    if (house.Owner == pData.CID)
+                    if (house.Owner == pData.Info)
                         return true;
 
                     return !house.ContainersLocked;
@@ -1167,7 +1158,7 @@ namespace BCRPServer.Game.Items
             if (!pData.CanPlayAnim())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
-            Game.World.AddItemOnGround(player, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
+            Game.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
         #endregion
 

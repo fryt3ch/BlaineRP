@@ -10,7 +10,6 @@ using BCRPServer.Game.Items;
 using BCRPServer.Sync;
 using GTANetworkAPI;
 using Newtonsoft.Json;
-using static BCRPServer.PlayerData;
 
 namespace BCRPServer
 {
@@ -52,8 +51,15 @@ namespace BCRPServer
 
             if (vData.Info != null)
             {
-                VehicleInfo.Remove(vData.Info);
+
             }
+        }
+
+        private static void Delete(VehicleData vData)
+        {
+            Remove(vData);
+
+            VehicleInfo.Remove(vData.Info);
         }
 
         public enum OwningTypes
@@ -134,6 +140,8 @@ namespace BCRPServer
             public static VehicleInfo Get(uint id) => All.GetValueOrDefault(id);
 
             public static List<VehicleInfo> GetAllByCID(uint cid) => All.Values.Where(x => x != null && (x.OwnerType == OwnerTypes.Player && x.OwnerID == cid)).ToList();
+
+            public Game.Data.Vehicles.Vehicle Data { get; set; }
 
             public uint VID { get; set; }
 
@@ -221,7 +229,7 @@ namespace BCRPServer
         public string ID { get => Info.ID; set => Info.ID = value; }
 
         /// <summary>Второстепенные данные транспорта</summary>
-        public Game.Data.Vehicles.Vehicle Data { get => Game.Data.Vehicles.All[ID]; }
+        public Game.Data.Vehicles.Vehicle Data { get => Info.Data; set => Info.Data = value; }
 
         /// <summary>Дата создания транспорта</summary>
         public DateTime RegistrationDate { get => Info.RegistrationDate; set => Info.RegistrationDate = value; }
@@ -404,6 +412,8 @@ namespace BCRPServer
                             pData.RemoveVehicleProperty(Info);
                         }
                     }
+
+                    Delete(this);
                 }
             }
             else
@@ -416,9 +426,9 @@ namespace BCRPServer
 
                     MySQL.VehicleDeletionUpdate(this.Info);
                 }
-            }
 
-            Remove(this);
+                Remove(this);
+            }
 
             Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
         }

@@ -124,28 +124,33 @@ namespace BCRPServer
 
         public const int MIN_VEHICLE_SLOTS = 1;
 
+        public const int MAX_HOUSES = 1;
+
+        public const int MAX_APARTMENTS = 1;
+
+        public const int MAX_GARAGES = 1;
+
+        public const int MAX_BUSINESSES = 1;
+
+        public const int MAX_IS_SETTLED = 1;
+
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 
         public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES { get => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M }; }
 
         /// <summary>Список доступных для сервера типов погоды</summary>
-        public static List<string> Weathers = new List<string>()
+        public static List<Utils.WeatherTypes> Weathers = new List<Utils.WeatherTypes>()
         {
-            Weather.EXTRASUNNY.ToString(),
-            Weather.CLEAR.ToString(),
-            Weather.CLOUDS.ToString(),
-            Weather.SMOG.ToString(),
-            Weather.FOGGY.ToString(),
-            Weather.OVERCAST.ToString(),
-            Weather.RAIN.ToString(),
-            Weather.THUNDER.ToString(),
-            Weather.CLEARING.ToString(),
-            //Weather.NEUTRAL.ToString(),
-            //Weather.SNOW.ToString(),
-            Weather.BLIZZARD.ToString(),
-            //Weather.SNOWLIGHT.ToString(),
-            //Weather.XMAS.ToString(),
-            //"HALLOWEEN",
+            Utils.WeatherTypes.EXTRASUNNY,
+            Utils.WeatherTypes.CLEAR,
+            Utils.WeatherTypes.CLOUDS,
+            Utils.WeatherTypes.SMOG,
+            Utils.WeatherTypes.FOGGY,
+            Utils.WeatherTypes.OVERCAST,
+            Utils.WeatherTypes.RAIN,
+            Utils.WeatherTypes.THUNDER,
+            Utils.WeatherTypes.CLEARING,
+            Utils.WeatherTypes.BLIZZARD,
         };
 
         public static string SettingsToClientStr = (STREAM_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE_RENDER, MIN_CRUISE_CONTROL_SPEED, MAX_CRUISE_CONTROL_SPEED, MAX_INVENTORY_WEIGHT).SerializeToJson();

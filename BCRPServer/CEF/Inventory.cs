@@ -82,6 +82,11 @@ namespace BCRPServer.CEF
             Wounded,
             /// <summary>Недостаточно денег (для обмена)</summary>
             NotEnoughMoney,
+
+            NotEnoughVehicleSlots,
+            NotEnoughHouseSlots,
+            NotEnoughApartmentsSlots,
+            NotEnoughBusinessSlots,
         }
 
         public static Dictionary<Results, string> ResultsNotifications = new Dictionary<Results, string>()
@@ -3243,7 +3248,7 @@ namespace BCRPServer.CEF
             if (!pData.CanPlayAnim())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
-            Game.World.AddItemOnGround(player, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
+            Game.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
 
         [RemoteEvent("Inventory::Drop")]

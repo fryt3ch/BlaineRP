@@ -178,9 +178,9 @@ namespace BCRPClient
 
             int hit = -1, endEntity = -1;
 
-            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, flags, ignoreHandle, 0), ref hit, GarbageVector, GarbageVector, ref endEntity);
+            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, flags, ignoreHandle, 7), ref hit, GarbageVector, GarbageVector, ref endEntity);
 
-            if (result != 2)
+            if (result != 2 || endEntity <= 0)
                 return null;
 
             var type = RAGE.Game.Entity.GetEntityType(endEntity);
@@ -208,7 +208,7 @@ namespace BCRPClient
             // Object
             else if (type == 3)
             {
-                return GetMapObjectByHandle(endEntity, true);
+                return GetMapObjectByHandle(endEntity, false);
             }
 
             return null;
@@ -234,7 +234,7 @@ namespace BCRPClient
             if (Settings.Other.RaytraceEnabled)
                 RAGE.Game.Graphics.DrawLine(headCoord.X, headCoord.Y, headCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 255, 0, 0, 255);
 
-            return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 14);
+            return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 30);
         }
         public static Entity GetEntityPlayerPointsAt(float distance)
         {
@@ -244,7 +244,7 @@ namespace BCRPClient
             if (Settings.Other.RaytraceEnabled)
                 RAGE.Game.Graphics.DrawLine(fingerCoord.X, fingerCoord.Y, fingerCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 0, 255, 0, 255);
 
-            return GetEntityByRaycast(fingerCoord, screenCenterCoord, Player.LocalPlayer.Handle, 14);
+            return GetEntityByRaycast(fingerCoord, screenCenterCoord, Player.LocalPlayer.Handle, 30);
         }
 
         public static bool PlayerInFrontOfVehicle(RAGE.Elements.Vehicle vehicle, float radius = 2f)
@@ -824,6 +824,15 @@ namespace BCRPClient
         public static bool GetScreenCoordFromWorldCoord(Vector3 pos, ref float x, ref float y) => RAGE.Game.Graphics.GetScreenCoordFromWorldCoord(pos.X, pos.Y, pos.Z, ref x, ref y);
 
         public static void DrawSphere(Vector3 pos, float radius, byte r, byte g, byte b, float opacity) => RAGE.Game.Invoker.Invoke(0x799017F9E3B10112, pos.X, pos.Y, pos.Z, radius, r, g, b, opacity);
+
+        public static string GetStreetName(Vector3 pos)
+        {
+            int streetNameHash = 0, crossingRoadNameHash = 0;
+
+            RAGE.Game.Pathfind.GetStreetNameAtCoord(pos.X, pos.Y, pos.Z, ref streetNameHash, ref crossingRoadNameHash);
+
+            return RAGE.Game.Ui.GetStreetNameFromHashKey((uint)streetNameHash) ?? "null";
+        }
     }
 
     public static class Extensions
@@ -1018,21 +1027,35 @@ namespace BCRPClient
         /// <summary>Метод для получения позиции сущности на экране</summary>
         /// <param name="entity">Сущность</param>
         /// <returns>Vector2 - успешно, null - в противном случае</returns>
-        public static RAGE.Ui.Cursor.Vector2 GetScreenPosition(this Entity entity) => Utils.GetScreenCoordFromWorldCoord(entity.Position);
+        public static RAGE.Ui.Cursor.Vector2 GetScreenPosition(this Entity entity) => Utils.GetScreenCoordFromWorldCoord(entity.GetRealPosition());
 
         /// <summary>Метод для получения позиции сущности на экране</summary>
         /// <remarks>Облегченная версия метода, использовать для рендера</remarks>
         /// <param name="entity">Сущность</param>
         /// <returns>true - успешно, false - в противном случае</returns>
-        public static bool GetScreenPosition(this Entity entity, ref float x, ref float y) => Utils.GetScreenCoordFromWorldCoord(entity.Position, ref x, ref y);
+        public static bool GetScreenPosition(this Entity entity, ref float x, ref float y) => Utils.GetScreenCoordFromWorldCoord(entity.GetRealPosition(), ref x, ref y);
 
-        public static Vector3 GetRealPosition(this Ped ped) => ped?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
+        public static Vector3 GetRealPosition(this Entity entity)
+        {
+            if (entity is Player player)
+            {
+                return player.GetCoords(false);
+            }
+            else if (entity is Vehicle vehicle)
+            {
+                return vehicle.GetCoords(false);
+            }
+            else if (entity is Ped ped)
+            {
+                return ped.GetCoords(false);
+            }
+            else if (entity is MapObject obj)
+            {
+                return obj.GetCoords(false);
+            }
 
-        public static Vector3 GetRealPosition(this Player player) => player?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
-
-        public static Vector3 GetRealPosition(this Vehicle vehicle) => vehicle?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
-
-        public static Vector3 GetRealPosition(this MapObject mapObject) => mapObject?.GetCoords(true) ?? new Vector3(0f, 0f, 0f);
+            return entity.Position;
+        }
 
         public static void SetName(this Blip blip, string name)
         {

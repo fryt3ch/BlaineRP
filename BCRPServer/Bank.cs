@@ -84,12 +84,30 @@ namespace BCRPServer
 
             public void Deposit(int amount)
             {
-                Balance += amount;
+                if (PlayerInfo.PlayerData == null)
+                {
+                    Balance += amount;
+                }
+                else
+                {
+                    PlayerInfo.PlayerData.BankBalance += amount;
+                }
+
+                MySQL.BankAccountUpdate(this);
             }
 
             public void Withdraw(int amount)
             {
-                Balance -= amount;
+                if (PlayerInfo.PlayerData == null)
+                {
+                    Balance -= amount;
+                }
+                else
+                {
+                    PlayerInfo.PlayerData.BankBalance -= amount;
+                }
+
+                MySQL.BankAccountUpdate(this);
             }
 
             public void DepositSavings(int amount)
@@ -219,25 +237,25 @@ namespace BCRPServer
             }
         }
 
-        [RemoteEvent("Bank::Savings::ToDebitSett")]
-        private static void SavingsToDebitSetting(Player player, int bankId, bool state)
+        [RemoteProc("Bank::Savings::ToDebitSett")]
+        private static bool SavingsToDebitSetting(Player player, int bankId, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return false;
 
             var pData = sRes.Data;
 
             if (pData.BankAccount == null)
-                return;
+                return false;
 
             if (pData.BankAccount.SavingsToDebit == state)
-                return;
+                return true;
 
             pData.BankAccount.SavingsToDebit = state;
 
-            player.TriggerEvent("MenuBank::ToDebitSett", state);
+            return true;
         }
 
         [RemoteProc("Bank::Debit::Send")]
@@ -333,6 +351,9 @@ namespace BCRPServer
 
                     return;
                 }
+
+                if (!pData.AddCash(amount, true))
+                    return;
 
                 pData.BankAccount.Withdraw(amount); // add atm tax
             }

@@ -286,6 +286,8 @@ namespace BCRPServer
                                     Tuning = tuning,
 
                                     LastData = lastData,
+
+                                    Data = Game.Data.Vehicles.All[sid],
                                 };
 
                                 VehicleData.VehicleInfo.AddOnLoad(vInfo);
@@ -428,6 +430,14 @@ namespace BCRPServer
                                     Punishments = punishments,
 
                                     OwnedVehicles = ownedVehicles,
+
+                                    OwnedBusinesses = new List<Game.Businesses.Business>(),
+                                    OwnedGarages = new List<Garage>(),
+                                    OwnedHouses = new List<House>(),
+                                    OwnedApartments = new List<Apartments>(),
+
+                                    SettledHouses = new List<House>(),
+                                    SettledApartments = new List<Apartments>(),
 
                                     HeadBlend = (HeadBlend)customizations[cid][0],
                                     HeadOverlays = (Dictionary<int, HeadOverlay>)customizations[cid][1],
@@ -915,7 +925,7 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE bank_accounts SET Balance=@Balance, Savings=@Savings, Tariff=@Tariff, STD=@STD) WHERE CID=@CID;";
+            cmd.CommandText = "UPDATE bank_accounts SET Balance=@Balance, Savings=@Savings, Tariff=@Tariff, STD=@STD WHERE CID=@CID;";
 
             cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
 
@@ -1340,7 +1350,7 @@ namespace BCRPServer
         #endregion
 
         #region Businesses
-        public static Game.Businesses.Business GetBusiness(Game.Businesses.Business business)
+        public static void LoadBusiness(Game.Businesses.Business business)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -1355,12 +1365,18 @@ namespace BCRPServer
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (!reader.HasRows)
-                            return null;
+                            return;
 
                         reader.Read();
 
-                        business.Owner = Convert.ToUInt32(reader["CID"]);
-                        business.Name = (string)reader["Name"];
+                        if (reader["CID"] is DBNull)
+                            business.UpdateOwner(null);
+                        else
+                        {
+                            business.UpdateOwner(PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"])));
+
+                            business.Owner?.OwnedBusinesses.Add(business);
+                        }
 
                         business.Cash = (int)reader["Cash"];
                         business.Bank = (int)reader["Bank"];
@@ -1376,8 +1392,6 @@ namespace BCRPServer
                         {
 
                         }*/
-
-                        return business;
                     }
                 }
             }
@@ -1418,7 +1432,7 @@ namespace BCRPServer
         #endregion
 
         #region Houses
-        public static Game.Houses.House GetHouse(Game.Houses.House house)
+        public static void LoadHouse(Game.Houses.House house)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -1433,16 +1447,30 @@ namespace BCRPServer
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (!reader.HasRows)
-                            return null;
+                            return;
 
                         reader.Read();
 
-                        house.Owner = Convert.ToUInt32(reader["CID"]);
-                        house.StyleType = (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"];
-                        house.Settlers = NAPI.Util.FromJson<List<uint>>((string)reader["Settlers"]);
+                        if (reader["CID"] is DBNull)
+                            house.UpdateOwner(null);
+                        else
+                        {
+                            var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
+
+                            pInfo?.OwnedHouses.Add(house);
+
+                            house.UpdateOwner(pInfo);
+                        }
+
+                        house.StyleData = Game.Houses.HouseBase.Style.Get(house.Type, house.RoomType, (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"]);
+
+                        house.Settlers = NAPI.Util.FromJson<Dictionary<uint, Game.Houses.HouseBase.SettlerPermissions>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
+
+                        foreach (var x in house.Settlers.Keys)
+                            x.SettledHouses.Add(house);
+
                         house.IsLocked = (bool)reader["IsLocked"];
                         house.ContainersLocked = (bool)reader["ContainersLocked"];
-                        house.Vehicles = NAPI.Util.FromJson<List<int>>((string)reader["Vehicles"]);
 
                         cmd.CommandText = "";
 
@@ -1500,13 +1528,11 @@ namespace BCRPServer
 
                     if (cmd.CommandText.Length > 0)
                         cmd.ExecuteNonQuery();
-
-                    return house;
                 }
             }
         }
 
-        public static Game.Houses.Apartments GetApartments(Game.Houses.Apartments apartments)
+/*        public static Game.Houses.Apartments GetApartments(Game.Houses.Apartments apartments)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -1550,7 +1576,7 @@ namespace BCRPServer
                     }
                 }
             }
-        }
+        }*/
         #endregion
     }
 }

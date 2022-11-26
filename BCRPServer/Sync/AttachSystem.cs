@@ -311,8 +311,8 @@ namespace BCRPServer.Sync
                                     if (tData == null)
                                         return;
 
-                                    pData.PlayAnim(Animations.GeneralTypes.CarryB);
-                                    tData.PlayAnim(Animations.GeneralTypes.CarryA);
+                                    pData.PlayAnim(Animations.GeneralTypes.CarryA);
+                                    tData.PlayAnim(Animations.GeneralTypes.CarryB);
                                 }
                             }
                         }

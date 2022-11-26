@@ -33,7 +33,7 @@ namespace BCRPClient.CEF
                 if (amount <= 0)
                     return;
 
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(1000, false, false))
                     return;
 
                 Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);

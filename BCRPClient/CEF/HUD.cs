@@ -391,14 +391,9 @@ namespace BCRPClient.CEF
         #region HUD Stuff
         public static void UpdateHUD()
         {
-            var playerPosition = Player.LocalPlayer.Position;
-            int streetNameHash = 0, crossingRoadNameHash = 0;
+            var pos = Player.LocalPlayer.Position;
 
-            RAGE.Game.Pathfind.GetStreetNameAtCoord(playerPosition.X, playerPosition.Y, playerPosition.Z, ref streetNameHash, ref crossingRoadNameHash);
-
-            string zone = RAGE.Game.Zone.GetNameOfZone(playerPosition.X, playerPosition.Y, playerPosition.Z).ToUpper();
-
-            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.ContainsKey(zone) ? ZoneNames[zone] : zone, RAGE.Game.Ui.GetStreetNameFromHashKey((uint)streetNameHash));
+            Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.GetValueOrDefault(RAGE.Game.Zone.GetNameOfZone(pos.X, pos.Y, pos.Z).ToUpper()) ?? "null", Utils.GetStreetName(pos));
             Browser.Window.ExecuteJs("Hud.setOnline", Entities.Players.Count);
         }
 

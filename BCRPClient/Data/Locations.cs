@@ -1,6 +1,7 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Schema;
+using RAGE;
 using RAGE.Elements;
-using RAGE.Game;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -10,8 +11,161 @@ using System.Text;
 
 namespace BCRPClient.Data
 {
-    class Locations : Events.Script
+    public class Locations : Events.Script
     {
+        public class House
+        {
+            public static Dictionary<uint, House> All = new Dictionary<uint, House>();
+
+            public uint Id { get; set; }
+
+            public string OwnerName => Sync.World.GetSharedData<string>($"House::{Id}::OName");
+
+            public int Price { get; set; }
+
+            public Vector3 Position { get; set; }
+
+            public Sync.House.Style.RoomTypes RoomType { get; set; }
+
+            public Additional.ExtraColshape Colshape { get; set; }
+
+            public RAGE.Elements.TextLabel InfoText { get; set; }
+
+            public Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
+
+            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, int Price)
+            {
+                this.Id = Id;
+
+                this.Price = Price;
+
+                this.Position = Position;
+
+                this.RoomType = RoomType;
+
+                Colshape = new Additional.Cylinder(Position, 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
+
+                Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter;
+                Colshape.ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter;
+
+                Colshape.Data = this;
+
+                InfoText = new TextLabel(Position, $"Дом #{Id}", new RGBA(255, 255, 255, 255), 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+
+                All.Add(Id, this);
+            }
+
+            public void UpdateOwnerName(string name)
+            {
+                if (name == null)
+                    name = Locale.Property.NoOwner;
+            }
+
+            public void ToggleOwnerBlip(bool state)
+            {
+                if (state)
+                {
+                    var oBlip = OwnerBlip;
+
+                    oBlip?.Destroy();
+
+                    OwnerBlip = new Blip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                }
+                else
+                {
+                    var oBlip = OwnerBlip;
+
+                    if (oBlip != null)
+                    {
+                        oBlip.Destroy();
+
+                        OwnerBlip = null;
+                    }
+                }
+            }
+        }
+
+        public static class CayoPerico
+        {
+            public static Blip MainBlip { get; set; }
+
+            public static bool IslandLoaded { get; set; }
+
+            public static Additional.ExtraColshape MainColshape { get; set; }
+
+            private static AsyncTask LoadTask { get; set; }
+
+            public static void Initialize()
+            {
+                MainColshape = new Additional.Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null);
+
+                MainColshape.OnEnter += (cancel) =>
+                {
+                    if (IslandLoaded)
+                        return;
+
+                    ToggleCayoPericoIsland(true, true);
+                };
+
+                MainColshape.OnExit += (cancel) =>
+                {
+                    if (!IslandLoaded)
+                        return;
+
+                    ToggleCayoPericoIsland(false, true);
+                };
+
+                ToggleCayoPericoIsland(false, false);
+
+                MainColshape.Name = "CayoPerico_Loader";
+
+                MainBlip = new Blip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, uint.MaxValue);
+            }
+
+            public static void ToggleCayoPericoIsland(bool state, bool updateCustomWeather)
+            {
+                RAGE.Game.Invoker.Invoke(0x9A9D1BA639675CF1, "HeistIsland", state); // SetIslandHopperEnabled
+                RAGE.Game.Invoker.Invoke(0x5E1460624D194A38, state); // SetToggleMinimapHeistIsland
+
+                if (updateCustomWeather)
+                    Sync.World.SetSpecialWeather(state ? (Sync.World.WeatherTypes?)Sync.World.WeatherTypes.EXTRASUNNY : null);
+
+                LoadTask?.Cancel();
+
+                if (state)
+                {
+                    LoadTask = new AsyncTask(() =>
+                    {
+                        RAGE.Game.Streaming.RemoveIpl("h4_islandx_sea_mines");
+
+                        LoadTask = null;
+                    }, 2000, false, 0);
+                }
+                else
+                {
+                    LoadTask = new AsyncTask(() =>
+                    {
+                        RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_01_slod");
+                        RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_02_slod");
+                        RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_03_lod");
+                        RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_04_slod");
+                        RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_05_slod");
+                        RAGE.Game.Streaming.RequestIpl("h4_islandx_terrain_06_slod");
+
+                        var intid = RAGE.Game.Interior.GetInteriorAtCoords(4840.571f, -5174.425f, 2f);
+
+                        RAGE.Game.Interior.RefreshInterior(intid);
+
+                        LoadTask = null;
+                    }, 1550, false, 0);
+                }
+
+                LoadTask.Run();
+
+                IslandLoaded = state;
+            }
+        }
+
         public class Bank
         {
             public static Dictionary<int, Bank> All = new Dictionary<int, Bank>();
@@ -93,6 +247,8 @@ namespace BCRPClient.Data
                 AeroShop,
 
                 Market,
+
+                GasStation,
             }
 
             public Types Type { get; set; }
@@ -100,6 +256,10 @@ namespace BCRPClient.Data
             public int Id { get; set; }
 
             public int SubId { get; set; }
+
+            public string OwnerName => Sync.World.GetSharedData<string>($"Business::{Id}::OName");
+
+            public Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"Business::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Business::{Id}::OBlip"); Player.LocalPlayer.SetData($"Business::{Id}::OBlip", value); } }
 
             public Blip Blip { get; set; }
 
@@ -111,20 +271,7 @@ namespace BCRPClient.Data
 
             public NPC Seller { get; set; }
 
-            private string _Name { get; set; }
-
-            public string Name
-            {
-                get => _Name;
-
-                set
-                {
-                    _Name = value;
-
-                    InfoText.Text = string.Format(Locale.General.Business.InfoColshape, value, SubId);
-                    Blip.SetName(value);
-                }
-            }
+            public string Name => Locale.Property.BusinessNames.GetValueOrDefault(Type) ?? "null";
 
             public Business(int Id, Vector3 PositionInfo, Types Type)
             {
@@ -139,18 +286,42 @@ namespace BCRPClient.Data
 
                 InfoColshape.Data = Id;
 
-                InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), "", new RGBA(255, 255, 255, 255), 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
                 All.Add(Id, this);
             }
 
-            public static async void LoadNames(Dictionary<int, string> dict)
+            public void UpdateOwnerName(string name)
             {
-                while (!Sync.Players.CharacterLoaded)
-                    await RAGE.Game.Invoker.WaitAsync(1000);
+                if (name == null)
+                    name = Locale.Property.NoOwner;
+            }
 
-                foreach (var x in dict)
-                    All[x.Key].Name = x.Value;
+            public void ToggleOwnerBlip(bool state)
+            {
+                if (state)
+                {
+                    Blip.SetDisplay(0);
+
+                    var oBlip = OwnerBlip;
+
+                    oBlip?.Destroy();
+
+                    OwnerBlip = new Blip(207, InfoColshape.Position, Name, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                }
+                else
+                {
+                    Blip.SetDisplay(2);
+
+                    var oBlip = OwnerBlip;
+
+                    if (oBlip != null)
+                    {
+                        oBlip.Destroy();
+
+                        OwnerBlip = null;
+                    }
+                }
             }
         }
 
@@ -160,7 +331,7 @@ namespace BCRPClient.Data
 
             public ClothesShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop1)
             {
-                this.Blip = new Blip(73, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(73, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -176,7 +347,7 @@ namespace BCRPClient.Data
 
             public ClothesShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop2)
             {
-                this.Blip = new Blip(366, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(366, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -192,7 +363,7 @@ namespace BCRPClient.Data
 
             public ClothesShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop3)
             {
-                this.Blip = new Blip(439, PositionInfo, "", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(439, PositionInfo, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -208,7 +379,7 @@ namespace BCRPClient.Data
 
             public Market(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.Market)
             {
-                this.Blip = new Blip(52, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(52, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -222,9 +393,9 @@ namespace BCRPClient.Data
         {
             private static int Counter = 1;
 
-            public GasStation(int Id, Vector3 PositionInfo, Vector3 PositionGas, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.Market)
+            public GasStation(int Id, Vector3 PositionInfo, Vector3 PositionGas, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.GasStation)
             {
-                this.Blip = new Blip(361, PositionInfo, "", 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(361, PositionInfo, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var cs = new Additional.Sphere(PositionGas, 5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
 
@@ -245,7 +416,7 @@ namespace BCRPClient.Data
 
             public CarShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop1)
             {
-                this.Blip = new Blip(225, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(225, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -261,7 +432,7 @@ namespace BCRPClient.Data
 
             public CarShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop2)
             {
-                this.Blip = new Blip(530, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(530, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -277,7 +448,7 @@ namespace BCRPClient.Data
 
             public CarShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop3)
             {
-                this.Blip = new Blip(523, PositionInfo, "", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(523, PositionInfo, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -293,7 +464,7 @@ namespace BCRPClient.Data
 
             public MotoShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.MotoShop)
             {
-                this.Blip = new Blip(522, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(522, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -309,7 +480,7 @@ namespace BCRPClient.Data
 
             public BoatShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.BoatShop)
             {
-                this.Blip = new Blip(410, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(410, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -325,7 +496,7 @@ namespace BCRPClient.Data
 
             public AeroShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.AeroShop)
             {
-                this.Blip = new Blip(602, PositionInfo, "", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(602, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
@@ -337,6 +508,8 @@ namespace BCRPClient.Data
 
         public Locations()
         {
+            CayoPerico.Initialize();
+
             #region Clothes (Cheap)
             new ClothesShop1(1, new Vector3(1200f, 2701f, 37f), new Vector3(1201.885f, 2710.143f, 38.2226f), 105f, "Лана", "csb_anita");
             new ClothesShop1(3, new Vector3(-1096f, 2702.9f, 18f), new Vector3(-1097.523f, 2714.026f, 19.108f), 150f, "Лана", "csb_anita");
@@ -505,6 +678,8 @@ namespace BCRPClient.Data
             new Bank(5, new Vector3(-1215.04f, -326.2117f, 37.67439f), (new Vector3(-1211.996f, -332.0042f, 37.78094f), 25.14937f));
             new Bank(6, new Vector3(-2968.591f, 482.9666f, 15.4687f), (new Vector3(-2961.119f, 482.9693f, 15.697f), 86.52053f));
             new Bank(7, new Vector3(151.3286f, -1036.054f, 29.33932f), (new Vector3(149.432f, -1042.05f, 29.36801f), 337.0007f));
+
+            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), Sync.House.Style.RoomTypes.Two, 50000);
         }
     }
 }

@@ -31,7 +31,29 @@ namespace BCRPClient
                 return;
             }
 
-            CurrentEntity = Utils.GetEntityPlayerLookAt(Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER);
+            var entity = Utils.GetEntityPlayerLookAt(Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER);
+
+            if (entity == null)
+            {
+                CurrentEntity = null;
+
+                return;
+            }
+            else if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle || entity.Type == RAGE.Elements.Type.Ped)
+            {
+                CurrentEntity = entity;
+            }
+            else if (entity.Type == RAGE.Elements.Type.Object)
+            {
+                if (!entity.HasData("Interactive"))
+                {
+                    CurrentEntity = null;
+
+                    return;
+                }
+
+                CurrentEntity = entity;
+            }
 
             if (CurrentEntity == null || !EnabledVisual)
                 return;

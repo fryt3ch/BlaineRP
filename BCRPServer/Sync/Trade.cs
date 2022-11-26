@@ -20,7 +20,7 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            var offer = Offers.Offer.Get(pData);
+            var offer = pData.ActiveOffer;
 
             if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
                 return;
@@ -117,7 +117,7 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            var offer = Offers.Offer.Get(pData);
+            var offer = pData.ActiveOffer;
 
             if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
                 return;
@@ -155,7 +155,7 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            var offer = Offers.Offer.Get(pData);
+            var offer = pData.ActiveOffer;
 
             if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
                 return;
@@ -170,13 +170,93 @@ namespace BCRPServer.Sync
             if (pData.Cash < amount)
                 amount = pData.Cash;
 
+            if (isSender)
+            {
+                if (offer.TradeData.SenderMoney == amount)
+                    return;
+
+                offer.TradeData.SenderMoney = amount;
+            }
+            else
+            {
+                if (offer.TradeData.ReceiverMoney == amount)
+                    return;
+
+                offer.TradeData.ReceiverMoney = amount;
+            }
+
             pData.Player.TriggerEvent("Inventory::Update", 11, true, amount);
             tData.Player.TriggerEvent("Inventory::Update", 13, true, amount);
+        }
 
-            if (isSender)
-                offer.TradeData.SenderMoney = amount;
+        [RemoteProc("Trade::UpdateProperty")]
+        private static bool UpdateProperty(Player player, int idx, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer || idx < 0)
+                return false;
+
+            var pData = sRes.Data;
+
+            var offer = pData.ActiveOffer;
+
+            if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
+                return false;
+
+            if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
+                return false;
+
+            bool isSender = offer.Sender == pData;
+
+            var tData = isSender ? offer.Receiver : offer.Sender;
+
+            string data = null;
+
+            if (idx < pData.OwnedVehicles.Count)
+            {
+                var veh = pData.OwnedVehicles[idx];
+
+                if (isSender)
+                {
+                    if (state == offer.TradeData.SenderVehicles.Contains(veh))
+                        return false;
+
+                    if (state)
+                    {
+                        offer.TradeData.SenderVehicles.Add(veh);
+                    }
+                    else
+                    {
+                        offer.TradeData.SenderVehicles.Remove(veh);
+                    }
+                }
+                else
+                {
+                    if (state == offer.TradeData.ReceiverVehicles.Contains(veh))
+                        return false;
+
+                    if (state)
+                    {
+                        offer.TradeData.ReceiverVehicles.Add(veh);
+                    }
+                    else
+                    {
+                        offer.TradeData.ReceiverVehicles.Remove(veh);
+                    }
+                }
+
+                data = $"{veh.Data.Name} | #{veh.VID}";
+            }
             else
-                offer.TradeData.ReceiverMoney = amount;
+            {
+                return false;
+            }
+
+            pData.Player.TriggerEvent("Inventory::Update", 11, false, state, data);
+            tData.Player.TriggerEvent("Inventory::Update", 13, false, state, data);
+
+            return true;
         }
 
         [RemoteEvent("Trade::UpdateItem")]
@@ -189,7 +269,7 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            var offer = Offers.Offer.Get(pData);
+            var offer = pData.ActiveOffer;
 
             if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
                 return;

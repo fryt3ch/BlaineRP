@@ -237,6 +237,13 @@ namespace BCRPServer
             public byte EyeColor { get; set; }
 
             public List<VehicleData.VehicleInfo> OwnedVehicles { get; set; }
+            public List<Game.Houses.House> OwnedHouses { get; set; }
+            public List<Game.Houses.Apartments> OwnedApartments { get; set; }
+            public List<Game.Houses.Garage> OwnedGarages { get; set; }
+            public List<Game.Businesses.Business> OwnedBusinesses { get; set; }
+
+            public List<Game.Houses.House> SettledHouses { get; set; }
+            public List<Game.Houses.Apartments> SettledApartments { get; set; }
 
             /// <summary>Предметы игрока в карманах</summary>
             /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
@@ -397,25 +404,36 @@ namespace BCRPServer
         /// <summary>Транспорт, находящийся в собственности у игрока</summary>
         public List<VehicleData.VehicleInfo> OwnedVehicles { get => Info.OwnedVehicles; set => Info.OwnedVehicles = value; }
 
+        public List<Game.Houses.House> OwnedHouses { get => Info.OwnedHouses; set => Info.OwnedHouses = value; }
+
+        public List<Game.Houses.Apartments> OwnedApartments { get => Info.OwnedApartments; set => Info.OwnedApartments = value; }
+
+        public List<Game.Houses.Garage> OwnedGarages { get => Info.OwnedGarages; set => Info.OwnedGarages = value; }
+
+        public List<Game.Businesses.Business> OwnedBusinesses { get => Info.OwnedBusinesses; set => Info.OwnedBusinesses = value; }
+
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
         public uint? CurrentContainer { get; set; }
 
         /// <summary>Текущий бизнес, с которым взаимодействует игрок</summary>
-        /// <value>UID бизнеса, null - если отсутствует</value>
-        public int? CurrentBusiness { get; set; }
+        public Game.Businesses.Business CurrentBusiness { get; set; }
 
         /// <summary>Текущий дом, с которым взаимодействует игрок</summary>
-        /// <value>UID дома, null - если отсутствует</value>
-        public int? CurrentHouse { get; set; }
+        public Game.Houses.House CurrentHouse { get; set; }
 
         public int VehicleSlots
         {
             get
             {
-                return Settings.MIN_VEHICLE_SLOTS + 0; // todo
+                return Settings.MIN_VEHICLE_SLOTS - OwnedVehicles.Count; // todo
             }
         }
+
+        public int HouseSlots => Settings.MAX_HOUSES - OwnedHouses.Count;
+        public int ApartmentsSlots => Settings.MAX_APARTMENTS - OwnedApartments.Count;
+        public int GaragesSlots => Settings.MAX_GARAGES - OwnedGarages.Count;
+        public int BusinessesSlots => Settings.MAX_BUSINESSES - OwnedBusinesses.Count;
 
         #region Customization
         public HeadBlend HeadBlend { get => Info.HeadBlend; set => Info.HeadBlend = value; }
@@ -468,7 +486,7 @@ namespace BCRPServer
         public List<Game.Items.Gift> Gifts { get => Info.Gifts; set => Info.Gifts = value; }
 
         /// <summary>Активное предложение игрока</summary>
-        public Sync.Offers.Offer ActiveOffer { get => Sync.Offers.Offer.Get(this); }
+        public Sync.Offers.Offer ActiveOffer { get; set; }
 
         /// <summary>Список игроков, которые являются слушателями (микрофон)</summary>
         public List<Player> Listeners { get; set; }
@@ -580,6 +598,23 @@ namespace BCRPServer
 
             Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Vehicle, vInfo.VID);
         }
+
+        public void AddBusinessProperty(Game.Businesses.Business biz)
+        {
+            if (OwnedBusinesses.Contains(biz))
+                return;
+
+            OwnedBusinesses.Add(biz);
+
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.Business, biz.ID);
+        }
+
+        public void RemoveBusinessProperty(Game.Businesses.Business biz)
+        {
+            OwnedBusinesses.Remove(biz);
+
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Business, biz.ID);
+        }
         #endregion
 
         #region Own Shared Data
@@ -628,17 +663,15 @@ namespace BCRPServer
         /// <returns>true, если операция успешна, false - в противном случае</returns>
         public bool AddCash(int value, bool notify = true)
         {
-            var oldValue = Cash;
-
-            if (oldValue + value < 0)
+            if (Cash + value < 0)
             {
                 if (notify)
-                    Player.Notify("Cash::NotEnough", oldValue);
+                    Player.Notify("Cash::NotEnough", Cash);
 
                 return false;
             }
 
-            Cash = oldValue + value;
+            Cash += value;
 
             MySQL.CharacterUpdateCash(this.Info);
 
@@ -939,16 +972,18 @@ namespace BCRPServer
 
             data.Add("Familiars", Familiars.SerializeToJson());
 
-            data.Add("Vehicles", OwnedVehicles.ToDictionary(x => x.VID, x => x.ID).SerializeToJson());
+            data.Add("Vehicles", OwnedVehicles.Select(x => $"{x.VID}_{x.ID}").SerializeToJson());
+            data.Add("Businesses", OwnedBusinesses.Select(x => x.ID).SerializeToJson());
+            data.Add("Houses", OwnedHouses.Select(x => x.ID).SerializeToJson());
 
-            data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson());
+            data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson()); // to change!
 
             NAPI.Task.Run(() =>
             {
                 if (Player?.Exists != true)
                     return;
 
-                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, Game.Businesses.Business.AllNames, data.SerializeToJson());
+                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data.SerializeToJson());
 
                 Player.SetAlpha(255);
 

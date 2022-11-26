@@ -56,57 +56,55 @@ namespace BCRPClient.CEF
         }
 
         #region Variables
-        private static bool FirstOpenInv;
-        private static bool FirstOpenCrate;
+        private static bool FirstOpenInv { get; set; }
+        private static bool FirstOpenCrate { get; set; }
 
-        private static Types CurrentType;
-        private static ContainerTypes CurrentContainerType;
+        private static Types CurrentType { get; set; }
+        private static ContainerTypes CurrentContainerType { get; set; }
 
         private static DateTime LastShowed;
         public static DateTime LastSent;
 
-        private static object[][] WeaponsData;
-        private static object[] ArmourData;
-        private static object[][] ItemsData;
-        private static object[][] ClothesData;
-        private static object[][] AccessoriesData;
-        private static object[][] BagData;
-        private static object[][] ContainerData;
+        private static object[][] WeaponsData { get; set; }
+        private static object[] ArmourData { get; set; }
+        private static object[][] ItemsData { get; set; }
+        private static object[][] ClothesData { get; set; }
+        private static object[][] AccessoriesData { get; set; }
+        private static object[][] BagData { get; set; }
+        private static object[][] ContainerData { get; set; }
 
-        private static float BagWeight = 0f;
+        private static float BagWeight { get; set; } = 0f;
 
-        private static (string, int)? CurrentSlotFrom;
-        private static (string, int)? CurrentSlotTo;
-        private static int? CurrentAction;
+        private static (string, int)? CurrentSlotFrom { get; set; }
+        private static (string, int)? CurrentSlotTo { get; set; }
+        private static int? CurrentAction { get; set; }
 
-        private static Entity CurrentEntity;
+        private static Entity CurrentEntity { get; set; }
 
-        private static List<int> TempBinds;
-        private static int TempBindEsc;
+        private static List<int> TempBinds { get; set; }
+        private static int TempBindEsc { get; set; }
 
-        private static HashSet<int> ItemSlotsToUpdate;
-        private static HashSet<int> ItemSlotsToUpdateCrate;
+        private static HashSet<int> ItemSlotsToUpdate { get; set; }
+        private static HashSet<int> ItemSlotsToUpdateCrate { get; set; }
 
-        private static HashSet<int> WeaponsSlotsToUpdate;
-        private static HashSet<int> ClothesSlotsToUpdate;
-        private static HashSet<int> AccessoriesSlotsToUpdate;
-        private static HashSet<int> BagSlotsToUpdate;
-        private static HashSet<int> BagSlotsToUpdateCrate;
+        private static HashSet<int> WeaponsSlotsToUpdate { get; set; }
+        private static HashSet<int> ClothesSlotsToUpdate { get; set; }
+        private static HashSet<int> AccessoriesSlotsToUpdate { get; set; }
+        private static HashSet<int> BagSlotsToUpdate { get; set; }
+        private static HashSet<int> BagSlotsToUpdateCrate { get; set; }
 
-        private static bool UpdateBag;
-        private static bool UpdateBagCrate;
-        private static bool UpdateArmour;
+        private static bool UpdateBag { get; set; }
+        private static bool UpdateBagCrate { get; set; }
+        private static bool UpdateArmour { get; set; }
 
-        private static bool UpdateTooltips;
+        private static bool UpdateTooltips { get; set; }
 
-        private static int CurrentGiveMoney;
+        private static int CurrentGiveMoney { get; set; }
 
-        private static object[][] GiveItemsData;
+        private static object[][] GiveItemsData { get; set; }
 
-        private static string[] CurrentProperties;
-
-        private static string[] CurrentGiveProperties;
-        private static string[] CurrentGetProperties;
+        private static List<string> CurrentGiveProperties { get; set; }
+        private static List<string> CurrentGetProperties { get; set; }
         #endregion
 
         #region Fillers
@@ -385,10 +383,29 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType == Types.Trade)
                 {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
                     GiveItemsData = new object[5][];
 
-                    Browser.Window.ExecuteJs("Inventory.fillCheckBox", "last", false);
-                    Browser.Window.ExecuteJs("Inventory.switchTradeBtn", false);
+                    CurrentGiveProperties = new List<string>();
+                    CurrentGetProperties = new List<string>();
+
+                    Browser.Window.ExecuteCachedJs("Inventory.switchUnderline", 0);
+
+                    Browser.Window.ExecuteCachedJs("Inventory.fillCheckBox", "last", false);
+                    Browser.Window.ExecuteCachedJs("Inventory.switchTradeBtn", false);
+
+                    var properties = new List<string>();
+
+                    foreach (var x in pData.OwnedVehicles)
+                    {
+                        properties.Add(string.Format(Locale.Property.VehicleTradeInfoStr, x.Data.TypeName, x.Data.Name, x.VID));
+                    }
+
+                    Browser.Window.ExecuteJs("Inventory.fillTradeLProperties", new object[] { properties });
 
                     Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "trade", ItemsData.Select(x => x?[3]), Settings.MAX_INVENTORY_WEIGHT });
 
@@ -398,7 +415,8 @@ namespace BCRPClient.CEF
                     Browser.Window.ExecuteJs("Inventory.fillTradeReceive", new object[] { new object[] { null, null, null, null, null } });
                     Browser.Window.ExecuteJs("Inventory.fillTradeGive", new object[] { new object[] { null, null, null, null, null } });
 
-                    // fill properties
+                    Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", new object[] { } });
+                    Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", new object[] { } });
                 }
             });
             #endregion
@@ -689,7 +707,19 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give" });
+                        var str = (string)args[3];
+
+                        if ((bool)args[2])
+                        {
+                            if (!CurrentGiveProperties.Contains(str))
+                                CurrentGiveProperties.Add(str);
+                        }
+                        else
+                        {
+                            CurrentGiveProperties.Remove(str);
+                        }
+
+                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", CurrentGiveProperties });
                     }
 
                 }
@@ -717,7 +747,19 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive" });
+                        var str = (string)args[3];
+
+                        if ((bool)args[2])
+                        {
+                            if (!CurrentGetProperties.Contains(str))
+                                CurrentGetProperties.Add(str);
+                        }
+                        else
+                        {
+                            CurrentGetProperties.Remove(str);
+                        }
+
+                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", CurrentGetProperties });
                     }
                 }
                 else if (id == 14)
@@ -760,9 +802,14 @@ namespace BCRPClient.CEF
             });
             #endregion
 
-            Events.Add("Trade::UpdateLocal", (object[] args) =>
+            Events.Add("Trade::UpdateLocal", async (object[] args) =>
             {
                 if (CurrentType != Types.Trade)
+                    return;
+
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
                     return;
 
                 int type = (int)args[0];
@@ -795,7 +842,19 @@ namespace BCRPClient.CEF
                 // Property
                 else if (type == 1)
                 {
+                    if (LastSent.IsSpam(500, false, false))
+                        return;
 
+                    int idx = (int)args[1];
+                    bool state = (bool)args[2];
+
+                    if ((bool)await Events.CallRemoteProc("Trade::UpdateProperty", idx, state))
+                    {
+                        if (CurrentType != Types.Trade)
+                            return;
+
+                        CEF.Browser.Window.ExecuteJs("Inventory.fillCheckBox", idx, state);
+                    }
                 }
                 // Ready
                 else if (type == 2)

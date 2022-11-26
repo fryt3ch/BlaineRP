@@ -48,12 +48,12 @@ namespace BCRPClient.CEF
 
                 LastSent = DateTime.Now;
 
-                if ((bool)await Events.CallRemoteProc("Bank::Savings::ToDebitSett", state))
+                if ((bool)await Events.CallRemoteProc("Bank::Savings::ToDebitSett", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), state))
                 {
                     if (!IsActive)
                         return;
 
-                    CEF.Browser.Window.ExecuteJs("BankMenu.setCash2Debet", state);
+                    CEF.Browser.Window.ExecuteJs("MenuBank.setCash2Debet", state);
                 }
             });
 
@@ -67,6 +67,9 @@ namespace BCRPClient.CEF
                 var aId = (string)args[1];
 
                 var amount = (int)args[2];
+
+                if (amount <= 0)
+                    return;
 
                 if (LastSent.IsSpam(1000, false, false))
                     return;
@@ -86,7 +89,7 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", false, Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true);
+                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", false, Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true));
                         {
                             Player.LocalPlayer.SetData("Bank::LastCID", cid);
                             Player.LocalPlayer.SetData("Bank::LastAmount", amount);
@@ -108,7 +111,7 @@ namespace BCRPClient.CEF
                             if (!IsActive)
                                 return;
 
-                            CEF.Browser.Window.ExecuteJs("BankMenu.setSavingsBal", newSavingsValue);
+                            CEF.Browser.Window.ExecuteJs("MenuBank.setSavingsBal", newSavingsValue);
                         }
                     }
                 }
@@ -154,26 +157,16 @@ namespace BCRPClient.CEF
                     {
                         CEF.Browser.Window.ExecuteJs("MenuBank.draw", new object[] { param });
 
-                        CEF.Browser.Window.ExecuteJs("BankMenu.setSavingsBal", savingsBalance);
-                        CEF.Browser.Window.ExecuteJs("BankMenu.setDebetLim", sendLimitCur);
+                        CEF.Browser.Window.ExecuteJs("MenuBank.setSavingsBal", savingsBalance);
+                        CEF.Browser.Window.ExecuteJs("MenuBank.setDebetLim", sendLimitCur);
 
-                        CEF.Browser.Window.ExecuteJs("MenuBank.selectOption", 2);
+                        UpdateMoney(balance);
                     }
                     else
                     {
                         await Show(param);
                     }
                 }
-            });
-
-            Events.Add("MenuBank::ToDebitSett", (object[] args) =>
-            {
-                bool state = (bool)args[0];
-
-                if (!IsActive)
-                    return;
-
-                CEF.Browser.Window.ExecuteCachedJs("MenuBank.setCash2Debet", state);
             });
         }
 

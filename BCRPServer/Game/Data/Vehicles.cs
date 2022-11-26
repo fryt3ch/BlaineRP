@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using GTANetworkAPI;
+using Newtonsoft.Json;
 
 namespace BCRPServer.Game.Data
 {
@@ -148,39 +149,96 @@ namespace BCRPServer.Game.Data
 
         public class Tuning
         {
+            private static Dictionary<byte, byte> DefaultMods => new Dictionary<byte, byte>()
+            {
+                { 0, 255 }, // Spoiler
+                { 1, 255 }, // FrontBumper
+                { 2, 255 }, // RearBumper
+                { 3, 255 }, // SideSkirt
+                { 4, 255 }, // Exhaust
+                { 5, 255 }, // Frame
+                { 6, 255 }, // Grille
+                { 7, 255 }, // Hood
+                { 8, 255 }, // Fender
+                { 9, 255 }, // RightFender
+                { 10, 255 }, // Roof
+                { 11, 255 }, // Engine
+                { 12, 255 }, // Brakes
+                { 13, 255 }, // Transmission
+                { 14, 255 }, // Horn
+                { 15, 255 }, // Suspension
+                { 23, 255 }, // FrontWheels
+                { 24, 255 }, // BackWheels
+                { 48, 255 }, // Livery
+                { 32, 255 }, // Seats
+                { 33, 255 }, // SteeringWheel
+            };
+
             /// <summary>Основной цвет</summary>
-            public Color Color1 { get; set; }
+            [JsonProperty(PropertyName = "C1")]
+            public Color Colour1 { get; set; }
 
             /// <summary>Второстепенный цвет</summary>
-            public Color Color2 { get; set; }
+            [JsonProperty(PropertyName = "C2")]
+            public Color Colour2 { get; set; }
+
+            [JsonProperty(PropertyName = "WC")]
+            public byte WheelsColour { get; set; }
+
+            [JsonProperty(PropertyName = "CT")]
+            public byte ColourType { get; set; }
+
+            [JsonProperty(PropertyName = "NC")]
+            public Color NeonColour { get; set; }
+
+            [JsonProperty(PropertyName = "TSC")]
+            public Color TyresSmokeColour { get; set; }
+
+            [JsonProperty(PropertyName = "PC")]
+            public byte PearlescentColour { get; set; }
+
+            [JsonProperty(PropertyName = "WT")]
+            public byte WindowTint { get; set; }
+
+            [JsonProperty(PropertyName = "X")]
+            public sbyte Xenon { get; set; }
+
+            [JsonProperty(PropertyName = "TT")]
+            public bool Turbo { get; set; }
+
+            [JsonProperty(PropertyName = "WHT")]
+            public byte WheelsType { get; set; }
 
             /// <summary>Словарь модификаций, где ключ - индекс модификации, а значение - тип модификации</summary>
-            public Dictionary<byte, byte> Mods;
-
-            /// <summary>Индексы всех доступных модификаций</summary>
-            public static List<byte> AllMods = new List<byte>
-            {
-                0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 22, 23, 24, 25, 27, 28, 30, 33, 34, 35, 38, 40, 55, 48
-            };
+            public Dictionary<byte, byte> Mods { get; set; }
 
             public Tuning()
             {
 
             }
 
-            public static Tuning CreateNew(Color Color1, Color Color2)
+            public static Tuning CreateNew(Color Colour1, Color Colour2)
             {
                 var res = new Tuning();
 
-                res.Color1 = Color1;
-                res.Color2 = Color2;
+                res.Colour1 = Colour1;
+                res.Colour2 = Colour2;
 
-                res.Mods = new Dictionary<byte, byte>();
+                res.NeonColour = new Color(0, 0, 0, 0);
 
-                foreach (var x in AllMods)
-                {
-                    res.Mods.Add(x, 255);
-                }
+                res.TyresSmokeColour = new Color(0, 0, 0, 0);
+
+                res.Turbo = false;
+                res.Xenon = -2;
+                res.WindowTint = 255;
+                res.PearlescentColour = 0;
+
+                res.ColourType = 0;
+                res.WheelsColour = 255;
+
+                res.WheelsType = 255;
+
+                res.Mods = DefaultMods;
 
                 return res;
             }
@@ -191,11 +249,44 @@ namespace BCRPServer.Game.Data
             /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
             public void Apply(GTANetworkAPI.Vehicle vehicle)
             {
-                vehicle.CustomPrimaryColor = Color1;
-                vehicle.CustomSecondaryColor = Color2;
+                UpdateColour(vehicle);
+
+                vehicle.Neons = NeonColour.Alpha == 255;
+                vehicle.NeonColor = NeonColour;
+
+                vehicle.WindowTint = WindowTint;
+
+                vehicle.WheelType = WheelsType;
+
+                vehicle.SetSharedData("Mods::TSColour", TyresSmokeColour);
+                vehicle.SetSharedData("Mods::Turbo", Turbo);
+                vehicle.SetSharedData("Mods::Xenon", Xenon);
 
                 foreach (var x in Mods)
+                {
                     vehicle.SetMod(x.Key, x.Value);
+                }
+            }
+
+            public void UpdateColour(GTANetworkAPI.Vehicle vehicle)
+            {
+                vehicle.PrimaryPaint = new VehiclePaint(ColourType, 0);
+                vehicle.SecondaryPaint = new VehiclePaint(ColourType, 0);
+
+                vehicle.CustomPrimaryColor = Colour1;
+                vehicle.CustomSecondaryColor = Colour2;
+
+                vehicle.PearlescentColor = PearlescentColour;
+
+                vehicle.WheelColor = WheelsColour;
+            }
+
+            public void UpdateWheels(GTANetworkAPI.Vehicle vehicle)
+            {
+                vehicle.WheelType = WheelsType;
+
+                vehicle.SetMod(23, Mods[23]);
+                vehicle.SetMod(24, Mods[24]);
             }
         }
 

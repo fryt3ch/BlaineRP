@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Game;
+using GTANetworkAPI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -79,8 +80,6 @@ namespace BCRPServer
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Setting global dimension weather");
 
-            NAPI.World.SetWeather((Weather)new Random().Next(0, 10));
-
             MySQL.StartService();
             #endregion
 
@@ -92,12 +91,15 @@ namespace BCRPServer
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
             #endregion
 
-            #region Database Data Load Section
-            Game.Businesses.Business.LoadAll();
-            Game.Houses.House.LoadAll();
+            Game.Houses.HouseBase.Style.Load();
 
+            #region Database Data Load Section
             MySQL.LoadAll();
             MySQL.UpdateFreeUIDs();
+
+            Game.Businesses.Business.LoadAll();
+
+            Game.Houses.House.LoadAll();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Clearing unused items & Getting free items UID's");
             Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.FreeIDs.Count}]~/~", false);
@@ -125,6 +127,8 @@ namespace BCRPServer
             Utils.ConsoleOutput();
 
             Additional.ConsoleCommands.Activate();
+
+            Utils.SetWeather(Utils.WeatherTypes.CLEAR);
 
             Task.Run(async () =>
             {
@@ -171,6 +175,8 @@ namespace BCRPServer
                                 }*/
                             }
                         });
+
+                        GC.Collect();
                     }
 
                     if (currentTime.Minute == 30 && currentTime.Second == 0)
@@ -179,10 +185,8 @@ namespace BCRPServer
 
                         NAPI.Task.Run(() =>
                         {
-                            NAPI.World.SetWeather(newWeather);
+                            Utils.SetWeather(newWeather);
                         });
-
-                        GC.Collect();
                     }
                 }
             });

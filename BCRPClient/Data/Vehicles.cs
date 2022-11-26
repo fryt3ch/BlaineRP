@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,6 +94,8 @@ namespace BCRPClient.Data
             public bool HasCruiseControl { get; set; }
 
             public bool HasAutoPilot { get; set; }
+
+            public string TypeName => Locale.Property.VehicleTypesNames.GetValueOrDefault(Type) ?? "null";
 
             public Vehicle(string ID, uint Model, string Name, float Tank, FuelTypes FuelType, Trunk TrunkData = null, bool IsModdable = true, bool HasCruiseControl = false, bool HasAutoPilot = false, Types Type = Types.Car)
             {

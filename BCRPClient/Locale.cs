@@ -709,7 +709,7 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.DoorLock, "чтобы заблокировать дверь" },
                 { Additional.ExtraColshape.InteractionTypes.DoorUnlock, "чтобы разблокировать дверь" },
 
-                { Additional.ExtraColshape.InteractionTypes.HouseEnter, "чтобы войти" },
+                { Additional.ExtraColshape.InteractionTypes.HouseEnter, "для взаимодействия" },
                 { Additional.ExtraColshape.InteractionTypes.HouseExit, "чтобы выйти" },
 
                 { Additional.ExtraColshape.InteractionTypes.Locker, "чтобы посмотреть шкаф" },
@@ -761,6 +761,40 @@ namespace BCRPClient
         {
             public static string CloseText = "Нажмите ESC, чтобы закончить тест-драйв";
             public static string TuningText = "Нажмите F4, чтобы открыть меню тюнинга";
+        }
+
+        public static class Property
+        {
+            public static Dictionary<Data.Vehicles.Vehicle.Types, string> VehicleTypesNames = new Dictionary<Data.Vehicles.Vehicle.Types, string>()
+            {
+                { Data.Vehicles.Vehicle.Types.Car, "Автомобиль" },
+                { Data.Vehicles.Vehicle.Types.Boat, "Лодка" },
+                { Data.Vehicles.Vehicle.Types.Motorcycle, "Мотоцикл" },
+                { Data.Vehicles.Vehicle.Types.Cycle, "Велосипед" },
+                { Data.Vehicles.Vehicle.Types.Helicopter, "Вертолет" },
+                { Data.Vehicles.Vehicle.Types.Plane, "Самолет" },
+            };
+
+            public static string VehicleTradeInfoStr = "{0} | {1} #{2}";
+
+            public static Dictionary<Data.Locations.Business.Types, string> BusinessNames = new Dictionary<Data.Locations.Business.Types, string>()
+            {
+                { Data.Locations.Business.Types.ClothesShop1, "Магазин спортивной одежды" },
+                { Data.Locations.Business.Types.ClothesShop2, "Магазин премиальной одежды" },
+                { Data.Locations.Business.Types.ClothesShop3, "Магазин брендовой одежды" },
+
+                { Data.Locations.Business.Types.Market, "Магазин 24/7" },
+
+                { Data.Locations.Business.Types.GasStation, "АЗС" },
+
+                { Data.Locations.Business.Types.CarShop1, "Автосалон бюджетного сегмента" },
+
+                { Data.Locations.Business.Types.BoatShop, "Лодочный салон" },
+
+                { Data.Locations.Business.Types.AeroShop, "Салон воздушного транспорта" },
+            };
+
+            public static string NoOwner = "Государство";
         }
         #endregion
 
@@ -895,22 +929,22 @@ namespace BCRPClient
 
                 public static class Cash
                 {
-                    public static string AddHeader = "+{0}$";
-                    public static string LossHeader = "-{0}$";
+                    public static string AddHeader = "+${0}";
+                    public static string LossHeader = "-${0}$";
 
-                    public static string Balance = "Всего наличных: {0}$";
+                    public static string Balance = "Всего наличных: ${0}";
 
-                    public static string NotEnough = "Недостаточно средств!\nУ вас наличных: {0}";
+                    public static string NotEnough = "Недостаточно средств!\nУ вас наличных: ${0}";
                 }
 
                 public static class Bank
                 {
-                    public static string AddHeader = "+{0}$";
-                    public static string LossHeader = "-{0}$";
+                    public static string AddHeader = "+${0}";
+                    public static string LossHeader = "-${0}";
 
-                    public static string Balance = "Всего на счёте: {0}$";
+                    public static string Balance = "Всего на счёте: ${0}";
 
-                    public static string NotEnough = "Недостаточно средств!\nУ вас на счёте: {0}";
+                    public static string NotEnough = "Недостаточно средств!\nУ вас на счёте: ${0}";
                     public static string NoAccount = "У вас нет банковского счёта!";
                     public static string NoAccountTarget = "У получателя нет банковского счёта!";
                     public static string TargetNotFound = "Неверный идентификатор получателя!";

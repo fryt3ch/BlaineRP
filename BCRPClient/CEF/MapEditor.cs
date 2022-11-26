@@ -85,9 +85,6 @@ namespace BCRPClient.CEF
                     Object.SetRotation(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), 2, true);
                 }
             });
-
-            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.X, true, () => Show(ModeTypes.FurnitureEdit, false));
-            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.C, true, () => Close());
         }
 
         public static void Show(ModeTypes mType = ModeTypes.Default, bool enableRotation = false)

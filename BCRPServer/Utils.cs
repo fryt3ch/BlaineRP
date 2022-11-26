@@ -14,7 +14,7 @@ using System.Xml;
 
 namespace BCRPServer
 {
-    static class Utils
+    public static class Utils
     {
         public static class Dimensions
         {
@@ -31,6 +31,25 @@ namespace BCRPServer
             Death = 0,
             /// <summary>Телепортация</summary>
             Teleport,
+        }
+
+        public enum WeatherTypes : byte
+        {
+            BLIZZARD = 0,
+            CLEAR,
+            CLEARING,
+            CLOUDS,
+            EXTRASUNNY,
+            FOGGY,
+            HALLOWEEN,
+            NEUTRAL,
+            OVERCAST,
+            RAIN,
+            SMOG,
+            SNOW,
+            SNOWLIGHT,
+            THUNDER,
+            XMAS,
         }
 
         /// <summary>Номер первого CID</summary>
@@ -891,6 +910,50 @@ namespace BCRPServer
             {
                 return (uint)value.Value;
             }
+        }
+
+        /// <summary>Передать лог (авторизация) в очередь</summary>
+        /// <param name="pData">Данные игрока</param>
+        public static void LogAuth(PlayerData pData)
+        {
+            var cid = pData.CID;
+            var rid = pData.Player.Id;
+            var ip = pData.Player.Address;
+
+            var date = pData.LastJoinDate;
+
+            //todo
+        }
+
+        /// <summary>Передать лог (инвентарь) в очередь</summary>
+        /// <param name="pData">Данные игрока</param>
+        /// <param name="cont">Контейнер, если null - </param>
+        /// <param name="item">Предмет</param>
+        /// <param name="amount"></param>
+        /// <param name="take">Получил игрок предмет или отдал?</param>
+        public static void LogInventory(PlayerData pData, Game.Items.Container cont, Game.Items.Item item, int amount, bool take)
+        {
+            var cid = pData.CID;
+
+            uint? contId = cont?.ID;
+
+            var itemUid = item.UID;
+            var itemId = item.ID;
+
+            //todo
+        }
+
+        public static void LogTrade(PlayerData pData, PlayerData tData)
+        {
+            //todo
+        }
+
+        public static void SetWeather(WeatherTypes weather)
+        {
+            if (weather == WeatherTypes.XMAS)
+                NAPI.World.SetWeather("XMAS");
+
+            Game.World.SetSharedData("Weather", (byte)weather);
         }
     }
 }
