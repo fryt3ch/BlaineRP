@@ -13,6 +13,26 @@ namespace BCRPServer.Additional
         }
 
         #region Legalization Methods
+        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null)
+        {
+            veh.Position = pos;
+
+            if (dimension is uint dim)
+            {
+                veh.Dimension = dim;
+
+                foreach (var x in veh.Occupants)
+                    if (x is Player player)
+                        player.TriggerEvent("AC::State::TP::IV", pos, dim);
+            }
+            else
+            {
+                foreach (var x in veh.Occupants)
+                    if (x is Player player)
+                        player.TriggerEvent("AC::State::TP::IV", pos);
+            }
+        }
+
         /// <summary>Установить позицию игрока</summary>
         /// <remarks>Также, можно установить измерение игрока</remarks>
         /// <param name="player">Сущность игрока</param>

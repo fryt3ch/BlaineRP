@@ -179,6 +179,10 @@ namespace BCRPClient.CEF
                     case OutVehicleActions.Gas:
                         CEF.Gas.RequestShow(vehicle);
                     break;
+
+                    case OutVehicleActions.Park:
+                        Sync.Vehicles.Park(vehicle);
+                    break;
                 }
             });
             #endregion
@@ -247,7 +251,7 @@ namespace BCRPClient.CEF
                     break;
 
                     case InVehicleActions.Park:
-
+                        Sync.Vehicles.Park(vehicle);
                     break;
 
                     case InVehicleActions.Gas:
@@ -389,7 +393,7 @@ namespace BCRPClient.CEF
 
             BCRPClient.Interaction.CurrentEntity = entity;
 
-            if (entity.Type == RAGE.Elements.Type.Vehicle)
+            if (entity is Vehicle vehicle)
             {
                 // out veh menu
                 if (RAGE.Elements.Player.LocalPlayer.Vehicle == null)
@@ -402,7 +406,7 @@ namespace BCRPClient.CEF
 
                 return true;
             }
-            else if (entity.Type == RAGE.Elements.Type.Player)
+            else if (entity is Player player)
             {
                 ShowPlayerMenu();
 
@@ -411,9 +415,27 @@ namespace BCRPClient.CEF
 
                 return true;
             }
-            else if (entity.Type == RAGE.Elements.Type.Ped)
+            else if (entity is Ped ped)
             {
                 // todo, if needed
+            }
+            else if (entity is MapObject obj)
+            {
+                if (obj.HasData("Furniture"))
+                {
+                    var fData = obj.GetData<Data.Furniture>("Furniture");
+
+                    if (fData != null)
+                    {
+                        fData.InteractionAction?.Invoke(obj);
+                    }
+                }
+                else if (obj.HasData("CustomAction"))
+                {
+                    var cAction = obj.GetData<Action<MapObject>>("CustomAction");
+
+                    cAction?.Invoke(obj);
+                }
             }
 
             BCRPClient.Interaction.Enabled = true;

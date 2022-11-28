@@ -273,6 +273,8 @@ namespace BCRPServer
             /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
             public Game.Items.Armour Armour { get; set; }
 
+            public List<Game.Houses.Furniture> Furniture { get; set; }
+
             public PlayerInfo() {}
         }
 
@@ -477,6 +479,8 @@ namespace BCRPServer
         /// <summary>Текущий бронежилет игрока</summary>
         /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
         public Game.Items.Armour Armour { get => Info.Armour; set => Info.Armour = value; }
+
+        public List<Game.Houses.Furniture> Furniture { get => Info.Furniture; set => Info.Furniture = value; }
 
         /// <summary>Текущее оружие игрока (не включает в себя кобуру), которое было временно снято сервером</summary>
         /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>

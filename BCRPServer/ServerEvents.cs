@@ -91,7 +91,8 @@ namespace BCRPServer
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
             #endregion
 
-            Game.Houses.HouseBase.Style.Load();
+            Game.Houses.HouseBase.Style.LoadAll();
+            Game.Houses.Garage.Style.LoadAll();
 
             #region Database Data Load Section
             MySQL.LoadAll();
@@ -100,23 +101,27 @@ namespace BCRPServer
             Game.Businesses.Business.LoadAll();
 
             Game.Houses.House.LoadAll();
+            Game.Houses.Apartments.LoadAll();
+            Game.Houses.Garage.LoadAll();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Clearing unused items & Getting free items UID's");
             Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.FreeIDs.Count}]~/~", false);
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Items.Item.All.Count} items");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Item.All.Count} items");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Items.Container.All.Count} containers");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Container.All.Count} containers");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {PlayerData.PlayerInfo.All.Count} players");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerData.PlayerInfo.All.Count} players");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {VehicleData.VehicleInfo.All.Count} vehicles");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{VehicleData.VehicleInfo.All.Count} vehicles");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Businesses.Business.All.Count} businesses");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Businesses.Business.All.Count} businesses");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Items.Gift.All.Count} gifts");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Gift.All.Count} gifts");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded {Game.Houses.House.All.Count} houses");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.House.All.Count} houses");
+
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Furniture.All.Count} furniture");
 
             //Utils.ConsoleOutput(AllPlayers.SerializeToJson());
 

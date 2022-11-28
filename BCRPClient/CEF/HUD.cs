@@ -356,10 +356,10 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Hud.switchCruiseControl", value);
         }
 
-        public static void SwitchInteractionText(bool state, string text = null)
+        public static void SwitchInteractionText(bool state, string text = null, RAGE.Ui.VirtualKeys key = RAGE.Ui.VirtualKeys.E)
         {
             if (text != null)
-                Browser.Window.ExecuteJs("Hud.drawInteract", text, KeyBinds.Bind.GetKeyString(RAGE.Ui.VirtualKeys.E));
+                Browser.Window.ExecuteJs("Hud.drawInteract", text, KeyBinds.Bind.GetKeyString(key));
 
             Browser.Switch(Browser.IntTypes.HUD_Interact, state);
 
@@ -370,7 +370,7 @@ namespace BCRPClient.CEF
                 if (InteractionBind != -1)
                     RAGE.Input.Unbind(InteractionBind);
 
-                InteractionBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.E, true, () =>
+                InteractionBind = RAGE.Input.Bind(key, true, () =>
                 {
                     InteractionAction?.Invoke();
                 });

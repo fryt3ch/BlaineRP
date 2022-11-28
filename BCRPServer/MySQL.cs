@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -168,6 +169,23 @@ namespace BCRPServer
 
                 using (var cmd = conn.CreateCommand())
                 {
+                    cmd.CommandText = "SELECT * FROM furniture;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var uid = Convert.ToUInt32(reader["ID"]);
+                                var id = (string)reader["Type"];
+                                var data = ((string)reader["Data"]).DeserializeFromJson<Game.Houses.Furniture.FurnitureData>();
+
+                                Game.Houses.Furniture.AddOnLoad(new Furniture(uid, id, data));
+                            }
+                        }
+                    }
+
                     cmd.CommandText = "SELECT * FROM items;";
 
                     var includedItems = new Dictionary<uint, uint[]>();
@@ -476,6 +494,8 @@ namespace BCRPServer
                                 var arm = Convert.ToUInt32(reader["Armour"]);
                                 var bag = Convert.ToUInt32(reader["Bag"]);
 
+                                var furniture = ((string)reader["Furniture"]).DeserializeFromJson<uint[]>();
+
                                 var pInfo = PlayerData.PlayerInfo.Get(cid);
 
                                 if (pInfo == null)
@@ -489,6 +509,8 @@ namespace BCRPServer
                                 pInfo.Holster = holster == 0 ? null : Game.Items.Item.Get(holster) as Game.Items.Holster;
                                 pInfo.Armour = arm == 0 ? null : Game.Items.Item.Get(arm) as Game.Items.Armour;
                                 pInfo.Bag = bag == 0 ? null : Game.Items.Item.Get(bag) as Game.Items.Bag;
+
+                                pInfo.Furniture = furniture.Select(x => Game.Houses.Furniture.Get(x)).Where(x => x != null).ToList();
                             }
                         }
                     }
@@ -650,6 +672,29 @@ namespace BCRPServer
                     {
                         if (Game.Items.Gift.Get(i) == null)
                             Game.Items.Gift.AddFreeId(i);
+                    }
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='furniture';";
+
+                    uint nextAi = 1;
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            reader.Read();
+
+                            nextAi = Convert.ToUInt32(reader[0]);
+                        }
+                    }
+
+                    for (uint i = 1; i < nextAi; i++)
+                    {
+                        if (Game.Houses.Furniture.Get(i) == null)
+                            Game.Houses.Furniture.AddFreeId(i);
                     }
                 }
 
@@ -1147,6 +1192,19 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void CharacterFurnitureUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE inventories SET Furniture=@Furniture WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@Furniture", pInfo.Furniture.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
         #endregion
 
         #region Items
@@ -1464,13 +1522,15 @@ namespace BCRPServer
 
                         house.StyleData = Game.Houses.HouseBase.Style.Get(house.Type, house.RoomType, (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"]);
 
-                        house.Settlers = NAPI.Util.FromJson<Dictionary<uint, Game.Houses.HouseBase.SettlerPermissions>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
+                        house.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
 
                         foreach (var x in house.Settlers.Keys)
                             x.SettledHouses.Add(house);
 
                         house.IsLocked = (bool)reader["IsLocked"];
                         house.ContainersLocked = (bool)reader["ContainersLocked"];
+
+                        house.Furniture = ((string)reader["Furniture"]).DeserializeFromJson<List<uint>>().Select(x => Game.Houses.Furniture.Get(x)).Where(x => x != null).ToList();
 
                         cmd.CommandText = "";
 
@@ -1532,51 +1592,75 @@ namespace BCRPServer
             }
         }
 
-/*        public static Game.Houses.Apartments GetApartments(Game.Houses.Apartments apartments)
+        public static void FurnitureAdd(Game.Houses.Furniture furn)
         {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
-            {
-                conn.Open();
+            var cmd = new MySqlCommand();
 
-                using (MySqlCommand cmd = conn.CreateCommand())
+            cmd.CommandText = "INSERT INTO furniture (ID, Type, Data) VALUES (@ID, @Type, @Data);";
+
+            cmd.Parameters.AddWithValue("@ID", furn.UID);
+            cmd.Parameters.AddWithValue("@Type", furn.ID);
+            cmd.Parameters.AddWithValue("@Data", furn.Data.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void FurnitureDelete(Game.Houses.Furniture furn)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "DELETE FROM furniture WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", furn.UID);
+
+            PushQuery(cmd);
+        }
+
+        /*        public static Game.Houses.Apartments GetApartments(Game.Houses.Apartments apartments)
                 {
-                    cmd.CommandText = "SELECT * FROM apartments WHERE ID=@ID LIMIT 1;";
-
-                    cmd.Parameters.AddWithValue("@ID", apartments.ID);
-
-                    using (var reader = cmd.ExecuteReader())
+                    using (var conn = new MySqlConnection(LocalConnectionCredentials))
                     {
-                        if (!reader.HasRows)
-                            return null;
+                        conn.Open();
 
-                        reader.Read();
+                        using (MySqlCommand cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = "SELECT * FROM apartments WHERE ID=@ID LIMIT 1;";
 
-                        apartments.Owner = Convert.ToUInt32(reader["CID"]);
-                        apartments.StyleType = (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"];
-                        apartments.Settlers = NAPI.Util.FromJson<List<uint>>((string)reader["Settlers"]);
-                        apartments.IsLocked = (bool)reader["IsLocked"];
-                        apartments.Vehicles = NAPI.Util.FromJson<List<int>>((string)reader["Vehicles"]);
+                            cmd.Parameters.AddWithValue("@ID", apartments.ID);
 
-                        if (reader["Locker"] == DBNull.Value)
-                            apartments.Locker = Game.Items.Container.Create("h_locker", null).ID;
-                        else
-                            apartments.Locker = Convert.ToUInt32(reader["Locker"]);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                if (!reader.HasRows)
+                                    return null;
 
-                        if (reader["Wardrobe"] == DBNull.Value)
-                            apartments.Wardrobe = Game.Items.Container.Create("h_wardrobe", null).ID;
-                        else
-                            apartments.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
+                                reader.Read();
 
-                        if (reader["Fridge"] == DBNull.Value)
-                            apartments.Fridge = Game.Items.Container.Create("h_fridge", null).ID;
-                        else
-                            apartments.Fridge = Convert.ToUInt32(reader["Fridge"]);
+                                apartments.Owner = Convert.ToUInt32(reader["CID"]);
+                                apartments.StyleType = (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"];
+                                apartments.Settlers = NAPI.Util.FromJson<List<uint>>((string)reader["Settlers"]);
+                                apartments.IsLocked = (bool)reader["IsLocked"];
+                                apartments.Vehicles = NAPI.Util.FromJson<List<int>>((string)reader["Vehicles"]);
 
-                        return apartments;
+                                if (reader["Locker"] == DBNull.Value)
+                                    apartments.Locker = Game.Items.Container.Create("h_locker", null).ID;
+                                else
+                                    apartments.Locker = Convert.ToUInt32(reader["Locker"]);
+
+                                if (reader["Wardrobe"] == DBNull.Value)
+                                    apartments.Wardrobe = Game.Items.Container.Create("h_wardrobe", null).ID;
+                                else
+                                    apartments.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
+
+                                if (reader["Fridge"] == DBNull.Value)
+                                    apartments.Fridge = Game.Items.Container.Create("h_fridge", null).ID;
+                                else
+                                    apartments.Fridge = Convert.ToUInt32(reader["Fridge"]);
+
+                                return apartments;
+                            }
+                        }
                     }
-                }
-            }
-        }*/
+                }*/
         #endregion
     }
 }

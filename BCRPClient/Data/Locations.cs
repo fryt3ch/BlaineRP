@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -13,6 +14,43 @@ namespace BCRPClient.Data
 {
     public class Locations : Events.Script
     {
+        public class Garage
+        {
+            public static Dictionary<uint, Garage> All = new Dictionary<uint, Garage>();
+
+            public enum Types
+            {
+                Two = 2,
+                Six = 6,
+                Ten = 10,
+            }
+
+            public class Style
+            {
+                private static Dictionary<Types, Style> All { get; set; } = new Dictionary<Types, Style>();
+
+                public Types Type { get; set; }
+
+                public Vector3 EnterPosition { get; set; }
+
+                public Style(Types Type, Vector3 EnterPosition)
+                {
+                    this.EnterPosition = EnterPosition;
+
+                    All.Add(Type, this);
+                }
+
+                public static void LoadAll()
+                {
+                    new Style(Types.Two, new Vector3(179.0708f, -1005.729f, -98.99996f));
+                    new Style(Types.Six, new Vector3(207.0894f, -998.9854f, -98.99996f));
+                    new Style(Types.Ten, new Vector3(238.0103f, -1004.861f, -98.99996f));
+                }
+
+                public static Style Get(Types type) => All.GetValueOrDefault(type);
+            }
+        }
+
         public class House
         {
             public static Dictionary<uint, House> All = new Dictionary<uint, House>();
@@ -27,13 +65,21 @@ namespace BCRPClient.Data
 
             public Sync.House.Style.RoomTypes RoomType { get; set; }
 
+            public Garage.Types? GarageType { get; set; }
+
+            public Vector3 GaragePosition { get; set; }
+
             public Additional.ExtraColshape Colshape { get; set; }
 
             public RAGE.Elements.TextLabel InfoText { get; set; }
 
             public Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
 
-            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, int Price)
+            public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"House::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGCS"); else Player.LocalPlayer.SetData($"House::{Id}::OGCS", value); } }
+           
+            public Blip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
+
+            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, int Price)
             {
                 this.Id = Id;
 
@@ -42,6 +88,10 @@ namespace BCRPClient.Data
                 this.Position = Position;
 
                 this.RoomType = RoomType;
+
+                this.GarageType = GarageType;
+
+                this.GaragePosition = GaragePosition;
 
                 Colshape = new Additional.Cylinder(Position, 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
 
@@ -70,6 +120,17 @@ namespace BCRPClient.Data
                     oBlip?.Destroy();
 
                     OwnerBlip = new Blip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+
+                    if (GaragePosition != null)
+                    {
+                        OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+
+                        OwnerGarageColshape.Data = this;
+
+                        OwnerGarageColshape.ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter;
+
+                        OwnerGarageBlip = new Blip(1, GaragePosition, "", 1f, 1, 125, 0f, true, 0, 25f, Settings.MAIN_DIMENSION);
+                    }
                 }
                 else
                 {
@@ -80,6 +141,24 @@ namespace BCRPClient.Data
                         oBlip.Destroy();
 
                         OwnerBlip = null;
+                    }
+
+                    var ogCs = OwnerGarageColshape;
+
+                    if (ogCs != null)
+                    {
+                        ogCs.Delete();
+
+                        OwnerGarageColshape = null;
+                    }
+
+                    var ogBlip = OwnerGarageBlip;
+
+                    if (ogBlip != null)
+                    {
+                        ogBlip.Destroy();
+
+                        OwnerGarageBlip = null;
                     }
                 }
             }
@@ -510,6 +589,8 @@ namespace BCRPClient.Data
         {
             CayoPerico.Initialize();
 
+            Garage.Style.LoadAll();
+
             #region Clothes (Cheap)
             new ClothesShop1(1, new Vector3(1200f, 2701f, 37f), new Vector3(1201.885f, 2710.143f, 38.2226f), 105f, "Лана", "csb_anita");
             new ClothesShop1(3, new Vector3(-1096f, 2702.9f, 18f), new Vector3(-1097.523f, 2714.026f, 19.108f), 150f, "Лана", "csb_anita");
@@ -679,7 +760,7 @@ namespace BCRPClient.Data
             new Bank(6, new Vector3(-2968.591f, 482.9666f, 15.4687f), (new Vector3(-2961.119f, 482.9693f, 15.697f), 86.52053f));
             new Bank(7, new Vector3(151.3286f, -1036.054f, 29.33932f), (new Vector3(149.432f, -1042.05f, 29.36801f), 337.0007f));
 
-            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), Sync.House.Style.RoomTypes.Two, 50000);
+            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), Sync.House.Style.RoomTypes.Two, Garage.Types.Two, new Vector3(1723.976f, 4630.187f, 42.84944f), 50000);
         }
     }
 }

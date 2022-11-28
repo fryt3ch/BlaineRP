@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BCRPClient.CEF
@@ -67,6 +68,10 @@ namespace BCRPClient.CEF
                     return;
                 }
             });
+
+            Events.Add("EstAgency::Close", (object[] args) => Agency.Close(false));
+
+            //RAGE.Input.Bind(RAGE.Ui.VirtualKeys.B, true, () => Agency.Show());
         }
 
         public static async System.Threading.Tasks.Task ShowHouseInfo(Data.Locations.House house, bool showCursor = true)
@@ -89,7 +94,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", house.Id, new object[] { house.OwnerName, house.Price, 90, (int)house.RoomType, "0" }, pData.OwnedHouses.Contains(house));
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", house.Id, new object[] { house.OwnerName, house.Price, 90, (int)house.RoomType, house.GarageType == null ? "0" : ((int)house.GarageType).ToString() }, house.OwnerName == null ? null : (bool?)pData.OwnedHouses.Contains(house));
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -117,7 +122,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { business.Name, business.Name, business.OwnerName, 50000, 15, 15 }, pData.OwnedBusinesses.Contains(business));
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, 50000, 15, 15 }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -143,6 +148,57 @@ namespace BCRPClient.CEF
             TempBinds.Clear();
 
             Player.LocalPlayer.ResetData("Estate::CurrentData");
+        }
+
+        public class Agency
+        {
+            public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.EstateAgency);
+
+            private static bool WasShowed { get; set; }
+
+            public static async System.Threading.Tasks.Task Show()
+            {
+                if (IsActive)
+                    return;
+
+                // id, name, price, tax, rooms, garage capacity
+                var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, 90, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
+
+                // id, name, price, tax, rooms
+                var apartments = new object[] {};
+
+                // id, name, price, tax, garage capacity
+                var garages = new object[] {};
+
+                await CEF.Browser.Render(Browser.IntTypes.EstateAgency, true, true);
+
+                CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages } });
+
+                //CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", LastNavId);
+
+                if (!WasShowed)
+                {
+                    WasShowed = true;
+
+                    CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "-info", 0);
+                }
+                else
+                {
+                    CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "", 0);
+                }
+
+                CEF.Cursor.Show(true, true);
+            }
+
+            public static void Close(bool ignoreTimeout = false)
+            {
+                if (!IsActive)
+                    return;
+
+                CEF.Browser.Render(Browser.IntTypes.EstateAgency, false);
+
+                CEF.Cursor.Show(false, false);
+            }
         }
     }
 }

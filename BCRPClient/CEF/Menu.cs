@@ -430,23 +430,17 @@ namespace BCRPClient.CEF
                 return;
 
             Browser.Window.ExecuteJs("Menu.clearPropertyTable", "veh");
-
-            foreach (var x in pData.OwnedVehicles)
-            {
-                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, "Luxe", 10000000 } });
-            }
-
             Browser.Window.ExecuteJs("Menu.clearPropertyTable", "est");
 
-            foreach (var x in pData.OwnedBusinesses)
-            {
-                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), "Business", 10000000, x.SubId } });
-            }
+            var properties = new List<object[]>();
 
-            foreach (var x in pData.OwnedHouses)
-            {
-                Browser.Window.ExecuteJs("Menu.newProperty", new object[] { new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), "Дом", Utils.GetStreetName(x.Position), "Luxe", 10000000, x.Id } });
-            }
+            properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, "Luxe", 10000000 }));
+
+            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), "Business", 10000000, x.SubId }));
+
+            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), "Дом", Utils.GetStreetName(x.Position), "Luxe", 10000000, x.Id }));
+
+            Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }
     }
 }

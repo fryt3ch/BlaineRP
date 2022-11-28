@@ -165,7 +165,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Browser::OnRenderFinished", async (object[] args) =>
             {
-                await RAGE.Game.Invoker.WaitAsync(50);
+                await RAGE.Game.Invoker.WaitAsync(25);
 
                 RenderedInterfaces.Add(IntNames.Where(x => x.Value == (string)args[0]).First().Key);
 

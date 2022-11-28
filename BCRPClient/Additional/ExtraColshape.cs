@@ -16,6 +16,8 @@ namespace BCRPClient.Additional
 
         public static Polygon TempPolygon { get; set; }
 
+        public static bool CancelLastColshape { get; set; }
+
         private ExtraColshapes()
         {
             ExtraColshape.LastSent = DateTime.MinValue;
@@ -252,6 +254,22 @@ namespace BCRPClient.Additional
                 if (data == null)
                     return;
 
+                if (data.ActionType != ExtraColshape.ActionTypes.None)
+                {
+                    var action = ExtraColshape.GetEnterAction(data.ActionType);
+
+                    action?.Invoke(data);
+                }
+
+                if (CancelLastColshape)
+                {
+                    CancelLastColshape = false;
+
+                    data.IsInside = false;
+
+                    return;
+                }
+
                 if (data.IsInteraction)
                 {
                     if (!ExtraColshape.InteractionColshapesAllowed)
@@ -262,13 +280,6 @@ namespace BCRPClient.Additional
                     CEF.HUD.InteractionAction = func;
 
                     CEF.HUD.SwitchInteractionText(true, Locale.Interaction.Names[data.InteractionType]);
-                }
-
-                if (data.ActionType != ExtraColshape.ActionTypes.None)
-                {
-                    var action = ExtraColshape.GetEnterAction(data.ActionType);
-
-                    action?.Invoke(data);
                 }
 
                 data.OnEnter?.Invoke(null);
@@ -362,6 +373,8 @@ namespace BCRPClient.Additional
 
             HouseEnter,
             HouseExit,
+
+            GarageExit,
 
             Locker,
             Fridge,
@@ -466,7 +479,48 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.HouseExit, Sync.House.Exit
+                InteractionTypes.HouseExit, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
+                        return false;
+
+                    var house = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.House>("House::CurrentHouse");
+
+                    if (house.GarageType == null)
+                    {
+                        Events.CallRemote("House::Exit");
+
+                        LastSent = DateTime.Now;
+                    }
+                    else
+                    {
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage));
+                    }
+
+                    return true;
+                }
+            },
+
+            {
+                InteractionTypes.GarageExit, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
+                    {
+                        // todo
+                    }
+                    else
+                    {
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, (2, Locale.Actions.HouseExitActionBoxToHouse), (0, Locale.Actions.HouseExitActionBoxOutside));
+                    }
+
+                    return true;
+                }
             },
 
             {
@@ -735,36 +789,6 @@ namespace BCRPClient.Additional
                                 return;
 
                             Player.LocalPlayer.SetData("CurrentHouse", house);
-                        }
-                    },
-
-                    {
-                        false,
-
-                        (cs) =>
-                        {
-                            Player.LocalPlayer.ResetData("CurrentHouse");
-                        }
-                    },
-                }
-            },
-
-            {
-                ActionTypes.HouseExit,
-
-                new Dictionary<bool, Action<ExtraColshape>>()
-                {
-                    {
-                        true,
-
-                        (cs) =>
-                        {
-                            if (!(cs.Data is int))
-                                return;
-
-                            var houseId = (int)cs.Data;
-
-                            Player.LocalPlayer.SetData("CurrentHouse", houseId);
                         }
                     },
 

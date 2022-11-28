@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -19,26 +20,6 @@ namespace BCRPClient.Sync
             House = 0,
             /// <summary>Квартира</summary>
             Apartments,
-        }
-
-        public class SettlerPermissions
-        {
-            [JsonProperty(PropertyName = "L")]
-            public bool Lights { get; set; }
-
-            [JsonProperty(PropertyName = "D")]
-            public bool Doors { get; set; }
-
-            [JsonProperty(PropertyName = "C")]
-            public bool Closet { get; set; }
-
-            [JsonProperty(PropertyName = "W")]
-            public bool Wardrobe { get; set; }
-
-            [JsonProperty(PropertyName = "F")]
-            public bool Fridge { get; set; }
-
-            public SettlerPermissions() { }
         }
 
         public class Style
@@ -152,8 +133,6 @@ namespace BCRPClient.Sync
             }
         }
 
-        private static bool HasGarage;
-
         private static List<Additional.ExtraColshape> TempColshapes;
         private static List<Blip> TempBlips;
 
@@ -162,11 +141,13 @@ namespace BCRPClient.Sync
         private static List<(int Handle, Utils.Colour Colour, bool State)> Lights;
         private static List<(string Model, Vector3 Position, bool IsLocked)> Doors;
 
+        private static Dictionary<uint, MapObject> Furniture;
+
         public House()
         {
-            Style.LoadAll();
+            Data.Furniture.LoadAll();
 
-            HasGarage = false;
+            Style.LoadAll();
 
             TempColshapes = new List<Additional.ExtraColshape>();
             TempBlips = new List<Blip>();
@@ -175,45 +156,98 @@ namespace BCRPClient.Sync
             Lights = new List<(int Handle, Utils.Colour Color, bool State)>();
             Doors = new List<(string Model, Vector3 Position, bool IsLocked)>();
 
+            Furniture = new Dictionary<uint, MapObject>();
+
             Events.Add("House::Enter", async (object[] args) =>
             {
                 Additional.ExtraColshape.InteractionColshapesAllowed = false;
 
                 Additional.SkyCamera.FadeScreen(true);
 
-                var id = (uint)(int)args[0];
+                var data = RAGE.Util.Json.Deserialize<JObject>((string)args[0]);
 
-                var hType = (HouseTypes)(int)args[1];
+                var id = (uint)(int)data["I"];
+
+                var hType = (HouseTypes)(int)data["T"];
+
+                var sType = (Style.Types)(int)data["S"];
+
+                var dimension = (uint)data["Dim"];
+
+                var doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
+                var lights = RAGE.Util.Json.Deserialize<(Utils.Colour Colour, bool State)[]>((string)data["LS"]);
+
+                foreach (var x in RAGE.Util.Json.Deserialize<List<JObject>>((string)data["F"]))
+                {
+                    var fData = Data.Furniture.GetData((string)x["I"]);
+                    var fUid = (uint)x["U"];
+
+                    var pos = new Vector3((float)x["PX"], (float)x["PY"], (float)x["PZ"]);
+                    var rot = new Vector3((float)x["RX"], (float)x["RY"], (float)x["RZ"]);
+
+                    if (fData.Type == Data.Furniture.Types.Locker)
+                    {
+                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid, (uint)data["LI"]));
+                    }
+                    else if (fData.Type == Data.Furniture.Types.Wardrobe)
+                    {
+                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid, (uint)data["WI"]));
+                    }
+                    else if (fData.Type == Data.Furniture.Types.Fridge)
+                    {
+                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid, (uint)data["FI"]));
+                    }
+                    else if (fData.Type == Data.Furniture.Types.KitchenSet)
+                    {
+
+                    }
+                    else
+                    {
+                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid));
+                    }
+                }
+
+                Player.LocalPlayer.SetData("House::CurrentHouse::Type", hType);
 
                 if (hType == HouseTypes.House)
                 {
                     var house = Data.Locations.House.All[id];
 
-                    Player.LocalPlayer.SetData("House::CurrentHouse", house);
-                    Player.LocalPlayer.SetData("House::CurrentHouse::Type", hType);
-
-                    Style.Types sType = (Style.Types)(int)args[1];
-
-                    var dimension = (uint)(int)args[2];
-
-                    var doors = RAGE.Util.Json.Deserialize<bool[]>((string)args[3]);
-                    var lights = RAGE.Util.Json.Deserialize<(Utils.Colour Colour, bool State)[]>((string)args[4]);
-
                     var style = Style.Get(hType, house.RoomType, sType);
+
+                    Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
                     var exitCs = new Additional.Cylinder(style.EnterancePos, 1f, 2f, false, Utils.RedColor, dimension);
 
                     exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
-                    exitCs.ActionType = Additional.ExtraColshape.ActionTypes.HouseExit;
 
                     TempColshapes.Add(exitCs);
 
-                    TempBlips.Add(new RAGE.Elements.Blip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, false, 0, 0, dimension));
+                    if (house.GarageType != null)
+                    {
+                        var gData = Data.Locations.Garage.Style.Get((Data.Locations.Garage.Types)house.GarageType);
+
+                        var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, dimension, null);
+
+                        gExitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit;
+
+                        TempColshapes.Add(gExitCs);
+                    }
+
+                    TempBlips.Add(new RAGE.Elements.Blip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
                     Lights.Clear();
                     Doors.Clear();
 
-                    await RAGE.Game.Invoker.WaitAsync(1500);
+                    while (Player.LocalPlayer.Dimension != dimension)
+                    {
+                        await RAGE.Game.Invoker.WaitAsync(250);
+
+                        if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
+                            return;
+                    }
+
+                    await RAGE.Game.Invoker.WaitAsync(1000);
 
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                         return;
@@ -235,6 +269,19 @@ namespace BCRPClient.Sync
 
                         t.SetData("Interactive", true);
 
+                        t.SetData("DoorIdx", i);
+                        t.SetData("DoorState", doors[i]);
+
+                        t.SetData("CustomAction", new Action<MapObject>((obj) =>
+                        {
+
+                        }));
+
+                        t.SetData("CustomText", new Action<float, float>((x, y) =>
+                        {
+
+                        }));
+
                         TempObjects.Add(t);
                     }
 
@@ -252,8 +299,6 @@ namespace BCRPClient.Sync
                         RAGE.Game.Entity.SetEntityLights(handle, !lights[i].State);
                         RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, handle, true, lights[i].Colour.Red, lights[i].Colour.Green, lights[i].Colour.Blue);
                     }
-
-                    await RAGE.Game.Invoker.WaitAsync(500);
 
                     Additional.SkyCamera.FadeScreen(false);
 
@@ -294,19 +339,12 @@ namespace BCRPClient.Sync
                     x?.Destroy();
 
                 TempObjects.Clear();
+
+                foreach (var x in Furniture.Values)
+                    x?.Destroy();
+
+                Furniture.Clear();
             });
-        }
-
-        public static bool Exit()
-        {
-            if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
-                return false;
-
-            Events.CallRemote("House::Exit");
-
-            Additional.ExtraColshape.LastSent = DateTime.Now;
-
-            return true;
         }
 
         public static bool DoorLock()
@@ -343,21 +381,6 @@ namespace BCRPClient.Sync
                         TempBlips.Remove(TempBlips[i]);
                     }
             }
-
-            return true;
-        }
-
-        public static bool OpenContainer()
-        {
-            if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
-                return false;
-
-            if (!Player.LocalPlayer.HasData("CurrentContainer"))
-                return false;
-
-            CEF.Inventory.Show(CEF.Inventory.Types.Container);
-
-            Additional.ExtraColshape.LastSent = DateTime.Now;
 
             return true;
         }

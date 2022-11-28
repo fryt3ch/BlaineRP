@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BCRPClient.CEF
@@ -23,6 +24,7 @@ namespace BCRPClient.CEF
         public enum Contexts
         {
             None = -1, Inventory, GiveCash,
+            HouseExit, GarageVehicleIn,
         }
 
         public static Types CurrentType { get; private set; }
@@ -30,8 +32,12 @@ namespace BCRPClient.CEF
 
         private static List<int> TempBinds { get; set; }
 
+        private static DateTime LastSent;
+
         public ActionBox()
         {
+            LastSent = DateTime.MinValue;
+
             TempBinds = new List<int>();
 
             CurrentType = Types.None;
@@ -82,7 +88,79 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType == Types.Select)
                 {
-                    int id = int.Parse((string)args[1]);
+                    int id = args[1] is int ? (int)args[1] : int.Parse((string)args[1]);
+
+                    switch (CurrentContext)
+                    {
+                        case Contexts.HouseExit:
+                            if (rType == ReplyTypes.OK)
+                            {
+                                // house/houseGarage -> outside
+                                if (id == 0)
+                                {
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    Events.CallRemote("House::Exit");
+
+                                    Close(true);
+                                }
+                                // house -> garage
+                                else if (id == 1)
+                                {
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    Events.CallRemote("House::Garage", true);
+
+                                    Close(true);
+                                }
+                                // garage -> house
+                                else if (id == 2)
+                                {
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    Events.CallRemote("House::Garage", false);
+
+                                    Close(true);
+                                }
+                                else
+                                    return;
+                            }
+                            else if (rType == ReplyTypes.Cancel)
+                            {
+                                Close(true);
+                            }
+                            else
+                                return;
+                            break;
+
+                        case Contexts.GarageVehicleIn:
+                            if (rType == ReplyTypes.OK)
+                            {
+                                // current vehicle
+                                if (id == 0)
+                                {
+
+                                }
+                                // trailed vehicle
+                                else if (id == 1)
+                                {
+
+                                }
+                                else
+                                    return;
+                            }
+                            else if (rType == ReplyTypes.Cancel)
+                            {
+                                Close(true);
+                            }
+                            else
+                                return;
+
+                            break;
+                    }
                 }
                 else if (CurrentType == Types.Input)
                 {
@@ -93,7 +171,7 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task ShowSelect(Contexts context, string name, object[][] args)
+        public static async System.Threading.Tasks.Task ShowSelect(Contexts context, string name, params (int Id, string Text)[] args)
         {
             if (IsActive)
                 return;
@@ -102,7 +180,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, Types.Select, name, args);
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, Types.Select, name, args.Select(x => new object[] { x.Id, x.Text }));
 
             CurrentType = Types.Select;
             CurrentContext = context;

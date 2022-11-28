@@ -4,7 +4,6 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using static BCRPClient.Utils;
 
 namespace BCRPClient.Sync
 {
@@ -647,6 +646,17 @@ namespace BCRPClient.Sync
                 veh.SetBoatAnchor(state);
             });
 
+            Events.Add("Vehicle::Heading", (object[] args) =>
+            {
+                var veh = (Vehicle)args[0];
+
+                var heading = (float)args[1];
+
+                if (!ControlledVehicles.Contains(veh))
+                    return;
+
+                veh.SetHeading(heading);
+            });
             #endregion
         }
 
@@ -1091,6 +1101,35 @@ namespace BCRPClient.Sync
                 return;
 
             Events.CallRemote("Vehicles::KickPlayer", player);
+        }
+
+        public static void Park(Vehicle vehicle)
+        {
+            if (vehicle == null)
+            {
+                if (Player.LocalPlayer.Vehicle == null)
+                    return;
+
+                vehicle = Player.LocalPlayer.Vehicle;
+            }
+
+            if (Player.LocalPlayer.HasData("CurrentHouse"))
+            {
+                var house = Player.LocalPlayer.GetData<Data.Locations.House>("CurrentHouse");
+
+                if (house.GarageType == null)
+                    return;
+
+                Events.CallRemote("House::Garage::Vehicle", true, vehicle, house.Id);
+
+                RAGE.Game.Audio.PlaySoundFrontend(-1, "RAMP_UP", "TRUCK_RAMP_DOWN", true);
+            }
+            else
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotNearGarage);
+
+                return;
+            }
         }
         #endregion
 

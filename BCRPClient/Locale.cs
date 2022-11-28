@@ -711,6 +711,7 @@ namespace BCRPClient
 
                 { Additional.ExtraColshape.InteractionTypes.HouseEnter, "для взаимодействия" },
                 { Additional.ExtraColshape.InteractionTypes.HouseExit, "чтобы выйти" },
+                { Additional.ExtraColshape.InteractionTypes.GarageExit, "чтобы выйти" },
 
                 { Additional.ExtraColshape.InteractionTypes.Locker, "чтобы посмотреть шкаф" },
                 { Additional.ExtraColshape.InteractionTypes.Wardrobe, "чтобы посмотреть гардероб" },
@@ -738,6 +739,14 @@ namespace BCRPClient
             public static string GiveCash = "Передать деньги {0}?";
 
             public static string SelectVehNumbers = "Выберите гос. номер";
+
+            public static string HouseExitActionBoxHeader = "Выход";
+
+            public static string HouseExitActionBoxOutside = "На улицу";
+            public static string HouseExitActionBoxToGarage = "В гараж";
+            public static string HouseExitActionBoxToHouse = "В дом";
+
+            public static string GarageVehicleActionBoxHeader = "Загнать Т/С в гараж";
         }
 
         public static class HudMenu
@@ -843,6 +852,15 @@ namespace BCRPClient
 
                     public static string EMSNotified = "Службы скорой помощи получили ваш вызов!";
                 }
+            }
+
+            public static class House
+            {
+                public static string Header = "Дом";
+
+                public static string NotInAnyHouse = "Вы не находитесь в доме!";
+
+                public static string NotNearGarage = "Вы не находитесь рядом с гаражом!";
             }
 
             public static class Commands

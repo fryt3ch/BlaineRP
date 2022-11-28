@@ -1,7 +1,9 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BCRPServer.Game.Houses
@@ -9,26 +11,6 @@ namespace BCRPServer.Game.Houses
     public abstract class HouseBase
     {
         public static Color DefaultLightColour = new Color(255, 187, 96, 255);
-
-        public class SettlerPermissions
-        {
-            [JsonProperty(PropertyName = "L")]
-            public bool Lights { get; set; }
-
-            [JsonProperty(PropertyName = "D")]
-            public bool Doors { get; set; }
-
-            [JsonProperty(PropertyName = "C")]
-            public bool Closet { get; set; }
-
-            [JsonProperty(PropertyName = "W")]
-            public bool Wardrobe { get; set; }
-
-            [JsonProperty(PropertyName = "F")]
-            public bool Fridge { get; set; }
-
-            public SettlerPermissions() { }
-        }
 
         public class Style
         {
@@ -93,7 +75,7 @@ namespace BCRPServer.Game.Houses
                 All[HouseType][RoomType].Add(Type, this);
             }
 
-            public static void Load()
+            public static void LoadAll()
             {
                 new Style(HouseBase.Types.House, RoomTypes.Two, Types.First, new Vector3(67.955511f, 70.03592f, -9f), 272f, 6, 5);
                 new Style(HouseBase.Types.House, RoomTypes.Two, Types.Second, new Vector3(67.955511f, 70.03592f, -19f), 272f, 6, 5);
@@ -129,7 +111,7 @@ namespace BCRPServer.Game.Houses
         public PlayerData.PlayerInfo Owner { get; set; }
 
         /// <summary>Список сожителей</summary>
-        public Dictionary<PlayerData.PlayerInfo, SettlerPermissions> Settlers { get; set; }
+        public Dictionary<PlayerData.PlayerInfo, bool[]> Settlers { get; set; }
 
         /// <summary>Баланс дома</summary>
         public int Balance { get; set; }
@@ -148,12 +130,6 @@ namespace BCRPServer.Game.Houses
         /// <summary>Поворот игрока при выходе из дома</summary>
         public float ExitHeading { get; set; }
 
-        /// <summary>Тип гаража</summary>
-        public Garage.Types? GarageType { get; set; }
-
-        /// <summary>Список транспорта в гараже</summary>
-        public List<VehicleData.VehicleInfo> Vehicles { get; set; }
-
         public uint Locker { get; set; }
 
         public uint Wardrobe { get; set; }
@@ -161,7 +137,7 @@ namespace BCRPServer.Game.Houses
         public uint Fridge { get; set; }
 
         /// <summary>Список FID мебели в доме</summary>
-        public List<uint> Furniture { get; set; }
+        public List<Furniture> Furniture { get; set; }
 
         public (Color Colour, bool State)[] LightsStates { get; set; }
 
@@ -190,14 +166,22 @@ namespace BCRPServer.Game.Houses
         /// <summary>Словарь всех домов</summary>
         public static Dictionary<uint, House> All { get; private set; } = new Dictionary<uint, House>();
 
-        public Garage.Outside GarageOutside { get; set; }
+        public Utils.Vector4 GarageOutside { get; set; }
 
-        public House(uint HID, Vector3 GlobalPosition, float ExitHeading, Style.RoomTypes RoomType, int Price, Garage.Outside GarageOutside = null) : base(HID, GlobalPosition, ExitHeading, Types.House, RoomType)
+        /// <summary>Тип гаража</summary>
+        public Garage.Style GarageData { get; private set; }
+
+        /// <summary>Список транспорта в гараже</summary>
+        public List<VehicleData.VehicleInfo> Vehicles { get; set; }
+
+        public House(uint HID, Vector3 GlobalPosition, float ExitHeading, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, GlobalPosition, ExitHeading, Types.House, RoomType)
         {
             this.Price = Price;
             this.Dimension = (uint)(HID + Utils.HouseDimBase);
 
             this.GarageOutside = GarageOutside;
+
+            this.GarageData = GarageType == null ? null : Garage.Style.Get((Garage.Types)GarageType);
 
             All.Add(HID, this);
         }
@@ -206,7 +190,7 @@ namespace BCRPServer.Game.Houses
         /// <returns>Кол-во загруженных домов</returns>
         public static int LoadAll()
         {
-            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), 115f, Style.RoomTypes.Two, 50000, null);
+            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), 115f, Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(1723.976f, 4630.187f, 42.84944f, 116.6f));
 
             foreach (var x in All.Values)
             {
@@ -224,12 +208,34 @@ namespace BCRPServer.Game.Houses
 
             Game.World.SetSharedData($"House::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
+
+        public string ToClientJson()
+        {
+            var data = new JObject();
+
+            data.Add("I", ID);
+            data.Add("T", (int)Type);
+            data.Add("S", (int)StyleData.Type);
+            data.Add("Dim", Dimension);
+
+            data.Add("LI", Locker);
+            data.Add("WI", Wardrobe);
+            data.Add("FI", Fridge);
+
+            data.Add("DS", DoorsStates.SerializeToJson());
+            data.Add("LS", LightsStates.SerializeToJson());
+            data.Add("F", Furniture.Select(x => x.ToClientJObject()).SerializeToJson());
+
+            return data.SerializeToJson();
+        }
     }
 
     public class Apartments : HouseBase
     {
         public class ApartmentsRoot
         {
+            private static Dictionary<Types, ApartmentsRoot> All { get; set; } = new Dictionary<Types, ApartmentsRoot>();
+
             /// <summary>Типы многоквартирных домов</summary>
             public enum Types
             {
@@ -251,69 +257,53 @@ namespace BCRPServer.Game.Houses
             /// <summary>Поворот игрока при выходе</summary>
             public float ExitHeading { get; set; }
 
-            /// <summary>Коэффициент цены квартиры</summary>
-            public float PriceCoeff { get; set; }
-
-            /// <summary>Название многоквартирного дома</summary>
-            public string Name { get; set; }
-
             /// <summary>Измерение многоквартирного дома</summary>
             public uint Dimension { get; set; }
 
-            public ApartmentsRoot(Types Type, Vector3 PositionEnter, float EnterHeading, Vector3 PositionExit, float ExitHeading, string Name, float PriceCoeff = 1f)
+            public ApartmentsRoot(Types Type, Vector3 PositionEnter, float EnterHeading, Vector3 PositionExit, float ExitHeading)
             {
                 this.Type = Type;
 
                 this.PositionEnter = PositionEnter;
                 this.PositionExit = PositionExit;
 
-                this.Name = Name;
-
-                this.PriceCoeff = PriceCoeff;
-
                 this.Dimension = (uint)(Utils.ApartmentsRootDimBase + (int)Type);
 
                 this.EnterHeading = EnterHeading;
                 this.ExitHeading = ExitHeading;
+
+                All.Add(Type, this);
             }
+
+            public static void LoadAll()
+            {
+                new ApartmentsRoot(Types.Cheap1, new Vector3(0, 0, 0), 0f, new Vector3(0, 0, 0), 0f);
+            }
+
+            public static ApartmentsRoot Get(Types type) => All.GetValueOrDefault(type);
         }
 
-        /// <summary>Словарь всех многоквартирных домов</summary>
-        public static Dictionary<ApartmentsRoot.Types, ApartmentsRoot> Roots;
         /// <summary>Словарь всех квартир</summary>
-        public static Dictionary<int, Apartments> All;
+        private static Dictionary<int, Apartments> All { get; set; } = new Dictionary<int, Apartments>();
 
         public static Dictionary<int, float> TaxCoeffs { get; set; }
 
-        /// <summary>Тип многоквартирного дома</summary>
-        public ApartmentsRoot.Types RootType { get; set; }
         /// <summary>Данные многоквартирного дома</summary>
-        public ApartmentsRoot Root { get => Roots[RootType]; }
+        public ApartmentsRoot Root { get; private set; }
 
         /// <summary>Метод для загрузки всех квартир</summary>
         /// <returns>Кол-во загруженных квартир</returns>
         public static int LoadAll()
         {
-            if (All != null)
-                return All.Count;
-
-            Roots = new Dictionary<ApartmentsRoot.Types, ApartmentsRoot>()
-            {
-                { ApartmentsRoot.Types.Cheap1, new ApartmentsRoot(ApartmentsRoot.Types.Cheap1, new Vector3(0, 0, 0), 0f, new Vector3(0, 0, 0), 0f, "", 100) }
-            };
-
-            All = new Dictionary<int, Apartments>()
-            {
-
-            };
+            ApartmentsRoot.LoadAll();
 
             return All.Count;
         }
         public Apartments(uint HID, Vector3 GlobalPosition, float ExitHeading, ApartmentsRoot.Types RootType, Style.RoomTypes RoomType, int Price) : base(HID, GlobalPosition, ExitHeading, Types.Apartments, RoomType)
         {
-            this.RootType = RootType;
+            this.Root = ApartmentsRoot.Get(RootType);
 
-            this.Price = (int)Math.Floor(Price * Roots[RootType].PriceCoeff);
+            this.Price = Price;
 
             this.Dimension = (uint)(HID + Utils.ApartmentsDimBase);
         }
@@ -321,24 +311,128 @@ namespace BCRPServer.Game.Houses
 
     public class Garage
     {
+        private static Dictionary<uint, Garage> All { get; set; } = new Dictionary<uint, Garage>();
+
         public enum Types
         {
-            None = 0,
             Two = 2,
             Six = 6,
             Ten = 10,
         }
 
-        public class Outside
+        public class Style
         {
-            public Vector3 Position { get; set; }
-            public float Heading { get; set; }
+            private static Dictionary<Types, Style> All { get; set; } = new Dictionary<Types, Style>();
 
-            public Outside(Vector3 Position, float Heading)
+            public Types Type { get; set; }
+
+            public List<(Vector3 Position, float Heading)> VehiclePositions { get; set; }
+
+            public Vector3 EnterPosition { get; set; }
+
+            public float EnterHeading { get; set; }
+
+            public int MaxVehicles => VehiclePositions.Count;
+
+            public Style(Types Type, Vector3 EnterPosition, float EnterHeading, params (Vector3, float)[] VehiclePositions)
             {
-                this.Position = Position;
-                this.Heading = Heading;
+                this.EnterPosition = EnterPosition;
+                this.EnterHeading = EnterHeading;
+
+                this.VehiclePositions = VehiclePositions.ToList();
+
+                All.Add(Type, this);
             }
+
+            public static void LoadAll()
+            {
+                new Style(Types.Two, new Vector3(179.0708f, -1005.729f, -98.99996f), 80.5f,
+                    (new Vector3(171.2562f, -1004.826f, -99.38025f), 182f),
+                    (new Vector3(174.7562f, -1004.826f, -99.38025f), 182f));
+
+                new Style(Types.Six, new Vector3(207.0894f, -998.9854f, -98.99996f), 90f,
+                    (new Vector3(192.987f, -1004.135f, -99.38025f), 182f),
+                    (new Vector3(196.487f, -1004.135f, -99.38025f), 182f),
+
+                    (new Vector3(199.987f, -1004.135f, -99.38025f), 182f),
+                    (new Vector3(203.487f, -1004.135f, -99.38025f), 182f),
+
+                    (new Vector3(192.987f, -997.135f, -99.38025f), 182f),
+                    (new Vector3(196.487f, -997.135f, -99.38025f), 182f));
+
+                new Style(Types.Ten, new Vector3(238.0103f, -1004.861f, -98.99996f), 78f,
+                    (new Vector3(233.536f, -1001.264f, -99.38025f), 125f),
+                    (new Vector3(233.536f, -996.764f, -99.38025f), 125f),
+                    (new Vector3(233.536f, -992.264f, -99.38025f), 125f),
+                    (new Vector3(233.536f, -987.764f, -99.38025f), 125f),
+                    (new Vector3(233.536f, -983.264f, -99.38025f), 125f),
+
+                    (new Vector3(223.536f, -1001.264f, -99.38025f), 250f),
+                    (new Vector3(223.536f, -996.764f, -99.38025f), 250f),
+                    (new Vector3(223.536f, -992.264f, -99.38025f), 250f),
+                    (new Vector3(223.536f, -987.764f, -99.38025f), 250f),
+                    (new Vector3(223.536f, -983.264f, -99.38025f), 250f));
+            }
+
+            public static Style Get(Types type) => All.GetValueOrDefault(type);
         }
+
+        public class GarageRoot
+        {
+            private static Dictionary<Types, GarageRoot> All { get; set; } = new Dictionary<Types, GarageRoot>();
+
+            public enum Types
+            {
+                Complex1 = 0,
+            }
+
+            public Types Type { get; set; }
+
+            public Vector3 Position { get; set; }
+
+            public GarageRoot(Types Type, Vector3 Position)
+            {
+                this.Type = Type;
+
+                this.Position = Position;
+            }
+
+            public static void LoadAll()
+            {
+
+            }
+
+            public static GarageRoot Get(Types type) => All.GetValueOrDefault(type);
+        }
+
+        public Style StyleData { get; set; }
+
+        public uint Id { get; set; }
+
+        public uint Dimension { get; set; }
+
+        public GarageRoot Root { get; set; }
+
+        public int Price { get; set; }
+
+        public Garage(uint Id, GarageRoot.Types RootType, Types Type, int Price)
+        {
+            this.Id = Id;
+
+            this.Root = GarageRoot.Get(RootType);
+
+            this.StyleData = Style.Get(Type);
+
+            this.Price = Price;
+
+            All.Add(Id, this);
+        }
+
+        public static void LoadAll()
+        {
+            GarageRoot.LoadAll();
+        }
+
+        public static Garage Get(uint id) => All.GetValueOrDefault(id);
     }
 }

@@ -66,18 +66,37 @@ namespace BCRPClient.Additional
 
             #region Events
             #region Teleport
+            Events.Add("AC::State::TP::IV", async (object[] args) =>
+            {
+                LastAllowedPos = (Vector3)args[0] ?? Player.LocalPlayer.Position;
+
+                LastAllowedDimension = args.Length > 1 ? ((int)args[1]).ToUInt32() : Player.LocalPlayer.Dimension;
+
+                AllowTP.Push(true);
+
+                await RAGE.Game.Invoker.WaitAsync(2000);
+
+                AllowTP.Pop();
+
+                if (AllowTP.Count == 0)
+                    AllowTP.Push(false);
+
+            });
+
             Events.Add("AC::State::TP", async (object[] args) =>
             {
                 LastAllowedPos = (Vector3)args[0] ?? Player.LocalPlayer.Position;
+
                 var onGround = (bool)args[1];
+
                 LastAllowedDimension = args.Length > 2 ? ((int)args[2]).ToUInt32() : Player.LocalPlayer.Dimension;
 
-                Player.LocalPlayer.Position = LastAllowedPos;
-
-                if (LastAllowedPos.DistanceTo(Player.LocalPlayer.Position) > 0)
-                    RAGE.Game.Player.StartPlayerTeleport(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, Player.LocalPlayer.GetHeading(), false, onGround, true);
-
                 Player.LocalPlayer.Dimension = LastAllowedDimension;
+
+                //Player.LocalPlayer.Position = LastAllowedPos;
+
+                if (LastAllowedPos.DistanceTo(Player.LocalPlayer.GetCoords(false)) > 0)
+                    RAGE.Game.Player.StartPlayerTeleport(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, Player.LocalPlayer.GetHeading(), false, onGround, true);
 
                 AllowTP.Push(true);
 
@@ -280,7 +299,11 @@ namespace BCRPClient.Additional
                     diff = Math.Abs(diff - Player.LocalPlayer.GetSpeed());
 
                 if (diff >= 50f)
+                {
                     Events.CallRemote("AC::Detect::TP", diff);
+
+                    Utils.ConsoleOutput("ASDAS");
+                }
 
                 if (Player.LocalPlayer.Dimension != LastAllowedDimension)
                     Player.LocalPlayer.Dimension = LastAllowedDimension;

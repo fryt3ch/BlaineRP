@@ -1023,7 +1023,9 @@ namespace BCRPServer.Sync
                 player.Teleport(sData.Position, false, house.Dimension);
             }, 1000);
 
-            player.TriggerEvent("House::Enter", id, sData.Type, house.Dimension, NAPI.Util.ToJson(house.DoorsStates), NAPI.Util.ToJson(house.LightsStates));
+            player.TriggerEvent("House::Enter", house.ToClientJson());
+
+            Console.WriteLine(house.ToClientJson());
         }
 
         [RemoteEvent("House::Exit")]
@@ -1058,6 +1060,85 @@ namespace BCRPServer.Sync
                 player.Heading = house.ExitHeading;
                 player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main);
             }, 1000);
+        }
+
+        [RemoteEvent("House::Garage")]
+        public static void HouseGarage(Player player, bool to)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null || house.GarageData == null)
+                return;
+
+            if (player.Dimension != house.Dimension)
+                return;
+
+            player.CloseAll(true);
+
+            if (to)
+            {
+                player.Heading = house.GarageData.EnterHeading;
+                player.Teleport(house.GarageData.EnterPosition, false);
+            }
+            else
+            {
+                player.Heading = house.StyleData.Heading;
+                player.Teleport(house.StyleData.Position, false);
+            }
+        }
+
+        [RemoteEvent("House::Garage::Vehicle")]
+        public static void HouseGarageVehicle(Player player, bool to, Vehicle veh, uint houseId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (to)
+            {
+                if (player.Dimension != Utils.Dimensions.Main)
+                    return;
+
+                var house = Game.Houses.House.Get(houseId);
+
+                if (house == null || house.GarageData == null)
+                    return;
+
+                player.CloseAll(false);
+
+                player.TriggerEvent("House::Enter", house.ToClientJson());
+
+                player.TriggerEvent("AC::State::TP::IV", house.GarageData.VehiclePositions[0].Position, false, house.Dimension);
+
+                veh.Dimension = house.Dimension;
+                veh.Position = house.GarageData.VehiclePositions[0].Position;
+
+                veh.Controller?.TriggerEvent("Vehicle::Heading", veh, house.GarageData.VehiclePositions[0].Heading);
+
+                //player.Teleport(house.GarageData.VehiclePositions[0].Position, false, house.Dimension);
+            }
+            else
+            {
+
+            }
         }
 
         [RemoteEvent("Players::PlayAnim")]

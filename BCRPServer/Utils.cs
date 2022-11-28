@@ -136,6 +136,26 @@ namespace BCRPServer
             public float Distance(Vector2 pos1, Vector2 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
         }
 
+        public class Vector4
+        {
+            [JsonProperty(PropertyName = "P")]
+            public Vector3 Position { get; set; }
+
+            [JsonProperty(PropertyName = "RZ")]
+            public float RotationZ { get; set; }
+
+            public Vector4(float X, float Y, float Z, float RotationZ)
+            {
+                this.Position = new Vector3(X, Y, Z);
+
+                this.RotationZ = RotationZ;
+            }
+
+            public Vector4(Vector3 Position, float RotationZ) : this(Position.X, Position.Y, Position.Z, RotationZ) { }
+
+            public Vector4() { }
+        }
+
         /// <summary>Получить текущее время (по МСК.)</summary>
         public static DateTime GetCurrentTime() => DateTime.UtcNow.AddHours(3);
 

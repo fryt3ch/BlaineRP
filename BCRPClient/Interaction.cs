@@ -39,8 +39,18 @@ namespace BCRPClient
 
                 return;
             }
-            else if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle || entity.Type == RAGE.Elements.Type.Ped)
+
+            float x = 0f, y = 0f;
+
+            if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle || entity.Type == RAGE.Elements.Type.Ped)
             {
+                if (!entity.GetScreenPosition(ref x, ref y))
+                {
+                    CurrentEntity = null;
+
+                    return;
+                }
+
                 CurrentEntity = entity;
             }
             else if (entity.Type == RAGE.Elements.Type.Object)
@@ -52,15 +62,36 @@ namespace BCRPClient
                     return;
                 }
 
+                if (!entity.GetScreenPosition(ref x, ref y))
+                {
+                    CurrentEntity = null;
+
+                    return;
+                }
+
                 CurrentEntity = entity;
+
+                if (entity.HasData("Furniture"))
+                {
+                    var furnData = entity.GetData<Data.Furniture>("Furniture");
+
+                    if (furnData != null)
+                    {
+                        Utils.DrawText(furnData.Name, x, y - NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    }
+                }
+                else if (entity.HasData("CustomText"))
+                {
+                    var ctAction = entity.GetData<Action<float, float>>("CustomText");
+
+                    if (ctAction != null)
+                    {
+                        ctAction.Invoke(x, y);
+                    }
+                }
             }
 
-            if (CurrentEntity == null || !EnabledVisual)
-                return;
-
-            float x = 0f, y = 0f;
-
-            if (!CurrentEntity.GetScreenPosition(ref x, ref y))
+            if (!EnabledVisual)
                 return;
 
             Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);

@@ -1336,6 +1336,7 @@ namespace BCRPClient.Sync
             CEF.Bank.Close(true);
 
             CEF.Estate.Close(true);
+            CEF.Estate.Agency.Close(true);
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 
