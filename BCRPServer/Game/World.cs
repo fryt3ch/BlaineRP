@@ -86,7 +86,6 @@ namespace BCRPServer.Game
 
                 this.DeletionCTS = new CancellationTokenSource();
 
-
                 Task.Run(async () =>
                 {
                     try

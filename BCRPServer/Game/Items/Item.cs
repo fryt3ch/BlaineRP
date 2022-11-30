@@ -113,42 +113,18 @@ namespace BCRPServer.Game.Items
             if (item == null)
                 return;
 
-            if (item is Game.Items.IContainer cont)
+            if (item is Game.Items.Numberplate np)
             {
-                foreach (var x in cont.Items)
-                {
-                    if (x != null)
-                    {
-                        if (x is Game.Items.Numberplate np)
-                        {
-                            Numberplate.UsedTags.Remove(np.Tag);
-                        }
-                        else if (x is Game.Items.Weapon weapon)
-                        {
-                            Weapon.UsedTags.Remove(weapon.Tag);
-                        }
-
-                        AddFreeId(x.UID);
-
-                        All.Remove(x.UID);
-                    }
-                }
+                Numberplate.UsedTags.Remove(np.Tag);
             }
-            else
+            else if (item is Game.Items.Weapon weapon)
             {
-                if (item is Game.Items.Numberplate np)
-                {
-                    Numberplate.UsedTags.Remove(np.Tag);
-                }
-                else if (item is Game.Items.Weapon weapon)
-                {
-                    Weapon.UsedTags.Remove(weapon.Tag);
-                }
-
-                AddFreeId(item.UID);
-
-                All.Remove(item.UID);
+                Weapon.UsedTags.Remove(weapon.Tag);
             }
+
+            AddFreeId(item.UID);
+
+            All.Remove(item.UID);
         }
 
         public static Item Get(uint id) => All.GetValueOrDefault(id);

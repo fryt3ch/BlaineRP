@@ -422,7 +422,7 @@ namespace BCRPServer
         public Game.Businesses.Business CurrentBusiness { get; set; }
 
         /// <summary>Текущий дом, с которым взаимодействует игрок</summary>
-        public Game.Houses.House CurrentHouse { get; set; }
+        public Game.Houses.House CurrentHouse => Game.Houses.House.Get(Utils.GetHouseIdByDimension(Player.Dimension));
 
         public int VehicleSlots
         {
@@ -709,6 +709,8 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool IsKnocked { get => Player.GetSharedData<bool>("Knocked"); set { Player.SetSharedData("Knocked", value); } }
 
+        public int VehicleSeat { get => Player.GetSharedData<int>("VehicleSeat"); set { Player.SetSharedData("VehicleSeat", value); } }
+
         /// <summary>Приседает ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool CrouchOn { get => Player.GetSharedData<bool>("Crouch::On"); set { Player.SetSharedData("Crouch::On", value); } }
@@ -733,10 +735,6 @@ namespace BCRPServer
         /// <summary>Уровень администратора игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public int AdminLevel { get => Info.AdminLevel; set { Player.SetSharedData("AdminLevel", value); Info.AdminLevel = value; } }
-
-        /// <summary>Место в транспорте, на котором сидит игрок</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public int VehicleSeat { get => Player.GetSharedData<int>("VehicleSeat"); set { Player.SetSharedData("VehicleSeat", value); } }
 
         /// <summary>Текущая шапка игрока, необходимо для нормального отображения в игре при входе/выходе из транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -828,7 +826,6 @@ namespace BCRPServer
 
             CurrentContainer = null;
             CurrentBusiness = null;
-            CurrentHouse = null;
 
             IsWounded = false;
 
@@ -840,6 +837,7 @@ namespace BCRPServer
             VoiceRange = 0f;
             BeltOn = false;
             PhoneOn = false;
+
             VehicleSeat = -1;
 
             IsInvisible = false;

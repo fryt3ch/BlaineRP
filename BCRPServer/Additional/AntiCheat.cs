@@ -13,24 +13,16 @@ namespace BCRPServer.Additional
         }
 
         #region Legalization Methods
-        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null)
+        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false)
         {
-            veh.Position = pos;
-
             if (dimension is uint dim)
             {
                 veh.Dimension = dim;
+            }
 
-                foreach (var x in veh.Occupants)
-                    if (x is Player player)
-                        player.TriggerEvent("AC::State::TP::IV", pos, dim);
-            }
-            else
-            {
-                foreach (var x in veh.Occupants)
-                    if (x is Player player)
-                        player.TriggerEvent("AC::State::TP::IV", pos);
-            }
+            foreach (var x in veh.Occupants)
+                if (x is Player player)
+                    player.TriggerEvent("AC::State::TP", pos, false, heading, fade);
         }
 
         /// <summary>Установить позицию игрока</summary>
@@ -40,30 +32,18 @@ namespace BCRPServer.Additional
         /// <param name="toGround">Привязывать ли к земле?</param>
         /// <param name="dimension">Новое измерение</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void SetPlayerPos(Player player, Vector3 pos, bool toGround, uint? dimension = null)
+        public static void SetPlayerPos(Player player, Vector3 pos, bool toGround, uint? dimension = null, float? heading = null, bool fade = false)
         {
             if (player?.Exists != true)
                 return;
 
-            if (dimension == null)
+            if (dimension != null)
             {
-                player.TriggerEvent("AC::State::TP", pos, toGround);
-            }
-            else
-            {
-                player.TriggerEvent("AC::State::TP", pos, toGround, dimension);
-
                 player.Dimension = (uint)dimension;
             }
 
-            if (pos == null)
-            {
-                pos = player.Position;
-            }
-            else
-            {
-                player.Position = pos;
-            }
+            if (pos != null)
+                player.TriggerEvent("AC::State::TP", pos, toGround, heading, fade);
 
             var pData = player.GetMainData();
 
@@ -71,8 +51,6 @@ namespace BCRPServer.Additional
             {
                 pData.Respawn(pos, player.Heading, Utils.RespawnTypes.Teleport);
             }
-            else
-                NAPI.Player.SpawnPlayer(player, pos, player.Heading);
         }
 
         /// <summary>Установить здоровье игрока</summary>

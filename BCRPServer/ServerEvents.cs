@@ -121,6 +121,10 @@ namespace BCRPServer
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.House.All.Count} houses");
 
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Apartments.All.Count} apartments");
+
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Garage.All.Count} garages");
+
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Furniture.All.Count} furniture");
 
             //Utils.ConsoleOutput(AllPlayers.SerializeToJson());

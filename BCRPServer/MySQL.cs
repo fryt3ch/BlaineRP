@@ -551,8 +551,10 @@ namespace BCRPServer
                                 Game.Items.Item.RemoveOnLoad(y);
                             }
                         }
-
-                        Game.Items.Item.RemoveOnLoad(x);
+                        else
+                        {
+                            Game.Items.Item.RemoveOnLoad(x);
+                        }
                     }
 
                     if (toDelete.Count > 0)

@@ -111,6 +111,7 @@ namespace BCRPServer.Game.Houses
         public PlayerData.PlayerInfo Owner { get; set; }
 
         /// <summary>Список сожителей</summary>
+        /// <remarks>0 - свет, 1 - двери, 2 - шкаф, 3 - гардероб, 4 - холодильник</remarks>
         public Dictionary<PlayerData.PlayerInfo, bool[]> Settlers { get; set; }
 
         /// <summary>Баланс дома</summary>
@@ -172,7 +173,7 @@ namespace BCRPServer.Game.Houses
         public Garage.Style GarageData { get; private set; }
 
         /// <summary>Список транспорта в гараже</summary>
-        public List<VehicleData.VehicleInfo> Vehicles { get; set; }
+        public VehicleData.VehicleInfo[] Vehicles { get; set; }
 
         public House(uint HID, Vector3 GlobalPosition, float ExitHeading, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, GlobalPosition, ExitHeading, Types.House, RoomType)
         {
@@ -182,6 +183,9 @@ namespace BCRPServer.Game.Houses
             this.GarageOutside = GarageOutside;
 
             this.GarageData = GarageType == null ? null : Garage.Style.Get((Garage.Types)GarageType);
+
+            if (this.GarageData != null)
+                this.Vehicles = new VehicleData.VehicleInfo[this.GarageData.MaxVehicles];
 
             All.Add(HID, this);
         }
@@ -234,7 +238,7 @@ namespace BCRPServer.Game.Houses
     {
         public class ApartmentsRoot
         {
-            private static Dictionary<Types, ApartmentsRoot> All { get; set; } = new Dictionary<Types, ApartmentsRoot>();
+            public static Dictionary<Types, ApartmentsRoot> All { get; set; } = new Dictionary<Types, ApartmentsRoot>();
 
             /// <summary>Типы многоквартирных домов</summary>
             public enum Types
@@ -284,7 +288,7 @@ namespace BCRPServer.Game.Houses
         }
 
         /// <summary>Словарь всех квартир</summary>
-        private static Dictionary<int, Apartments> All { get; set; } = new Dictionary<int, Apartments>();
+        public static Dictionary<int, Apartments> All { get; set; } = new Dictionary<int, Apartments>();
 
         public static Dictionary<int, float> TaxCoeffs { get; set; }
 
@@ -311,7 +315,7 @@ namespace BCRPServer.Game.Houses
 
     public class Garage
     {
-        private static Dictionary<uint, Garage> All { get; set; } = new Dictionary<uint, Garage>();
+        public static Dictionary<uint, Garage> All { get; set; } = new Dictionary<uint, Garage>();
 
         public enum Types
         {
@@ -322,7 +326,7 @@ namespace BCRPServer.Game.Houses
 
         public class Style
         {
-            private static Dictionary<Types, Style> All { get; set; } = new Dictionary<Types, Style>();
+            public static Dictionary<Types, Style> All { get; set; } = new Dictionary<Types, Style>();
 
             public Types Type { get; set; }
 

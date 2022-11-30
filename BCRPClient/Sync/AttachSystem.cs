@@ -838,7 +838,7 @@ namespace BCRPClient.Sync
                             var lastSent = Player.LocalPlayer.GetData<DateTime>("Temp::Smoke::LastSent");
 
                             // lmb - do puff
-                            if (!CEF.Cursor.Visible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24))
+                            if (!CEF.Cursor.IsVisible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -848,7 +848,7 @@ namespace BCRPClient.Sync
                                 }
                             }
                             // alt - to mouth
-                            else if ((!CEF.Cursor.Visible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null)
+                            else if ((!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null)
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -897,7 +897,7 @@ namespace BCRPClient.Sync
                             if (Player.LocalPlayer.Vehicle == null)
                             {
                                 // alt - to hand
-                                if (!CEF.Cursor.Visible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
+                                if (!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
                                 {
                                     if (!lastSent.IsSpam(1000, false, false))
                                     {

@@ -8,52 +8,54 @@ namespace BCRPClient.Sync
 {
     class DoorSystem : Events.Script
     {
-        public enum DoorTypes
-        {
-            HouseEnter1 = 0,
-
-        }
-
         public class DoorInfo
         {
-            public DoorTypes DoorType { get; set; }
             public uint Model { get; set; }
+
             public Vector3 Position { get; set; }
 
-            public DoorInfo(DoorTypes DoorType, uint Model, Vector3 Position)
+            public string Name { get; set; }
+
+            public string Id { get; set; }
+
+            public DoorInfo(string Id, uint Model, Vector3 Position, bool DefaultState = true)
             {
-                this.DoorType = DoorType;
+                this.Id = Id;
+
                 this.Model = Model;
                 this.Position = Position;
+
+                All.Add(this);
+
+                ToggleLock(DefaultState);
             }
 
-            public DoorInfo(DoorTypes DoorType, string Model, Vector3 Position) : this(DoorType, RAGE.Util.Joaat.Hash(Model), Position) { }
+            public DoorInfo(string Id, string Model, Vector3 Position, bool DefaultState = true) : this(Id, RAGE.Util.Joaat.Hash(Model), Position, DefaultState) { }
 
             public void ToggleLock(bool state) => DoorSystem.ToggleLock(this, state);
         }
 
-        private static List<DoorInfo> All { get; set; }
-
-        public static DoorInfo Get(DoorTypes doorType) => All.Where(x => x.DoorType == doorType).FirstOrDefault();
+        private static List<DoorInfo> All { get; set; } = new List<DoorInfo>();
 
         public DoorSystem()
         {
-            All = new List<DoorInfo>()
-            {
-                new DoorInfo(DoorTypes.HouseEnter1, "hei_v_ilev_fh_heistdoor2", new Vector3(286.0411f, -998.7357f, -92.67875f)),
-            };
+            // Garages
+            new DoorInfo("s_gar_0", "v_ilev_rc_door2", new Vector3(179.6684f, -1004.762f, -98.85f));
+            new DoorInfo("s_gar_0", "v_ilev_rc_door2", new Vector3(207.7825f, -999.6905f, -98.85f));
+            new DoorInfo("s_gar_0", "v_ilev_garageliftdoor", new Vector3(239.0922f, -1005.571f, 100f));
 
-            Get(DoorTypes.HouseEnter1).ToggleLock(true);
+            // Bank
+            new DoorInfo("s_bank_0", "v_ilev_bk_gate", new Vector3(256.3116f, 220.6579f, 106.4296f));
+            new DoorInfo("s_bank_0", "v_ilev_bk_door", new Vector3(237.7704f, 227.87f, 106.426f));
         }
 
-        public static void ToggleLock(DoorInfo doorInfo, bool state)
-        {
-            RAGE.Game.Object.DoorControl(doorInfo.Model, doorInfo.Position.X, doorInfo.Position.Y, doorInfo.Position.Z, state, 0f, 0f, 0f);
-        }
+        public static void ToggleLock(DoorInfo doorInfo, bool state) => ToggleLock(doorInfo.Model, doorInfo.Position, state);
 
-        public static void ToggleLock(string Model, Vector3 Position, bool state)
+        public static void ToggleLock(string model, Vector3 position, bool state) => ToggleLock(RAGE.Util.Joaat.Hash(model), position, state);
+
+        public static void ToggleLock(uint model, Vector3 position, bool state)
         {
-            RAGE.Game.Object.DoorControl(RAGE.Util.Joaat.Hash(Model), Position.X, Position.Y, Position.Z, state, 0f, 0f, 0f);
+            RAGE.Game.Object.DoorControl(model, position.X, position.Y, position.Z, state, 0f, 0f, 0f);
         }
     }
 }

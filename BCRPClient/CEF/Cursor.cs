@@ -7,8 +7,11 @@ namespace BCRPClient.CEF
 {
     class Cursor : Events.Script
     {
+        public static bool IsActive { get; private set; }
+
         /// <summary>Отображается ли курсор на экране?</summary>
-        public static bool Visible { get => RAGE.Ui.Cursor.Visible; }
+        public static bool IsVisible { get => RAGE.Ui.Cursor.Visible; set => RAGE.Ui.Cursor.Visible = value; }
+
         /// <summary>Запущен ли процесс скрытия курсора?</summary>
         private static bool IsHiding { get; set; }
 
@@ -22,6 +25,8 @@ namespace BCRPClient.CEF
         /// <param name="value">true - отобразить, false - спрятать</param>
         public static void Show(bool freezeInput, bool value)
         {
+            IsActive = value;
+
             RAGE.Ui.Cursor.ShowCursor(freezeInput, value);
 
             if (value)
@@ -32,7 +37,7 @@ namespace BCRPClient.CEF
                     {
                         if (!IsHiding)
                         {
-                            if (Visible)
+                            if (IsVisible)
                             {
                                 GameEvents.Update -= OnTickCursor;
                                 GameEvents.Update += OnTickCursor;

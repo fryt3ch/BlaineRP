@@ -284,6 +284,8 @@ namespace BCRPClient.Sync
 
                     data = new VehicleData(veh);
 
+                    InvokeHandler("InGarage", data, veh.GetSharedData<bool?>("InGarage"), null);
+
                     InvokeHandler("IsInvincible", data, data.IsInvincible, null);
 
                     InvokeHandler("Mods::TSColour", data, veh.GetSharedData("Mods::TSColour"), null);
@@ -646,16 +648,16 @@ namespace BCRPClient.Sync
                 veh.SetBoatAnchor(state);
             });
 
-            Events.Add("Vehicle::Heading", (object[] args) =>
+            AddDataHandler("InGarage", (vData, value, oldValue) =>
             {
-                var veh = (Vehicle)args[0];
-
-                var heading = (float)args[1];
-
-                if (!ControlledVehicles.Contains(veh))
-                    return;
-
-                veh.SetHeading(heading);
+                if (value != null)
+                {
+                    vData.Vehicle.FreezePosition(true);
+                }
+                else
+                {
+                    vData.Vehicle.FreezePosition(false);
+                }
             });
             #endregion
         }
@@ -1121,8 +1123,6 @@ namespace BCRPClient.Sync
                     return;
 
                 Events.CallRemote("House::Garage::Vehicle", true, vehicle, house.Id);
-
-                RAGE.Game.Audio.PlaySoundFrontend(-1, "RAMP_UP", "TRUCK_RAMP_DOWN", true);
             }
             else
             {

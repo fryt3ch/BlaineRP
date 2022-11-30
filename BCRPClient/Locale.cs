@@ -706,9 +706,6 @@ namespace BCRPClient
         {
             public static Dictionary<Additional.ExtraColshape.InteractionTypes, string> Names = new Dictionary<Additional.ExtraColshape.InteractionTypes, string>()
             {
-                { Additional.ExtraColshape.InteractionTypes.DoorLock, "чтобы заблокировать дверь" },
-                { Additional.ExtraColshape.InteractionTypes.DoorUnlock, "чтобы разблокировать дверь" },
-
                 { Additional.ExtraColshape.InteractionTypes.HouseEnter, "для взаимодействия" },
                 { Additional.ExtraColshape.InteractionTypes.HouseExit, "чтобы выйти" },
                 { Additional.ExtraColshape.InteractionTypes.GarageExit, "чтобы выйти" },

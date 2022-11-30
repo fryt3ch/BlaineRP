@@ -509,17 +509,18 @@ namespace BCRPClient.CEF
             if (pData == null)
                 return;
 
-            CurrentType = type;
-
             if (heading != null)
             {
+                while (Additional.SkyCamera.IsFadedOut)
+                    await RAGE.Game.Invoker.WaitAsync(250);
+
+                Sync.Players.CloseAll(false);
+
+                CurrentType = type;
+
                 await Browser.Render(Browser.IntTypes.Shop, true);
 
                 DefaultHeading = (float)heading;
-
-                Additional.ExtraColshape.InteractionColshapesAllowed = false;
-
-                Additional.SkyCamera.FadeScreen(true);
 
                 CEF.HUD.ShowHUD(false);
                 CEF.Chat.Show(false);
@@ -534,49 +535,47 @@ namespace BCRPClient.CEF
 
                 KeyBinds.DisableAll(KeyBinds.Types.Cursor);
 
-                (new AsyncTask(async () =>
+                Additional.SkyCamera.FadeScreen(false);
+
+                CurrentCameraStateNum = 0;
+
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
                 {
-                    Additional.SkyCamera.FadeScreen(false);
+                    if (CursorTask != null)
+                        return;
 
-                    CurrentCameraStateNum = 0;
+                    LastCursorPos = RAGE.Ui.Cursor.Position;
 
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
-                    {
-                        if (CursorTask != null)
-                            return;
+                    CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
+                    CursorTask.Run();
+                }));
 
-                        LastCursorPos = RAGE.Ui.Cursor.Position;
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+                {
+                    if (CursorTask == null)
+                        return;
 
-                        CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
-                        CursorTask.Run();
-                    }));
+                    CursorTask.Cancel();
 
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
-                    {
-                        if (CursorTask == null)
-                            return;
+                    CursorTask = null;
+                }));
 
-                        CursorTask.Cancel();
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+                {
+                    ChangeView(++CurrentCameraStateNum);
+                }));
 
-                        CursorTask = null;
-                    }));
+                Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
-                    {
-                        ChangeView(++CurrentCameraStateNum);
-                    }));
+                if (type >= Types.ClothesShop1 && type <= Types.BagShop)
+                {
+                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                    Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+                    CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
 
-                    if (type >= Types.ClothesShop1 && type <= Types.BagShop)
-                    {
-                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
 
-                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
-
-                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
-
-                        RealClothes = new Dictionary<int, (int, int)>()
+                    RealClothes = new Dictionary<int, (int, int)>()
                         {
                             { 1, (Player.LocalPlayer.GetDrawableVariation(1), Player.LocalPlayer.GetTextureVariation(1)) },
                             { 2, (Player.LocalPlayer.GetDrawableVariation(2), 0) },
@@ -591,7 +590,7 @@ namespace BCRPClient.CEF
                             { 11, (Player.LocalPlayer.GetDrawableVariation(11), Player.LocalPlayer.GetTextureVariation(11)) },
                         };
 
-                        RealAccessories = new Dictionary<int, (int, int)>()
+                    RealAccessories = new Dictionary<int, (int, int)>()
                         {
                             { 0, (Player.LocalPlayer.GetPropIndex(0), Player.LocalPlayer.GetPropTextureIndex(0)) },
                             { 1, (Player.LocalPlayer.GetPropIndex(1), Player.LocalPlayer.GetPropTextureIndex(1)) },
@@ -600,133 +599,136 @@ namespace BCRPClient.CEF
                             { 7, (Player.LocalPlayer.GetPropIndex(7), Player.LocalPlayer.GetPropTextureIndex(7)) },
                         };
 
-                        Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
-                        Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
+                    Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
+                    Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
 
-                        var currentTop = Data.Items.AllData[typeof(Data.Items.Top)].Where(x => ((Data.Items.Top.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentUnder = Data.Items.AllData[typeof(Data.Items.Under)].Where(x => ((Data.Items.Under.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
-                        var currentGloves = Data.Items.AllData[typeof(Data.Items.Gloves)].Where(x => ((Data.Items.Gloves.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
+                    var currentTop = Data.Items.AllData[typeof(Data.Items.Top)].Where(x => ((Data.Items.Top.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
+                    var currentUnder = Data.Items.AllData[typeof(Data.Items.Under)].Where(x => ((Data.Items.Under.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
+                    var currentGloves = Data.Items.AllData[typeof(Data.Items.Gloves)].Where(x => ((Data.Items.Gloves.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
 
-                        if (currentTop != null)
-                            Player.LocalPlayer.SetData("TempClothes::Top", new Data.Clothes.TempClothes(currentTop, RealClothes[11].Item2));
+                    if (currentTop != null)
+                        Player.LocalPlayer.SetData("TempClothes::Top", new Data.Clothes.TempClothes(currentTop, RealClothes[11].Item2));
 
-                        if (currentUnder != null)
-                            Player.LocalPlayer.SetData("TempClothes::Under", new Data.Clothes.TempClothes(currentUnder, RealClothes[8].Item2));
+                    if (currentUnder != null)
+                        Player.LocalPlayer.SetData("TempClothes::Under", new Data.Clothes.TempClothes(currentUnder, RealClothes[8].Item2));
 
-                        if (currentGloves != null)
-                            Player.LocalPlayer.SetData("TempClothes::Gloves", new Data.Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
+                    if (currentGloves != null)
+                        Player.LocalPlayer.SetData("TempClothes::Gloves", new Data.Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
 
-                        CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false, 7500);
+                    CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false, 7500);
 
-                        var prices = GetPrices(CurrentType);
+                    var prices = GetPrices(CurrentType);
 
-                        if (prices == null)
-                            return;
+                    if (prices == null)
+                        return;
 
-                        List<object[]> hats = new List<object[]>();
-                        List<object[]> tops = new List<object[]>();
-                        List<object[]> unders = new List<object[]>();
-                        List<object[]> pants = new List<object[]>();
-                        List<object[]> shoes = new List<object[]>();
-                        List<object[]> accs = new List<object[]>();
-                        List<object[]> glasses = new List<object[]>();
-                        List<object[]> gloves = new List<object[]>();
-                        List<object[]> watches = new List<object[]>();
-                        List<object[]> bracelets = new List<object[]>();
+                    List<object[]> hats = new List<object[]>();
+                    List<object[]> tops = new List<object[]>();
+                    List<object[]> unders = new List<object[]>();
+                    List<object[]> pants = new List<object[]>();
+                    List<object[]> shoes = new List<object[]>();
+                    List<object[]> accs = new List<object[]>();
+                    List<object[]> glasses = new List<object[]>();
+                    List<object[]> gloves = new List<object[]>();
+                    List<object[]> watches = new List<object[]>();
+                    List<object[]> bracelets = new List<object[]>();
 
-                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, 0, false };
+                    var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, 0, false };
 
-                        hats.Add(clearingItem);
-                        tops.Add(clearingItem);
-                        unders.Add(clearingItem);
-                        pants.Add(clearingItem);
-                        shoes.Add(clearingItem);
-                        accs.Add(clearingItem);
-                        glasses.Add(clearingItem);
-                        gloves.Add(clearingItem);
-                        watches.Add(clearingItem);
-                        bracelets.Add(clearingItem);
+                    hats.Add(clearingItem);
+                    tops.Add(clearingItem);
+                    unders.Add(clearingItem);
+                    pants.Add(clearingItem);
+                    shoes.Add(clearingItem);
+                    accs.Add(clearingItem);
+                    glasses.Add(clearingItem);
+                    gloves.Add(clearingItem);
+                    watches.Add(clearingItem);
+                    bracelets.Add(clearingItem);
 
-                        foreach (var x in prices)
-                        {
-                            var type = Data.Items.GetType(x.Key, true);
-
-                            if (type == null)
-                                continue;
-
-                            var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(x.Key, type);
-
-                            if (data == null || data.Sex != pData.Sex)
-                                continue;
-
-                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
-
-                            if (data is Data.Items.Hat.ItemData)
-                                hats.Add(obj);
-                            else if (data is Data.Items.Top.ItemData)
-                                tops.Add(obj);
-                            else if (data is Data.Items.Under.ItemData)
-                                unders.Add(obj);
-                            else if (data is Data.Items.Pants.ItemData)
-                                pants.Add(obj);
-                            else if (data is Data.Items.Shoes.ItemData)
-                                shoes.Add(obj);
-                            else if (data is Data.Items.Accessory.ItemData)
-                                accs.Add(obj);
-                            else if (data is Data.Items.Glasses.ItemData)
-                                glasses.Add(obj);
-                            else if (data is Data.Items.Gloves.ItemData)
-                                gloves.Add(obj);
-                            else if (data is Data.Items.Watches.ItemData)
-                                watches.Add(obj);
-                            else if (data is Data.Items.Bracelet.ItemData)
-                                bracelets.Add(obj);
-                        }
-
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, hats);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 1, glasses);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 2, tops);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 3, unders);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 4, accs);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 5, gloves);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 6, pants);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
-                    }
-                    else if (type >= Types.CarShop1 && type <= Types.AeroShop)
+                    foreach (var x in prices)
                     {
-                        var prices = GetPrices(type);
+                        var iType = Data.Items.GetType(x.Key, true);
 
-                        if (prices == null)
-                            return;
+                        if (iType == null)
+                            continue;
 
-                        Player.LocalPlayer.FreezePosition(true);
+                        var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(x.Key, iType);
 
-                        Player.LocalPlayer.SetVisible(false, false);
+                        if (data == null || data.Sex != pData.Sex)
+                            continue;
 
-                        CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
-                        CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
+                        var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
 
-                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
-
-                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
-
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, prices.Select(x =>
-                        {
-                            var data = Data.Vehicles.GetById(x.Key);
-
-                            return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
-                        }));
+                        if (data is Data.Items.Hat.ItemData)
+                            hats.Add(obj);
+                        else if (data is Data.Items.Top.ItemData)
+                            tops.Add(obj);
+                        else if (data is Data.Items.Under.ItemData)
+                            unders.Add(obj);
+                        else if (data is Data.Items.Pants.ItemData)
+                            pants.Add(obj);
+                        else if (data is Data.Items.Shoes.ItemData)
+                            shoes.Add(obj);
+                        else if (data is Data.Items.Accessory.ItemData)
+                            accs.Add(obj);
+                        else if (data is Data.Items.Glasses.ItemData)
+                            glasses.Add(obj);
+                        else if (data is Data.Items.Gloves.ItemData)
+                            gloves.Add(obj);
+                        else if (data is Data.Items.Watches.ItemData)
+                            watches.Add(obj);
+                        else if (data is Data.Items.Bracelet.ItemData)
+                            bracelets.Add(obj);
                     }
 
-                    Browser.Switch(Browser.IntTypes.Shop, true);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 0, hats);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 1, glasses);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 2, tops);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 3, unders);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 4, accs);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 5, gloves);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 6, pants);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
+                }
+                else if (type >= Types.CarShop1 && type <= Types.AeroShop)
+                {
+                    var prices = GetPrices(type);
 
-                    Cursor.Show(true, true);
-                }, 1500, false, 0)).Run();
+                    if (prices == null)
+                        return;
+
+                    Player.LocalPlayer.FreezePosition(true);
+
+                    Player.LocalPlayer.SetVisible(false, false);
+
+                    CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
+                    CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
+
+                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
+
+                    Browser.Window.ExecuteJs("Shop.fillContainer", 0, prices.Select(x =>
+                    {
+                        var data = Data.Vehicles.GetById(x.Key);
+
+                        return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
+                    }));
+                }
+
+                Browser.Switch(Browser.IntTypes.Shop, true);
+
+                Cursor.Show(true, true);
             }
             else
             {
+                Sync.Players.CloseAll(true);
+
+                CurrentType = type;
+
                 var prices = GetPrices(type);
 
                 if (prices == null)
@@ -747,7 +749,7 @@ namespace BCRPClient.CEF
             }
         }
 
-        public static void Close(bool ignoreTimeout = false, bool request = true)
+        public static async void Close(bool ignoreTimeout = false, bool request = true)
         {
             if (CurrentType == Types.None)
                 return;
@@ -812,35 +814,24 @@ namespace BCRPClient.CEF
                 {
                     Browser.Render(Browser.IntTypes.Shop, false);
 
-                    Additional.ExtraColshape.InteractionColshapesAllowed = false;
+                    while (Additional.SkyCamera.IsFadedOut)
+                        await RAGE.Game.Invoker.WaitAsync(250);
 
-                    Additional.SkyCamera.FadeScreen(true);
+                    Player.LocalPlayer.SetVisible(true, false);
 
-                    (new AsyncTask(() =>
-                    {
-                        Player.LocalPlayer.SetVisible(true, false);
+                    GameEvents.Render -= CharacterCreation.ClearTasksRender;
+                    GameEvents.Render -= GameEvents.DisableAllControls;
 
-                        GameEvents.Render -= CharacterCreation.ClearTasksRender;
-                        GameEvents.Render -= GameEvents.DisableAllControls;
+                    BCRPClient.Interaction.Enabled = true;
 
-                        BCRPClient.Interaction.Enabled = true;
+                    CEF.Chat.Show(true);
 
-                        CEF.Chat.Show(true);
+                    if (!Settings.Interface.HideHUD)
+                        CEF.HUD.ShowHUD(true);
 
-                        if (!Settings.Interface.HideHUD)
-                            CEF.HUD.ShowHUD(true);
+                    KeyBinds.EnableAll();
 
-                        KeyBinds.EnableAll();
-
-                        Additional.Camera.Disable();
-
-                        Additional.SkyCamera.FadeScreen(false);
-                    }, 1500, false, 0)).Run();
-
-                    (new AsyncTask(() =>
-                    {
-                        Additional.ExtraColshape.InteractionColshapesAllowed = true;
-                    }, 2500, false, 0)).Run();
+                    Additional.Camera.Disable();
                 }
                 else
                 {

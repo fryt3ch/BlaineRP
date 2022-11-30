@@ -57,12 +57,20 @@ namespace BCRPClient.Additional
             {
                 bool state = (bool)args[0];
 
-                FadeScreen(state);
+                if (args.Length > 1)
+                {
+                    if (args.Length > 2)
+                        FadeScreen(state, (int)args[1], (int)args[2]);
+                    else
+                        FadeScreen(state, (int)args[1]);
+                }
+                else
+                    FadeScreen(state);
             });
             #endregion
         }
 
-        public static void FadeScreen(bool state, int speed = Settings.DEFAULT_FADE_IN_OUT_SPEED)
+        public static void FadeScreen(bool state, int speed = Settings.DEFAULT_FADE_IN_OUT_SPEED, int inTime = -1)
         {
             if (state)
             {
@@ -70,14 +78,23 @@ namespace BCRPClient.Additional
                     RAGE.Game.Cam.DoScreenFadeIn(0);
 
                 RAGE.Game.Cam.DoScreenFadeOut(speed);
+
+                CEF.Browser.HideAll(true);
             }
             else
             {
                 if (IsFadedOut)
                     RAGE.Game.Cam.DoScreenFadeIn(speed);
+
+                CEF.Browser.HideAll(false);
             }
 
             ShouldBeFadedOut = state;
+
+            if (state && inTime >= 0)
+            {
+                AsyncTask.RunSlim(() => FadeScreen(false, speed, -1), inTime);
+            }
         }
 
         public static async System.Threading.Tasks.Task Move(SwitchType type, bool fade)

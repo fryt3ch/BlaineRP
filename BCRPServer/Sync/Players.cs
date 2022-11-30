@@ -124,12 +124,7 @@ namespace BCRPServer.Sync
 
                 if (player.Vehicle != null)
                 {
-                    var vehData = player.Vehicle.GetMainData();
-
-                    if (vehData != null)
-                    {
-                        vehData.RemovePassenger(data);
-                    }
+                    player.WarpOutOfVehicle();
                 }
 
                 var items = data.Items;
@@ -301,6 +296,12 @@ namespace BCRPServer.Sync
 
             if (pData.IsKnocked)
             {
+                var arm = player.Armor;
+
+                NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
+
+                player.Armor = arm;
+
                 player.SetHealth(10);
 
                 pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
@@ -309,6 +310,12 @@ namespace BCRPServer.Sync
             }
             else
             {
+                var arm = player.Armor;
+
+                NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
+
+                player.Armor = arm;
+
                 pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
                 pData.IsKnocked = true;
@@ -573,6 +580,9 @@ namespace BCRPServer.Sync
             if (sRes.IsSpammer)
                 return;
 
+            if (player.VehicleSeat != 0)
+                return;
+
             var pData = sRes.Data;
 
             var veh = player.Vehicle;
@@ -590,7 +600,7 @@ namespace BCRPServer.Sync
 
             if (vData.ForcedSpeed >= Settings.MIN_CRUISE_CONTROL_SPEED)
                 vData.ForcedSpeed = 0f;
-            else if (vData.EngineOn && pData.VehicleSeat == 0)
+            else if (vData.EngineOn)
                 vData.ForcedSpeed = speed > Settings.MAX_CRUISE_CONTROL_SPEED ? Settings.MAX_CRUISE_CONTROL_SPEED : speed;
         }
         #endregion
@@ -749,33 +759,24 @@ namespace BCRPServer.Sync
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 50f)
                 return;
 
-            pData.CurrentBusiness = business;
-
             if (business is Game.Businesses.IEnterable enterable)
             {
-                pData.UnequipActiveWeapon();
+                pData.CurrentBusiness = business;
 
-                player.CloseAll();
+                pData.UnequipActiveWeapon();
 
                 Sync.Microphone.DisableMicrophone(pData);
 
                 pData.IsInvincible = true;
 
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    player.Heading = enterable.Heading;
-
-                    player.Teleport(enterable.EnterPosition, false, Utils.GetPrivateDimension(player));
-
-                }, 1000);
+                player.Teleport(enterable.EnterPosition, false, Utils.GetPrivateDimension(player), enterable.Heading, true);
 
                 player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.Heading);
             }
             else
             {
+                pData.CurrentBusiness = business;
+
                 player.CloseAll(true);
 
                 player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin);
@@ -797,24 +798,20 @@ namespace BCRPServer.Sync
             if (business == null)
                 return;
 
-            pData.CurrentBusiness = null;
-
             if (business is Game.Businesses.IEnterable enterable)
             {
                 pData.IsInvincible = false;
 
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
+                pData.CurrentBusiness = null;
 
-                    player.Teleport(business.Position, true, Utils.Dimensions.Main);
-                }, 1000);
+                player.Teleport(business.Position, true, Utils.Dimensions.Main, null, true);
 
                 player.TriggerEvent("Shop::Close::Server");
             }
             else
             {
+                pData.CurrentBusiness = null;
+
                 player.TriggerEvent("Shop::Close::Server");
             }
         }
@@ -1008,24 +1005,11 @@ namespace BCRPServer.Sync
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            pData.CurrentHouse = house;
-
-            player.CloseAll();
-
             var sData = house.StyleData;
 
-            NAPI.Task.Run(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                player.Heading = sData.Heading;
-                player.Teleport(sData.Position, false, house.Dimension);
-            }, 1000);
+            player.Teleport(sData.Position, false, house.Dimension, sData.Heading, true);
 
             player.TriggerEvent("House::Enter", house.ToClientJson());
-
-            Console.WriteLine(house.ToClientJson());
         }
 
         [RemoteEvent("House::Exit")]
@@ -1046,20 +1030,9 @@ namespace BCRPServer.Sync
             if (player.Dimension != house.Dimension)
                 return;
 
-            pData.CurrentHouse = null;
-
-            //player.CloseAll();
+            player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main, house.ExitHeading, true);
 
             player.TriggerEvent("House::Exit");
-
-            NAPI.Task.Run(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                player.Heading = house.ExitHeading;
-                player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main);
-            }, 1000);
         }
 
         [RemoteEvent("House::Garage")]
@@ -1122,23 +1095,60 @@ namespace BCRPServer.Sync
                 if (house == null || house.GarageData == null)
                     return;
 
-                player.CloseAll(false);
+                var houseJs = house.ToClientJson();
 
-                player.TriggerEvent("House::Enter", house.ToClientJson());
+                foreach (var x in veh.Occupants)
+                {
+                    if (x is Player passanger)
+                    {
+                        var pasData = passanger.GetMainData();
 
-                player.TriggerEvent("AC::State::TP::IV", house.GarageData.VehiclePositions[0].Position, false, house.Dimension);
+                        if (pasData == null)
+                            continue;
 
-                veh.Dimension = house.Dimension;
-                veh.Position = house.GarageData.VehiclePositions[0].Position;
+                        passanger.TriggerEvent("House::Enter", houseJs);
+                    }
+                }
 
-                veh.Controller?.TriggerEvent("Vehicle::Heading", veh, house.GarageData.VehiclePositions[0].Heading);
+                vData.EngineOn = false;
 
-                //player.Teleport(house.GarageData.VehiclePositions[0].Position, false, house.Dimension);
+                veh.Teleport(house.GarageData.VehiclePositions[0].Position, house.Dimension, house.GarageData.VehiclePositions[0].Heading, true);
+
+                veh.SetSharedData("InGarage", true);
             }
             else
             {
 
             }
+        }
+
+        [RemoteEvent("House::Door")]
+        public static void HouseDoor(Player player, int doorIdx, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (doorIdx < 0)
+                return;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null)
+                return;
+
+            if (doorIdx >= house.DoorsStates.Length)
+                return;
+
+            if (house.DoorsStates[doorIdx] == state)
+                return;
+
+            house.DoorsStates[doorIdx] = state;
+
+            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Door", doorIdx, state);
         }
 
         [RemoteEvent("Players::PlayAnim")]

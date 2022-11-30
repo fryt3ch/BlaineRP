@@ -319,7 +319,7 @@ namespace BCRPClient.Additional
         private static bool _InteractionColshapesAllowed { get; set; }
 
         /// <summary>Доступны ли в данный момент для взаимодействия соответствующие колшейпы?</summary>
-        public static bool InteractionColshapesAllowed { get => _InteractionColshapesAllowed && !Utils.IsAnyCefActive(true); set { _InteractionColshapesAllowed = value; } }
+        public static bool InteractionColshapesAllowed { get => _InteractionColshapesAllowed && !Utils.IsAnyCefActive(true) && !SkyCamera.IsFadedOut; set { _InteractionColshapesAllowed = value; } }
 
         /// <summary>Время последней отправки на сервер, используя колшейп</summary>
         public static DateTime LastSent;
@@ -365,9 +365,6 @@ namespace BCRPClient.Additional
         {
             None = -1,
 
-            DoorLock,
-            DoorUnlock,
-
             BusinessEnter,
             BusinessInfo,
 
@@ -398,12 +395,6 @@ namespace BCRPClient.Additional
             /// <summary>Область, в которой можно заправлять транспорт (на заправках)</summary>
             GasStation,
 
-            /// <summary>Межкомнатная дверь в доме/квартире</summary>
-            HouseDoorLock,
-
-            /// <summary>Межкомнатная дверь в доме/квартире</summary>
-            HouseDoorUnlock,
-
             HouseEnter,
             HouseExit,
 
@@ -419,14 +410,6 @@ namespace BCRPClient.Additional
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
         {
-            {
-                InteractionTypes.DoorLock, Sync.House.DoorLock
-            },
-
-            {
-                InteractionTypes.DoorUnlock, Sync.House.DoorLock
-            },
-
             {
                 InteractionTypes.BusinessEnter, () =>
                 {
@@ -658,62 +641,6 @@ namespace BCRPClient.Additional
                             {
                                 ipl.Unload();
                             }
-                        }
-                    },
-                }
-            },
-
-            {
-                ActionTypes.HouseDoorLock,
-
-                new Dictionary<bool, Action<ExtraColshape>>()
-                {
-                    {
-                        true,
-
-                        (cs) =>
-                        {
-                            if (cs.Data is int doorIdx)
-                            {
-                                Player.LocalPlayer.SetData("House::CurrentDoorIdx", doorIdx);
-                            }
-                        }
-                    },
-
-                    {
-                        false,
-
-                        (cs) =>
-                        {
-                            Player.LocalPlayer.ResetData("House::CurrentDoorIdx");
-                        }
-                    },
-                }
-            },
-
-            {
-                ActionTypes.HouseDoorUnlock,
-
-                new Dictionary<bool, Action<ExtraColshape>>()
-                {
-                    {
-                        true,
-
-                        (cs) =>
-                        {
-                            if (cs.Data is int doorIdx)
-                            {
-                                Player.LocalPlayer.SetData("House::CurrentDoorIdx", doorIdx);
-                            }
-                        }
-                    },
-
-                    {
-                        false,
-
-                        (cs) =>
-                        {
-                            Player.LocalPlayer.ResetData("House::CurrentDoorIdx");
                         }
                     },
                 }

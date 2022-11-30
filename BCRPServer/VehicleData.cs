@@ -41,6 +41,8 @@ namespace BCRPServer
             if (vData == null)
                 return;
 
+            vData.Info.VehicleData = null;
+
             All.Remove(vData.Vehicle);
 
             vData.Vehicle.Delete();
@@ -141,6 +143,8 @@ namespace BCRPServer
 
             public static List<VehicleInfo> GetAllByCID(uint cid) => All.Values.Where(x => x != null && (x.OwnerType == OwnerTypes.Player && x.OwnerID == cid)).ToList();
 
+            public VehicleData VehicleData { get; set; }
+
             public Game.Data.Vehicles.Vehicle Data { get; set; }
 
             public uint VID { get; set; }
@@ -169,49 +173,114 @@ namespace BCRPServer
             {
                 var data = Game.Data.Vehicles.All[ID];
 
-                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Pos, LastData.Heading, 0, 0, "", 255, false, false, Utils.Dimensions.Stuff);
+                var veh = NAPI.Vehicle.CreateVehicle(data.Model, LastData.Position, LastData.Heading, 0, 0, "", 255, false, false, Utils.Dimensions.Stuff);
 
                 return veh;
             }
 
             public VehicleData Spawn()
             {
-                var vData = VehicleData.All.Values.Where(x => x?.VID == VID).FirstOrDefault();
-
-                if (vData == null)
+                if (VehicleData == null)
                 {
-                    vData = new VehicleData(CreateVehicle(), this);
+                    if (LastData.Dimension == Utils.Dimensions.Stuff)
+                        return null;
+
+                    VehicleData = new VehicleData(CreateVehicle(), this);
+
+                    if (LastData.Dimension != Utils.Dimensions.Main)
+                    {
+                        var house = Game.Houses.House.Get(Utils.GetHouseIdByDimension(LastData.Dimension));
+
+                        if (house == null)
+                        {
+
+                        }
+                        else
+                        {
+                            VehicleData.Vehicle.SetSharedData("InGarage", VehicleData.LastData.Heading);
+                        }
+                    }
 
                     NAPI.Task.Run(() =>
                     {
-                        if (vData.Vehicle?.Exists != true)
+                        if (VehicleData?.Vehicle?.Exists != true)
                             return;
 
-                        vData.Vehicle.Dimension = vData.LastData.Dim;
+                        VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
                     }, 1500);
 
-                    return vData;
+                    return VehicleData;
                 }
                 else
                 {
-                    vData.CancelDeletionTask();
+                    VehicleData.CancelDeletionTask();
 
-                    return vData;
+                    return VehicleData;
+                }
+            }
+
+            public static void PreloadAll()
+            {
+                foreach (var x in All.Values)
+                {
+                    if (x.LastData.Dimension == Utils.Dimensions.Stuff || x.LastData.Dimension == Utils.Dimensions.Main)
+                        continue;
+
+                    if (x.LastData.GarageSlot < 0)
+                    {
+                        x.LastData.Dimension = Utils.Dimensions.Stuff;
+
+                        continue;
+                    }
+
+                    var house = Game.Houses.House.Get(Utils.GetHouseIdByDimension(x.LastData.Dimension));
+
+                    if (house == null)
+                    {
+                        // garage check
+
+                        x.LastData.GarageSlot = -1;
+
+                        x.LastData.Dimension = Utils.Dimensions.Stuff;
+
+                        continue;
+                    }
+                    else
+                    {
+                        if (house.GarageData == null || house.Vehicles[x.LastData.GarageSlot] != null)
+                        {
+                            x.LastData.GarageSlot = -1;
+
+                            x.LastData.Dimension = Utils.Dimensions.Stuff;
+
+                            continue;
+                        }
+
+                        house.Vehicles[x.LastData.GarageSlot] = x;
+                    }
                 }
             }
         }
 
         public class LastVehicleData
         {
+            [JsonProperty(PropertyName = "F")]
             public float Fuel { get; set; }
 
+            [JsonProperty(PropertyName = "M")]
             public float Mileage { get; set; }
 
-            public Vector3 Pos { get; set; }
+            [JsonProperty(PropertyName = "P")]
+            public Vector3 Position { get; set; }
 
+            [JsonProperty(PropertyName = "H")]
             public float Heading { get; set; }
 
-            public uint Dim { get; set; }
+            [JsonProperty(PropertyName = "D")]
+            public uint Dimension { get; set; }
+
+            [JsonProperty(PropertyName = "GS")]
+            public int GarageSlot { get; set; }
 
             public LastVehicleData() { }
         }
@@ -251,8 +320,6 @@ namespace BCRPServer
 
         /// <summary>CID владельца транспорта</summary>
         public uint OwnerID { get => Info.OwnerID; set => Info.OwnerID = value; }
-
-        public Player[] Passengers { get; set; }
 
         public VehicleInfo Info { get; set; }
 
@@ -350,8 +417,6 @@ namespace BCRPServer
 
             ForcedSpeed = 0;
 
-            Passengers = new Player[Vehicle.MaxOccupants];
-
             AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
             AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
 
@@ -420,9 +485,9 @@ namespace BCRPServer
             {
                 if (VID > 0)
                 {
-                    LastData.Pos = Vehicle.Position;
+                    LastData.Position = Vehicle.Position;
                     LastData.Heading = Vehicle.Heading;
-                    LastData.Dim = Vehicle.Dimension;
+                    LastData.Dimension = Vehicle.Dimension;
 
                     MySQL.VehicleDeletionUpdate(this.Info);
                 }
@@ -472,7 +537,7 @@ namespace BCRPServer
                 ID = vType.ID,
                 Numberplate = null,
                 Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
-                LastData = new LastVehicleData() { Pos = position, Dim = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f },
+                LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
 
@@ -523,7 +588,7 @@ namespace BCRPServer
                 ID = vType.ID,
                 Numberplate = null,
                 Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
-                LastData = new LastVehicleData() { Pos = position, Dim = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f },
+                LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
 
@@ -614,45 +679,6 @@ namespace BCRPServer
             return null;
         }
 
-        #endregion
-
-        #region Passangers
-        public void AddPassenger(int seatId, PlayerData pData)
-        {
-            var player = pData.Player;
-
-            if (seatId == -1)
-                return;
-
-            if (seatId >= Passengers.Length)
-                return;
-
-            Passengers[seatId] = player;
-
-            pData.VehicleSeat = seatId;
-
-            //NAPI.Util.ConsoleOutput($"added {player.Id} to {seatId}");
-        }
-
-        public void RemovePassenger(PlayerData pData)
-        {
-            var seatId = pData.VehicleSeat;
-
-            if (seatId == -1)
-                return;
-
-            if (seatId >= Passengers.Length)
-                return;
-
-            Passengers[seatId] = null;
-
-            pData.VehicleSeat = -1;
-
-            if (seatId == 0 && ForcedSpeed != 0f)
-                ForcedSpeed = 0f;
-
-            //NAPI.Util.ConsoleOutput($"removed {player.Id} from {seatId}");
-        }
         #endregion
     }
 }

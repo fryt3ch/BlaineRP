@@ -590,7 +590,7 @@ namespace BCRPClient
             Add(new Bind(Types.Cursor, () =>
             {
                 if (!RAGE.Game.Ui.IsPauseMenuActive())
-                    CEF.Cursor.Show(!CEF.Cursor.Visible, !CEF.Cursor.Visible);
+                    CEF.Cursor.Show(!CEF.Cursor.IsVisible, !CEF.Cursor.IsVisible);
             }, true, true)
             { Description = "Скрыть / показать курсор" }, true);
         }

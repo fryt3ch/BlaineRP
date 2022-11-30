@@ -312,6 +312,16 @@ namespace BCRPServer.CEF
                     tData.PositionToSpawn = Utils.DefaultSpawnPosition;
                     tData.DimensionToSpawn = Utils.Dimensions.Main;
                 }
+                else if (sType == TempData.StartPlaceTypes.House)
+                {
+                    if (tData.PlayerData.OwnedHouses.Count > 0)
+                    {
+                        tData.PositionToSpawn = tData.PlayerData.OwnedHouses[0].GlobalPosition;
+                        tData.DimensionToSpawn = Utils.Dimensions.Main;
+                    }
+                    else
+                        return;
+                }
                 else
                     return;
 

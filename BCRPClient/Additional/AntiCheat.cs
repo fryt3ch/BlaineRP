@@ -25,8 +25,6 @@ namespace BCRPClient.Additional
 
         private static Vector3 LastAllowedPos { get; set; }
 
-        private static uint LastAllowedDimension { get; set; }
-
         private static int LastAllowedHP { get; set; }
 
         private static int LastAllowedArm { get; set; }
@@ -66,39 +64,50 @@ namespace BCRPClient.Additional
 
             #region Events
             #region Teleport
-            Events.Add("AC::State::TP::IV", async (object[] args) =>
-            {
-                LastAllowedPos = (Vector3)args[0] ?? Player.LocalPlayer.Position;
-
-                LastAllowedDimension = args.Length > 1 ? ((int)args[1]).ToUInt32() : Player.LocalPlayer.Dimension;
-
-                AllowTP.Push(true);
-
-                await RAGE.Game.Invoker.WaitAsync(2000);
-
-                AllowTP.Pop();
-
-                if (AllowTP.Count == 0)
-                    AllowTP.Push(false);
-
-            });
-
             Events.Add("AC::State::TP", async (object[] args) =>
             {
-                LastAllowedPos = (Vector3)args[0] ?? Player.LocalPlayer.Position;
+                var pos = (Vector3)args[0];
+
+                var heading = args[2] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
 
                 var onGround = (bool)args[1];
 
-                LastAllowedDimension = args.Length > 2 ? ((int)args[2]).ToUInt32() : Player.LocalPlayer.Dimension;
+                var fade = (bool)args[3];
 
-                Player.LocalPlayer.Dimension = LastAllowedDimension;
+                Data.NPC.CurrentNPC?.SwitchDialogue(false);
 
-                //Player.LocalPlayer.Position = LastAllowedPos;
+                if (fade)
+                {
+                    Additional.SkyCamera.FadeScreen(true, 500, -1);
 
-                if (LastAllowedPos.DistanceTo(Player.LocalPlayer.GetCoords(false)) > 0)
-                    RAGE.Game.Player.StartPlayerTeleport(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, Player.LocalPlayer.GetHeading(), false, onGround, true);
+                    await RAGE.Game.Invoker.WaitAsync(500);
+
+                    Additional.SkyCamera.FadeScreen(false, 1500, -1);
+                }
+
+                LastAllowedPos = pos;
 
                 AllowTP.Push(true);
+
+                if (Player.LocalPlayer.Vehicle == null)
+                {
+                    Player.LocalPlayer.Position = pos;
+
+                    Player.LocalPlayer.SetHeading(heading);
+
+                    if (onGround)
+                    {
+                        RAGE.Game.Player.StartPlayerTeleport(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, heading, false, onGround, true);
+                    }
+                }
+                else
+                {
+                    Player.LocalPlayer.Vehicle.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
+
+                    Player.LocalPlayer.Vehicle.SetHeading(heading);
+                }
+
+                Utils.ResetGameplayCameraRotation();
 
                 await RAGE.Game.Invoker.WaitAsync(2000);
 
@@ -275,7 +284,6 @@ namespace BCRPClient.Additional
             LastAllowedPos = player.Position;
             LastAllowedHP = player.GetRealHealth();
             LastAllowedArm = player.GetArmour();
-            LastAllowedDimension = player.Dimension;
             LastAllowedAlpha = 255;
             LastAllowedWeapon = Sync.WeaponSystem.UnarmedHash;
             LastAllowedAmmo = 0;
@@ -304,17 +312,11 @@ namespace BCRPClient.Additional
 
                     Utils.ConsoleOutput("ASDAS");
                 }
-
-                if (Player.LocalPlayer.Dimension != LastAllowedDimension)
-                    Player.LocalPlayer.Dimension = LastAllowedDimension;
             }
             else
             {
                 if (Vector3.Distance(Player.LocalPlayer.Position, LastAllowedPos) >= 50f)
                     Player.LocalPlayer.Position = LastAllowedPos;
-
-                if (Player.LocalPlayer.Dimension != LastAllowedDimension)
-                    Player.LocalPlayer.Dimension = LastAllowedDimension;
             }
 
             LastPosition = Player.LocalPlayer.Position;

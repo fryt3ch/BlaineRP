@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using static BCRPClient.Locale.Notifications.Players;
 
@@ -13,6 +14,8 @@ namespace BCRPClient.Sync
 {
     public class House : Events.Script
     {
+        public static Utils.Colour DefaultLightColour = new Utils.Colour(255, 187, 96, 255);
+
         /// <summary>Типы домов</summary>
         public enum HouseTypes
         {
@@ -54,15 +57,19 @@ namespace BCRPClient.Sync
 
             public Vector3 EnterancePos { get; private set; }
 
+            public string Name { get; private set; }
+
+            public int Price { get; private set; }
+
             public (string Model, Vector3 Position)[] Lights { get; set; }
             public (string Model, Vector3 Position)[] Doors { get; set; }
 
             /// <summary>Словарь планировок</summary>
-            private static Dictionary<HouseTypes, Dictionary<RoomTypes, Dictionary<Types, Style>>> All { get; set; } = new Dictionary<HouseTypes, Dictionary<RoomTypes, Dictionary<Types, Style>>>();
+            public static Dictionary<HouseTypes, Dictionary<RoomTypes, Dictionary<Types, Style>>> All { get; private set; } = new Dictionary<HouseTypes, Dictionary<RoomTypes, Dictionary<Types, Style>>>();
 
             public static Style Get(HouseTypes hType, RoomTypes rType, Types sType) => All.GetValueOrDefault(hType)?.GetValueOrDefault(rType)?.GetValueOrDefault(sType);
 
-            public Style(HouseTypes HouseType, RoomTypes RoomType, Types Type, Vector3 Position, Vector3 EnterancePos, (string Model, Vector3 Position)[] Lights, (string Model, Vector3 Position)[] Doors)
+            public Style(HouseTypes HouseType, RoomTypes RoomType, Types Type, string Name, int Price, Vector3 Position, Vector3 EnterancePos, (string Model, Vector3 Position)[] Lights, (string Model, Vector3 Position)[] Doors)
             {
                 this.HouseType = HouseType;
                 this.RoomType = RoomType;
@@ -72,6 +79,9 @@ namespace BCRPClient.Sync
                 this.Position = Position;
 
                 this.EnterancePos = EnterancePos;
+
+                this.Price = Price;
+                this.Name = Name;
 
                 for (int i = 0; i < Lights.Length; i++)
                     Lights[i].Position += Position;
@@ -93,7 +103,7 @@ namespace BCRPClient.Sync
 
             public static void LoadAll()
             {
-                new Style(HouseTypes.House, RoomTypes.Two, Types.First, new Vector3(70f, 70f, -10f), new Vector3(67.955511f, 70.03592f, -10f),
+                new Style(HouseTypes.House, RoomTypes.Two, Types.First, "2 комнаты | Стандартный стиль", 100, new Vector3(70f, 70f, -10f), new Vector3(67.955511f, 70.03592f, -10f),
                     new (string, Vector3)[]
                     {
                         ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
@@ -112,7 +122,7 @@ namespace BCRPClient.Sync
                         ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
                     });
 
-                new Style(HouseTypes.House, RoomTypes.Two, Types.Second, new Vector3(70f, 70f, -20f), new Vector3(67.955511f, 70.03592f, -20f),
+                new Style(HouseTypes.House, RoomTypes.Two, Types.Second, "2 комнаты | Темный стиль", 100, new Vector3(70f, 70f, -20f), new Vector3(67.955511f, 70.03592f, -20f),
                     new (string, Vector3)[]
                     {
                         ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
@@ -136,33 +146,37 @@ namespace BCRPClient.Sync
         private static List<Additional.ExtraColshape> TempColshapes;
         private static List<Blip> TempBlips;
 
-        private static List<MapObject> TempObjects;
+        public static Dictionary<int, MapObject> Lights { get; private set; }
+        public static Dictionary<int, MapObject> Doors { get; private set; }
 
-        private static List<(int Handle, Utils.Colour Colour, bool State)> Lights;
-        private static List<(string Model, Vector3 Position, bool IsLocked)> Doors;
+        public static Dictionary<uint, MapObject> Furniture { get; private set; }
 
-        private static Dictionary<uint, MapObject> Furniture;
+        private static DateTime LastSent;
 
         public House()
         {
+            LastSent = DateTime.MinValue;
+
             Data.Furniture.LoadAll();
 
             Style.LoadAll();
 
             TempColshapes = new List<Additional.ExtraColshape>();
             TempBlips = new List<Blip>();
-            TempObjects = new List<MapObject>();
 
-            Lights = new List<(int Handle, Utils.Colour Color, bool State)>();
-            Doors = new List<(string Model, Vector3 Position, bool IsLocked)>();
+            Lights = new Dictionary<int, MapObject>();
+            Doors = new Dictionary<int, MapObject>();
 
             Furniture = new Dictionary<uint, MapObject>();
 
             Events.Add("House::Enter", async (object[] args) =>
             {
-                Additional.ExtraColshape.InteractionColshapesAllowed = false;
+                Player.LocalPlayer.SetData("House::Requested", true);
 
-                Additional.SkyCamera.FadeScreen(true);
+                while (Additional.SkyCamera.IsFadedOut)
+                    await RAGE.Game.Invoker.WaitAsync(250);
+
+                Sync.Players.CloseAll(false);
 
                 var data = RAGE.Util.Json.Deserialize<JObject>((string)args[0]);
 
@@ -185,17 +199,19 @@ namespace BCRPClient.Sync
                     var pos = new Vector3((float)x["PX"], (float)x["PY"], (float)x["PZ"]);
                     var rot = new Vector3((float)x["RX"], (float)x["RY"], (float)x["RZ"]);
 
+                    MapObject obj = null;
+
                     if (fData.Type == Data.Furniture.Types.Locker)
                     {
-                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid, (uint)data["LI"]));
+                        obj = fData.CreateObject(pos, rot, dimension, fUid, (uint)data["LI"]);
                     }
                     else if (fData.Type == Data.Furniture.Types.Wardrobe)
                     {
-                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid, (uint)data["WI"]));
+                        obj = fData.CreateObject(pos, rot, dimension, fUid, (uint)data["WI"]);
                     }
                     else if (fData.Type == Data.Furniture.Types.Fridge)
                     {
-                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid, (uint)data["FI"]));
+                        obj = fData.CreateObject(pos, rot, dimension, fUid, (uint)data["FI"]);
                     }
                     else if (fData.Type == Data.Furniture.Types.KitchenSet)
                     {
@@ -203,8 +219,12 @@ namespace BCRPClient.Sync
                     }
                     else
                     {
-                        Furniture.Add(fUid, fData.CreateObject(pos, rot, dimension, fUid));
+                        obj = fData.CreateObject(pos, rot, dimension, fUid);
                     }
+
+                    obj.SetData("Data", fData);
+
+                    Furniture.Add(fUid, obj);
                 }
 
                 Player.LocalPlayer.SetData("House::CurrentHouse::Type", hType);
@@ -214,6 +234,8 @@ namespace BCRPClient.Sync
                     var house = Data.Locations.House.All[id];
 
                     var style = Style.Get(hType, house.RoomType, sType);
+
+                    Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
 
                     Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
@@ -236,8 +258,7 @@ namespace BCRPClient.Sync
 
                     TempBlips.Add(new RAGE.Elements.Blip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
-                    Lights.Clear();
-                    Doors.Clear();
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
 
                     while (Player.LocalPlayer.Dimension != dimension)
                     {
@@ -256,16 +277,16 @@ namespace BCRPClient.Sync
                     {
                         var x = style.Doors[i];
 
-                        Doors.Add((x.Model, x.Position, doors[i]));
-
-                        Sync.DoorSystem.ToggleLock(x.Model, x.Position, doors[i]);
-
                         var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
 
                         if (handle <= 0)
                             continue;
 
                         var t = new MapObject(handle);
+
+                        Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), doors[i]);
+
+                        Doors.Add(i, t);
 
                         t.SetData("Interactive", true);
 
@@ -274,15 +295,27 @@ namespace BCRPClient.Sync
 
                         t.SetData("CustomAction", new Action<MapObject>((obj) =>
                         {
+                            if (LastSent.IsSpam(1000))
+                                return;
 
+                            Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
+
+                            LastSent = DateTime.Now;
                         }));
 
                         t.SetData("CustomText", new Action<float, float>((x, y) =>
                         {
+                            if (t.GetData<bool>("DoorState"))
+                            {
+                                Utils.DrawText("[Закрыта]", x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                            }
+                            else
+                            {
+                                Utils.DrawText("[Открыта]", x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                            }
 
+                            Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                         }));
-
-                        TempObjects.Add(t);
                     }
 
                     for (int i = 0; i < style.Lights.Length; i++)
@@ -294,15 +327,19 @@ namespace BCRPClient.Sync
                         if (handle <= 0)
                             continue;
 
-                        Lights.Add((handle, lights[i].Colour, lights[i].State));
+                        var t = new MapObject(handle);
+
+                        var rgb = new Utils.Colour(lights[i].Colour.Red, lights[i].Colour.Green, lights[i].Colour.Blue, 255);
+
+                        t.SetData("State", lights[i].State);
+                        t.SetData("RGB", rgb);
+
+                        Lights.Add(i, t);
 
                         RAGE.Game.Entity.SetEntityLights(handle, !lights[i].State);
-                        RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, handle, true, lights[i].Colour.Red, lights[i].Colour.Green, lights[i].Colour.Blue);
+
+                        t.SetLightColour(rgb);
                     }
-
-                    Additional.SkyCamera.FadeScreen(false);
-
-                    Additional.ExtraColshape.InteractionColshapesAllowed = true;
                 }
                 else
                 {
@@ -310,18 +347,14 @@ namespace BCRPClient.Sync
                 }
             });
 
-            Events.Add("House::Exit", (object[] args) =>
+            Events.Add("House::Exit", async (object[] args) =>
             {
-                Additional.ExtraColshape.InteractionColshapesAllowed = false;
+                if (!Player.LocalPlayer.HasData("House::Requested"))
+                    return;
 
-                Additional.SkyCamera.FadeScreen(true);
+                Player.LocalPlayer.ResetData("House::CurrentHouse");
 
-                (new AsyncTask(() =>
-                {
-                    Additional.SkyCamera.FadeScreen(false);
-
-                    Additional.ExtraColshape.InteractionColshapesAllowed = true;
-                }, 1500)).Run();
+                Sync.Players.CloseAll(false);
 
                 foreach (var x in TempColshapes)
                     x?.Delete();
@@ -333,56 +366,146 @@ namespace BCRPClient.Sync
 
                 TempBlips.Clear();
 
-                Doors.Clear(); Lights.Clear();
-
-                foreach (var x in TempObjects)
+                foreach (var x in Doors.Values)
                     x?.Destroy();
 
-                TempObjects.Clear();
+                Doors.Clear();
+
+                foreach (var x in Lights.Values)
+                    x?.Destroy();
+
+                Lights.Clear();
 
                 foreach (var x in Furniture.Values)
                     x?.Destroy();
 
                 Furniture.Clear();
+
+                Player.LocalPlayer.ResetData("House::Requested");
+
+                CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_House);
+            });
+
+            Events.Add("House::Door", (object[] args) =>
+            {
+                var dIdx = (int)args[0];
+                var state = (bool)args[1];
+
+                var door = Doors.GetValueOrDefault(dIdx);
+
+                if (door == null)
+                    return;
+
+                door.SetData("DoorState", state);
+
+                Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(door.Handle), door.GetCoords(false), state);
+            });
+
+            Events.Add("House::Light", (object[] args) =>
+            {
+                var lIdx = (int)args[0];
+
+                var light = Lights.GetValueOrDefault(lIdx);
+
+                if (light == null)
+                    return;
+
+                if (args[1] is bool state)
+                {
+                    light.SetData("State", state);
+
+                    RAGE.Game.Entity.SetEntityLights(light.Handle, !state);
+
+                    if (CEF.HouseMenu.IsActive)
+                        CEF.HouseMenu.SetLightState(lIdx, state);
+                }
+                else if (args[1] is string str)
+                {
+                    var rgb = RAGE.Util.Json.Deserialize<Utils.Colour>(str);
+
+                    if (rgb != null)
+                    {
+                        light.SetData("RGB", rgb);
+
+                        light.SetLightColour(rgb);
+
+                        if (CEF.HouseMenu.IsActive)
+                            CEF.HouseMenu.SetLightColour(lIdx, rgb);
+                    }
+                }
+            });
+
+            Events.Add("House::Furn", (args) =>
+            {
+                var fUid = (uint)(int)args[0];
+
+                var furn = Furniture.GetValueOrDefault(fUid);
+
+                CEF.MapEditor.Close();
+
+                if (args.Length > 1)
+                {
+                    if (args[1] is string posStr)
+                    {
+                        if (furn == null)
+                            return;
+
+                        var pos = RAGE.Util.Json.Deserialize<Vector3>(posStr);
+
+                        var rot = RAGE.Util.Json.Deserialize<Vector3>((string)args[2]);
+
+                        furn.SetCoords(pos.X, pos.Y, pos.Z, false, false, false, false);
+                        furn.SetRotation(rot.X, rot.Y, rot.Z, 2, true);
+                    }
+                }
+                else
+                {
+                    furn?.Destroy();
+
+                    Furniture.Remove(fUid);
+
+                    if (CEF.HouseMenu.IsActive)
+                        CEF.HouseMenu.RemoveInstalledFurniture(fUid);
+                }
             });
         }
 
-        public static bool DoorLock()
+        public static void FindObject(MapObject obj)
         {
-            if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, false))
+            AsyncTask.RunSlim(async () =>
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    obj?.SetAlpha(125, false);
+
+                    await RAGE.Game.Invoker.WaitAsync(250);
+
+                    obj?.SetAlpha(255, false);
+
+                    await RAGE.Game.Invoker.WaitAsync(250);
+                }
+            }, 0);
+
+            var blip = new Blip(162, obj.GetCoords(false), "Мебель", 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension);
+
+            TempBlips.Add(blip);
+
+            obj.SetData("Blip", blip);
+
+            (new AsyncTask(() =>
+            {
+                if (blip == null || !RAGE.Game.Ui.DoesBlipExist(blip.Handle))
+                    return true;
+
+                if (Player.LocalPlayer.Dimension != blip.Dimension || Player.LocalPlayer.Position.DistanceTo2D(blip.GetInfoIdCoord()) <= 1f)
+                {
+                    blip.Destroy();
+
+                    return true;
+                }
+
                 return false;
-
-            if (!Player.LocalPlayer.HasData("House::CurrentDoorIdx"))
-                return true;
-
-            var idx = Player.LocalPlayer.GetData<int>("House::CurrentDoorIdx");
-            var door = Doors[idx];
-
-            Sync.DoorSystem.ToggleLock(door.Model, door.Position, !door.IsLocked);
-
-            door.IsLocked = !door.IsLocked;
-            Doors[idx] = door;
-
-            if (door.IsLocked)
-            {
-                var dBlip = new Blip(255, door.Position, "Закрытая дверь", 0.75f, 1, 255, 0, false, 0, 0, Player.LocalPlayer.Dimension);
-
-                dBlip.SetData("DoorIdx", idx);
-
-                TempBlips.Add(dBlip);
-            }
-            else
-            {
-                for (int i = 0; i < TempBlips.Count; i++)
-                    if (TempBlips[i].HasData("DoorIdx") && TempBlips[i].GetData<int>("DoorIdx") == idx)
-                    {
-                        TempBlips[i].Destroy();
-
-                        TempBlips.Remove(TempBlips[i]);
-                    }
-            }
-
-            return true;
+            }, 1000, true, 1000)).Run();
         }
     }
 }

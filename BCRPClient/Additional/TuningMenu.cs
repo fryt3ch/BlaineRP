@@ -217,7 +217,7 @@ namespace BCRPClient.Additional
 
                     subMenu.SetMenuData(x.Key);
 
-                    var curMod = veh.GetMod(x.Key);
+                    var curMod = (x.Key == 18 ? (veh.IsToggleModOn(18) ? 0 : -1) : (x.Key == 22 ? (veh.IsToggleModOn(22) ? 0 : -1) : (x.Key == 55 ? veh.GetWindowTint() - 1 : veh.GetMod(x.Key))));
 
                     if (x.Value.ModNames != null)
                     {
@@ -256,7 +256,11 @@ namespace BCRPClient.Additional
                         var idx = (int)sender.MenuData;
                         var state = (int)item.ItemData;
 
-                        if (idx == 22)
+                        if (idx == 18)
+                        {
+                            veh.ToggleMod(18, state != -1);
+                        }
+                        else if (idx == 22)
                         {
                             veh.ToggleMod(idx, state != -1);
 

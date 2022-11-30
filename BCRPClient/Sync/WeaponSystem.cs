@@ -381,18 +381,7 @@ namespace BCRPClient.Sync
 
                 var pData = Sync.Players.GetData(player);
 
-                if (pData == null || pData.IsInvincible)
-                {
-                    var pos = Player.LocalPlayer.GetCoords(false);
-                    var heading = Player.LocalPlayer.GetHeading();
-
-                    RAGE.Game.Network.NetworkResurrectLocalPlayer(pos.X, pos.Y, pos.Z, heading, true, false, 0);
-
-                    RAGE.Game.Misc.SetFadeOutAfterDeath(false);
-
-                    Events.OnPlayerSpawn?.Invoke(null);
-                }
-                else
+                if (pData != null)
                 {
                     Sync.Players.CloseAll(false);
 
@@ -405,6 +394,22 @@ namespace BCRPClient.Sync
                     Additional.Scaleform.ShowWasted(reason, killer);
 
                     Events.CallRemote("Players::OnDeath", killer);
+                }
+                else if (pData == null)
+                {
+                    var pos = Player.LocalPlayer.GetCoords(false);
+
+                    pos.Z = Utils.GetGroundZCoord(pos, false);
+
+                    var heading = Player.LocalPlayer.GetHeading();
+
+                    RAGE.Game.Network.NetworkResurrectLocalPlayer(pos.X, pos.Y, pos.Z, heading, true, false, 0);
+
+                    Player.LocalPlayer.Resurrect();
+
+                    RAGE.Game.Misc.SetFadeOutAfterDeath(false);
+
+                    Events.OnPlayerSpawn?.Invoke(null);
                 }
             };
 

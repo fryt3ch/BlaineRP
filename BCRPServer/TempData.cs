@@ -159,13 +159,20 @@ namespace BCRPServer
             if (PlayerData == null)
                 return;
 
-            List<StartPlaceTypes> sTypes = new List<StartPlaceTypes>() { StartPlaceTypes.Last, StartPlaceTypes.Spawn };
+            List<StartPlaceTypes> sTypes = new List<StartPlaceTypes>() { StartPlaceTypes.Last };
 
             if (PlayerData.LastData.Dimension != Utils.Dimensions.Main)
             {
                 PlayerData.LastData.Position = Utils.DefaultSpawnPosition;
                 PlayerData.LastData.Dimension = Utils.Dimensions.Main;
             }
+
+            if (PlayerData.OwnedHouses.Count > 0)
+            {
+                sTypes.Add(StartPlaceTypes.House);
+            }
+
+            sTypes.Add(StartPlaceTypes.Spawn);
 
             Player.TriggerEvent("Auth::StartPlace::Load", sTypes.SerializeToJson());
         }

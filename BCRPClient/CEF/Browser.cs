@@ -225,12 +225,12 @@ namespace BCRPClient.CEF
 
             //Utils.ConsoleOutput($"v-switch: {state}, {type}");
 
-            Window.ExecuteJs("switchTemplate", state, IntNames[type]);
+            Window.ExecuteCachedJs("switchTemplate", state, IntNames[type]);
         }
 
         public static async System.Threading.Tasks.Task Render(IntTypes type, bool state, bool switchAfter = false)
         {
-            Window.ExecuteJs("renderTemplate", state, IntNames[type]);
+            Window.ExecuteCachedJs("renderTemplate", state, IntNames[type]);
 
             //Utils.ConsoleOutput($"v-if: {state}, {type}");
 
@@ -251,6 +251,15 @@ namespace BCRPClient.CEF
                     IsAnyCEFActive = ActiveInterfaces.Union(NormalInterfaces).Count() > NormalInterfaces.Count;
                 }
             }
+        }
+
+        public static void HideAll(bool state)
+        {
+            foreach (var x in ActiveInterfaces)
+                Window.ExecuteCachedJs("switchTemplate", !state, IntNames[x]);
+
+            if (CEF.Cursor.IsActive)
+                CEF.Cursor.IsVisible = !state;
         }
         #endregion
     }

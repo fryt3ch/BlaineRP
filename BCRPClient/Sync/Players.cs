@@ -179,11 +179,11 @@ namespace BCRPClient.Sync
 
             public bool BeltOn => Player.GetSharedData<bool>("Belt::On", false);
 
-            public int VehicleSeat => Player.GetSharedData<int>("VehicleSeat", -1);
-
             public bool PhoneOn => Player.GetSharedData<bool>("Phone::On", false);
 
             public int AdminLevel => Player.GetSharedData<int>("AdminLevel", -1);
+
+            public int VehicleSeat => Player.GetSharedData<int>("VehicleSeat", -1);
 
             public Sync.Animations.GeneralTypes GeneralAnim => (Sync.Animations.GeneralTypes)Player.GetSharedData<int>("Anim::General", -1);
 
@@ -212,6 +212,8 @@ namespace BCRPClient.Sync
             public List<int> OwnedApartments { get; set; }
 
             public List<int> OwnedGarages { get; set; }
+
+            public Dictionary<uint, Data.Furniture> Furniture { get => Player.LocalPlayer.GetData<Dictionary<uint, Data.Furniture>>("Furniture"); set => Player.LocalPlayer.SetData("Furniture", value); }
 
             public List<uint> Familiars { get => Player.LocalPlayer.GetData<List<uint>>("Familiars"); set => Player.LocalPlayer.SetData("Familiars", value); }
 
@@ -353,6 +355,8 @@ namespace BCRPClient.Sync
                 data.OwnedBusinesses = RAGE.Util.Json.Deserialize<List<int>>((string)sData["Businesses"]).Select(x => Data.Locations.Business.All[x]).ToList();
                 data.OwnedHouses = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Houses"]).Select(x => Data.Locations.House.All[x]).ToList();
 
+                data.Furniture = new Dictionary<uint, Data.Furniture>();
+
                 foreach (var x in data.Skills)
                     UpdateSkill(x.Key, x.Value);
 
@@ -488,14 +492,12 @@ namespace BCRPClient.Sync
                     if (data.CID == 0)
                         return;
 
+                    if (data.VehicleSeat >= 0)
+                        InvokeHandler("VehicleSeat", data, data.VehicleSeat, null);
+
                     InvokeHandler("IsInvisible", data, data.IsInvisible, null);
 
                     data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
-
-                    if (data.VehicleSeat != -1)
-                    {
-                        InvokeHandler("VehicleSeat", data, data.VehicleSeat, null);
-                    }
 
                     if (data.VoiceRange > 0f)
                         Sync.Microphone.AddTalker(player);
@@ -1101,6 +1103,60 @@ namespace BCRPClient.Sync
 
             });
 
+            AddDataHandler("VoiceRange", (pData, value, oldValue) =>
+            {
+                var player = pData.Player;
+
+                var vRange = (float)value;
+
+                if (player.Handle == Player.LocalPlayer.Handle)
+                {
+                    // Voice Off
+                    if (vRange > 0f)
+                    {
+                        Voice.Muted = false;
+
+                        CEF.HUD.SwitchMicroIcon(true);
+
+                        GameEvents.Update -= Sync.Microphone.OnTick;
+                        GameEvents.Update += Sync.Microphone.OnTick;
+
+                        Sync.Microphone.StartUpdateListeners();
+
+                        Sync.Microphone.SetTalkingAnim(Player.LocalPlayer, true);
+                    }
+                    // Voice On / Muted
+                    else if (vRange <= 0f)
+                    {
+                        Sync.Microphone.StopUpdateListeners();
+
+                        Voice.Muted = true;
+
+                        CEF.HUD.SwitchMicroIcon(false);
+
+                        Sync.Microphone.SetTalkingAnim(Player.LocalPlayer, false);
+
+                        GameEvents.Update -= Sync.Microphone.OnTick;
+
+                        if (vRange < 0f)
+                        {
+                            CEF.HUD.SwitchMicroIcon(null);
+                        }
+                    }
+                }
+                else
+                {
+                    if (vRange > 0f)
+                    {
+                        Sync.Microphone.AddTalker(player);
+                    }
+                    else
+                    {
+                        Sync.Microphone.RemoveTalker(player);
+                    }
+                }
+            });
+
             AddDataHandler("VehicleSeat", async (pData, value, oldValue) =>
             {
                 var player = pData.Player;
@@ -1160,60 +1216,6 @@ namespace BCRPClient.Sync
                     Sync.Players.UpdateHat(player);
 
                     Phone.TurnVehiclePhone(player);
-                }
-            });
-
-            AddDataHandler("VoiceRange", (pData, value, oldValue) =>
-            {
-                var player = pData.Player;
-
-                var vRange = (float)value;
-
-                if (player.Handle == Player.LocalPlayer.Handle)
-                {
-                    // Voice Off
-                    if (vRange > 0f)
-                    {
-                        Voice.Muted = false;
-
-                        CEF.HUD.SwitchMicroIcon(true);
-
-                        GameEvents.Update -= Sync.Microphone.OnTick;
-                        GameEvents.Update += Sync.Microphone.OnTick;
-
-                        Sync.Microphone.StartUpdateListeners();
-
-                        Sync.Microphone.SetTalkingAnim(Player.LocalPlayer, true);
-                    }
-                    // Voice On / Muted
-                    else if (vRange <= 0f)
-                    {
-                        Sync.Microphone.StopUpdateListeners();
-
-                        Voice.Muted = true;
-
-                        CEF.HUD.SwitchMicroIcon(false);
-
-                        Sync.Microphone.SetTalkingAnim(Player.LocalPlayer, false);
-
-                        GameEvents.Update -= Sync.Microphone.OnTick;
-
-                        if (vRange < 0f)
-                        {
-                            CEF.HUD.SwitchMicroIcon(null);
-                        }
-                    }
-                }
-                else
-                {
-                    if (vRange > 0f)
-                    {
-                        Sync.Microphone.AddTalker(player);
-                    }
-                    else
-                    {
-                        Sync.Microphone.RemoveTalker(player);
-                    }
                 }
             });
 

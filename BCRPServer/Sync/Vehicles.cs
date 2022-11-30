@@ -25,14 +25,12 @@ namespace BCRPServer.Sync
             if (vData == null)
                 return;
 
-            if (pData.VehicleSeat != -1 || seatId < 0 || seatId >= veh.MaxOccupants || vData.Locked || vData.Passengers[seatId]?.Exists == true)
+            if (seatId < 0 || seatId >= veh.MaxOccupants || (pData.VehicleSeat < 0 && vData.Locked) || veh.GetEntityInVehicleSeat(seatId) != null)
             {
                 player.WarpOutOfVehicle();
 
                 return;
             }
-
-            vData.AddPassenger(seatId, pData);
 
             if (vData.IsInvincible)
                 vData.IsInvincible = false;
@@ -44,6 +42,8 @@ namespace BCRPServer.Sync
                 if (!curWeapon.Value.WeaponItem.Data.CanUseInVehicle)
                     pData.InventoryAction(curWeapon.Value.Group, curWeapon.Value.Slot, 5);
             }
+
+            pData.VehicleSeat = seatId;
         }
         #endregion
 
@@ -63,10 +63,13 @@ namespace BCRPServer.Sync
             if (vData == null)
                 return;
 
-            vData.RemovePassenger(pData);
+            if (vData.ForcedSpeed != 0f && veh.GetEntityInVehicleSeat(0) != null)
+                vData.ForcedSpeed = 0f;
 
-            if (!vData.IsInvincible && !vData.Passengers.Where(x => x?.Exists == true).Any())
+            if (!vData.IsInvincible && veh.Occupants.Count == 0)
                 vData.IsInvincible = true;
+
+            pData.VehicleSeat = -1;
         }
         #endregion
 
@@ -88,10 +91,22 @@ namespace BCRPServer.Sync
             if (vData == null)
                 return;
 
-            if (pData.VehicleSeat != 0)
+            if (player.VehicleSeat != 0)
                 return;
 
             ToggleEngine(pData, vData);
+
+            if (veh.GetSharedData<bool?>("InGarage") != null)
+            {
+                if (pData.CurrentHouse == null)
+                    return;
+
+                veh.Teleport(pData.CurrentHouse.GarageOutside.Position, Utils.Dimensions.Main, pData.CurrentHouse.GarageOutside.RotationZ, true);
+
+                veh.ResetSharedData("InGarage");
+
+                player.TriggerEvent("House::Exit");
+            }
         }
 
         public static void ToggleEngine(PlayerData pData, VehicleData vData, bool? forceStatus = null)
@@ -203,7 +218,7 @@ namespace BCRPServer.Sync
             if (vData == null)
                 return;
 
-            if (pData.VehicleSeat != 0 || type < 0 || type > 2 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
+            if (player.VehicleSeat != 0 || type < 0 || type > 2 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
                 return;
 
             bool leftOn = vData.LeftIndicatorOn;
@@ -260,7 +275,7 @@ namespace BCRPServer.Sync
             if (vData == null)
                 return;
 
-            if (pData.VehicleSeat != 0 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
+            if (player.VehicleSeat != 0 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
                 return;
 
             vData.LightsOn = !vData.LightsOn;
@@ -405,14 +420,14 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
+            if (player.VehicleSeat != 0)
+                return;
+
             var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
-
-            if (pData.VehicleSeat != 0)
                 return;
 
             if (!vData.EngineOn)
@@ -444,6 +459,9 @@ namespace BCRPServer.Sync
             if (sRes.IsSpammer)
                 return;
 
+            if (player.VehicleSeat != 0)
+                return;
+
             var pData = sRes.Data;
 
             var veh = player.Vehicle;
@@ -451,9 +469,6 @@ namespace BCRPServer.Sync
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
-
-            if (pData.VehicleSeat != 0)
                 return;
 
             if (!vData.EngineOn)
@@ -479,6 +494,9 @@ namespace BCRPServer.Sync
             if (sRes.IsSpammer)
                 return;
 
+            if (seatId < 0)
+                return;
+
             var pData = sRes.Data;
 
             var veh = player.Vehicle;
@@ -488,25 +506,20 @@ namespace BCRPServer.Sync
             if (vData == null)
                 return;
 
+            if (seatId >= veh.MaxOccupants)
+                return;
+
             var currentSeat = pData.VehicleSeat;
 
-            if (currentSeat == seatId || currentSeat == 0)
+            if (currentSeat == seatId || currentSeat <= 0 || veh.GetEntityInVehicleSeat(seatId) != null)
                 return;
 
-            var seats = vData.Passengers;
-
-            if (seats[seatId]?.Exists == true)
-                return;
-
-            if (veh.MaxPassengers + 1 < seatId + 1)
-                return;
-
-            vData.RemovePassenger(pData);
-
-            player.SetIntoVehicle(veh, seatId);
-
-            if (seatId != 0)
-                vData.AddPassenger(seatId, pData);
+            if (seatId == 0)
+            {
+                player.SetIntoVehicle(veh, seatId);
+            }
+            else
+                pData.VehicleSeat = seatId;
         }
         #endregion
 
@@ -521,6 +534,9 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
+            if (player.VehicleSeat != 0)
+                return;
+
             var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
@@ -533,16 +549,11 @@ namespace BCRPServer.Sync
             if (tData == null)
                 return;
 
-            if (pData.VehicleSeat != 0)
-                return;
-
             if (target.Vehicle != player.Vehicle)
                 return;
 
             if (Sync.Chat.SendLocal(Chat.Types.TryPlayer, player, Locale.Chat.Vehicle.Kick, target))
             {
-                //vData.RemovePassenger(tData.VehicleSeat);
-
                 target.WarpOutOfVehicle();
             }
         }

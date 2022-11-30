@@ -60,17 +60,21 @@ namespace BCRPServer
         /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, а машин у каждого - 100, тогда 299999 - посдений RemoteID</remarks>
         public static uint FirstVID = 3000 * 100;
 
-        public const int PlayerPrivateDimBase = 1000;
-        public const int HouseDimBase = 10000;
-        public const int ApartmentsDimBase = 20000;
-        public const int ApartmentsRootDimBase = 30000;
+        public const uint PlayerPrivateDimBase = 1000;
+        public const uint HouseDimBase = 10000;
+        public const uint ApartmentsDimBase = 20000;
+        public const uint ApartmentsRootDimBase = 30000;
+
+        public static uint GetPlayerIdByDimension(uint dim) => dim < PlayerPrivateDimBase ? 0 : dim - PlayerPrivateDimBase;
+
+        public static uint GetHouseIdByDimension(uint dim) => dim < HouseDimBase ? 0 : dim - HouseDimBase;
 
         /// <summary>Стандартная позиция спавна</summary>
         public static Vector3 DefaultSpawnPosition = new Vector3(-749.78f, 5818.21f, 17f);
         /// <summary>Стандартный поворот</summary>
         public static float DefaultSpawnHeading = 0f;
 
-        public static uint GetPrivateDimension(Player player) => (uint)(player.Id + PlayerPrivateDimBase);
+        public static uint GetPrivateDimension(Player player) => player.Id + PlayerPrivateDimBase;
 
         /// <summary>Нулевой вектор (X=0, Y=0, Z=0)</summary>
         public static Vector3 ZeroVector = new Vector3(0, 0, 0);
@@ -348,8 +352,10 @@ namespace BCRPServer
 
         #region Client Utils
 
+        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetVehiclePos(vehicle, position, dimension, heading, fade);
+
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerPos(Player, Vector3, bool, uint?)"/>
-        public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null) => Additional.AntiCheat.SetPlayerPos(player, position, toGround, dimension);
+        public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetPlayerPos(player, position, toGround, dimension, heading, fade);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerInvincible(Player, bool)"/>
         public static void SetInvincible(this Player player, bool state) => Additional.AntiCheat.SetPlayerInvincible(player, state);
@@ -867,7 +873,7 @@ namespace BCRPServer
 
                 var arm = pData.Armour;
 
-                if (arm != null)
+/*                if (arm != null)
                 {
                     pData.Armour = null;
 
@@ -884,14 +890,14 @@ namespace BCRPServer
 
                         arm.Wear(pData);
                     }, 500);
-                }
-                else
-                    NAPI.Player.SpawnPlayer(player, position, heading);
+                }*/
             }
         }
 
         /// <inheritdoc cref="Additional.SkyCamera.Move(Player, Additional.SkyCamera.SwitchTypes, bool, string, object[])"></inheritdoc>
         public static void SkyCameraMove(this Player player, Additional.SkyCamera.SwitchTypes switchType, bool fade, string eventOnFinish = null, params object[] args) => Additional.SkyCamera.Move(player, switchType, fade, eventOnFinish, args);
+
+        public static void FadeScreen(this Player player, bool state, int time = 1000, int inTime = -1) => Additional.SkyCamera.FadeScreen(player, state, time, inTime);
 
         /// <summary>Метод, который закрывает все активные интерфейсы на стороне клиента</summary>
         /// <param name="player"></param>
@@ -974,6 +980,19 @@ namespace BCRPServer
                 NAPI.World.SetWeather("XMAS");
 
             Game.World.SetSharedData("Weather", (byte)weather);
+        }
+
+        public static Entity GetEntityInVehicleSeat(this Vehicle veh, int seatId)
+        {
+            foreach (var x in veh.Occupants)
+            {
+                var seat = x.GetSharedData<int?>("VehicleSeat");
+
+                if (seat == seatId)
+                    return x;
+            }
+
+            return null;
         }
     }
 }

@@ -82,11 +82,13 @@ namespace BCRPClient
 
         public static bool IsEntityStreamed(RAGE.Elements.Entity entity)
         {
-            if ((entity as Player)?.Handle == RAGE.Elements.Player.LocalPlayer.Handle)
-                return true;
+            if (entity is Player player)
+            {
+                if (player.Handle == Player.LocalPlayer.Handle)
+                    return true;
 
-            if (entity.Type == RAGE.Elements.Type.Player)
                 return RAGE.Elements.Entities.Players.Streamed.Contains(entity);
+            }
 
             if (entity.Type == RAGE.Elements.Type.Vehicle)
                 return RAGE.Elements.Entities.Vehicles.Streamed.Contains(entity);
@@ -391,7 +393,7 @@ namespace BCRPClient
         /// <summary>Метод проверяет, активен ли у локального игрока вид от первого лица</summary>
         public static bool IsFirstPersonActive() => RAGE.Game.Cam.GetFollowPedCamViewMode() == 4;
 
-        public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !CEF.Cursor.Visible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
+        public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !CEF.Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
 
         /// <summary>Получить локальное время на ПК</summary>
         public static DateTime GetLocalTime() => DateTime.Now;
@@ -833,6 +835,23 @@ namespace BCRPClient
 
             return RAGE.Game.Ui.GetStreetNameFromHashKey((uint)streetNameHash) ?? "null";
         }
+
+        public static float GetGroundZCoord(Vector3 pos, bool ignoreWater = false)
+        {
+            float z = pos.Z;
+
+            if (RAGE.Game.Misc.GetGroundZFor3dCoord(pos.X, pos.Y, pos.Z, ref z, ignoreWater))
+                return z;
+
+            return pos.Z;
+        }
+
+        public static void ResetGameplayCameraRotation()
+        {
+            RAGE.Game.Cam.SetGameplayCamRelativeHeading(0f);
+
+            RAGE.Game.Invoker.Invoke(0x48608C3464F58AB4, 0f, 0f, 0f);
+        }
     }
 
     public static class Extensions
@@ -1093,5 +1112,7 @@ namespace BCRPClient
                 return (uint)value.Value;
             }
         }
+
+        public static void SetLightColour(this MapObject mObj, Utils.Colour rgb) => RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, mObj.Handle, true, rgb.Red, rgb.Green, rgb.Blue);
     }
 }

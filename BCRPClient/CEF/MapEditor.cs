@@ -87,12 +87,12 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static void Show(ModeTypes mType = ModeTypes.Default, bool enableRotation = false)
+        public static void Show(MapObject mapObject, ModeTypes mType = ModeTypes.Default, bool enableRotation = false)
         {
             if (IsActive)
                 return;
 
-            Object = new MapObject(RAGE.Util.Joaat.Hash("v_res_msonbed_s"), Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f), Player.LocalPlayer.GetRotation(2), 255, Player.LocalPlayer.Dimension);
+            Object = mapObject;
 
             var mode = Mode.All[mType];
 
@@ -123,6 +123,13 @@ namespace BCRPClient.CEF
             IsActive = true;
 
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Shift, true, () => ToggleRotationMode(!RotationModeOn)));
+
+            if (CurrentModeType == ModeTypes.FurnitureEdit)
+            {
+                CEF.HouseMenu.FurnitureEditOnStart(mapObject);
+
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Object?.Exists == true) CEF.HouseMenu.FurntureEditFinish(Object, Object.GetCoords(true), Object.GetRotation(2)); }));
+            }
         }
 
         public static void Close()
@@ -133,6 +140,11 @@ namespace BCRPClient.CEF
             GameEvents.Render -= Render;
 
             CEF.Browser.Window.ExecuteCachedJs("mapEditor_destroy();");
+
+            if (CurrentModeType == ModeTypes.FurnitureEdit)
+            {
+                CEF.HouseMenu.FurnitureEditOnEnd(Object);
+            }
 
             CurrentModeType = null;
 
@@ -181,7 +193,11 @@ namespace BCRPClient.CEF
         private static void Render()
         {
             if (Object?.Exists != true)
+            {
+                Close();
+
                 return;
+            }
 
             var ePos = Object.GetCoords(true);
 
@@ -212,6 +228,11 @@ namespace BCRPClient.CEF
                 if (Tick == byte.MaxValue)
                     Tick = 0;
 
+
+            }
+
+            if (CurrentModeType == ModeTypes.FurnitureEdit)
+            {
 
             }
         }
