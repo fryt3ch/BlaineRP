@@ -10,7 +10,7 @@ namespace BCRPServer.Game.Houses
 {
     public abstract class HouseBase
     {
-        public static Color DefaultLightColour = new Color(255, 187, 96, 255);
+        public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
 
         public class Style
         {
@@ -81,9 +81,26 @@ namespace BCRPServer.Game.Houses
                 new Style(HouseBase.Types.House, RoomTypes.Two, Types.Second, new Vector3(67.955511f, 70.03592f, -19f), 272f, 6, 5);
 
                 Game.Items.Container.AllSIDs.Add("h_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
-                Game.Items.Container.AllSIDs.Add("h_wardrobe", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe));
-                Game.Items.Container.AllSIDs.Add("h_fridge", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Fridge));
+                Game.Items.Container.AllSIDs.Add("h_wardrobe", new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe));
+                Game.Items.Container.AllSIDs.Add("h_fridge", new Items.Container.Data(50, 100f, Items.Container.AllowedItemTypes.Fridge, Items.Container.ContainerTypes.Fridge));
             }
+        }
+
+        public class Light
+        {
+            [JsonProperty(PropertyName = "S")]
+            public bool State { get; set; }
+
+            [JsonProperty(PropertyName = "C")]
+            public Utils.Colour Colour { get; set; }
+
+            public Light(bool State, Utils.Colour Colour)
+            {
+                this.State = State;
+                this.Colour = Colour;
+            }
+
+            public Light() { }
         }
 
         /// <summary>Типы домов</summary>
@@ -140,7 +157,7 @@ namespace BCRPServer.Game.Houses
         /// <summary>Список FID мебели в доме</summary>
         public List<Furniture> Furniture { get; set; }
 
-        public (Color Colour, bool State)[] LightsStates { get; set; }
+        public Light[] LightsStates { get; set; }
 
         public bool[] DoorsStates { get; set; }
 
@@ -228,7 +245,7 @@ namespace BCRPServer.Game.Houses
 
             data.Add("DS", DoorsStates.SerializeToJson());
             data.Add("LS", LightsStates.SerializeToJson());
-            data.Add("F", Furniture.Select(x => x.ToClientJObject()).SerializeToJson());
+            data.Add("F", Furniture.SerializeToJson());
 
             return data.SerializeToJson();
         }

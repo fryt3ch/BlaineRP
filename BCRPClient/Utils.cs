@@ -1,4 +1,5 @@
 ﻿using BCRPClient.Sync;
+using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -26,17 +27,24 @@ namespace BCRPClient
         #region Colours
         public class Colour
         {
+            [JsonIgnore]
             /// <summary>Красный</summary>
             public byte Red { get; set; }
 
+            [JsonIgnore]
             /// <summary>Зеленый</summary>
             public byte Green { get; set; }
 
+            [JsonIgnore]
             /// <summary>Синий</summary>
             public byte Blue { get; set; }
 
+            [JsonIgnore]
             /// <summary>Непрозрачность</summary>
             public byte Alpha { get; set; }
+
+            [JsonProperty(PropertyName = "H")]
+            public string HEX => $"#{Red:X2}{Green:X2}{Blue:X2}{Alpha:X2}";
 
             public Colour(byte Red, byte Green, byte Blue, byte Alpha = 255)
             {
@@ -45,6 +53,19 @@ namespace BCRPClient
                 this.Blue = Blue;
 
                 this.Alpha = Alpha;
+            }
+
+            [JsonConstructor]
+            public Colour(string HEX)
+            {
+                this.Red = byte.Parse(HEX.Substring(1, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+                this.Green = byte.Parse(HEX.Substring(3, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+                this.Blue = byte.Parse(HEX.Substring(5, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+
+                if (HEX.Length == 6)
+                    this.Alpha = byte.Parse(HEX.Substring(7, 2), System.Globalization.NumberStyles.AllowHexSpecifier);
+                else
+                    this.Alpha = 255;
             }
 
             public Color ToSystemColour() => Color.FromArgb(Alpha, Red, Green, Blue);
@@ -59,6 +80,26 @@ namespace BCRPClient
         public static Colour GreenColor = new Colour(0, 255, 0);
         public static Colour YellowColor = new Colour(255, 255, 0);
         #endregion
+
+        public class Vector4
+        {
+            [JsonProperty(PropertyName = "P")]
+            public Vector3 Position { get; set; }
+
+            [JsonProperty(PropertyName = "RZ")]
+            public float RotationZ { get; set; }
+
+            public Vector4(float X, float Y, float Z, float RotationZ)
+            {
+                this.Position = new Vector3(X, Y, Z);
+
+                this.RotationZ = RotationZ;
+            }
+
+            public Vector4(Vector3 Position, float RotationZ) : this(Position.X, Position.Y, Position.Z, RotationZ) { }
+
+            public Vector4() { }
+        }
 
         public const uint MP_MALE_MODEL = 0x705E61F2;
 
@@ -180,7 +221,9 @@ namespace BCRPClient
 
             int hit = -1, endEntity = -1;
 
-            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, flags, ignoreHandle, 7), ref hit, GarbageVector, GarbageVector, ref endEntity);
+            //int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref endEntity);
+
+            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestCapsule(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 0.25f, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref endEntity);
 
             if (result != 2 || endEntity <= 0)
                 return null;
@@ -236,7 +279,7 @@ namespace BCRPClient
             if (Settings.Other.RaytraceEnabled)
                 RAGE.Game.Graphics.DrawLine(headCoord.X, headCoord.Y, headCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 255, 0, 0, 255);
 
-            return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 30);
+            return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 31);
         }
         public static Entity GetEntityPlayerPointsAt(float distance)
         {
@@ -246,7 +289,7 @@ namespace BCRPClient
             if (Settings.Other.RaytraceEnabled)
                 RAGE.Game.Graphics.DrawLine(fingerCoord.X, fingerCoord.Y, fingerCoord.Z, screenCenterCoord.X, screenCenterCoord.Y, screenCenterCoord.Z, 0, 255, 0, 255);
 
-            return GetEntityByRaycast(fingerCoord, screenCenterCoord, Player.LocalPlayer.Handle, 30);
+            return GetEntityByRaycast(fingerCoord, screenCenterCoord, Player.LocalPlayer.Handle, 31);
         }
 
         public static bool PlayerInFrontOfVehicle(RAGE.Elements.Vehicle vehicle, float radius = 2f)
@@ -930,14 +973,9 @@ namespace BCRPClient
 
         public static bool IsStreamed(this MapObject obj) => RAGE.Elements.Entities.Objects.Streamed.Contains(obj);
 
-        /// <summary>Конвертировать Color в строку HEX</summary>
-        /// <param name="color"></param>
-        /// <returns>Строка, уже содержащая # в начале</returns>
-        public static string ToHEX(this Utils.Colour colour) => "#" + colour.Red.ToString("X2") + colour.Green.ToString("X2") + colour.Blue.ToString("X2");
-
         /// <summary>Конвертировать строку HEX в Color</summary>
         /// <param name="colour"></param>
-        public static Utils.Colour ToColor(this string colour) => Utils.Colour.FromSystemColour(Color.FromArgb(int.Parse(colour.Substring(1).ToUpper(), System.Globalization.NumberStyles.AllowHexSpecifier)));
+        public static Utils.Colour ToColour(this string colour) => new Utils.Colour(colour);
 
         /// <summary>Найти расстояние между двумя точками в 2D пространстве</summary>
         /// <param name="pos1">Точка 1</param>
@@ -1114,5 +1152,75 @@ namespace BCRPClient
         }
 
         public static void SetLightColour(this MapObject mObj, Utils.Colour rgb) => RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, mObj.Handle, true, rgb.Red, rgb.Green, rgb.Blue);
+
+        public static Utils.Colour GetNeonColour(this Vehicle veh)
+        {
+            int r = 0, g = 0, b = 0;
+
+            veh.GetNeonLightsColour(ref r, ref g, ref b);
+
+            return new Utils.Colour((byte)r, (byte)g, (byte)b);
+        }
+
+        public static Utils.Colour GetPrimaryColour(this Vehicle veh)
+        {
+            int r = 0, g = 0, b = 0;
+
+            veh.GetCustomPrimaryColour(ref r, ref g, ref b);
+
+            return new Utils.Colour((byte)r, (byte)g, (byte)b);
+        }
+
+        public static Utils.Colour GetSecondaryColour(this Vehicle veh)
+        {
+            int r = 0, g = 0, b = 0;
+
+            veh.GetCustomSecondaryColour(ref r, ref g, ref b);
+
+            return new Utils.Colour((byte)r, (byte)g, (byte)b);
+        }
+
+        public static int GetColourType(this Vehicle veh)
+        {
+            int t = 0, a = 0;
+
+            veh.GetModColor1(ref t, ref a, ref a);
+
+            return t;
+        }
+
+        public static void SetColourType(this Vehicle veh, int type)
+        {
+            veh.SetModColor1(type, 0, 0);
+
+            veh.SetModColor2(type, 0);
+        }
+
+        public static int? GetPearlColour(this Vehicle veh)
+        {
+            int t = 0, a = 0;
+
+            veh.GetExtraColours(ref t, ref a);
+
+            return t == 0 ? null : (int?)t;
+        }
+
+        public static int? GetWheelsColour(this Vehicle veh)
+        {
+            int t = 0, a = 0;
+
+            veh.GetExtraColours(ref a, ref t);
+
+            return t == 0 ? null : (int?)t;
+        }
+
+        public static Utils.Colour GetTyreSmokeColour(this Vehicle veh)
+        {
+            int r = 0, g = 0, b = 0;
+
+            veh.GetTyreSmokeColor(ref r, ref g, ref b);
+
+            return new Utils.Colour((byte)r, (byte)g, (byte)b);
+        }
     }
 }

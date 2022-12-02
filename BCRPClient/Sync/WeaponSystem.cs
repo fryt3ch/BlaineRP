@@ -338,7 +338,7 @@ namespace BCRPClient.Sync
                     RAGE.Game.Pad.DisableControlAction(2, 142, true);
 
                 if (Player.LocalPlayer.IsUsingActionMode())
-                 Player.LocalPlayer.SetUsingActionMode(false, -1, "DEFAULT_ACTION");
+                    Player.LocalPlayer.SetUsingActionMode(false, -1, "DEFAULT_ACTION");
             };
 
             GameEvents.Update += () =>

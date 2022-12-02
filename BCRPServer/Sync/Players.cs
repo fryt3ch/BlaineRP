@@ -756,7 +756,7 @@ namespace BCRPServer.Sync
             if (business == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 50f)
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 20f)
                 return;
 
             if (business is Game.Businesses.IEnterable enterable)
@@ -769,9 +769,27 @@ namespace BCRPServer.Sync
 
                 pData.IsInvincible = true;
 
-                player.Teleport(enterable.EnterPosition, false, Utils.GetPrivateDimension(player), enterable.Heading, true);
+                if (business is Game.Businesses.TuningShop ts)
+                {
+                    foreach (var x in player.Vehicle.Occupants)
+                    {
+                        if (x is Player pV)
+                        {
+                            if (pV == player)
+                                continue;
 
-                player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.Heading);
+                            pV.WarpOutOfVehicle();
+                        }
+                    }
+
+                    player.Vehicle.Teleport(enterable.EnterProperties.Position, Utils.GetPrivateDimension(player), enterable.EnterProperties.RotationZ, true);
+                }
+                else
+                {
+                    player.Teleport(enterable.EnterProperties.Position, false, Utils.GetPrivateDimension(player), enterable.EnterProperties.RotationZ, true);
+                }
+
+                player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.EnterProperties.RotationZ);
             }
             else
             {
@@ -1005,6 +1023,13 @@ namespace BCRPServer.Sync
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
+            if (house.IsLocked && house.Owner != pData.Info && house.Settlers.ContainsKey(pData.Info))
+            {
+                player.Notify("House::IsLocked");
+
+                return;
+            }
+
             var sData = house.StyleData;
 
             player.Teleport(sData.Position, false, house.Dimension, sData.Heading, true);
@@ -1142,6 +1167,13 @@ namespace BCRPServer.Sync
 
             if (doorIdx >= house.DoorsStates.Length)
                 return;
+
+            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[1] != true)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
 
             if (house.DoorsStates[doorIdx] == state)
                 return;

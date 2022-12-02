@@ -722,6 +722,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.NpcDialogue, "чтобы поговорить" },
 
                 { Additional.ExtraColshape.InteractionTypes.ATM, "чтобы воспользоваться банкоматом" },
+
+                { Additional.ExtraColshape.InteractionTypes.TuningEnter, "чтобы перейти к тюнингу" },
             };
         }
 
@@ -798,6 +800,8 @@ namespace BCRPClient
                 { Data.Locations.Business.Types.BoatShop, "Лодочный салон" },
 
                 { Data.Locations.Business.Types.AeroShop, "Салон воздушного транспорта" },
+
+                { Data.Locations.Business.Types.TuningShop, "Тюнинг" },
             };
 
             public static string NoOwner = "Государство";
@@ -857,7 +861,16 @@ namespace BCRPClient
 
                 public static string NotInAnyHouse = "Вы не находитесь в доме!";
 
+                public static string NotAllowed = "У вас недостаточно прав!";
+
                 public static string NotNearGarage = "Вы не находитесь рядом с гаражом!";
+
+                public static string LightColourChanged = "Цвет света лампы был изменен!";
+
+                public static string IsLocked = "Дверь закрыта, вы не можете войти!";
+
+                public static string ExpelledHouse = "{0} выписал вас из дома #{1}";
+                public static string ExpelledApartments = "{0} выписал вас из квартиры #{1}";
             }
 
             public static class Commands

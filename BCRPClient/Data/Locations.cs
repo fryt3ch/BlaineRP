@@ -328,6 +328,8 @@ namespace BCRPClient.Data
                 Market,
 
                 GasStation,
+
+                TuningShop,
             }
 
             public Types Type { get; set; }
@@ -346,8 +348,6 @@ namespace BCRPClient.Data
 
             public Additional.ExtraColshape InfoColshape { get; set; }
 
-            public Additional.ExtraColshape AdditionalColshape { get; set; }
-
             public NPC Seller { get; set; }
 
             public string Name => Locale.Property.BusinessNames.GetValueOrDefault(Type) ?? "null";
@@ -357,6 +357,8 @@ namespace BCRPClient.Data
                 this.Type = Type;
 
                 this.Id = Id;
+
+                this.SubId = All.Where(x => x.Value.Type == Type).Count() + 1;
 
                 InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
 
@@ -406,8 +408,6 @@ namespace BCRPClient.Data
 
         public class ClothesShop1 : Business
         {
-            private static int Counter = 1;
-
             public ClothesShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop1)
             {
                 this.Blip = new Blip(73, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -415,15 +415,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class ClothesShop2 : Business
         {
-            private static int Counter = 1;
-
             public ClothesShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop2)
             {
                 this.Blip = new Blip(366, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -431,15 +427,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class ClothesShop3 : Business
         {
-            private static int Counter = 1;
-
             public ClothesShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop3)
             {
                 this.Blip = new Blip(439, PositionInfo, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -447,15 +439,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class Market : Business
         {
-            private static int Counter = 1;
-
             public Market(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.Market)
             {
                 this.Blip = new Blip(52, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -463,15 +451,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class GasStation : Business
         {
-            private static int Counter = 1;
-
             public GasStation(int Id, Vector3 PositionInfo, Vector3 PositionGas, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.GasStation)
             {
                 this.Blip = new Blip(361, PositionInfo, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -484,15 +468,11 @@ namespace BCRPClient.Data
                 //this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 //this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class CarShop1 : Business
         {
-            private static int Counter = 1;
-
             public CarShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop1)
             {
                 this.Blip = new Blip(225, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -500,15 +480,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class CarShop2 : Business
         {
-            private static int Counter = 1;
-
             public CarShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop2)
             {
                 this.Blip = new Blip(530, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -516,15 +492,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class CarShop3 : Business
         {
-            private static int Counter = 1;
-
             public CarShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop3)
             {
                 this.Blip = new Blip(523, PositionInfo, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -532,15 +504,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class MotoShop : Business
         {
-            private static int Counter = 1;
-
             public MotoShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.MotoShop)
             {
                 this.Blip = new Blip(522, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -548,15 +516,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class BoatShop : Business
         {
-            private static int Counter = 1;
-
             public BoatShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.BoatShop)
             {
                 this.Blip = new Blip(410, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -564,15 +528,11 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
-
-                SubId = Counter++;
             }
         }
 
         public class AeroShop : Business
         {
-            private static int Counter = 1;
-
             public AeroShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.AeroShop)
             {
                 this.Blip = new Blip(602, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -580,8 +540,25 @@ namespace BCRPClient.Data
                 this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
+            }
+        }
 
-                SubId = Counter++;
+        public class TuningShop : Business
+        {
+            public Additional.ExtraColshape EnteranceColshape { get; set; }
+
+            public TuningShop(int Id, Vector3 PositionInfo, Vector3 EnterancePos) : base(Id, PositionInfo, Types.TuningShop)
+            {
+                this.Blip = new Blip(72, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                this.EnteranceColshape = new Additional.Sphere(EnterancePos, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
+
+                this.EnteranceColshape.InteractionType = Additional.ExtraColshape.InteractionTypes.TuningEnter;
+                this.EnteranceColshape.ActionType = Additional.ExtraColshape.ActionTypes.TuningEnter;
+
+                this.EnteranceColshape.Data = this;
+
+                new Marker(44, EnterancePos, 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
             }
         }
 
@@ -626,6 +603,8 @@ namespace BCRPClient.Data
             new BoatShop(18, new Vector3(-813.3688f, -1336.428f, 5.150263f), new Vector3(-813.8713f, -1343.797f, 5.150264f), 49.62344f, "Лана", "csb_anita");
 
             new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1760.724f, 3234.819f, 42.13989f), 314.5554f, "Лана", "csb_anita");
+
+            new TuningShop(20, new Vector3(1178.526f, 2647.779f, 37.79328f), new Vector3(1175.327f, 2639.85f, 37.3765f));
 
             #region ATM
             new ATM(0, new Vector3(-301.65726f, -829.5886f, 32.419765f), 1f);

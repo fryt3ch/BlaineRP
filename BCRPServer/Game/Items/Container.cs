@@ -110,6 +110,8 @@ namespace BCRPServer.Game.Items
             { AllowedItemTypes.All, typeof(Game.Items.Item) },
 
             { AllowedItemTypes.Wardrobe, typeof(Game.Items.Clothes) },
+
+            { AllowedItemTypes.Fridge, typeof(Game.Items.Food) },
         };
 
         /// <summary>Все доступные подтипы контейнеров</summary>

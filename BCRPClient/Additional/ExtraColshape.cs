@@ -382,6 +382,8 @@ namespace BCRPClient.Additional
             NpcDialogue,
             
             ATM,
+
+            TuningEnter,
         }
 
         public enum ActionTypes
@@ -406,6 +408,8 @@ namespace BCRPClient.Additional
             NpcDialogue,
 
             ATM,
+
+            TuningEnter,
         }
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
@@ -540,6 +544,23 @@ namespace BCRPClient.Additional
                         return false;
 
                     Events.CallRemote("Bank::Show", true, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ATM>("CurrentATM").Id);
+
+                    LastSent = DateTime.Now;
+
+                    return true;
+                }
+            },
+
+            {
+                InteractionTypes.TuningEnter, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentTuning"))
+                        return false;
+
+                    Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id);
 
                     LastSent = DateTime.Now;
 
@@ -781,6 +802,41 @@ namespace BCRPClient.Additional
                         (cs) =>
                         {
                             Player.LocalPlayer.ResetData("CurrentATM");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.TuningEnter,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (Player.LocalPlayer.Vehicle == null || Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle) == null)
+                            {
+                                ExtraColshapes.CancelLastColshape = true;
+
+                                return;
+                            }
+
+                            if (cs.Data is Data.Locations.TuningShop ts)
+                            {
+                                Player.LocalPlayer.SetData("CurrentTuning", ts);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentTuning");
                         }
                     },
                 }

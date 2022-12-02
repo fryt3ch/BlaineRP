@@ -9,47 +9,47 @@ namespace BCRPClient.Additional
 {
     class TuningMenu
     {
-        private static Dictionary<int, (string Name, Dictionary<int, string> ModNames)> Slots = new Dictionary<int, (string, Dictionary<int, string>)>
+        public static Dictionary<int, (string Id, string Name, Dictionary<int, string> ModNames)> Slots { get; private set; } = new Dictionary<int, (string, string, Dictionary<int, string>)>
         {
             {
-                0, ("Спойлер", null)
+                0, ("spoiler", "Спойлер", null)
             },
 
             {
-                1, ("Передний бампер", null)
+                1, ("fbump", "Передний бампер", null)
             },
 
             {
-                2, ("Задний бампер", null)
+                2, ("rbump", "Задний бампер", null)
             },
 
             {
-                3, ("Пороги", null)
+                3, ("skirt", "Пороги", null)
             },
 
             {
-                4, ("Глушитель", null)
+                4, ("exh", "Глушитель", null)
             },
 
             {
-                5, ("Рама", null)
+                5, ("frame", "Рама", null)
             },
 
             {
-                6, ("Радиатор", null)
+                6, ("grill", "Радиатор", null)
             },
 
             {
-                7, ("Капот", null)
+                7, ("hood", "Капот", null)
             },
 
             {
-                10, ("Крыша", null)
+                10, ("roof", "Крыша", null)
             },
 
             {
-                11, ("Двигатель",
-                
+                11, ("engine", "Двигатель",
+
                 new Dictionary<int, string>()
                 {
                     { -1, "Обычный" },
@@ -62,7 +62,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                12, ("Тормоза", new Dictionary<int, string>()
+                12, ("brakes", "Тормоза", new Dictionary<int, string>()
                 {
                     { -1, "Обычные" },
 
@@ -73,7 +73,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                13, ("Коробка передач", new Dictionary<int, string>()
+                13, ("trm", "Коробка передач", new Dictionary<int, string>()
                 {
                     { -1, "Обычная" },
 
@@ -84,11 +84,11 @@ namespace BCRPClient.Additional
             },
 
             {
-                14, ("Клаксон", null)
+                14, ("horn", "Клаксон", null)
             },
 
             {
-                15, ("Подвеска", new Dictionary<int, string>()
+                15, ("susp", "Подвеска", new Dictionary<int, string>()
                 {
                     { -1, "Обычная" },
 
@@ -100,7 +100,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                18, ("Турбо-тюнинг", new Dictionary<int, string>()
+                18, ("tt", "Турбо-тюнинг", new Dictionary<int, string>()
                 {
                     { -1, "Нет" },
 
@@ -109,42 +109,68 @@ namespace BCRPClient.Additional
             },
 
             {
-                22, ("Ксенон", new Dictionary<int, string>()
+                22, ("xenon", "Ксенон", new Dictionary<int, string>()
                 {
                     { -1, "Нет" },
 
-                    { 0, "Есть" },
+                    { 0, "Стандарт" },
+                    { 1, "Белый" },
+                    { 2, "Синий" },
+                    { 3, "Синий (электрический)" },
+                    { 4, "Зеленый (мятный)" },
+                    { 5, "Зеленый (лаймовый)" },
+                    { 6, "Желтый" },
+                    { 7, "Золотистый" },
+                    { 8, "Оранжевый" },
+                    { 9, "Красный" },
+                    { 10, "Розовый" },
+                    { 11, "Розовый (горячий)" },
+                    { 12, "Фиолетовый" },
+                    { 13, "Черный" },
                 })
             },
 
             {
-                23, ("Покрышки", null)
+                23, ("fwheel", "Покрышки", null)
             },
 
             {
-                24, ("Покрышки (зад)", null)
+                24, ("rwheel", "Покрышки (зад)", null)
             },
 
             {
-                48, ("Принты", null)
+                48, ("livery", "Принты", null)
             },
 
             {
-                33, ("Руль", null)
+                33, ("swheel", "Руль", null)
             },
 
             {
-                32, ("Кресла", null)
+                32, ("seats", "Кресла", null)
             },
 
             {
-                55, ("Тонировка", new Dictionary<int, string>()
+                55, ("wtint", "Тонировка", new Dictionary<int, string>()
                 {
                     { -1, "Нет" },
 
                     { 0, "Лимузин (полная)" },
                     { 1, "Темная" },
                     { 2, "Обычная" },
+                })
+            },
+
+            {
+                1000, ("colourt", "Тип покраски", new Dictionary<int, string>()
+                {
+                    { 0, "Обычный" },
+
+                    { 1, "Металлик" },
+                    { 2, "Жемчужный" },
+                    { 3, "Матовый" },
+                    { 4, "Металлический" },
+                    { 5, "Хром" },
                 })
             },
         };
@@ -211,13 +237,13 @@ namespace BCRPClient.Additional
             {
                 int totalMods = veh.GetNumMods(x.Key);
 
-                if (totalMods > 0 || x.Key == 22 || x.Key == 18)
+                if (totalMods > 0 || x.Key == 22 || x.Key == 18 || x.Key == 1000)
                 {
                     var subMenu = MenuPool.AddSubMenu(mainMenu, x.Value.Name);
 
                     subMenu.SetMenuData(x.Key);
 
-                    var curMod = (x.Key == 18 ? (veh.IsToggleModOn(18) ? 0 : -1) : (x.Key == 22 ? (veh.IsToggleModOn(22) ? 0 : -1) : (x.Key == 55 ? veh.GetWindowTint() - 1 : veh.GetMod(x.Key))));
+                    var curMod = (x.Key == 18 ? (veh.IsToggleModOn(18) ? 0 : -1) : (x.Key == 22 ? (veh.IsToggleModOn(22) ? (RAGE.Game.Invoker.Invoke<int>(0x3DFF319A831E0CDB) + 1) : -1) : (x.Key == 55 ? veh.GetWindowTint() - 1 : x.Key == 1000 ? veh.GetColourType() : veh.GetMod(x.Key))));
 
                     if (x.Value.ModNames != null)
                     {
@@ -262,9 +288,20 @@ namespace BCRPClient.Additional
                         }
                         else if (idx == 22)
                         {
-                            veh.ToggleMod(idx, state != -1);
+                            if (state < 0)
+                            {
+                                veh.ToggleMod(idx, false);
+                            }
+                            else
+                            {
+                                veh.ToggleMod(idx, true);
 
-                            RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, -1);
+                                RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, state);
+                            }
+                        }
+                        else if (idx == 1000)
+                        {
+                            veh.SetColourType(state);
                         }
                         else if (idx == 55)
                         {

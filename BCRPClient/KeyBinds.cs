@@ -1,5 +1,6 @@
 ﻿using BCRPClient.CEF;
 using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -709,8 +710,8 @@ namespace BCRPClient
             // Vehicle Look in Trunk
             Add(new Bind(Types.TrunkLook, () =>
             {
-                if (Utils.CanShowCEF(true, true) && Interaction.CurrentEntity?.Type == RAGE.Elements.Type.Vehicle)
-                    CEF.Inventory.Show(CEF.Inventory.Types.Container);
+                if (Utils.CanShowCEF(true, true) && Interaction.CurrentEntity is Vehicle veh)
+                    Sync.Vehicles.ShowContainer(veh);
             }, true, true)
             { Description = "Смотреть багажник" });
 

@@ -102,11 +102,17 @@ namespace BCRPClient.Sync
 
             public uint VID => (uint)Vehicle.GetSharedData<int>("VID", 0);
 
-            public uint? TID { get => Vehicle.GetData<uint?>("ContainerID"); set => Vehicle.SetData("ContainerID", value); }
+            public uint? TID => Vehicle.GetSharedData<int?>("TID", null).ToUInt32();
 
             public float LastAllowedHealth { get => Vehicle.GetData<float>("LastAllowedHealth"); set => Vehicle.SetData("LastAllowedHealth", value); }
 
             public float LastHealth { get => Vehicle.GetData<float>("LastHealth"); set => Vehicle.SetData("LastHealth", value); }
+
+            public bool HasNeonMod => Vehicle.GetSharedData<bool>("Mods::Neon", false);
+
+            public bool HasTurboTuning => Vehicle.GetSharedData<bool>("Mods::Turbo", false);
+
+            public Utils.Colour TyreSmokeColour => Vehicle.GetSharedData<JObject>("Mods::TSColour")?.ToObject<Utils.Colour>();
 
             public Data.Vehicles.Vehicle Data { get; set; }
             #endregion
@@ -288,13 +294,14 @@ namespace BCRPClient.Sync
 
                     InvokeHandler("IsInvincible", data, data.IsInvincible, null);
 
-                    InvokeHandler("Mods::TSColour", data, veh.GetSharedData("Mods::TSColour"), null);
-                    InvokeHandler("Mods::Turbo", data, veh.GetSharedData("Mods::Turbo"), null);
+                    InvokeHandler("Mods::TSColour", data, veh.GetSharedData<JObject>("Mods::TSColour", null), null);
+                    InvokeHandler("Mods::Turbo", data, data.HasTurboTuning, null);
+
                     InvokeHandler("Mods::Xenon", data, veh.GetSharedData("Mods::Xenon"), null);
 
-                    //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
+                    InvokeHandler("Mods::CT", data, veh.GetSharedData("Mods::CT", 0), null);
 
-                    data.TID = veh.GetSharedData<int?>("TID", null).ToUInt32();
+                    //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
 
                     InvokeHandler("Engine::On", data, data.EngineOn, null);
 
@@ -603,18 +610,25 @@ namespace BCRPClient.Sync
             {
                 var veh = vData.Vehicle;
 
-                var colour = ((JObject)value).ToObject<Utils.Colour>();
+                var colour = ((JObject)value)?.ToObject<Utils.Colour>();
 
-                veh.ToggleMod(20, colour.Alpha == 255);
+                if (colour == null)
+                {
+                    veh.ToggleMod(20, false);
+                }
+                else
+                {
+                    veh.ToggleMod(20, true);
 
-                veh.SetTyreSmokeColor(colour.Red, colour.Green, colour.Blue);
+                    veh.SetTyreSmokeColor(colour.Red, colour.Green, colour.Blue);
+                }
             });
 
             AddDataHandler("Mods::Turbo", (vData, value, oldValue) =>
             {
                 var veh = vData.Vehicle;
 
-                var state = (bool)value;
+                var state = value is bool valueBool ? valueBool : false;
 
                 veh.ToggleMod(18, state);
             });
@@ -635,6 +649,15 @@ namespace BCRPClient.Sync
 
                     RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, colour);
                 }
+            });
+
+            AddDataHandler("Mods::CT", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var colour = (int)value;
+
+                veh.SetColourType(colour);
             });
 
             AddDataHandler("Anchor", (vData, value, oldValue) =>
@@ -1218,6 +1241,26 @@ namespace BCRPClient.Sync
                 if (vData.ForcedSpeed != 0f)
                     veh.SetForwardSpeed(vData.ForcedSpeed);
             }
+        }
+
+        public static void ShowContainer(Vehicle veh)
+        {
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            if (Player.LocalPlayer.Vehicle != null)
+                return;
+
+            if (vData.TID == null)
+            {
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.Trunk.NoTrunk);
+
+                return;
+            }
+
+            CEF.Inventory.Show(Inventory.Types.Container, (uint)vData.TID);
         }
     }
 }

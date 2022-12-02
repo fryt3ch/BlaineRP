@@ -1003,15 +1003,13 @@ namespace BCRPClient.CEF
         };
 
         #region Show
-        public static void Show(Types type)
+        public static void Show(Types type, uint contId = 0)
         {
             if (IsActive)
                 return;
 
             if (LastShowed.IsSpam(1000, false, false) || Utils.IsAnyCefActive())
                 return;
-
-            uint contId = 0;
 
             if (type == Types.ItemOnGround)
             {
@@ -1037,31 +1035,8 @@ namespace BCRPClient.CEF
             {
                 CurrentEntity = BCRPClient.Interaction.CurrentEntity;
 
-                if (CurrentEntity == null && !Player.LocalPlayer.HasData("CurrentContainer") || !Utils.CanDoSomething(ActionsToCheckInventory))
+                if (CurrentEntity == null && contId == 0)
                     return;
-
-                if (Player.LocalPlayer.HasData("CurrentContainer"))
-                    contId = Player.LocalPlayer.GetData<uint>("CurrentContainer");
-                else
-                {
-                    if (CurrentEntity.GetData<uint?>("ContainerID") == null)
-                    {
-                        if (CurrentEntity is Vehicle)
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.Trunk.NoTrunk);
-
-                        return;
-                    }
-                    else
-                    {
-                        if (CurrentEntity is Vehicle)
-                        {
-                            if (Player.LocalPlayer.Vehicle != null)
-                                return;
-                        }
-                    }
-
-                    contId = (uint)CurrentEntity.GetData<uint?>("ContainerID");
-                }
             }
             else
                 if (!Utils.CanDoSomething(ActionsToCheckInventory) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
@@ -1719,16 +1694,17 @@ namespace BCRPClient.CEF
         {
             if (CurrentType == Types.ItemOnGround)
             {
-                if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || Vector3.Distance(Player.LocalPlayer.Position, CurrentEntity.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || !CurrentEntity.IsEntityNear(Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 {
                     Close();
                 }
             }
             else if (CurrentType == Types.Container)
             {
-                if (Player.LocalPlayer.Vehicle != null || (CurrentEntity == null ? !Player.LocalPlayer.HasData("CurrentContainer") : (CurrentEntity.IsNull == true || Vector3.Distance(Player.LocalPlayer.Position, CurrentEntity.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)))
+                if (CurrentContainerType == ContainerTypes.Trunk)
                 {
-                    Close();
+                    if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || !CurrentEntity.IsEntityNear(Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                        Close();
                 }
             }
         }

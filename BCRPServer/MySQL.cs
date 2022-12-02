@@ -1,5 +1,4 @@
-﻿using BCRPServer.Game.Houses;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using System;
@@ -72,6 +71,9 @@ namespace BCRPServer
                 if (cmd != null)
                     commands.Add(cmd);
             }
+
+            if (commands.Count == 0)
+                return;
 
 /*            for (int i = 0; i < commands.Count; i++)
             {
@@ -179,9 +181,9 @@ namespace BCRPServer
                             {
                                 var uid = Convert.ToUInt32(reader["ID"]);
                                 var id = (string)reader["Type"];
-                                var data = ((string)reader["Data"]).DeserializeFromJson<Game.Houses.Furniture.FurnitureData>();
+                                var data = ((string)reader["Data"]).DeserializeFromJson<Utils.Vector4>();
 
-                                Game.Houses.Furniture.AddOnLoad(new Furniture(uid, id, data));
+                                Game.Houses.Furniture.AddOnLoad(new Game.Houses.Furniture(uid, id, data));
                             }
                         }
                     }
@@ -450,12 +452,12 @@ namespace BCRPServer
                                     OwnedVehicles = ownedVehicles,
 
                                     OwnedBusinesses = new List<Game.Businesses.Business>(),
-                                    OwnedGarages = new List<Garage>(),
-                                    OwnedHouses = new List<House>(),
-                                    OwnedApartments = new List<Apartments>(),
+                                    OwnedGarages = new List<Game.Houses.Garage>(),
+                                    OwnedHouses = new List<Game.Houses.House>(),
+                                    OwnedApartments = new List<Game.Houses.Apartments>(),
 
-                                    SettledHouses = new List<House>(),
-                                    SettledApartments = new List<Apartments>(),
+                                    SettledHouses = new List<Game.Houses.House>(),
+                                    SettledApartments = new List<Game.Houses.Apartments>(),
 
                                     HeadBlend = (HeadBlend)customizations[cid][0],
                                     HeadOverlays = (Dictionary<int, HeadOverlay>)customizations[cid][1],
@@ -1202,7 +1204,7 @@ namespace BCRPServer
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
-            cmd.Parameters.AddWithValue("@Furniture", pInfo.Furniture.SerializeToJson());
+            cmd.Parameters.AddWithValue("@Furniture", pInfo.Furniture.Select(x => x.UID).SerializeToJson());
 
             PushQuery(cmd);
         }
@@ -1574,18 +1576,18 @@ namespace BCRPServer
 
                         if (reader["LightsStates"] == DBNull.Value)
                         {
-                            house.LightsStates = new (Color Colour, bool State)[house.StyleData.LightsCount];
+                            house.LightsStates = new Game.Houses.HouseBase.Light[house.StyleData.LightsCount];
 
                             for (int i = 0; i < house.LightsStates.Length; i++)
                             {
-                                house.LightsStates[i].Colour = House.DefaultLightColour;
+                                house.LightsStates[i].Colour = Game.Houses.HouseBase.DefaultLightColour;
                                 house.LightsStates[i].State = true;
                             }
 
                             cmd.CommandText += $"UPDATE houses SET LightsStates='{house.LightsStates.SerializeToJson()}' WHERE ID={house.ID};";
                         }
                         else
-                            house.LightsStates = NAPI.Util.FromJson<(Color, bool)[]>((string)reader["LightsStates"]);
+                            house.LightsStates = NAPI.Util.FromJson<Game.Houses.HouseBase.Light[]>((string)reader["LightsStates"]);
                     }
 
                     if (cmd.CommandText.Length > 0)
@@ -1607,6 +1609,18 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void FurnitureUpdate(Game.Houses.Furniture furn)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE furniture SET Data=@Data WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", furn.UID);
+            cmd.Parameters.AddWithValue("@Data", furn.Data.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
         public static void FurnitureDelete(Game.Houses.Furniture furn)
         {
             var cmd = new MySqlCommand();
@@ -1614,6 +1628,21 @@ namespace BCRPServer
             cmd.CommandText = "DELETE FROM furniture WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", furn.UID);
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseFurnitureUpdate(Game.Houses.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            if (house.Type == Game.Houses.HouseBase.Types.House)
+                cmd.CommandText = "UPDATE houses SET Furniture=@Furniture WHERE ID=@ID;";
+            else
+                cmd.CommandText = "UPDATE apartments SET Furniture=@Furniture WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.ID);
+            cmd.Parameters.AddWithValue("@Furniture", house.Furniture.Select(x => x.UID).SerializeToJson());
 
             PushQuery(cmd);
         }

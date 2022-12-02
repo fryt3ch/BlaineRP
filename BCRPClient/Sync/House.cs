@@ -171,6 +171,11 @@ namespace BCRPClient.Sync
 
             Events.Add("House::Enter", async (object[] args) =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 Player.LocalPlayer.SetData("House::Requested", true);
 
                 while (Additional.SkyCamera.IsFadedOut)
@@ -189,42 +194,20 @@ namespace BCRPClient.Sync
                 var dimension = (uint)data["Dim"];
 
                 var doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
-                var lights = RAGE.Util.Json.Deserialize<(Utils.Colour Colour, bool State)[]>((string)data["LS"]);
+                var lights = RAGE.Util.Json.Deserialize<JObject[]>((string)data["LS"]);
+
+                Player.LocalPlayer.SetData("House::CurrentHouse::WI", (uint)data["WI"]);
+                Player.LocalPlayer.SetData("House::CurrentHouse::LI", (uint)data["LI"]);
+                Player.LocalPlayer.SetData("House::CurrentHouse::FI", (uint)data["FI"]);
 
                 foreach (var x in RAGE.Util.Json.Deserialize<List<JObject>>((string)data["F"]))
                 {
                     var fData = Data.Furniture.GetData((string)x["I"]);
                     var fUid = (uint)x["U"];
 
-                    var pos = new Vector3((float)x["PX"], (float)x["PY"], (float)x["PZ"]);
-                    var rot = new Vector3((float)x["RX"], (float)x["RY"], (float)x["RZ"]);
+                    var fProps = x["D"].ToObject<Utils.Vector4>();
 
-                    MapObject obj = null;
-
-                    if (fData.Type == Data.Furniture.Types.Locker)
-                    {
-                        obj = fData.CreateObject(pos, rot, dimension, fUid, (uint)data["LI"]);
-                    }
-                    else if (fData.Type == Data.Furniture.Types.Wardrobe)
-                    {
-                        obj = fData.CreateObject(pos, rot, dimension, fUid, (uint)data["WI"]);
-                    }
-                    else if (fData.Type == Data.Furniture.Types.Fridge)
-                    {
-                        obj = fData.CreateObject(pos, rot, dimension, fUid, (uint)data["FI"]);
-                    }
-                    else if (fData.Type == Data.Furniture.Types.KitchenSet)
-                    {
-
-                    }
-                    else
-                    {
-                        obj = fData.CreateObject(pos, rot, dimension, fUid);
-                    }
-
-                    obj.SetData("Data", fData);
-
-                    Furniture.Add(fUid, obj);
+                    CreateObject(fUid, fData, fProps);
                 }
 
                 Player.LocalPlayer.SetData("House::CurrentHouse::Type", hType);
@@ -258,7 +241,10 @@ namespace BCRPClient.Sync
 
                     TempBlips.Add(new RAGE.Elements.Blip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
-                    CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
+                    if (pData.OwnedHouses.Contains(house))
+                    {
+                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
+                    }
 
                     while (Player.LocalPlayer.Dimension != dimension)
                     {
@@ -329,14 +315,14 @@ namespace BCRPClient.Sync
 
                         var t = new MapObject(handle);
 
-                        var rgb = new Utils.Colour(lights[i].Colour.Red, lights[i].Colour.Green, lights[i].Colour.Blue, 255);
+                        var rgb = lights[i]["C"].ToObject<Utils.Colour>();
 
-                        t.SetData("State", lights[i].State);
+                        t.SetData("State", (bool)lights[i]["S"]);
                         t.SetData("RGB", rgb);
 
                         Lights.Add(i, t);
 
-                        RAGE.Game.Entity.SetEntityLights(handle, !lights[i].State);
+                        RAGE.Game.Entity.SetEntityLights(handle, !(bool)lights[i]["S"]);
 
                         t.SetLightColour(rgb);
                     }
@@ -437,35 +423,47 @@ namespace BCRPClient.Sync
 
             Events.Add("House::Furn", (args) =>
             {
-                var fUid = (uint)(int)args[0];
-
-                var furn = Furniture.GetValueOrDefault(fUid);
-
                 CEF.MapEditor.Close();
 
-                if (args.Length > 1)
+                if (args[0] is int)
                 {
-                    if (args[1] is string posStr)
-                    {
-                        if (furn == null)
-                            return;
+                    var fUid = (uint)(int)args[0];
 
-                        var pos = RAGE.Util.Json.Deserialize<Vector3>(posStr);
+                    var furn = Furniture.GetValueOrDefault(fUid);
 
-                        var rot = RAGE.Util.Json.Deserialize<Vector3>((string)args[2]);
-
-                        furn.SetCoords(pos.X, pos.Y, pos.Z, false, false, false, false);
-                        furn.SetRotation(rot.X, rot.Y, rot.Z, 2, true);
-                    }
-                }
-                else
-                {
                     furn?.Destroy();
 
                     Furniture.Remove(fUid);
 
                     if (CEF.HouseMenu.IsActive)
                         CEF.HouseMenu.RemoveInstalledFurniture(fUid);
+                }
+                else
+                {
+                    var data = RAGE.Util.Json.Deserialize<JObject>((string)args[0]);
+
+                    var fUid = (uint)data["U"];
+
+                    var furn = Furniture.GetValueOrDefault(fUid);
+
+                    var props = data["D"].ToObject<Utils.Vector4>();
+
+                    if (furn == null)
+                    {
+                        var fData = Data.Furniture.GetData((string)data["I"]);
+
+                        CreateObject(fUid, fData, props);
+
+                        if (CEF.HouseMenu.IsActive)
+                            CEF.HouseMenu.AddInstalledFurniture(fUid, fData);
+                    }
+                    else
+                    {
+
+                        furn.SetCoords(props.Position.X, props.Position.Y, props.Position.Z, false, false, false, false);
+
+                        furn.SetRotation(0f, 0f, props.RotationZ, 2, true);
+                    }
                 }
             });
         }
@@ -486,6 +484,11 @@ namespace BCRPClient.Sync
                 }
             }, 0);
 
+            var existingBlip = obj.GetData<Blip>("Blip");
+
+            if (existingBlip != null && RAGE.Game.Ui.DoesBlipExist(existingBlip.Handle))
+                return;
+
             var blip = new Blip(162, obj.GetCoords(false), "Мебель", 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension);
 
             TempBlips.Add(blip);
@@ -497,7 +500,7 @@ namespace BCRPClient.Sync
                 if (blip == null || !RAGE.Game.Ui.DoesBlipExist(blip.Handle))
                     return true;
 
-                if (Player.LocalPlayer.Dimension != blip.Dimension || Player.LocalPlayer.Position.DistanceTo2D(blip.GetInfoIdCoord()) <= 1f)
+                if (Player.LocalPlayer.Dimension != blip.Dimension || Player.LocalPlayer.Position.DistanceTo2D(blip.GetInfoIdCoord()) <= 1.5f)
                 {
                     blip.Destroy();
 
@@ -506,6 +509,36 @@ namespace BCRPClient.Sync
 
                 return false;
             }, 1000, true, 1000)).Run();
+        }
+
+        private static async void CreateObject(uint fUid, Data.Furniture fData, Utils.Vector4 fProps)
+        {
+            MapObject obj = null;
+
+            if (fData.Type == Data.Furniture.Types.Locker)
+            {
+                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::LI"));
+            }
+            else if (fData.Type == Data.Furniture.Types.Wardrobe)
+            {
+                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::WI"));
+            }
+            else if (fData.Type == Data.Furniture.Types.Fridge)
+            {
+                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::FI"));
+            }
+            else if (fData.Type == Data.Furniture.Types.KitchenSet)
+            {
+
+            }
+            else
+            {
+                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid);
+            }
+
+            obj.SetData("Data", fData);
+
+            Furniture.Add(fUid, obj);
         }
     }
 }

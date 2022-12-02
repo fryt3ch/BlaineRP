@@ -77,16 +77,20 @@ namespace BCRPClient
 
                     if (furnData != null)
                     {
-                        Utils.DrawText(furnData.Name, x, y - NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        if (EnabledVisual)
+                            Utils.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                     }
                 }
                 else if (entity.HasData("CustomText"))
                 {
-                    var ctAction = entity.GetData<Action<float, float>>("CustomText");
-
-                    if (ctAction != null)
+                    if (EnabledVisual)
                     {
-                        ctAction.Invoke(x, y);
+                        var ctAction = entity.GetData<Action<float, float>>("CustomText");
+
+                        if (ctAction != null)
+                        {
+                            ctAction.Invoke(x, y);
+                        }
                     }
                 }
             }

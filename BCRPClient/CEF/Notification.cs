@@ -170,6 +170,12 @@ namespace BCRPClient.CEF
             { "Trade::NotEnoughMoney", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughMoney, Locale.Notifications.ErrorHeader) },
             { "Trade::NotEnoughMoneyOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughMoneyOther, Locale.Notifications.ErrorHeader) },
             { "Trade::NotEnoughSpaceOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughSpaceOther, Locale.Notifications.ErrorHeader) },
+
+            { "House::NotAllowed", new Instance(Types.Error, Locale.Notifications.House.NotAllowed, Locale.Notifications.ErrorHeader) },
+            { "House::IsLocked", new Instance(Types.Error, Locale.Notifications.House.IsLocked, Locale.Notifications.ErrorHeader) },
+            { "House::LCC", new Instance(Types.Success, Locale.Notifications.House.LightColourChanged, Locale.Notifications.DefHeader) },
+            { "House::EH", new Instance(Types.Information, Locale.Notifications.House.ExpelledHouse, Locale.Notifications.DefHeader) },
+            { "House::EA", new Instance(Types.Information, Locale.Notifications.House.ExpelledApartments, Locale.Notifications.DefHeader) },
         };
 
         public Notification()

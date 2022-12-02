@@ -619,6 +619,27 @@ namespace BCRPServer
 
             Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Business, biz.ID);
         }
+
+        public void AddFurniture(Game.Houses.Furniture furn)
+        {
+            if (Furniture.Contains(furn))
+                return;
+
+            Furniture.Add(furn);
+
+            Player.TriggerEvent("Player::Furniture::Update", true, furn.UID, furn.ID);
+
+            MySQL.CharacterFurnitureUpdate(Info);
+        }
+
+        public void RemoveFurniture(Game.Houses.Furniture furn)
+        {
+            Furniture.Remove(furn);
+
+            Player.TriggerEvent("Player::Furniture::Update", false, furn.UID);
+
+            MySQL.CharacterFurnitureUpdate(Info);
+        }
         #endregion
 
         #region Own Shared Data
@@ -962,6 +983,8 @@ namespace BCRPServer
             JObject data = new JObject();
 
             data.Add("Inventory", inventory);
+
+            data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
 
             data.Add("Licenses", Licenses.SerializeToJson());
             data.Add("Skills", Skills.SerializeToJson());

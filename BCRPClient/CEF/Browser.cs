@@ -22,20 +22,9 @@ namespace BCRPClient.CEF
 
         private static HashSet<IntTypes> RenderedInterfaces { get; set; }
 
-        private static bool _IsAnyCEFActive { get; set; }
+        private static bool _IsAnyCEFActive;
 
-        public static bool IsAnyCEFActive
-        {
-            get => _IsAnyCEFActive;
-
-            private set
-            {
-                if (_IsAnyCEFActive == value)
-                    return;
-
-                _IsAnyCEFActive = value;
-            }
-        }
+        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive; private set { _IsAnyCEFActive = value; CEF.Cursor.SwitchEscMenuAccess(!value); } }
 
         private static List<IntTypes> NormalInterfaces { get; set; } = new List<IntTypes>()
         {
@@ -121,8 +110,6 @@ namespace BCRPClient.CEF
 
         public Browser()
         {
-            _IsAnyCEFActive = true;
-
             ActiveInterfaces = new HashSet<IntTypes>();
             RenderedInterfaces = new HashSet<IntTypes>();
 

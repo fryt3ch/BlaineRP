@@ -46,8 +46,6 @@ namespace BCRPClient.Data
 
         public string Name { get; set; }
 
-        public bool IsFamiliar { get; set; }
-
         public string[] Dialogues { get; set; }
 
         public string DefaultDialogueId { get; set; }
@@ -151,17 +149,10 @@ namespace BCRPClient.Data
                     if (!Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         continue;
 
-                    if (data.IsFamiliar)
-                    {
-                        Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
-                        if (data.Type != Types.Static)
-                            Utils.DrawText(Locale.General.NPC.TypeNames[data.Type], screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    }
-                    else
-                    {
-                        Utils.DrawText(x.IsMale() ? Locale.General.NPC.NotFamiliarMale : Locale.General.NPC.NotFamiliarFemale, screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                    }
+                    if (data.Type != Types.Static)
+                        Utils.DrawText(Locale.General.NPC.TypeNames[data.Type], screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 }
             };
         }
@@ -216,8 +207,6 @@ namespace BCRPClient.Data
 
                 CurrentNPC = this;
 
-                SetFamiliar(true);
-
                 var pedPos = Ped.GetRealPosition();
                 var playerPos = Player.LocalPlayer.GetRealPosition();
 
@@ -265,27 +254,6 @@ namespace BCRPClient.Data
             dialogue.Show(this);
 
             CurrentDialogue = dialogue;
-        }
-
-        public void SetFamiliar(bool state)
-        {
-            if (IsFamiliar == state)
-                return;
-
-            var familiars = Settings.Other.FamiliarNPCs;
-
-            if (state)
-            {
-                familiars.Add(Id);
-            }
-            else
-            {
-                familiars.Remove(Id);
-            }
-
-            IsFamiliar = state;
-
-            Settings.Other.FamiliarNPCs = familiars;
         }
     }
 

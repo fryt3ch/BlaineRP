@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json.Linq;
+using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -31,32 +32,11 @@ namespace BCRPClient.CEF
 
             if (value)
             {
-                if (IsHiding)
-                {
-                    (new AsyncTask(() =>
-                    {
-                        if (!IsHiding)
-                        {
-                            if (IsVisible)
-                            {
-                                GameEvents.Update -= OnTickCursor;
-                                GameEvents.Update += OnTickCursor;
-                            }
+                SwitchEscMenuAccess(false);
 
-                            return true;
-                        }
-
-                        return false;
-                    }, 10, true, 0)).Run();
-                }
-                else
-                {
-                    GameEvents.Update -= OnTickCursor;
-                    GameEvents.Update += OnTickCursor;
-                }
             }
-            else
-                OnCursorHidden();
+            else if (!Utils.IsAnyCefActive(true))
+                SwitchEscMenuAccess(true);
         }
 
         /// <summary>Блокировать клавишу ESC в игре</summary>
@@ -68,11 +48,43 @@ namespace BCRPClient.CEF
 
             await RAGE.Game.Invoker.WaitAsync(500);
 
-            GameEvents.Update -= OnTickCursor;
+            GameEvents.Render -= OnTickCursor;
 
             RAGE.Game.Pad.EnableControlAction(32, 200, true);
 
             IsHiding = false;
+        }
+
+        public static void SwitchEscMenuAccess(bool state)
+        {
+            if (!state)
+            {
+                if (IsHiding)
+                {
+                    (new AsyncTask(() =>
+                    {
+                        if (!IsHiding)
+                        {
+                            if (IsVisible)
+                            {
+                                GameEvents.Render -= OnTickCursor;
+                                GameEvents.Render += OnTickCursor;
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    }, 10, true, 0)).Run();
+                }
+                else
+                {
+                    GameEvents.Render -= OnTickCursor;
+                    GameEvents.Render += OnTickCursor;
+                }
+            }
+            else
+                OnCursorHidden();
         }
     }
 }

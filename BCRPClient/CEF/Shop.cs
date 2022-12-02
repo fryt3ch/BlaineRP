@@ -70,6 +70,8 @@ namespace BCRPClient.CEF
 
             GasStation,
 
+            TuningShop,
+
             WeaponShop,
 
             FishingShop,
@@ -248,7 +250,7 @@ namespace BCRPClient.CEF
             Events.Add("Shop::UpdateColor", (object[] args) =>
             {
                 string id = (string)args[0];
-                Utils.Colour colour = ((string)args[1]).ToColor();
+                Utils.Colour colour = ((string)args[1]).ToColour();
 
                 //Utils.ConsoleOutputLimited(id);
 
@@ -265,6 +267,17 @@ namespace BCRPClient.CEF
                         CurrentColor2 = colour;
 
                         TempVehicle?.SetCustomSecondaryColour(colour.Red, colour.Green, colour.Blue);
+                    }
+                }
+                else if (CurrentType == Types.TuningShop)
+                {
+                    if (id == "colour-main")
+                    {
+                        Player.LocalPlayer.Vehicle?.SetCustomPrimaryColour(colour.Red, colour.Green, colour.Blue);
+                    }
+                    else if (id == "colour-extra")
+                    {
+                        Player.LocalPlayer.Vehicle?.SetCustomSecondaryColour(colour.Red, colour.Green, colour.Blue);
                     }
                 }
             });
@@ -400,6 +413,15 @@ namespace BCRPClient.CEF
 
                     TempVehicle.FreezePosition(true);
                 }
+                else if (CurrentType == Types.TuningShop)
+                {
+                    var data = ((string)args[0]).Split('_');
+
+                    if (data[0] == "colourt")
+                    {
+                        Player.LocalPlayer.Vehicle?.SetColourType(int.Parse(data[1]));
+                    }
+                }
             });
 
             Events.Add("Shop::Action", (object[] args) =>
@@ -518,8 +540,6 @@ namespace BCRPClient.CEF
 
                 CurrentType = type;
 
-                await Browser.Render(Browser.IntTypes.Shop, true);
-
                 DefaultHeading = (float)heading;
 
                 CEF.HUD.ShowHUD(false);
@@ -534,8 +554,6 @@ namespace BCRPClient.CEF
                 GameEvents.Render += GameEvents.DisableAllControls;
 
                 KeyBinds.DisableAll(KeyBinds.Types.Cursor);
-
-                Additional.SkyCamera.FadeScreen(false);
 
                 CurrentCameraStateNum = 0;
 
@@ -565,10 +583,12 @@ namespace BCRPClient.CEF
                     ChangeView(++CurrentCameraStateNum);
                 }));
 
-                Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
-
                 if (type >= Types.ClothesShop1 && type <= Types.BagShop)
                 {
+                    await Browser.Render(Browser.IntTypes.Shop, true);
+
+                    Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+
                     Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
                     CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
@@ -692,9 +712,15 @@ namespace BCRPClient.CEF
                     Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
                     Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
                     Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
+
+                    Browser.Switch(Browser.IntTypes.Shop, true);
                 }
                 else if (type >= Types.CarShop1 && type <= Types.AeroShop)
                 {
+                    await Browser.Render(Browser.IntTypes.Shop, true);
+
+                    Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+
                     var prices = GetPrices(type);
 
                     if (prices == null)
@@ -717,9 +743,98 @@ namespace BCRPClient.CEF
 
                         return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
                     }));
-                }
 
-                Browser.Switch(Browser.IntTypes.Shop, true);
+                    Browser.Switch(Browser.IntTypes.Shop, true);
+                }
+                else if (type == Types.TuningShop)
+                {
+                    var vehPriceCoef = 1f; //todo
+
+                    var prices = GetPrices(CurrentType).ToDictionary(x => x.Key, x => x.Value * vehPriceCoef);
+
+                    var veh = Player.LocalPlayer.Vehicle;
+
+                    var vData = Sync.Vehicles.GetData(veh);
+
+                    if (vData == null)
+                        return;
+
+                    var tData = new List<object>();
+
+                    var techData = Additional.TuningMenu.Slots.ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Value.ModNames));
+
+                    // tech
+                    tData.Add(new object[]
+                    {
+                        new object[] { "engine", techData["engine"].Name, "variants-list", techData["engine"].ModNames.Select(x => new object[] { prices[$"engine_{x.Key + 1}"], x.Value }), $"engine_{veh.GetMod(11) + 1}" }, 
+                        
+                        new object[] { "brakes", techData["brakes"].Name, "variants-list", techData["brakes"].ModNames.Select(x => new object[] { prices[$"brakes_{x.Key + 1}"], x.Value }), $"brakes_{veh.GetMod(12) + 1}" },       
+                        
+                        new object[] { "trm", techData["trm"].Name, "variants-list", techData["trm"].ModNames.Select(x => new object[] { prices[$"trm_{x.Key + 1}"], x.Value }), $"trm_{veh.GetMod(13) + 1}" },    
+                        
+                        new object[] { "susp", techData["susp"].Name, "variants-list", techData["susp"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"susp_{veh.GetMod(15) + 1}" },    
+                        
+                        new object[] { "tt", techData["tt"].Name, "variants-list", techData["tt"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"tt_{(veh.IsToggleModOn(18) ? 1 : 0)}" },        
+                    });
+
+                    // style
+                    var styles = new List<object>();
+
+                    styles.Add(new object[] { "wtint", techData["wtint"].Name, "variants-list", techData["wtint"].ModNames.Select(x => new object[] { prices[$"wtint_{x.Key + 1}"], x.Value }), $"wtint_{veh.GetWindowTint()}" });
+
+                    styles.Add(new object[] { "xenon", techData["xenon"].Name, "variants-list", techData["xenon"].ModNames.Select(x => new object[] { prices[$"xenon_{x.Key + 1}"], x.Value }), $"xenon_{(veh.IsToggleModOn(22) ? (RAGE.Game.Invoker.Invoke<int>(0x3DFF319A831E0CDB) + 1) : 0)}" });
+
+                    styles.Add(new object[] { "neon", "Неон" , "color-selection-1", new object[] { "Цвет неона", prices["neon"], prices["neon_0"] }, vData.HasNeonMod ? veh.GetNeonColour().HEX : null });
+
+                    foreach (var x in Additional.TuningMenu.Slots.Where(x => x.Value.Id == "spoiler" || x.Value.Id == "fbump" || x.Value.Id == "rbump" || x.Value.Id == "skirt" || x.Value.Id == "exh" || x.Value.Id == "frame" || x.Value.Id == "grill" || x.Value.Id == "hood" || x.Value.Id == "roof" || x.Value.Id == "seats" || x.Value.Id == "swheel" || x.Value.Id == "livery" || x.Value.Id == "horn").ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Key)))
+                    {
+                        var count = veh.GetNumMods(x.Value.Key);
+
+                        if (count > 0)
+                        {
+                            styles.Add(new object[] { x.Key, x.Value.Name, "variants-list", Enumerable.Range(0, count + 1).Select(y => prices[x.Key]), $"{x.Key}_{veh.GetMod(x.Value.Key) + 1}" });
+                        }
+                    }
+
+                    tData.Add(styles);
+
+                    // colours
+                    tData.Add(new object[]
+                    {
+                        new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" },
+
+                        new object[] { "colour", "Цвета покраски", "color-selection-2", new object[] { veh.GetPrimaryColour().HEX, veh.GetSecondaryColour().HEX, prices["colour"] } },
+
+                        new object[] { "pearl", "Перламутр", "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() },
+
+                        new object[] { "wcolour", "Цвет покрышек", "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() },
+
+                        new object[] { "tsmoke", "Цвет дыма от колес", "color-selection-1", new object[] { "Цвет дыма от колес", prices["tsmoke"], prices["tsmoke_0"] }, vData.TyreSmokeColour?.HEX },
+                    });
+
+                    // wheels
+                    tData.Add(new object[] { new object[] { "fwheel", techData["fwheel"].Name, "variants-list", Enumerable.Range(0, veh.GetNumMods(23)).Select(x => prices["fwheel"]), $"fwheel_{veh.GetMod(23) + 1}" } });
+
+                    // misc
+                    tData.Add(new object[] {});
+
+                    await Browser.Render(Browser.IntTypes.Tuning, true, false);
+
+                    Browser.Window.ExecuteJs("Tuning.draw", new object[] { tData });
+
+                    Browser.Switch(Browser.IntTypes.Tuning, true);
+
+                    Player.LocalPlayer.FreezePosition(true);
+
+                    Player.LocalPlayer.SetVisible(false, false);
+
+                    CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
+                    CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
+
+                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, veh, 0);
+
+                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
+                }
 
                 Cursor.Show(true, true);
             }
@@ -810,9 +925,10 @@ namespace BCRPClient.CEF
 
                 AllowedCameraStates = null;
 
-                if (Browser.IsRendered(Browser.IntTypes.Shop))
+                if (Browser.IsRendered(Browser.IntTypes.Shop) || Browser.IsRendered(Browser.IntTypes.Tuning))
                 {
                     Browser.Render(Browser.IntTypes.Shop, false);
+                    Browser.Render(Browser.IntTypes.Tuning, false);
 
                     while (Additional.SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(250);
@@ -833,7 +949,7 @@ namespace BCRPClient.CEF
 
                     Additional.Camera.Disable();
                 }
-                else
+                else if (Browser.IsRendered(Browser.IntTypes.Retail))
                 {
                     Browser.Render(Browser.IntTypes.Retail, false);
                 }
@@ -903,7 +1019,7 @@ namespace BCRPClient.CEF
 
             CurrentCameraStateNum = 0;
 
-            if (TempVehicle?.Exists == true)
+            if (TempVehicle != null)
             {
                 var model = TempVehicle.Model;
 
@@ -936,8 +1052,6 @@ namespace BCRPClient.CEF
             }
             else
             {
-                TempVehicle = null;
-
                 Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
             }
 

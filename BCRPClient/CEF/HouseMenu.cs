@@ -12,7 +12,7 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive => CEF.Browser.IsRendered(Browser.IntTypes.MenuHome);
 
-        private static DateTime LastSent;
+        public static DateTime LastSent;
 
         private static int EscBind { get; set; }
 
@@ -24,13 +24,13 @@ namespace BCRPClient.CEF
 
             Events.Add("HouseMenu::Show", (args) =>
             {
-                var data = RAGE.Util.Json.Deserialize<List<JObject>>((string)args[0]);
+                var data = RAGE.Util.Json.Deserialize<Dictionary<string, bool[]>>((string)args[0]);
 
                 var balance = (int)args[1];
                 var dState = (bool)args[2];
                 var cState = (bool)args[3];
 
-                Show(data.Select(x => new object[] { (uint)x["C"], (string)x["N"] + " " + x["S"], RAGE.Util.Json.Deserialize<bool[]>((string)x["P"]) }).ToArray(), balance, dState, cState);
+                Show(data.Select(x => { var sData = x.Key.Split('_'); return new object[] { uint.Parse(sData[2]), $"{sData[0]} {sData[1]}", x.Value }; }).ToArray(), balance, dState, cState);
             });
 
             Events.Add("MenuHome::Action", async (args) =>
@@ -75,14 +75,16 @@ namespace BCRPClient.CEF
                             if (!IsActive)
                                 return;
 
+                            CEF.MapEditor.Close();
+
                             if (furn == null)
                             {
+                                await Utils.RequestModel(pFurn.Model);
+
                                 furn = new MapObject(pFurn.Model, Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f), new Vector3(0f, 0f, 0f), 125, Player.LocalPlayer.Dimension);
                             }
                             else
                             {
-                                CEF.MapEditor.Close();
-
                                 furn.SetVisible(false, false);
                                 furn.SetCollision(false, true);
 
@@ -146,10 +148,7 @@ namespace BCRPClient.CEF
 
                     if (id == "apply-color")
                     {
-                        if (args[2] == null || !(args[2] is string))
-                            return;
-
-                        rgb = ((string)args[2]).ToColor();
+                        rgb = ((string)args[2]).ToColour();
                     }
 
                     var curRgb = light.GetData<Utils.Colour>("RGB");
@@ -177,7 +176,7 @@ namespace BCRPClient.CEF
 
                 if (id.Contains("-permit"))
                 {
-                    var permId = id.Contains("light") ? 0 : id.Contains("doors") ? 1 : id.Contains("closet") ? 2 : id.Contains("wardrobe") ? 3 : 4; // 4 - fridge
+                    var permId = id == "light" ? 0 : id == "doors" ? 1 : id == "closet" ? 2 : id == "wardrobe" ? 3 : 4; // 4 - "fridge"
 
                     var cid = (uint)(int)args[2];
 
@@ -207,7 +206,7 @@ namespace BCRPClient.CEF
                 if (light == null)
                     return;
 
-                var rgb = ((string)args[1]).ToColor();
+                var rgb = ((string)args[1]).ToColour();
 
                 light.SetLightColour(rgb);
             });
@@ -225,7 +224,7 @@ namespace BCRPClient.CEF
 
                 if (IsActive)
                 {
-                    //todo
+                    CEF.Browser.Window.ExecuteJs("MenuHome.setPermit", idx, state, cid);
                 }
             });
 
@@ -259,9 +258,9 @@ namespace BCRPClient.CEF
 
             var layouts = new object[] { Sync.House.Style.All[style.HouseType][style.RoomType].Select(x => new object[] { "hlo_" + x.Value.Type.ToString(), x.Value.Name, x.Value.Price }), "hlo_" + style.Type.ToString() };
 
-            var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }) };
+            var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
-            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", $"Лампа #{x.Key}", x.Value.GetData<bool>("State"), x.Value.GetData<Utils.Colour>("RGB").ToHEX() });
+            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", $"Лампа #{x.Key}", x.Value.GetData<bool>("State"), x.Value.GetData<Utils.Colour>("RGB").HEX });
 
             await CEF.Browser.Render(Browser.IntTypes.MenuHome, true, true);
 
@@ -318,7 +317,7 @@ namespace BCRPClient.CEF
 
         public static void SetLightState(int id, bool state) => SetCheckboxState($"ls_{id}", state);
 
-        public static void SetLightColour(int id, Utils.Colour colour) => CEF.Browser.Window.ExecuteJs("MenuHome.applyColor", $"ls_{id}", colour.ToHEX());
+        public static void SetLightColour(int id, Utils.Colour colour) => CEF.Browser.Window.ExecuteJs("MenuHome.applyColor", $"ls_{id}", colour.HEX);
 
         public static void AddSettler(uint cid, string name, bool[] permissions) => CEF.Browser.Window.ExecuteJs("MenuHome.newRoommate", cid, name, permissions);
 
@@ -338,6 +337,9 @@ namespace BCRPClient.CEF
                 return;
 
             CEF.Browser.Switch(Browser.IntTypes.MenuHome, state);
+
+            if (state)
+                CEF.Cursor.Show(true, true);
         }
 
         public static void FurnitureEditOnStart(MapObject mObj)
@@ -378,9 +380,56 @@ namespace BCRPClient.CEF
             if (LastSent.IsSpam(1000, false, false))
                 return;
 
-            Events.CallRemote("House::Menu::Furn::End", mObj.GetData<uint>("UID"), RAGE.Util.Json.Serialize(pos), RAGE.Util.Json.Serialize(rot));
+            Events.CallRemote("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z);
 
             LastSent = DateTime.Now;
+        }
+    }
+
+    public class Elevator : Events.Script
+    {
+        public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Elevator);
+
+        private static int TempEscBind { get; set; }
+
+        public Elevator()
+        {
+            TempEscBind = -1;
+
+            Events.Add("Elevator::Floor", (args) =>
+            {
+                var floor = (int)args[0];
+            });
+        }
+
+        public static async System.Threading.Tasks.Task Show(int maxFloor, int curFloor)
+        {
+            if (IsActive)
+                return;
+
+            await CEF.Browser.Render(Browser.IntTypes.Elevator, true, true);
+
+            CEF.Browser.Window.ExecuteJs("Elevator.setMaxFloor", maxFloor);
+            CEF.Browser.Window.ExecuteJs("Elevator.setCurrentFloor", curFloor);
+
+            CEF.Cursor.Show(true, true);
+
+            TempEscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+        }
+
+        public static void Close()
+        {
+            if (!IsActive)
+                return;
+
+            CEF.Browser.Render(Browser.IntTypes.Elevator, false);
+
+            if (TempEscBind != -1)
+                RAGE.Input.Unbind(TempEscBind);
+
+            TempEscBind = -1;
+
+            CEF.Cursor.Show(false, false);
         }
     }
 }

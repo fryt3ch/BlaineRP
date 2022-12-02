@@ -1,6 +1,8 @@
 ﻿using GTANetworkAPI;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BCRPServer.CEF
@@ -22,7 +24,14 @@ namespace BCRPServer.CEF
             if (house == null)
                 return;
 
-            player.TriggerEvent("HouseMenu::Show", "[]", house.Balance, house.IsLocked, house.ContainersLocked);
+            if (house.Owner != pData.Info && house.Settlers.ContainsKey(pData.Info))
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
+
+            player.TriggerEvent("HouseMenu::Show", house.Settlers.ToDictionary(x => $"{x.Key.Name}_{x.Key.Surname}_{x.Key.CID}", x => x.Value).SerializeToJson(), house.Balance, house.IsLocked, house.ContainersLocked);
         }
 
         [RemoteEvent("House::Menu::Light::State")]
@@ -45,6 +54,13 @@ namespace BCRPServer.CEF
 
             if (idx >= house.LightsStates.Length)
                 return;
+
+            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[0] != true)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
 
             if (house.LightsStates[idx].State == state)
                 return;
@@ -75,11 +91,20 @@ namespace BCRPServer.CEF
             if (idx >= house.LightsStates.Length)
                 return;
 
+            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[0] != true)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
+
             house.LightsStates[idx].Colour.Red = r;
             house.LightsStates[idx].Colour.Green = g;
             house.LightsStates[idx].Colour.Blue = b;
 
             NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Light", idx, house.LightsStates[idx].Colour.SerializeToJson());
+
+            player.TriggerEvent("House::LCC");
         }
 
         [RemoteEvent("House::Menu::Permission")]
@@ -102,6 +127,13 @@ namespace BCRPServer.CEF
 
             if (idx >= 5)
                 return;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
 
             foreach (var x in house.Settlers)
             {
@@ -134,6 +166,13 @@ namespace BCRPServer.CEF
             if (house == null)
                 return false;
 
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return false;
+            }
+
             var furniture = Game.Houses.Furniture.Get(fUid);
 
             if (furniture == null)
@@ -153,7 +192,7 @@ namespace BCRPServer.CEF
         }
 
         [RemoteEvent("House::Menu::Furn::End")]
-        public static void HouseMenuFurnitureEnd(Player player, uint fUid, string posStr, string rotStr)
+        public static void HouseMenuFurnitureEnd(Player player, uint fUid, float x, float y, float z, float rotZ)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -162,25 +201,39 @@ namespace BCRPServer.CEF
 
             var pData = sRes.Data;
 
-            if (posStr == null || rotStr == null)
-                return;
-
-            var pos = posStr.DeserializeFromJson<Vector3>();
-            var rot = posStr.DeserializeFromJson<Vector3>();
-
             var house = pData.CurrentHouse;
 
             if (house == null)
                 return;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
 
             var furniture = Game.Houses.Furniture.Get(fUid);
 
             if (furniture == null)
                 return;
 
+            if (rotZ > 180f)
+            {
+                rotZ = -(180f - rotZ % 180);
+            }
+            else if (rotZ <= -180f)
+            {
+                rotZ = -(rotZ % 180f);
+            }
+
             if (pData.Furniture.Contains(furniture))
             {
+                pData.RemoveFurniture(furniture);
 
+                house.Furniture.Add(furniture);
+
+                MySQL.HouseFurnitureUpdate(house);
             }
             else
             {
@@ -188,10 +241,11 @@ namespace BCRPServer.CEF
                     return;
             }
 
-            furniture.Data.Position = pos;
-            furniture.Data.Rotation = rot;
+            furniture.Data = new Utils.Vector4(x, y, z, rotZ);
 
-            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Furn", furniture.UID, posStr, rotStr);
+            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Furn", furniture.SerializeToJson());
+
+            MySQL.FurnitureUpdate(furniture);
         }
 
         [RemoteEvent("House::Menu::Furn::Remove")]
@@ -209,6 +263,13 @@ namespace BCRPServer.CEF
             if (house == null)
                 return;
 
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
+
             var furniture = Game.Houses.Furniture.Get(fUid);
 
             if (furniture == null)
@@ -219,9 +280,44 @@ namespace BCRPServer.CEF
 
             house.Furniture.Remove(furniture);
 
-            pData.Furniture.Add(furniture);
+            pData.AddFurniture(furniture);
 
             NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Furn", furniture.UID);
+
+            MySQL.HouseFurnitureUpdate(house);
+        }
+
+        [RemoteEvent("House::Menu::Expel")]
+        public static void HouseMenuExpel(Player player, uint cid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null)
+                return;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
+
+            var sInfo = house.Settlers.Where(x => x.Key.CID == cid).Select(x => x.Key).FirstOrDefault();
+
+            if (sInfo == null)
+                return;
+
+            if (sInfo.PlayerData == null)
+            {
+
+            }
         }
     }
 }

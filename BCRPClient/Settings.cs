@@ -190,16 +190,12 @@ namespace BCRPClient
                 public static Sync.Animations.EmotionTypes CurrentEmotion = Sync.Animations.EmotionTypes.None;
                 public static Sync.Animations.WalkstyleTypes CurrentWalkstyle = Sync.Animations.WalkstyleTypes.None;
 
-                public static HashSet<string> FamiliarNPCs => new HashSet<string>();
-
                 public static List<CEF.BlipsMenu.LocalBlip> LocalBlips => new List<CEF.BlipsMenu.LocalBlip>();
             }
 
             private static HashSet<string> _FavoriteAnimations;
             private static Sync.Animations.EmotionTypes _CurrentEmotion;
             private static Sync.Animations.WalkstyleTypes _CurrentWalkstyle;
-
-            private static HashSet<string> _FamiliarNPCs;
 
             private static List<CEF.BlipsMenu.LocalBlip> _LocalBlips;
 
@@ -218,8 +214,6 @@ namespace BCRPClient
             public static HashSet<string> FavoriteAnimations { get => _FavoriteAnimations; set { Additional.Storage.SetData("Settings::Animations::Favorites", value); _FavoriteAnimations = value; } }
             public static Sync.Animations.EmotionTypes CurrentEmotion { get => _CurrentEmotion; set { if (value != _CurrentEmotion) Additional.Storage.SetData("Settings::Animations::Emotion", value.ToString()); _CurrentEmotion = value; } }
             public static Sync.Animations.WalkstyleTypes CurrentWalkstyle { get => _CurrentWalkstyle; set { if (value != _CurrentWalkstyle) Additional.Storage.SetData("Settings::Animations::Walkstyle", value.ToString()); _CurrentWalkstyle = value; } }
-
-            public static HashSet<string> FamiliarNPCs { get => _FamiliarNPCs; set { Additional.Storage.SetData("Settings::FamiliarNPCs", value); _FamiliarNPCs = value; } }
 
             public static List<CEF.BlipsMenu.LocalBlip> LocalBlips { get => _LocalBlips; set { Additional.Storage.SetData("Settings::LocalBlips", value); _LocalBlips = value; } }
         }
@@ -279,16 +273,6 @@ namespace BCRPClient
                 Other.CurrentWalkstyle = Other.Default.CurrentWalkstyle;
             else
                 Other.CurrentWalkstyle = walkstyle;
-
-            Other.FamiliarNPCs = Additional.Storage.GetData<HashSet<string>>("Settings::FamiliarNPCs") ?? Other.Default.FamiliarNPCs;
-
-            foreach (var x in Other.FamiliarNPCs)
-            {
-                var data = Data.NPC.GetData(x);
-
-                if (data != null)
-                    data.IsFamiliar = true;
-            }
 
             Other.LocalBlips = Additional.Storage.GetData<List<CEF.BlipsMenu.LocalBlip>>("Settings::LocalBlips") ?? Other.Default.LocalBlips;
 

@@ -176,11 +176,11 @@ namespace BCRPServer.Game.Data
 
             /// <summary>Основной цвет</summary>
             [JsonProperty(PropertyName = "C1")]
-            public Color Colour1 { get; set; }
+            public Utils.Colour Colour1 { get; set; }
 
             /// <summary>Второстепенный цвет</summary>
             [JsonProperty(PropertyName = "C2")]
-            public Color Colour2 { get; set; }
+            public Utils.Colour Colour2 { get; set; }
 
             [JsonProperty(PropertyName = "WC")]
             public byte WheelsColour { get; set; }
@@ -189,10 +189,10 @@ namespace BCRPServer.Game.Data
             public byte ColourType { get; set; }
 
             [JsonProperty(PropertyName = "NC")]
-            public Color NeonColour { get; set; }
+            public Utils.Colour NeonColour { get; set; }
 
             [JsonProperty(PropertyName = "TSC")]
-            public Color TyresSmokeColour { get; set; }
+            public Utils.Colour TyresSmokeColour { get; set; }
 
             [JsonProperty(PropertyName = "PC")]
             public byte PearlescentColour { get; set; }
@@ -217,16 +217,16 @@ namespace BCRPServer.Game.Data
 
             }
 
-            public static Tuning CreateNew(Color Colour1, Color Colour2)
+            public static Tuning CreateNew(Utils.Colour Colour1, Utils.Colour Colour2)
             {
                 var res = new Tuning();
 
                 res.Colour1 = Colour1;
                 res.Colour2 = Colour2;
 
-                res.NeonColour = new Color(0, 0, 0, 0);
+                res.NeonColour = null;
 
-                res.TyresSmokeColour = new Color(0, 0, 0, 0);
+                res.TyresSmokeColour = null;
 
                 res.Turbo = false;
                 res.Xenon = -2;
@@ -251,15 +251,42 @@ namespace BCRPServer.Game.Data
             {
                 UpdateColour(vehicle);
 
-                vehicle.Neons = NeonColour.Alpha == 255;
-                vehicle.NeonColor = NeonColour;
+                if (NeonColour != null)
+                {
+                    vehicle.Neons = true;
+                    vehicle.NeonColor = NeonColour.ToRageColour();
+
+                    vehicle.SetSharedData("Mods::Neon", true);
+                }
+                else
+                {
+                    vehicle.Neons = false;
+
+                    vehicle.ResetSharedData("Mods::Neon");
+                }
 
                 vehicle.WindowTint = WindowTint;
 
                 vehicle.WheelType = WheelsType;
 
-                vehicle.SetSharedData("Mods::TSColour", TyresSmokeColour);
-                vehicle.SetSharedData("Mods::Turbo", Turbo);
+                if (TyresSmokeColour != null)
+                {
+                    vehicle.SetSharedData("Mods::TSColour", TyresSmokeColour);
+                }
+                else
+                {
+                    vehicle.ResetSharedData("Mods::TSColour");
+                }
+
+                if (Turbo)
+                {
+                    vehicle.SetSharedData("Mods::Turbo", true);
+                }
+                else
+                {
+                    vehicle.ResetSharedData("Mods::Turbo");
+                }
+
                 vehicle.SetSharedData("Mods::Xenon", Xenon);
 
                 foreach (var x in Mods)
@@ -270,11 +297,10 @@ namespace BCRPServer.Game.Data
 
             public void UpdateColour(GTANetworkAPI.Vehicle vehicle)
             {
-                vehicle.PrimaryPaint = new VehiclePaint(ColourType, 0);
-                vehicle.SecondaryPaint = new VehiclePaint(ColourType, 0);
+                vehicle.CustomPrimaryColor = Colour1.ToRageColour();
+                vehicle.CustomSecondaryColor = Colour2.ToRageColour();
 
-                vehicle.CustomPrimaryColor = Colour1;
-                vehicle.CustomSecondaryColor = Colour2;
+                vehicle.SetSharedData("Mods::CT", ColourType);
 
                 vehicle.PearlescentColor = PearlescentColour;
 

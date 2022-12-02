@@ -133,7 +133,7 @@ namespace BCRPClient.CEF
                     break;
 
                     case OutVehicleActions.Trunk:
-                        CEF.Inventory.Show(Inventory.Types.Container);
+                        Sync.Vehicles.ShowContainer(vehicle);
                     break;
 
                     case OutVehicleActions.TrunkOpen:
@@ -141,7 +141,7 @@ namespace BCRPClient.CEF
                     break;
 
                     case OutVehicleActions.TrunkLook:
-                        CEF.Inventory.Show(Inventory.Types.Container);
+                        Sync.Vehicles.ShowContainer(vehicle);
                     break;
 
                     case OutVehicleActions.TrunkClose:
@@ -423,9 +423,7 @@ namespace BCRPClient.CEF
             {
                 if (obj.HasData("Furniture"))
                 {
-                    var fData = obj.GetData<Data.Furniture>("Furniture");
-
-                    if (fData != null)
+                    if (obj.GetData<Data.Furniture>("Furniture") is Data.Furniture fData)
                     {
                         fData.InteractionAction?.Invoke(obj);
                     }

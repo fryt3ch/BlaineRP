@@ -77,7 +77,41 @@ namespace BCRPClient.Data
 
         private static Dictionary<Types, Action<MapObject>> InteractionActions = new Dictionary<Types, Action<MapObject>>()
         {
+            {
+                Types.Locker,
 
+                (obj) =>
+                {
+                    if (obj.GetData<uint?>("ContainerID") is uint contId)
+                    {
+                        CEF.Inventory.Show(CEF.Inventory.Types.Container, contId);
+                    }
+                }
+            },
+
+            {
+                Types.Wardrobe,
+
+                (obj) =>
+                {
+                    if (obj.GetData<uint?>("ContainerID") is uint contId)
+                    {
+                        CEF.Inventory.Show(CEF.Inventory.Types.Container, contId);
+                    }
+                }
+            },
+
+            {
+                Types.Fridge,
+
+                (obj) =>
+                {
+                    if (obj.GetData<uint?>("ContainerID") is uint contId)
+                    {
+                        CEF.Inventory.Show(CEF.Inventory.Types.Container, contId);
+                    }
+                }
+            },
         };
 
         public string Id { get; set; }
@@ -109,8 +143,10 @@ namespace BCRPClient.Data
 
         public static Action<MapObject, object[]> GetCreateAction(string id) => CreateActions.GetValueOrDefault(All[id].Type);
 
-        public MapObject CreateObject(Vector3 pos, Vector3 rot, uint dim, uint uid, params object[] args)
+        public async System.Threading.Tasks.Task<MapObject> CreateObject(Vector3 pos, Vector3 rot, uint dim, uint uid, params object[] args)
         {
+            await Utils.RequestModel(Model);
+
             var obj = new MapObject(Model, pos, rot, 255, dim);
 
             obj.SetData("UID", uid);

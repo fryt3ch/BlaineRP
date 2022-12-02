@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json.Linq;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -74,7 +75,7 @@ namespace BCRPClient.Additional
 
                 var fade = (bool)args[3];
 
-                Data.NPC.CurrentNPC?.SwitchDialogue(false);
+                Sync.Players.CloseAll(false);
 
                 if (fade)
                 {
@@ -191,6 +192,11 @@ namespace BCRPClient.Additional
 
                 Player.LocalPlayer.SetInvincible(value);
                 Player.LocalPlayer.SetCanBeDamaged(!value);
+
+                GameEvents.Render -= InvincibleRender;
+
+                if (value)
+                    GameEvents.Render += InvincibleRender;
             });
 
             #region Weapon
@@ -298,6 +304,14 @@ namespace BCRPClient.Additional
 
         private static void Check()
         {
+            if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.IsLocal)
+            {
+                if (Player.LocalPlayer.Dimension == Settings.MAIN_DIMENSION)
+                {
+                    Player.LocalPlayer.Vehicle.Destroy();
+                }
+            }
+
             #region Teleport
             if (!AllowTP.Peek())
             {
@@ -412,5 +426,7 @@ namespace BCRPClient.Additional
             RAGE.Game.Player.RestorePlayerStamina(100);
             RAGE.Game.Player.SetPlayerHealthRechargeMultiplier(0);
         }
+
+        private static void InvincibleRender() => RAGE.Game.Player.SetPlayerInvincible(true);
     }
 }

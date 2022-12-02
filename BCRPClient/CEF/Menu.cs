@@ -198,7 +198,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Menu::UpdateAimColor", (object[] args) =>
             {
-                Settings.Aim.Color = ((string)args[0]).ToColor();
+                Settings.Aim.Color = ((string)args[0]).ToColour();
                 Settings.Aim.Alpha = args[1] is float ? (float)args[1] : (int)args[1];
             });
             #endregion
@@ -343,7 +343,7 @@ namespace BCRPClient.CEF
 
             Browser.Window.ExecuteJs("Menu.setAim", Settings.Aim.Type);
             Browser.Window.ExecuteJs("Menu.setAimSize", Settings.Aim.Scale);
-            Browser.Window.ExecuteJs($"Menu.setColor", Settings.Aim.Color.ToHEX(), Settings.Aim.Alpha);
+            Browser.Window.ExecuteJs($"Menu.setColor", Settings.Aim.Color.HEX, Settings.Aim.Alpha);
         }
 
         public static void UpdateKeyBindsData()

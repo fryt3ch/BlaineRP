@@ -12,7 +12,7 @@ namespace BCRPServer.Sync
 {
     class Commands : Script
     {
-        private static Color DefColour = new Color(0, 0, 0);
+        private static Utils.Colour DefColour => new Utils.Colour(0, 0, 0);
 
         private static Dictionary<string, int> PermissionLevels = new Dictionary<string, int>()
         {

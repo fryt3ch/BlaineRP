@@ -77,26 +77,19 @@ namespace BCRPServer.Game.Houses
 
         };
 
+        [JsonProperty(PropertyName = "U")]
         public uint UID { get; set; }
 
+        [JsonProperty(PropertyName = "I")]
         public string ID { get; set; }
 
+        [JsonIgnore]
         public Types Type { get; set; }
 
-        public FurnitureData Data { get; set; }
+        [JsonProperty(PropertyName = "D")]
+        public Utils.Vector4 Data { get; set; }
 
-        public class FurnitureData
-        {
-            [JsonProperty(PropertyName = "P")]
-            public Vector3 Position { get; set; }
-
-            [JsonProperty(PropertyName = "R")]
-            public Vector3 Rotation { get; set; }
-
-            public FurnitureData() { }
-        }
-
-        public Furniture(uint UID, string ID, FurnitureData Data)
+        public Furniture(uint UID, string ID, Utils.Vector4 Data)
         {
             this.UID = UID;
 
@@ -115,30 +108,9 @@ namespace BCRPServer.Game.Houses
 
             this.Type = GetType(ID);
 
-            Data = new FurnitureData();
-
-            Data.Position = new Vector3(0f, 0f, 0f);
-            Data.Rotation = new Vector3(0f, 0f, 0f);
+            Data = new Utils.Vector4(0f, 0f, 0f, 0f);
 
             Add(this);
-        }
-
-        public JObject ToClientJObject()
-        {
-            var obj = new JObject();
-
-            obj.Add("U", UID);
-            obj.Add("I", ID);
-
-            obj.Add("PX", Data.Position.X);
-            obj.Add("PY", Data.Position.Y);
-            obj.Add("PZ", Data.Position.Z);
-
-            obj.Add("RX", Data.Rotation.X);
-            obj.Add("RY", Data.Rotation.Y);
-            obj.Add("RZ", Data.Rotation.Z);
-
-            return obj;
         }
 
         private static Types GetType(string id)

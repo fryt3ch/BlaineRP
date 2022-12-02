@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 
 namespace BCRPClient.Sync
 {
@@ -355,7 +356,7 @@ namespace BCRPClient.Sync
                 data.OwnedBusinesses = RAGE.Util.Json.Deserialize<List<int>>((string)sData["Businesses"]).Select(x => Data.Locations.Business.All[x]).ToList();
                 data.OwnedHouses = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Houses"]).Select(x => Data.Locations.House.All[x]).ToList();
 
-                data.Furniture = new Dictionary<uint, Data.Furniture>();
+                data.Furniture = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Furniture"]).ToDictionary(x => x.Key, x => Data.Furniture.GetData(x.Value));
 
                 foreach (var x in data.Skills)
                     UpdateSkill(x.Key, x.Value);
@@ -698,6 +699,38 @@ namespace BCRPClient.Sync
                 }
 
                 CEF.Menu.UpdateProperties(data);
+            });
+
+            Events.Add("Player::Furniture::Update", (args) =>
+            {
+                var data = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (data == null)
+                    return;
+
+                bool add = (bool)args[0];
+
+                var fUid = (uint)(int)args[1];
+
+                if (add)
+                {
+                    if (data.Furniture.ContainsKey(fUid))
+                        return;
+
+                    var fData = Data.Furniture.GetData((string)args[2]);
+
+                    data.Furniture.Add(fUid, fData);
+
+                    if (CEF.HouseMenu.IsActive)
+                        CEF.HouseMenu.AddOwnedFurniture(fUid, fData);
+                }
+                else
+                {
+                    data.Furniture.Remove(fUid);
+
+                    if (CEF.HouseMenu.IsActive)
+                        CEF.HouseMenu.RemoveOwnedFurniture(fUid);
+                }
             });
 
             Events.Add("Players::Freeze", (object[] args) =>

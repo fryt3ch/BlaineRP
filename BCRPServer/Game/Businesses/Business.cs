@@ -29,6 +29,8 @@ namespace BCRPServer.Game.Businesses
             Market,
 
             GasStation,
+
+            TuningShop,
         }
 
         public static Dictionary<int, Business> All;
@@ -128,6 +130,8 @@ namespace BCRPServer.Game.Businesses
 
             new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1770.4f, 3239.908f, 42.02776f), 352.3067f);
 
+            new TuningShop(20, new Vector3(1178.526f, 2647.779f, 37.79328f), new Utils.Vector4(1175.327f, 2639.85f, 37.3765f, 325f));
+
             foreach (var x in All.Values)
             {
                 MySQL.LoadBusiness(x);
@@ -194,9 +198,7 @@ namespace BCRPServer.Game.Businesses
 
     public interface IEnterable
     {
-        public Vector3 EnterPosition { get; set; }
-
-        public float Heading { get; set; }
+        public Utils.Vector4 EnterProperties { get; set; }
     }
 
     public abstract class Shop : Business
@@ -2101,6 +2103,110 @@ namespace BCRPServer.Game.Businesses
                     { "alkonost", 100 },
                 }
             },
+
+            {
+                Types.TuningShop,
+
+                new Dictionary<string, int>()
+                {
+                    { "engine_0", 100 },
+                    { "engine_1", 100 },
+                    { "engine_2", 100 },
+                    { "engine_3", 100 },
+                    { "engine_4", 100 },
+
+                    { "brakes_0", 100 },
+                    { "brakes_1", 100 },
+                    { "brakes_2", 100 },
+                    { "brakes_3", 100 },
+
+                    { "trm_0", 100 },
+                    { "trm_1", 100 },
+                    { "trm_2", 100 },
+                    { "trm_3", 100 },
+
+                    { "susp_0", 100 },
+                    { "susp_1", 100 },
+                    { "susp_2", 100 },
+                    { "susp_3", 100 },
+                    { "susp_4", 100 },
+
+                    { "xenon_0", 100 },
+                    { "xenon_1", 100 },
+                    { "xenon_2", 100 },
+                    { "xenon_3", 100 },
+                    { "xenon_4", 100 },
+                    { "xenon_5", 100 },
+                    { "xenon_6", 100 },
+                    { "xenon_7", 100 },
+                    { "xenon_8", 100 },
+                    { "xenon_9", 100 },
+                    { "xenon_10", 100 },
+                    { "xenon_11", 100 },
+                    { "xenon_12", 100 },
+                    { "xenon_13", 100 },
+                    { "xenon_14", 100 },
+
+                    { "wtint_0", 100 },
+                    { "wtint_1", 100 },
+                    { "wtint_2", 100 },
+                    { "wtint_3", 100 },
+
+                    { "tt_0", 100 },
+                    { "tt_1", 100 },
+
+                    { "neon_0", 100 },
+                    { "neon", 100 },
+
+                    { "tsmoke_0", 100 },
+                    { "tsmoke", 100 },
+
+                    { "horn", 100 },
+
+                    { "spoiler", 100 },
+
+                    { "fbump", 100 },
+
+                    { "rbump", 100 },
+
+                    { "skirt", 100 },
+
+                    { "exh", 100 },
+
+                    { "frame", 100 },
+
+                    { "grill", 100 },
+
+                    { "hood", 100 },
+
+                    { "roof", 100 },
+
+                    { "fwheel", 100 },
+
+                    { "rwheel", 100 },
+
+                    { "livery", 100 },
+
+                    { "swheel", 100 },
+
+                    { "seats", 100 },
+
+                    { "colourt_0", 100 },
+                    { "colourt_1", 100 },
+                    { "colourt_2", 100 },
+                    { "colourt_3", 100 },
+                    { "colourt_4", 100 },
+                    { "colourt_5", 100 },
+
+                    { "colour", 100 },
+
+                    { "pearl_0", 100 },
+                    { "pearl", 100 },
+
+                    { "wcolour_0", 100 },
+                    { "wcolour", 100 },
+                }
+            }
         };
 
         public int GetPrice(string id, bool addMargin = true)
@@ -2124,15 +2230,11 @@ namespace BCRPServer.Game.Businesses
 
     public abstract class ClothesShop : Shop, IEnterable
     {
-        public Vector3 EnterPosition { get; set; }
-
-        public float Heading { get; set; }
+        public Utils.Vector4 EnterProperties { get; set; }
 
         public ClothesShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type) : base(ID, Position, Type)
         {
-            this.EnterPosition = EnterPosition;
-
-            this.Heading = Heading;
+            this.EnterProperties = new Utils.Vector4(EnterPosition, Heading);
         }
     }
 
@@ -2200,16 +2302,13 @@ namespace BCRPServer.Game.Businesses
 
     public abstract class VehicleShop : Shop, IEnterable
     {
-        public Vector3 EnterPosition { get; set; }
-
-        public float Heading { get; set; }
+        public Utils.Vector4 EnterProperties { get; set; }
 
         public List<(Vector3 Position, float Heading)> AfterBuyPositions { get; set; }
 
         public VehicleShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type, params (Vector3, float)[] AfterBuyPositions) : base(ID, Position, Type)
         {
-            this.EnterPosition = EnterPosition;
-            this.Heading = Heading;
+            this.EnterProperties = new Utils.Vector4(EnterPosition, Heading);
 
             this.AfterBuyPositions = AfterBuyPositions.ToList();
         }
@@ -2260,6 +2359,16 @@ namespace BCRPServer.Game.Businesses
         public AeroShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading) : base(ID, Position, EnterPosition, Heading, Types.AeroShop)
         {
 
+        }
+    }
+
+    public class TuningShop : Shop, IEnterable
+    {
+        public Utils.Vector4 EnterProperties { get; set; }
+
+        public TuningShop(int ID, Vector3 Position, Utils.Vector4 EnterProperties) : base(ID, Position, Types.TuningShop)
+        {
+            this.EnterProperties = EnterProperties;
         }
     }
 

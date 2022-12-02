@@ -77,8 +77,6 @@ namespace BCRPClient.CEF
 
         private static List<int> TempBinds { get; set; }
 
-        private static DateTime LastToggled;
-
         private static float CurrentScale { get; set; } = 1f;
 
         private static int CurrentSprite { get; set; } = 1;
@@ -98,8 +96,6 @@ namespace BCRPClient.CEF
             FirstOpen = true;
 
             LastEdited = -1;
-
-            LastToggled = DateTime.MinValue;
 
             TempBinds = new List<int>();
 
@@ -354,8 +350,6 @@ namespace BCRPClient.CEF
 
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
 
-            LastToggled = DateTime.Now;
-
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
             var waypointBlip = Utils.GetWaypointBlip();
 
@@ -381,9 +375,6 @@ namespace BCRPClient.CEF
         public static void Close(bool ignoreTimeout = false)
         {
             if (!IsActive)
-                return;
-
-            if (!ignoreTimeout && LastToggled.IsSpam(500, false, false))
                 return;
 
             CEF.Browser.Switch(Browser.IntTypes.BlipsMenu, false);

@@ -523,7 +523,7 @@ namespace BCRPServer
         }
 
         #region Create New
-        public static VehicleData New(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Color color1, Color color2, Vector3 position, float heading, uint dimension, bool setInto = false)
+        public static VehicleData New(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension, bool setInto = false)
         {
             var player = pData.Player;
 
@@ -574,7 +574,7 @@ namespace BCRPServer
             return vData;
         }
 
-        public static VehicleData NewTemp(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Color color1, Color color2, Vector3 position, float heading, uint dimension)
+        public static VehicleData NewTemp(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension)
         {
             var player = pData.Player;
 

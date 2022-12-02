@@ -122,7 +122,7 @@ namespace BCRPClient.CEF
 
             IsActive = true;
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Shift, true, () => ToggleRotationMode(!RotationModeOn)));
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
 
             if (CurrentModeType == ModeTypes.FurnitureEdit)
             {
@@ -130,6 +130,8 @@ namespace BCRPClient.CEF
 
                 TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Object?.Exists == true) CEF.HouseMenu.FurntureEditFinish(Object, Object.GetCoords(true), Object.GetRotation(2)); }));
             }
+
+            Sync.WeaponSystem.DisabledFiring = true;
         }
 
         public static void Close()
@@ -160,6 +162,8 @@ namespace BCRPClient.CEF
                 RAGE.Input.Unbind(x);
 
             TempBinds.Clear();
+
+            Sync.WeaponSystem.DisabledFiring = false;
         }
 
         private static void ToggleRotationMode(bool state)
@@ -227,8 +231,61 @@ namespace BCRPClient.CEF
             {
                 if (Tick == byte.MaxValue)
                     Tick = 0;
+            }
 
+            bool showRotZ = false;
 
+            float diffPos = RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+
+            if (!RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            {
+                float xOff = 0f, yOff = 0f;
+
+                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Left))
+                    xOff -= diffPos;
+                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Right))
+                    xOff += diffPos;
+
+                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Up))
+                    yOff -= diffPos;
+                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Down))
+                    yOff += diffPos;
+
+                Object.SetCoords(ePos.X + xOff, ePos.Y + yOff, ePos.Z, false, false, false, false);
+            }
+            else
+            {
+                float diffRot = RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+
+                showRotZ = true;
+
+                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Up))
+                {
+                    Object.SetCoords(ePos.X, ePos.Y, ePos.Z + diffPos, false, false, false, false);
+                }
+                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Down))
+                {
+                    Object.SetCoords(ePos.X, ePos.Y, ePos.Z - diffPos, false, false, false, false);
+                }
+
+                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Left))
+                {
+                    Object.SetRotation(eRot.X, eRot.Y, eRot.Z -= diffRot, 2, true);
+                }
+                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Right))
+                {
+                    Object.SetRotation(eRot.X, eRot.Y, eRot.Z += diffRot, 2, true);
+                }
+            }
+
+            if (RotationModeOn || showRotZ)
+            {
+                float sX = 0f, sY = 0f;
+
+                if (Object.GetScreenPosition(ref sX, ref sY))
+                {
+                    Utils.DrawText($"Угол поворота: {Object.GetHeading().ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                }
             }
 
             if (CurrentModeType == ModeTypes.FurnitureEdit)
