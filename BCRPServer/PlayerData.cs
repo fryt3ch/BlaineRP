@@ -211,7 +211,7 @@ namespace BCRPServer
 
             public int Cash { get; set; }
 
-            public Bank.Account BankAccount { get; set; }
+            public Game.Bank.Account BankAccount { get; set; }
 
             public LastPlayerData LastData { get; set; }
 
@@ -364,7 +364,7 @@ namespace BCRPServer
         public List<Punishment> Punishments { get => Info.Punishments; set => Info.Punishments = value; }
 
         /// <summary>Банковский счёт игрока</summary>
-        public Bank.Account BankAccount { get => Info.BankAccount; set => Info.BankAccount = value; }
+        public Game.Bank.Account BankAccount { get => Info.BankAccount; set => Info.BankAccount = value; }
 
         #region Local Data
         /// <summary>Информация об игроке с момента последнего захода на сервер</summary>
@@ -375,21 +375,21 @@ namespace BCRPServer
 
         /// <summary>Текущее оружие</summary>
         /// <value>Объект класса Game.Items.Weapon, null - если ничего</value>
-        public (Game.Items.Weapon WeaponItem, CEF.Inventory.Groups Group, int Slot)? ActiveWeapon
+        public (Game.Items.Weapon WeaponItem, Game.Items.Inventory.Groups Group, int Slot)? ActiveWeapon
         {
             get
             {
                 if (Weapons[0]?.Equiped == true)
                 {
-                    return (Weapons[0], CEF.Inventory.Groups.Weapons, 0);
+                    return (Weapons[0], Game.Items.Inventory.Groups.Weapons, 0);
                 }
                 else if (Weapons[1]?.Equiped == true)
                 {
-                    return (Weapons[1], CEF.Inventory.Groups.Weapons, 1);
+                    return (Weapons[1], Game.Items.Inventory.Groups.Weapons, 1);
                 }
                 else if (Holster?.Items[0] is Game.Items.Weapon weapon && weapon.Equiped)
                 {
-                    return (weapon, CEF.Inventory.Groups.Holster, 2);
+                    return (weapon, Game.Items.Inventory.Groups.Holster, 2);
                 }
 
                 return null;
@@ -527,7 +527,7 @@ namespace BCRPServer
             var pCid = CID;
             var tCid = tData.CID;
 
-            if (!Familiars.Contains(tCid)) ;
+            if (!Familiars.Contains(tCid))
             {
                 Player.TriggerEvent("Player::Familiars::Update", true, tCid);
             }
@@ -543,7 +543,7 @@ namespace BCRPServer
             var pCid = CID;
             var tCid = tData.CID;
 
-            if (Familiars.Remove(tCid)) ;
+            if (Familiars.Remove(tCid))
             {
                 Player.TriggerEvent("Player::Familiars::Update", false, tCid);
             }
@@ -743,7 +743,7 @@ namespace BCRPServer
 
         /// <summary>В муте ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsMuted { get => VoiceRange < 0f; set { Sync.Microphone.DisableMicrophone(this); VoiceRange = -1; } }
+        public bool IsMuted { get => VoiceRange < 0f; set { Sync.Players.DisableMicrophone(this); VoiceRange = -1; } }
 
         /// <summary>Проблемы ли у игрока со слухом/речью?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -823,6 +823,8 @@ namespace BCRPServer
         public byte SpamCounter { get; set; }
 
         public AccountData AccountData { get; set; }
+
+        public VehicleData CurrentTuningVehicle { get => Player.GetData<VehicleData>("tsvdata"); set { if (value == null) Player.ResetData("tsvdata"); else Player.SetData("tsvdata", value); } }
         #endregion
 
         public PlayerData(Player Player)
@@ -971,13 +973,13 @@ namespace BCRPServer
 
             JArray inventory = new JArray()
             {
-                Weapons.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Weapons)).SerializeToJson(),
-                Game.Items.Item.ToClientJson(Armour, CEF.Inventory.Groups.Armour),
-                Items.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Items)).SerializeToJson(),
-                Clothes.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Clothes)).SerializeToJson(),
-                Accessories.Select(x => Game.Items.Item.ToClientJson(x, CEF.Inventory.Groups.Accessories)).SerializeToJson(),
-                Game.Items.Item.ToClientJson(Bag, CEF.Inventory.Groups.BagItem),
-                Game.Items.Item.ToClientJson(Holster, CEF.Inventory.Groups.HolsterItem),
+                Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Weapons)).SerializeToJson(),
+                Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.Groups.Armour),
+                Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Items)).SerializeToJson(),
+                Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Clothes)).SerializeToJson(),
+                Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Accessories)).SerializeToJson(),
+                Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.Groups.BagItem),
+                Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.Groups.HolsterItem),
             };
 
             JObject data = new JObject();
@@ -1027,7 +1029,7 @@ namespace BCRPServer
         /// <summary>Метод раздевает игрока и надевает всю текущую одежду</summary>
         public void UpdateClothes()
         {
-            CEF.CharacterCreation.Undress(Player, Sex);
+            Events.Players.CharacterCreation.Undress(Player, Sex);
 
             foreach (var x in Clothes)
                 x?.Wear(this);

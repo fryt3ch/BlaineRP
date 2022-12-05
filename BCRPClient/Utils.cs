@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient
 {
@@ -1191,9 +1193,15 @@ namespace BCRPClient
 
         public static void SetColourType(this Vehicle veh, int type)
         {
+            int t = 0, a = 0;
+
+            veh.GetExtraColours(ref t, ref a);
+
             veh.SetModColor1(type, 0, 0);
 
             veh.SetModColor2(type, 0);
+
+            veh.SetExtraColours(t, a);
         }
 
         public static int? GetPearlColour(this Vehicle veh)
@@ -1214,6 +1222,16 @@ namespace BCRPClient
             return t == 0 ? null : (int?)t;
         }
 
+        public static void SetPearlColour(this Vehicle veh, int colour) => veh.SetExtraColours(colour, veh.GetWheelsColour() ?? 0);
+
+        public static void SetWheelsColour(this Vehicle veh, int colour) => veh.SetExtraColours(veh.GetPearlColour() ?? 0, colour);
+
+        public static void SetNeonEnabled(this Vehicle veh, bool state)
+        {
+            for (int i = 0; i < 4; i++)
+                veh.SetNeonLightEnabled(i, state);
+        }
+
         public static Utils.Colour GetTyreSmokeColour(this Vehicle veh)
         {
             int r = 0, g = 0, b = 0;
@@ -1222,5 +1240,41 @@ namespace BCRPClient
 
             return new Utils.Colour((byte)r, (byte)g, (byte)b);
         }
+
+        public static int? GetXenonColour(this Vehicle veh)
+        {
+            if (!veh.IsToggleModOn(22))
+                return null;
+
+            var colour = RAGE.Game.Invoker.Invoke<int>(0x3DFF319A831E0CDB, veh.Handle);
+
+            if (colour == 255)
+                return -1;
+
+            return colour;
+        }
+
+        public static void SetXenonColour(this Vehicle veh, int? colour)
+        {
+            if (colour is int col)
+            {
+                veh.ToggleMod(22, true);
+
+                RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, col);
+            }
+            else
+            {
+                veh.ToggleMod(22, false);
+            }
+        }
+
+        public static void SetWheels(this Vehicle veh, int type, int num, bool front = true)
+        {
+            veh.SetWheelType(type);
+
+            veh.SetMod(front ? 23 : 25, num, false);
+        }
+
+        public static string GetNumberplateText(this Vehicle veh) => veh.GetNumberPlateText()?.Replace(" ", "");
     }
 }

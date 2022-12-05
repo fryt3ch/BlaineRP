@@ -103,6 +103,8 @@ namespace BCRPClient.CEF
             { "Hood::Locked", new Instance(Types.Success, Locale.Notifications.Vehicles.Hood.Locked, Locale.Notifications.Vehicles.Header) },
             { "Hood::Unlocked", new Instance(Types.Success, Locale.Notifications.Vehicles.Hood.Unlocked, Locale.Notifications.Vehicles.Header) },
 
+            { "NP::Set", new Instance(Types.Success, Locale.Notifications.Vehicles.PlateInstalled, Locale.Notifications.Vehicles.Header) },
+
             { "Vehicle::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.NotAllowed, Locale.Notifications.Vehicles.Header) },
 
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
@@ -117,6 +119,8 @@ namespace BCRPClient.CEF
             { "Inventory::PlaceRestricted", new Instance(Types.Error, Locale.Notifications.Inventory.PlaceRestricted, Locale.Notifications.Inventory.Header) },
             { "Inventory::ItemIsTemp", new Instance(Types.Error, Locale.Notifications.Inventory.TempItem, Locale.Notifications.Inventory.Header) },
             { "Inventory::TempItemDeleted", new Instance(Types.Information, Locale.Notifications.Inventory.TempItemDeleted, Locale.Notifications.Inventory.Header) },
+            { "Inventory::NoItem", new Instance(Types.Error, Locale.Notifications.Inventory.NoSuchItem, Locale.Notifications.ErrorHeader) },
+            { "Inventory::NoItemA", new Instance(Types.Error, Locale.Notifications.Inventory.NoSuchItemAmount, Locale.Notifications.ErrorHeader) },
 
             { "Inventory::ArmourBroken", new Instance(Types.Information, Locale.Notifications.Inventory.ArmourBroken, Locale.Notifications.Inventory.Header) },
             { "Inventory::Wounded", new Instance(Types.Error, Locale.Notifications.Inventory.Wounded, Locale.Notifications.Inventory.Header) },

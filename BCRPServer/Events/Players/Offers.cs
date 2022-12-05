@@ -1,15 +1,167 @@
 ﻿using GTANetworkAPI;
-using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Linq;
+using static BCRPServer.Sync.Offers;
 
-namespace BCRPServer.Sync
+namespace BCRPServer.Events.Players
 {
-    class Trade : Script
+    class Offers : Script
     {
+        [RemoteEvent("Offers::Send")]
+        private static void Send(Player player, Player target, int type, string data)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+            var tData = target.GetMainData();
+
+            if (tData?.Player?.Exists != true)
+                return;
+
+            object dataObj = null;
+
+            ReturnTypes res = ((Func<ReturnTypes>)(() =>
+            {
+                if (!Enum.IsDefined(typeof(Types), type))
+                    return ReturnTypes.Error;
+
+                try
+                {
+                    dataObj = data.DeserializeFromJson<object>();
+                }
+                catch (Exception ex)
+                {
+                    return ReturnTypes.Error;
+                }
+
+                var oType = (Types)type;
+
+                if (oType == Types.Cash)
+                {
+                    try
+                    {
+                        dataObj = Convert.ToInt32(dataObj);
+                    }
+                    catch (Exception ex)
+                    {
+                        return ReturnTypes.Error;
+                    }
+                }
+
+                if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                    return ReturnTypes.Error;
+
+                if (pData.IsBusy)
+                    return ReturnTypes.SourceBusy;
+
+                if (tData.IsBusy)
+                    return ReturnTypes.TargetBusy;
+
+                if (oType == Types.Cash)
+                {
+                    int cash = (dataObj as int?) ?? 0;
+
+                    if (cash < 0 || cash == 0)
+                        return ReturnTypes.Error;
+
+                    if (pData.Cash < cash)
+                        return ReturnTypes.NotEnoughMoneySource;
+                }
+
+                if (pData.ActiveOffer != null)
+                    return ReturnTypes.SourceHasOffer;
+
+                if (tData.ActiveOffer != null)
+                    return ReturnTypes.TargetHasOffer;
+
+                Offer.Create(pData, tData, oType, -1, dataObj);
+
+                return ReturnTypes.Success;
+            })).Invoke();
+
+            switch (res)
+            {
+                case ReturnTypes.Success:
+                    data = dataObj.SerializeToJson();
+
+                    target.TriggerEvent("Offer::Show", player.Handle, type, data);
+
+                    player.TriggerEvent("Offer::Reply::Server", true, false, false);
+                    player.Notify("Offer::Sent");
+                    break;
+
+                case ReturnTypes.SourceBusy:
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Player::Busy");
+                    break;
+
+                case ReturnTypes.TargetBusy:
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Offer::TargetBusy");
+                    break;
+
+                case ReturnTypes.SourceHasOffer:
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Offer::HasOffer");
+                    break;
+
+                case ReturnTypes.TargetHasOffer:
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Offer::TargetHasOffer");
+                    break;
+
+                case ReturnTypes.Error:
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    break;
+
+                case ReturnTypes.NotEnoughMoneySource:
+                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
+                    player.Notify("Trade::NotEnoughMoney");
+                    break;
+            }
+        }
+
+        [RemoteEvent("Offers::Reply")]
+        private static void Reply(Player player, int rTypeNum)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(ReplyTypes), rTypeNum))
+                return;
+
+            var rType = (ReplyTypes)rTypeNum;
+
+            var offer = pData.ActiveOffer;
+
+            if (offer == null)
+                return;
+
+            if (pData == offer.Receiver)
+            {
+                if (rType == ReplyTypes.Accept)
+                {
+                    offer.Execute();
+                }
+                else
+                {
+                    offer.Cancel(false, false, rType, false);
+                }
+            }
+            else
+            {
+                offer.Cancel(false, true, rType, false);
+            }
+        }
+
         [RemoteEvent("Trade::Accept")]
         private static void Accept(Player player)
         {
@@ -22,7 +174,7 @@ namespace BCRPServer.Sync
 
             var offer = pData.ActiveOffer;
 
-            if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
+            if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
                 return;
 
             bool isSender = offer.Sender == pData;
@@ -56,7 +208,7 @@ namespace BCRPServer.Sync
 
             var result = offer.TradeData.Execute(offer.Sender, offer.Receiver);
 
-            if (result.Result == CEF.Inventory.Results.Success)
+            if (result.Result == Game.Items.Inventory.Results.Success)
             {
                 offer.Cancel(true, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
@@ -68,7 +220,7 @@ namespace BCRPServer.Sync
             }
             else
             {
-                if (result.Result == CEF.Inventory.Results.Error)
+                if (result.Result == Game.Items.Inventory.Results.Error)
                 {
                     offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
@@ -78,7 +230,7 @@ namespace BCRPServer.Sync
                     tData.Player.Notify("Trade::Error");
                     tData.Player.CloseAll();
                 }
-                else if (result.Result == CEF.Inventory.Results.NotEnoughMoney)
+                else if (result.Result == Game.Items.Inventory.Results.NotEnoughMoney)
                 {
                     if (pData == result.PlayerError)
                     {
@@ -91,7 +243,7 @@ namespace BCRPServer.Sync
                         tData.Player.Notify("Trade::NotEnoughMoney");
                     }
                 }
-                else if (result.Result == CEF.Inventory.Results.NoSpace)
+                else if (result.Result == Game.Items.Inventory.Results.NoSpace)
                 {
                     if (pData == result.PlayerError)
                     {
@@ -119,7 +271,7 @@ namespace BCRPServer.Sync
 
             var offer = pData.ActiveOffer;
 
-            if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
+            if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
                 return;
 
             bool isSender = offer.Sender == pData;
@@ -157,7 +309,7 @@ namespace BCRPServer.Sync
 
             var offer = pData.ActiveOffer;
 
-            if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
+            if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
                 return;
 
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
@@ -201,7 +353,7 @@ namespace BCRPServer.Sync
 
             var offer = pData.ActiveOffer;
 
-            if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
+            if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
                 return false;
 
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
@@ -271,7 +423,7 @@ namespace BCRPServer.Sync
 
             var offer = pData.ActiveOffer;
 
-            if (offer == null || offer.Type != Offers.Types.Exchange || offer.TradeData == null)
+            if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
                 return;
 
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
@@ -352,7 +504,7 @@ namespace BCRPServer.Sync
                 }
                 else
                 {
-                    iData = new Offers.Offer.Trade.TradeItem(item, amount);
+                    iData = new Offer.Trade.TradeItem(item, amount);
 
                     if (isSender)
                     {

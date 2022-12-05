@@ -1,13 +1,14 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Sync;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using static BCRPServer.Game.Items.Inventory;
 
-namespace BCRPServer.Sync
+namespace BCRPServer.Events.Vehicles
 {
-    class Vehicles : Script
+    class Main : Script
     {
         #region Player Enter Vehicle
         [ServerEvent(Event.PlayerEnterVehicle)]
@@ -559,8 +560,8 @@ namespace BCRPServer.Sync
         }
         #endregion
 
-        [RemoteEvent("Vehicles::Park")]
-        public static void Park(Player player)
+        [RemoteEvent("Vehicles::TakePlate")]
+        public static void TakePlate(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -569,19 +570,123 @@ namespace BCRPServer.Sync
 
             var pData = sRes.Data;
 
-            var veh = player.Vehicle;
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (player.Vehicle != null)
+                return;
+
+            if (vData.Numberplate == null)
+                return;
+
+            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+            {
+                player.Notify("Vehicle::NotAllowed");
+
+                return;
+            }
+
+            if (!pData.TryGiveExistingItem(vData.Numberplate, 1, true, true))
+                return;
+
+            vData.Numberplate.Take(vData);
+
+            vData.Numberplate = null;
+
+            MySQL.VehicleNumberplateUpdate(vData.Info);
+        }
+
+        [RemoteEvent("Vehicles::SetupPlate")]
+        public static void SetupPlate(Player player, Vehicle veh, uint npUid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
                 return;
 
-            if (vData.IsOwner(pData) == null)
+            if (player.Vehicle != null)
+                return;
+
+            if (vData.Numberplate != null)
+                return;
+
+            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
             {
                 player.Notify("Vehicle::NotAllowed");
 
                 return;
             }
+
+            if (npUid == 0)
+            {
+                Dictionary<uint, string> nps = new Dictionary<uint, string>();
+
+                for (int i = 0; i < pData.Items.Length; i++)
+                {
+                    if (pData.Items[i] is Game.Items.Numberplate cnp)
+                        nps.TryAdd(cnp.UID, cnp.Tag);
+                }
+
+                if (nps.Count == 0)
+                {
+                    player.Notify("Inventory::NoItem");
+
+                    return;
+                }
+                else if (nps.Count == 1)
+                {
+                    npUid = nps.Keys.First();
+                }
+                else
+                {
+                    player.TriggerEvent("Vehicles::NPChoose", nps);
+
+                    return;
+                }
+            }
+
+            var idx = -1;
+
+            for (int i = 0; i < pData.Items.Length; i++)
+            {
+                if (pData.Items[i]?.UID == npUid)
+                {
+                    idx = i;
+
+                    break;
+                }
+            }
+
+            if (idx < 0)
+                return;
+
+            var np = pData.Items[idx] as Game.Items.Numberplate;
+
+            if (np == null)
+                return;
+
+            pData.Items[idx] = null;
+
+            player.TriggerEvent("Inventory::Update", (int)Groups.Items, idx, "null");
+
+            MySQL.CharacterItemsUpdate(pData.Info);
+
+            np.Setup(vData);
+
+            vData.Numberplate = np;
+
+            MySQL.VehicleNumberplateUpdate(vData.Info);
+
+            player.Notify("NP::Set", np.Tag);
         }
     }
 }

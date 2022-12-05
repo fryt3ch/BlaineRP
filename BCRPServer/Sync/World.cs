@@ -1,16 +1,15 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Game.Items;
+using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BCRPServer.Game
+namespace BCRPServer.Sync
 {
-    class World : Script
+    public class World
     {
         /// <summary>Время для запроса синхронизации у Controller предмета в мс.</summary>
         public const int TimeToSync = 5000; // 5 secs
@@ -27,7 +26,7 @@ namespace BCRPServer.Game
 
         /// <summary>Все выброшенные предметы на сервере</summary>
         /// <value>Словарь, где ключ - UID предмета, а значение - объект класса ItemOnGround</value>
-        public static Dictionary<uint, ItemOnGround> ItemsOnGround { get; set; }
+        private static Dictionary<uint, ItemOnGround> ItemsOnGround { get; set; } = new Dictionary<uint, ItemOnGround>();
 
         private static ColShape ServerDataColshape { get; set; }
 
@@ -35,15 +34,11 @@ namespace BCRPServer.Game
 
         public static T GetSharedData<T>(string key) => ServerDataColshape.GetSharedData<T>(key);
 
-        public World()
+        public static void Initialize()
         {
-            ItemsOnGround = new Dictionary<uint, ItemOnGround>();
-
             ServerDataColshape = NAPI.ColShape.CreateCylinderColShape(new Vector3(0f, 0f, 0f), 0f, 0f, Utils.Dimensions.Stuff);
 
             SetSharedData("ServerData", true);
-
-            SetSharedData("House_1::Owner", "asasdasdasdasdaasdda");
         }
 
         #region Item On Ground
@@ -51,7 +46,7 @@ namespace BCRPServer.Game
         public class ItemOnGround
         {
             /// <summary>Объект самого предмета</summary>
-            public Items.Item Item { get; set; }
+            public Item Item { get; set; }
 
             /// <summary>Объект модели предмета на сервере</summary>
             public GTANetworkAPI.Object Object { get; set; }
@@ -65,7 +60,7 @@ namespace BCRPServer.Game
 
             public uint UID { get => Object.GetSharedData<int>("UID").ToUInt32(); set => Object.SetSharedData("UID", value); }
 
-            public ItemOnGround(Items.Item Item, GTANetworkAPI.Object Object)
+            public ItemOnGround(Item Item, GTANetworkAPI.Object Object)
             {
                 this.Item = Item;
                 this.Object = Object;
@@ -162,7 +157,7 @@ namespace BCRPServer.Game
         #endregion
 
         #region Create
-        public static void AddItemOnGround(PlayerData pData, Items.Item item, Vector3 position, Vector3 rotation, uint dimension)
+        public static void AddItemOnGround(PlayerData pData, Item item, Vector3 position, Vector3 rotation, uint dimension)
         {
             if (item == null)
                 return;
@@ -199,7 +194,7 @@ namespace BCRPServer.Game
 
                     existingAll.Clear();
 
-                if ((existing.Item as Game.Items.IStackable).Amount + (item as Game.Items.IStackable).Amount <= (existing.Item as Game.Items.IStackable).MaxAmount)
+                    if ((existing.Item as Game.Items.IStackable).Amount + (item as Game.Items.IStackable).Amount <= (existing.Item as Game.Items.IStackable).MaxAmount)
                     {
                         existing.CancelDeletionTask();
 
@@ -263,7 +258,7 @@ namespace BCRPServer.Game
                 {
                     int counter = 0;
 
-                    foreach (var x in Game.World.ItemsOnGround.Values)
+                    foreach (var x in ItemsOnGround.Values)
                     {
                         if (x == null)
                             continue;

@@ -5,13 +5,8 @@ using System.Text;
 
 namespace BCRPServer.Additional
 {
-    class AntiCheat : Script
+    class AntiCheat
     {
-        public AntiCheat()
-        {
-
-        }
-
         #region Legalization Methods
         public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false)
         {
@@ -142,23 +137,5 @@ namespace BCRPServer.Additional
             //NAPI.Player.SetPlayerCurrentWeaponAmmo(player, amount);
         }
         #endregion
-
-        #region Remote Events
-        [RemoteEvent("AC::Detect::TP")]
-        public static void DetectTP(Player sender, float dist)
-        {
-            var data = sender.GetMainData();
-
-            if (data?.AdminLevel > 0)
-                return;
-
-/*            if (sender.CheckSpamAttack(false, 10000).IsSpammer)
-                return;*/
-
-            //Utils.MsgToAdmins(string.Format(Locale.Chat.Admin.TeleportWarning, sender.Name + $"({sender.Id}) | #{data?.CID.ToString() ?? "null"}"));
-
-            NAPI.Util.ConsoleOutput($"BAC: Обнаружен TP | Дистанция: {dist} м. Игрок: {sender.Name} ({sender.Id}) | #{data?.CID.ToString() ?? "null"}");
-        }
-        #endregion
-        }
+    }
 }

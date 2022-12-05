@@ -586,6 +586,8 @@ namespace BCRPClient.Data
             { typeof(StatusChanger), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
 
             { typeof(IWearable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
+
+            { typeof(VehicleKey), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FindVehicle } } },
         };
         #endregion
     }

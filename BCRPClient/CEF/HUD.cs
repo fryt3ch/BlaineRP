@@ -321,7 +321,7 @@ namespace BCRPClient.CEF
 
         private static void PlayBeltOffSound(bool value, bool isElectricCar = false)
         {
-            Browser.Window.ExecuteJs("Hud.playBeltOff", value, isElectricCar);
+            //Browser.Window.ExecuteJs("Hud.playBeltOff", value, isElectricCar);
             BeltOffSoundOn = value;
         }
 
@@ -398,8 +398,6 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Hud.setLocation", ZoneNames.GetValueOrDefault(RAGE.Game.Zone.GetNameOfZone(pos.X, pos.Y, pos.Z).ToUpper()) ?? "null", Utils.GetStreetName(pos));
             Browser.Window.ExecuteJs("Hud.setOnline", Entities.Players.Count);
         }
-
-        private static float counter = 0f;
 
         public static void UpdateLeftHUDPos()
         {
@@ -478,8 +476,8 @@ namespace BCRPClient.CEF
 
             Browser.Window.ExecuteJs("Hud.updateSpeedometer", Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
             Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
-
-            Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
+            
+            Browser.Switch(Browser.IntTypes.HUD_Speedometer, CEF.Browser.IsActive(Browser.IntTypes.HUD_Left));
 
             StartUpdateSpeedometerSpeed();
         }

@@ -410,6 +410,8 @@ namespace BCRPClient.Additional
             ATM,
 
             TuningEnter,
+
+            ReachableBlip,
         }
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
@@ -484,7 +486,7 @@ namespace BCRPClient.Additional
                     }
                     else
                     {
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage));
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) });
                     }
 
                     return true;
@@ -503,7 +505,7 @@ namespace BCRPClient.Additional
                     }
                     else
                     {
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, (2, Locale.Actions.HouseExitActionBoxToHouse), (0, Locale.Actions.HouseExitActionBoxOutside));
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (2, Locale.Actions.HouseExitActionBoxToHouse), (0, Locale.Actions.HouseExitActionBoxOutside) });
                     }
 
                     return true;
@@ -560,7 +562,7 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("CurrentTuning"))
                         return false;
 
-                    Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id);
+                    Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, Player.LocalPlayer.Vehicle);
 
                     LastSent = DateTime.Now;
 
@@ -837,6 +839,27 @@ namespace BCRPClient.Additional
                         (cs) =>
                         {
                             Player.LocalPlayer.ResetData("CurrentTuning");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.ReachableBlip,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is Additional.ExtraBlip blip)
+                            {
+                                blip.Destroy();
+
+                                CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.ReachedGPS);
+                            }
                         }
                     },
                 }

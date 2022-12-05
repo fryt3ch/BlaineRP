@@ -531,6 +531,7 @@ namespace BCRPServer
             {
                 VID = VehicleInfo.MoveNextId(),
 
+                Data = vType,
                 AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.Player,
                 OwnerID = pData.CID,
@@ -582,6 +583,7 @@ namespace BCRPServer
             {
                 VID = 0,
 
+                Data = vType,
                 AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.PlayerTemp,
                 OwnerID = pData.CID,

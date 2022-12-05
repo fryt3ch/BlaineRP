@@ -11,13 +11,8 @@ using System.Windows.Markup;
 
 namespace BCRPServer.Sync
 {
-    public class Offers : Script
+    public class Offers
     {
-        public Offers()
-        {
-
-        }
-
         public enum Types
         {
             /// <summary>Рукопожатие</summary>
@@ -254,7 +249,7 @@ namespace BCRPServer.Sync
                 public bool SenderReady { get; set; }
                 public bool ReceiverReady { get; set; }
 
-                public (CEF.Inventory.Results Result, PlayerData PlayerError) Execute(PlayerData pData, PlayerData tData)
+                public (Game.Items.Inventory.Results Result, PlayerData PlayerError) Execute(PlayerData pData, PlayerData tData)
                 {
                     var senderFreeSlots = pData.Items.Where(x => x == null).Count();
 
@@ -265,12 +260,12 @@ namespace BCRPServer.Sync
                     var receiverRemoveSlots = receiverItems.Where(x => (((x.ItemRoot as Game.Items.IStackable)?.Amount ?? 1) - x.Amount) == 0).Count();
 
                     if (senderFreeSlots + senderRemoveSlots < receiverItems.Count)
-                        return (CEF.Inventory.Results.NoSpace, pData);
+                        return (Game.Items.Inventory.Results.NoSpace, pData);
 
                     var receiverFreeSlots = tData.Items.Where(x => x == null).Count();
 
                     if (receiverFreeSlots + receiverRemoveSlots < senderItems.Count)
-                        return (CEF.Inventory.Results.NoSpace, pData);
+                        return (Game.Items.Inventory.Results.NoSpace, pData);
 
                     var senderCurrentWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
 
@@ -278,29 +273,29 @@ namespace BCRPServer.Sync
                     var receiverRemoveWeight = receiverItems.Sum(x => x.Amount * x.ItemRoot.BaseWeight);
 
                     if (senderCurrentWeight - senderRemoveWeight + receiverRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
-                        return (CEF.Inventory.Results.NoSpace, pData);
+                        return (Game.Items.Inventory.Results.NoSpace, pData);
 
                     var receiverCurrentWeight = tData.Items.Sum(x => x?.Weight ?? 0f);
 
                     if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
-                        return (CEF.Inventory.Results.NoSpace, tData);
+                        return (Game.Items.Inventory.Results.NoSpace, tData);
 
                     if (pData.Cash < SenderMoney)
-                        return (CEF.Inventory.Results.NotEnoughMoney, pData);
+                        return (Game.Items.Inventory.Results.NotEnoughMoney, pData);
 
                     if (tData.Cash < ReceiverMoney)
-                        return (CEF.Inventory.Results.NotEnoughMoney, tData);
+                        return (Game.Items.Inventory.Results.NotEnoughMoney, tData);
 
                     foreach (var x in SenderVehicles)
                     {
                         if (x.OwnerType != VehicleData.OwnerTypes.Player || x.OwnerID != pData.CID)
-                            return (CEF.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.Results.Error, null);
                     }
 
                     foreach (var x in ReceiverVehicles)
                     {
                         if (x.OwnerType != VehicleData.OwnerTypes.Player || x.OwnerID != tData.CID)
-                            return (CEF.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.Results.Error, null);
                     }
 
                     foreach (var x in SenderVehicles)
@@ -347,7 +342,7 @@ namespace BCRPServer.Sync
                                 {
                                     (pData.Items[j] as Game.Items.IStackable).Amount -= senderItems[i].Amount;
 
-                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], CEF.Inventory.Groups.Items)));
+                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -355,7 +350,7 @@ namespace BCRPServer.Sync
                             senderItems[i].ItemRoot = Game.Items.Items.CreateItem(senderItems[i].ItemRoot.ID, 0, senderItems[i].Amount, false);
 
                             if (senderItems[i].ItemRoot == null)
-                                return (CEF.Inventory.Results.Error, null);
+                                return (Game.Items.Inventory.Results.Error, null);
                         }
                         else
                         {
@@ -364,7 +359,7 @@ namespace BCRPServer.Sync
                                 {
                                     pData.Items[j] = null;
 
-                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], CEF.Inventory.Groups.Items)));
+                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -380,7 +375,7 @@ namespace BCRPServer.Sync
                                 {
                                     (tData.Items[j] as Game.Items.IStackable).Amount -= receiverItems[i].Amount;
 
-                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], CEF.Inventory.Groups.Items)));
+                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -388,7 +383,7 @@ namespace BCRPServer.Sync
                             receiverItems[i].ItemRoot = Game.Items.Items.CreateItem(receiverItems[i].ItemRoot.ID, 0, receiverItems[i].Amount, false);
 
                             if (receiverItems[i].ItemRoot == null)
-                                return (CEF.Inventory.Results.Error, null);
+                                return (Game.Items.Inventory.Results.Error, null);
                         }
                         else
                         {
@@ -397,7 +392,7 @@ namespace BCRPServer.Sync
                                 {
                                     tData.Items[j] = null;
 
-                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], CEF.Inventory.Groups.Items)));
+                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
 
                                     break;
                                 }
@@ -412,7 +407,7 @@ namespace BCRPServer.Sync
                             {
                                 tData.Items[j] = senderItems[i].ItemRoot;
 
-                                receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], CEF.Inventory.Groups.Items)));
+                                receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
 
                                 break;
                             }
@@ -427,7 +422,7 @@ namespace BCRPServer.Sync
                             {
                                 pData.Items[j] = receiverItems[i].ItemRoot;
 
-                                senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], CEF.Inventory.Groups.Items)));
+                                senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
 
                                 break;
                             }
@@ -438,12 +433,12 @@ namespace BCRPServer.Sync
                     MySQL.CharacterItemsUpdate(tData.Info);
 
                     for (int i = 0; i < senderSlotsToUpdate.Count; i++)
-                        pData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
+                        pData.Player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
 
                     for (int i = 0; i < receiverSlotsToUpdate.Count; i++)
-                        tData.Player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
+                        tData.Player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
 
-                    return (CEF.Inventory.Results.Success, null);
+                    return (Game.Items.Inventory.Results.Success, null);
                 }
 
                 public Trade()
@@ -586,160 +581,6 @@ namespace BCRPServer.Sync
                 var offer = new Offer(pData, tData, type, duration, data);
 
                 return offer;
-            }
-        }
-
-        [RemoteEvent("Offers::Send")]
-        private static void Send(Player player, Player target, int type, string data)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-            var tData = target.GetMainData();
-
-            if (tData?.Player?.Exists != true)
-                return;
-
-            object dataObj = null;
-
-            ReturnTypes res = ((Func<ReturnTypes>)(() =>
-            {
-                if (!Enum.IsDefined(typeof(Types), type))
-                    return ReturnTypes.Error;
-
-                try
-                {
-                    dataObj = data.DeserializeFromJson<object>();
-                }
-                catch (Exception ex)
-                {
-                    return ReturnTypes.Error;
-                }
-
-                var oType = (Types)type;
-
-                if (oType == Types.Cash)
-                {
-                    try
-                    {
-                        dataObj = Convert.ToInt32(dataObj);
-                    }
-                    catch (Exception ex)
-                    {
-                        return ReturnTypes.Error;
-                    }
-                }
-
-                if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                    return ReturnTypes.Error;
-
-                if (pData.IsBusy)
-                    return ReturnTypes.SourceBusy;
-
-                if (tData.IsBusy)
-                    return ReturnTypes.TargetBusy;
-
-                if (oType == Types.Cash)
-                {
-                    int cash = (dataObj as int?) ?? 0;
-
-                    if (cash < 0 || cash == 0)
-                        return ReturnTypes.Error;
-
-                    if (pData.Cash < cash)
-                        return ReturnTypes.NotEnoughMoneySource;
-                }
-
-                if (pData.ActiveOffer != null)
-                    return ReturnTypes.SourceHasOffer;
-
-                if (tData.ActiveOffer != null)
-                    return ReturnTypes.TargetHasOffer;
-
-                Offer.Create(pData, tData, oType, -1, dataObj);
-
-                return ReturnTypes.Success;
-            })).Invoke();
-
-            switch (res)
-            {
-                case ReturnTypes.Success:
-                    data = dataObj.SerializeToJson();
-
-                    target.TriggerEvent("Offer::Show", player.Handle, type, data);
-
-                    player.TriggerEvent("Offer::Reply::Server", true, false, false);
-                    player.Notify("Offer::Sent");
-                    break;
-
-                case ReturnTypes.SourceBusy:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Player::Busy");
-                    break;
-
-                case ReturnTypes.TargetBusy:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Offer::TargetBusy");
-                    break;
-
-                case ReturnTypes.SourceHasOffer:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Offer::HasOffer");
-                    break;
-
-                case ReturnTypes.TargetHasOffer:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Offer::TargetHasOffer");
-                    break;
-
-                case ReturnTypes.Error:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    break;
-
-                case ReturnTypes.NotEnoughMoneySource:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Trade::NotEnoughMoney");
-                    break;
-            }
-        }
-
-        [RemoteEvent("Offers::Reply")]
-        private static void Reply(Player player, int rTypeNum)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(ReplyTypes), rTypeNum))
-                return;
-
-            var rType = (ReplyTypes)rTypeNum;
-
-            var offer = pData.ActiveOffer;
-
-            if (offer == null)
-                return;
-
-            if (pData == offer.Receiver)
-            {
-                if (rType == ReplyTypes.Accept)
-                {
-                   offer.Execute();
-                }
-                else
-                {
-                    offer.Cancel(false, false, rType, false);
-                }
-            }
-            else
-            {
-                offer.Cancel(false, true, rType, false);
             }
         }
     }

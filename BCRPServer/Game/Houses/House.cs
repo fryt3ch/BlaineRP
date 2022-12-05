@@ -227,7 +227,7 @@ namespace BCRPServer.Game.Houses
         {
             Owner = pInfo;
 
-            Game.World.SetSharedData($"House::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            Sync.World.SetSharedData($"House::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public string ToClientJson()

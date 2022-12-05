@@ -129,16 +129,16 @@ namespace BCRPServer.Game.Items
 
         public static Item Get(uint id) => All.GetValueOrDefault(id);
 
-        private static Dictionary<CEF.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<CEF.Inventory.Groups, Func<Item, string>>()
+        private static Dictionary<Game.Items.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.Groups, Func<Item, string>>()
         {
-            { CEF.Inventory.Groups.Items, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Items, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
 
-            { CEF.Inventory.Groups.Bag, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Bag, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
 
-            { CEF.Inventory.Groups.Container, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Container, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
 
             {
-                CEF.Inventory.Groups.Weapons,
+                Game.Items.Inventory.Groups.Weapons,
 
                 (item) =>
                 {
@@ -149,7 +149,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                CEF.Inventory.Groups.Holster,
+                Game.Items.Inventory.Groups.Holster,
 
                 (item) =>
                 {
@@ -159,31 +159,31 @@ namespace BCRPServer.Game.Items
                 }
             },
 
-            { CEF.Inventory.Groups.Armour, (item) => (new object[] { item.ID, ((Armour)item).Strength }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Armour, (item) => (new object[] { item.ID, ((Armour)item).Strength }).SerializeToJson() },
 
             {
-                CEF.Inventory.Groups.BagItem,
+                Game.Items.Inventory.Groups.BagItem,
 
                 (item) =>
                 {
                     var bag = (Bag)item;
 
-                    return (new object[] { item.ID, bag.Data.MaxWeight, bag.Items.Select(x => ToClientJson(x, CEF.Inventory.Groups.Bag)) }).SerializeToJson();
+                    return (new object[] { item.ID, bag.Data.MaxWeight, bag.Items.Select(x => ToClientJson(x, Game.Items.Inventory.Groups.Bag)) }).SerializeToJson();
                 }
             },
 
-            { CEF.Inventory.Groups.Clothes, (item) => (new object[] { item.ID }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Clothes, (item) => (new object[] { item.ID }).SerializeToJson() },
 
-            { CEF.Inventory.Groups.Accessories, (item) => (new object[] { item.ID }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Accessories, (item) => (new object[] { item.ID }).SerializeToJson() },
 
             {
-                CEF.Inventory.Groups.HolsterItem,
+                Game.Items.Inventory.Groups.HolsterItem,
                 
                 (item) =>
                 {
                     var holster = (Holster)item;
 
-                    return (new object[] { item.ID, ToClientJson(holster.Items[0], CEF.Inventory.Groups.Holster) }).SerializeToJson();
+                    return (new object[] { item.ID, ToClientJson(holster.Items[0], Game.Items.Inventory.Groups.Holster) }).SerializeToJson();
                 }
             },
         };
@@ -299,7 +299,7 @@ namespace BCRPServer.Game.Items
             MySQL.ItemUpdate(this);
         }
 
-        public string ToClientJson(CEF.Inventory.Groups group)
+        public string ToClientJson(Game.Items.Inventory.Groups group)
         {
             var func = ClientJsonFuncs.GetValueOrDefault(group);
 
@@ -309,7 +309,7 @@ namespace BCRPServer.Game.Items
             return func.Invoke(this);
         }
 
-        public static string ToClientJson(Item item, CEF.Inventory.Groups group) => item == null ? "null" : item.ToClientJson(group);
+        public static string ToClientJson(Item item, Game.Items.Inventory.Groups group) => item == null ? "null" : item.ToClientJson(group);
 
         public Item(string ID, ItemData Data, Type Type)
         {
@@ -365,10 +365,6 @@ namespace BCRPServer.Game.Items
     {
         /// <summary>Тэг</summary>
         public string Tag { get; set; }
-
-        /// <summary>Метод для генерации тэга</summary>
-        /// <returns>Тэг</returns>
-        public string GenerateTag(params object[] args);
     }
 
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
@@ -630,7 +626,7 @@ namespace BCRPServer.Game.Items
             player.TriggerEvent("Weapon::TaskReload");
         }
 
-        public string GenerateTag(params object[] args)
+        public string GenerateTag()
         {
             return null;
         }
@@ -677,8 +673,6 @@ namespace BCRPServer.Game.Items
 
         public Weapon(string ID) : base(ID, IDList[ID], typeof(Weapon))
         {
-            this.Tag = null;
-
             this.AttachID = -1;
         }
     }
@@ -3159,7 +3153,7 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>()
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
             { "np_0", new ItemData("Номерной знак", "p_num_plate_01", 0) },
             { "np_1", new ItemData("Номерной знак", "p_num_plate_04", 1) },
@@ -3187,7 +3181,7 @@ namespace BCRPServer.Game.Items
             var veh = vData.Vehicle;
 
             veh.NumberPlateStyle = 0;
-            veh.NumberPlate = null;
+            veh.NumberPlate = "";
         }
 
         private static char[] Chars = new char[]
@@ -3196,9 +3190,15 @@ namespace BCRPServer.Game.Items
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
         };
 
-        public string GenerateTag(params object[] args)
+        /// <summary>Метод для генерации случайного номера</summary>
+        /// <param name="length">Длина номера (от 1 до 8)</param>
+        public string GenerateTag(int length)
         {
-            var length = (int)args[0];
+            if (UsedTags.Count == int.MaxValue)
+                return null;
+
+            if (length < 1 || length > 8)
+                length = 8;
 
             Random rand = new Random();
             StringBuilder str = new StringBuilder();
@@ -3221,7 +3221,7 @@ namespace BCRPServer.Game.Items
 
         public Numberplate(string ID) : base(ID, IDList[ID], typeof(Numberplate))
         {
-            this.Tag = null;
+
         }
     }
     #endregion
@@ -3238,41 +3238,23 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-
+            { "vk_0", new ItemData("Ключ", 0.01f, "p_car_keys_01") },
         };
 
-        public void Setup(VehicleData vData)
-        {
+        public Vector3 GetVehiclePos() => VehicleInfo?.VehicleData?.Vehicle?.Position;
 
-        }
+        [JsonIgnore]
+        public VehicleData.VehicleInfo VehicleInfo => VehicleData.VehicleInfo.Get(VID);
 
-        public void Take(VehicleData vData)
-        {
-
-        }
-
-        public string GenerateTag(params object[] args)
-        {
-            return null;
-        }
-
-        public bool IsKeyValid(VehicleData vData)
-        {
-            if (vData.Keys.Contains(UID))
-                return true;
-
-            return false;
-        }
+        public bool IsKeyValid(VehicleData.VehicleInfo vInfo) => vInfo.AllKeys.Contains(UID);
 
         public string Tag { get; set; }
 
-        public int VID { get; set; }
+        public uint VID { get; set; }
 
         public VehicleKey(string ID) : base(ID, IDList[ID], typeof(VehicleKey))
         {
-            this.Tag = null;
 
-            this.VID = -1;
         }
     }
     #endregion
@@ -3720,10 +3702,10 @@ namespace BCRPServer.Game.Items
 
             amount = (item as Game.Items.IStackable)?.Amount ?? 1;
 
-            var upd = Game.Items.Item.ToClientJson(item, CEF.Inventory.Groups.Items);
+            var upd = Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items);
 
             player.TriggerEvent("Item::Added", item.ID, amount);
-            player.TriggerEvent("Inventory::Update", (int)CEF.Inventory.Groups.Items, freeIdx, upd);
+            player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -3782,9 +3764,6 @@ namespace BCRPServer.Game.Items
 
                 (item as Weapon).Ammo = amount > maxAmount ? maxAmount : amount;
             }
-
-            /*            if (!temp && interfaces.Contains(typeof(ITagged)))
-                            (item as ITagged).Tag = (item as ITagged).GenerateTag();*/
 
             if (!isTemp)
             {
@@ -3951,6 +3930,9 @@ namespace BCRPServer.Game.Items
             JObject jo = JObject.Load(reader);
 
             var type = Items.GetType(jo["ID"].Value<string>());
+
+            if (type == null)
+                return null;
 
             return JsonConvert.DeserializeObject(jo.ToString(), type, SpecifiedSubclassConversion);
         }

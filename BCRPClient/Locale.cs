@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Text;
 
 namespace BCRPClient
@@ -9,6 +10,15 @@ namespace BCRPClient
         #region General
         public static class General
         {
+            public static class Blip
+            {
+                public static Dictionary<Additional.ExtraBlip.Types, string> TypesNames = new Dictionary<Additional.ExtraBlip.Types, string>()
+                {
+                    { Additional.ExtraBlip.Types.GPS, "GPS-отметка" },
+                    { Additional.ExtraBlip.Types.Furniture, "Мебель" },
+                };
+            }
+
             public static class Discord
             {
                 public static string Header = "Играет на Blaine RP";
@@ -97,6 +107,8 @@ namespace BCRPClient
                     public static string ShiftOutOfTrade = "Убрать из обмена";
 
                     public static string Use = "Использовать";
+
+                    public static string FindVehicle = "Найти транспорт";
                 }
             }
 
@@ -737,8 +749,6 @@ namespace BCRPClient
 
             public static string GiveCash = "Передать деньги {0}?";
 
-            public static string SelectVehNumbers = "Выберите гос. номер";
-
             public static string HouseExitActionBoxHeader = "Выход";
 
             public static string HouseExitActionBoxOutside = "На улицу";
@@ -746,6 +756,8 @@ namespace BCRPClient
             public static string HouseExitActionBoxToHouse = "В дом";
 
             public static string GarageVehicleActionBoxHeader = "Загнать Т/С в гараж";
+
+            public static string NumberplateSelectHeader = "Выбор номерного знака";
         }
 
         public static class HudMenu
@@ -806,6 +818,13 @@ namespace BCRPClient
 
             public static string NoOwner = "Государство";
         }
+
+        public static class Shop
+        {
+            public static string ModDeletionTitle = "Удаление модификации";
+
+            public static string ModDeletionText = "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо, стоимость - ${1}\nВыберите способ оплаты, чтобы продолжить.";
+        }
         #endregion
 
         #region Notifications
@@ -814,6 +833,18 @@ namespace BCRPClient
             public static string DefHeader = "Уведомление";
             public static string ErrorHeader = "Ошибка";
             public static string ApproveHeader = "Подтверждение";
+
+            public static class Blip
+            {
+                public static string Header = "GPS";
+
+                public static string ReachedGPS = "Вы достигли точки маршрута!";
+
+                public static Dictionary<Additional.ExtraBlip.Types, string> TypesText = new Dictionary<Additional.ExtraBlip.Types, string>()
+                {
+                    { Additional.ExtraBlip.Types.GPS, "Местоположение отмечено у вас на карте!" }
+                };
+            }
 
             public static class AntiSpam
             {
@@ -1024,6 +1055,9 @@ namespace BCRPClient
                 public static string ArmourBroken = "Ваш бронежилет сломался!";
 
                 public static string Wounded = "Нельзя использовать это сразу после ранения!";
+
+                public static string NoSuchItem = "У вас нет необходимого предмета в инвентаре!";
+                public static string NoSuchItemAmount = "У вас нет необходимого кол-ва нужного предмета в инвентаре!";
             }
 
             public static class Gifts
@@ -1256,6 +1290,10 @@ namespace BCRPClient
                 public static string InVehicleError = "Выйдите из транспорта, чтобы заправить его!";
 
                 public static string NotAllowed = "У вас нет ключей от этого транспорта!";
+
+                public static string NoPlate = "На этом транспорте не установлен номерной знак!";
+                public static string PlateExists = "На этом транспорте уже установлен номерной знак!\nДля начала нужно его снять";
+                public static string PlateInstalled = "Номерной знак [{0}] установлен!";
             }
         }
         #endregion

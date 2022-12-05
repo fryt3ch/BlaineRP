@@ -183,6 +183,14 @@ namespace BCRPClient.CEF
                     case OutVehicleActions.Park:
                         Sync.Vehicles.Park(vehicle);
                     break;
+
+                    case OutVehicleActions.RemoveNumberplate:
+                        Sync.Vehicles.TakePlate(vehicle);
+                    break;
+
+                    case OutVehicleActions.SetNumberplate:
+                        Sync.Vehicles.SetupPlate(vehicle);
+                    break;
                 }
             });
             #endregion

@@ -1,14 +1,10 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using GTANetworkAPI;
-using MySqlX.XDevAPI.Common;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace BCRPServer.Sync
+namespace BCRPServer.Events.Players
 {
     class Commands : Script
     {
@@ -316,12 +312,12 @@ namespace BCRPServer.Sync
                 delay = 60;
             else if (delay < 0)
             {
-                Game.World.ClearAllItemsCancel();
+                Sync.World.ClearAllItemsCancel();
 
                 return;
             }
 
-            Game.World.ClearAllItems(delay);
+            Sync.World.ClearAllItems(delay);
         }
         #endregion
 
@@ -655,7 +651,7 @@ namespace BCRPServer.Sync
             var tData = target.GetMainData();
 
             if (!silent)
-                Chat.SendGlobal(Chat.Types.Kick, player, reason, target.Name + $" ({target.Id})");
+                Sync.Chat.SendGlobal(Sync.Chat.Types.Kick, player, reason, target.Name + $" ({target.Id})");
             else
                 Utils.MsgToAdmins(string.Format(Locale.Chat.Admin.SilentKick, player.Name + $" #{pData.CID})", target.Name + $" ({target.Id})", reason));
 

@@ -4,6 +4,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.Sync
 {
@@ -297,9 +298,9 @@ namespace BCRPClient.Sync
                     InvokeHandler("Mods::TSColour", data, veh.GetSharedData<JObject>("Mods::TSColour", null), null);
                     InvokeHandler("Mods::Turbo", data, data.HasTurboTuning, null);
 
-                    InvokeHandler("Mods::Xenon", data, veh.GetSharedData("Mods::Xenon"), null);
+                    InvokeHandler("Mods::Xenon", data, veh.GetSharedData<int>("Mods::Xenon", -2), null);
 
-                    InvokeHandler("Mods::CT", data, veh.GetSharedData("Mods::CT", 0), null);
+                    InvokeHandler("Mods::CT", data, veh.GetSharedData<int>("Mods::CT", 0), null);
 
                     //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
 
@@ -683,6 +684,18 @@ namespace BCRPClient.Sync
                 }
             });
             #endregion
+
+            Events.Add("Vehicles::NPChoose", (args) =>
+            {
+                if (Utils.IsAnyCefActive(true))
+                    return;
+
+                var items = ((JObject)args[0]).ToObject<Dictionary<uint, string>>();
+
+                int counter = 0;
+
+                CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, items.Select(x => (counter++, $"[{x.Value}]")).ToArray(), items);
+            });
         }
 
         #region Handlers
@@ -750,11 +763,9 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            var spVect = veh.GetSpeedVector(true);
+            var rotVect = veh.GetRotationVelocity();
 
-            Utils.ConsoleOutputLimited(spVect, true, 1000);
-
-            if (veh.GetHeightAboveGround() > 1f || Math.Abs(spVect.X) > 1f)
+            if (veh.GetHeightAboveGround() > 1f || Math.Abs(rotVect.Z) > 1.5f)
             {
                 Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Danger, 2500);
 
@@ -1261,6 +1272,50 @@ namespace BCRPClient.Sync
             }
 
             CEF.Inventory.Show(Inventory.Types.Container, (uint)vData.TID);
+        }
+
+        public static void TakePlate(Vehicle veh)
+        {
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            if (Player.LocalPlayer.Vehicle != null)
+                return;
+
+            var plateText = veh.GetNumberplateText();
+
+            if (plateText == null || plateText.Length == 0)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoPlate);
+
+                return;
+            }
+
+            Events.CallRemote("Vehicles::TakePlate", veh);
+        }
+
+        public static void SetupPlate(Vehicle veh)
+        {
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            if (Player.LocalPlayer.Vehicle != null)
+                return;
+
+            var plateText = veh.GetNumberplateText();
+
+            if (plateText != null && plateText.Length > 0)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.PlateExists);
+
+                return;
+            }
+
+            Events.CallRemote("Vehicles::SetupPlate", veh, 0);
         }
     }
 }

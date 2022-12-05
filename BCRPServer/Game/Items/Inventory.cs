@@ -1,18 +1,12 @@
-﻿using BCRPServer.Game.Items;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace BCRPServer.CEF
+namespace BCRPServer.Game.Items
 {
-    /*
-        4.000 LINES! BE CAREFUL! IT SLOWS IDE
-    */
-
-    public class Inventory : Script
+    public class Inventory
     {
         #region Settings
         /// <summary>Слоты одежды</summary>
@@ -491,6 +485,34 @@ namespace BCRPServer.CEF
                     }
                 }
             },
+
+            {
+                typeof(Game.Items.VehicleKey),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, object[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var vk = (Game.Items.VehicleKey)item;
+
+                            var vInfo = vk.VehicleInfo;
+
+                            if (vInfo == null)
+                                return Results.Error;
+
+                            if (vInfo.VehicleData?.Vehicle?.Exists != true)
+                                return Results.Error;
+
+                            pData.Player.CreateGPSBlip(vInfo.VehicleData.Vehicle.Position, pData.Player.Dimension, true);
+
+                            return Results.Success;
+                        }
+                    }
+                }
+            }
         };
 
         private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>>()
@@ -1315,7 +1337,7 @@ namespace BCRPServer.CEF
                         Groups.Weapons,
 
                         (pData, slotTo, slotFrom, amount) =>
-                        {                            
+                        {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
@@ -1412,7 +1434,7 @@ namespace BCRPServer.CEF
                         Groups.Holster,
 
                         (pData, slotTo, slotFrom, amount) =>
-                        {                            
+                        {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
@@ -1512,7 +1534,7 @@ namespace BCRPServer.CEF
                         Groups.Clothes,
 
                         (pData, slotTo, slotFrom, amount) =>
-                        {                            
+                        {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
@@ -1562,7 +1584,7 @@ namespace BCRPServer.CEF
                         Groups.Accessories,
 
                         (pData, slotTo, slotFrom, amount) =>
-                        {                            
+                        {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
@@ -1612,7 +1634,7 @@ namespace BCRPServer.CEF
                         Groups.HolsterItem,
 
                         (pData, slotTo, slotFrom, amount) =>
-                        {                            
+                        {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
@@ -2594,7 +2616,7 @@ namespace BCRPServer.CEF
 
                             (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             (pData.Accessories[slotFrom])?.Wear(pData);
-     
+
                             return Results.Success;
                         }
                     },
@@ -3123,30 +3145,6 @@ namespace BCRPServer.CEF
 
             return res;
         }
-
-        [RemoteEvent("Inventory::Replace")]
-        private static void ReplaceRemote(Player player, int to, int slotTo, int from, int slotFrom, int amount)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
-                return;
-
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
-
-            Replace(pData, (Groups)to, slotTo, (Groups)from, slotFrom, amount);
-        }
         #endregion
 
         #region Action
@@ -3180,33 +3178,6 @@ namespace BCRPServer.CEF
                 return Results.Error;
 
             return a2.Invoke(pData, item, group, slot, args);
-        }
-
-        [RemoteEvent("Inventory::Action")]
-        private static void ActionRemote(Player player, int group, int slot, int action)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(Groups), group) || slot < 0 || action < 5)
-                return;
-
-            if (pData.CurrentBusiness != null)
-                return;
-
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
-
-            Action(pData, (Groups)group, slot, action);
         }
         #endregion
 
@@ -3248,148 +3219,111 @@ namespace BCRPServer.CEF
             if (!pData.CanPlayAnim())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
-            Game.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
-        }
-
-        [RemoteEvent("Inventory::Drop")]
-        private static void DropRemote(Player player, int slotStr, int slot, int amount)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
-                return;
-
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
-
-            Drop(pData, (Groups)slotStr, slot, amount);
+            Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
         }
         #endregion
 
-        #region Take
-        [RemoteEvent("Inventory::Take")]
-        private static void TakeRemote(Player player, uint UID, int amount)
+        public static bool GiveExisting(PlayerData pData, Item item, int amount, bool notifyOnFail = true, bool notifyOnSuccess = true)
         {
-            var sRes = player.CheckSpamAttack();
+            var curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
 
-            if (sRes.IsSpammer)
-                return;
+            int freeIdx = -1, curAmount = 1;
 
-            var pData = sRes.Data;
-
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
+            if (item is Game.Items.IStackable stackable)
             {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
+                curAmount = stackable.Amount;
 
-            var item = Game.World.GetItemOnGround(UID);
-
-            if (item == null)
-                return;
-
-            if (!player.AreEntitiesNearby(item.Object, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                return;
-
-            var items = pData.Items;
-
-            var curWeight = items.Sum(x => x?.Weight ?? 0f);
-
-            var freeIdx = Array.FindIndex(items, x => x == null);
-
-            var curAmount = (item.Item as Game.Items.IStackable)?.Amount ?? 1;
-
-            if (amount > curAmount)
-                amount = curAmount;
-
-            if (item.Item is Game.Items.IStackable)
-            {
                 if (amount > curAmount)
                     amount = curAmount;
 
-                if (curWeight + amount * item.Item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
+                if (curWeight + amount * item.BaseWeight > Settings.MAX_INVENTORY_WEIGHT)
                 {
-                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.Item.BaseWeight);
+                    amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / item.BaseWeight);
                 }
 
-                for (int i = 0; i < items.Length; i++)
-                    if (items[i] != null && items[i].ID == item.Item.ID && (items[i] as Game.Items.IStackable).Amount + amount <= (items[i] as Game.Items.IStackable).MaxAmount)
+                if (amount > 0)
+                {
+                    for (int i = 0; i < pData.Items.Length; i++)
                     {
-                        freeIdx = i;
+                        var curItem = pData.Items[i];
 
-                        break;
+                        if (curItem == null)
+                        {
+                            if (freeIdx < 0)
+                                freeIdx = i;
+
+                            continue;
+                        }
+
+                        if (curItem.ID == item.ID && curItem is Game.Items.IStackable curItemStackable && curItemStackable.Amount + amount <= curItemStackable.MaxAmount)
+                        {
+                            freeIdx = i;
+
+                            break;
+                        }
                     }
-            }
-            else
-            {
-                if (curWeight + item.Item.Weight > Settings.MAX_INVENTORY_WEIGHT)
-                {
-                    player.Notify("Inventory::NoSpace");
-
-                    return;
                 }
             }
-
-            if (freeIdx == -1 || amount == 0)
-            {
-                player.Notify("Inventory::NoSpace");
-
-                return;
-            }
-
-            if (!pData.CanPlayAnim())
-                pData.PlayAnim(Sync.Animations.FastTypes.Pickup);
-
-            if (amount == curAmount)
-                item.Delete(items[freeIdx] != null);
             else
             {
-                (item.Item as Game.Items.IStackable).Amount -= amount;
+                if (amount != 1)
+                    amount = 1;
 
-                item.UpdateAmount();
+                if (curWeight + item.Weight <= Settings.MAX_INVENTORY_WEIGHT)
+                    freeIdx = Array.IndexOf(pData.Items, null);
+            }
+
+            if (amount <= 0 || freeIdx < 0)
+            {
+                if (notifyOnFail)
+                    pData.Player.Notify("Inventory::NoSpace");
+
+                return false;
             }
 
             if (amount == curAmount)
             {
-                if (items[freeIdx] == null)
-                    items[freeIdx] = item.Item;
+                if (pData.Items[freeIdx] != null)
+                {
+                    item.Delete();
+
+                    ((Game.Items.IStackable)pData.Items[freeIdx]).Amount += amount;
+
+                    pData.Items[freeIdx].Update();
+                }
                 else
                 {
-                    (items[freeIdx] as Game.Items.IStackable).Amount += amount;
-
-                    items[freeIdx].Update();
+                    pData.Items[freeIdx] = item;
                 }
             }
             else
             {
-                if (items[freeIdx] == null)
-                    items[freeIdx] = Game.Items.Items.CreateItem(item.Item.ID, 0, amount);
+                ((Game.Items.IStackable)item).Amount -= amount;
+
+                item.Update();
+
+                if (pData.Items[freeIdx] != null)
+                {
+                    ((Game.Items.IStackable)pData.Items[freeIdx]).Amount += amount;
+
+                    pData.Items[freeIdx].Update();
+                }
                 else
                 {
-                    (items[freeIdx] as Game.Items.IStackable).Amount += amount;
-
-                    items[freeIdx].Update();
+                    pData.Items[freeIdx] = Game.Items.Items.CreateItem(item.ID, 0, amount, false);
                 }
             }
 
-            var upd = Game.Items.Item.ToClientJson(items[freeIdx], Groups.Items);
+            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], Groups.Items);
 
-            player.TriggerEvent("Inventory::Update", (int)Groups.Items, freeIdx, upd);
+            if (notifyOnSuccess)
+                pData.Player.TriggerEvent("Item::Added", item.ID, amount);
+
+            pData.Player.TriggerEvent("Inventory::Update", (int)Groups.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
+
+            return true;
         }
-        #endregion
     }
 }

@@ -116,17 +116,17 @@ namespace BCRPClient.Additional
                     { 0, "Стандарт" },
                     { 1, "Белый" },
                     { 2, "Синий" },
-                    { 3, "Синий (электрический)" },
+                    { 3, "Голубой" },
                     { 4, "Зеленый (мятный)" },
                     { 5, "Зеленый (лаймовый)" },
                     { 6, "Желтый" },
                     { 7, "Золотистый" },
                     { 8, "Оранжевый" },
                     { 9, "Красный" },
-                    { 10, "Розовый" },
-                    { 11, "Розовый (горячий)" },
-                    { 12, "Фиолетовый" },
-                    { 13, "Черный" },
+                    { 10, "Розовый (бледный)" },
+                    { 11, "Розовый (насыщенный)" },
+                    { 12, "Фиолетовый (бледный)" },
+                    { 13, "Фиолетовый (насыщенный)" },
                 })
             },
 
@@ -173,6 +173,25 @@ namespace BCRPClient.Additional
                     { 5, "Хром" },
                 })
             },
+        };
+
+        public static Dictionary<int, string> WheelTypes { get; private set; } = new Dictionary<int, string>()
+        {
+            { 0, "Стоковые" },
+
+            { 1, "Спортивные" },
+            { 2, "Muscle" },
+            { 3, "Лоурайдерные" },
+            { 4, "SUV" },
+            { 5, "Для бездорожья" },
+            { 6, "Tuner" },
+            { 7, "Байкерские" },
+            { 8, "Высочайшего класса" },
+            { 9, "Benny's Original" },
+            { 10, "Benny's Bespoke" },
+            { 11, "Open Wheel" },
+            { 12, "Street" },
+            { 13, "Track" },
         };
 
         private static MenuPool MenuPool;
@@ -243,7 +262,7 @@ namespace BCRPClient.Additional
 
                     subMenu.SetMenuData(x.Key);
 
-                    var curMod = (x.Key == 18 ? (veh.IsToggleModOn(18) ? 0 : -1) : (x.Key == 22 ? (veh.IsToggleModOn(22) ? (RAGE.Game.Invoker.Invoke<int>(0x3DFF319A831E0CDB) + 1) : -1) : (x.Key == 55 ? veh.GetWindowTint() - 1 : x.Key == 1000 ? veh.GetColourType() : veh.GetMod(x.Key))));
+                    var curMod = (x.Key == 18 ? (veh.IsToggleModOn(18) ? 0 : -1) : (x.Key == 22 ? (veh.GetXenonColour() ?? -2) + 1 : (x.Key == 55 ? veh.GetWindowTint() - 1 : x.Key == 1000 ? veh.GetColourType() : veh.GetMod(x.Key))));
 
                     if (x.Value.ModNames != null)
                     {
@@ -284,20 +303,11 @@ namespace BCRPClient.Additional
 
                         if (idx == 18)
                         {
-                            veh.ToggleMod(18, state != -1);
+                            veh.ToggleMod(18, state >= 0);
                         }
                         else if (idx == 22)
                         {
-                            if (state < 0)
-                            {
-                                veh.ToggleMod(idx, false);
-                            }
-                            else
-                            {
-                                veh.ToggleMod(idx, true);
-
-                                RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, state);
-                            }
+                            veh.SetXenonColour(state < 0 ? null : (int?)state);
                         }
                         else if (idx == 1000)
                         {
@@ -311,11 +321,6 @@ namespace BCRPClient.Additional
                         {
                             veh.SetMod(idx, state, false);
                         }
-
-/*                        if (idx == 14)
-                        {
-                            veh.StartHorn(2500, RAGE.Util.Joaat.Hash("HELDDOWN"), false);
-                        }*/
 
                         item.Enabled = false;
                     };

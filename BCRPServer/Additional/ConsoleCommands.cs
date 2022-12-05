@@ -16,7 +16,7 @@ namespace BCRPServer.Additional
             #region Exit
             { "exit", () =>
                 {
-                    ServerEvents.IsRestarting = true;
+                    Events.Server.IsRestarting = true;
 
                     Active = false;
 
@@ -61,13 +61,13 @@ namespace BCRPServer.Additional
             #region Close / Open Access To Server
             { "closejoining", () =>
                 {
-                    ServerEvents.IsRestarting = true;
+                    Events.Server.IsRestarting = true;
                 }
             },
 
             { "openjoining", () =>
                 {
-                    ServerEvents.IsRestarting = false;
+                    Events.Server.IsRestarting = false;
                 }
             },
             #endregion

@@ -197,14 +197,14 @@ namespace BCRPServer
             [JsonProperty(PropertyName = "RZ")]
             public float RotationZ { get; set; }
 
-            public Vector4(float X, float Y, float Z, float RotationZ)
+            public Vector4(float X, float Y, float Z, float RotationZ = 0f)
             {
                 this.Position = new Vector3(X, Y, Z);
 
                 this.RotationZ = RotationZ;
             }
 
-            public Vector4(Vector3 Position, float RotationZ) : this(Position.X, Position.Y, Position.Z, RotationZ) { }
+            public Vector4(Vector3 Position, float RotationZ = 0f) : this(Position.X, Position.Y, Position.Z, RotationZ) { }
 
             public Vector4() { }
         }
@@ -472,14 +472,16 @@ namespace BCRPServer
         /// <inheritdoc cref="Additional.AntiSpam.CheckTemp(Player, int)"/>
         public static (bool IsSpammer, TempData Data) CheckSpamAttackTemp(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckTemp(player, decreaseDelay);
 
-        /// <inheritdoc cref="CEF.Inventory.Replace(PlayerData, CEF.Inventory.Groups, int, CEF.Inventory.Groups, int, int)"/>
-        public static CEF.Inventory.Results InventoryReplace(this PlayerData pData, CEF.Inventory.Groups to, int slotTo, CEF.Inventory.Groups from, int slotFrom, int amount = -1) => CEF.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
+        /// <inheritdoc cref="Game.Items.Inventory.Replace(PlayerData, Game.Items.Inventory.Groups, int, Game.Items.Inventory.Groups, int, int)"/>
+        public static Game.Items.Inventory.Results InventoryReplace(this PlayerData pData, Game.Items.Inventory.Groups to, int slotTo, Game.Items.Inventory.Groups from, int slotFrom, int amount = -1) => Game.Items.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
 
-        /// <inheritdoc cref="CEF.Inventory.Action(PlayerData, CEF.Inventory.Groups, int, int, object[])"/>
-        public static CEF.Inventory.Results InventoryAction(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int action = 5, params object[] args) => CEF.Inventory.Action(pData, slotStr, slot, action, args);
+        /// <inheritdoc cref="Game.Items.Inventory.Action(PlayerData, Game.Items.Inventory.Groups, int, int, object[])"/>
+        public static Game.Items.Inventory.Results InventoryAction(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int action = 5, params object[] args) => Game.Items.Inventory.Action(pData, slotStr, slot, action, args);
 
-        /// <inheritdoc cref="CEF.Inventory.Drop(PlayerData, CEF.Inventory.Groups, int, int)"/>
-        public static void InventoryDrop(this PlayerData pData, CEF.Inventory.Groups slotStr, int slot, int amount) => CEF.Inventory.Drop(pData, slotStr, slot, amount);
+        /// <inheritdoc cref="Game.Items.Inventory.Drop(PlayerData, Game.Items.Inventory.Groups, int, int)"/>
+        public static void InventoryDrop(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int amount) => Game.Items.Inventory.Drop(pData, slotStr, slot, amount);
+
+        public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
         /// <summary>Метод для удаления всего оружия у игрока</summary>
         /// <param name="pData">PlayerData игрока</param>
@@ -490,7 +492,7 @@ namespace BCRPServer
         {
             pData.UnequipActiveWeapon();
 
-            List<(CEF.Inventory.Groups Group, int Slot)> updList = new List<(CEF.Inventory.Groups Group, int Slot)>();
+            List<(Game.Items.Inventory.Groups Group, int Slot)> updList = new List<(Game.Items.Inventory.Groups Group, int Slot)>();
 
             for (int i = 0; i < pData.Weapons.Length; i++)
             {
@@ -498,7 +500,7 @@ namespace BCRPServer
                 {
                     pData.Weapons[i].Delete();
 
-                    updList.Add((CEF.Inventory.Groups.Weapons, i));
+                    updList.Add((Game.Items.Inventory.Groups.Weapons, i));
                 }
             }
 
@@ -506,7 +508,7 @@ namespace BCRPServer
             {
                 pData.Holster.Items[0].Delete();
 
-                updList.Add((CEF.Inventory.Groups.Holster, 2));
+                updList.Add((Game.Items.Inventory.Groups.Holster, 2));
             }
 
             if (fromInventoryToo)
@@ -517,7 +519,7 @@ namespace BCRPServer
                     {
                         pData.Items[i].Delete();
 
-                        updList.Add((CEF.Inventory.Groups.Items, i));
+                        updList.Add((Game.Items.Inventory.Groups.Items, i));
                     }
                 }
             }
@@ -530,7 +532,7 @@ namespace BCRPServer
                     {
                         pData.Bag.Items[i].Delete();
 
-                        updList.Add((CEF.Inventory.Groups.Bag, i));
+                        updList.Add((Game.Items.Inventory.Groups.Bag, i));
                     }
                 }
             }
@@ -577,13 +579,7 @@ namespace BCRPServer
         /// <param name="key">Тип уведомления (см. на клиенте CEF.Notifications.Prepared</param>
         /// <param name="args">Дополнительные параметры</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void Notify(this Player player, string key, params object[] args)
-        {
-            if (player?.Exists != true)
-                return;
-
-            player.TriggerEvent("Notify", key, args);
-        }
+        public static void Notify(this Player player, string key, params object[] args) => player.TriggerEvent("Notify", key, args);
         #endregion
 
         #region Data Extansions
@@ -1028,7 +1024,7 @@ namespace BCRPServer
             if (weather == WeatherTypes.XMAS)
                 NAPI.World.SetWeather("XMAS");
 
-            Game.World.SetSharedData("Weather", (byte)weather);
+            Sync.World.SetSharedData("Weather", (byte)weather);
         }
 
         public static Entity GetEntityInVehicleSeat(this Vehicle veh, int seatId)
@@ -1043,5 +1039,7 @@ namespace BCRPServer
 
             return null;
         }
+
+        public static void CreateGPSBlip(this Player player, Vector3 pos, uint dim, bool drawRoute = false) => player.TriggerEvent("Blip::CreateGPS", pos, dim, drawRoute);
     }
 }

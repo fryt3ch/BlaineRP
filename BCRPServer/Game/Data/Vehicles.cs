@@ -50,6 +50,50 @@ namespace BCRPServer.Game.Data
                 Electricity = 1,
             }
 
+            /// <summary>Классы транспорта</summary>
+            /// <remarks>Зависит от цены</remarks>
+            public enum ClassTypes
+            {
+                /// <summary>Обычный</summary>
+                Classic = 0,
+                /// <summary>Премиум</summary>
+                Premium,
+                /// <summary>Люкс</summary>
+                Luxe,
+                /// <summary>Элитный</summary>
+                Elite,
+            }
+
+            public static int GetPrice(Vehicle veh)
+            {
+                int price;
+
+                return 100;
+
+                if (veh.Type == Types.Car)
+                {
+                    if (Game.Businesses.Shop.AllPrices[Businesses.Business.Types.CarShop1].TryGetValue(veh.ID, out price))
+                    {
+                        return price;
+                    }
+                }
+                else if (veh.Type == Types.Motorcycle)
+                {
+
+                }
+                else if (veh.Type == Types.Boat)
+                {
+
+                }
+            }
+
+            public static ClassTypes GetClass(Vehicle veh)
+            {
+                var price = veh.Price;
+
+                return ClassTypes.Classic;
+            }
+
             public class Trunk
             {
                 /// <summary>Кол-во слотов в багажнике</summary>
@@ -91,6 +135,10 @@ namespace BCRPServer.Game.Data
             public Trunk TrunkData { get; set; }
 
             public Types Type { get; set; }
+
+            public int Price => GetPrice(this);
+
+            public ClassTypes Class => GetClass(this);
             
             /// <summary>Конструктор для создания нового транспорта (его прототипа)</summary>
             /// <param name="ID">Уникальный ID</param>
@@ -230,13 +278,13 @@ namespace BCRPServer.Game.Data
 
                 res.Turbo = false;
                 res.Xenon = -2;
-                res.WindowTint = 255;
+                res.WindowTint = 0;
                 res.PearlescentColour = 0;
 
                 res.ColourType = 0;
-                res.WheelsColour = 255;
+                res.WheelsColour = 0;
 
-                res.WheelsType = 255;
+                res.WheelsType = 0;
 
                 res.Mods = DefaultMods;
 
@@ -300,11 +348,11 @@ namespace BCRPServer.Game.Data
                 vehicle.CustomPrimaryColor = Colour1.ToRageColour();
                 vehicle.CustomSecondaryColor = Colour2.ToRageColour();
 
-                vehicle.SetSharedData("Mods::CT", ColourType);
-
                 vehicle.PearlescentColor = PearlescentColour;
 
                 vehicle.WheelColor = WheelsColour;
+
+                vehicle.SetSharedData("Mods::CT", ColourType);
             }
 
             public void UpdateWheels(GTANetworkAPI.Vehicle vehicle)

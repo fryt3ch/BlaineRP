@@ -75,6 +75,13 @@ namespace BCRPClient.Additional
 
                 var fade = (bool)args[3];
 
+                Player.LocalPlayer.FreezePosition(true);
+
+                if (Player.LocalPlayer.Vehicle != null)
+                {
+                    Player.LocalPlayer.Vehicle.FreezePosition(true);
+                }
+
                 Sync.Players.CloseAll(false);
 
                 if (fade)
@@ -92,6 +99,8 @@ namespace BCRPClient.Additional
 
                 if (Player.LocalPlayer.Vehicle == null)
                 {
+                    Player.LocalPlayer.FreezePosition(false);
+
                     Player.LocalPlayer.Position = pos;
 
                     Player.LocalPlayer.SetHeading(heading);
@@ -103,6 +112,9 @@ namespace BCRPClient.Additional
                 }
                 else
                 {
+                    Player.LocalPlayer.FreezePosition(false);
+                    Player.LocalPlayer.Vehicle.FreezePosition(false);
+
                     Player.LocalPlayer.Vehicle.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
 
                     Player.LocalPlayer.Vehicle.SetHeading(heading);

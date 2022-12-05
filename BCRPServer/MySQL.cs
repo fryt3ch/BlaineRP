@@ -17,7 +17,7 @@ namespace BCRPServer
 {
     static class MySQL
     {
-        private const string Host = "localhost";
+        private const string Host = "192.168.0.109";
         private const string User = "root";
         private const string Password = "";
         private const string GlobalDatabase = "bcrp";
@@ -534,11 +534,15 @@ namespace BCRPServer
 
                     usedItems.AddRange(Game.Items.Container.All.Values.SelectMany(x => x.Items));
 
-                    usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour})));
+                    usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour })));
 
                     usedItems.AddRange(VehicleData.VehicleInfo.All.Values.Select(x => x.Numberplate));
 
                     usedItems.RemoveAll(x => x == null);
+
+                    foreach (var x in usedItems.ToList())
+                        if (x is Game.Items.IContainer cont)
+                            usedItems.AddRange(cont.Items);
 
                     foreach (var x in Game.Items.Item.All.Values.Except(usedItems))
                     {
@@ -911,7 +915,7 @@ namespace BCRPServer
             }
         }
 
-        public static Bank.Account GetBankAccountByCID(uint cid)
+        public static Game.Bank.Account GetBankAccountByCID(uint cid)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -932,14 +936,14 @@ namespace BCRPServer
 
                             var balance = (int)reader["Balance"];
                             var savings = (int)reader["Savings"];
-                            var tariff = (Bank.Tariff.Types)(int)reader["Tariff"];
+                            var tariff = (Game.Bank.Tariff.Types)(int)reader["Tariff"];
                             var std = (bool)reader["STD"];
 
-                            return new Bank.Account()
+                            return new Game.Bank.Account()
                             {
                                 Balance = balance,
                                 SavingsBalance = savings,
-                                Tariff = Bank.Tariff.All[tariff],
+                                Tariff = Game.Bank.Tariff.All[tariff],
                                 SavingsToDebit = std,
                                 MinSavingsBalance = savings,
                                 TotalDayTransactions = 0,
@@ -954,7 +958,7 @@ namespace BCRPServer
             }
         }
 
-        public static void BankAccountAdd(Bank.Account account)
+        public static void BankAccountAdd(Game.Bank.Account account)
         {
             var cmd = new MySqlCommand();
 
@@ -970,7 +974,7 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
-        public static void BankAccountUpdate(Bank.Account account)
+        public static void BankAccountUpdate(Game.Bank.Account account)
         {
             var cmd = new MySqlCommand();
 
@@ -986,7 +990,7 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
-        public static void BankAccountDelete(Bank.Account account)
+        public static void BankAccountDelete(Game.Bank.Account account)
         {
             var cmd = new MySqlCommand();
 
@@ -1447,6 +1451,7 @@ namespace BCRPServer
                         business.OrderedMaterials = (int)reader["OrderedMaterials"];
 
                         business.Margin = (float)reader["Margin"];
+                        business.MaterialPrice = (int)reader["MaterialPrice"];
 
                         business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<int[]>();
 

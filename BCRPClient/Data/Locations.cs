@@ -605,6 +605,9 @@ namespace BCRPClient.Data
             new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1760.724f, 3234.819f, 42.13989f), 314.5554f, "Лана", "csb_anita");
 
             new TuningShop(20, new Vector3(1178.526f, 2647.779f, 37.79328f), new Vector3(1175.327f, 2639.85f, 37.3765f));
+            new TuningShop(21, new Vector3(-356.59f, -129.5743f, 39.43067f), new Vector3(-338.4644f, -136.1622f, 38.62881f));
+            new TuningShop(22, new Vector3(720.2494f, -1082.472f, 22.25672f), new Vector3(732.6448f, -1088.88f, 21.78887f));
+            new TuningShop(23, new Vector3(-1139.816f, -1992.655f, 13.16545f), new Vector3(-1154.301f, -2006.171f, 12.79945f));
 
             #region ATM
             new ATM(0, new Vector3(-301.65726f, -829.5886f, 32.419765f), 1f);

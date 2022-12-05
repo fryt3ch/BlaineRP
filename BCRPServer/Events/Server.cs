@@ -1,18 +1,14 @@
-﻿using BCRPServer.Game;
-using GTANetworkAPI;
-using Newtonsoft.Json;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 
-namespace BCRPServer
+namespace BCRPServer.Events
 {
-    class ServerEvents : Script
+    public class Server : Script
     {
         public static bool IsRestarting = false;
 
@@ -23,6 +19,8 @@ namespace BCRPServer
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
         {
+            Sync.World.Initialize();
+
             var currentTime = Utils.GetCurrentTime();
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
@@ -178,10 +176,10 @@ namespace BCRPServer
                                     continue;
                                 }
 
-/*                                if (pData.Fraction == PlayerData.FractionTypes.None)
-                                {
-                                    pData.AddCash(JoblessBenefits);
-                                }*/
+                                /*                                if (pData.Fraction == PlayerData.FractionTypes.None)
+                                                                {
+                                                                    pData.AddCash(JoblessBenefits);
+                                                                }*/
                             }
                         });
 
@@ -202,7 +200,6 @@ namespace BCRPServer
         }
         #endregion
 
-        #region Update
         [ServerEvent(Event.Update)]
         public void OnUpdate()
         {
@@ -210,38 +207,37 @@ namespace BCRPServer
 
             NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
         }
-        #endregion
 
-/*        private static List<string> VehicleDataLines = new List<string>();
+        /*        private static List<string> VehicleDataLines = new List<string>();
 
-        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+                private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
-        [RemoteEvent("vehicle_data_p")]
-        private static async void VehicleDataProcess(Player player, string model, string data)
-        {
-            await semaphore.WaitAsync();
+                [RemoteEvent("vehicle_data_p")]
+                private static async void VehicleDataProcess(Player player, string model, string data)
+                {
+                    await semaphore.WaitAsync();
 
-            VehicleDataLines.Add($"\"{model}\":{data},");
+                    VehicleDataLines.Add($"\"{model}\":{data},");
 
-            semaphore.Release();
-        }
+                    semaphore.Release();
+                }
 
-        [RemoteEvent("vehicle_data_f")]
-        private static async void VehicleDataFinish(Player player, int count)
-        {
-            while (VehicleDataLines.Count < count)
-                await Task.Delay(25);
+                [RemoteEvent("vehicle_data_f")]
+                private static async void VehicleDataFinish(Player player, int count)
+                {
+                    while (VehicleDataLines.Count < count)
+                        await Task.Delay(25);
 
-            await semaphore.WaitAsync();
+                    await semaphore.WaitAsync();
 
-            VehicleDataLines[VehicleDataLines.Count - 1] = VehicleDataLines[VehicleDataLines.Count - 1].Substring(0, VehicleDataLines[VehicleDataLines.Count - 1].Length - 1);
+                    VehicleDataLines[VehicleDataLines.Count - 1] = VehicleDataLines[VehicleDataLines.Count - 1].Substring(0, VehicleDataLines[VehicleDataLines.Count - 1].Length - 1);
 
-            VehicleDataLines.Insert(0, "{");
-            VehicleDataLines.Add("}");
+                    VehicleDataLines.Insert(0, "{");
+                    VehicleDataLines.Add("}");
 
-            File.WriteAllLines("vehicleData.custom.json", VehicleDataLines);
+                    File.WriteAllLines("vehicleData.custom.json", VehicleDataLines);
 
-            semaphore.Release();
-        }*/
+                    semaphore.Release();
+                }*/
     }
 }

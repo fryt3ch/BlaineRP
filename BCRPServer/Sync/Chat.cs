@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BCRPServer.Sync
 {
-    class Chat : Script
+    class Chat
     {
         /// <summary>Генератор случайных чисел для /try</summary>
         private static Random Random = new Random(Utils.GetCurrentTime().Ticks.GetHashCode());
@@ -58,36 +58,6 @@ namespace BCRPServer.Sync
             UnJail,
             News,
             Advert,
-        }
-        #endregion
-
-        #region Send
-        [RemoteEvent("Chat::Send")]
-        public static void OnChatSend(Player player, int typeNum, string message)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (!Enum.IsDefined(typeof(Types), typeNum))
-                return;
-
-            Types type = (Types)typeNum;
-
-            if (type > Types.Admin)
-                return;
-
-            if (type <= Types.Fraction)
-            {
-                SendLocal(type, player, message, null);
-            }
-            else if (type == Types.Goverment || type == Types.Admin) // add if of who can call
-            {
-                SendGlobal(type, player, message);
-            }
         }
         #endregion
 

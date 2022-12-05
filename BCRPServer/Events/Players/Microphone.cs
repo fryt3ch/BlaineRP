@@ -1,16 +1,14 @@
 ﻿using GTANetworkAPI;
-using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace BCRPServer.Sync
+namespace BCRPServer.Events.Players
 {
     class Microphone : Script
     {
         [RemoteEvent("Microphone::Switch")]
-        public static void MicrophoneSwitch(Player player, bool state)
+        private static void MicrophoneSwitch(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -33,41 +31,14 @@ namespace BCRPServer.Sync
             }
             else
             {
-                DisableMicrophone(pData);
+                Sync.Players.DisableMicrophone(pData);
             }
-        }
-
-        public static void DisableMicrophone(PlayerData pData)
-        {
-            if (pData.VoiceRange == 0f)
-                return;
-
-            pData.VoiceRange = 0f;
-
-            var player = pData.Player;
-
-            for (int i = 0; i < pData.Listeners.Count; i++)
-            {
-                var target = pData.Listeners[i];
-
-                if (target == null)
-                    continue;
-
-                player.DisableVoiceTo(target);
-            }
-
-            pData.Listeners.Clear();
         }
 
         [RemoteEvent("mal")]
-        public static void MicrophoneAddListener(Player player, Player target)
+        private static void MicrophoneAddListener(Player player, Player target)
         {
-            var sRes = player.CheckSpamAttack(0);
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
+            var pData = PlayerData.Get(player);
 
             if (target?.Exists != true || pData.VoiceRange == 0f)
                 return;
@@ -81,14 +52,9 @@ namespace BCRPServer.Sync
         }
 
         [RemoteEvent("mrl")]
-        public static void MicrophoneRemoveListener(Player player, Player target)
+        private static void MicrophoneRemoveListener(Player player, Player target)
         {
-            var sRes = player.CheckSpamAttack(0);
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
+            var pData = PlayerData.Get(player);
 
             if (target?.Exists != true)
                 return;

@@ -1,14 +1,196 @@
 ﻿using GTANetworkAPI;
-using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BCRPServer.CEF
+namespace BCRPServer.Events.Players
 {
-    public class HouseMenu : Script
+    class Houses : Script
     {
+        [RemoteEvent("House::Enter")]
+        public static void HouseEnter(Player player, uint id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var house = pData.CurrentHouse;
+
+            if (house != null)
+                return;
+
+            house = Game.Houses.House.All.GetValueOrDefault(id);
+
+            if (house == null)
+                return;
+
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                return;
+
+            if (house.IsLocked && house.Owner != pData.Info && house.Settlers.ContainsKey(pData.Info))
+            {
+                player.Notify("House::IsLocked");
+
+                return;
+            }
+
+            var sData = house.StyleData;
+
+            player.Teleport(sData.Position, false, house.Dimension, sData.Heading, true);
+
+            player.TriggerEvent("House::Enter", house.ToClientJson());
+        }
+
+        [RemoteEvent("House::Exit")]
+        public static void HouseExit(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null)
+                return;
+
+            if (player.Dimension != house.Dimension)
+                return;
+
+            player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main, house.ExitHeading, true);
+
+            player.TriggerEvent("House::Exit");
+        }
+
+        [RemoteEvent("House::Garage")]
+        public static void HouseGarage(Player player, bool to)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null || house.GarageData == null)
+                return;
+
+            if (player.Dimension != house.Dimension)
+                return;
+
+            player.CloseAll(true);
+
+            if (to)
+            {
+                player.Heading = house.GarageData.EnterHeading;
+                player.Teleport(house.GarageData.EnterPosition, false);
+            }
+            else
+            {
+                player.Heading = house.StyleData.Heading;
+                player.Teleport(house.StyleData.Position, false);
+            }
+        }
+
+        [RemoteEvent("House::Garage::Vehicle")]
+        public static void HouseGarageVehicle(Player player, bool to, Vehicle veh, uint houseId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (to)
+            {
+                if (player.Dimension != Utils.Dimensions.Main)
+                    return;
+
+                var house = Game.Houses.House.Get(houseId);
+
+                if (house == null || house.GarageData == null)
+                    return;
+
+                var houseJs = house.ToClientJson();
+
+                foreach (var x in veh.Occupants)
+                {
+                    if (x is Player passanger)
+                    {
+                        var pasData = passanger.GetMainData();
+
+                        if (pasData == null)
+                            continue;
+
+                        passanger.TriggerEvent("House::Enter", houseJs);
+                    }
+                }
+
+                vData.EngineOn = false;
+
+                veh.Teleport(house.GarageData.VehiclePositions[0].Position, house.Dimension, house.GarageData.VehiclePositions[0].Heading, true);
+
+                veh.SetSharedData("InGarage", true);
+            }
+            else
+            {
+
+            }
+        }
+
+        [RemoteEvent("House::Door")]
+        public static void HouseDoor(Player player, int doorIdx, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (doorIdx < 0)
+                return;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null)
+                return;
+
+            if (doorIdx >= house.DoorsStates.Length)
+                return;
+
+            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[1] != true)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
+
+            if (house.DoorsStates[doorIdx] == state)
+                return;
+
+            house.DoorsStates[doorIdx] = state;
+
+            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Door", doorIdx, state);
+        }
+
         [RemoteEvent("House::Menu::Show")]
         public static void HouseMenuShow(Player player)
         {

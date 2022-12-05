@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace BCRPServer.Sync
 {
-    public class AttachSystem : Script
+    public class AttachSystem
     {
         public const string AttachedObjectsKey = "AttachedObjects";
         public const string AttachedEntitiesKey = "AttachedEntities";
