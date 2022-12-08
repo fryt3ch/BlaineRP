@@ -1,16 +1,41 @@
 ﻿using BCRPServer.Game.Items;
 using GTANetworkAPI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Game.Businesses
 {
+    public class MaterialsData
+    {
+        public int BuyPrice { get; set; }
+
+        public int SellPrice { get; set; }
+
+        public int RealPrice { get; set; }
+
+        public Dictionary<string, int> Prices { get; set; }
+
+        public MaterialsData(int BuyPrice, int SellPrice, int RealPrice)
+        {
+            this.BuyPrice = BuyPrice;
+            this.SellPrice = SellPrice;
+            this.RealPrice = RealPrice;
+
+            this.Prices = Prices;
+        }
+    }
+
     public abstract class Business
     {
+        public const float INCASSATION_TAX = 0.05f;
+
         public enum Types
         {
             ClothesShop1 = 0,
@@ -33,7 +58,9 @@ namespace BCRPServer.Game.Businesses
             TuningShop,
         }
 
-        public static Dictionary<int, Business> All;
+        public abstract string ClientData { get; }
+
+        public static Dictionary<int, Business> All { get; private set; } = new Dictionary<int, Business>();
 
         /// <summary>Тип бизнеса</summary>
         public Types Type { get; set; }
@@ -57,31 +84,37 @@ namespace BCRPServer.Game.Businesses
         public int OrderedMaterials { get; set; }
 
         /// <summary>Гос. цена</summary>
-        public int Price { get; set; }
+        public int GovPrice { get; set; }
 
         /// <summary>Наценка на товары</summary>
-        /// <remarks>m*X=N, где m - стандартная цена товара, X - наценка, а N - итоговая цена товара</remarks>
         public float Margin { get; set; }
 
-        /// <summary>Цена 1 ед. материала</summary>
-        public int MaterialPrice { get; set; }
+        public float Tax { get; set; }
+
+        public int Rent { get; set; }
 
         /// <summary>Позиция бизнеса</summary>
-        public Vector3 Position { get; set; }
+        public Vector3 PositionInfo { get; set; }
 
-        /// <summary>Информация о прибыли за последний месяц</summary>
-        /// <remarks>Массив длиной 31, где индекс - (день месяца - 1), а значение - прибыль за этот день (если значение -1, то нет данных)</remarks>
+        public Utils.Vector4 PositionInteract { get; set; }
+
+        /// <summary>Статистика прибыли</summary>
         public int[] Statistics { get; set; }
 
-        public Business(int ID, Vector3 Position, Types Type, int Price = 100)
-        {
-            this.Price = Price;
+        public MaterialsData MaterialsData { get; set; }
 
+        public Business(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Types Type)
+        {
             this.ID = ID;
 
             this.Type = Type;
 
-            this.Position = Position;
+            PositionInfo.Z += 0.5f;
+
+            this.PositionInfo = PositionInfo;
+            this.PositionInteract = PositionInteract;
+
+            this.MaterialsData = Shop.AllPrices.GetValueOrDefault(Type);
 
             All.Add(ID, this);
         }
@@ -99,102 +132,78 @@ namespace BCRPServer.Game.Businesses
 
         public static int LoadAll()
         {
-            if (All != null)
-                return All.Count;
-
-            All = new Dictionary<int, Business>();
-
             #region Clothes (Cheap)
-            new ClothesShop1(1, new Vector3(1198f, 2701f, 38f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(1198f, 2701f, 38f));
-            new ClothesShop1(3, new Vector3(-1093.5f, 2703.7f, 19f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(-1093.5f, 2703.7f, 19f));
-            new ClothesShop1(4, new Vector3(1685.5f, 4820.2f, 42f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(1685.5f, 4820.2f, 42f));
-            new ClothesShop1(5, new Vector3(-1.5f, 6517.2f, 31.2f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(-1.5f, 6517.2f, 31.2f));
+            new ClothesShop1(1, new Vector3(1201.013f, 2701.155f, 37.15381f), new Utils.Vector4(1201.885f, 2710.143f, 38.2226f, 105f));
+            new ClothesShop1(3, new Vector3(-1096.97f, 2701.689f, 17.93724f), new Utils.Vector4(-1097.523f, 2714.026f, 19.108f, 150f));
+            new ClothesShop1(4, new Vector3(1683.12f, 4822.236f, 41.03899f), new Utils.Vector4(1694.727f, 4817.582f, 42.06f, 20f));
+            new ClothesShop1(5, new Vector3(-4.590637f, 6516.01f, 30.48112f), new Utils.Vector4(1f, 6508.753f, 31.87f, 325f));
 
-            new ClothesShop1(11, new Vector3(-817.3f, -1079.856f, 11.133f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(-817.3f, -1079.856f, 11.133f));
-            new ClothesShop1(12, new Vector3(83.64771f, -1391.713f, 29.41865f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(83.64771f, -1391.713f, 29.41865f));
-            new ClothesShop1(13, new Vector3(416.7564f, -807.4344f, 29.38187f), new Vector3(1190.645f, 2714.381f, 39.222f), 176f, new Utils.Vector4(416.7564f, -807.4344f, 29.38187f));
+            new ClothesShop1(11, new Vector3(-814.2472f, -1078.953f, 10.13255f), new Utils.Vector4(-817.8808f, -1070.944f, 11.32811f, 135f));
+            new ClothesShop1(12, new Vector3(84.3979f, -1388.727f, 28.41426f), new Utils.Vector4(75.42346f, -1387.689f, 29.37614f, 195.8f));
+            new ClothesShop1(13, new Vector3(416.1883f, -810.5462f, 28.33503f), new Utils.Vector4(425.6321f, -811.4822f, 29.49114f, 11f));
             #endregion
 
             #region Clothes (Expensive)
-            new ClothesShop2(2, new Vector3(618.5f, 2747.7f, 42f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f, new Utils.Vector4(618.5f, 2747.7f, 42f));
-            new ClothesShop2(14, new Vector3(-3167.542f, 1057.887f, 20.85858f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f, new Utils.Vector4(-3167.542f, 1057.887f, 20.85858f));
+            new ClothesShop2(2, new Vector3(623.3489f, 2744.308f, 41.01938f), new Utils.Vector4(613.035f, 2761.843f, 42.088f, 265f));
+            new ClothesShop2(14, new Vector3(-3168.294f, 1062.636f, 19.84479f), new Utils.Vector4(-3169.008f, 1044.211f, 20.86322f, 48.6f));
 
-            new ClothesShop2(9, new Vector3(128.3956f, -207.6191f, 54.58f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f, new Utils.Vector4(128.3956f, -207.6191f, 54.58f));
-            new ClothesShop2(10, new Vector3(-1202.328f, -778.6373f, 17.33572f), new Vector3(617.65f, 2766.828f, 42.0881f), 176f, new Utils.Vector4(-1202.328f, -778.6373f, 17.33572f));
+            new ClothesShop2(9, new Vector3(126.1404f, -203.9787f, 53.53281f), new Utils.Vector4(127.3073f, -223.18f, 54.55783f, 66f));
+            new ClothesShop2(10, new Vector3(-1203.813f, -784.1447f, 16.05554f), new Utils.Vector4(-1194.725f, -767.6141f, 17.31629f, 208f));
 
             #endregion
 
             #region Clothes (Brand)
-            new ClothesShop3(6, new Vector3(-1456f, -232f, 49.5f), new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f, new Utils.Vector4());
-            new ClothesShop3(7, new Vector3(-718.46f, -157.63f, 37f), new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f, new Utils.Vector4());
-            new ClothesShop3(8, new Vector3(-155.5432f, -305.705f, 39.08f), new Vector3(-1447.433f, -243.1756f, 49.82227f), 70f, new Utils.Vector4());
+            new ClothesShop3(6, new Vector3(-1459.713f, -233.0381f, 48.45752f), new Utils.Vector4(-1448.824f, -237.893f, 49.81332f, 45f));
+            new ClothesShop3(7, new Vector3(-717.7559f, -159.8642f, 35.99546f), new Utils.Vector4(-708.95f, -151.6612f, 37.415f, 114f));
+            new ClothesShop3(8, new Vector3(-152.0491f, -303.7605f, 37.95464f), new Utils.Vector4(-165f, -303.2f, 39.73328f, 251f));
             #endregion
 
-            new Market(15, new Vector3(549.1185f, 2671.407f, 42.1565f));
+            new Market(15, new Vector3(546.4489f, 2675.079f, 41.16602f), new Utils.Vector4(549.1185f, 2671.407f, 42.1565f, 91.55f));
 
-            new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), new Vector3(263.9698f, 2607.402f, 44.98298f));
+            new GasStation(16, new Vector3(270.1317f, 2601.239f, 43.64737f), null, new Vector3(263.9698f, 2607.402f, 44.98298f));
 
-            new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Vector3(-55.08611f, -1111.217f, 26.05543f), 36.2f, new Utils.Vector4[] { new Utils.Vector4(-41.65706f, -1116.344f, 26.05584f, 3f), new Utils.Vector4(-45.15728f, -1116.411f, 26.05584f, 3f), new Utils.Vector4(-47.71569f, -1116.379f, 26.05584f, 3f), new Utils.Vector4(-50.56787f, -1116.191f, 26.05584f, 3f), new Utils.Vector4(-53.62245f, -1116.565f, 26.05584f, 3f), new Utils.Vector4(-56.34209f, -1116.566f, 26.05584f, 3f), new Utils.Vector4(-59.11841f, -1116.814f, 26.05584f, 3f), new Utils.Vector4(-62.03639f, -1117.178f, 26.05584f, 3f) }, new Utils.Vector4(-62.48621f, -1089.3f, 26.69341f));
+            new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 25.69341f), new Utils.Vector4(-55.08611f, -1111.217f, 26.05543f, 36.2f), new Utils.Vector4[] { new Utils.Vector4(-41.65706f, -1116.344f, 26.05584f, 3f), new Utils.Vector4(-45.15728f, -1116.411f, 26.05584f, 3f), new Utils.Vector4(-47.71569f, -1116.379f, 26.05584f, 3f), new Utils.Vector4(-50.56787f, -1116.191f, 26.05584f, 3f), new Utils.Vector4(-53.62245f, -1116.565f, 26.05584f, 3f), new Utils.Vector4(-56.34209f, -1116.566f, 26.05584f, 3f), new Utils.Vector4(-59.11841f, -1116.814f, 26.05584f, 3f), new Utils.Vector4(-62.03639f, -1117.178f, 26.05584f, 3f) }, new Utils.Vector4(-54.68786f, -1088.418f, 26.42234f, 155.8f));
 
-            new BoatShop(18, new Vector3(-813.3688f, -1336.428f, 5.150263f), new Vector3(-852.8972f, -1335.998f, 0.1195435f), 108.4271f, new Utils.Vector4[] { }, new Utils.Vector4(new Vector3(-852.8972f, -1335.998f, 0.1195435f), 108.4271f));
+            new BoatShop(18, new Vector3(-813.3688f, -1336.428f, 4.150263f), new Utils.Vector4(-852.8972f, -1335.998f, 0.1195435f, 108.4271f), new Utils.Vector4[] { }, new Utils.Vector4(-813.8713f, -1343.797f, 5.150264f, 49.62344f));
 
-            new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1770.4f, 3239.908f, 42.02776f), 352.3067f, new Utils.Vector4[] { }, new Utils.Vector4(new Vector3(1770.4f, 3239.908f, 42.02776f), 352.3067f));
+            new AeroShop(19, new Vector3(1757.495f, 3239.969f, 40.94524f), new Utils.Vector4(1770.4f, 3239.908f, 42.02776f, 352.3067f), new Utils.Vector4[] { }, new Utils.Vector4(1760.724f, 3234.819f, 42.13989f, 314.5554f));
 
-            new TuningShop(20, new Vector3(1178.526f, 2647.779f, 37.79328f), new Utils.Vector4(1175.327f, 2639.85f, 37.3765f, 325f), new Utils.Vector4[] { new Utils.Vector4(1188.023f, 2650.051f, 37.46183f, 50f), new Utils.Vector4(1188.778f, 2658.188f, 37.44228f, 315f) });
-            new TuningShop(21, new Vector3(-356.59f, -129.5743f, 39.43067f), new Utils.Vector4(-338.4644f, -136.1622f, 38.62881f, 115f), new Utils.Vector4[] { new Utils.Vector4(-356.0863f, -115.5013f, 38.31553f, 72f), new Utils.Vector4(-377.5053f, -146.7845f, 38.30297f, 300f), new Utils.Vector4(-378.845f, -143.6312f, 38.30399f, 300f), new Utils.Vector4(-380.2281f, -140.2031f, 38.30404f, 300f), new Utils.Vector4(-382.0588f, -137.2818f, 38.30477f, 300f), new Utils.Vector4(-384.2779f, -134.4641f, 38.30402f, 300f), new Utils.Vector4(-385.8221f, -131.2085f, 38.30363f, 300f), new Utils.Vector4(-387.4566f, -128.2165f, 38.30125f, 300f), new Utils.Vector4(-388.955f, -124.9111f, 38.30383f, 300f), new Utils.Vector4(-390.6784f, -121.6463f, 38.29424f, 300f), new Utils.Vector4(-392.3392f, -118.4143f, 38.21078f, 300f) });
-            new TuningShop(22, new Vector3(720.2494f, -1082.472f, 22.25672f), new Utils.Vector4(732.6448f, -1088.88f, 21.78887f, 140f), new Utils.Vector4[] { new Utils.Vector4(719.222f, -1079.078f, 21.85986f, 95f), new Utils.Vector4(705.7102f, -1071.86f, 22.03793f, 270f), new Utils.Vector4(705.0659f, -1061.33f, 22.0562f, 270f), new Utils.Vector4(706.761f, -1053.564f, 21.96827f, 250f) });
-            new TuningShop(23, new Vector3(-1139.816f, -1992.655f, 13.16545f), new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f, 0f), new Utils.Vector4[] { new Utils.Vector4(-1151.391f, -1982.481f, 12.77934f, 280f), new Utils.Vector4(-1136.405f, -1975.773f, 12.78101f, 180f), new Utils.Vector4(-1132.026f, -1975.115f, 12.78097f, 180f), new Utils.Vector4(-1127.017f, -1976.082f, 12.79133f, 180f) });
+            new TuningShop(20, new Vector3(1178.526f, 2647.779f, 36.79328f), new Utils.Vector4(1175.327f, 2639.85f, 37.3765f, 325f), new Utils.Vector4[] { new Utils.Vector4(1188.023f, 2650.051f, 37.46183f, 50f), new Utils.Vector4(1188.778f, 2658.188f, 37.44228f, 315f) }, new Utils.Vector4(1175.327f, 2639.85f, 37.3765f));
+            new TuningShop(21, new Vector3(-356.59f, -129.5743f, 38.43067f), new Utils.Vector4(-338.4644f, -136.1622f, 38.62881f, 115f), new Utils.Vector4[] { new Utils.Vector4(-356.0863f, -115.5013f, 38.31553f, 72f), new Utils.Vector4(-377.5053f, -146.7845f, 38.30297f, 300f), new Utils.Vector4(-378.845f, -143.6312f, 38.30399f, 300f), new Utils.Vector4(-380.2281f, -140.2031f, 38.30404f, 300f), new Utils.Vector4(-382.0588f, -137.2818f, 38.30477f, 300f), new Utils.Vector4(-384.2779f, -134.4641f, 38.30402f, 300f), new Utils.Vector4(-385.8221f, -131.2085f, 38.30363f, 300f), new Utils.Vector4(-387.4566f, -128.2165f, 38.30125f, 300f), new Utils.Vector4(-388.955f, -124.9111f, 38.30383f, 300f), new Utils.Vector4(-390.6784f, -121.6463f, 38.29424f, 300f), new Utils.Vector4(-392.3392f, -118.4143f, 38.21078f, 300f) }, new Utils.Vector4(-338.4644f, -136.1622f, 38.62881f));
+            new TuningShop(22, new Vector3(720.2494f, -1082.472f, 21.25672f), new Utils.Vector4(732.6448f, -1088.88f, 21.78887f, 140f), new Utils.Vector4[] { new Utils.Vector4(719.222f, -1079.078f, 21.85986f, 95f), new Utils.Vector4(705.7102f, -1071.86f, 22.03793f, 270f), new Utils.Vector4(705.0659f, -1061.33f, 22.0562f, 270f), new Utils.Vector4(706.761f, -1053.564f, 21.96827f, 250f) }, new Utils.Vector4(732.6448f, -1088.88f, 21.78887f));
+            new TuningShop(23, new Vector3(-1139.816f, -1992.655f, 12.16545f), new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f, 0f), new Utils.Vector4[] { new Utils.Vector4(-1151.391f, -1982.481f, 12.77934f, 280f), new Utils.Vector4(-1136.405f, -1975.773f, 12.78101f, 180f), new Utils.Vector4(-1132.026f, -1975.115f, 12.78097f, 180f), new Utils.Vector4(-1127.017f, -1976.082f, 12.79133f, 180f) }, new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f));
+
+            var lines = new List<string>();
 
             foreach (var x in All.Values)
             {
                 MySQL.LoadBusiness(x);
-            }
 
-            var lines = new List<string>();
-
-            var insIdx = 0;
-
-            using (var sr = new StreamReader(Settings.DIR_CLIENT_SHOP_DATA_PATH))
-            {
-                bool ignore = false;
-
-                string line;
-
-                var i = 0;
-
-                while ((line = sr.ReadLine()) != null)
+                for (int i = 0; i < x.Statistics.Length; i++)
                 {
-                    if (!ignore)
+                    if (i == x.Statistics.Length - 1)
                     {
-                        if (line.Contains("#region TO_REPLACE"))
-                        {
-                            ignore = true;
-
-                            insIdx = i;
-                        }
-
-                        lines.Add(line);
+                        x.Statistics[i] = 0;
                     }
                     else
                     {
-                        if (line.Contains("#endregion"))
-                        {
-                            ignore = false;
-
-                            lines.Add(line);
-                        }
+                        x.Statistics[i] = x.Statistics[i + 1];
                     }
-
-                    i++;
                 }
+
+                lines.Add($"new {x.GetType().Name}({x.ClientData});");
             }
+
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "BIZS_TO_REPLACE", lines);
+
+            lines = new List<string>();
 
             foreach (var x in Shop.AllPrices)
             {
-                lines.Insert(++insIdx, $"Prices.Add(Types.{x.Key}, new Dictionary<string, int>() {{{string.Join(", ", x.Value.Select(x => $"{{\"{x.Key}\", {x.Value}}}"))}}});");
+                lines.Add($"Prices.Add(Types.{x.Key}, new Dictionary<string, int>() {{{string.Join(", ", x.Value.Prices.Select(y => $"{{\"{y.Key}\", {y.Value * x.Value.RealPrice}}}"))}}});");
             }
 
-            File.WriteAllLines(Settings.DIR_CLIENT_SHOP_DATA_PATH, lines);
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_SHOP_DATA_PATH, "TO_REPLACE", lines);
 
             return All.Count;
         }
@@ -206,6 +215,168 @@ namespace BCRPServer.Game.Businesses
             Owner = pInfo;
 
             Sync.World.SetSharedData($"Business::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+        }
+
+        public bool HasEnoughMaterials(int value, PlayerData pData = null)
+        {
+            if (Materials >= value)
+                return true;
+
+            if (pData != null)
+                pData.Player.Notify("Business:NoMats");
+
+            return false;
+        }
+
+        public void PaymentProceed(PlayerData pData, bool cash, int mats, int realPrice)
+        {
+            if (cash)
+            {
+                if (Owner != null)
+                {
+                    Materials -= mats;
+
+                    Cash += (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax));
+                }
+
+                pData.Cash -= realPrice;
+
+                MySQL.CharacterUpdateCash(pData.Info);
+            }
+            else
+            {
+                if (Owner != null)
+                {
+                    Materials -= mats;
+
+                    Bank += (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax - INCASSATION_TAX));
+                }
+
+                pData.BankBalance -= realPrice;
+
+                MySQL.BankAccountUpdate(pData.BankAccount);
+            }
+        }
+
+        public void SellToGov(bool moneyBack = true)
+        {
+            if (Owner == null)
+                return;
+
+            if (Owner.PlayerData == null)
+            {
+                if (moneyBack)
+                {
+                    if (Owner.BankAccount != null)
+                    {
+                        Owner.Cash += Cash;
+
+                        Owner.BankAccount.Balance += Bank + GovPrice / 2;
+
+                        MySQL.BankAccountUpdate(Owner.PlayerData.BankAccount);
+                    }
+                    else
+                    {
+                        Owner.Cash += Cash + Bank + GovPrice / 2;
+                    }
+
+                    MySQL.CharacterUpdateCash(Owner);
+                }
+            }
+            else
+            {
+                if (moneyBack)
+                {
+                    if (Owner.PlayerData.BankAccount != null)
+                    {
+                        Owner.PlayerData.Cash += Cash;
+
+                        Owner.PlayerData.BankBalance += Bank + GovPrice / 2;
+
+                        MySQL.BankAccountUpdate(Owner.PlayerData.BankAccount);
+                    }
+                    else
+                    {
+                        Owner.PlayerData.Cash += Cash + Bank + GovPrice / 2;
+                    }
+
+                    MySQL.CharacterUpdateCash(Owner);
+                }
+
+                Owner.PlayerData.RemoveBusinessProperty(this);
+            }
+
+            Cash = 0;
+            Bank = 0;
+            Materials = 0;
+            Margin = 1f;
+
+            UpdateOwner(null);
+
+            MySQL.BusinessUpdateComplete(this);
+        }
+
+        public bool BuyFromGov(PlayerData pData)
+        {
+            if (!pData.HasEnoughCash(GovPrice, true))
+                return false;
+
+            if (pData.OwnedBusinesses.Count >= pData.BusinessesSlots)
+            {
+                pData.Player.Notify("Business::HMA");
+
+                return false;
+            }
+
+            if (Settings.NEED_BUSINESS_LICENSE && !pData.Licenses.Contains(PlayerData.LicenseTypes.Business))
+            {
+                pData.Player.Notify("License::NTB");
+
+                return false;
+            }
+
+            pData.Cash -= GovPrice;
+
+            UpdateOwner(pData.Info);
+
+            pData.AddBusinessProperty(this);
+
+            MySQL.BusinessUpdateOwner(this);
+
+            return true;
+        }
+
+        public void ChangeOwner(PlayerData.PlayerInfo pInfo)
+        {
+            if (Owner == null)
+                return;
+
+            Owner.PlayerData?.RemoveBusinessProperty(this);
+
+            pInfo.PlayerData?.AddBusinessProperty(this);
+
+            UpdateOwner(pInfo);
+
+            MySQL.BusinessUpdateOwner(this);
+        }
+
+        public JObject ToClientMenuObject()
+        {
+            var obj = new JObject();
+
+            obj.Add("C", Cash);
+            obj.Add("B", Bank);
+            obj.Add("M", Materials);
+            obj.Add("MA", Margin);
+            obj.Add("IS", false);
+            obj.Add("IT", INCASSATION_TAX);
+            obj.Add("DS", 0);
+            obj.Add("MB", MaterialsData.BuyPrice);
+            obj.Add("MS", MaterialsData.SellPrice);
+            obj.Add("DP", 2000);
+            obj.Add("S", Statistics.SerializeToJson());
+
+            return obj;
         }
     }
 
@@ -220,13 +391,15 @@ namespace BCRPServer.Game.Businesses
 
     public abstract class Shop : Business
     {
-        public static Dictionary<Types, Dictionary<string, int>> AllPrices = new Dictionary<Types, Dictionary<string, int>>()
+        /// <summary>Все цены в магазинах (бизнесах)</summary>
+        /// <remarks>Цены - в материалах, не в долларах</remarks>
+        public static Dictionary<Types, MaterialsData> AllPrices { get; private set; } = new Dictionary<Types, MaterialsData>()
         {
             #region ClothesShop1
             {
                 Types.ClothesShop1,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "top_m_0", 100 },
                     { "top_m_1", 100 },
@@ -893,7 +1066,7 @@ namespace BCRPServer.Game.Businesses
                     { "bracelet_f_13", 100 },
                     { "bracelet_f_14", 100 },
                     { "bracelet_f_15", 100 },
-                }
+                } }
             },
             #endregion
 
@@ -901,7 +1074,7 @@ namespace BCRPServer.Game.Businesses
             {
                 Types.ClothesShop2,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "top_m_134", 100},
                     { "top_m_135", 100},
@@ -1320,14 +1493,14 @@ namespace BCRPServer.Game.Businesses
                     { "bracelet_f_10", 100 },
                     { "bracelet_f_11", 100 },
                     { "bracelet_f_12", 100 },
-                }
+                } }
             },
             #endregion
 
             {
                 Types.Market,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "f_burger", 100 },
 
@@ -1339,22 +1512,22 @@ namespace BCRPServer.Game.Businesses
                     { "cigs_1", 100 },
                     { "cig_0", 100 },
                     { "cig_1", 100 },
-                }
+                } }
             },
 
             {
                 Types.GasStation,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
 
-                }
+                } }
             },
 
             {
                 Types.CarShop1,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "adder", 100 },
                     { "airbus", 100 },
@@ -1924,31 +2097,31 @@ namespace BCRPServer.Game.Businesses
                     { "surge", 100 },
                     { "voltic", 100 },
                     { "voltic2", 100 },
-                }
+                } }
             },
 
             {
                 Types.CarShop2,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
 
-                }
+                } }
             },
 
             {
                 Types.CarShop3,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
 
-                }
+                } }
             },
 
             {
                 Types.MotoShop,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "akuma", 100 },
                     { "avarus", 100 },
@@ -2012,13 +2185,13 @@ namespace BCRPServer.Game.Businesses
                     { "tribike", 100 },
                     { "tribike2", 100 },
                     { "tribike3", 100 },
-                }
+                } }
             },
 
             {
                 Types.BoatShop,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "avisa", 100 },
                     { "dinghy", 100 },
@@ -2046,13 +2219,13 @@ namespace BCRPServer.Game.Businesses
                     { "tropic", 100 },
                     { "tropic2", 100 },
                     { "tug", 100 },
-                }
+                } }
             },
 
             {
                 Types.AeroShop,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "akula", 100 },
                     { "annihilator", 100 },
@@ -2118,13 +2291,13 @@ namespace BCRPServer.Game.Businesses
                     { "vestra", 100 },
                     { "volatol", 100 },
                     { "alkonost", 100 },
-                }
+                } }
             },
 
             {
                 Types.TuningShop,
 
-                new Dictionary<string, int>()
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
                 {
                     { "fix_0", 100 },
                     { "fix_1", 100 },
@@ -2243,26 +2416,73 @@ namespace BCRPServer.Game.Businesses
                     // bike rear wheel
                     { "rwheel_0", 100 },
                     { "rwheel_7", 100 },
-                }
+                } }
             }
         };
 
-        public int GetPrice(string id, bool addMargin = true)
+        public Dictionary<string, int> Prices => AllPrices[Type].Prices;
+
+        public (int MatPrice, int RealPrice)? CanBuy(PlayerData pData, bool useCash, string itemId, int amount)
         {
-            int price;
+            var priceData = MaterialsData;
 
-            if (!AllPrices[Type].TryGetValue(id, out price))
-                return -1;
+            if (priceData == null)
+                return null;
 
-            price *= MaterialPrice;
+            int matPrice;
 
-            if (addMargin)
-                return (int)Math.Floor(price * Margin);
+            if (!priceData.Prices.TryGetValue(itemId, out matPrice))
+                return null;
+
+            matPrice *= amount;
+
+            if (Owner != null)
+            {
+                if (!HasEnoughMaterials(matPrice, pData))
+                    return null;
+            }
+
+            var realPrice = (int)Math.Floor(matPrice * priceData.RealPrice * Margin);
+
+            if (useCash)
+            {
+                if (!pData.HasEnoughCash(realPrice, true))
+                    return null;
+            }
             else
-                return price;
+            {
+                if (!pData.HasBankAccount(true))
+                    return null;
+
+                var cb = pData.BankAccount.HasEnoughMoneyDebit(realPrice, true, true);
+
+                if (cb < 0)
+                    return null;
+
+                realPrice -= cb;
+            }
+
+            return (matPrice, realPrice);
         }
 
-        public Shop(int ID, Vector3 Position, Types Type) : base(ID, Position, Type)
+        public virtual bool BuyItem(PlayerData pData, bool useCash, string itemId, int variation = 0, int amount = 1)
+        {
+            var res = CanBuy(pData, useCash, itemId, amount);
+
+            if (res == null)
+                return false;
+
+            var item = pData.GiveItem(itemId, variation, amount, false, true, true);
+
+            if (item == null)
+                return false;
+
+            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+
+            return true;
+        }
+
+        public Shop(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Types Type) : base(ID, PositionInfo, PositionInteract, Type)
         {
 
         }
@@ -2270,23 +2490,25 @@ namespace BCRPServer.Game.Businesses
 
     public abstract class ClothesShop : Shop, IEnterable
     {
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}";
+
         public Utils.Vector4 EnterProperties { get; set; }
 
         public Utils.Vector4[] ExitProperties { get; set; }
 
         public int LastExitUsed { get; set; }
 
-        public ClothesShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type, Utils.Vector4 ExitProperty) : base(ID, Position, Type)
+        public ClothesShop(int ID, Vector3 Position, Utils.Vector4 EnterProperies, Types Type, Utils.Vector4 PositionInteract) : base(ID, Position, PositionInteract, Type)
         {
-            this.EnterProperties = new Utils.Vector4(EnterPosition, Heading);
+            this.EnterProperties = EnterProperies;
 
-            this.ExitProperties = new Utils.Vector4[] { ExitProperty };
+            this.ExitProperties = new Utils.Vector4[] { new Utils.Vector4(PositionInteract.Position.GetFrontOf(PositionInteract.RotationZ, 1.5f), Utils.GetOppositeAngle(PositionInteract.RotationZ)) };
         }
     }
 
     public class ClothesShop1 : ClothesShop
     {
-        public ClothesShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop1, ExitProperty)
+        public ClothesShop1(int ID, Vector3 Position, Utils.Vector4 PositionInteract) : base(ID, Position, new Utils.Vector4(1190.617f, 2714.198f, 38.22264f, 217f), Types.ClothesShop1, PositionInteract)
         {
 
         }
@@ -2294,7 +2516,7 @@ namespace BCRPServer.Game.Businesses
 
     public class ClothesShop2 : ClothesShop
     {
-        public ClothesShop2(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop2, ExitProperty)
+        public ClothesShop2(int ID, Vector3 Position, Utils.Vector4 PositionInteract) : base(ID, Position, new Utils.Vector4(617.65f, 2766.828f, 42.0881f, 176f), Types.ClothesShop2, PositionInteract)
         {
 
         }
@@ -2302,7 +2524,7 @@ namespace BCRPServer.Game.Businesses
 
     public class ClothesShop3 : ClothesShop
     {
-        public ClothesShop3(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.ClothesShop3, ExitProperty)
+        public ClothesShop3(int ID, Vector3 Position, Utils.Vector4 PositionInteract) : base(ID, Position, new Utils.Vector4(-1447.433f, -243.1756f, 49.82227f, 70f), Types.ClothesShop3, PositionInteract)
         {
 
         }
@@ -2310,7 +2532,9 @@ namespace BCRPServer.Game.Businesses
 
     public class Market : Shop
     {
-        public Market(int ID, Vector3 Position) : base(ID, Position, Types.Market)
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}";
+
+        public Market(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, Types.Market)
         {
 
         }
@@ -2318,6 +2542,8 @@ namespace BCRPServer.Game.Businesses
 
     public class GasStation : Shop
     {
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {GasolinesPosition.ToCSharpStr()}, {PositionInteract.ToCSharpStr()}";
+
         private static Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int> GasPrices = new Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int>()
         {
             { Game.Data.Vehicles.Vehicle.FuelTypes.Petrol, 10 },
@@ -2340,7 +2566,7 @@ namespace BCRPServer.Game.Businesses
                 return price;
         }
 
-        public GasStation(int ID, Vector3 Position, Vector3 GasolinesPosition) : base(ID, Position, Types.GasStation)
+        public GasStation(int ID, Vector3 PositionInfo,  Utils.Vector4 PositionInteract, Vector3 GasolinesPosition) : base(ID, PositionInfo, PositionInteract, Types.GasStation)
         {
             this.GasolinesPosition = GasolinesPosition;
         }
@@ -2348,6 +2574,8 @@ namespace BCRPServer.Game.Businesses
 
     public abstract class VehicleShop : Shop, IEnterable
     {
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}";
+
         public Utils.Vector4 EnterProperties { get; set; }
 
         public Utils.Vector4[] AfterBuyPositions { get; set; }
@@ -2358,19 +2586,52 @@ namespace BCRPServer.Game.Businesses
 
         public int LastAfterBuyExitUsed { get; set; }
 
-        public VehicleShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Types Type, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, Type)
+        public VehicleShop(int ID, Vector3 PositionInfo, Utils.Vector4 EnterProperties, Types Type, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, Type)
         {
-            this.EnterProperties = new Utils.Vector4(EnterPosition, Heading);
+            this.EnterProperties = EnterProperties;
 
             this.AfterBuyPositions = AfterBuyPositions;
 
-            this.ExitProperties = new Utils.Vector4[] { ExitProperty };
+            this.ExitProperties = new Utils.Vector4[] { new Utils.Vector4(PositionInteract.Position.GetFrontOf(PositionInteract.RotationZ, 1.5f), Utils.GetOppositeAngle(PositionInteract.RotationZ)) };
+        }
+
+        public override bool BuyItem(PlayerData pData, bool useCash, string itemId, int variation = 0, int amount = 1)
+        {
+            var iData = itemId.Split('_');
+
+            if (iData.Length != 7)
+                return false;
+
+            byte r1, g1, b1, r2, g2, b2;
+
+            if (!byte.TryParse(iData[1], out r1) || !byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
+                return false;
+
+            var res = CanBuy(pData, useCash, iData[0], 1);
+
+            if (res == null)
+                return false;
+
+            var vType = Data.Vehicles.GetData(iData[0]);
+
+            if (vType == null)
+                return false;
+
+            var vPos = AfterBuyPositions[AfterBuyPositions.Length == 1 ? 0 : AfterBuyPositions.Length < LastExitUsed + 1 ? ++LastExitUsed : LastExitUsed = 0];
+
+            var vData = VehicleData.New(pData, vType, new Utils.Colour(r1, g1, b1), new Utils.Colour(r2, g2, b2), vPos.Position, vPos.RotationZ, Utils.Dimensions.Main, true);
+
+            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+
+            pData.Player.Teleport(vPos.Position, false, Utils.Dimensions.Main, vPos.RotationZ, true);
+
+            return true;
         }
     }
 
     public class CarShop1 : VehicleShop
     {
-        public CarShop1(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.CarShop1, AfterBuyPositions, ExitProperty)
+        public CarShop1(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, Position, EnterProperties, Types.CarShop1, AfterBuyPositions, PositionInteract)
         {
 
         }
@@ -2378,7 +2639,7 @@ namespace BCRPServer.Game.Businesses
 
     public class CarShop2 : VehicleShop
     {
-        public CarShop2(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.CarShop2, AfterBuyPositions, ExitProperty)
+        public CarShop2(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, Position, EnterProperties, Types.CarShop2, AfterBuyPositions, PositionInteract)
         {
 
         }
@@ -2386,7 +2647,7 @@ namespace BCRPServer.Game.Businesses
 
     public class CarShop3 : VehicleShop
     {
-        public CarShop3(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.CarShop3, AfterBuyPositions, ExitProperty)
+        public CarShop3(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, Position, EnterProperties, Types.CarShop3, AfterBuyPositions, PositionInteract)
         {
 
         }
@@ -2394,7 +2655,7 @@ namespace BCRPServer.Game.Businesses
 
     public class MotoShop : VehicleShop
     {
-        public MotoShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.MotoShop, AfterBuyPositions, ExitProperty)
+        public MotoShop(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, Position, EnterProperties, Types.MotoShop, AfterBuyPositions, PositionInteract)
         {
 
         }
@@ -2402,7 +2663,7 @@ namespace BCRPServer.Game.Businesses
 
     public class BoatShop : VehicleShop
     {
-        public BoatShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.BoatShop, AfterBuyPositions, ExitProperty)
+        public BoatShop(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, Position, EnterProperties, Types.BoatShop, AfterBuyPositions, PositionInteract)
         {
 
         }
@@ -2410,7 +2671,7 @@ namespace BCRPServer.Game.Businesses
 
     public class AeroShop : VehicleShop
     {
-        public AeroShop(int ID, Vector3 Position, Vector3 EnterPosition, float Heading, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 ExitProperty) : base(ID, Position, EnterPosition, Heading, Types.AeroShop, AfterBuyPositions, ExitProperty)
+        public AeroShop(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] AfterBuyPositions, Utils.Vector4 PositionInteract) : base(ID, Position, EnterProperties, Types.AeroShop, AfterBuyPositions, PositionInteract)
         {
 
         }
@@ -2418,6 +2679,8 @@ namespace BCRPServer.Game.Businesses
 
     public class TuningShop : Shop, IEnterable
     {
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}";
+
         public Utils.Vector4 EnterProperties { get; set; }
 
         public Utils.Vector4[] ExitProperties { get; set; }
@@ -2453,22 +2716,14 @@ namespace BCRPServer.Game.Businesses
             { "seats", 32 },
         };
 
-        public TuningShop(int ID, Vector3 Position, Utils.Vector4 EnterProperties, Utils.Vector4[] ExitProperties) : base(ID, Position, Types.TuningShop)
+        public TuningShop(int ID, Vector3 PositionInfo, Utils.Vector4 EnterProperties, Utils.Vector4[] ExitProperties, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, Types.TuningShop)
         {
             this.EnterProperties = EnterProperties;
 
             this.ExitProperties = ExitProperties;
         }
 
-        public int GetPrice(VehicleData vData, string id, bool addMargin = true)
-        {
-            var price = base.GetPrice(id, false);
-
-            if (price < 0)
-                return -1;
-
-            return (int)Math.Floor(price * VehicleClassMargins[vData.Data.Class]);
-        }
+        public float GetVehicleClassMargin(Data.Vehicles.Vehicle.ClassTypes cType) => VehicleClassMargins[cType];
 
         public byte? GetModSlot(string id)
         {
@@ -2478,6 +2733,238 @@ namespace BCRPServer.Game.Businesses
                 return null;
 
             return mod;
+        }
+
+        public bool BuyItem(PlayerData pData, VehicleData vData, bool useCash, string item)
+        {
+            var iData = item.Split('_');
+
+            if (iData.Length <= 1)
+                return false;
+
+            var slot = GetModSlot(iData[0]);
+
+            (int MatPrice, int RealPrice)? res;
+
+            if (slot is byte bSlot)
+            {
+                byte mNum;
+
+                if (!byte.TryParse(iData[1], out mNum))
+                    return false;
+
+                if (iData[0] == "engine" || iData[0] == "brakes" || iData[0] == "trm" || iData[0] == "susp")
+                {
+                    res = CanBuy(pData, useCash, item, 1);
+                }
+                else
+                {
+                    res = CanBuy(pData, useCash, iData[0], 1);
+                }
+
+                if (res == null)
+                    return false;
+
+                if (mNum == 0)
+                    mNum = 255;
+                else
+                    mNum--;
+
+                vData.Tuning.Mods[bSlot] = mNum;
+            }
+            else
+            {
+                if (iData[0] == "wheel" || iData[0] == "rwheel")
+                {
+                    if (iData.Length != 3)
+                        return false;
+
+                    byte t, n;
+
+                    if (!byte.TryParse(iData[1], out t) || !byte.TryParse(iData[2], out n))
+                        return false;
+
+                    res = CanBuy(pData, useCash, $"{iData[0]}_{iData[1]}", 1);
+
+                    if (res == null)
+                        return false;
+
+                    if (vData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Motorcycle)
+                    {
+                        vData.Tuning.WheelsType = 6;
+                    }
+                    else
+                    {
+                        if (t > 0)
+                            t--;
+
+                        vData.Tuning.WheelsType = t;
+                    }
+
+                    if (n == 0)
+                        n = 255;
+
+                    vData.Tuning.Mods[(byte)(iData[0] == "wheel" ? 23 : 24)] = n;
+                }
+                else if (iData[0] == "neon")
+                {
+                    if (iData.Length == 2)
+                    {
+                        res = CanBuy(pData, useCash, item, 1);
+
+                        if (res == null)
+                            return false;
+
+                        vData.Tuning.NeonColour = null;
+                    }
+                    else if (iData.Length == 4)
+                    {
+                        byte r, g, b;
+
+                        if (!byte.TryParse(iData[1], out r) || !byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
+                            return false;
+
+                        res = CanBuy(pData, useCash, iData[0], 1);
+
+                        if (res == null)
+                            return false;
+
+                        if (vData.Tuning.NeonColour == null)
+                        {
+                            vData.Tuning.NeonColour = new Utils.Colour(r, g, b, 255);
+                        }
+                        else
+                        {
+                            vData.Tuning.NeonColour.Red = r;
+                            vData.Tuning.NeonColour.Green = g;
+                            vData.Tuning.NeonColour.Blue = b;
+                        }
+                    }
+                    else
+                        return false;
+                }
+                else if (iData[0] == "tsmoke")
+                {
+                    if (iData.Length == 2)
+                    {
+                        res = CanBuy(pData, useCash, item, 1);
+
+                        if (res == null)
+                            return false;
+
+                        vData.Tuning.TyresSmokeColour = null;
+                    }
+                    else if (iData.Length == 4)
+                    {
+                        byte r, g, b;
+
+                        if (!byte.TryParse(iData[1], out r) || !byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
+                            return false;
+
+                        res = CanBuy(pData, useCash, iData[0], 1);
+
+                        if (res == null)
+                            return false;
+
+                        if (vData.Tuning.TyresSmokeColour == null)
+                        {
+                            vData.Tuning.TyresSmokeColour = new Utils.Colour(r, g, b, 255);
+                        }
+                        else
+                        {
+                            vData.Tuning.TyresSmokeColour.Red = r;
+                            vData.Tuning.TyresSmokeColour.Green = g;
+                            vData.Tuning.TyresSmokeColour.Blue = b;
+                        }
+                    }
+                    else
+                        return false;
+                }
+                else if (iData[0] == "colour")
+                {
+                    if (iData.Length != 7)
+                        return false;
+
+                    byte r1, g1, b1, r2, g2, b2;
+
+                    if (!byte.TryParse(iData[1], out r1) || !byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
+                        return false;
+
+                    res = CanBuy(pData, useCash, iData[0], 1);
+
+                    if (res == null)
+                        return false;
+
+                    vData.Tuning.Colour1.Red = r1;
+                    vData.Tuning.Colour1.Green = g1;
+                    vData.Tuning.Colour1.Blue = b1;
+
+                    vData.Tuning.Colour2.Red = r2;
+                    vData.Tuning.Colour2.Green = g2;
+                    vData.Tuning.Colour2.Blue = b2;
+                }
+                else
+                {
+                    byte p;
+
+                    if (!byte.TryParse(iData[1], out p))
+                        return false;
+
+                    if (iData[0] == "pearl")
+                    {
+                        res = CanBuy(pData, useCash, p == 0 ? item : iData[0], 1);
+
+                        if (res == null)
+                            return false;
+
+                        vData.Tuning.PearlescentColour = p;
+                    }
+                    else if (iData[0] == "wcolour")
+                    {
+                        res = CanBuy(pData, useCash, p == 0 ? item : iData[0], 1);
+
+                        if (res == null)
+                            return false;
+
+                        vData.Tuning.WheelsColour = p;
+                    }
+                    else
+                    {
+                        res = CanBuy(pData, useCash, item, 1);
+
+                        if (res == null)
+                            return false;
+
+                        if (iData[0] == "colourt")
+                        {
+                            vData.Tuning.ColourType = p;
+                        }
+                        else if (iData[0] == "tt")
+                        {
+                            vData.Tuning.Turbo = p == 1;
+                        }
+                        else if (iData[0] == "wtint")
+                        {
+                            vData.Tuning.WindowTint = p;
+                        }
+                        else if (iData[0] == "xenon")
+                        {
+                            vData.Tuning.Xenon = (sbyte)(p - 2);
+                        }
+                        else
+                            return false;
+                    }
+                }
+            }
+
+            if (res == null)
+                return false;
+
+            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+
+            MySQL.VehicleTuningUpdate(vData.Info);
+
+            return true;
         }
     }
 

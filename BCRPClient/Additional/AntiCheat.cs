@@ -88,7 +88,7 @@ namespace BCRPClient.Additional
                 {
                     Additional.SkyCamera.FadeScreen(true, 500, -1);
 
-                    await RAGE.Game.Invoker.WaitAsync(500);
+                    await RAGE.Game.Invoker.WaitAsync(1000);
 
                     Additional.SkyCamera.FadeScreen(false, 1500, -1);
                 }

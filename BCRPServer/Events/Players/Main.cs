@@ -246,9 +246,9 @@ namespace BCRPServer.Events.Players
                 if (data.Info.LastData.Health < 0 || data.IsKnocked)
                     data.Info.LastData.Health = 0;
 
-                data.Info.LastData.Position = player.Position;
+                data.Info.LastData.Position.Position = player.Position;
                 data.Info.LastData.Dimension = player.Dimension;
-                data.Info.LastData.Heading = player.Heading;
+                data.Info.LastData.Position.RotationZ = player.Heading;
 
                 MySQL.CharacterSaveOnExit(data.Info);
 
@@ -379,7 +379,7 @@ namespace BCRPServer.Events.Players
             pData.Emotion = (Sync.Animations.EmotionTypes)emotion;
             pData.Walkstyle = (Sync.Animations.WalkstyleTypes)walkstyle;
 
-            player.Teleport(pData.LastData.Position, true, Utils.Dimensions.Main);
+            player.Dimension = Utils.Dimensions.Main;
 
             pData.UpdateWeapons();
         }

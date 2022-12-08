@@ -1,17 +1,94 @@
 ﻿using GTANetworkAPI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Events.Players
 {
     class Business : Script
     {
-        [RemoteEvent("Business::Info")]
-        public static void BusinessInfo(Player player, int id)
+        [RemoteProc("Business::BuyGov")]
+        private static bool BuyGov(Player player, int id)
         {
+            var sRes = player.CheckSpamAttack();
 
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return false;
+
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null)
+                return false;
+
+            if (Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+                return false;
+
+            if (business.Owner != null)
+            {
+                player.Notify("Business::AB");
+
+                return true;
+            }
+
+            var res = business.BuyFromGov(pData);
+
+            return res;
+        }
+
+        [RemoteProc("Business::SellGov")]
+        private static bool SellGov(Player player, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return false;
+
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null || business.Owner != pData.Info)
+                return false;
+
+            if (Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+                return false;
+
+            business.SellToGov(true);
+
+            return true;
+        }
+
+        [RemoteProc("Business::ShowMenu")]
+        private static JObject ShowMenu(Player player, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return null;
+
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null || business.Owner != pData.Info)
+                return null;
+
+            if (Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+                return null;
+
+            return business.ToClientMenuObject();
         }
 
         [RemoteEvent("TuningShop::Enter")]
@@ -62,7 +139,7 @@ namespace BCRPServer.Events.Players
             vData.EngineOn = true;
             vData.LightsOn = true;
 
-            player.TriggerEvent("Shop::Show", (int)ts.Type, ts.Margin, ts.EnterProperties.RotationZ, veh);
+            player.TriggerEvent("Shop::Show", (int)ts.Type, ts.Margin, ts.EnterProperties.RotationZ, ts.GetVehicleClassMargin(vData.Data.Class), veh);
         }
 
         [RemoteEvent("Business::Enter")]
@@ -83,7 +160,7 @@ namespace BCRPServer.Events.Players
             if (business == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.Position) > 20f)
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.PositionInfo) > 20f)
                 return;
 
             if (business is Game.Businesses.IEnterable enterable)
@@ -202,201 +279,9 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return false;
 
-            var iData = item.Split('_');
+            var res = ts.BuyItem(pData, vData, useCash, item);
 
-            if (iData.Length <= 1)
-                return false;
-
-            var slot = ts.GetModSlot(iData[0]);
-
-            if (slot is byte bSlot)
-            {
-                byte mNum;
-
-                if (!byte.TryParse(iData[1], out mNum))
-                    return false;
-
-                if (iData[0] == "engine")
-                {
-
-                }
-                else if (iData[0] == "brakes")
-                {
-
-                }
-                else if (iData[0] == "trm")
-                {
-
-                }
-                else if (iData[0] == "susp")
-                {
-
-                }
-                else
-                {
-                    var price = ts.GetPrice(vData, iData[0], true);
-
-                    if (price < 0)
-                        return false;
-                }
-
-                if (mNum == 0)
-                    mNum = 255;
-                else
-                    mNum--;
-
-                vData.Tuning.Mods[bSlot] = mNum;
-            }
-            else
-            {
-                if (iData[0] == "wheel" || iData[0] == "rwheel")
-                {
-                    if (iData.Length != 3)
-                        return false;
-
-                    byte t, n;
-
-                    if (!byte.TryParse(iData[1], out t) || !byte.TryParse(iData[2], out n))
-                        return false;
-
-                    if (vData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Motorcycle)
-                    {
-                        vData.Tuning.WheelsType = 6;
-                    }
-                    else
-                    {
-                        if (t > 0)
-                            t--;
-
-                        vData.Tuning.WheelsType = t;
-                    }
-
-                    if (n == 0)
-                        n = 255;
-                    else
-                        n--;
-
-                    vData.Tuning.Mods[(byte)(iData[0] == "wheel" ? 23 : 24)] = n;
-                }
-                else if (iData[0] == "neon")
-                {
-                    if (iData.Length == 2)
-                    {
-                        vData.Tuning.NeonColour = null;
-                    }
-                    else if (iData.Length == 4)
-                    {
-                        byte r, g, b;
-
-                        if (!byte.TryParse(iData[1], out r) || !byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
-                            return false;
-
-                        if (vData.Tuning.NeonColour == null)
-                        {
-                            vData.Tuning.NeonColour = new Utils.Colour(r, g, b, 255);
-                        }
-                        else
-                        {
-                            vData.Tuning.NeonColour.Red = r;
-                            vData.Tuning.NeonColour.Green = g;
-                            vData.Tuning.NeonColour.Blue = b;
-                        }
-                    }
-                    else
-                        return false;
-                }
-                else if (iData[0] == "tsmoke")
-                {
-                    if (iData.Length == 2)
-                    {
-                        vData.Tuning.TyresSmokeColour = null;
-                    }
-                    else if (iData.Length == 4)
-                    {
-                        byte r, g, b;
-
-                        if (!byte.TryParse(iData[1], out r) || !byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
-                            return false;
-
-                        if (vData.Tuning.TyresSmokeColour == null)
-                        {
-                            vData.Tuning.TyresSmokeColour = new Utils.Colour(r, g, b, 255);
-                        }
-                        else
-                        {
-                            vData.Tuning.TyresSmokeColour.Red = r;
-                            vData.Tuning.TyresSmokeColour.Green = g;
-                            vData.Tuning.TyresSmokeColour.Blue = b;
-                        }
-                    }
-                    else
-                        return false;
-                }
-                else if (iData[0] == "colour")
-                {
-                    if (iData.Length != 7)
-                        return false;
-
-                    byte r1, g1, b1, r2, g2, b2;
-
-                    if (!byte.TryParse(iData[1], out r1) || !byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
-                        return false;
-
-                    vData.Tuning.Colour1.Red = r1;
-                    vData.Tuning.Colour1.Green = g1;
-                    vData.Tuning.Colour1.Blue = b1;
-
-                    vData.Tuning.Colour2.Red = r2;
-                    vData.Tuning.Colour2.Green = g2;
-                    vData.Tuning.Colour2.Blue = b2;
-                }
-                else
-                {
-                    byte p;
-
-                    if (!byte.TryParse(iData[1], out p))
-                        return false;
-
-                    if (iData[0] == "pearl")
-                    {
-                        if (p == 0)
-                        {
-
-                        }
-
-                        vData.Tuning.PearlescentColour = p;
-                    }
-                    else if (iData[0] == "wcolour")
-                    {
-                        if (p == 0)
-                        {
-
-                        }
-
-                        vData.Tuning.WheelsColour = p;
-                    }
-                    else if (iData[0] == "colourt")
-                    {
-                        vData.Tuning.ColourType = p;
-                    }
-                    else if (iData[0] == "tt")
-                    {
-                        vData.Tuning.Turbo = p == 1;
-                    }
-                    else if (iData[0] == "wtint")
-                    {
-                        vData.Tuning.WindowTint = p;
-                    }
-                    else if (iData[0] == "xenon")
-                    {
-                        vData.Tuning.Xenon = (sbyte)(p - 2);
-                    }
-                    else
-                        return false;
-                }
-            }
-
-            return true;
+            return res;
         }
 
         [RemoteEvent("Shop::Buy")]
@@ -417,40 +302,7 @@ namespace BCRPServer.Events.Players
             if (shop == null)
                 return;
 
-            int price = shop.GetPrice(id, true);
-
-            if (price == -1)
-                return;
-
-            price *= amount;
-
-            bool paid = ((Func<bool>)(() =>
-            {
-                if (shop.Owner != null)
-                {
-                    // operations with materials
-                }
-
-                if (useCash)
-                    return pData.AddCash(-price, true);
-                else
-                    return false;
-
-            })).Invoke();
-
-            if (paid)
-            {
-
-            }
-            else
-                return;
-
-            var item = Game.Items.Items.GiveItem(pData, id, variation, amount, false);
-
-            if (item == null && shop is Game.Businesses.ClothesShop)
-            {
-                pData.Gifts.Add(Game.Items.Gift.Give(pData, Game.Items.Gift.Types.Item, id, variation, amount, Game.Items.Gift.SourceTypes.Shop, true, true));
-            }
+            var res = shop.BuyItem(pData, useCash, id, variation, amount);
         }
 
         [RemoteEvent("GasStation::Enter")]
@@ -471,7 +323,7 @@ namespace BCRPServer.Events.Players
             if (gs == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.Position) > 50f)
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.PositionInfo) > 50f)
                 return;
 
             pData.CurrentBusiness = gs;

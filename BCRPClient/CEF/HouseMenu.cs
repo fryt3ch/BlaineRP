@@ -40,6 +40,13 @@ namespace BCRPClient.CEF
                 if (id == "entry" || id == "closet") // states
                 {
                     var state = (bool)args[1];
+
+                    if (LastSent.IsSpam(1000, false, false))
+                        return;
+
+                    LastSent = DateTime.Now;
+
+                    Events.CallRemote("House::Lock", id == "entry", !!state);
                 }
                 else if (id == "locate" || id == "rearrange" || id == "remove" || id == "sellfurn") // furn
                 {
@@ -254,7 +261,7 @@ namespace BCRPClient.CEF
 
             var style = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
 
-            var info = new object[] { house.Id, house.OwnerName, house.Price, balance, 90, (int)house.RoomType, house.GarageType == null ? 0 : (int)house.GarageType, new object[] { !doorState, !contState } };
+            var info = new object[] { house.Id, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, house.GarageType == null ? 0 : (int)house.GarageType, new object[] { !doorState, !contState } };
 
             var layouts = new object[] { Sync.House.Style.All[style.HouseType][style.RoomType].Select(x => new object[] { "hlo_" + x.Value.Type.ToString(), x.Value.Name, x.Value.Price }), "hlo_" + style.Type.ToString() };
 
@@ -312,6 +319,8 @@ namespace BCRPClient.CEF
                 x?.SetLightColour(x.GetData<Utils.Colour>("RGB"));
             }
         }
+
+        public static void SetButtonState(string id, bool state) => CEF.Browser.Window.ExecuteJs("MenuHome.setButton", id, state);
 
         private static void SetCheckboxState(string id, bool state) => CEF.Browser.Window.ExecuteJs("MenuHome.setCheckBox", id, state);
 

@@ -400,7 +400,6 @@ namespace BCRPClient.Additional
             HouseEnter,
             HouseExit,
 
-            BusinessEnter,
             BusinessInfo,
 
             IPL,
@@ -442,7 +441,7 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("CurrentBusiness"))
                         return false;
 
-                    Events.CallRemote("Business::ShowInfo", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
+                    CEF.Estate.ShowBusinessInfo( Player.LocalPlayer.GetData<BCRPClient.Data.Locations.Business>("CurrentBusiness"), true);
 
                     LastSent = DateTime.Now;
 
@@ -670,34 +669,6 @@ namespace BCRPClient.Additional
             },
 
             {
-                ActionTypes.BusinessEnter,
-
-                new Dictionary<bool, Action<ExtraColshape>>()
-                {
-                    {
-                        true,
-
-                        (cs) =>
-                        {
-                            if (cs.Data is int businessId)
-                            {
-                                Player.LocalPlayer.SetData("CurrentBusiness", businessId);
-                            }
-                        }
-                    },
-
-                    {
-                        false,
-
-                        (cs) =>
-                        {
-                            Player.LocalPlayer.ResetData("CurrentBusiness");
-                        }
-                    },
-                }
-            },
-
-            {
                 ActionTypes.BusinessInfo,
 
                 new Dictionary<bool, Action<ExtraColshape>>()
@@ -707,9 +678,9 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (cs.Data is int businessId)
+                            if (cs.Data is Data.Locations.Business biz)
                             {
-                                Player.LocalPlayer.SetData("CurrentBusiness", businessId);
+                                Player.LocalPlayer.SetData("CurrentBusiness", biz);
                             }
                         }
                     },
@@ -856,9 +827,15 @@ namespace BCRPClient.Additional
                         {
                             if (cs.Data is Additional.ExtraBlip blip)
                             {
+                                if (blip.Type == ExtraBlip.Types.AutoPilot)
+                                {
+                                    Sync.Vehicles.ToggleAutoPilot(false, true);
+                                }
+
                                 blip.Destroy();
 
-                                CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.ReachedGPS);
+                                if (Player.LocalPlayer.Vehicle != null)
+                                    CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.ReachedGPS);
                             }
                         }
                     },

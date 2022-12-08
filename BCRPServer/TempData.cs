@@ -163,7 +163,7 @@ namespace BCRPServer
 
             if (PlayerData.LastData.Dimension != Utils.Dimensions.Main)
             {
-                PlayerData.LastData.Position = Utils.DefaultSpawnPosition;
+                PlayerData.LastData.Position.Position = Utils.DefaultSpawnPosition;
                 PlayerData.LastData.Dimension = Utils.Dimensions.Main;
             }
 

@@ -112,6 +112,64 @@ namespace BCRPServer.Game.Houses
             Apartments,
         }
 
+        public enum ClassTypes
+        {
+            A = 0,
+            B,
+            C,
+            D,
+
+            FA,
+            FB,
+            FC,
+            FD,
+        }
+
+        private static Dictionary<ClassTypes, int> Taxes = new Dictionary<ClassTypes, int>()
+        {
+            { ClassTypes.A, 50 },
+            { ClassTypes.B, 75 },
+            { ClassTypes.C, 90 },
+            { ClassTypes.D, 100 },
+
+            { ClassTypes.FA, 50 },
+            { ClassTypes.FB, 75 },
+            { ClassTypes.FC, 90 },
+            { ClassTypes.FD, 100 },
+        };
+
+        public static int GetTax(ClassTypes cType) => Taxes[cType];
+
+        public static ClassTypes GetClass(HouseBase house)
+        {
+            if (house.Type == Types.House)
+            {
+                if (house.Price <= 100_000)
+                    return ClassTypes.A;
+
+                if (house.Price <= 500_000)
+                    return ClassTypes.B;
+
+                if (house.Price <= 1_000_000)
+                    return ClassTypes.C;
+
+                return ClassTypes.D;
+            }
+            else
+            {
+                if (house.Price <= 100_000)
+                    return ClassTypes.FA;
+
+                if (house.Price <= 500_000)
+                    return ClassTypes.FB;
+
+                if (house.Price <= 1_000_000)
+                    return ClassTypes.FC;
+
+                return ClassTypes.FD;
+            }
+        }
+
         /// <summary>ID дома</summary>
         /// <value>У домов, квартир - разные!</value>
         public uint ID { get; set; }
@@ -140,7 +198,7 @@ namespace BCRPServer.Game.Houses
         public bool ContainersLocked { get; set; }
 
         /// <summary>Налог</summary>
-        public int Tax { get; set; }
+        public int Tax => GetTax(Class);
 
         /// <summary>Глобальная позиция</summary>
         public Vector3 GlobalPosition { get; set; }
@@ -166,6 +224,8 @@ namespace BCRPServer.Game.Houses
 
         public uint Dimension { get; set; }
 
+        public ClassTypes Class { get; set; }
+
         public HouseBase(uint ID, Vector3 GlobalPosition, float ExitHeading, Types Type, Style.RoomTypes RoomType)
         {
             this.Type = Type;
@@ -174,8 +234,32 @@ namespace BCRPServer.Game.Houses
 
             this.ID = ID;
 
+            GlobalPosition.Z += 0.5f;
+
             this.GlobalPosition = GlobalPosition;
             this.ExitHeading = ExitHeading;
+        }
+
+        public void TriggerEventForHouseOwners(string eventName, params object[] args)
+        {
+            var players = new List<Player>();
+
+            var t = Settlers.Keys.Where(x => x?.PlayerData?.Player.Dimension == Dimension).Select(x => x.PlayerData.Player);
+
+            if (t.Any())
+            {
+                if (Owner?.PlayerData?.Player.Dimension == Dimension)
+                    players.Add(Owner.PlayerData.Player);
+
+                players.AddRange(t);
+
+                NAPI.ClientEvent.TriggerClientEventToPlayers(t.ToArray(), eventName, args);
+            }
+            else
+            {
+                if (Owner?.PlayerData?.Player.Dimension == Dimension)
+                    Owner.PlayerData.Player.TriggerEvent(eventName, args);
+            }
         }
     }
 
@@ -204,6 +288,8 @@ namespace BCRPServer.Game.Houses
             if (this.GarageData != null)
                 this.Vehicles = new VehicleData.VehicleInfo[this.GarageData.MaxVehicles];
 
+            this.Class = GetClass(this);
+
             All.Add(HID, this);
         }
 
@@ -213,10 +299,16 @@ namespace BCRPServer.Game.Houses
         {
             new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), 115f, Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(1723.976f, 4630.187f, 42.84944f, 116.6f));
 
+            var lines = new List<string>();
+
             foreach (var x in All.Values)
             {
                 MySQL.LoadHouse(x);
+
+                lines.Add($"new House({x.ID}, {x.GlobalPosition.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, House.ClassTypes.{x.Class}, {x.Tax});");
             }
+
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "HOUSES_TO_REPLACE", lines);
 
             return All.Count;
         }
@@ -357,6 +449,8 @@ namespace BCRPServer.Game.Houses
 
             public Style(Types Type, Vector3 EnterPosition, float EnterHeading, params (Vector3, float)[] VehiclePositions)
             {
+                this.Type = Type;
+
                 this.EnterPosition = EnterPosition;
                 this.EnterHeading = EnterHeading;
 

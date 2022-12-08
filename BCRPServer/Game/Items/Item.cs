@@ -3627,7 +3627,7 @@ namespace BCRPServer.Game.Items
         /// <summary>Создать и выдать предмет игроку</summary>
         /// <param name="player">Сущность игрока, которому необходимо выдать предмет</param>
         /// <inheritdoc cref="CreateItem(string, int, int, bool)"/>
-        public static Item GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false)
+        public static Item GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false, bool notifyOnSuccess = true, bool notifyOnFault = true)
         {
             var player = pData.Player;
 
@@ -3641,70 +3641,43 @@ namespace BCRPServer.Game.Items
             if (data == null)
                 return null;
 
-            var interfaces = type.GetInterfaces();
-
             var totalWeight = 0f;
-            var totalFreeSlots = 0;
+            var freeIdx = -1;
 
-            bool stackable = interfaces.Contains(typeof(IStackable));
-            bool weapon = type == typeof(Weapon);
-
-            if (!weapon && amount == 0)
-                return null;
-
-            foreach (var x in pData.Items)
-                if (x != null)
-                    totalWeight += x.Weight;
-                else
-                    totalFreeSlots += 1;
-
-            bool weightOk = false;
-
-            if (weapon)
+            for (int i = 0; i < pData.Items.Length; i++)
             {
-                var ammoType = ((Weapon.ItemData)Weapon.IDList[id]).AmmoID;
+                var curItem = pData.Items[i];
 
-                weightOk = totalWeight + data.Weight + (ammoType == null ? 0f : (Ammo.IDList[ammoType].Weight * amount)) < Settings.MAX_INVENTORY_WEIGHT;
-            }
-            else
-                weightOk = totalWeight + data.Weight * amount < Settings.MAX_INVENTORY_WEIGHT;
-
-            if (totalFreeSlots <= 0 || !weightOk)
-            {
-                NAPI.Task.Run(() =>
+                if (curItem != null)
                 {
-                    if (player?.Exists != true)
-                        return;
-
-                    player.Notify("Inventory::NoSpace");
-                });
-
-                return null;
-
+                    totalWeight += curItem.Weight;
+                }
+                else if (freeIdx < 0)
+                {
+                    freeIdx = i;
+                }
             }
 
-            var item = CreateItem(id, variation, amount, isTemp);
+            if (freeIdx < 0 || totalWeight + data.Weight * amount >= Settings.MAX_INVENTORY_WEIGHT)
+            {
+                if (notifyOnFault)
+                    player.Notify("Inventory::NoSpace");
+
+                return null;
+            }
+
+            var item = CreateItem(id, type, data, variation, amount, isTemp);
 
             if (item == null)
                 return null;
 
-            var freeIdx = -1;
-
-            for (int i = 0; i < pData.Items.Length; i++)
-                if (pData.Items[i] == null)
-                {
-                    freeIdx = i;
-
-                    pData.Items[i] = item;
-
-                    break;
-                }
-
-            amount = (item as Game.Items.IStackable)?.Amount ?? 1;
+            pData.Items[freeIdx] = item;
 
             var upd = Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items);
 
-            player.TriggerEvent("Item::Added", item.ID, amount);
+            if (notifyOnSuccess)
+                player.TriggerEvent("Item::Added", item.ID, GetItemAmount(item));
+
             player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
@@ -3732,37 +3705,30 @@ namespace BCRPServer.Game.Items
             if (data == null)
                 return null;
 
-            var interfaces = type.GetInterfaces();
+            return CreateItem(id, type, data, variation, amount, isTemp);
+        }
 
-            bool stackable = interfaces.Contains(typeof(IStackable));
-            bool weapon = type == typeof(Weapon);
+        public static Item CreateItem(string id, Type type, Item.ItemData data, int variation, int amount, bool isTemp)
+        {
+            Item item = typeof(Clothes).IsAssignableFrom(type) ? (Clothes)Activator.CreateInstance(type, id, variation) : (Item)Activator.CreateInstance(type, id);
 
-            if (!weapon && amount == 0)
-                return null;
-
-            if (!stackable && !weapon)
-                amount = 1;
-
-            Item item = null;
-
-            if (typeof(Clothes).IsAssignableFrom(type))
+            if (item is IStackable stackable)
             {
-                item = (Clothes)Activator.CreateInstance(type, id, variation);
+                if (amount <= 0)
+                    amount = 1;
+
+                var maxAmount = stackable.MaxAmount;
+
+                stackable.Amount = amount > maxAmount ? maxAmount : amount;
             }
-            else
-                item = (Item)Activator.CreateInstance(type, id);
-
-            if (stackable)
+            else if (item is Weapon weapon)
             {
-                var maxAmount = (item as IStackable).MaxAmount;
+                if (amount < 0)
+                    amount = 0;
 
-                (item as IStackable).Amount = amount > maxAmount ? maxAmount : amount;
-            }
-            else if (weapon)
-            {
-                var maxAmount = (item as Weapon).Data.MaxAmmo;
+                var maxAmount = weapon.Data.MaxAmmo;
 
-                (item as Weapon).Ammo = amount > maxAmount ? maxAmount : amount;
+                weapon.Ammo = amount > maxAmount ? maxAmount : amount;
             }
 
             if (!isTemp)
@@ -3784,7 +3750,7 @@ namespace BCRPServer.Game.Items
 
         #region Stuff
 
-        public static int GetItemAmount(Game.Items.Item item) => (item as Game.Items.IStackable)?.Amount ?? 1;
+        public static int GetItemAmount(Game.Items.Item item) => item is IStackable stackable ? stackable.Amount : 1;
 
         public static string GetItemTag(Game.Items.Item item)
         {
@@ -3837,43 +3803,6 @@ namespace BCRPServer.Game.Items
 
             var lines = new List<string>();
 
-            var insIdx = 0;
-
-            using (var sr = new StreamReader(Settings.DIR_CLIENT_ITEMS_DATA_PATH))
-            {
-                bool ignore = false;
-
-                string line;
-
-                var i = 0;
-
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (!ignore)
-                    {
-                        if (line.Contains("#region TO_REPLACE"))
-                        {
-                            ignore = true;
-
-                            insIdx = i;
-                        }
-
-                        lines.Add(line);
-                    }
-                    else
-                    {
-                        if (line.Contains("#endregion"))
-                        {
-                            ignore = false;
-
-                            lines.Add(line);
-                        }
-                    }
-
-                    i++;
-                }
-            }
-
             foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass && !t.IsAbstract && typeof(Item).IsAssignableFrom(t)))
             {
                 //var idList= (IDictionary)x.GetField("IDList")?.GetValue(null).Cast<dynamic>().ToDictionary(a => (string)a.Key, a => (Item.ItemData)a.Value);
@@ -3894,11 +3823,11 @@ namespace BCRPServer.Game.Items
                     if (!AllTypes.ContainsKey(id[0]))
                         AllTypes.Add(id[0], x);
 
-                    lines.Insert(++insIdx, $"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({t.Value.ClientData}));");
+                    lines.Add($"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({t.Value.ClientData}));");
                 }
             }
 
-            File.WriteAllLines(Settings.DIR_CLIENT_ITEMS_DATA_PATH, lines);
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_ITEMS_DATA_PATH, "TO_REPLACE", lines);
 
             return counter;
         }

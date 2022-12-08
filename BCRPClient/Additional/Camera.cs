@@ -52,6 +52,8 @@ namespace BCRPClient.Additional
             public object SourceParams { get; set; }
             public object TargetParams { get; set; }
 
+            public float ShakeAmplitude { get; set; }
+
             public Action<object[]> OnAction { get; set; }
 
             public Action<object[]> OffAction { get; set; }
@@ -82,6 +84,8 @@ namespace BCRPClient.Additional
 
                 this.MinFov = Fov;
                 this.MaxFov = Fov;
+
+                ShakeAmplitude = 0.5f;
             }
         }
 
@@ -104,32 +108,33 @@ namespace BCRPClient.Additional
             RightVehicle,
             LeftVehicle,
             TopVehicle,
+            BackVehicleUpAngle,
 
             NpcTalk,
         }
 
         public static Dictionary<StateTypes, State> States = new Dictionary<StateTypes, State>()
         {
-            { StateTypes.Foots, new State(new Vector3(0f, 0f, -0.5f), null, 40, new Vector3(0f, 0f, -0.75f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.Foots, new State(new Vector3(0f, 0f, -0.5f), new Vector3(0f, 0f, 0f), 40, new Vector3(0f, 0f, -0.75f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Legs, new State(null, null, 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.Legs, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Body, new State(null, null, 60, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.Body, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Head, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
+            { StateTypes.Head, new State(new Vector3(0, 0, 1f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
 
-            { StateTypes.LeftHand, new State(null, null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
+            { StateTypes.LeftHand, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
 
-            { StateTypes.RightHand, new State(null, null, 30, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 57005, MinFov = 10 } },
+            { StateTypes.RightHand, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 57005, MinFov = 10 } },
 
-            { StateTypes.WholePed, new State(null, null, 80, null, 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.5f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+            { StateTypes.WholePed, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.5f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.NpcTalk, new State(new Vector3(0, 0, 1f), null, 30, null, 750, State.RenderTypes.Both, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
+            { StateTypes.NpcTalk, new State(new Vector3(0f, 0f, 1f), null, 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Both, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
 
-            { StateTypes.WholeVehicle, new State(new Vector3(0, 0, 2.5f), null, 50, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.WholeVehicle, new State(new Vector3(0f, 0f, 1.35f), null, 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
-            { StateTypes.WholeVehicleOpen, new State(new Vector3(0, 0, 2.5f), null, 50, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
-                
+            { StateTypes.WholeVehicleOpen, new State(new Vector3(0f, 0f, 1.35f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+
                 OnAction = (args) =>
                 {
                     if (SourceEntity is Vehicle veh)
@@ -155,10 +160,10 @@ namespace BCRPClient.Additional
                 }
             } },
 
-            { StateTypes.FrontVehicle, new State(new Vector3(0, 0, 0), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.FrontVehicle, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
-            { StateTypes.FrontVehicleOpenHood, new State(new Vector3(0, 0, 2f), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
-            
+            { StateTypes.FrontVehicleOpenHood, new State(new Vector3(0, 0, 1f), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+
                 OnAction = (args) =>
                 {
                     if (SourceEntity is Vehicle veh)
@@ -178,7 +183,7 @@ namespace BCRPClient.Additional
                 }
             } },
 
-            { StateTypes.BackVehicleOpenTrunk, new State(new Vector3(0, 0, 2f), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+            { StateTypes.BackVehicleOpenTrunk, new State(new Vector3(0, 0, 1f), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
 
                 OnAction = (args) =>
                 {
@@ -199,13 +204,15 @@ namespace BCRPClient.Additional
                 }
             } },
 
-            { StateTypes.BackVehicle, new State(new Vector3(0, 0, 0), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.BackVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
-            { StateTypes.RightVehicle, new State(new Vector3(0, 0, 0), null, 80, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.BackVehicleUpAngle, new State(new Vector3(0, 0, 1.35f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 210f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
-            { StateTypes.LeftVehicle, new State(new Vector3(0, 0, 0), null, 80, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.RightVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
-            { StateTypes.TopVehicle, new State(new Vector3(0, 0, 5.5f), null, 70, null, 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.LeftVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.TopVehicle, new State(new Vector3(0, 0, 4f), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
         };
 
         /// <summary>Минимально возможный FOV</summary>
@@ -255,7 +262,7 @@ namespace BCRPClient.Additional
             IsActive = false;
         }
 
-        public static void Enable(StateTypes startType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null)
+        public static void Enable(StateTypes startType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
         {
             if (IsActive)
             {
@@ -282,7 +289,7 @@ namespace BCRPClient.Additional
             if (transitionTime < 0)
                 transitionTime = state.TransitionTime;
 
-            ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams);
+            ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams, sourcePos);
 
             RAGE.Game.Cam.SetCamActive(ID, true);
 
@@ -318,7 +325,7 @@ namespace BCRPClient.Additional
             SourceEntity = null;
         }
 
-        public static void FromState(StateTypes sType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null)
+        public static void FromState(StateTypes sType, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
         {
             if (!IsActive)
             {
@@ -359,19 +366,19 @@ namespace BCRPClient.Additional
 
                 UsedCams.Add(oldCam);
 
-                ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams);
+                ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams, sourcePos);
 
                 RAGE.Game.Cam.SetCamActiveWithInterp(ID, oldCam, transitionTime, 4, 1);
             }
             else
             {
-                ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams);
+                ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams, sourcePos);
 
                 RAGE.Game.Cam.SetCamActive(ID, true);
             }
         }
 
-        private static void ApplyState(State state, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null)
+        private static void ApplyState(State state, Entity sourceEntity = null, Entity targetEntity = null, int transitionTime = 0, object sourceParams = null, object targetParams = null, Vector3 sourcePos = null)
         {
             SourceEntity = sourceEntity;
 
@@ -389,24 +396,30 @@ namespace BCRPClient.Additional
 
             if (transitionTime > 0)
             {
-                ExecuteTask(true, sEntity, RenderTypes.None, state.SourceBehaviourType, sourceParams ?? state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
-                ExecuteTask(false, tEntity, RenderTypes.None, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
+                ExecuteTask(true, sEntity, RenderTypes.None, state.SourceBehaviourType, sourceParams ?? state.SourceParams, sourcePos ?? state.Position);
+                ExecuteTask(false, tEntity, RenderTypes.None, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
 
                 ExecuteTasksSchedule = new AsyncTask(() =>
                 {
                     if (state.SourceRenderType != RenderTypes.None)
-                        ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
+                        ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, sourcePos ?? state.Position);
 
                     if (state.TargetRenderType != RenderTypes.None)
-                        ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
+                        ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
+
+                    if (state.ShakeAmplitude > 0f)
+                        RAGE.Game.Cam.ShakeCam(ID, "HAND_SHAKE", state.ShakeAmplitude);
                 }, transitionTime, false, 0);
 
                 ExecuteTasksSchedule.Run();
             }
             else
             {
-                ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, state.Position ?? new Vector3(0f, 0f, 0f));
-                ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition ?? new Vector3(0f, 0f, 0f));
+                ExecuteTask(true, sEntity, state.SourceRenderType, state.SourceBehaviourType, sourceParams ?? state.SourceParams, sourcePos ?? state.Position);
+                ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
+
+                if (state.ShakeAmplitude > 0f)
+                    RAGE.Game.Cam.ShakeCam(ID, "HAND_SHAKE", state.ShakeAmplitude);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using BCRPServer.Game.Items;
 using GTANetworkAPI;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using System;
@@ -78,11 +79,11 @@ namespace BCRPServer
             /// <summary>Сила</summary>
             Strength = 0,
             /// <summary>Стрельба</summary>
-            Shooting,
+            Shooting = 1,
             /// <summary>Кулинария</summary>
-            Cooking,
+            Cooking = 2,
             /// <summary>Рыбалка</summary>
-            Fishing
+            Fishing = 3,
         }
 
         public enum FractionTypes
@@ -327,24 +328,27 @@ namespace BCRPServer
 
         public class LastPlayerData
         {
+            [JsonProperty(PropertyName = "D")]
             /// <summary>Последнее измерение</summary>
             public uint Dimension { get; set; }
 
+            [JsonProperty(PropertyName = "L")]
             /// <summary>Последние координаты</summary>
-            public Vector3 Position { get; set; }
+            public Utils.Vector4 Position { get; set; }
 
-            /// <summary>Последний поворот</summary>
-            public float Heading { get; set; }
-
+            [JsonProperty(PropertyName = "H")]
             /// <summary>Последнее здоровье</summary>
             public int Health { get; set; }
 
+            [JsonProperty(PropertyName = "ST")]
             /// <summary>Время в секундах, наигранное за последнюю сессию</summary>
             /// <remarks>Обнуляется каждый час</remarks>
             public int SessionTime { get; set; }
 
+            [JsonProperty(PropertyName = "S")]
             public int Satiety { get; set; }
 
+            [JsonProperty(PropertyName = "M")]
             public int Mood { get; set; }
         }
         #endregion
@@ -703,6 +707,28 @@ namespace BCRPServer
             return true;
         }
 
+        public bool HasEnoughCash(int value, bool notifyOnFault = true)
+        {
+            if (Cash >= value)
+                return true;
+
+            if (notifyOnFault)
+                Player.Notify("Cash::NotEnough", Cash);
+
+            return false;
+        }
+
+        public bool HasBankAccount(bool notifyOnFault = true)
+        {
+            if (BankAccount != null)
+                return true;
+
+            if (notifyOnFault)
+                Player.Notify("Bank::NoAccount");
+
+            return false;
+        }
+
         public PlayerInfo Info { get; set; }
         #endregion
 
@@ -928,7 +954,7 @@ namespace BCRPServer
             Skills = Settings.CHARACTER_DEFAULT_SKILLS;
             Licenses = Settings.CHARACTER_DEFAULT_LICENSES;
 
-            LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = Utils.DefaultSpawnPosition, Heading = Utils.DefaultSpawnHeading, Health = 100, SessionTime = 0, Mood = Mood, Satiety = Satiety };
+            LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100, SessionTime = 0, Mood = Mood, Satiety = Satiety };
 
             Gifts = new List<Game.Items.Gift>();
 
@@ -1016,9 +1042,9 @@ namespace BCRPServer
 
                 Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                Player.Heading = LastData.Heading;
+                Player.Heading = LastData.Position.RotationZ;
 
-                Player.Teleport(LastData.Position, true);
+                Player.Teleport(LastData.Position.Position, true);
 
                 Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using GTANetworkAPI;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 
 namespace BCRPServer.Game.Data
 {
@@ -64,34 +65,18 @@ namespace BCRPServer.Game.Data
                 Elite,
             }
 
-            public static int GetPrice(Vehicle veh)
-            {
-                int price;
-
-                return 100;
-
-                if (veh.Type == Types.Car)
-                {
-                    if (Game.Businesses.Shop.AllPrices[Businesses.Business.Types.CarShop1].TryGetValue(veh.ID, out price))
-                    {
-                        return price;
-                    }
-                }
-                else if (veh.Type == Types.Motorcycle)
-                {
-
-                }
-                else if (veh.Type == Types.Boat)
-                {
-
-                }
-            }
-
             public static ClassTypes GetClass(Vehicle veh)
             {
-                var price = veh.Price;
+                if (veh.GovPrice <= 100_000)
+                    return ClassTypes.Classic;
 
-                return ClassTypes.Classic;
+                if (veh.GovPrice <= 500_000)
+                    return ClassTypes.Premium;
+
+                if (veh.GovPrice <= 1_000_000)
+                    return ClassTypes.Luxe;
+
+                return ClassTypes.Elite;
             }
 
             public class Trunk
@@ -136,7 +121,7 @@ namespace BCRPServer.Game.Data
 
             public Types Type { get; set; }
 
-            public int Price => GetPrice(this);
+            public int GovPrice { get; set; }
 
             public ClassTypes Class => GetClass(this);
             
@@ -1165,49 +1150,14 @@ namespace BCRPServer.Game.Data
 
             var lines = new List<string>();
 
-            var insIdx = 0;
-
-            using (var sr = new StreamReader(Settings.DIR_CLIENT_VEHICLES_DATA_PATH))
-            {
-                bool ignore = false;
-
-                string line;
-
-                var i = 0;
-
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (!ignore)
-                    {
-                        if (line.Contains("#region TO_REPLACE"))
-                        {
-                            ignore = true;
-
-                            insIdx = i;
-                        }
-
-                        lines.Add(line);
-                    }
-                    else
-                    {
-                        if (line.Contains("#endregion"))
-                        {
-                            ignore = false;
-
-                            lines.Add(line);
-                        }
-                    }
-
-                    i++;
-                }
-            }
-
             foreach (var x in All)
             {
-                lines.Insert(++insIdx, $"new Vehicle(\"{x.Key}\", {x.Value.Model}, \"{x.Value.Name}\", {x.Value.Tank}f, Vehicle.FuelTypes.{x.Value.FuelType}, {(x.Value.TrunkData == null ? "null" : $"new Vehicle.Trunk({x.Value.TrunkData.Slots}")}, {x.Value.TrunkData.MaxWeight}), {x.Value.IsModdable.ToString().ToLower()}, {x.Value.HasCruiseControl.ToString().ToLower()}, {x.Value.HasAutoPilot.ToString().ToLower()}, Vehicle.Types.{x.Value.Type});");
+                x.Value.GovPrice = Game.Businesses.Shop.AllPrices.Where(y => y.Value.Prices.ContainsKey(x.Key)).Select(y => y.Value.Prices[x.Key] * y.Value.RealPrice).FirstOrDefault();
+
+                lines.Add($"new Vehicle(\"{x.Key}\", {x.Value.Model}, \"{x.Value.Name}\", {x.Value.Tank}f, Vehicle.FuelTypes.{x.Value.FuelType}, {(x.Value.TrunkData == null ? "null" : $"new Vehicle.Trunk({x.Value.TrunkData.Slots}")}, {x.Value.TrunkData.MaxWeight}), {x.Value.IsModdable.ToString().ToLower()}, {x.Value.HasCruiseControl.ToString().ToLower()}, {x.Value.HasAutoPilot.ToString().ToLower()}, Vehicle.Types.{x.Value.Type}, {x.Value.GovPrice}, Vehicle.ClassTypes.{x.Value.Class});");
             }
 
-            File.WriteAllLines(Settings.DIR_CLIENT_VEHICLES_DATA_PATH, lines);
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_VEHICLES_DATA_PATH, "TO_REPLACE", lines);
 
             return All.Count;
         }

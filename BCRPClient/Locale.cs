@@ -16,6 +16,7 @@ namespace BCRPClient
                 {
                     { Additional.ExtraBlip.Types.GPS, "GPS-отметка" },
                     { Additional.ExtraBlip.Types.Furniture, "Мебель" },
+                    { Additional.ExtraBlip.Types.AutoPilot, "Цель автопилота" },
                 };
             }
 
@@ -54,6 +55,12 @@ namespace BCRPClient
                 public static string InfoColshape = "{0} #{1}";
 
                 public static string NothingItem = "Ничего";
+
+                public static string TuningNeon = "Неон";
+                public static string TuningColours = "Цвета покраски";
+                public static string TuningPearl = "Перламутр";
+                public static string TuningWheelColour = "Цвет покрышек";
+                public static string TuningTyreSmokeColour = "Цвет дыма от колес";
             }
 
             public static class NPC
@@ -61,12 +68,12 @@ namespace BCRPClient
                 public static string NotFamiliarMale = "Незнакомец";
                 public static string NotFamiliarFemale = "Незнакомка";
 
-                public static Dictionary<Data.NPC.Types, string> TypeNames = new Dictionary<Data.NPC.Types, string>()
+                public static Dictionary<string, string> TypeNames = new Dictionary<string, string>()
                 {
-                    { Data.NPC.Types.Static, "" },
+                    { "quest", "Квестодатель" },
 
-                    { Data.NPC.Types.Quest, "Квестодатель" },
-                    { Data.NPC.Types.Talkable, "Продавец" },
+                    { "seller", "Продавец" },
+                    { "bank", "Работник банка" },
                 };
             }
 
@@ -823,7 +830,7 @@ namespace BCRPClient
         {
             public static string ModDeletionTitle = "Удаление модификации";
 
-            public static string ModDeletionText = "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо, стоимость - ${1}\nВыберите способ оплаты, чтобы продолжить.";
+            public static string ModDeletionText = "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо!\nВыберите способ оплаты, чтобы продолжить.";
         }
         #endregion
 
@@ -884,6 +891,17 @@ namespace BCRPClient
 
                     public static string EMSNotified = "Службы скорой помощи получили ваш вызов!";
                 }
+
+                public static string MaxAmountOfBusinesses = "Вы уже владеете максимальным количеством бизнесов!";
+                public static string MaxAmountOfHouses = "Вы уже владеете максимальным количеством домов!";
+                public static string MaxAmountOfApartments = "Вы уже владеете максимальным количеством квартир!";
+
+                public static string BusinessAlreadyBought = "Этот бизнес уже кем-то приобретен!";
+
+                public static string NoLicenseToBuy = "У вас нет необходимой лицензии для совершения покупки!";
+
+                public static string TuningAlreadyHaveThisColour = "У вас уже установлен этот цвет!";
+                public static string TuningAlreadyHaveThisColour2 = "У вас уже установлены эти цвета!";
             }
 
             public static class House
@@ -898,7 +916,8 @@ namespace BCRPClient
 
                 public static string LightColourChanged = "Цвет света лампы был изменен!";
 
-                public static string IsLocked = "Дверь закрыта, вы не можете войти!";
+                public static string IsLocked = "Дверь закрыта вледельцем!";
+                public static string ContainersLocked = "Контейнеры закрыты владельцем!";
 
                 public static string ExpelledHouse = "{0} выписал вас из дома #{1}";
                 public static string ExpelledApartments = "{0} выписал вас из квартиры #{1}";
@@ -1015,6 +1034,8 @@ namespace BCRPClient
                 }
 
                 public static string AdmitToBuy = "Вы уверены? Нажмите еще раз,\nчтобы совершить покупку";
+
+                public static string NoMaterialsShop = "В этом магазине недостаточно материалов!";
             }
 
             public static class Hints
@@ -1198,9 +1219,10 @@ namespace BCRPClient
                     public static string EngineOn = "Двигатель не заглушен!";
                 }
 
-                public static class CruiseControl
+                public static class Additional
                 {
-                    public static string Header = "Круиз-контроль";
+                    public static string HeaderCruise = "Круиз-контроль";
+                    public static string HeaderAutoPilot = "Автопилот";
 
                     public static string On = "Система активирована!";
                     public static string Off = "Система деактивирована!";
@@ -1212,7 +1234,7 @@ namespace BCRPClient
                     public static string Collision = "Обнаружено столкновение!";
                     public static string Invtervention = "Обнаружено вмешательство в управление!";
 
-                    public static string Unsupported = "Данный вид транспорта не поддерживается!";
+                    public static string Unsupported = "В текущем транспорте нет этой системы!";
                 }
 
                 public static class SeatBelt

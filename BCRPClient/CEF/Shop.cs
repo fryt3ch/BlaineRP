@@ -42,7 +42,7 @@ namespace BCRPClient.CEF
 
         private static Utils.Colour CurrentColor2;
 
-        private static Vehicle TempVehicle { get; set; }
+        public static Vehicle TempVehicle { get; private set; }
 
         private static bool TestDriveActive { get; set; }
 
@@ -297,6 +297,11 @@ namespace BCRPClient.CEF
 
                         TempVehicle.SetNeonLightsColour(colour.Red, colour.Green, colour.Blue);
                     }
+
+                    if (CurrentItem != id)
+                        ChangeView(0);
+
+                    CurrentItem = id;
                 }
             });
 
@@ -410,7 +415,11 @@ namespace BCRPClient.CEF
 
                     var t = new float[] { (Additional.Camera.States[AllowedCameraStates[CurrentCameraStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
 
-                    Additional.Camera.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, 0, t, null);
+                    var pDef = Additional.Camera.States[AllowedCameraStates[CurrentCameraStateNum]].Position;
+
+                    var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
+
+                    Additional.Camera.FromState(AllowedCameraStates[CurrentCameraStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
 
                     TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -442,9 +451,7 @@ namespace BCRPClient.CEF
 
                     if (p < 0)
                     {
-                        var prices = GetPrices(CurrentType);
-
-                        CEF.ActionBox.ShowMoney(ActionBox.Contexts.TuningShopDeleteMod, Locale.Shop.ModDeletionTitle, string.Format(Locale.Shop.ModDeletionText, "ada", prices[data[0] + "_0"]), data[0] + "_0");
+                        CEF.ActionBox.ShowMoney(ActionBox.Contexts.TuningShopDeleteMod, Locale.Shop.ModDeletionTitle, string.Format(Locale.Shop.ModDeletionText, data[0] == "neon" ? Locale.General.Business.TuningNeon : data[0] == "pearl" ? Locale.General.Business.TuningPearl : data[0] == "tsmoke" ? Locale.General.Business.TuningTyreSmokeColour : Locale.General.Business.TuningWheelColour), data[0] + "_0");
 
                         return;
                     }
@@ -506,6 +513,20 @@ namespace BCRPClient.CEF
                             TempVehicle.StartHorn(2500, RAGE.Util.Joaat.Hash("HELDDOWN"), false);
                         }
                     }
+
+                    if (data[0] != CurrentItem)
+                    {
+                        if (data[0] == "spoiler")
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.BackVehicleUpAngle));
+                        else if (data[0] == "fbump" || data[0] == "xenon")
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.FrontVehicle));
+                        else if (data[0] == "rbump" || data[0] == "exh")
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.BackVehicle));
+                        else
+                            ChangeView(0);
+                    }
+
+                    CurrentItem = data[0];
                 }
             });
 
@@ -582,9 +603,19 @@ namespace BCRPClient.CEF
 
                 bool useCash = (bool)args[0];
 
+                if (LastSent.IsSpam(1000, false, false))
+                    return;
+
+                LastSent = DateTime.Now;
+
                 if (CurrentType == Types.TuningShop)
                 {
                     if (TempVehicle == null)
+                        return;
+
+                    var vData = Sync.Vehicles.GetData(TempVehicle);
+
+                    if (vData == null)
                         return;
 
                     var id = (string)args[1];
@@ -594,35 +625,68 @@ namespace BCRPClient.CEF
                         var rgb1 = TempVehicle.GetPrimaryColour();
                         var rgb2 = TempVehicle.GetSecondaryColour();
 
+                        if (rgb1.HEX == CurrentColor1.HEX && rgb2.HEX == CurrentColor2.HEX)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TuningAlreadyHaveThisColour2);
+
+                            return;
+                        }
+
                         id += $"_{rgb1.Red}_{rgb1.Green}_{rgb1.Blue}_{rgb2.Red}_{rgb2.Green}_{rgb1.Blue}";
 
                         if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
                         {
-
+                            if (IsActiveTuning)
+                            {
+                                CurrentColor1 = rgb1;
+                                CurrentColor2 = rgb2;
+                            }
                         }
                     }
                     else if (id == "neon")
                     {
                         var rgb = TempVehicle.GetNeonColour();
 
+                        if (rgb.HEX == Player.LocalPlayer.GetData<string>("TuningShop::Temp::CurNeon"))
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TuningAlreadyHaveThisColour);
+
+                            return;
+                        }
+
                         id += $"_{rgb.Red}_{rgb.Green}_{rgb.Blue}";
 
                         if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
+                            {
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "neon", rgb.HEX);
+
+                                Player.LocalPlayer.SetData("TuningShop::Temp::CurNeon", rgb.HEX);
+                            }
                         }
                     }
                     else if (id == "tsmoke")
                     {
                         var rgb = TempVehicle.GetTyreSmokeColour();
 
+                        if (rgb.HEX == Player.LocalPlayer.GetData<string>("TuningShop::Temp::TyreSmokeCol"))
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TuningAlreadyHaveThisColour);
+
+                            return;
+                        }
+
                         id += $"_{rgb.Red}_{rgb.Green}_{rgb.Blue}";
 
                         if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
+                            {
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "tsmoke", rgb.HEX);
+
+                                Player.LocalPlayer.SetData("TuningShop::Temp::TyreSmokeCol", rgb.HEX);
+                            }
                         }
                     }
                     else if (id == "pearl")
@@ -736,7 +800,15 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
                 {
+                    if (TempVehicle == null)
+                        return;
 
+                    var vehData = Data.Vehicles.GetByModel(TempVehicle.Model);
+
+                    if (vehData == null)
+                        return;
+
+                    Events.CallRemote("Shop::Buy", $"{vehData.ID}_{CurrentColor1.Red}_{CurrentColor1.Green}_{CurrentColor1.Blue}_{CurrentColor2.Red}_{CurrentColor2.Green}_{CurrentColor2.Blue}", 0, 1, useCash);
                 }
                 else
                 {
@@ -751,9 +823,6 @@ namespace BCRPClient.CEF
                     }
 
                     if (itemId == null)
-                        return;
-
-                    if (LastSent.IsSpam(1000, false, false))
                         return;
 
                     Events.CallRemote("Shop::Buy", itemId, variation, amount, useCash);
@@ -985,13 +1054,13 @@ namespace BCRPClient.CEF
                 }
                 else if (type == Types.TuningShop)
                 {
-                    var vehPriceCoef = 1f; //todo
+                    var vClassMargin = (float)args[0];
 
-                    var prices = GetPrices(CurrentType).ToDictionary(x => x.Key, x => x.Value * vehPriceCoef);
+                    var prices = GetPrices(CurrentType).ToDictionary(x => x.Key, x => x.Value * vClassMargin);
 
                     Player.LocalPlayer.ClearTasksImmediately();
 
-                    var veh = (Vehicle)args[0];
+                    var veh = (Vehicle)args[1];
 
                     var vData = Sync.Vehicles.GetData(veh);
 
@@ -1003,6 +1072,11 @@ namespace BCRPClient.CEF
                     var techData = Additional.TuningMenu.Slots.ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Value.ModNames));
 
                     TempVehicle = veh;
+
+                    veh.FreezePosition(true);
+
+                    GameEvents.Render -= RenderTuning;
+                    GameEvents.Render += RenderTuning;
 
                     // tech
                     var subData = new List<object>();
@@ -1031,7 +1105,13 @@ namespace BCRPClient.CEF
                     }
 
                     if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Car)
-                        subData.Add(new object[] { "neon", "Неон" , "color-selection-1", new object[] { "Цвет неона", prices["neon"], prices["neon_0"] }, vData.HasNeonMod ? veh.GetNeonColour().HEX : null });
+                    {
+                        var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEX : null;
+
+                        Player.LocalPlayer.SetData("TuningShop::Temp::CurNeon", curNeon);
+
+                        subData.Add(new object[] { "neon", Locale.General.Business.TuningNeon, "color-selection-1", new object[] { "Цвет неона", prices["neon"], prices["neon_0"] }, curNeon });
+                    }
 
                     foreach (var x in Additional.TuningMenu.Slots.Where(x => x.Value.Id == "spoiler" || x.Value.Id == "fbump" || x.Value.Id == "rbump" || x.Value.Id == "skirt" || x.Value.Id == "exh" || x.Value.Id == "frame" || x.Value.Id == "grill" || x.Value.Id == "hood" || x.Value.Id == "roof" || x.Value.Id == "seats" || x.Value.Id == "swheel" || x.Value.Id == "livery" || x.Value.Id == "horn").ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Key)))
                     {
@@ -1048,15 +1128,22 @@ namespace BCRPClient.CEF
                     // colours
                     subData = new List<object>();
 
+                    CurrentColor1 = veh.GetPrimaryColour();
+                    CurrentColor2 = veh.GetSecondaryColour();
+
                     subData.Add(new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" });
 
-                    subData.Add(new object[] { "colour", "Цвета покраски", "color-selection-2", new object[] { veh.GetPrimaryColour().HEX, veh.GetSecondaryColour().HEX, prices["colour"] } });
+                    subData.Add(new object[] { "colour", Locale.General.Business.TuningColours, "color-selection-2", new object[] { CurrentColor1.HEX, CurrentColor2.HEX, prices["colour"] } });
 
-                    subData.Add(new object[] { "pearl", "Перламутр", "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
+                    subData.Add(new object[] { "pearl", Locale.General.Business.TuningPearl, "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
 
-                    subData.Add(new object[] { "wcolour", "Цвет покрышек", "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
+                    subData.Add(new object[] { "wcolour", Locale.General.Business.TuningWheelColour, "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
 
-                    subData.Add(new object[] { "tsmoke", "Цвет дыма от колес", "color-selection-1", new object[] { "Цвет дыма от колес", prices["tsmoke"], prices["tsmoke_0"] }, vData.TyreSmokeColour?.HEX });
+                    var curTsCol = vData.TyreSmokeColour?.HEX;
+
+                    Player.LocalPlayer.SetData("TuningShop::Temp::TyreSmokeCol", curTsCol);
+
+                    subData.Add(new object[] { "tsmoke", Locale.General.Business.TuningTyreSmokeColour, "color-selection-1", new object[] { Locale.General.Business.TuningTyreSmokeColour, prices["tsmoke"], prices["tsmoke_0"] }, curTsCol });
 
                     tData.Add(subData);
 
@@ -1142,12 +1229,9 @@ namespace BCRPClient.CEF
 
                     Player.LocalPlayer.SetVisible(false, false);
 
-                    CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
-                    CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
+                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.BackVehicleUpAngle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.TopVehicle };
 
-                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, veh, veh, 0);
-
-                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
+                    ChangeView(0);
                 }
 
                 SetPricesCoef(margin);
@@ -1197,8 +1281,10 @@ namespace BCRPClient.CEF
 
             if (request)
             {
-                if (LastSent.IsSpam(1000, false, false))
+                if (!ignoreTimeout && LastSent.IsSpam(1000, false, false))
                     return;
+
+                GameEvents.Render -= RenderTuning;
 
                 Events.CallRemote("Business::Exit");
 
@@ -1240,6 +1326,13 @@ namespace BCRPClient.CEF
                     Player.LocalPlayer.FreezePosition(false);
 
                     TempVehicle?.Destroy();
+
+                    TempVehicle = null;
+                }
+                else if (CurrentType == Types.TuningShop)
+                {
+                    Player.LocalPlayer.ResetData("TuningShop::Temp::CurNeon");
+                    Player.LocalPlayer.ResetData("TuningShop::Temp::TyreSmokeCol");
 
                     TempVehicle = null;
                 }
@@ -1351,9 +1444,15 @@ namespace BCRPClient.CEF
                 while (TempVehicle?.Exists != true)
                     await RAGE.Game.Invoker.WaitAsync(25);
 
-                var t = new float[] { (Additional.Camera.States[Additional.Camera.StateTypes.WholeVehicle].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+                var cs = Additional.Camera.StateTypes.WholeVehicle;
 
-                Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null);
+                var t = new float[] { (Additional.Camera.States[cs].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+
+                var pDef = Additional.Camera.States[cs].Position;
+
+                var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
+
+                Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, TempVehicle, TempVehicle, 0, t, null, pOff);
 
                 TempVehicle.SetCustomPrimaryColour(CurrentColor1.Red, CurrentColor1.Green, CurrentColor1.Blue);
 
@@ -1446,6 +1545,16 @@ namespace BCRPClient.CEF
             LastCursorPos = curPos;
         }
 
+        private static void RenderTuning()
+        {
+            if (TempVehicle?.Exists != true || TempVehicle.IsDead(0))
+            {
+                Close(true, true);
+
+                return;
+            }
+        }
+
         private static void ChangeView(int camStateNum)
         {
             if (AllowedCameraStates == null)
@@ -1468,7 +1577,11 @@ namespace BCRPClient.CEF
 
                 var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
 
-                Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null);
+                var pDef = Additional.Camera.States[AllowedCameraStates[camStateNum]].Position;
+
+                var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
+
+                Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
             }
             else
             {

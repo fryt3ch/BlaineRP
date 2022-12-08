@@ -850,6 +850,7 @@ namespace BCRPServer.Game.Items
                                 pData.Items[slotFrom] = toItem;
 
                                 pData.Holster.Update();
+                                MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
                             #region Load
@@ -1906,6 +1907,8 @@ namespace BCRPServer.Game.Items
                                 pData.Items[slotTo] = fromItem;
                                 pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
                             }
+                            else
+                                return Results.Error;
                             #endregion
 
                             if (pData.Items[slotTo] is Game.Items.Weapon weapon)
@@ -2036,6 +2039,8 @@ namespace BCRPServer.Game.Items
                                 pData.Bag.Update();
                                 MySQL.CharacterWeaponsUpdate(pData.Info);
                             }
+                            else
+                                return Results.Error;
                             #endregion
 
                             if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
@@ -2214,6 +2219,8 @@ namespace BCRPServer.Game.Items
                                 MySQL.CharacterItemsUpdate(pData.Info);
                                 pData.Holster.Update();
                             }
+                            else
+                                return Results.Error;
                             #endregion
 
                             if (pData.Items[slotTo] is Game.Items.Weapon weapon)
@@ -2341,6 +2348,8 @@ namespace BCRPServer.Game.Items
                                 pData.Bag.Update();
                                 pData.Holster.Update();
                             }
+                            else
+                                return Results.Error;
                             #endregion
 
                             if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)

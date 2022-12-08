@@ -33,6 +33,8 @@ namespace BCRPClient.Data
             Talkable,
         }
 
+        public string SubName { get; set; }
+
         public string Id { get; set; }
 
         public Types Type { get; set; }
@@ -83,6 +85,8 @@ namespace BCRPClient.Data
 
                 this.Colshape.Data = this;
             }
+
+            this.SubName = Locale.General.NPC.TypeNames.GetValueOrDefault(Id.Split('_')[0]);
 
             AllNPCs.Add(Ped, this);
         }
@@ -151,8 +155,8 @@ namespace BCRPClient.Data
 
                     Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
-                    if (data.Type != Types.Static)
-                        Utils.DrawText(Locale.General.NPC.TypeNames[data.Type], screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    if (data.SubName != null)
+                        Utils.DrawText(data.SubName, screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 }
             };
         }

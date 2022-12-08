@@ -22,8 +22,8 @@ namespace BCRPClient.CEF
         public enum Types
         {
             Info = 0,
-            Offer,
-            Sell,
+            Offer = 1,
+            Sell = 2,
         }
 
         public Estate()
@@ -32,7 +32,7 @@ namespace BCRPClient.CEF
 
             TempBinds = new List<int>();
 
-            Events.Add("Estate::Action", (object[] args) =>
+            Events.Add("Estate::Action", async (object[] args) =>
             {
                 if (!IsActive)
                     return;
@@ -41,6 +41,11 @@ namespace BCRPClient.CEF
 
                 if (!Player.LocalPlayer.HasData("Estate::CurrentData"))
                     return;
+
+                if (LastSent.IsSpam(1000, false, false))
+                    return;
+
+                LastSent = DateTime.Now;
 
                 if (CurrentPropertyType == Sync.Players.PropertyTypes.House)
                 {
@@ -51,10 +56,7 @@ namespace BCRPClient.CEF
 
                     if (id == "enter")
                     {
-                        if (!LastSent.IsSpam(1000, false, false))
-                        {
-                            Events.CallRemote("House::Enter", house.Id);
-                        }
+                        Events.CallRemote("House::Enter", house.Id);
                     }
                     else if (id == "mail")
                     {
@@ -67,11 +69,35 @@ namespace BCRPClient.CEF
 
                     return;
                 }
+                else if (CurrentPropertyType == Sync.Players.PropertyTypes.Business)
+                {
+                    var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("Estate::CurrentData");
+
+                    if (biz == null)
+                        return;
+
+                    if (id == "buy")
+                    {
+                        if ((bool)await Events.CallRemoteProc("Business::BuyGov", biz.Id))
+                        {
+                            Close(true);
+
+                            return;
+                        }
+                    }
+                    else if (id == "manage")
+                    {
+                        CEF.BusinessMenu.Show(biz);
+                    }
+                }
             });
 
             Events.Add("EstAgency::Close", (object[] args) => Agency.Close(false));
 
-            //RAGE.Input.Bind(RAGE.Ui.VirtualKeys.B, true, () => Agency.Show());
+            Events.Add("Estate::Show", (args) =>
+            {
+                var type = (Types)(int)args[0];
+            });
         }
 
         public static async System.Threading.Tasks.Task ShowHouseInfo(Data.Locations.House house, bool showCursor = true)
@@ -94,7 +120,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", house.Id, new object[] { house.OwnerName, house.Price, 90, (int)house.RoomType, house.GarageType == null ? "0" : ((int)house.GarageType).ToString() }, house.OwnerName == null ? null : (bool?)pData.OwnedHouses.Contains(house));
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", house.Id, new object[] { house.OwnerName, house.Price, house.Tax, (int)house.RoomType, house.GarageType == null ? "0" : ((int)house.GarageType).ToString() }, house.OwnerName == null ? null : (bool?)pData.OwnedHouses.Contains(house));
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -122,7 +148,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, 50000, 15, 15 }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, business.Price, business.Rent, Math.Round(business.Tax * 100, 1) }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -162,7 +188,7 @@ namespace BCRPClient.CEF
                     return;
 
                 // id, name, price, tax, rooms, garage capacity
-                var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, 90, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
+                var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
 
                 // id, name, price, tax, rooms
                 var apartments = new object[] {};

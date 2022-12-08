@@ -34,6 +34,20 @@ namespace BCRPClient.Data
                 Electricity = 1
             }
 
+            /// <summary>Классы транспорта</summary>
+            /// <remarks>Зависит от цены</remarks>
+            public enum ClassTypes
+            {
+                /// <summary>Обычный</summary>
+                Classic = 0,
+                /// <summary>Премиум</summary>
+                Premium,
+                /// <summary>Люкс</summary>
+                Luxe,
+                /// <summary>Элитный</summary>
+                Elite,
+            }
+
             public class Trunk
             {
                 /// <summary>Кол-во слотов в багажнике</summary>
@@ -95,9 +109,13 @@ namespace BCRPClient.Data
 
             public bool HasAutoPilot { get; set; }
 
+            public int GovPrice { get; private set; }
+
+            public ClassTypes Class { get; private set; }
+
             public string TypeName => Locale.Property.VehicleTypesNames.GetValueOrDefault(Type) ?? "null";
 
-            public Vehicle(string ID, uint Model, string Name, float Tank, FuelTypes FuelType, Trunk TrunkData = null, bool IsModdable = true, bool HasCruiseControl = false, bool HasAutoPilot = false, Types Type = Types.Car)
+            public Vehicle(string ID, uint Model, string Name, float Tank, FuelTypes FuelType, Trunk TrunkData = null, bool IsModdable = true, bool HasCruiseControl = false, bool HasAutoPilot = false, Types Type = Types.Car, int GovPrice = 0, ClassTypes Class = ClassTypes.Classic)
             {
                 this.ID = ID;
                 this.Name = Name;
@@ -114,6 +132,9 @@ namespace BCRPClient.Data
                 this.IsModdable = IsModdable;
                 this.HasAutoPilot = HasAutoPilot;
                 this.HasCruiseControl = HasCruiseControl;
+
+                this.GovPrice = GovPrice;
+                this.Class = Class;
 
                 All.Add(ID, this);
             }

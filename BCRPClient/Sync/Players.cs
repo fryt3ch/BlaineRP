@@ -186,6 +186,8 @@ namespace BCRPClient.Sync
 
             public int VehicleSeat => Player.GetSharedData<int>("VehicleSeat", -1);
 
+            public Vehicle AutoPilot { get => Player.GetData<Vehicle>("AutoPilot::State"); set { if (value == null) Player.ResetData("AutoPilot::State"); else Player.SetData("AutoPilot::State", value); } }
+
             public Sync.Animations.GeneralTypes GeneralAnim => (Sync.Animations.GeneralTypes)Player.GetSharedData<int>("Anim::General", -1);
 
             public Sync.Animations.FastTypes FastAnim => (Sync.Animations.FastTypes)Player.GetSharedData<int>("Anim::Fast", -1);
@@ -696,6 +698,28 @@ namespace BCRPClient.Sync
 
                         data.OwnedVehicles.RemoveAt(idx);
                     }
+                }
+                else if (pType == PropertyTypes.House)
+                {
+
+                }
+                else if (pType == PropertyTypes.Business)
+                {
+                    var bid = (int)args[2];
+
+                    var t = Data.Locations.Business.All[bid];
+
+                    if (add)
+                    {
+                        if (!data.OwnedBusinesses.Contains(t))
+                            data.OwnedBusinesses.Add(t);
+                    }
+                    else
+                    {
+                        data.OwnedBusinesses.Remove(t);
+                    }
+
+                    t.ToggleOwnerBlip(add);
                 }
 
                 CEF.Menu.UpdateProperties(data);
@@ -1372,6 +1396,9 @@ namespace BCRPClient.Sync
 
             CEF.Estate.Close(true);
             CEF.Estate.Agency.Close(true);
+
+            CEF.HouseMenu.Close(true);
+            CEF.BusinessMenu.Close(true);
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 

@@ -22,6 +22,9 @@ namespace BCRPServer.Events.Players
             if (pData.BankAccount == null)
                 return false;
 
+            if (!IsPlayerNearBank(player, bankId))
+                return false;
+
             if (pData.BankAccount.SavingsToDebit == state)
                 return true;
 
@@ -31,7 +34,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Bank::Debit::Send")]
-        private static bool SendMoney(Player player, bool isAtm, int bankId, uint cid, int amount, bool isRequest) // add check if player isn't near the bank / atm, if by mobile - tax add
+        private static bool SendMoney(Player player, int bankId, uint cid, int amount, bool isRequest) // add check if player isn't near the bank, if by mobile (bankId < 0) - tax add
         {
             var sRes = player.CheckSpamAttack();
 
@@ -50,7 +53,8 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-
+                if (!IsPlayerNearBank(player, bankId))
+                    return false;
             }
 
             var tInfo = PlayerData.PlayerInfo.Get(cid);
@@ -108,6 +112,17 @@ namespace BCRPServer.Events.Players
             if (pData.BankAccount == null || amount <= 0)
                 return;
 
+            if (isAtm)
+            {
+                if (!IsPlayerNearAtm(player, bankId))
+                    return;
+            }
+            else
+            {
+                if (!IsPlayerNearBank(player, bankId))
+                    return;
+            }
+
             if (add)
             {
                 if (!pData.AddCash(-amount, true))
@@ -140,6 +155,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (!IsPlayerNearBank(player, bankId))
+                return;
 
             if (!Enum.IsDefined(typeof(Tariff.Types), tariffNum))
                 return;
@@ -194,6 +212,9 @@ namespace BCRPServer.Events.Players
 
             if (isAtm)
             {
+                if (!IsPlayerNearAtm(player, bankId))
+                    return;
+
                 if (pData.BankAccount == null)
                 {
                     player.Notify("Bank::NoAccount");
@@ -209,6 +230,9 @@ namespace BCRPServer.Events.Players
             }
             else
             {
+                if (!IsPlayerNearBank(player, bankId))
+                    return;
+
                 if (pData.BankAccount == null)
                 {
                     player.TriggerEvent("MenuBank::Show", bankId, -1);

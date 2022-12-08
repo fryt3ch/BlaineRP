@@ -438,6 +438,9 @@ namespace BCRPClient.CEF
                     RAGE.Input.Unbind(x);
 
                 TempBinds.Clear();
+
+                if (!Utils.IsAnyCefActive(false))
+                    CEF.Cursor.SwitchEscMenuAccess(true);
             }
 
             Cursor.Show(value, value);

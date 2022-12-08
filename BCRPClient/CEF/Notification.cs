@@ -151,6 +151,11 @@ namespace BCRPClient.CEF
             { "Bank::MaxSavings", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Notifications.ErrorHeader) },
             { "Bank::SendApprove", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApprove, Locale.Notifications.ApproveHeader) },
 
+            { "Business:NoMats", new Instance(Types.Error, Locale.Notifications.Money.NoMaterialsShop, Locale.Notifications.ErrorHeader) },
+
+            { "Business::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfBusinesses, Locale.Notifications.ErrorHeader) },
+            { "Business::AB", new Instance(Types.Error, Locale.Notifications.General.BusinessAlreadyBought, Locale.Notifications.ErrorHeader) },
+
 /*            { "Mute", new Instance(Types.Mute, Locale.Notifications.Punishments.Mute.Header, Locale.Notifications.Punishments.GotTimed) },
             { "KickBy", new Instance(Types.Information, Locale.Notifications.Punishments.Kick.Header, Locale.Notifications.Punishments.Kick.Got) },
             { "Jail", new Instance(Types.Jail1, Locale.Notifications.Punishments.Jail.Header, Locale.Notifications.Punishments.GotTimed) },
@@ -176,10 +181,14 @@ namespace BCRPClient.CEF
             { "Trade::NotEnoughSpaceOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughSpaceOther, Locale.Notifications.ErrorHeader) },
 
             { "House::NotAllowed", new Instance(Types.Error, Locale.Notifications.House.NotAllowed, Locale.Notifications.ErrorHeader) },
-            { "House::IsLocked", new Instance(Types.Error, Locale.Notifications.House.IsLocked, Locale.Notifications.ErrorHeader) },
+            { "House::HL", new Instance(Types.Error, Locale.Notifications.House.IsLocked, Locale.Notifications.ErrorHeader) },
+            { "House::CL", new Instance(Types.Error, Locale.Notifications.House.ContainersLocked, Locale.Notifications.ErrorHeader) },
             { "House::LCC", new Instance(Types.Success, Locale.Notifications.House.LightColourChanged, Locale.Notifications.DefHeader) },
             { "House::EH", new Instance(Types.Information, Locale.Notifications.House.ExpelledHouse, Locale.Notifications.DefHeader) },
             { "House::EA", new Instance(Types.Information, Locale.Notifications.House.ExpelledApartments, Locale.Notifications.DefHeader) },
+            { "House::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfHouses, Locale.Notifications.ErrorHeader) },
+
+            { "License::NTB", new Instance(Types.Error, Locale.Notifications.General.NoLicenseToBuy, Locale.Notifications.ErrorHeader) },
         };
 
         public Notification()

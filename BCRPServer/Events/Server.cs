@@ -92,6 +92,8 @@ namespace BCRPServer.Events
             Game.Houses.HouseBase.Style.LoadAll();
             Game.Houses.Garage.Style.LoadAll();
 
+            Game.Bank.LoadAll();
+
             #region Database Data Load Section
             MySQL.LoadAll();
             MySQL.UpdateFreeUIDs();

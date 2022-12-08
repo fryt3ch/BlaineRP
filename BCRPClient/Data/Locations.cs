@@ -55,11 +55,28 @@ namespace BCRPClient.Data
         {
             public static Dictionary<uint, House> All = new Dictionary<uint, House>();
 
+            public enum ClassTypes
+            {
+                A = 0,
+                B,
+                C,
+                D,
+
+                FA,
+                FB,
+                FC,
+                FD,
+            }
+
             public uint Id { get; set; }
 
             public string OwnerName => Sync.World.GetSharedData<string>($"House::{Id}::OName");
 
             public int Price { get; set; }
+
+            public int Tax { get; set; }
+
+            public ClassTypes Class { get; set; }
 
             public Vector3 Position { get; set; }
 
@@ -79,7 +96,7 @@ namespace BCRPClient.Data
            
             public Blip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
 
-            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, int Price)
+            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, int Price, ClassTypes Class, int Tax)
             {
                 this.Id = Id;
 
@@ -93,6 +110,8 @@ namespace BCRPClient.Data
 
                 this.GaragePosition = GaragePosition;
 
+                this.Tax = Tax;
+
                 Colshape = new Additional.Cylinder(Position, 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
 
                 Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter;
@@ -101,6 +120,8 @@ namespace BCRPClient.Data
                 Colshape.Data = this;
 
                 InfoText = new TextLabel(Position, $"Дом #{Id}", new RGBA(255, 255, 255, 255), 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+
+                this.Class = Class;
 
                 All.Add(Id, this);
             }
@@ -255,17 +276,19 @@ namespace BCRPClient.Data
 
             public Blip Blip { get; set; }
 
-            public Bank(int id, Vector3 BlipPosition, params (Vector3 NpcPosition, float NpcHeading)[] NPCs)
+            public Bank(int id, Utils.Vector4[] NPCs)
             {
                 Id = id;
 
-                Blip = new Blip(605, BlipPosition, "Банковское отделение", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
-
                 Workers = new List<NPC>();
+
+                Vector3 posBlip = new Vector3(0f, 0f, 0f);
 
                 for (int i = 0; i < NPCs.Length; i++)
                 {
-                    var npc = new NPC($"bank_w_{Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].NpcPosition, NPCs[i].NpcHeading, Settings.MAIN_DIMENSION);
+                    posBlip += NPCs[i].Position;
+
+                    var npc = new NPC($"bank_{Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION);
 
                     npc.DefaultDialogueId = "bank_preprocess";
 
@@ -273,6 +296,8 @@ namespace BCRPClient.Data
 
                     Workers.Add(npc);
                 }
+
+                Blip = new Blip(605, posBlip / NPCs.Length, "Банковское отделение", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
         }
 
@@ -286,13 +311,13 @@ namespace BCRPClient.Data
 
             public Blip Blip { get; set; }
 
-            public ATM(int Id, Vector3 Position, float Range)
+            public ATM(int Id, Utils.Vector4 PositionParams)
             {
                 this.Id = Id;
 
                 All.Add(Id, this);
 
-                Colshape = new Additional.Sphere(Position, Range, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+                Colshape = new Additional.Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
 
                 Colshape.Data = this;
 
@@ -301,7 +326,7 @@ namespace BCRPClient.Data
 
                 Colshape.Name = $"atm_{Id}";
 
-                Blip = new Blip(108, Position, "Банкомат", 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Blip(108, PositionParams.Position, "Банкомат", 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
         }
 
@@ -352,7 +377,13 @@ namespace BCRPClient.Data
 
             public string Name => Locale.Property.BusinessNames.GetValueOrDefault(Type) ?? "null";
 
-            public Business(int Id, Vector3 PositionInfo, Types Type)
+            public int Price { get; set; }
+
+            public int Rent { get; set; }
+
+            public float Tax { get; set; }
+
+            public Business(int Id, Vector3 PositionInfo, Types Type, int Price, int Rent, float Tax)
             {
                 this.Type = Type;
 
@@ -360,12 +391,16 @@ namespace BCRPClient.Data
 
                 this.SubId = All.Where(x => x.Value.Type == Type).Count() + 1;
 
+                this.Price = Price;
+                this.Rent = Rent;
+                this.Tax = Tax;
+
                 InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
 
                 InfoColshape.ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo;
                 InfoColshape.InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo;
 
-                InfoColshape.Data = Id;
+                InfoColshape.Data = this;
 
                 InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
@@ -408,11 +443,18 @@ namespace BCRPClient.Data
 
         public class ClothesShop1 : Business
         {
-            public ClothesShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop1)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(73, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public ClothesShop1(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop1, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -420,11 +462,18 @@ namespace BCRPClient.Data
 
         public class ClothesShop2 : Business
         {
-            public ClothesShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop2)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(366, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public ClothesShop2(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop2, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -432,11 +481,18 @@ namespace BCRPClient.Data
 
         public class ClothesShop3 : Business
         {
-            public ClothesShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.ClothesShop3)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(439, PositionInfo, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public ClothesShop3(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -444,11 +500,18 @@ namespace BCRPClient.Data
 
         public class Market : Business
         {
-            public Market(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.Market)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(52, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public Market(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.Market, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -456,9 +519,9 @@ namespace BCRPClient.Data
 
         public class GasStation : Business
         {
-            public GasStation(int Id, Vector3 PositionInfo, Vector3 PositionGas, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.GasStation)
+            public GasStation(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Vector3 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
             {
-                this.Blip = new Blip(361, PositionInfo, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(361, PositionGas, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var cs = new Additional.Sphere(PositionGas, 5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
 
@@ -473,11 +536,18 @@ namespace BCRPClient.Data
 
         public class CarShop1 : Business
         {
-            public CarShop1(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop1)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(225, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public CarShop1(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop1, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -485,11 +555,18 @@ namespace BCRPClient.Data
 
         public class CarShop2 : Business
         {
-            public CarShop2(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop2)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(530, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
+            
+            public CarShop2(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop2, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -497,11 +574,18 @@ namespace BCRPClient.Data
 
         public class CarShop3 : Business
         {
-            public CarShop3(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.CarShop3)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(523, PositionInfo, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public CarShop3(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop3, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -509,11 +593,18 @@ namespace BCRPClient.Data
 
         public class MotoShop : Business
         {
-            public MotoShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.MotoShop)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(522, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public MotoShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MotoShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -521,11 +612,18 @@ namespace BCRPClient.Data
 
         public class BoatShop : Business
         {
-            public BoatShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.BoatShop)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(410, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public BoatShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BoatShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -533,11 +631,18 @@ namespace BCRPClient.Data
 
         public class AeroShop : Business
         {
-            public AeroShop(int Id, Vector3 PositionInfo, Vector3 PositionPed, float HeadingPed, string NamePed, string ModelPed) : base(Id, PositionInfo, Types.AeroShop)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                this.Blip = new Blip(602, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                ("csb_anita", "Анита"),
+            };
 
-                this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Talkable, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+            public AeroShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.AeroShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 this.Seller.Data = this;
             }
@@ -547,18 +652,26 @@ namespace BCRPClient.Data
         {
             public Additional.ExtraColshape EnteranceColshape { get; set; }
 
-            public TuningShop(int Id, Vector3 PositionInfo, Vector3 EnterancePos) : base(Id, PositionInfo, Types.TuningShop)
+            public TuningShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(72, PositionInfo, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Blip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.EnteranceColshape = new Additional.Sphere(EnterancePos, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
+                this.EnteranceColshape = new Additional.Sphere(PositionInteract.Position, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
 
                 this.EnteranceColshape.InteractionType = Additional.ExtraColshape.InteractionTypes.TuningEnter;
                 this.EnteranceColshape.ActionType = Additional.ExtraColshape.ActionTypes.TuningEnter;
 
                 this.EnteranceColshape.Data = this;
 
-                new Marker(44, EnterancePos, 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
+                new Marker(44, PositionInteract.Position, 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
+            }
+        }
+
+        public class WeaponShop : Business
+        {
+            public WeaponShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
         }
 
@@ -568,181 +681,21 @@ namespace BCRPClient.Data
 
             Garage.Style.LoadAll();
 
-            #region Clothes (Cheap)
-            new ClothesShop1(1, new Vector3(1200f, 2701f, 37f), new Vector3(1201.885f, 2710.143f, 38.2226f), 105f, "Лана", "csb_anita");
-            new ClothesShop1(3, new Vector3(-1096f, 2702.9f, 18f), new Vector3(-1097.523f, 2714.026f, 19.108f), 150f, "Лана", "csb_anita");
-            new ClothesShop1(4, new Vector3(1683.5f, 4822.3f, 41f), new Vector3(1694.727f, 4817.582f, 42.06f), 20f, "Лана", "csb_anita");
-            new ClothesShop1(5, new Vector3(-0.26f, 6519.46f, 30.5f), new Vector3(1f, 6508.753f, 31.87f), 325, "Лана", "csb_anita");
-
-            new ClothesShop1(11, new Vector3(-815.1346f, -1079.327f, 10.13754f), new Vector3(-817.8808f, -1070.944f, 11.32811f), 135f, "Лана", "csb_anita");
-            new ClothesShop1(12, new Vector3(83.63f, -1389.665f, 28.4166f), new Vector3(75.42346f, -1387.689f, 29.37614f), 195.8f, "Лана", "csb_anita");
-            new ClothesShop1(13, new Vector3(416.326f, -805.2744f, 28.37296f), new Vector3(425.6321f, -811.4822f, 29.49114f), 11f, "Лана", "csb_anita");
-            #endregion
-
-            #region Clothes (Expensive)
-            new ClothesShop2(2, new Vector3(622f, 2744.5f, 41f), new Vector3(613.035f, 2761.843f, 42.088f), 265f, "Лана", "csb_anita");
-            new ClothesShop2(14, new Vector3(-3164.073f, 1059.789f, 19.84639f), new Vector3(-3169.008f, 1044.211f, 20.86322f), 48.6f, "Лана", "csb_anita");
-
-            new ClothesShop2(9, new Vector3(127.03f, -205.91f, 53.55547f), new Vector3(127.3073f, -223.18f, 54.55783f), 66f, "Лана", "csb_anita");
-            new ClothesShop2(10, new Vector3(-1203.283f, -781.6449f, 16.3305f), new Vector3(-1194.725f, -767.6141f, 17.31629f), 208f, "Лана", "csb_anita");
+            #region BIZS_TO_REPLACE
 
             #endregion
 
-            #region Clothes (Brand)
-            new ClothesShop3(6, new Vector3(-1455.7f, -228.9f, 48.25f), new Vector3(-1448.824f, -237.893f, 49.81332f), 45f, "Лана", "csb_anita");
-            new ClothesShop3(7, new Vector3(-718f, -160f, 36f), new Vector3(-708.95f, -151.6612f, 37.415f), 114f, "Лана", "csb_anita");
-            new ClothesShop3(8, new Vector3(-152.62f, -304f, 37.91f), new Vector3(-165f, -303.2f, 39.73328f), 251f, "Лана", "csb_anita");
+            #region ATM_TO_REPLACE
+
             #endregion
 
-            new Market(15, new Vector3(546.2691f, 2674.628f, 42f), new Vector3(549.1185f, 2671.407f, 42.1565f), 91.55f, "Лана", "csb_anita");
+            #region BANKS_TO_REPLACE
 
-            new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), new Vector3(263.9698f, 2607.402f, 44.98298f), null, 0f, "", "");
-
-            new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Vector3(-54.68786f, -1088.418f, 26.42234f), 155.8f, "Лана", "csb_anita");
-
-            new BoatShop(18, new Vector3(-813.3688f, -1336.428f, 5.150263f), new Vector3(-813.8713f, -1343.797f, 5.150264f), 49.62344f, "Лана", "csb_anita");
-
-            new AeroShop(19, new Vector3(1757.495f, 3239.969f, 41.94524f), new Vector3(1760.724f, 3234.819f, 42.13989f), 314.5554f, "Лана", "csb_anita");
-
-            new TuningShop(20, new Vector3(1178.526f, 2647.779f, 37.79328f), new Vector3(1175.327f, 2639.85f, 37.3765f));
-            new TuningShop(21, new Vector3(-356.59f, -129.5743f, 39.43067f), new Vector3(-338.4644f, -136.1622f, 38.62881f));
-            new TuningShop(22, new Vector3(720.2494f, -1082.472f, 22.25672f), new Vector3(732.6448f, -1088.88f, 21.78887f));
-            new TuningShop(23, new Vector3(-1139.816f, -1992.655f, 13.16545f), new Vector3(-1154.301f, -2006.171f, 12.79945f));
-
-            #region ATM
-            new ATM(0, new Vector3(-301.65726f, -829.5886f, 32.419765f), 1f);
-            new ATM(1, new Vector3(-303.2257f, -829.3121f, 32.419765f), 1f);
-            new ATM(2, new Vector3(-204.0193f, -861.0091f, 30.271332f), 1f);
-            new ATM(3, new Vector3(118.64156f, -883.56946f, 31.13945f), 1f);
-            new ATM(4, new Vector3(24.5933f, -945.543f, 29.333046f), 1f);
-            new ATM(5, new Vector3(5.686035f, -919.9551f, 29.48088f), 1f);
-            new ATM(6, new Vector3(296.17563f, -896.2318f, 29.290146f), 1f);
-            new ATM(7, new Vector3(296.8775f, -894.3196f, 29.261478f), 1f);
-            new ATM(8, new Vector3(147.47305f, -1036.2175f, 29.367783f), 1f);
-            new ATM(9, new Vector3(145.83922f, -1035.6254f, 29.367783f), 1f);
-            new ATM(10, new Vector3(112.47614f, -819.80804f, 31.339552f), 1f);
-            new ATM(11, new Vector3(111.38856f, -774.84015f, 31.437658f), 1f);
-            new ATM(12, new Vector3(114.54742f, -775.9721f, 31.417364f), 1f);
-            new ATM(13, new Vector3(-256.6386f, -715.88983f, 33.7883f), 1f);
-            new ATM(14, new Vector3(-259.27673f, -723.2652f, 33.701546f), 1f);
-            new ATM(15, new Vector3(-254.52185f, -692.8869f, 33.578255f), 1f);
-            new ATM(16, new Vector3(-27.890343f, -724.10895f, 44.22287f), 1f);
-            new ATM(17, new Vector3(-30.099571f, -723.2863f, 44.22287f), 1f);
-            new ATM(18, new Vector3(228.03244f, 337.85013f, 105.50133f), 1f);
-            new ATM(19, new Vector3(158.79654f, 234.74516f, 106.643265f), 1f);
-            new ATM(20, new Vector3(527.77765f, -160.66086f, 57.136715f), 1f);
-            new ATM(21, new Vector3(-57.170288f, -92.37918f, 57.750687f), 1f);
-            new ATM(22, new Vector3(89.813385f, 2.880325f, 68.35214f), 1f);
-            new ATM(23, new Vector3(285.3485f, 142.97507f, 104.16232f), 1f);
-            new ATM(24, new Vector3(357.12845f, 174.08362f, 103.059654f), 1f);
-            new ATM(25, new Vector3(1137.8113f, -468.86255f, 66.698654f), 1f);
-            new ATM(26, new Vector3(1167.06f, -455.6541f, 66.818565f), 1f);
-            new ATM(27, new Vector3(1077.7786f, -776.96643f, 58.256516f), 1f);
-            new ATM(28, new Vector3(289.52997f, -1256.7876f, 29.440575f), 1f);
-            new ATM(29, new Vector3(289.26785f, -1282.3204f, 29.65519f), 1f);
-            new ATM(30, new Vector3(-165.58443f, 234.76587f, 94.92897f), 1f);
-            new ATM(31, new Vector3(-165.58443f, 232.69547f, 94.92897f), 1f);
-            new ATM(32, new Vector3(-1044.466f, -2739.6414f, 9.12406f), 1f);
-            new ATM(33, new Vector3(-1205.3783f, -326.5286f, 37.85104f), 1f);
-            new ATM(34, new Vector3(-1206.1417f, -325.03165f, 37.85104f), 1f);
-            new ATM(35, new Vector3(-846.6537f, -341.50903f, 38.668503f), 1f);
-            new ATM(36, new Vector3(-847.204f, -340.42908f, 38.6793f), 1f);
-            new ATM(37, new Vector3(-720.6288f, -415.52432f, 34.97996f), 1f);
-            new ATM(38, new Vector3(-867.013f, -187.99278f, 37.882175f), 1f);
-            new ATM(39, new Vector3(-867.97455f, -186.34193f, 37.882175f), 1f);
-            new ATM(40, new Vector3(-1415.4801f, -212.33244f, 46.49542f), 1f);
-            new ATM(41, new Vector3(-1430.6633f, -211.35867f, 46.47162f), 1f);
-            new ATM(42, new Vector3(-1410.7357f, -98.927895f, 52.39701f), 1f);
-            new ATM(43, new Vector3(-1410.183f, -100.64539f, 52.396523f), 1f);
-            new ATM(44, new Vector3(-1282.0983f, -210.55992f, 42.43031f), 1f);
-            new ATM(45, new Vector3(-1286.7037f, -213.78275f, 42.43031f), 1f);
-            new ATM(46, new Vector3(-1289.742f, -227.16498f, 42.43031f), 1f);
-            new ATM(47, new Vector3(-1285.1365f, -223.94215f, 42.43031f), 1f);
-            new ATM(48, new Vector3(-712.93567f, -818.4827f, 23.740658f), 1f);
-            new ATM(49, new Vector3(-710.08276f, -818.4756f, 23.736336f), 1f);
-            new ATM(50, new Vector3(-617.80347f, -708.8591f, 30.043213f), 1f);
-            new ATM(51, new Vector3(-617.80347f, -706.8521f, 30.043213f), 1f);
-            new ATM(52, new Vector3(-614.5187f, -705.5981f, 31.223999f), 1f);
-            new ATM(53, new Vector3(-611.8581f, -705.5981f, 31.223999f), 1f);
-            new ATM(54, new Vector3(-660.67633f, -854.48816f, 24.456635f), 1f);
-            new ATM(55, new Vector3(-537.8052f, -854.93567f, 29.275429f), 1f);
-            new ATM(56, new Vector3(-594.61444f, -1160.8519f, 22.333511f), 1f);
-            new ATM(57, new Vector3(-596.12506f, -1160.8503f, 22.3336f), 1f);
-            new ATM(58, new Vector3(-526.7791f, -1223.3737f, 18.45272f), 1f);
-            new ATM(59, new Vector3(-1569.8396f, -547.0309f, 34.932163f), 1f);
-            new ATM(60, new Vector3(-1570.7653f, -547.7035f, 34.932163f), 1f);
-            new ATM(61, new Vector3(-1305.7078f, -706.6881f, 25.314468f), 1f);
-            new ATM(62, new Vector3(-1315.416f, -834.431f, 16.952328f), 1f);
-            new ATM(63, new Vector3(-1314.466f, -835.6913f, 16.952328f), 1f);
-            new ATM(64, new Vector3(-2071.9285f, -317.2862f, 13.318085f), 1f);
-            new ATM(65, new Vector3(-821.89355f, -1081.5546f, 11.136639f), 1f);
-            new ATM(66, new Vector3(-1110.2284f, -1691.1538f, 4.378483f), 1f);
-            new ATM(67, new Vector3(-2956.8481f, 487.21576f, 15.478001f), 1f);
-            new ATM(68, new Vector3(-2958.977f, 487.30713f, 15.478001f), 1f);
-            new ATM(69, new Vector3(-2974.5864f, 380.12692f, 15f), 1f);
-            new ATM(70, new Vector3(-1091.8875f, 2709.0535f, 18.919415f), 1f);
-            new ATM(71, new Vector3(-2295.8525f, 357.93475f, 174.60143f), 1f);
-            new ATM(72, new Vector3(-2295.0693f, 356.2556f, 174.60143f), 1f);
-            new ATM(73, new Vector3(-2294.2998f, 354.6056f, 174.60143f), 1f);
-            new ATM(74, new Vector3(-3144.8875f, 1127.811f, 20.838036f), 1f);
-            new ATM(75, new Vector3(-3043.8347f, 594.16394f, 7.732796f), 1f);
-            new ATM(76, new Vector3(-3241.4546f, 997.9085f, 12.548369f), 1f);
-            new ATM(77, new Vector3(2563.9995f, 2584.553f, 38.06807f), 1f);
-            new ATM(78, new Vector3(2558.3242f, 350.988f, 108.597466f), 1f);
-            new ATM(79, new Vector3(156.18863f, 6643.2f, 31.59372f), 1f);
-            new ATM(80, new Vector3(173.8246f, 6638.2173f, 31.59372f), 1f);
-            new ATM(81, new Vector3(-282.7141f, 6226.43f, 31.496475f), 1f);
-            new ATM(82, new Vector3(-95.870285f, 6457.462f, 31.473938f), 1f);
-            new ATM(83, new Vector3(-97.63721f, 6455.732f, 31.467934f), 1f);
-            new ATM(84, new Vector3(-132.66629f, 6366.8765f, 31.47258f), 1f);
-            new ATM(85, new Vector3(-386.4596f, 6046.4106f, 31.473991f), 1f);
-            new ATM(86, new Vector3(1687.3951f, 4815.9f, 42.006466f), 1f);
-            new ATM(87, new Vector3(1700.6941f, 6426.762f, 32.632965f), 1f);
-            new ATM(88, new Vector3(1822.9714f, 3682.5771f, 34.267452f), 1f);
-            new ATM(89, new Vector3(1171.523f, 2703.1394f, 38.147697f), 1f);
-            new ATM(90, new Vector3(1172.4573f, 2703.1394f, 38.147697f), 1f);
-            new ATM(91, new Vector3(238.26779f, 217.10918f, 106.40615f), 1f);
-            new ATM(92, new Vector3(238.69781f, 216.18698f, 106.40615f), 1f);
-            new ATM(93, new Vector3(237.83775f, 218.03137f, 106.40615f), 1f);
-            new ATM(94, new Vector3(237.40773f, 218.95358f, 106.40615f), 1f);
-            new ATM(95, new Vector3(236.9777f, 219.87578f, 106.40615f), 1f);
-            new ATM(96, new Vector3(264.86896f, 209.94864f, 106.40615f), 1f);
-            new ATM(97, new Vector3(265.21695f, 210.9048f, 106.40615f), 1f);
-            new ATM(98, new Vector3(265.56497f, 211.86098f, 106.40615f), 1f);
-            new ATM(99, new Vector3(265.913f, 212.81714f, 106.40615f), 1f);
-            new ATM(100, new Vector3(266.26102f, 213.77332f, 106.40615f), 1f);
-            new ATM(101, new Vector3(380.65576f, 322.8424f, 103.56634f), 1f);
-            new ATM(102, new Vector3(1153.1111f, -326.90186f, 69.20503f), 1f);
-            new ATM(103, new Vector3(33.19432f, -1348.8058f, 29.49696f), 1f);
-            new ATM(104, new Vector3(130.57912f, -1292.3688f, 29.271421f), 1f);
-            new ATM(105, new Vector3(130.15036f, -1291.6261f, 29.271421f), 1f);
-            new ATM(106, new Vector3(129.69753f, -1290.8418f, 29.271421f), 1f);
-            new ATM(107, new Vector3(-57.402237f, -1751.7471f, 29.420937f), 1f);
-            new ATM(108, new Vector3(-718.26135f, -915.71277f, 19.21553f), 1f);
-            new ATM(109, new Vector3(-273.36655f, -2024.2079f, 30.169643f), 1f);
-            new ATM(110, new Vector3(-262.36078f, -2012.054f, 30.169643f), 1f);
-            new ATM(111, new Vector3(-1391.3445f, -589.86273f, 30.315836f), 1f);
-            new ATM(112, new Vector3(-1827.6887f, 784.465f, 138.31522f), 1f);
-            new ATM(113, new Vector3(-3040.2046f, 593.29694f, 7.908859f), 1f);
-            new ATM(114, new Vector3(-3240.028f, 1008.5453f, 12.830639f), 1f);
-            new ATM(115, new Vector3(2559.0522f, 389.47443f, 108.62291f), 1f);
-            new ATM(116, new Vector3(1703.3152f, 4934.0527f, 42.063587f), 1f);
-            new ATM(117, new Vector3(1735.0105f, 6410.01f, 35.03717f), 1f);
-            new ATM(118, new Vector3(2683.592f, 3286.3f, 55.241077f), 1f);
-            new ATM(119, new Vector3(1968.3923f, 3743.0784f, 32.343689f), 1f);
-            new ATM(120, new Vector3(540.22064f, 2671.683f, 42.15644f), 1f);
             #endregion
 
-            new Bank(0, new Vector3(-111.6786f, 6462.01f, 31.64078f), (new Vector3(-111.2246f, 6469.992f, 31.62671f), 133.712f));
-            new Bank(1, new Vector3(1175.001f, 2708.205f, 38.08792f), (new Vector3(1175.001f, 2708.205f, 38.08792f), 176.3602f));
-            new Bank(2, new Vector3(246.737f, 218.0641f, 106.2868f), (new Vector3(243.6818f, 226.22f, 106.2876f), 154.0384f), (new Vector3(248.7591f, 224.3721f, 106.2876f), 154.0384f), (new Vector3(253.9547f, 222.5404f, 106.2876f), 154.0384f));
-            new Bank(3, new Vector3(-349.6931f, -45.84351f, 49.03683f), (new Vector3(-351.3526f, -51.27759f, 49.0365f), 338.2035f));
-            new Bank(4, new Vector3(315.5918f, -275.0276f, 53.9234f), (new Vector3(313.8149f, -280.5039f, 54.16468f), 338.7193f));
-            new Bank(5, new Vector3(-1215.04f, -326.2117f, 37.67439f), (new Vector3(-1211.996f, -332.0042f, 37.78094f), 25.14937f));
-            new Bank(6, new Vector3(-2968.591f, 482.9666f, 15.4687f), (new Vector3(-2961.119f, 482.9693f, 15.697f), 86.52053f));
-            new Bank(7, new Vector3(151.3286f, -1036.054f, 29.33932f), (new Vector3(149.432f, -1042.05f, 29.36801f), 337.0007f));
+            #region HOUSES_TO_REPLACE
 
-            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), Sync.House.Style.RoomTypes.Two, Garage.Types.Two, new Vector3(1723.976f, 4630.187f, 42.84944f), 50000);
+            #endregion
         }
     }
 }

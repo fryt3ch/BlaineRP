@@ -91,6 +91,15 @@ namespace BCRPClient
             [JsonProperty(PropertyName = "RZ")]
             public float RotationZ { get; set; }
 
+            [JsonIgnore]
+            public float X => Position.X;
+
+            [JsonIgnore]
+            public float Y => Position.Y;
+
+            [JsonIgnore]
+            public float Z => Position.Z;
+
             public Vector4(float X, float Y, float Z, float RotationZ)
             {
                 this.Position = new Vector3(X, Y, Z);
@@ -1276,5 +1285,17 @@ namespace BCRPClient
         }
 
         public static string GetNumberplateText(this Vehicle veh) => veh.GetNumberPlateText()?.Replace(" ", "");
+
+        public static void TaskTempAction(this Vehicle veh, int action, int time)
+        {
+            var driverPed = veh.GetPedInSeat(-1, 0);
+
+            if (driverPed < 0)
+                return;
+
+            RAGE.Game.Invoker.Invoke(RAGE.Game.Natives.TaskVehicleTempAction, driverPed, veh.Handle, action, time);
+        }
+
+        public static int GetScriptTaskStatus(this PedBase ped, uint taskHash) => RAGE.Game.Invoker.Invoke<int>(RAGE.Game.Natives.GetScriptTaskStatus, ped.Handle, (int)taskHash);
     }
 }

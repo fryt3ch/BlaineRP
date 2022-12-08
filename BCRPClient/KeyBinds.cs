@@ -43,7 +43,7 @@ namespace BCRPClient
             FingerPointStart, FingerPointStop,
             Crouch, Crawl,
             MicrophoneOn, MicrophoneOff, MicrophoneReload,
-            DoorsLock, TrunkLook, Engine, LeftArrow, BothArrows, RightArrow, Lights, Belt, CruiseControl,
+            DoorsLock, TrunkLook, Engine, LeftArrow, BothArrows, RightArrow, Lights, Belt, CruiseControl, AutoPilot,
             Interaction,
             Phone,
             Menu,
@@ -343,6 +343,7 @@ namespace BCRPClient
             { Types.Lights, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.Numpad8 } },
             { Types.Belt, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.J } },
             { Types.CruiseControl, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.K } },
+            { Types.AutoPilot, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.X } },
             { Types.Interaction, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.G } },
             { Types.Phone, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.P } },
             { Types.Menu, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.M } },
@@ -695,9 +696,17 @@ namespace BCRPClient
             Add(new Bind(Types.CruiseControl, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.ToggleCruiseControl();
+                    Sync.Vehicles.ToggleCruiseControl(false);
             }, true, true)
             { Description = "Круиз-контроль" });
+
+            // Auto Pilot
+            Add(new Bind(Types.AutoPilot, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                    Sync.Vehicles.ToggleAutoPilot(null);
+            }, true, true)
+            { Description = "Автопилот" });
 
             // Vehicle Doors Lock Toggle
             Add(new Bind(Types.DoorsLock, () =>

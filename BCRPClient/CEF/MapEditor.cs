@@ -19,7 +19,7 @@ namespace BCRPClient.CEF
 
         private static ModeTypes? CurrentModeType { get; set; }
 
-        private static byte Tick { get; set; }
+        private static DateTime LastUpdatedJs { get; set; }
 
         private static Vector3 LastPos { get; set; }
 
@@ -113,7 +113,7 @@ namespace BCRPClient.CEF
                 CEF.Browser.Window.ExecuteJs("mapEditor_init", false, mode.EnableX, mode.EnableY, mode.EnableZ);
             }
 
-            Tick = 0;
+            LastUpdatedJs = DateTime.MinValue;
 
             GameEvents.Render -= Render;
             GameEvents.Render += Render;
@@ -219,18 +219,15 @@ namespace BCRPClient.CEF
 
             var eRot = Object.GetRotation(2);
 
-            if (++Tick % 4 == 0)
+            if (DateTime.Now.Subtract(LastUpdatedJs).TotalMilliseconds > 200)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
                 var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", ePos.X, ePos.Y, ePos.Z, eRot.X, eRot.Y, eRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
-            }
-            else
-            {
-                if (Tick == byte.MaxValue)
-                    Tick = 0;
+
+                LastUpdatedJs = DateTime.Now;
             }
 
             bool showRotZ = false;

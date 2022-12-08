@@ -186,7 +186,7 @@ namespace BCRPClient.Sync
                             Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == null ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                             Utils.DrawText($"EngineOn: {data.EngineOn} | Locked: {data.DoorsLocked} | TrunkLocked: {data.TrunkLocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                             Utils.DrawText($"Fuel: {data.FuelLevel.ToString("0.00")} | Mileage: {data.Mileage.ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                            Utils.DrawText($"EngineHP: {x.GetEngineHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"EHP: {x.GetEngineHealth()} | BHP: {x.GetBodyHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                             Utils.DrawText($"Speed: {x.GetSpeedKm().ToString("0.00")} | ForcedSpeed: {(data.ForcedSpeed * 3.6f).ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                         }
                         else
@@ -497,16 +497,18 @@ namespace BCRPClient.Sync
 
                 if ((fSpeed >= 8.3f))
                 {
+                    ToggleAutoPilot(false);
+
                     GameEvents.Update -= CruiseControlTick;
                     GameEvents.Update += CruiseControlTick;
 
-                    Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.On);
+                    Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.On);
                 }
                 else if (oldValue != null && (float)oldValue >= 8.3f)
                 {
                     GameEvents.Update -= CruiseControlTick;
 
-                    Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Off);
+                    Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Off);
                 }
             });
 
@@ -703,19 +705,29 @@ namespace BCRPClient.Sync
         #region Cruise Control
         public static void ToggleCruiseControl(bool ignoreIf = false)
         {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
             var vehicle = Player.LocalPlayer.Vehicle;
 
             if (!ignoreIf)
             {
-                if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                if (vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || !vehicle.GetIsEngineRunning() || pData.AutoPilot != null)
                     return;
 
                 if (LastCruiseControlToggled.IsSpam(1000, false, false))
                     return;
 
-                if (!Utils.IsCar(vehicle))
+                var vData = GetData(vehicle);
+
+                if (vData == null)
+                    return;
+
+                if (!vData.Data.HasCruiseControl)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Unsupported);
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Unsupported);
 
                     return;
                 }
@@ -724,7 +736,7 @@ namespace BCRPClient.Sync
 
                 if (spVect.Y < 0)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Reverse);
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Reverse);
 
                     return;
                 }
@@ -733,13 +745,13 @@ namespace BCRPClient.Sync
 
                 if (speed < Settings.MIN_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, string.Format(Locale.Notifications.Vehicles.CruiseControl.MinSpeed, Math.Floor(Settings.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MinSpeed, Math.Floor(Settings.MIN_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
                 else if (speed > Settings.MAX_CRUISE_CONTROL_SPEED)
                 {
-                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.CruiseControl.Header, string.Format(Locale.Notifications.Vehicles.CruiseControl.MaxSpeed, Math.Floor(Settings.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
+                    Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderCruise, string.Format(Locale.Notifications.Vehicles.Additional.MaxSpeed, Math.Floor(Settings.MAX_CRUISE_CONTROL_SPEED * 3.6f)));
 
                     return;
                 }
@@ -767,7 +779,7 @@ namespace BCRPClient.Sync
 
             if (veh.GetHeightAboveGround() > 1f || Math.Abs(rotVect.Z) > 1.5f)
             {
-                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Danger, 2500);
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Danger, 2500);
 
                 ToggleCruiseControl(true);
 
@@ -778,7 +790,7 @@ namespace BCRPClient.Sync
 
             if (veh.HasCollidedWithAnything())
             {
-                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Collision, 2500);
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Collision, 2500);
 
                 ToggleCruiseControl(true);
 
@@ -789,7 +801,7 @@ namespace BCRPClient.Sync
 
             if (RAGE.Game.Pad.IsControlJustPressed(32, 130) || RAGE.Game.Pad.IsControlJustPressed(32, 129) || RAGE.Game.Pad.IsControlJustPressed(32, 76))
             {
-                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.CruiseControl.Header, Locale.Notifications.Vehicles.CruiseControl.Invtervention, 2500);
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderCruise, Locale.Notifications.Vehicles.Additional.Invtervention, 2500);
 
                 ToggleCruiseControl(true);
 
@@ -1316,6 +1328,123 @@ namespace BCRPClient.Sync
             }
 
             Events.CallRemote("Vehicles::SetupPlate", veh, 0);
+        }
+
+        public static void ToggleAutoPilot(bool? forceStatus = null, bool stopVehicle = false)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            GameEvents.Render -= AutoPilotTick;
+
+            var veh = pData.AutoPilot;
+
+            if (forceStatus == false || veh != null)
+            {
+                Player.LocalPlayer.ClearTasks();
+
+                if (stopVehicle)
+                    veh?.TaskTempAction(27, 10000);
+
+                pData.AutoPilot = null;
+
+                var blip = Player.LocalPlayer.GetData<Additional.ExtraBlip>("AutoPilot::Blip");
+
+                if (blip != null)
+                {
+                    var wBlip = Utils.GetWaypointBlip();
+
+                    if (wBlip > 0)
+                        RAGE.Game.Ui.SetBlipRoute(wBlip, true);
+
+                    blip.Destroy();
+                }
+
+                Player.LocalPlayer.ResetData("AutoPilot::Blip");
+
+                if (veh != null)
+                    CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Vehicles.Additional.Off);
+            }
+            else
+            {
+                veh = Player.LocalPlayer.Vehicle;
+
+                if (veh == null)
+                    return;
+
+                var vData = GetData(veh);
+
+                if (vData == null)
+                    return;
+
+                if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || !veh.GetIsEngineRunning() || vData.ForcedSpeed != 0f)
+                    return;
+
+                if (!vData.Data.HasAutoPilot)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Vehicles.Additional.Unsupported);
+
+                    return;
+                }
+
+                var pos = GameEvents.WaypointPosition;
+
+                if (pos == null)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Commands.Teleport.NoWaypoint);
+
+                    return;
+                }
+
+                RAGE.Game.Ui.ClearGpsPlayerWaypoint();
+
+                var blip = new Additional.ExtraBlip(162, pos, null, 1f, 2, 255, 0f, false, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.AutoPilot);
+
+                blip.SetAsReachable(7.5f);
+                blip.ToggleRouting(true);
+
+                Player.LocalPlayer.SetData("AutoPilot::Blip", blip);
+
+                Player.LocalPlayer.TaskVehicleDriveToCoord(veh.Handle, pos.X, pos.Y, pos.Z, 30f, 1, 1, 2883621, 30f, 1f);
+
+                pData.AutoPilot = veh;
+
+                GameEvents.Render += AutoPilotTick;
+
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Vehicles.Additional.On);
+
+                blip.SetAsReachable();
+            }
+        }
+
+        private static void AutoPilotTick()
+        {
+            var veh = Player.LocalPlayer.Vehicle;
+
+            if (veh?.Exists != true || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || !veh.GetIsEngineRunning() || veh.GetSharedData<float>("ForcedSpeed", 1f) != 0f)
+            {
+                ToggleAutoPilot(false, false);
+
+                return;
+            }
+            
+            if (Player.LocalPlayer.GetScriptTaskStatus(0x93A5526E) != 1)
+            {
+                ToggleAutoPilot(false, true);
+
+                return;
+            }
+
+            if (RAGE.Game.Pad.IsControlJustPressed(32, 133) || RAGE.Game.Pad.IsControlJustPressed(32, 134) || RAGE.Game.Pad.IsControlJustPressed(32, 130) || RAGE.Game.Pad.IsControlJustPressed(32, 129) || RAGE.Game.Pad.IsControlJustPressed(32, 76))
+            {
+                Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Vehicles.Additional.Invtervention);
+
+                ToggleAutoPilot(false, false);
+
+                return;
+            }
         }
     }
 }

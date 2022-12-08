@@ -277,7 +277,30 @@ namespace BCRPClient.CEF
                                             var idData = id.Split('_');
 
                                             if (CEF.Shop.IsActiveTuning)
+                                            {
                                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", false, idData[0]);
+
+                                                var sId = id.Split('_')[0];
+
+                                                if (sId == "neon")
+                                                {
+                                                    Player.LocalPlayer.SetData("TuningShop::Temp::CurNeon", (string)null);
+
+                                                    CEF.Shop.TempVehicle?.SetNeonEnabled(false);
+                                                }
+                                                else if (sId == "tsmoke")
+                                                {
+                                                    Player.LocalPlayer.SetData("TuningShop::Temp::TyreSmokeCol", (string)null);
+                                                }
+                                                else if (sId == "wcolour")
+                                                {
+                                                    CEF.Shop.TempVehicle?.SetWheelsColour(0);
+                                                }
+                                                else if (sId == "pearl")
+                                                {
+                                                    CEF.Shop.TempVehicle?.SetPearlColour(0);
+                                                }
+                                            }
                                         }
                                     }
                                     else if (rType == ReplyTypes.Additional1)

@@ -144,7 +144,7 @@ namespace BCRPClient.Sync
         }
 
         private static List<Additional.ExtraColshape> TempColshapes;
-        private static List<Blip> TempBlips;
+        private static List<Additional.ExtraBlip> TempBlips;
 
         public static Dictionary<int, MapObject> Lights { get; private set; }
         public static Dictionary<int, MapObject> Doors { get; private set; }
@@ -162,7 +162,7 @@ namespace BCRPClient.Sync
             Style.LoadAll();
 
             TempColshapes = new List<Additional.ExtraColshape>();
-            TempBlips = new List<Blip>();
+            TempBlips = new List<Additional.ExtraBlip>();
 
             Lights = new Dictionary<int, MapObject>();
             Doors = new Dictionary<int, MapObject>();
@@ -239,7 +239,7 @@ namespace BCRPClient.Sync
                         TempColshapes.Add(gExitCs);
                     }
 
-                    TempBlips.Add(new RAGE.Elements.Blip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, true, 0, 0, dimension));
+                    TempBlips.Add(new Additional.ExtraBlip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
                     if (pData.OwnedHouses.Contains(house))
                     {
@@ -342,15 +342,15 @@ namespace BCRPClient.Sync
 
                 Sync.Players.CloseAll(false);
 
-                foreach (var x in TempColshapes)
-                    x?.Delete();
-
-                TempColshapes.Clear();
-
                 foreach (var x in TempBlips)
                     x?.Destroy();
 
                 TempBlips.Clear();
+
+                foreach (var x in TempColshapes)
+                    x?.Delete();
+
+                TempColshapes.Clear();
 
                 foreach (var x in Doors.Values)
                     x?.Destroy();
@@ -466,6 +466,14 @@ namespace BCRPClient.Sync
                     }
                 }
             });
+
+            Events.Add("House::Lock", (args) =>
+            {
+                if (!CEF.HouseMenu.IsActive)
+                    return;
+
+                CEF.HouseMenu.SetButtonState((bool)args[0] ? "entry" : "closet", !(bool)args[1]);
+            });
         }
 
         public static void FindObject(MapObject obj)
@@ -484,31 +492,11 @@ namespace BCRPClient.Sync
                 }
             }, 0);
 
-            var existingBlip = obj.GetData<Blip>("Blip");
+            var blip = new Additional.ExtraBlip(162, obj.GetCoords(false), null, 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.Furniture);
 
-            if (existingBlip != null && RAGE.Game.Ui.DoesBlipExist(existingBlip.Handle))
-                return;
-
-            var blip = new Blip(162, obj.GetCoords(false), "Мебель", 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension);
+            blip.SetAsReachable(2.5f);
 
             TempBlips.Add(blip);
-
-            obj.SetData("Blip", blip);
-
-            (new AsyncTask(() =>
-            {
-                if (blip == null || !RAGE.Game.Ui.DoesBlipExist(blip.Handle))
-                    return true;
-
-                if (Player.LocalPlayer.Dimension != blip.Dimension || Player.LocalPlayer.Position.DistanceTo2D(blip.GetInfoIdCoord()) <= 1.5f)
-                {
-                    blip.Destroy();
-
-                    return true;
-                }
-
-                return false;
-            }, 1000, true, 1000)).Run();
         }
 
         private static async void CreateObject(uint fUid, Data.Furniture fData, Utils.Vector4 fProps)

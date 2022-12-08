@@ -434,11 +434,11 @@ namespace BCRPClient.CEF
 
             var properties = new List<object[]>();
 
-            properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, "Luxe", 10000000 }));
+            properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, x.Data.Class.ToString(), x.Data.GovPrice }));
 
-            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), "Business", 10000000, x.SubId }));
+            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), "Business", x.Price, x.SubId }));
 
-            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), "Дом", Utils.GetStreetName(x.Position), "Luxe", 10000000, x.Id }));
+            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), "Дом", Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }

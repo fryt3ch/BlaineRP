@@ -197,6 +197,15 @@ namespace BCRPServer
             [JsonProperty(PropertyName = "RZ")]
             public float RotationZ { get; set; }
 
+            [JsonIgnore]
+            public float X => Position.X;
+
+            [JsonIgnore]
+            public float Y => Position.Y;
+
+            [JsonIgnore]
+            public float Z => Position.Z;
+
             public Vector4(float X, float Y, float Z, float RotationZ = 0f)
             {
                 this.Position = new Vector3(X, Y, Z);
@@ -483,6 +492,7 @@ namespace BCRPServer
 
         public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
+        public static Game.Items.Item GiveItem(this PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Items.GiveItem(pData, id, variation, amount, isTemp, notifyOnSuccess, notifyOnFault);
         /// <summary>Метод для удаления всего оружия у игрока</summary>
         /// <param name="pData">PlayerData игрока</param>
         /// <param name="fromInventoryToo">Удалить ли всё оружие из инвентаря тоже?</param>
@@ -758,13 +768,11 @@ namespace BCRPServer
         /// <param name="coeffXY">Коэфициент отдаления от игрока</param>
         /// <returns>Координата точки, находящейся напротив игрока, null - если игрока не существует</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Vector3 GetFrontOf(this Player player, float coeffXY = 1.2f)
-        {
-            if (player?.Exists != true)
-                return null;
+        public static Vector3 GetFrontOf(this Player player, float coeffXY = 1.2f) => player.Position.GetFrontOf(player.Heading, coeffXY);
 
-            var pos = player.Position;
-            var radians = -player.Heading * Math.PI / 180;
+        public static Vector3 GetFrontOf(this Vector3 pos, float rotationZ = 0f, float coeffXY = 1.2f)
+        {
+            var radians = -rotationZ * Math.PI / 180;
 
             return new Vector3(pos.X + (coeffXY * Math.Sin(radians)), pos.Y + (coeffXY * Math.Cos(radians)), pos.Z);
         }
@@ -1041,5 +1049,57 @@ namespace BCRPServer
         }
 
         public static void CreateGPSBlip(this Player player, Vector3 pos, uint dim, bool drawRoute = false) => player.TriggerEvent("Blip::CreateGPS", pos, dim, drawRoute);
+
+        public static void FillFileToReplaceRegion(string fPath, string regionId, List<string> linesToInsert)
+        {
+            var lines = new List<string>();
+
+            var insIdx = 0;
+
+            regionId = $"#region {regionId}";
+
+            using (var sr = new StreamReader(fPath))
+            {
+                bool ignore = false;
+
+                string line;
+
+                var i = 0;
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (!ignore)
+                    {
+                        if (line.Contains(regionId))
+                        {
+                            ignore = true;
+
+                            insIdx = i;
+                        }
+
+                        lines.Add(line);
+                    }
+                    else
+                    {
+                        if (line.Contains("#endregion"))
+                        {
+                            ignore = false;
+
+                            lines.Add(line);
+                        }
+                    }
+
+                    i++;
+                }
+            }
+
+            foreach (var x in linesToInsert)
+                lines.Insert(++insIdx, x);
+
+            File.WriteAllLines(fPath, lines);
+        }
+
+        public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new Vector3({v.X}f, {v.Y}f, {v.Z}f)";
+        public static string ToCSharpStr(this Utils.Vector4 v) => v == null ? "null" : $"new Utils.Vector4({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
     }
 }

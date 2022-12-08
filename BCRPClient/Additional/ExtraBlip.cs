@@ -39,6 +39,7 @@ namespace BCRPClient.Additional
             Default = 0,
             GPS,
             Furniture,
+            AutoPilot,
         }
 
         private static Dictionary<Blip, ExtraBlip> All { get; set; } = new Dictionary<Blip, ExtraBlip>();
@@ -66,10 +67,10 @@ namespace BCRPClient.Additional
         {
             if (Type != Types.Default)
             {
-                if (Name == "")
+                if (Name == null || Name.Length == 0)
                     Name = Locale.General.Blip.TypesNames.GetValueOrDefault(Type) ?? "null";
 
-                All.Where(x => x.Value?.Type == Type).ToList().ForEach(x => x.Value.Destroy());
+                DestroyAllByType(Type);
             }
 
             this.Blip = new Blip(Sprite, Position, Name, Scale, Colour, Alpha, DrawDistance, ShortRange, Rotation, Radius, Dimension);
@@ -124,5 +125,7 @@ namespace BCRPClient.Additional
 
             Colshape?.Delete();
         }
+
+        public static void DestroyAllByType(Types type) => All.Where(x => x.Value?.Type == type).ToList().ForEach(x => x.Value.Destroy());
     }
 }

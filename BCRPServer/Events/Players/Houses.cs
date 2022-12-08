@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace BCRPServer.Events.Players
@@ -31,9 +32,9 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            if (house.IsLocked && house.Owner != pData.Info && house.Settlers.ContainsKey(pData.Info))
+            if (house.IsLocked && house.Owner != pData.Info && !house.Settlers.ContainsKey(pData.Info))
             {
-                player.Notify("House::IsLocked");
+                player.Notify("House::HL");
 
                 return;
             }
@@ -326,7 +327,7 @@ namespace BCRPServer.Events.Players
 
                     x.Value[idx] = state;
 
-                    NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "HouseMenu::SettlerPerm", cid, idx, state);
+                    house.TriggerEventForHouseOwners("HouseMenu::SettlerPerm", cid, idx, state);
 
                     break;
                 }
@@ -500,6 +501,46 @@ namespace BCRPServer.Events.Players
             {
 
             }
+        }
+
+        [RemoteEvent("House::Lock")]
+        public static void HouseLock(Player player, bool doors, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var house = pData.CurrentHouse;
+
+            if (house == null)
+                return;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return;
+            }
+
+            if (doors)
+            {
+                if (state == house.IsLocked)
+                    return;
+
+                house.IsLocked = state;
+            }
+            else
+            {
+                if (state == house.ContainersLocked)
+                    return;
+
+                house.ContainersLocked = state;
+            }
+
+            house.TriggerEventForHouseOwners("House::Lock", doors, state);
         }
     }
 }

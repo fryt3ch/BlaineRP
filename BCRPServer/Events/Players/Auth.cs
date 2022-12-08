@@ -281,7 +281,7 @@ namespace BCRPServer.Events.Players
 
                 var pData = tData.PlayerData;
 
-                pData.LastData.Position = tData.PositionToSpawn;
+                pData.LastData.Position.Position = tData.PositionToSpawn;
                 pData.LastData.Dimension = tData.DimensionToSpawn;
 
                 pData.AccountData = tData.AccountData;
@@ -301,7 +301,7 @@ namespace BCRPServer.Events.Players
 
                 if (sType == TempData.StartPlaceTypes.Last)
                 {
-                    tData.PositionToSpawn = tData.PlayerData.LastData.Position;
+                    tData.PositionToSpawn = tData.PlayerData.LastData.Position.Position;
                     tData.DimensionToSpawn = tData.PlayerData.LastData.Dimension;
                 }
                 else if (sType == TempData.StartPlaceTypes.Spawn)

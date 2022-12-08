@@ -29,7 +29,7 @@ namespace BCRPServer
         private static SemaphoreSlim LocalConnectionSemaphore { get; set; }
         private static SemaphoreSlim GlobalConnectionSemaphore { get; set; }
 
-        private static ConcurrentQueue<MySqlCommand> QueriesQueue { get; set; }
+        private static ConcurrentQueue<MySqlCommand> QueriesQueue { get; set; } = new ConcurrentQueue<MySqlCommand>();
 
         public enum AuthResults
         {
@@ -43,8 +43,6 @@ namespace BCRPServer
 
         public static void StartService()
         {
-            QueriesQueue = new ConcurrentQueue<MySqlCommand>();
-
             Task.Run(async () =>
             {
                 while (true)
@@ -98,19 +96,49 @@ namespace BCRPServer
                 }
             }*/
 
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            try
             {
-                conn.Open();
-
-                foreach (var x in commands)
+                using (var conn = new MySqlConnection(LocalConnectionCredentials))
                 {
-                    x.Connection = conn;
+                    conn.Open();
 
-                    x.ExecuteNonQuery();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            foreach (var x in commands)
+                            {
+                                using (x)
+                                {
+                                    x.Connection = conn;
+                                    x.Transaction = transaction;
+
+                                    x.ExecuteNonQuery();
+                                }
+                            }
+
+                            transaction.Commit();
+
+                            Console.WriteLine($"{commands.Count} local queries were done!");
+                        }
+                        catch (Exception exC)
+                        {
+                            try
+                            {
+                                transaction.Rollback();
+                            }
+                            catch (Exception exTr)
+                            {
+
+                            }
+                        }
+                    }
                 }
             }
+            catch (Exception exG)
+            {
 
-            Console.WriteLine($"{commands.Count} local queries were done!");
+            }
         }
 
         public static void PushQuery(MySqlCommand cmd) => QueriesQueue.Enqueue(cmd);
@@ -1393,7 +1421,7 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET Tuning=@TuningWHERE ID=@ID;";
+            cmd.CommandText = "UPDATE vehicles SET Tuning=@Tuning WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
@@ -1451,7 +1479,11 @@ namespace BCRPServer
                         business.OrderedMaterials = (int)reader["OrderedMaterials"];
 
                         business.Margin = (float)reader["Margin"];
-                        business.MaterialPrice = (int)reader["MaterialPrice"];
+
+                        business.Tax = (float)reader["Tax"];
+                        business.Rent = (int)reader["Rent"];
+
+                        business.GovPrice = (int)reader["GovPrice"];
 
                         business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<int[]>();
 
@@ -1462,6 +1494,94 @@ namespace BCRPServer
                     }
                 }
             }
+        }
+
+        public static void BusinessUpdateComplete(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET CID=@CID, Cash=@Cash, Bank=@Bank, Margin=@Margin WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            if (business.Owner == null)
+                cmd.Parameters.AddWithValue("@CID", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@CID", business.Owner.CID);
+
+            cmd.Parameters.AddWithValue("@Cash", business.Cash);
+            cmd.Parameters.AddWithValue("@Bank", business.Bank);
+            cmd.Parameters.AddWithValue("@Margin", business.Margin);
+
+            PushQuery(cmd);
+        }
+
+        public static void BusinessUpdateOwner(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET CID=@CID WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            if (business.Owner == null)
+                cmd.Parameters.AddWithValue("@CID", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@CID", business.Owner.CID);
+
+            PushQuery(cmd);
+        }
+
+        public static void BusinessUpdateCash(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET Cash=@Cash WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            cmd.Parameters.AddWithValue("@Cash", business.Cash);
+
+            PushQuery(cmd);
+        }
+
+        public static void BusinessUpdateBank(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET Bank=@Bank WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            cmd.Parameters.AddWithValue("@Bank", business.Bank);
+
+            PushQuery(cmd);
+        }
+
+        public static void BusinessUpdateMargin(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET Margin=@Margin WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            cmd.Parameters.AddWithValue("@Margin", business.Margin);
+
+            PushQuery(cmd);
+        }
+
+        public static void BusinessUpdateOnRestart(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET Statistics=@Statistics WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            cmd.Parameters.AddWithValue("@Statistics", business.Statistics.SerializeToJson());
+
+            PushQuery(cmd);
         }
         #endregion
 
