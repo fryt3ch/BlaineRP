@@ -258,6 +258,8 @@ namespace BCRPClient.Sync
                 mp.events.add('outgoingDamage', (sourceEntity, targetEntity, sourcePlayer, weapon, boneIndex, damage) => { mp.game.weapon.setCurrentDamageEventAmount(boneIndex); });"
             );
 
+            Player.LocalPlayer.SetInfiniteAmmoClip(true);
+
             LastAttackerInfo = (Player.LocalPlayer, 0, -1, DateTime.Now);
 
             Reloading = false;
@@ -417,7 +419,8 @@ namespace BCRPClient.Sync
             {
                 LastWeaponShot = DateTime.Now;
 
-                Additional.AntiCheat.LastAllowedAmmo--;
+                if (Additional.AntiCheat.LastAllowedAmmo > 0)
+                    Additional.AntiCheat.LastAllowedAmmo--;
             };
 
             #region Events
@@ -447,11 +450,13 @@ namespace BCRPClient.Sync
         {
             var weapon = RAGE.Elements.Player.LocalPlayer.GetSelectedWeapon();
 
-            var curAmmo = RAGE.Elements.Player.LocalPlayer.GetAmmoInWeapon(weapon);
+            var curAmmo = Additional.AntiCheat.LastAllowedAmmo;
 
             Player.LocalPlayer.SetCurrentWeapon(weapon, true);
 
             CEF.HUD.SetAmmo(curAmmo);
+
+            Player.LocalPlayer.SetAmmo(weapon, curAmmo < 0 ? 9999 : Additional.AntiCheat.LastAllowedAmmo, 1);
 
             // AutoReload
             if (curAmmo == 0 && RAGE.Game.Player.IsPlayerFreeAiming() && (RAGE.Game.Pad.IsControlPressed(32, 24) || RAGE.Game.Pad.IsDisabledControlPressed(32, 24)) && Settings.Interface.AutoReload)
@@ -499,6 +504,9 @@ namespace BCRPClient.Sync
             var weapProp = WeaponList.Where(x => x.Hash == curWeapon).FirstOrDefault();
 
             if (weapProp == null || !weapProp.HasAmmo)
+                return;
+
+            if (Additional.AntiCheat.LastAllowedAmmo < 0)
                 return;
 
             // add an check if weapon is full of ammo
@@ -643,12 +651,12 @@ namespace BCRPClient.Sync
                     if (!veh.Exists|| veh.Controller?.Handle != Player.LocalPlayer.Handle)
                         return;
 
-                    var vData = Sync.Vehicles.GetData(targetEntity as Vehicle);
+                    var vData = Sync.Vehicles.GetData(veh);
 
                     if (vData == null)
                         return;
 
-                    if (vData.IsInvincible)
+                    if (!veh.GetCanBeDamaged())
                         return;
 
                     var pPos = veh.GetCoords(false);
@@ -691,11 +699,9 @@ namespace BCRPClient.Sync
             if (Player.LocalPlayer.HasData("InGreenZone"))
                 return;
 
-            if (targetEntity?.Type == RAGE.Elements.Type.Vehicle)
+            if (targetEntity is Vehicle veh)
             {
-                var data = Sync.Vehicles.GetData(targetEntity as Vehicle);
-
-                if (data == null || data.IsInvincible)
+                if (veh.GetCanBeDamaged() || veh.Controller?.Handle == Player.LocalPlayer.Handle)
                     return;
 
                 if (LastSentVehicleDamage.IsSpam(100, false, false))

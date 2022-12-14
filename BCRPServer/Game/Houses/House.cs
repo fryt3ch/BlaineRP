@@ -171,7 +171,6 @@ namespace BCRPServer.Game.Houses
         }
 
         /// <summary>ID дома</summary>
-        /// <value>У домов, квартир - разные!</value>
         public uint ID { get; set; }
 
         /// <summary>Тип дома</summary>

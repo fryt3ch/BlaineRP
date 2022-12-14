@@ -8,16 +8,36 @@ namespace BCRPServer.Additional
     class AntiCheat
     {
         #region Legalization Methods
-        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false)
+        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, bool onlyDriver = true)
         {
-            if (dimension is uint dim)
-            {
-                veh.Dimension = dim;
-            }
+            var lastDim = veh.Dimension;
 
-            foreach (var x in veh.Occupants)
-                if (x is Player player)
-                    player.TriggerEvent("AC::State::TP", pos, false, heading, fade);
+            if (dimension is uint dim)
+                veh.Dimension = dim;
+
+            if (onlyDriver)
+            {
+                foreach (var x in veh.Occupants)
+                {
+                    if (x is Player player)
+                    {
+                        if (player.VehicleSeat == 0)
+                        {
+                            player.TriggerEvent("AC::State::TP", pos, false, heading, fade);
+                        }
+                        else
+                        {
+                            player.WarpOutOfVehicle();
+
+                            player.Dimension = lastDim;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                veh.TriggerEventOccupants("AC::State::TP", pos, false, heading, fade);
+            }
         }
 
         /// <summary>Установить позицию игрока</summary>
@@ -117,6 +137,9 @@ namespace BCRPServer.Additional
             player.RemoveAllWeapons();
 
             player.TriggerEvent("AC::State::Weapon", ammo, hash);
+
+            if (ammo < 0)
+                ammo = 0;
 
             NAPI.Player.GivePlayerWeapon(player, hash, ammo);
         }

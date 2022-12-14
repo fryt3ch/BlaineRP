@@ -43,9 +43,27 @@ namespace BCRPClient
 
                 public static string AdminLabel = "Администратор";
 
+                public static string PlayerQuitText = "Игрок вышел {0} в {1}\nCID: #{2} | ID: {3}";
+
                 public static Dictionary<Sync.Players.FractionTypes, string> FractionNames = new Dictionary<Sync.Players.FractionTypes, string>()
                 {
                     { Sync.Players.FractionTypes.None, "Отсутствует" },
+                };
+
+                public static Dictionary<Sync.Players.SkillTypes, string> SkillNames = new Dictionary<Sync.Players.SkillTypes, string>()
+                {
+                    { Sync.Players.SkillTypes.Shooting, "Стрельба" },
+                    { Sync.Players.SkillTypes.Fishing, "Рыболовство" },
+                    { Sync.Players.SkillTypes.Cooking, "Кулинария" },
+                    { Sync.Players.SkillTypes.Strength, "Сила" },
+                };
+
+                public static Dictionary<Sync.Players.SkillTypes, string> SkillNamesGenitive = new Dictionary<Sync.Players.SkillTypes, string>()
+                {
+                    { Sync.Players.SkillTypes.Shooting, "стрельбы" },
+                    { Sync.Players.SkillTypes.Fishing, "рыболовства" },
+                    { Sync.Players.SkillTypes.Cooking, "кулинарии" },
+                    { Sync.Players.SkillTypes.Strength, "силы" },
                 };
             }
             #endregion
@@ -61,6 +79,8 @@ namespace BCRPClient
                 public static string TuningPearl = "Перламутр";
                 public static string TuningWheelColour = "Цвет покрышек";
                 public static string TuningTyreSmokeColour = "Цвет дыма от колес";
+
+                public static string ShootingRangeTitle = "Тир";
             }
 
             public static class NPC
@@ -719,6 +739,12 @@ namespace BCRPClient
                 public static string TextAttacker = "Атакующий: {0} | CID: #{1}";
                 public static string TextSelf = "Несчастный случай";
             }
+
+            public static string ShootingRangeCountdownTitle = "~g~Приготовьтесь!";
+            public static string ShootingRangeCountdownText = "Начало через: {0}";
+
+            public static string ShootingRangeScoreText = "Счёт: {0} / {1}";
+            public static string ShootingRangeAccuracyText = "Точность: {0}%";
         }
 
         public static class Interaction
@@ -743,6 +769,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.ATM, "чтобы воспользоваться банкоматом" },
 
                 { Additional.ExtraColshape.InteractionTypes.TuningEnter, "чтобы перейти к тюнингу" },
+
+                { Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter, "чтобы войти в тир [${0}]" },
             };
         }
 
@@ -821,6 +849,8 @@ namespace BCRPClient
                 { Data.Locations.Business.Types.AeroShop, "Салон воздушного транспорта" },
 
                 { Data.Locations.Business.Types.TuningShop, "Тюнинг" },
+
+                { Data.Locations.Business.Types.WeaponShop, "Оружейный магазин" },
             };
 
             public static string NoOwner = "Государство";
@@ -892,6 +922,9 @@ namespace BCRPClient
                     public static string EMSNotified = "Службы скорой помощи получили ваш вызов!";
                 }
 
+                public static string SkillUp = "Навык {0} повышен! [+{1}]\nТекущий уровень: {2}/{3}]";
+                public static string SkillDown = "Навык {0} понижен! [-{1}]\nТекущий уровень: {2}/{3}";
+
                 public static string MaxAmountOfBusinesses = "Вы уже владеете максимальным количеством бизнесов!";
                 public static string MaxAmountOfHouses = "Вы уже владеете максимальным количеством домов!";
                 public static string MaxAmountOfApartments = "Вы уже владеете максимальным количеством квартир!";
@@ -916,7 +949,7 @@ namespace BCRPClient
 
                 public static string LightColourChanged = "Цвет света лампы был изменен!";
 
-                public static string IsLocked = "Дверь закрыта вледельцем!";
+                public static string IsLocked = "Дверь закрыта владельцем!";
                 public static string ContainersLocked = "Контейнеры закрыты владельцем!";
 
                 public static string ExpelledHouse = "{0} выписал вас из дома #{1}";
@@ -1079,6 +1112,8 @@ namespace BCRPClient
 
                 public static string NoSuchItem = "У вас нет необходимого предмета в инвентаре!";
                 public static string NoSuchItemAmount = "У вас нет необходимого кол-ва нужного предмета в инвентаре!";
+
+                public static string InventoryBlocked = "В данный момент вы не можете взаимодействовать с инвентарем!";
             }
 
             public static class Gifts

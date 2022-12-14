@@ -33,9 +33,6 @@ namespace BCRPServer.Events.Vehicles
                 return;
             }
 
-            if (vData.IsInvincible)
-                vData.IsInvincible = false;
-
             var curWeapon = pData.ActiveWeapon;
 
             if (curWeapon != null)
@@ -43,6 +40,8 @@ namespace BCRPServer.Events.Vehicles
                 if (!curWeapon.Value.WeaponItem.Data.CanUseInVehicle)
                     pData.InventoryAction(curWeapon.Value.Group, curWeapon.Value.Slot, 5);
             }
+
+            player.TriggerEvent("Vehicles::Enter", vData.FuelLevel, vData.Mileage);
 
             pData.VehicleSeat = seatId;
         }
@@ -66,9 +65,6 @@ namespace BCRPServer.Events.Vehicles
 
             if (vData.ForcedSpeed != 0f && veh.GetEntityInVehicleSeat(0) != null)
                 vData.ForcedSpeed = 0f;
-
-            if (!vData.IsInvincible && veh.Occupants.Count == 0)
-                vData.IsInvincible = true;
 
             pData.VehicleSeat = -1;
         }
@@ -140,7 +136,7 @@ namespace BCRPServer.Events.Vehicles
                     }
                     else
                     {
-                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.OutOfFuel);
+                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
                         player.Notify("Engine::OutOfFuel");
                     }
                 }
@@ -181,7 +177,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
                 pData.PlayAnim(Animations.FastTypes.VehLocking);
             }
@@ -331,7 +327,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
                 pData.PlayAnim(Animations.FastTypes.VehLocking);
             }
@@ -390,7 +386,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                player.AttachObject(Sync.AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
 
                 pData.PlayAnim(Animations.FastTypes.VehLocking);
             }
@@ -411,8 +407,8 @@ namespace BCRPServer.Events.Vehicles
         #endregion
 
         #region Fuel Level + Mileage
-        [RemoteEvent("Vehicles::UpdateFuelLevel")]
-        public static void UpdateFuelLevel(Player player, float diff)
+        [RemoteEvent("Vehicles::Sync")]
+        public static void Sync(Player player, float fuelDiff, float mileageDiff, byte dirtLevel)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -434,55 +430,34 @@ namespace BCRPServer.Events.Vehicles
             if (!vData.EngineOn)
                 return;
 
-            float currentLevel = vData.FuelLevel;
+            var curDirt = vData.DirtLevel;
 
-            if (diff <= 0f || diff > 1f)
-                return;
-
-            currentLevel -= diff;
-
-            if (currentLevel < 0f)
-                currentLevel = 0f;
-
-            vData.FuelLevel = currentLevel;
-
-            if (currentLevel == 0f)
+            if (curDirt < dirtLevel)
             {
-                ToggleEngine(pData, vData, false);
+                vData.DirtLevel = dirtLevel;
             }
-        }
 
-        [RemoteEvent("Vehicles::UpdateMileage")]
-        public static void UpdateMileage(Player player, float diff)
-        {
-            var sRes = player.CheckSpamAttack();
+            if (fuelDiff > 0f && fuelDiff < 1f)
+            {
+                float curFuel = vData.FuelLevel;
 
-            if (sRes.IsSpammer)
-                return;
+                curFuel -= fuelDiff;
 
-            if (player.VehicleSeat != 0)
-                return;
+                if (curFuel < 0f)
+                    curFuel = 0f;
 
-            var pData = sRes.Data;
+                vData.FuelLevel = curFuel;
 
-            var veh = player.Vehicle;
+                if (curFuel == 0f)
+                {
+                    ToggleEngine(pData, vData, false);
+                }
+            }
 
-            var vData = veh.GetMainData();
-
-            if (vData == null)
-                return;
-
-            if (!vData.EngineOn)
-                return;
-
-            float currentLevel = vData.Mileage;
-
-            if (diff <= 0f || diff > 1000f)
-                return;
-
-            currentLevel += diff;
-
-            vData.Mileage = currentLevel;
+            if (mileageDiff > 0 && mileageDiff < 1000f)
+            {
+                vData.Mileage += mileageDiff;
+            }
         }
         #endregion
 
@@ -553,7 +528,7 @@ namespace BCRPServer.Events.Vehicles
             if (target.Vehicle != player.Vehicle)
                 return;
 
-            if (Sync.Chat.SendLocal(Chat.Types.TryPlayer, player, Locale.Chat.Vehicle.Kick, target))
+            if (Chat.SendLocal(Chat.Types.TryPlayer, player, Locale.Chat.Vehicle.Kick, target))
             {
                 target.WarpOutOfVehicle();
             }
@@ -587,6 +562,9 @@ namespace BCRPServer.Events.Vehicles
 
                 return;
             }
+
+            if (!pData.CanUseInventory(true))
+                return;
 
             if (!pData.TryGiveExistingItem(vData.Numberplate, 1, true, true))
                 return;
@@ -687,6 +665,32 @@ namespace BCRPServer.Events.Vehicles
             MySQL.VehicleNumberplateUpdate(vData.Info);
 
             player.Notify("NP::Set", np.Tag);
+        }
+
+        [RemoteEvent("Vehicles::Anchor")]
+        private static void Anchor(Player player, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var veh = player.Vehicle;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat || vData.ForcedSpeed != 0f)
+                return;
+
+            if (state == vData.IsAnchored)
+                return;
+
+            vData.IsAnchored = state;
         }
     }
 }

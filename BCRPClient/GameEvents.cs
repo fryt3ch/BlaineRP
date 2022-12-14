@@ -12,6 +12,10 @@ namespace BCRPClient
 {
     public class GameEvents : Events.Script
     {
+        private static int _FPS { get; set; }
+
+        public static int FPS { get; private set; }
+
         public static bool PlayerFreezed = false;
 
         private static AsyncTask MainLoop;
@@ -34,11 +38,16 @@ namespace BCRPClient
 
         public static (int X, int Y) ScreenResolution = (0, 0);
 
+        private static int DisableAllControlsCounter { get; set; }
+        private static int DisableMoveCounter { get; set; }
+
         public GameEvents()
         {
             RAGE.Ui.Console.Clear();
             RAGE.Chat.Activate(false);
             RAGE.Chat.Show(false);
+
+            FpsCounter();
 
             Player.LocalPlayer.SetVisible(true, false);
 
@@ -59,7 +68,8 @@ namespace BCRPClient
             RAGE.Game.Ui.DisplayRadar(false);
 
             Render += HideHudComponents;
-            Render += DisableAllControls;
+
+            GameEvents.DisableAllControls(true);
 
             Events.OnPlayerSpawn += (RAGE.Events.CancelEventArgs cancel) =>
             {
@@ -73,6 +83,30 @@ namespace BCRPClient
                 Sync.AttachSystem.ReattachObjects(Player.LocalPlayer, true);
 
                 Additional.ExtraColshape.UpdateStreamed();
+            };
+
+            Events.OnPlayerQuit += (Player player) =>
+            {
+                var pData = Sync.Players.GetData(player);
+
+                if (pData == null)
+                    return;
+
+                var pos = player.Position;
+
+                var curTime = Utils.GetServerTime();
+
+                var text = new TextLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
+
+                pos.Z -= 1f;
+
+                var marker = new Marker(42, pos, 1f, new Vector3(90f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 165, 0, 125), true, player.Dimension);
+
+                AsyncTask.RunSlim(() =>
+                {
+                    marker?.Destroy();
+                    text?.Destroy();
+                }, 60000);
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
@@ -229,14 +263,60 @@ namespace BCRPClient
             Sync.World.Preload();
         }
 
-        public static void DisableAllControls()
+        public static void DisableAllControls(bool state)
+        {
+            if (state)
+            {
+                DisableAllControlsCounter++;
+
+                Render -= DisableAllControlsRender;
+                Render += DisableAllControlsRender;
+            }
+            else
+            {
+                if (DisableAllControlsCounter > 0)
+                {
+                    DisableAllControlsCounter--;
+
+                    if (DisableAllControlsCounter > 0)
+                        return;
+                }
+
+                Render -= DisableAllControlsRender;
+            }
+        }
+
+        public static void DisableMove(bool state)
+        {
+            if (state)
+            {
+                DisableMoveCounter++;
+
+                Render -= DisableMoveRender;
+                Render += DisableMoveRender;
+            }
+            else
+            {
+                if (DisableMoveCounter > 0)
+                {
+                    DisableMoveCounter--;
+
+                    if (DisableMoveCounter > 0)
+                        return;
+                }
+
+                Render -= DisableMoveRender;
+            }
+        }
+
+        private static void DisableAllControlsRender()
         {
             RAGE.Game.Pad.DisableAllControlActions(0);
             RAGE.Game.Pad.DisableAllControlActions(1);
             RAGE.Game.Pad.DisableAllControlActions(2);
         }
 
-        public static void DisableMove()
+        private static void DisableMoveRender()
         {
             RAGE.Game.Pad.DisableAllControlActions(0);
             RAGE.Game.Pad.DisableAllControlActions(2);
@@ -292,6 +372,24 @@ namespace BCRPClient
             // EndScaleformMovieMethod
             RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53);
         }
+
+        private static async void FpsCounter()
+        {
+            while (true)
+            {
+                _FPS = 0;
+
+                Render += FpsCounterRender;
+
+                await RAGE.Game.Invoker.WaitAsync(1000);
+
+                Render -= FpsCounterRender;
+
+                FPS = _FPS;
+            }
+        }
+
+        private static void FpsCounterRender() => _FPS++;
         #endregion
     }
 }

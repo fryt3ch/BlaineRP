@@ -56,6 +56,8 @@ namespace BCRPServer.Game.Businesses
             GasStation,
 
             TuningShop,
+
+            WeaponShop,
         }
 
         public abstract string ClientData { get; }
@@ -173,6 +175,8 @@ namespace BCRPServer.Game.Businesses
             new TuningShop(22, new Vector3(720.2494f, -1082.472f, 21.25672f), new Utils.Vector4(732.6448f, -1088.88f, 21.78887f, 140f), new Utils.Vector4[] { new Utils.Vector4(719.222f, -1079.078f, 21.85986f, 95f), new Utils.Vector4(705.7102f, -1071.86f, 22.03793f, 270f), new Utils.Vector4(705.0659f, -1061.33f, 22.0562f, 270f), new Utils.Vector4(706.761f, -1053.564f, 21.96827f, 250f) }, new Utils.Vector4(732.6448f, -1088.88f, 21.78887f));
             new TuningShop(23, new Vector3(-1139.816f, -1992.655f, 12.16545f), new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f, 0f), new Utils.Vector4[] { new Utils.Vector4(-1151.391f, -1982.481f, 12.77934f, 280f), new Utils.Vector4(-1136.405f, -1975.773f, 12.78101f, 180f), new Utils.Vector4(-1132.026f, -1975.115f, 12.78097f, 180f), new Utils.Vector4(-1127.017f, -1976.082f, 12.79133f, 180f) }, new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f));
 
+            new WeaponShop(24, new Vector3(-1109.188f, 2690.507f, 17.6103f), new Utils.Vector4(-1118.7f, 2699.981f, 18.55415f, 218.2682f), new Utils.Vector4(-1122.019f, 2696.923f, 18.55415f, 305.8211f));
+
             var lines = new List<string>();
 
             foreach (var x in All.Values)
@@ -204,6 +208,8 @@ namespace BCRPServer.Game.Businesses
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_SHOP_DATA_PATH, "TO_REPLACE", lines);
+
+            WeaponShop.ShootingRangePrice = 150;
 
             return All.Count;
         }
@@ -253,6 +259,32 @@ namespace BCRPServer.Game.Businesses
                 }
 
                 pData.BankBalance -= realPrice;
+
+                MySQL.BankAccountUpdate(pData.BankAccount);
+            }
+        }
+
+        public void PaymentProceed(PlayerData pData, bool cash, int fixedPrice)
+        {
+            if (cash)
+            {
+                if (Owner != null)
+                {
+                    Cash += (int)Math.Floor(fixedPrice * (1f - Tax));
+                }
+
+                pData.Cash -= fixedPrice;
+
+                MySQL.CharacterUpdateCash(pData.Info);
+            }
+            else
+            {
+                if (Owner != null)
+                {
+                    Bank += (int)Math.Floor(fixedPrice * (1f - Tax - INCASSATION_TAX));
+                }
+
+                pData.BankBalance -= fixedPrice;
 
                 MySQL.BankAccountUpdate(pData.BankAccount);
             }
@@ -2417,7 +2449,16 @@ namespace BCRPServer.Game.Businesses
                     { "rwheel_0", 100 },
                     { "rwheel_7", 100 },
                 } }
-            }
+            },
+
+            {
+                Types.WeaponShop,
+
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
+                {
+
+                } }
+            },
         };
 
         public Dictionary<string, int> Prices => AllPrices[Type].Prices;
@@ -2623,6 +2664,8 @@ namespace BCRPServer.Game.Businesses
 
             PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
 
+            Sync.Players.ExitFromBuiness(pData, false);
+
             pData.Player.Teleport(vPos.Position, false, Utils.Dimensions.Main, vPos.RotationZ, true);
 
             return true;
@@ -2742,17 +2785,17 @@ namespace BCRPServer.Game.Businesses
             if (iData.Length <= 1)
                 return false;
 
+            byte p;
+
+            if (!byte.TryParse(iData[1], out p))
+                return false;
+
             var slot = GetModSlot(iData[0]);
 
-            (int MatPrice, int RealPrice)? res;
+            (int MatPrice, int RealPrice)? res = null;
 
             if (slot is byte bSlot)
             {
-                byte mNum;
-
-                if (!byte.TryParse(iData[1], out mNum))
-                    return false;
-
                 if (iData[0] == "engine" || iData[0] == "brakes" || iData[0] == "trm" || iData[0] == "susp")
                 {
                     res = CanBuy(pData, useCash, item, 1);
@@ -2765,23 +2808,45 @@ namespace BCRPServer.Game.Businesses
                 if (res == null)
                     return false;
 
-                if (mNum == 0)
-                    mNum = 255;
+                if (p == 0)
+                    p = 255;
                 else
-                    mNum--;
+                    p--;
 
-                vData.Tuning.Mods[bSlot] = mNum;
+                vData.Tuning.Mods[bSlot] = p;
+
+                MySQL.VehicleTuningUpdate(vData.Info);
             }
             else
             {
-                if (iData[0] == "wheel" || iData[0] == "rwheel")
+                if (iData[0] == "fix")
+                {
+                    res = CanBuy(pData, useCash, item, 1);
+
+                    if (res == null)
+                        return false;
+
+                    if (p == 0)
+                    {
+                        vData.Vehicle.SetFixed();
+                    }
+                    else
+                    {
+                        vData.Vehicle.SetVisualFixed();
+                    }
+                }
+                else if (iData[0] == "keys")
+                {
+
+                }
+                else if (iData[0] == "wheel" || iData[0] == "rwheel")
                 {
                     if (iData.Length != 3)
                         return false;
 
-                    byte t, n;
+                    byte n;
 
-                    if (!byte.TryParse(iData[1], out t) || !byte.TryParse(iData[2], out n))
+                    if (!byte.TryParse(iData[2], out n))
                         return false;
 
                     res = CanBuy(pData, useCash, $"{iData[0]}_{iData[1]}", 1);
@@ -2795,16 +2860,18 @@ namespace BCRPServer.Game.Businesses
                     }
                     else
                     {
-                        if (t > 0)
-                            t--;
+                        if (p > 0)
+                            p--;
 
-                        vData.Tuning.WheelsType = t;
+                        vData.Tuning.WheelsType = p;
                     }
 
                     if (n == 0)
                         n = 255;
 
                     vData.Tuning.Mods[(byte)(iData[0] == "wheel" ? 23 : 24)] = n;
+
+                    MySQL.VehicleTuningUpdate(vData.Info);
                 }
                 else if (iData[0] == "neon")
                 {
@@ -2819,9 +2886,9 @@ namespace BCRPServer.Game.Businesses
                     }
                     else if (iData.Length == 4)
                     {
-                        byte r, g, b;
+                        byte g, b;
 
-                        if (!byte.TryParse(iData[1], out r) || !byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
+                        if (!byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
                             return false;
 
                         res = CanBuy(pData, useCash, iData[0], 1);
@@ -2831,17 +2898,19 @@ namespace BCRPServer.Game.Businesses
 
                         if (vData.Tuning.NeonColour == null)
                         {
-                            vData.Tuning.NeonColour = new Utils.Colour(r, g, b, 255);
+                            vData.Tuning.NeonColour = new Utils.Colour(p, g, b, 255);
                         }
                         else
                         {
-                            vData.Tuning.NeonColour.Red = r;
+                            vData.Tuning.NeonColour.Red = p;
                             vData.Tuning.NeonColour.Green = g;
                             vData.Tuning.NeonColour.Blue = b;
                         }
                     }
                     else
                         return false;
+
+                    MySQL.VehicleTuningUpdate(vData.Info);
                 }
                 else if (iData[0] == "tsmoke")
                 {
@@ -2856,9 +2925,9 @@ namespace BCRPServer.Game.Businesses
                     }
                     else if (iData.Length == 4)
                     {
-                        byte r, g, b;
+                        byte g, b;
 
-                        if (!byte.TryParse(iData[1], out r) || !byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
+                        if (!byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
                             return false;
 
                         res = CanBuy(pData, useCash, iData[0], 1);
@@ -2868,26 +2937,28 @@ namespace BCRPServer.Game.Businesses
 
                         if (vData.Tuning.TyresSmokeColour == null)
                         {
-                            vData.Tuning.TyresSmokeColour = new Utils.Colour(r, g, b, 255);
+                            vData.Tuning.TyresSmokeColour = new Utils.Colour(p, g, b, 255);
                         }
                         else
                         {
-                            vData.Tuning.TyresSmokeColour.Red = r;
+                            vData.Tuning.TyresSmokeColour.Red = p;
                             vData.Tuning.TyresSmokeColour.Green = g;
                             vData.Tuning.TyresSmokeColour.Blue = b;
                         }
                     }
                     else
                         return false;
+
+                    MySQL.VehicleTuningUpdate(vData.Info);
                 }
                 else if (iData[0] == "colour")
                 {
                     if (iData.Length != 7)
                         return false;
 
-                    byte r1, g1, b1, r2, g2, b2;
+                    byte g1, b1, r2, g2, b2;
 
-                    if (!byte.TryParse(iData[1], out r1) || !byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
+                    if (!byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
                         return false;
 
                     res = CanBuy(pData, useCash, iData[0], 1);
@@ -2895,21 +2966,18 @@ namespace BCRPServer.Game.Businesses
                     if (res == null)
                         return false;
 
-                    vData.Tuning.Colour1.Red = r1;
+                    vData.Tuning.Colour1.Red = p;
                     vData.Tuning.Colour1.Green = g1;
                     vData.Tuning.Colour1.Blue = b1;
 
                     vData.Tuning.Colour2.Red = r2;
                     vData.Tuning.Colour2.Green = g2;
                     vData.Tuning.Colour2.Blue = b2;
+
+                    MySQL.VehicleTuningUpdate(vData.Info);
                 }
                 else
                 {
-                    byte p;
-
-                    if (!byte.TryParse(iData[1], out p))
-                        return false;
-
                     if (iData[0] == "pearl")
                     {
                         res = CanBuy(pData, useCash, p == 0 ? item : iData[0], 1);
@@ -2918,6 +2986,8 @@ namespace BCRPServer.Game.Businesses
                             return false;
 
                         vData.Tuning.PearlescentColour = p;
+
+                        MySQL.VehicleTuningUpdate(vData.Info);
                     }
                     else if (iData[0] == "wcolour")
                     {
@@ -2927,6 +2997,8 @@ namespace BCRPServer.Game.Businesses
                             return false;
 
                         vData.Tuning.WheelsColour = p;
+
+                        MySQL.VehicleTuningUpdate(vData.Info);
                     }
                     else
                     {
@@ -2953,6 +3025,8 @@ namespace BCRPServer.Game.Businesses
                         }
                         else
                             return false;
+
+                        MySQL.VehicleTuningUpdate(vData.Info);
                     }
                 }
             }
@@ -2962,7 +3036,35 @@ namespace BCRPServer.Game.Businesses
 
             PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
 
-            MySQL.VehicleTuningUpdate(vData.Info);
+            return true;
+        }
+    }
+
+    public class WeaponShop : Shop
+    {
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {PositionInteract.ToCSharpStr()}, {PositionShootingRangeEnter.Position.ToCSharpStr()}";
+
+        public Utils.Vector4 PositionShootingRangeEnter { get; set; }
+
+        public static int ShootingRangePrice { get => Sync.World.GetSharedData<int>("SRange::Price"); set => Sync.World.SetSharedData("SRange::Price", value); }
+
+        public static Utils.Vector4 ShootingRangePosition { get; private set; } = new Utils.Vector4(13.00517f, -1098.977f, 29.79701f, 337.5131f);
+
+        public WeaponShop(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Utils.Vector4 PositionShootingRangeEnter) : base(ID, PositionInfo, PositionInteract, Types.WeaponShop)
+        {
+            PositionShootingRangeEnter.Position.Z -= 0.5f;
+
+            this.PositionShootingRangeEnter = PositionShootingRangeEnter;
+        }
+
+        public bool BuyShootingRange(PlayerData pData)
+        {
+            var price = ShootingRangePrice;
+
+            if (!pData.HasEnoughCash(price))
+                return false;
+
+            PaymentProceed(pData, true, price);
 
             return true;
         }

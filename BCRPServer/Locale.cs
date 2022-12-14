@@ -16,7 +16,7 @@ namespace BCRPServer
 
                 public static string EngineOn = "запустил(а) двигатель";
                 public static string EngineOff = "заглушил(а) двигатель";
-                public static string OutOfFuel = "Закончилось топливо";
+                public static string EngineBroken = "Двигатель заглох";
 
                 public static string Locked = "заблокировал(а) двери";
                 public static string Unlocked = "разблокировал(а) двери";

@@ -18,8 +18,12 @@ namespace BCRPClient.Additional
 
         public static bool CancelLastColshape { get; set; }
 
+        public static object[] FormatArgsLastIntColshape { get; set; }
+
         private ExtraColshapes()
         {
+            FormatArgsLastIntColshape = new string[] { };
+
             ExtraColshape.LastSent = DateTime.MinValue;
             ExtraColshape.InteractionColshapesAllowed = true;
 
@@ -279,7 +283,7 @@ namespace BCRPClient.Additional
 
                     CEF.HUD.InteractionAction = func;
 
-                    CEF.HUD.SwitchInteractionText(true, Locale.Interaction.Names[data.InteractionType]);
+                    CEF.HUD.SwitchInteractionText(true, string.Format(Locale.Interaction.Names[data.InteractionType], FormatArgsLastIntColshape));
                 }
 
                 data.OnEnter?.Invoke(null);
@@ -384,6 +388,7 @@ namespace BCRPClient.Additional
             ATM,
 
             TuningEnter,
+            ShootingRangeEnter,
         }
 
         public enum ActionTypes
@@ -411,6 +416,7 @@ namespace BCRPClient.Additional
             TuningEnter,
 
             ReachableBlip,
+            ShootingRangeEnter,
         }
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
@@ -567,7 +573,24 @@ namespace BCRPClient.Additional
 
                     return true;
                 }
-            }
+            },
+
+            {
+                InteractionTypes.ShootingRangeEnter, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentShootingRange"))
+                        return false;
+
+                    Events.CallRemote("SRange::Enter::Shop", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.WeaponShop>("CurrentShootingRange").Id);
+
+                    LastSent = DateTime.Now;
+
+                    return true;
+                }
+            },
         };
 
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
@@ -837,6 +860,36 @@ namespace BCRPClient.Additional
                                 if (Player.LocalPlayer.Vehicle != null)
                                     CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.ReachedGPS);
                             }
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.ShootingRangeEnter,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is BCRPClient.Data.Locations.WeaponShop ws)
+                            {
+                                ExtraColshapes.FormatArgsLastIntColshape = new object[] { BCRPClient.Data.Locations.WeaponShop.ShootingRangePrice };
+
+                                Player.LocalPlayer.SetData("CurrentShootingRange", ws);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentShootingRange");
                         }
                     },
                 }

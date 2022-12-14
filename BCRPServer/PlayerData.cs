@@ -405,7 +405,7 @@ namespace BCRPServer
         public List<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
 
         /// <summary>Сущность, к которой прикреплен игрок</summary>
-        public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Player.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { Player.SetData("IsAttachedTo::Entity", value); } }
+        public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Player.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { if (value != null) Player.SetData("IsAttachedTo::Entity", value); else Player.ResetData("IsAttachedTo::Entity"); } }
 
         /// <summary>Транспорт, находящийся в собственности у игрока</summary>
         public List<VehicleData.VehicleInfo> OwnedVehicles { get => Info.OwnedVehicles; set => Info.OwnedVehicles = value; }
@@ -486,9 +486,10 @@ namespace BCRPServer
 
         public List<Game.Houses.Furniture> Furniture { get => Info.Furniture; set => Info.Furniture = value; }
 
-        /// <summary>Текущее оружие игрока (не включает в себя кобуру), которое было временно снято сервером</summary>
-        /// <value>Массив объектов класса Game.Items.Weapon, в котором null - пустой слот</value>
-        public Game.Items.Weapon[] TempWeapons { get; set; }
+        /// <summary>Текущие предметы игрока, которые времено забрал сервер</summary>
+        public List<(Game.Items.Item Item, Game.Items.Inventory.Groups Group, int Slot)> TempItems { get => Player.GetData<List<(Game.Items.Item, Game.Items.Inventory.Groups, int)>>("TempItems"); set { if (value == null) Player.ResetData("TempItems"); else Player.SetData("TempItems", value); } }
+
+        public bool InventoryBlocked { get => Player.GetData<bool?>("Inventory::Blocked") == true; set { if (!value) Player.ResetData("Inventory::Blocked"); else Player.SetData("Inventory::Blocked", value); } }
         #endregion
 
         public List<Game.Items.Gift> Gifts { get => Info.Gifts; set => Info.Gifts = value; }
@@ -671,20 +672,20 @@ namespace BCRPServer
 
         /// <summary>Пристёгнут ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool BeltOn { get => Player.GetOwnSharedData<bool>("Belt::On"); set { Player.SetOwnSharedData("Belt::On", value); } }
+        public bool BeltOn { get => Player.GetOwnSharedData<bool?>("Belt::On") ?? false; set { if (value) Player.SetOwnSharedData("Belt::On", value); else Player.ResetOwnSharedData("Belt::On"); } }
 
         /// <summary>Ранен ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsWounded { get => Player.GetOwnSharedData<bool>("IsWounded"); set { Player.SetOwnSharedData("IsWounded", value); } }
+        public bool IsWounded { get => Player.GetOwnSharedData<bool?>("IsWounded") ?? false; set { if (value) Player.SetOwnSharedData("IsWounded", value); else Player.ResetOwnSharedData("IsWounded"); } }
 
         /// <summary>Ползет ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool CrawlOn { get => Player.GetOwnSharedData<bool>("Crawl::On"); set { Player.SetOwnSharedData("Crawl::On", value); } }
+        public bool CrawlOn { get => Player.GetOwnSharedData<bool?>("Crawl::On") ?? false; set { if (value) Player.SetOwnSharedData("Crawl::On", value); else Player.ResetOwnSharedData("Crawl::On"); } }
 
         /// <summary>Текущая анимация игрока (Fast)</summary>
         /// <remarks>НЕ синхронизуется с игроками ВНЕ зоны стрима (т.к. проигрывается быстро)</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.FastTypes FastAnim { get => (Sync.Animations.FastTypes)Player.GetOwnSharedData<int>("Anim::Fast"); set { Player.SetOwnSharedData("Anim::Fast", (int)value); } }
+        public Sync.Animations.FastTypes FastAnim { get => (Sync.Animations.FastTypes)(Player.GetOwnSharedData<int?>("Anim::Fast") ?? -1); set { if (value > Sync.Animations.FastTypes.None) Player.SetOwnSharedData("Anim::Fast", (int)value); else Player.ResetOwnSharedData("Anim::Fast"); } }
 
         /// <summary>Метод для изменения кол-ва наличных у игрока</summary>
         /// <param name="value">Кол-во (- или +)</param>
@@ -750,17 +751,19 @@ namespace BCRPServer
 
         /// <summary>В маске ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool Masked { get => Player.GetSharedData<bool>("Masked"); set { Player.SetSharedData("Masked", value); } }
+        public bool Masked => Player.GetClothesDrawable(1) > 0;
 
         /// <summary>Без сознания ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsKnocked { get => Player.GetSharedData<bool>("Knocked"); set { Player.SetSharedData("Knocked", value); } }
+        public bool IsKnocked { get => Player.GetSharedData<bool?>("Knocked") ?? false; set { if (value) Player.SetOwnSharedData("Knocked", value); else Player.ResetOwnSharedData("Knocked"); } }
 
-        public int VehicleSeat { get => Player.GetSharedData<int>("VehicleSeat"); set { Player.SetSharedData("VehicleSeat", value); } }
+        public bool IsFrozen { get => Player.GetOwnSharedData<bool?>("IsFrozen") ?? false; set { if (value) Player.SetOwnSharedData("IsFrozen", value); else Player.ResetOwnSharedData("IsFrozen");  } }
+
+        public int VehicleSeat { get => Player.GetSharedData<int?>("VehicleSeat") ?? -1; set { if (value >= 0) Player.SetSharedData("VehicleSeat", value); else Player.ResetSharedData("VehicleSeat"); } }
 
         /// <summary>Приседает ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool CrouchOn { get => Player.GetSharedData<bool>("Crouch::On"); set { Player.SetSharedData("Crouch::On", value); } }
+        public bool CrouchOn { get => Player.GetSharedData<bool?>("Crouch::On") ?? false; set { if (value) Player.SetSharedData("Crouch::On", value); else Player.ResetSharedData("Crouch::On"); } }
 
         /// <summary>Дальность микрофона игрока</summary>
         /// <remarks>Если микрофон игроком не используется: 0, если в муте: -1</remarks>
@@ -773,11 +776,11 @@ namespace BCRPServer
 
         /// <summary>Проблемы ли у игрока со слухом/речью?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsInvalid { get => Player.GetSharedData<bool>("IsInvalid"); set { Player.SetSharedData("IsInvalid", value); } }
+        public bool IsInvalid { get => Player.GetSharedData<bool?>("IsInvalid") ?? false; set { if (value) Player.SetSharedData("IsInvalid", value); else Player.ResetSharedData("IsInvalid"); } }
 
         /// <summary>Использует ли игрок телефон?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool PhoneOn { get => Player.GetSharedData<bool>("Phone::On"); set { Player.SetSharedData("Phone::On", value); } }
+        public bool PhoneOn { get => Player.GetSharedData<bool?>("Phone::On") ?? false; set { if (value) Player.SetSharedData("Phone::On", value); else Player.ResetSharedData("Phone::On"); } }
 
         /// <summary>Уровень администратора игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -785,31 +788,31 @@ namespace BCRPServer
 
         /// <summary>Текущая шапка игрока, необходимо для нормального отображения в игре при входе/выходе из транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public string Hat { get => Player.GetSharedData<string>("Hat"); set { Player.SetSharedData("Hat", value); } }
+        public string Hat { get => Player.GetSharedData<string>("Hat"); set { if (value == null) Player.ResetSharedData("Hat"); else Player.SetSharedData("Hat", value); } }
 
         /// <summary>Является ли игрок невидимым?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsInvisible { get => Player.GetSharedData<bool>("IsInvisible"); set { Player.SetSharedData("IsInvisible", value); Player.SetAlpha(value ? 0 : 255); } }
+        public bool IsInvisible { get => Player.GetSharedData<bool?>("IsInvisible") ?? false; set { if (value) Player.SetSharedData("IsInvisible", value); else Player.ResetSharedData("IsInvisible"); Player.SetAlpha(value ? 0 : 255); } }
 
         /// <summary>Является ли игрок бессмертным?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsInvincible { get => Player.GetSharedData<bool>("IsInvincible"); set { Player.SetSharedData("IsInvincible", value); Player.SetInvincible(value); } }
+        public bool IsInvincible { get => Player.GetSharedData<bool?>("IsInvincible") ?? false; set { if (value) Player.SetSharedData("IsInvincible", value); else Player.ResetSharedData("IsInvincible"); Player.SetInvincible(value); } }
 
         /// <summary>Текущая анимация игрока (General)</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.GeneralTypes GeneralAnim { get => (Sync.Animations.GeneralTypes)Player.GetSharedData<int>("Anim::General"); set { Player.SetSharedData("Anim::General", (int)value); } }
+        public Sync.Animations.GeneralTypes GeneralAnim { get => (Sync.Animations.GeneralTypes)(Player.GetSharedData<int?>("Anim::General") ?? -1); set { if (value > Sync.Animations.GeneralTypes.None) Player.SetSharedData("Anim::General", (int)value); else Player.ResetSharedData("Anim::General"); } }
 
         /// <summary>Текущая анимация игрока (Other)</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.OtherTypes OtherAnim { get => (Sync.Animations.OtherTypes)Player.GetSharedData<int>("Anim::Other"); set { Player.SetSharedData("Anim::Other", (int)value); } }
+        public Sync.Animations.OtherTypes OtherAnim { get => (Sync.Animations.OtherTypes)(Player.GetSharedData<int?>("Anim::Other") ?? -1); set { if (value > Sync.Animations.OtherTypes.None) Player.SetSharedData("Anim::Other", (int)value); else Player.ResetSharedData("Anim::Other"); } }
 
         /// <summary>Текущая походка игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.WalkstyleTypes Walkstyle { get => (Sync.Animations.WalkstyleTypes)Player.GetSharedData<int>("Walkstyle"); set { Player.SetSharedData("Walkstyle", (int)value); } }
+        public Sync.Animations.WalkstyleTypes Walkstyle { get => (Sync.Animations.WalkstyleTypes)(Player.GetSharedData<int?>("Walkstyle") ?? -1); set { if (value > Sync.Animations.WalkstyleTypes.None) Player.SetSharedData("Walkstyle", (int)value); else Player.ResetSharedData("Walkstyle"); } }
 
         /// <summary>Текущая эмоция игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.EmotionTypes Emotion { get => (Sync.Animations.EmotionTypes)Player.GetSharedData<int>("Emotion"); set { Player.SetSharedData("Emotion", (int)value); } }
+        public Sync.Animations.EmotionTypes Emotion { get => (Sync.Animations.EmotionTypes)(Player.GetSharedData<int?>("Emotion") ?? -1); set { if (value > Sync.Animations.EmotionTypes.None) Player.SetSharedData("Emotion", (int)value); else Player.ResetSharedData("Emotion"); } }
 
         /// <summary>Прикрепленные объекты к игроку</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -860,45 +863,17 @@ namespace BCRPServer
             BlockRemoteCalls = false;
             SpamCounter = 0;
 
-            FastAnim = Sync.Animations.FastTypes.None;
-            GeneralAnim = Sync.Animations.GeneralTypes.None;
-            OtherAnim = Sync.Animations.OtherTypes.None;
-
-            Walkstyle = Sync.Animations.WalkstyleTypes.None;
-            Emotion = Sync.Animations.EmotionTypes.None;
-
             LastDamageTime = DateTime.MinValue;
 
             Listeners = new List<Player>();
 
-            IsAttachedTo = null;
-
-            CurrentContainer = null;
-            CurrentBusiness = null;
-
-            IsWounded = false;
-
-            Hat = null;
-            Masked = false;
-            IsKnocked = false;
-            CrouchOn = false;
-            CrawlOn = false;
             VoiceRange = 0f;
-            BeltOn = false;
-            PhoneOn = false;
-
-            VehicleSeat = -1;
-
-            IsInvisible = false;
-            IsInvincible = false;
 
             AttachedEntities = new List<Sync.AttachSystem.AttachmentEntityNet>();
             AttachedObjects = new List<Sync.AttachSystem.AttachmentObjectNet>();
 
             Player.SetData(Sync.AttachSystem.AttachedObjectsIDsKey, new Queue<int>());
             Player.SetData(Sync.AttachSystem.AttachedObjectsCancelsKey, new Dictionary<int, CancellationTokenSource>());
-
-            IsInvalid = false;
 
             Player.SetData("CharacterNotReady", true);
         }
@@ -1084,6 +1059,24 @@ namespace BCRPServer
             Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, hairStyle.ID), 0);
 
             Player.SetSharedData("Customization::HairOverlay", hairStyle.Overlay);
+        }
+
+        public bool CanUseInventory(bool notifyIfNot = true)
+        {
+            if (ActiveOffer?.TradeData != null)
+            {
+                return false;
+            }
+
+            if (InventoryBlocked)
+            {
+                if (notifyIfNot)
+                    Player.Notify("Inventory::Blocked");
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

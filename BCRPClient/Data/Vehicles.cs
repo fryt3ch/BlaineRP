@@ -152,24 +152,27 @@ namespace BCRPClient.Data
 
             #endregion
 
-/*            foreach (var x in All)
+/*            var newModels = new List<string>
             {
-                JObject data = new JObject();
+                "boor", "brickade2", "broadway", "cargoplane2", "entity3", "eudora", "everon2", "issi8", "journey2", "manchez3", "panthere", "powersurge", "r300", "surfer3", "tahoma", "tulip2", "virtue",
+            };
 
-                var model = x.Value.Model;
+            foreach (var x in newModels)
+            {
+                var model = RAGE.Util.Joaat.Hash(x);
+
+                JObject data = new JObject();
 
                 var name = RAGE.Game.Ui.GetLabelText(RAGE.Game.Vehicle.GetDisplayNameFromVehicleModel(model));
                 var brand = RAGE.Game.Ui.GetLabelText(RAGE.Game.Invoker.Invoke<string>(0xF7AF4F159FF99F97, (int)model));
 
                 if (name == "NULL")
-                    name = x.Key.ToString();
+                    name = x;
 
                 if (brand != "NULL")
                     name = $"{brand} {name}";
 
                 data.Add("DisplayName", name);
-
-                //data.Add("DisplayName", null);
 
                 data.Add("MaxSpeed", RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(model));
                 data.Add("MaxBraking", RAGE.Game.Vehicle.GetVehicleModelMaxBraking(model));
@@ -193,7 +196,7 @@ namespace BCRPClient.Data
                 Events.CallRemote("vehicle_data_p", model.ToString(), JsonConvert.SerializeObject(data));
             }
 
-            Events.CallRemote("vehicle_data_f", All.Count);*/
+            Events.CallRemote("vehicle_data_f", newModels.Count);*/
         }
     }
 }

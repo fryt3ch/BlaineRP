@@ -61,7 +61,7 @@ namespace BCRPClient
         }
 
         #region Key Names
-        private static  List<string> KeyNames = new List<string>()
+        private static List<string> KeyNames = new List<string>()
         {
             "-", // [0]
             "", // [1]
@@ -386,10 +386,13 @@ namespace BCRPClient
         {
             /// <summary>Тип бинда</summary>
             public Types Type { get; private set; }
+
             /// <summary>Выполняемое действие</summary>
             public Action Action { get; private set; }
+
             /// <summary>Клавиши</summary>
-            public RAGE.Ui.VirtualKeys[] Keys;
+            public RAGE.Ui.VirtualKeys[] Keys { get;  private set; }
+
             /// <summary>Срабатывает ли сразу при нажатии (без отпускания)?</summary>
             public bool IsDown { get; private set; }
 
@@ -397,13 +400,17 @@ namespace BCRPClient
             /// <value>-1, если бинд не активен, число в противном случае</value>
             public int BindIndex { get; private set; }
 
+            private int DisabledCounter { get; set; }
+
             /// <summary>Тип родителя бинда</summary>
             public Types Parent { get; private set; }
+
             /// <summary>Описание бинда</summary>
             public string Description { get; set; }
 
             /// <summary>Изменяемый ли бинд?</summary>
             public bool Changeable { get; private set; }
+
             /// <summary>Бинд для инвентаря?</summary>
             public bool InvOnly { get; private set; }
 
@@ -435,7 +442,7 @@ namespace BCRPClient
 
             public Bind(Types Type, Action Action, bool IsDown, bool Changeable, Types Familiar = Types.None, bool InvOnly = false)
             {
-                BindIndex = -1;
+                this.BindIndex = -1;
 
                 this.Type = Type;
                 this.Action = Action;
@@ -467,6 +474,14 @@ namespace BCRPClient
 
             public void Enable()
             {
+                if (DisabledCounter > 0)
+                {
+                    DisabledCounter--;
+
+                    if (DisabledCounter > 0)
+                        return;
+                }
+
                 if (BindIndex != -1)
                     return;
 
@@ -474,11 +489,14 @@ namespace BCRPClient
                     return;
 
                 if (Keys.Length == 1)
+                {
                     BindIndex = RAGE.Input.Bind(Keys[0], IsDown, async () =>
                     {
                         Action.Invoke();
                     });
+                }
                 else
+                {
                     BindIndex = RAGE.Input.Bind(Keys[Keys.Length - 1], IsDown, async () =>
                     {
                         Func<RAGE.Ui.VirtualKeys, bool> checkFunc = RAGE.Input.IsDown;
@@ -492,16 +510,26 @@ namespace BCRPClient
 
                         Action.Invoke();
                     });
+                }
             }
 
             public void Disable()
             {
+                DisabledCounter++;
+
                 if (BindIndex == -1)
                     return;
 
                 RAGE.Input.Unbind(BindIndex);
 
                 BindIndex = -1;
+            }
+
+            public void EnableAnyway()
+            {
+                DisabledCounter = 0;
+
+                Enable();
             }
 
             public void ChangeKeys(RAGE.Ui.VirtualKeys[] keys)
@@ -625,7 +653,8 @@ namespace BCRPClient
                 if (Utils.CanShowCEF(true, true))
                     Minimap.Toggle();
 
-            }, true, true) { Description = "Масштаб миникарты" });
+            }, true, true)
+            { Description = "Масштаб миникарты" });
 
             // Use Micro Start
             Add(new Bind(Types.MicrophoneOn, () =>
@@ -662,7 +691,8 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Finger.Start();
-            }, true, true) { Description = "Показать пальцем" });
+            }, true, true)
+            { Description = "Показать пальцем" });
 
             // Finger Point Stop
             Add(new Bind(Types.FingerPointStop, () =>
@@ -675,14 +705,16 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Crouch.Toggle();
-            }, true, true) { Description = "Присесть"} );
+            }, true, true)
+            { Description = "Присесть" });
 
             // Crawl
             Add(new Bind(Types.Crawl, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Crawl.Toggle();
-            }, true, true) { Description = "Ползти"} );
+            }, true, true)
+            { Description = "Ползти" });
 
             // Engine Toggle
             Add(new Bind(Types.Engine, () =>
@@ -729,35 +761,40 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleBelt();
-            }, true, true) { Description = "Пристегнуться" } );
+            }, true, true)
+            { Description = "Пристегнуться" });
 
             // Left Arrow Veh
             Add(new Bind(Types.LeftArrow, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(1);
-            }, true, true) { Description = "Левый поворотник" } );
+            }, true, true)
+            { Description = "Левый поворотник" });
 
             // Right Arrow Veh
             Add(new Bind(Types.RightArrow, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(0);
-            }, true, true) { Description = "Правый поворотник" } );
+            }, true, true)
+            { Description = "Правый поворотник" });
 
             // Both Arrows Veh
             Add(new Bind(Types.BothArrows, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(2);
-            }, true, true) { Description = "Аварийка" } );
+            }, true, true)
+            { Description = "Аварийка" });
 
             // Lights Veh
             Add(new Bind(Types.Lights, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleLights();
-            }, true, true) { Description = "Фары" } );
+            }, true, true)
+            { Description = "Фары" });
 
             // Toggle HUD 
             Add(new Bind(Types.HUD, () =>
@@ -774,7 +811,8 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(false, true))
                     Sync.Microphone.Reload();
-            }, true, true) { Description = "Перезапустить голосовой чат" } );
+            }, true, true)
+            { Description = "Перезапустить голосовой чат" });
 
             // Inventory Open 
             Add(new Bind(Types.Inventory, () =>
@@ -782,7 +820,7 @@ namespace BCRPClient
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.Show(CEF.Inventory.Types.Inventory);
             }, true, true)
-            { Description = "Инвентарь"});
+            { Description = "Инвентарь" });
 
             // Take Item on Ground
             Add(new Bind(Types.TakeItem, () =>
@@ -842,7 +880,7 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(true, true))
                 {
-                    // todo
+                    Sync.Vehicles.ToggleAnchor();
                 }
             }, true, true)
             { Description = "Якорь (для лодок)" });
@@ -852,7 +890,7 @@ namespace BCRPClient
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 0);
-                
+
             }, true, true, Types.None, true));
 
             Add(new Bind(Types.weapon1, () =>
@@ -1035,8 +1073,7 @@ namespace BCRPClient
         public static void EnableAll()
         {
             foreach (var x in Binds)
-                if (x.Value.Changeable || x.Value.Parent != Types.None)
-                    x.Value.Enable();
+                x.Value.Enable();
         }
     }
 }

@@ -355,6 +355,8 @@ namespace BCRPClient.Data
                 GasStation,
 
                 TuningShop,
+
+                WeaponShop,
             }
 
             public Types Type { get; set; }
@@ -669,9 +671,31 @@ namespace BCRPClient.Data
 
         public class WeaponShop : Business
         {
-            public WeaponShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
+            {
+                ("csb_anita", "Анита"),
+            };
+
+            public static int ShootingRangePrice => Sync.World.GetSharedData<int>("SRange::Price", 0);
+
+            public WeaponShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+
+                this.Seller.Data = this;
+
+                var shootingRangeEnterCs = new Additional.Cylinder(ShootingRangePosition, 1.5f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+
+                shootingRangeEnterCs.Data = this;
+
+                shootingRangeEnterCs.InteractionType = Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter;
+                shootingRangeEnterCs.ActionType = Additional.ExtraColshape.ActionTypes.ShootingRangeEnter;
+
+                var shootingRangeText = new TextLabel(new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z + 0.5f), Locale.General.Business.ShootingRangeTitle, new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
             }
         }
 

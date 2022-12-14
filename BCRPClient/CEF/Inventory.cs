@@ -1115,8 +1115,7 @@ namespace BCRPClient.CEF
 
             if (CurrentType != Types.ItemOnGround)
             {
-                GameEvents.Render -= GameEvents.DisableAllControls;
-                GameEvents.Render += GameEvents.DisableAllControls;
+                GameEvents.DisableAllControls(true);
 
                 if (!Settings.Interface.HideHUD)
                     CEF.HUD.ShowHUD(false);
@@ -1191,7 +1190,7 @@ namespace BCRPClient.CEF
 
             if (CurrentType != Types.ItemOnGround)
             {
-                GameEvents.Render -= GameEvents.DisableAllControls;
+                GameEvents.DisableAllControls(false);
 
                 RAGE.Game.Graphics.TransitionFromBlurred(250);
 

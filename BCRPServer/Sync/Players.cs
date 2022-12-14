@@ -45,5 +45,66 @@ namespace BCRPServer.Sync
 
             Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOff);
         }
+
+        public static void ExitFromBuiness(PlayerData pData, bool teleport = true)
+        {
+            var player = pData.Player;
+
+            var business = pData.CurrentBusiness;
+
+            if (business is Game.Businesses.IEnterable enterable)
+            {
+                pData.IsInvincible = false;
+
+                pData.CurrentBusiness = null;
+
+                var t = Game.Businesses.Business.GetNextExitProperty(enterable);
+
+                if (business is Game.Businesses.TuningShop ts)
+                {
+                    var veh = pData.CurrentTuningVehicle;
+
+                    if (veh?.Vehicle?.Exists != true)
+                    {
+                        player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
+                    }
+                    else
+                    {
+                        if (player.Vehicle != veh.Vehicle)
+                        {
+                            veh.Vehicle.Dimension = Utils.Dimensions.Main;
+                            veh.Vehicle.Position = t.Position;
+
+                            player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
+
+                            player.SetIntoVehicle(veh.Vehicle, 0);
+                        }
+                        else
+                        {
+                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true);
+                        }
+
+                        veh.Tuning.Apply(veh.Vehicle);
+                    }
+
+                    pData.CurrentTuningVehicle = null;
+
+                    player.TriggerEvent("Shop::Close::Server");
+                }
+                else
+                {
+                    if (teleport)
+                        player.Teleport(t.Position, true, Utils.Dimensions.Main, t.RotationZ, true);
+
+                    player.TriggerEvent("Shop::Close::Server");
+                }
+            }
+            else
+            {
+                pData.CurrentBusiness = null;
+
+                player.TriggerEvent("Shop::Close::Server");
+            }
+        }
     }
 }

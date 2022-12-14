@@ -335,12 +335,12 @@ namespace BCRPServer
 
         /// <summary>Уровень топлива</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public float FuelLevel { get => Info.LastData.Fuel; set { Vehicle.SetSharedData("Fuel::Level", value); Info.LastData.Fuel = value; } }
+        public float FuelLevel { get => Info.LastData.Fuel; set { Vehicle.TriggerEventOccupants("Vehicles::Fuel", value); Info.LastData.Fuel = value; } }
 
         /// <summary>Пробег</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Пробег в метрах</value>
-        public float Mileage { get => Info.LastData.Mileage; set { Vehicle.SetSharedData("Mileage", value); Info.LastData.Mileage = value; } }
+        public float Mileage { get => Info.LastData.Mileage; set { Vehicle.TriggerEventOccupants("Vehicles::Mileage", value); Info.LastData.Mileage = value; } }
 
         /// <summary>Включён ли двигатель?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -369,7 +369,7 @@ namespace BCRPServer
 
         /// <summary>Текущая скорость толкания транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public float ForcedSpeed { get => Vehicle.GetSharedData<float>("ForcedSpeed"); set { Vehicle.SetSharedData("ForcedSpeed", value); } }
+        public float ForcedSpeed { get => Vehicle.GetSharedData<float?>("ForcedSpeed") ?? 0f; set { if (value != 0f) Vehicle.SetSharedData("ForcedSpeed", value); else Vehicle.ResetSharedData("ForcedSpeed"); } }
 
         /// <summary>Заблокирован ли багажник?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -380,6 +380,10 @@ namespace BCRPServer
         public bool HoodLocked { get => Vehicle.GetSharedData<bool>("Hood::Locked"); set { Vehicle.SetSharedData("Hood::Locked", value); } }
 
         public bool IsInvincible { get => Vehicle.GetSharedData<bool>("IsInvincible"); set { Vehicle.SetSharedData("IsInvincible", value); } }
+
+        public byte DirtLevel { get => (byte)Vehicle.GetSharedData<int>("DirtLevel"); set { Vehicle.SetSharedData("DirtLevel", value); } }
+
+        public bool IsAnchored { get => Vehicle.GetSharedData<bool?>("Anchor") ?? false; set { if (value) Vehicle.SetSharedData("Anchor", value); else Vehicle.ResetSharedData("Anchor"); } }
 
         /// <summary>Уникальный ID транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -401,7 +405,7 @@ namespace BCRPServer
         {
             this.Vehicle = Vehicle;
 
-            IsInvincible = true;
+            //IsInvincible = true;
 
             EngineOn = false;
             Locked = false;
@@ -415,7 +419,7 @@ namespace BCRPServer
 
             Radio = 255;
 
-            ForcedSpeed = 0;
+            DirtLevel = 0;
 
             AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
             AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
@@ -428,9 +432,6 @@ namespace BCRPServer
             this.Info = Info;
 
             TID = Info.TID;
-
-            FuelLevel = Info.LastData.Fuel;
-            Mileage = Info.LastData.Mileage;
 
             VID = Info.VID;
 

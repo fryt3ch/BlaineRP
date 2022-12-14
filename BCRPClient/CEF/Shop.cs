@@ -349,7 +349,7 @@ namespace BCRPClient.CEF
 
                     GameEvents.Render -= CharacterCreation.ClearTasksRender;
 
-                    GameEvents.Render -= GameEvents.DisableAllControls;
+                    GameEvents.DisableAllControls(false);
 
                     GameEvents.Render -= TestDriveRender;
                     GameEvents.Render += TestDriveRender;
@@ -499,7 +499,7 @@ namespace BCRPClient.CEF
 
                         TempVehicle.SetWheels(wt, wn, data[0] == "wheel");
                     }
-                    else
+                    else if (data[0] != "fix" && data[0] != "keys")
                     {
                         var t = Additional.TuningMenu.Slots.Where(x => x.Value.Id == data[0]).Select(x => x.Key);
 
@@ -527,6 +527,7 @@ namespace BCRPClient.CEF
                     }
 
                     CurrentItem = data[0];
+                    CurrentVariation = p;
                 }
             });
 
@@ -782,6 +783,15 @@ namespace BCRPClient.CEF
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
+                    else if (id == "fix" || id == "keys")
+                    {
+                        id += $"_{CurrentVariation}";
+
+                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        {
+
+                        }
+                    }
                     else
                     {
                         var slots = Additional.TuningMenu.Slots.Where(x => x.Value.Id == id).Select(x => x.Key).ToList();
@@ -856,8 +866,7 @@ namespace BCRPClient.CEF
                 GameEvents.Render -= CharacterCreation.ClearTasksRender;
                 GameEvents.Render += CharacterCreation.ClearTasksRender;
 
-                GameEvents.Render -= GameEvents.DisableAllControls;
-                GameEvents.Render += GameEvents.DisableAllControls;
+                GameEvents.DisableAllControls(true);
 
                 KeyBinds.DisableAll(KeyBinds.Types.Cursor);
 
@@ -1350,7 +1359,8 @@ namespace BCRPClient.CEF
                     Player.LocalPlayer.SetVisible(true, false);
 
                     GameEvents.Render -= CharacterCreation.ClearTasksRender;
-                    GameEvents.Render -= GameEvents.DisableAllControls;
+
+                    GameEvents.DisableAllControls(false);
 
                     BCRPClient.Interaction.Enabled = true;
 
@@ -1416,8 +1426,7 @@ namespace BCRPClient.CEF
             GameEvents.Render -= CharacterCreation.ClearTasksRender;
             GameEvents.Render += CharacterCreation.ClearTasksRender;
 
-            GameEvents.Render -= GameEvents.DisableAllControls;
-            GameEvents.Render += GameEvents.DisableAllControls;
+            GameEvents.DisableAllControls(true);
 
             TestDriveActive = false;
 

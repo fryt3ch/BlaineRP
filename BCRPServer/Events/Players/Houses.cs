@@ -129,24 +129,11 @@ namespace BCRPServer.Events.Players
                 if (house == null || house.GarageData == null)
                     return;
 
-                var houseJs = house.ToClientJson();
-
-                foreach (var x in veh.Occupants)
-                {
-                    if (x is Player passanger)
-                    {
-                        var pasData = passanger.GetMainData();
-
-                        if (pasData == null)
-                            continue;
-
-                        passanger.TriggerEvent("House::Enter", houseJs);
-                    }
-                }
+                veh.TriggerEventOccupants("House::Enter", house.ToClientJson());
 
                 vData.EngineOn = false;
 
-                veh.Teleport(house.GarageData.VehiclePositions[0].Position, house.Dimension, house.GarageData.VehiclePositions[0].Heading, true);
+                veh.Teleport(house.GarageData.VehiclePositions[0].Position, house.Dimension, house.GarageData.VehiclePositions[0].Heading, true, false);
 
                 veh.SetSharedData("InGarage", true);
             }

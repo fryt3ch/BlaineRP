@@ -24,7 +24,9 @@ namespace BCRPClient
         private int DelayToStart { get; set; }
 
         /// <summary>Завершено ли задание?</summary>
-        public bool IsFinished { get => Task?.IsCompleted != false; }
+        public bool IsFinished { get; private set; }
+
+        public bool IsCancelled => CancellationTokenSource?.IsCancellationRequested != false;
 
         /// <summary>Новое асинхронное задание с возвращаемым значением</summary>
         /// <param name="Action">Действие</param>
@@ -61,8 +63,10 @@ namespace BCRPClient
         /// <summary>Запустить задание</summary>
         public void Run()
         {
-            if ((Action == null && Func == null) || Task?.IsCompleted == false)
+            if (Action == null && Func == null)
                 return;
+
+            IsFinished = false;
 
             CancellationTokenSource = new CancellationTokenSource();
 
@@ -81,8 +85,8 @@ namespace BCRPClient
                 return;
 
             CancellationTokenSource.Cancel();
-            //Task = null;
-            CancellationTokenSource = null;
+
+            Task = null;
         }
 
         #region Sub Methods
@@ -99,6 +103,8 @@ namespace BCRPClient
 
             if (!ct.IsCancellationRequested)
                 Action.Invoke();
+
+            IsFinished = true;
         }
 
         private async System.Threading.Tasks.Task ExecuteLoopAction(CancellationToken ct)
@@ -111,6 +117,8 @@ namespace BCRPClient
 
                 await RAGE.Game.Invoker.WaitAsync(Delay);
             }
+
+            IsFinished = true;
         }
 
         private async System.Threading.Tasks.Task ExecuteOnceFunc(CancellationToken ct)
@@ -119,6 +127,8 @@ namespace BCRPClient
 
             if (!ct.IsCancellationRequested)
                 Func.Invoke();
+
+            IsFinished = true;
         }
 
         // Return FALSE in delegate to continue loop, return TRUE - to stop it
@@ -133,6 +143,8 @@ namespace BCRPClient
 
                 await RAGE.Game.Invoker.WaitAsync(Delay);
             }
+
+            IsFinished = true;
         }
         #endregion
     }

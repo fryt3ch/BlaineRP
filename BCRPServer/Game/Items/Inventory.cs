@@ -3334,5 +3334,7 @@ namespace BCRPServer.Game.Items
 
             return true;
         }
+
+        public static void ClearSlot(PlayerData pData, Groups group, int slot) => pData.Player.TriggerEvent("Inventory::Update", (int)group, slot, "null");
     }
 }

@@ -23,13 +23,8 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
                 return;
 
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
+            if (!pData.CanUseInventory(true))
+                return;
 
             Replace(pData, (Groups)to, slotTo, (Groups)from, slotFrom, amount);
         }
@@ -50,13 +45,8 @@ namespace BCRPServer.Events.Players
             if (pData.CurrentBusiness != null)
                 return;
 
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
+            if (!pData.CanUseInventory(true))
+                return;
 
             Action(pData, (Groups)group, slot, action);
         }
@@ -74,13 +64,8 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
                 return;
 
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
+            if (!pData.CanUseInventory(true))
+                return;
 
             Drop(pData, (Groups)slotStr, slot, amount);
         }
@@ -95,13 +80,8 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
+            if (!pData.CanUseInventory(true))
+                return;
 
             var item = Sync.World.GetItemOnGround(UID);
 
@@ -263,13 +243,8 @@ namespace BCRPServer.Events.Players
             if (pData.CurrentContainer == null)
                 return;
 
-            var offer = pData.ActiveOffer;
-
-            if (offer != null)
-            {
-                if (offer.Type == Sync.Offers.Types.Exchange && offer.TradeData != null)
-                    return;
-            }
+            if (!pData.CanUseInventory(true))
+                return;
 
             if (!Enum.IsDefined(typeof(Game.Items.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), fromStr))
                 return;
@@ -417,6 +392,9 @@ namespace BCRPServer.Events.Players
             if (weapon == null)
                 return;
 
+            if (!pData.CanUseInventory(true))
+                return;
+
             if (currentAmmo > weapon.Value.WeaponItem.Ammo || currentAmmo < 0)
                 currentAmmo = 0;
 
@@ -437,6 +415,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true))
+                return;
 
             var gift = pData.Gifts.Where(x => x.ID == id).FirstOrDefault();
 

@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -68,6 +69,23 @@ namespace BCRPServer.Additional
             { "openjoining", () =>
                 {
                     Events.Server.IsRestarting = false;
+                }
+            },
+
+                        { "vrep", () =>
+                {
+                    NAPI.Task.Run(() =>
+                    {
+                        NAPI.Pools.GetAllVehicles().FirstOrDefault()?.SetFixed();
+                    });
+                } },
+
+                                        { "vrepv", () =>
+                {
+                    NAPI.Task.Run(() =>
+                    {
+                        NAPI.Pools.GetAllVehicles().FirstOrDefault()?.SetVisualFixed();
+                    });
                 }
             },
             #endregion

@@ -594,7 +594,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (!Utils.IsCar(veh))
+            if (!Utils.IsCar(veh) || vData.IsAnchored)
                 return;
 
             if (vData.ForcedSpeed >= Settings.MIN_CRUISE_CONTROL_SPEED)

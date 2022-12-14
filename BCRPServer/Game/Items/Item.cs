@@ -566,7 +566,7 @@ namespace BCRPServer.Game.Items
 
             player.SetWeapon(Data.Hash, Ammo);
 
-            NAPI.Task.Run(() =>
+/*            NAPI.Task.Run(() =>
             {
                 if (player?.Exists != true)
                     return;
@@ -575,7 +575,7 @@ namespace BCRPServer.Game.Items
 
                 if (weap != null && weap.Value.WeaponItem == this)
                     player.SetWeapon(Data.Hash, Ammo);
-            }, 250);
+            }, 250);*/
         }
 
         /// <summary>Метод, чтобы забрать оружие у игрока</summary>

@@ -121,6 +121,7 @@ namespace BCRPClient.CEF
             { "Inventory::TempItemDeleted", new Instance(Types.Information, Locale.Notifications.Inventory.TempItemDeleted, Locale.Notifications.Inventory.Header) },
             { "Inventory::NoItem", new Instance(Types.Error, Locale.Notifications.Inventory.NoSuchItem, Locale.Notifications.ErrorHeader) },
             { "Inventory::NoItemA", new Instance(Types.Error, Locale.Notifications.Inventory.NoSuchItemAmount, Locale.Notifications.ErrorHeader) },
+            { "Inventory::Blocked", new Instance(Types.Error, Locale.Notifications.Inventory.InventoryBlocked, Locale.Notifications.ErrorHeader) },
 
             { "Inventory::ArmourBroken", new Instance(Types.Information, Locale.Notifications.Inventory.ArmourBroken, Locale.Notifications.Inventory.Header) },
             { "Inventory::Wounded", new Instance(Types.Error, Locale.Notifications.Inventory.Wounded, Locale.Notifications.Inventory.Header) },

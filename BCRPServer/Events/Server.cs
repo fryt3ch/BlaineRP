@@ -127,8 +127,6 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Furniture.All.Count} furniture");
 
-            //Utils.ConsoleOutput(AllPlayers.SerializeToJson());
-
             GC.Collect();
             #endregion
 
@@ -210,36 +208,27 @@ namespace BCRPServer.Events
             NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
         }
 
-        /*        private static List<string> VehicleDataLines = new List<string>();
+        private static List<string> VehicleDataLines = new List<string>();
 
-                private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
-                [RemoteEvent("vehicle_data_p")]
-                private static async void VehicleDataProcess(Player player, string model, string data)
-                {
-                    await semaphore.WaitAsync();
+/*        [RemoteEvent("vehicle_data_p")]
+        private static void VehicleDataProcess(Player player, string model, string data)
+        {
+            VehicleDataLines.Add($"\"{model}\":{data},");
+        }
 
-                    VehicleDataLines.Add($"\"{model}\":{data},");
+        [RemoteEvent("vehicle_data_f")]
+        private static async void VehicleDataFinish(Player player, int count)
+        {
+            while (VehicleDataLines.Count < count)
+                await Task.Delay(25);
 
-                    semaphore.Release();
-                }
+            VehicleDataLines[VehicleDataLines.Count - 1] = VehicleDataLines[VehicleDataLines.Count - 1].Substring(0, VehicleDataLines[VehicleDataLines.Count - 1].Length - 1);
 
-                [RemoteEvent("vehicle_data_f")]
-                private static async void VehicleDataFinish(Player player, int count)
-                {
-                    while (VehicleDataLines.Count < count)
-                        await Task.Delay(25);
+            VehicleDataLines.Insert(0, "{");
+            VehicleDataLines.Add("}");
 
-                    await semaphore.WaitAsync();
-
-                    VehicleDataLines[VehicleDataLines.Count - 1] = VehicleDataLines[VehicleDataLines.Count - 1].Substring(0, VehicleDataLines[VehicleDataLines.Count - 1].Length - 1);
-
-                    VehicleDataLines.Insert(0, "{");
-                    VehicleDataLines.Add("}");
-
-                    File.WriteAllLines("vehicleData.custom.json", VehicleDataLines);
-
-                    semaphore.Release();
-                }*/
+            File.WriteAllLines("vehicleData.new.json", VehicleDataLines);
+        }*/
     }
 }

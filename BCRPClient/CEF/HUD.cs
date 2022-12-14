@@ -227,7 +227,7 @@ namespace BCRPClient.CEF
         public HUD()
         {
             SpeedometerMustBeEnabled = false;
-            LastAmmo = -1;
+            LastAmmo = int.MinValue;
             LastSpeed = -1;
 
             Loop = new AsyncTask(() => Update?.Invoke(), 5000, true);
@@ -316,7 +316,11 @@ namespace BCRPClient.CEF
         public static void SetAmmo(int value = 0)
         {
             if (value != LastAmmo)
-                Browser.Window.ExecuteJs("Hud.setAmmo", LastAmmo = value);
+            {
+                LastAmmo = value;
+
+                Browser.Window.ExecuteJs("Hud.setAmmo", LastAmmo < 0 ? "∞" : LastAmmo.ToString());
+            }
         }
 
         private static void PlayBeltOffSound(bool value, bool isElectricCar = false)

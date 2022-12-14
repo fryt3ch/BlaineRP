@@ -43,8 +43,6 @@ namespace BCRPClient.Additional
         private static Stack<bool> AllowArm;
         private static Stack<bool> AllowAlpha;
         private static Stack<bool> AllowWeapon;
-
-        private static List<(Vehicle, bool)> AllowVehicleHealth;
         #endregion
 
         public AntiCheat()
@@ -54,8 +52,6 @@ namespace BCRPClient.Additional
             AllowArm = new Stack<bool>();
             AllowAlpha = new Stack<bool>();
             AllowWeapon = new Stack<bool>();
-
-            AllowVehicleHealth = new List<(Vehicle, bool)>();
 
             AllowTP.Push(false);
             AllowHP.Push(false);
@@ -74,6 +70,9 @@ namespace BCRPClient.Additional
                 var onGround = (bool)args[1];
 
                 var fade = (bool)args[3];
+
+                GameEvents.DisableAllControls(true);
+                KeyBinds.DisableAll();
 
                 Player.LocalPlayer.FreezePosition(true);
 
@@ -120,7 +119,12 @@ namespace BCRPClient.Additional
                     Player.LocalPlayer.Vehicle.SetHeading(heading);
                 }
 
+                GameEvents.DisableAllControls(false);
+                KeyBinds.EnableAll();
+
                 Utils.ResetGameplayCameraRotation();
+
+                Events.OnPlayerSpawn?.Invoke(null);
 
                 await RAGE.Game.Invoker.WaitAsync(2000);
 
@@ -258,37 +262,6 @@ namespace BCRPClient.Additional
             });
             #endregion
             #endregion
-
-            Events.Add("AC::Vehicle::Health", async (object[] args) =>
-            {
-                var vehicle = (Vehicle)args[0];
-                var value = (float)args[1];
-
-                var data = Sync.Vehicles.GetData(vehicle);
-
-                if (data == null)
-                    return;
-
-                data.LastAllowedHealth = value;
-
-                if (value >= 1000)
-                {
-                    vehicle.SetFixed();
-                    vehicle.SetDeformationFixed();
-
-                    vehicle.SetEngineHealth(1000);
-                }
-                else
-                {
-                    vehicle.SetEngineHealth(value);
-                }
-
-                AllowVehicleHealth.Add((vehicle, true));
-
-                await RAGE.Game.Invoker.WaitAsync(2000);
-
-                AllowVehicleHealth.Remove((vehicle, true));
-            });
         }
 
         public static void Enable()
@@ -398,8 +371,8 @@ namespace BCRPClient.Additional
                     Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
                 }
 
-                if (Player.LocalPlayer.GetAmmoInWeapon(curWeapon) > LastAllowedAmmo)
-                    Player.LocalPlayer.SetAmmo(curWeapon, 1, 1);
+                if (LastAllowedAmmo >= 0 && Player.LocalPlayer.GetAmmoInWeapon(curWeapon) > LastAllowedAmmo)
+                    Player.LocalPlayer.SetAmmo(curWeapon, 0, 1);
             }
             else
             {
@@ -408,7 +381,7 @@ namespace BCRPClient.Additional
                 if (curWeapon != LastAllowedWeapon && curWeapon != Sync.WeaponSystem.MobileHash)
                     Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
 
-                if (Player.LocalPlayer.GetAmmoInWeapon(LastAllowedWeapon) > LastAllowedAmmo)
+                if (LastAllowedAmmo >= 0 && Player.LocalPlayer.GetAmmoInWeapon(LastAllowedWeapon) > LastAllowedAmmo)
                     Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
             }
             #endregion
@@ -417,22 +390,41 @@ namespace BCRPClient.Additional
             {
                 var veh = Sync.Vehicles.ControlledVehicles[i];
 
-                var data = Sync.Vehicles.GetData(veh);
-
-                if (data == null)
+                if (veh?.Exists != true)
                     continue;
 
-                if (!AllowVehicleHealth.Contains((veh, true)))
+                var vData = Sync.Vehicles.GetData(veh);
+
+                if (vData == null)
+                    continue;
+
+                if (!vData.IsInvincible)
                 {
-                    var diff = veh.GetEngineHealth() - data.LastHealth;
-
-                    if (diff > 0)
-                        veh.SetEngineHealth(data.LastHealth);
+                    if (Player.LocalPlayer.Vehicle == veh)
+                    {
+                        if (!veh.GetCanBeDamaged())
+                        {
+                            veh.SetCanBeDamaged(true);
+                            veh.SetInvincible(false);
+                        }
+                    }
+                    else
+                    {
+                        if (veh.GetCanBeDamaged())
+                        {
+                            veh.SetCanBeDamaged(false);
+                            veh.SetInvincible(true);
+                        }
+                    }
                 }
-                else if (veh.GetEngineHealth() > data.LastAllowedHealth)
-                    veh.SetEngineHealth(data.LastAllowedHealth);
 
-                data.LastHealth = veh.GetEngineHealth();
+                var lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
+                var curHp = veh.GetEngineHealth();
+
+                if (veh.GetEngineHealth() - lastHp > 0)
+                    veh.SetEngineHealth(lastHp);
+
+                veh.SetData("LastHealth", curHp);
             }
 
             RAGE.Game.Player.RestorePlayerStamina(100);

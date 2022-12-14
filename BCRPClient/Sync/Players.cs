@@ -156,7 +156,7 @@ namespace BCRPClient.Sync
 
             public int Mood => Player.GetSharedData<int>("Mood", 0);
 
-            public bool Masked => Player.GetSharedData<bool>("Masked", false);
+            public bool Masked => Player.GetDrawableVariation(1) > 0;
 
             public bool IsKnocked => Player.GetSharedData<bool>("Knocked", false);
 
@@ -267,7 +267,7 @@ namespace BCRPClient.Sync
             if (player == null)
                 return null;
 
-            return player.HasData("SyncedData") ? player.GetData<PlayerData>("SyncedData") : null;
+            return player.GetData<PlayerData>("SyncedData");
         }
 
         public static void SetData(Player player, PlayerData data)
@@ -397,7 +397,7 @@ namespace BCRPClient.Sync
 
                 InvokeHandler("Wounded", data, data.IsWounded, null);
 
-                InvokeHandler("Anim::General", data, data.GeneralAnim, null);
+                InvokeHandler("Anim::General", data, (int)data.GeneralAnim, null);
 
                 data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay"));
 
@@ -441,7 +441,7 @@ namespace BCRPClient.Sync
 
                 Player.LocalPlayer.SetInvincible(false);
 
-                GameEvents.Render -= GameEvents.DisableAllControls;
+                GameEvents.DisableAllControls(false);
 
                 CEF.HUD.ShowHUD(!Settings.Interface.HideHUD);
 
@@ -607,6 +607,8 @@ namespace BCRPClient.Sync
                 CEF.Menu.UpdateSkill(sType, value);
 
                 UpdateSkill(sType, value);
+
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
             });
 
             Events.Add("Player::Licenses::Update", (object[] args) =>
@@ -757,26 +759,33 @@ namespace BCRPClient.Sync
                 }
             });
 
-            Events.Add("Players::Freeze", (object[] args) =>
+            AddDataHandler("IsFrozen", (pData, value, oldValue) =>
             {
-                var state = (bool)args[0];
+                if (pData.Player.Handle != Player.LocalPlayer.Handle)
+                    return;
 
-                RAGE.Elements.Player.LocalPlayer.FreezePosition(state);
-
-                Player.LocalPlayer.SetData("IsFrozen", state);
+                var state = (bool?)value ?? false;
 
                 if (state)
                 {
+                    Player.LocalPlayer.ClearTasksImmediately();
+
                     CloseAll(false);
 
-                    GameEvents.Render -= GameEvents.DisableAllControls;
-                    GameEvents.Render += GameEvents.DisableAllControls;
+                    Player.LocalPlayer.FreezePosition(true);
+
+                    GameEvents.DisableAllControls(true);
+
+                    WeaponSystem.DisabledFiring = true;
                 }
                 else
-                    GameEvents.Render -= GameEvents.DisableAllControls;
+                {
+                    WeaponSystem.DisabledFiring = false;
 
-                if (args.Length > 1)
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(state ? Locale.Notifications.Players.Administrator.FreezedBy : Locale.Notifications.Players.Administrator.UnfreezedBy, (string)args[1]));
+                    Player.LocalPlayer.FreezePosition(false);
+
+                    GameEvents.DisableAllControls(false);
+                }
             });
 
             AddDataHandler("Cash", (pData, value, oldValue) =>
@@ -828,7 +837,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
@@ -911,7 +920,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var emotion = (Animations.EmotionTypes)(int)value;
+                var emotion = (Animations.EmotionTypes)((int?)value ?? -1);
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
@@ -927,7 +936,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var wStyle = (Animations.WalkstyleTypes)(int)value;
+                var wStyle = (Animations.WalkstyleTypes)((int?)value ?? -1);
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
@@ -944,7 +953,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var anim = (Sync.Animations.OtherTypes)(int)value;
+                var anim = (Sync.Animations.OtherTypes)((int?)value ?? -1);
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
@@ -972,7 +981,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var anim = (Sync.Animations.GeneralTypes)(int)value;
+                var anim = (Sync.Animations.GeneralTypes)((int?)value ?? -1);
 
                 if (anim == Animations.GeneralTypes.None)
                 {
@@ -994,7 +1003,7 @@ namespace BCRPClient.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 var player = pData.Player;
 
@@ -1017,7 +1026,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 if (state)
                 {
@@ -1033,7 +1042,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
@@ -1052,7 +1061,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 if (state)
                 {
@@ -1067,7 +1076,7 @@ namespace BCRPClient.Sync
             AddDataHandler("IsInvalid", (pData, value, oldValue) =>
             {
                 var player = pData.Player;
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
@@ -1079,12 +1088,9 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                player.SetNoCollisionEntity(Player.LocalPlayer.Handle, !(bool)value);
-            });
+                var state = (bool?)value ?? false;
 
-            AddDataHandler("Hat", (pData, value, oldValue) =>
-            {
-
+                player.SetNoCollisionEntity(Player.LocalPlayer.Handle, !state);
             });
 
             AddDataHandler("Sex", (pData, value, oldValue) =>
@@ -1097,16 +1103,11 @@ namespace BCRPClient.Sync
                 CEF.Menu.SetSex(state);
             });
 
-            AddDataHandler("Masked", (pData, value, oldValue) =>
-            {
-
-            });
-
             AddDataHandler("Knocked", (pData, value, oldValue) =>
             {
                 var player = pData.Player;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 if (state)
                 {
@@ -1131,14 +1132,13 @@ namespace BCRPClient.Sync
                     {
                         CEF.Death.Show();
 
-                        GameEvents.Update -= GameEvents.DisableMove;
-                        GameEvents.Update += GameEvents.DisableMove;
+                        GameEvents.DisableMove(true);
 
                         RAGE.Game.Graphics.StartScreenEffect("DeathFailMPIn", 0, true);
                     }
                     else
                     {
-                        GameEvents.Update -= GameEvents.DisableMove;
+                        GameEvents.DisableMove(false);
 
                         RAGE.Game.Graphics.StopScreenEffect("DeathFailMPIn");
 
@@ -1218,7 +1218,7 @@ namespace BCRPClient.Sync
             {
                 var player = pData.Player;
 
-                var seat = (int)value;
+                var seat = (int?)value ?? -1;
 
                 if (seat >= 0)
                 {

@@ -1297,5 +1297,7 @@ namespace BCRPClient
         }
 
         public static int GetScriptTaskStatus(this PedBase ped, uint taskHash) => RAGE.Game.Invoker.Invoke<int>(RAGE.Game.Natives.GetScriptTaskStatus, ped.Handle, (int)taskHash);
+
+        public static bool GetCanBeDamaged(this GameEntity gEntity) => RAGE.Game.Invoker.Invoke<bool>(0xD95CC5D2AB15A09F, gEntity.Handle);
     }
 }

@@ -23,6 +23,8 @@ namespace BCRPClient.Sync
         private static DateTime LastSyncSent;
         #endregion
 
+        private static AsyncTask CurrentDriverSyncTask { get; set; }
+
         public static List<Vehicle> ControlledVehicles;
 
         private static GameEvents.UpdateHandler RadioUpdate;
@@ -54,7 +56,7 @@ namespace BCRPClient.Sync
             if (vehicle == null)
                 return null;
 
-            return vehicle.HasData("SyncedData") ? vehicle.GetData<VehicleData>("SyncedData") : null;
+            return vehicle.GetData<VehicleData>("SyncedData");
         }
 
         public static void SetData(Vehicle vehicle, VehicleData data)
@@ -97,23 +99,23 @@ namespace BCRPClient.Sync
 
             public float ForcedSpeed => Vehicle.GetSharedData<float>("ForcedSpeed", 0f);
 
-            public float FuelLevel => Vehicle.GetSharedData<float>("Fuel::Level", 0f);
+            public float FuelLevel { get => Vehicle.GetData<float?>("Fuel") ?? 0f; set => Vehicle.SetData("Fuel", value); }
 
-            public float Mileage => Vehicle.GetSharedData<float>("Mileage", 0f);
+            public float Mileage { get => Vehicle.GetData<float?>("Mileage") ?? 0f; set => Vehicle.SetData("Mileage", value); }
 
             public uint VID => (uint)Vehicle.GetSharedData<int>("VID", 0);
 
             public uint? TID => Vehicle.GetSharedData<int?>("TID", null).ToUInt32();
 
-            public float LastAllowedHealth { get => Vehicle.GetData<float>("LastAllowedHealth"); set => Vehicle.SetData("LastAllowedHealth", value); }
-
-            public float LastHealth { get => Vehicle.GetData<float>("LastHealth"); set => Vehicle.SetData("LastHealth", value); }
-
             public bool HasNeonMod => Vehicle.GetSharedData<bool>("Mods::Neon", false);
 
             public bool HasTurboTuning => Vehicle.GetSharedData<bool>("Mods::Turbo", false);
 
+            public bool IsAnchored => Vehicle.GetSharedData<bool>("Anchor", false);
+
             public Utils.Colour TyreSmokeColour => Vehicle.GetSharedData<JObject>("Mods::TSColour")?.ToObject<Utils.Colour>();
+
+            public byte DirtLevel => (byte)Vehicle.GetSharedData<int>("DirtLevel");
 
             public Data.Vehicles.Vehicle Data { get; set; }
             #endregion
@@ -206,6 +208,8 @@ namespace BCRPClient.Sync
                     {
                         ControlledVehicles.Remove(veh);
 
+                        veh.ResetData("LastHealth");
+
                         return;
                     }
 
@@ -218,12 +222,11 @@ namespace BCRPClient.Sync
                     {
                         await RAGE.Game.Invoker.WaitAsync(25);
 
-                        if (veh?.Exists != true)
+                        if (veh?.Exists != true || veh.Controller?.Handle != Player.LocalPlayer.Handle)
                             return;
                     }
 
-                    data.LastHealth = veh.GetEngineHealth();
-                    data.LastAllowedHealth = data.LastHealth;
+                    veh.SetData("LastHealth", veh.GetEngineHealth());
 
                     ControlledVehicles.Add(veh);
 
@@ -285,11 +288,12 @@ namespace BCRPClient.Sync
                     #endregion
 
                     #region Default Settings
-                    veh.SetWheelsCanBreak(true);
                     veh.SetDisablePetrolTankDamage(true);
                     #endregion
 
                     data = new VehicleData(veh);
+
+                    InvokeHandler("Anchor", data, data.IsAnchored, null);
 
                     InvokeHandler("InGarage", data, veh.GetSharedData<bool?>("InGarage"), null);
 
@@ -310,6 +314,8 @@ namespace BCRPClient.Sync
                     InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
 
                     InvokeHandler("Radio", data, data.Radio, null);
+
+                    InvokeHandler("DirtLevel", data, data.DirtLevel, null);
 
                     if (data.TrunkLocked)
                     {
@@ -484,13 +490,15 @@ namespace BCRPClient.Sync
 
                 veh.SetInvincible(state);
                 veh.SetCanBeDamaged(!state);
+
+                veh.SetWheelsCanBreak(!state);
             });
 
             AddDataHandler("ForcedSpeed", (vData, value, oldValue) =>
             {
                 var veh = vData.Vehicle;
 
-                var fSpeed = (float)value;
+                var fSpeed = (float?)value ?? 0f;
 
                 if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                     return;
@@ -640,18 +648,9 @@ namespace BCRPClient.Sync
             {
                 var veh = vData.Vehicle;
 
-                var colour = (int)value;
+                var colour = (int?)value;
 
-                if (colour < -1)
-                {
-                    veh.ToggleMod(22, false);
-                }
-                else
-                {
-                    veh.ToggleMod(22, true);
-
-                    RAGE.Game.Invoker.Invoke(0xE41033B25D003A07, veh.Handle, colour);
-                }
+                veh.SetXenonColour(colour < -1 ? null : colour);
             });
 
             AddDataHandler("Mods::CT", (vData, value, oldValue) =>
@@ -667,7 +666,7 @@ namespace BCRPClient.Sync
             {
                 var veh = vData.Vehicle;
 
-                var state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 RAGE.Game.Invoker.Invoke(0xE3EBAAE484798530, veh.Handle, state);
 
@@ -685,6 +684,11 @@ namespace BCRPClient.Sync
                     vData.Vehicle.FreezePosition(false);
                 }
             });
+
+            AddDataHandler("DirtLevel", (vData, value, oldValue) =>
+            {
+                vData.Vehicle.SetDirtLevel(Convert.ToSingle(value));
+            });
             #endregion
 
             Events.Add("Vehicles::NPChoose", (args) =>
@@ -697,6 +701,71 @@ namespace BCRPClient.Sync
                 int counter = 0;
 
                 CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, items.Select(x => (counter++, $"[{x.Value}]")).ToArray(), items);
+            });
+
+            Events.Add("Vehicles::Fuel", (args) =>
+            {
+                var veh = Player.LocalPlayer.Vehicle;
+
+                if (veh == null)
+                    return;
+
+                var vData = Sync.Vehicles.GetData(veh);
+
+                if (vData == null)
+                    return;
+
+                vData.FuelLevel = (float)args[0];
+            });
+
+            Events.Add("Vehicles::Mileage", (args) =>
+            {
+                var veh = Player.LocalPlayer.Vehicle;
+
+                if (veh == null)
+                    return;
+
+                var vData = Sync.Vehicles.GetData(veh);
+
+                if (vData == null)
+                    return;
+
+                vData.Mileage = (float)args[0];
+            });
+
+            Events.Add("Vehicles::Enter", async (args) =>
+            {
+                var veh = Player.LocalPlayer.Vehicle;
+
+                if (veh == null)
+                    return;
+
+                veh.SetData("Fuel", (float)args[0]);
+                veh.SetData("Mileage", (float)args[1]);
+            });
+
+            Events.Add("Vehicles::Fix", (args) =>
+            {
+                var veh = (Vehicle)args[0];
+
+                veh.SetData("LastHealth", 1000f);
+
+                veh.SetBodyHealth(1000f);
+
+                veh.SetEngineHealth(1000f);
+
+                veh.SetFixed();
+                veh.SetDeformationFixed();
+            });
+
+            Events.Add("Vehicles::FixV", (args) =>
+            {
+                var veh = (Vehicle)args[0];
+
+                veh.SetBodyHealth(1000f);
+
+                veh.SetFixed();
+                veh.SetDeformationFixed();
             });
         }
 
@@ -722,7 +791,7 @@ namespace BCRPClient.Sync
 
                 var vData = GetData(vehicle);
 
-                if (vData == null)
+                if (vData == null || vData.IsAnchored)
                     return;
 
                 if (!vData.Data.HasCruiseControl)
@@ -1205,49 +1274,56 @@ namespace BCRPClient.Sync
         }
         #endregion
 
-        public static async System.Threading.Tasks.Task StartDriverSync()
+        public static void StartDriverSync()
         {
+            CurrentDriverSyncTask?.Cancel();
+
             var veh = Player.LocalPlayer.Vehicle;
 
             if (veh?.Exists != true)
                 return;
-
-            Vector3 lastPos = veh.Position;
 
             var data = GetData(veh);
 
             if (data == null)
                 return;
 
-            while (Player.LocalPlayer.Vehicle?.Exists == true && Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+            Vector3 lastPos = veh.GetCoords(false);
+
+            CurrentDriverSyncTask = new AsyncTask(() =>
             {
+                veh = Player.LocalPlayer.Vehicle;
+
+                if (veh?.Exists != true || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                    return true;
+
                 if (data.EngineOn)
                 {
-                    float dist = Math.Abs(Vector3.Distance(lastPos, veh.Position));
-                    float fuelDiff = 0.001f * dist;
+                    var curPos = veh.GetCoords(false);
 
-                    if (fuelDiff > 0)
-                    {
-                        Events.CallRemote("Vehicles::UpdateFuelLevel", fuelDiff);
-                    }
+                    var dist = Math.Round(Math.Abs(Vector3.Distance(lastPos, curPos)), 2);
+                    var fuelDiff = 0.001f * dist;
+                    var dirtLevel = (byte)Math.Round(veh.GetDirtLevel());
 
-                    if (dist > 0)
+                    if (dirtLevel > 15)
+                        dirtLevel = 15;
+
+                    if (fuelDiff > 0 || dist > 0)
                     {
-                        Events.CallRemote("Vehicles::UpdateMileage", dist);
+                        Events.CallRemote("Vehicles::Sync", fuelDiff, dist, dirtLevel);
                     }
 
                     //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Fuel: " + data.FuelLevel);
                     //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Mileage: " + data.Mileage);
+                    //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "DirtLevel: " + data.DirtLevel);
 
-                    lastPos = veh.Position;
+                    lastPos = curPos;
+                }
 
-                    await RAGE.Game.Invoker.WaitAsync(1500);
-                }
-                else
-                {
-                    await RAGE.Game.Invoker.WaitAsync(500);
-                }
-            }
+                return false;
+            }, 1500, true, 0);
+
+            CurrentDriverSyncTask.Run();
         }
 
         private static void ControlledTick()
@@ -1445,6 +1521,29 @@ namespace BCRPClient.Sync
 
                 return;
             }
+        }
+
+        public static void ToggleAnchor()
+        {
+            if (LastCruiseControlToggled.IsSpam(1000, false, false))
+                return;
+
+            var veh = Player.LocalPlayer.Vehicle;
+
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            if (veh == null || veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || vData.ForcedSpeed != 0f)
+                return;
+
+            if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                return;
+
+            Events.CallRemote("Vehicles::Anchor", !vData.IsAnchored);
+
+            LastCruiseControlToggled = DateTime.Now;
         }
     }
 }

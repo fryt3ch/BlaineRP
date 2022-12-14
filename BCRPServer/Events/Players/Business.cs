@@ -8,6 +8,90 @@ namespace BCRPServer.Events.Players
 {
     class Business : Script
     {
+        [RemoteEvent("SRange::Exit::Shop")]
+        private static void ShootingRangeExitShop(Player player, int score, int maxScore, float accuracy)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var ws = pData.CurrentBusiness as Game.Businesses.WeaponShop;
+
+            if (ws == null)
+                return;
+
+            pData.CurrentBusiness = null;
+
+            player.Teleport(ws.PositionShootingRangeEnter.Position, false, Utils.Dimensions.Main, ws.PositionShootingRangeEnter.RotationZ, true);
+
+            pData.InventoryBlocked = false;
+
+            if (pData.UnequipActiveWeapon())
+            {
+                if (pData.Weapons[0] is Game.Items.Weapon weapon)
+                {
+                    pData.Weapons[0] = null;
+
+                    weapon.Delete();
+
+                    Game.Items.Inventory.ClearSlot(pData, Game.Items.Inventory.Groups.Weapons, 0);
+                }
+            }
+
+            pData.GiveTakenItems();
+
+            var diff = score < maxScore ? -1 : 1;
+
+            diff = Utils.GetCorrectDiff(pData.Skills[PlayerData.SkillTypes.Shooting], diff, 0, PlayerData.MaxSkills[PlayerData.SkillTypes.Shooting]);
+
+            if (diff != 0)
+            {
+                pData.UpdateSkill(PlayerData.SkillTypes.Shooting, diff);
+            }
+        }
+
+        [RemoteEvent("SRange::Enter::Shop")]
+        private static void ShootingRangeEnterShop(Player player, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return;
+
+            var ws = Game.Businesses.Business.Get(id) as Game.Businesses.WeaponShop;
+
+            if (ws == null)
+                return;
+
+            if (Vector3.Distance(player.Position, ws.PositionInfo) > 20f)
+                return;
+
+            if (!ws.BuyShootingRange(pData))
+                return;
+
+            pData.CurrentBusiness = ws;
+
+            var pDim = Utils.GetPrivateDimension(player);
+
+            player.Teleport(Game.Businesses.WeaponShop.ShootingRangePosition.Position, false, pDim, Game.Businesses.WeaponShop.ShootingRangePosition.RotationZ, true);
+
+            player.TriggerEvent("SRange::Start", 0);
+
+            pData.InventoryBlocked = true;
+
+            pData.TakeWeapons();
+
+            pData.GiveTempWeapon("w_pistol", -1);
+        }
+
         [RemoteProc("Business::BuyGov")]
         private static bool BuyGov(Player player, int id)
         {
@@ -121,20 +205,9 @@ namespace BCRPServer.Events.Players
 
             Sync.Players.DisableMicrophone(pData);
 
-            foreach (var x in player.Vehicle.Occupants)
-            {
-                if (x is Player pV)
-                {
-                    if (pV == player)
-                        continue;
-
-                    pV.WarpOutOfVehicle();
-                }
-            }
-
             var pDim = Utils.GetPrivateDimension(player);
 
-            veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true);
+            veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, true);
 
             vData.EngineOn = true;
             vData.LightsOn = true;
@@ -202,58 +275,7 @@ namespace BCRPServer.Events.Players
             if (business == null)
                 return;
 
-            if (business is Game.Businesses.IEnterable enterable)
-            {
-                pData.IsInvincible = false;
-
-                pData.CurrentBusiness = null;
-
-                var t = Game.Businesses.Business.GetNextExitProperty(enterable);
-
-                if (business is Game.Businesses.TuningShop ts)
-                {
-                    var veh = pData.CurrentTuningVehicle;
-
-                    if (veh?.Vehicle?.Exists != true)
-                    {
-                        player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
-                    }
-                    else
-                    {
-                        if (player.Vehicle != veh.Vehicle)
-                        {
-                            veh.Vehicle.Dimension = Utils.Dimensions.Main;
-                            veh.Vehicle.Position = t.Position;
-
-                            player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
-
-                            player.SetIntoVehicle(veh.Vehicle, 0);
-                        }
-                        else
-                        {
-                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true);
-                        }
-
-                        veh.Tuning.Apply(veh.Vehicle);
-                    }
-
-                    pData.CurrentTuningVehicle = null;
-
-                    player.TriggerEvent("Shop::Close::Server");
-                }
-                else
-                {
-                    player.Teleport(t.Position, true, Utils.Dimensions.Main, t.RotationZ, true);
-
-                    player.TriggerEvent("Shop::Close::Server");
-                }
-            }
-            else
-            {
-                pData.CurrentBusiness = null;
-
-                player.TriggerEvent("Shop::Close::Server");
-            }
+            Sync.Players.ExitFromBuiness(pData, true);
         }
 
         [RemoteProc("TuningShop::Buy")]

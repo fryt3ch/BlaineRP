@@ -47,6 +47,9 @@ namespace BCRPClient.Sync
             // Bank
             new DoorInfo("s_bank_0", "v_ilev_bk_gate", new Vector3(256.3116f, 220.6579f, 106.4296f));
             new DoorInfo("s_bank_0", "v_ilev_bk_door", new Vector3(237.7704f, 227.87f, 106.426f));
+
+            // Shooting range
+            new DoorInfo("sr_0", "v_ilev_gc_door01", new Vector3(6.81789f, -1098.209f, 29.94685f));
         }
 
         public static void ToggleLock(DoorInfo doorInfo, bool state) => ToggleLock(doorInfo.Model, doorInfo.Position, state);

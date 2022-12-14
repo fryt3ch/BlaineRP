@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer
 {
@@ -410,7 +411,7 @@ namespace BCRPServer
 
         #region Client Utils
 
-        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetVehiclePos(vehicle, position, dimension, heading, fade);
+        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, bool onlyDriver = true) => Additional.AntiCheat.SetVehiclePos(vehicle, position, dimension, heading, fade, onlyDriver);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerPos(Player, Vector3, bool, uint?)"/>
         public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetPlayerPos(player, position, toGround, dimension, heading, fade);
@@ -567,6 +568,72 @@ namespace BCRPServer
             }
             else
                 return false;
+        }
+
+        public static List<(Game.Items.Item Item, Game.Items.Inventory.Groups Group, int Slot)> TakeWeapons(this PlayerData pData)
+        {
+            pData.UnequipActiveWeapon();
+
+            var tempItems = pData.TempItems;
+
+            if (tempItems == null)
+                tempItems = new List<(Game.Items.Item, Game.Items.Inventory.Groups, int)>();
+
+            for (int i = 0; i < pData.Weapons.Length; i++)
+            {
+                if (pData.Weapons[i] is Game.Items.Weapon weapon)
+                {
+                    pData.Weapons[i] = null;
+
+                    tempItems.Add((weapon, Game.Items.Inventory.Groups.Weapons, i));
+
+                    pData.Player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Weapons, i, "null");
+                }
+            }
+
+            if (tempItems.Count == 0)
+                return null;
+
+            pData.TempItems = tempItems;
+
+            return tempItems;
+        }
+
+        public static void GiveTakenItems(this PlayerData pData)
+        {
+            var takenItems = pData.TempItems;
+
+            if (takenItems == null)
+                return;
+
+            foreach (var x in takenItems)
+            {
+                if (x.Group == Game.Items.Inventory.Groups.Weapons)
+                {
+                    pData.Weapons[x.Slot] = x.Item as Game.Items.Weapon;
+                }
+
+                pData.Player.TriggerEvent("Inventory::Update", (int)x.Group, x.Slot, x.Item.ToClientJson(x.Group));
+            }
+
+            pData.TempItems = null;
+        }
+
+        public static Game.Items.Weapon GiveTempWeapon(this PlayerData pData, string wId, int ammo = -1)
+        {
+            var weapon = Game.Items.Items.CreateItem(wId, 0, ammo, true) as Game.Items.Weapon;
+
+            if (weapon == null)
+                return null;
+
+            pData.Weapons[0] = weapon;
+
+            if (ammo < 0)
+                weapon.Ammo = -1;
+
+            pData.InventoryAction(Game.Items.Inventory.Groups.Weapons, 0, 5);
+
+            return weapon;
         }
 
         /// <summary>Выслать уведомление игроку (кастомное)</summary>
@@ -1046,6 +1113,41 @@ namespace BCRPServer
             }
 
             return null;
+        }
+
+        public static void TriggerEventOccupants(this Vehicle veh, string eventName, params object[] args)
+        {
+            var occupants = new List<Player>();
+
+            foreach (var x in veh.Occupants)
+            {
+                if (x is Player player)
+                    occupants.Add(player);
+            }
+
+            if (occupants.Count > 0)
+                NAPI.ClientEvent.TriggerClientEventToPlayers(occupants.ToArray(), eventName, args);
+        }
+
+        public static void SetFixed(this Vehicle veh) => Sync.Vehicles.SetFixed(veh);
+        public static void SetVisualFixed(this Vehicle veh) => Sync.Vehicles.SetVisualFixed(veh);
+
+        public static void SetCleaned(this VehicleData vData) => vData.DirtLevel = 0;
+
+        public static void SetHeading(this Vehicle veh, float value, bool resetXY = false)
+        {
+            if (resetXY)
+            {
+                veh.Rotation = new Vector3(0f, 0f, value);
+            }
+            else
+            {
+                var rot = veh.Rotation;
+
+                rot.Z = value;
+
+                veh.Rotation = rot;
+            }
         }
 
         public static void CreateGPSBlip(this Player player, Vector3 pos, uint dim, bool drawRoute = false) => player.TriggerEvent("Blip::CreateGPS", pos, dim, drawRoute);

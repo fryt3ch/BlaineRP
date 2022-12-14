@@ -40,7 +40,7 @@ namespace BCRPServer.Events.Players
         {
             var pData = PlayerData.Get(player);
 
-            if (target?.Exists != true || pData.VoiceRange == 0f)
+            if (pData == null || pData.VoiceRange == 0f || target?.Exists != true)
                 return;
 
             if (!player.AreEntitiesNearby(target, pData.VoiceRange) || pData.Listeners.Contains(target))
@@ -56,7 +56,7 @@ namespace BCRPServer.Events.Players
         {
             var pData = PlayerData.Get(player);
 
-            if (target?.Exists != true)
+            if (pData == null || target?.Exists != true)
                 return;
 
             player.DisableVoiceTo(target);
