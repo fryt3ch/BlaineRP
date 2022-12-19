@@ -47,7 +47,7 @@ namespace BCRPClient
             RAGE.Chat.Activate(false);
             RAGE.Chat.Show(false);
 
-            FpsCounter();
+            FpsCounterStart();
 
             Player.LocalPlayer.SetVisible(true, false);
 
@@ -85,7 +85,7 @@ namespace BCRPClient
                 Additional.ExtraColshape.UpdateStreamed();
             };
 
-            Events.OnPlayerQuit += (Player player) =>
+            Events.OnPlayerQuit += async (Player player) =>
             {
                 var pData = Sync.Players.GetData(player);
 
@@ -94,19 +94,21 @@ namespace BCRPClient
 
                 var pos = player.Position;
 
+                if (Player.LocalPlayer.Position.DistanceTo(pos) > 25f)
+                    return;
+
                 var curTime = Utils.GetServerTime();
 
-                var text = new TextLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
+                var text = new TextLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
 
                 pos.Z -= 1f;
 
                 var marker = new Marker(42, pos, 1f, new Vector3(90f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 165, 0, 125), true, player.Dimension);
 
-                AsyncTask.RunSlim(() =>
-                {
-                    marker?.Destroy();
-                    text?.Destroy();
-                }, 60000);
+                await RAGE.Game.Invoker.WaitAsync(60_000);
+
+                marker?.Destroy();
+                text?.Destroy();
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
@@ -167,7 +169,7 @@ namespace BCRPClient
 
             WaypointCreated += (Vector3 position) =>
             {
-                Utils.ConsoleOutput(position);
+                //Utils.ConsoleOutput(position);
 
                 WaypointPosition = position;
 
@@ -182,7 +184,7 @@ namespace BCRPClient
 
             WaypointDeleted += () =>
             {
-                Utils.ConsoleOutput("DELETED");
+                //Utils.ConsoleOutput("DELETED");
 
                 WaypointPosition = null;
             };
@@ -373,7 +375,7 @@ namespace BCRPClient
             RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53);
         }
 
-        private static async void FpsCounter()
+        private static async void FpsCounterStart()
         {
             while (true)
             {

@@ -1,4 +1,5 @@
 ﻿using BCRPClient.CEF;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
@@ -125,6 +126,12 @@ namespace BCRPClient.Sync
             /// <summary>Бизнес</summary>
             Business,
         }
+
+        public enum AchievementTypes
+        {
+            SR1,
+            SR2,
+        }
         #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
@@ -134,6 +141,28 @@ namespace BCRPClient.Sync
             { SkillTypes.Cooking, 100 },
             { SkillTypes.Fishing, 100 },
         };
+
+        public class MedicalCard
+        {
+            public enum DiagnoseTypes
+            {
+                Healthy = 0,
+            }
+
+            [JsonProperty(PropertyName = "I")]
+            public DateTime IssueDate { get; set; }
+
+            [JsonProperty(PropertyName = "F")]
+            public FractionTypes IssueFraction { get; set; }
+
+            [JsonProperty(PropertyName = "N")]
+            public string DoctorName { get; set; }
+
+            [JsonProperty(PropertyName = "D")]
+            public DiagnoseTypes Diagnose { get; set; }
+
+            public MedicalCard() { }
+        }
 
         public class PlayerData
         {
@@ -223,6 +252,10 @@ namespace BCRPClient.Sync
             public Dictionary<SkillTypes, int> Skills { get => Player.LocalPlayer.GetData<Dictionary<SkillTypes, int>>("Skills"); set => Player.LocalPlayer.SetData("Skills", value); }
 
             public List<LicenseTypes> Licenses { get => Player.LocalPlayer.GetData<List<LicenseTypes>>("Licenses"); set => Player.LocalPlayer.SetData("Licenses", value); }
+
+            public MedicalCard MedicalCard { get => Player.LocalPlayer.GetData<MedicalCard>("MedicalCard"); set { if (value == null) Player.LocalPlayer.ResetData("MedicalCard"); else Player.LocalPlayer.SetData("MedicalCard", value); } }
+
+            public Dictionary<AchievementTypes, (int Progress, bool IsRecieved)> Achievements { get => Player.LocalPlayer.GetData<Dictionary<AchievementTypes, (int, bool)>>("Achievements"); set => Player.LocalPlayer.SetData("Achievements", value); }
 
             public Entity IsAttachedTo { get => Player.GetData<Entity>("IsAttachedTo::Entity"); set => Player.SetData("IsAttachedTo::Entity", value); }
 
@@ -357,6 +390,16 @@ namespace BCRPClient.Sync
                 data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
                 data.OwnedBusinesses = RAGE.Util.Json.Deserialize<List<int>>((string)sData["Businesses"]).Select(x => Data.Locations.Business.All[x]).ToList();
                 data.OwnedHouses = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Houses"]).Select(x => Data.Locations.House.All[x]).ToList();
+
+                if (sData.ContainsKey("MedCard"))
+                    data.MedicalCard = RAGE.Util.Json.Deserialize<MedicalCard>((string)sData["MedCard"]);
+
+                var achievements = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Achievements"]).ToDictionary(x => (AchievementTypes)Convert.ToInt32(x.Split('_')[0]), y => { var data = y.Split('_'); return (Convert.ToInt32(data[1]), Convert.ToInt32(data[2])); });
+
+                foreach (var x in achievements)
+                    UpdateAchievement(data, x.Key, x.Value.Item1, x.Value.Item2);
+
+                data.Achievements = achievements.ToDictionary(x => x.Key, y => (y.Value.Item1, y.Value.Item1 >= y.Value.Item2));
 
                 data.Furniture = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Furniture"]).ToDictionary(x => x.Key, x => Data.Furniture.GetData(x.Value));
 
@@ -537,6 +580,16 @@ namespace BCRPClient.Sync
 
             #region Local Player Events
 
+            Events.Add("Player::Waypoint::Set", (args) =>
+            {
+                var x = (float)args[0];
+                var y = (float)args[1];
+
+                RAGE.Game.Ui.SetWaypointOff();
+
+                RAGE.Game.Ui.SetNewWaypoint(x, y);
+            });
+
             Events.Add("Player::Smoke::Start", (object[] args) =>
             {
                 var maxTime = (int)args[0];
@@ -590,6 +643,25 @@ namespace BCRPClient.Sync
 
             });
 
+            Events.Add("Player::Achievements::Update", (object[] args) =>
+            {
+                var data = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (data == null)
+                    return;
+
+                var aType = (AchievementTypes)(int)args[0];
+                int value = (int)args[1];
+                int maxValue = (int)args[2];
+
+                UpdateAchievement(data, aType, value, maxValue);
+
+                var aData = Locale.General.Players.AchievementTexts.ContainsKey(aType) ? Locale.General.Players.AchievementTexts[aType] : ("null", "null");
+
+                if (value >= maxValue)
+                    CEF.Notification.Show(Notification.Types.Achievement, aData.Item1, Locale.Notifications.General.AchievementUnlockedText, 5000);
+            });
+
             Events.Add("Player::Skills::Update", (object[] args) =>
             {
                 var data = Sync.Players.GetData(Player.LocalPlayer);
@@ -609,6 +681,23 @@ namespace BCRPClient.Sync
                 UpdateSkill(sType, value);
 
                 CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
+            });
+
+            Events.Add("Player::MedCard::Update", (object[] args) =>
+            {
+                var data = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (data == null)
+                    return;
+
+                if (args.Length > 0)
+                {
+                    data.MedicalCard = RAGE.Util.Json.Deserialize<MedicalCard>((string)args[0]);
+                }
+                else
+                {
+                    data.MedicalCard = null;
+                }
             });
 
             Events.Add("Player::Licenses::Update", (object[] args) =>
@@ -1373,6 +1462,28 @@ namespace BCRPClient.Sync
         private static void UpdateFlyingSkill(bool hasLicense) => RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_FLYING_ABILITY"), hasLicense ? 50 : 0, true);
 
         private static void UpdateBikeSkill(bool hasLicense) => RAGE.Game.Stats.StatSetInt(RAGE.Util.Joaat.Hash("MP0_WHEELIE_ABILITY"), hasLicense ? 50 : 0, true);
+
+        private static void UpdateAchievement(PlayerData pData, AchievementTypes aType, int value, int maxValue)
+        {
+            if (pData == null)
+            {
+                pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+            }
+
+            if (pData.Achievements?.ContainsKey(aType) == true)
+            {
+                CEF.Menu.UpdateAchievement(aType, value, maxValue);
+            }
+            else
+            {
+                var aData = Locale.General.Players.AchievementTexts.ContainsKey(aType) ? Locale.General.Players.AchievementTexts[aType] : ("null", "null");
+
+                CEF.Menu.AddAchievement(aType, value, maxValue, $"[{(int)aType + 1}] {aData.Item1}", aData.Item2);
+            }
+        }
 
         public static void CloseAll(bool onlyInterfaces = false)
         {

@@ -169,6 +169,39 @@ namespace BCRPClient.Sync
 
             Furniture = new Dictionary<uint, MapObject>();
 
+            Events.Add("ARoot::Enter", async (args) =>
+            {
+                var arType = (Data.Locations.ApartmentsRoot.Types)(int)args[0];
+
+                var aRoot = Data.Locations.ApartmentsRoot.All[arType];
+
+                Utils.SetActionAsPending("ApartmentsRoot::Load", true);
+
+                while (Additional.SkyCamera.IsFadedOut)
+                    await RAGE.Game.Invoker.WaitAsync(25);
+
+                if (!Utils.IsActionPending("ApartmentsRoot::Load"))
+                    return;
+
+                Utils.SetActionAsPending("ApartmentsRoot::Load", false);
+
+                aRoot.Load();
+
+                Player.LocalPlayer.SetData("ApartmentsRoot::Current", aRoot);
+            });
+
+            Events.Add("ARoot::Exit", (args) =>
+            {
+                var aRoot = Player.LocalPlayer.GetData<Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current");
+
+                if (aRoot == null)
+                    return;
+
+                aRoot.Unload();
+
+                Player.LocalPlayer.ResetData("ApartmentsRoot::Current");
+            });
+
             Events.Add("House::Enter", async (object[] args) =>
             {
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -176,10 +209,15 @@ namespace BCRPClient.Sync
                 if (pData == null)
                     return;
 
-                Player.LocalPlayer.SetData("House::Requested", true);
+                Utils.SetActionAsPending("House::Requested", true);
 
                 while (Additional.SkyCamera.IsFadedOut)
                     await RAGE.Game.Invoker.WaitAsync(250);
+
+                if (!Utils.IsActionPending("House::Requested"))
+                    return;
+
+                Utils.SetActionAsPending("House::Requested", false);
 
                 Sync.Players.CloseAll(false);
 
@@ -335,9 +373,6 @@ namespace BCRPClient.Sync
 
             Events.Add("House::Exit", async (object[] args) =>
             {
-                if (!Player.LocalPlayer.HasData("House::Requested"))
-                    return;
-
                 Player.LocalPlayer.ResetData("House::CurrentHouse");
 
                 Sync.Players.CloseAll(false);
@@ -367,7 +402,7 @@ namespace BCRPClient.Sync
 
                 Furniture.Clear();
 
-                Player.LocalPlayer.ResetData("House::Requested");
+                Utils.SetActionAsPending("House::Requested", false);
 
                 CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_House);
             });

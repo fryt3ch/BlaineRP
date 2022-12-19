@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,8 +11,6 @@ namespace BCRPServer.Game.Items
     public class Gift
     {
         private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
-
-        public static Dictionary<uint, Gift> All { get; private set; } = new Dictionary<uint, Gift>();
 
         private static uint LastAddedMaxId { get; set; }
 
@@ -34,20 +33,16 @@ namespace BCRPServer.Game.Items
             if (gift == null)
                 return;
 
-            All.Add(gift.ID, gift);
-
             if (gift.ID > LastAddedMaxId)
                 LastAddedMaxId = gift.ID;
         }
 
-        public static void Add(Gift gift)
+        public static void Add(Gift gift, uint cid)
         {
             if (gift == null)
                 return;
 
-            All.Add(gift.ID, gift);
-
-            MySQL.GiftAdd(gift);
+            MySQL.GiftAdd(gift, cid);
         }
 
         public static void Remove(Gift gift)
@@ -59,14 +54,32 @@ namespace BCRPServer.Game.Items
 
             AddFreeId(id);
 
-            All.Remove(id);
-
             MySQL.GiftDelete(gift);
         }
 
-        public static List<Gift> GetAllByCID(uint cid) => All.Values.Where(x => x?.CID == cid).ToList();
+        public class Prototype
+        {
+            public Types Type { get; set; }
 
-        public static Gift Get(uint id) => All.GetValueOrDefault(id);
+            public SourceTypes SourceType { get; set; }
+
+            public string GID { get; set; }
+
+            public int Variation { get; set; }
+
+            public int Amount { get; set; }
+
+            public Prototype(Types Type, SourceTypes SourceType, string GID, int Vatiation, int Amount)
+            {
+                this.Type = Type;
+                this.SourceType = SourceType;
+                this.GID = GID;
+                this.Variation = Variation;
+                this.Amount = Amount;
+            }
+
+            public static Prototype CreateAchievement(Types Type, string GID, int Variation, int Amount) => new Prototype(Type, SourceTypes.Achievement, GID, Variation, Amount);
+        }
 
         public enum Types
         {
@@ -84,13 +97,12 @@ namespace BCRPServer.Game.Items
             Server = 0,
             /// <summary>Магазин</summary>
             Shop,
+            /// <summary>Выполненное достижение</summary>
+            Achievement,
         }
 
         /// <summary>ID подарка</summary>
         public uint ID { get; set; }
-
-        /// <summary>CID владельца</summary>
-        public uint CID { get; set; }
 
         /// <summary>Тип подарка</summary>
         public Types Type { get; set; }
@@ -110,7 +122,7 @@ namespace BCRPServer.Game.Items
         public SourceTypes SourceType { get; set; }
 
         /// <summary>Конструктор для MySQL</summary>
-        public Gift(uint CID, uint ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(CID, SourceType, Type, GID, Variation, Amount)
+        public Gift(uint ID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1) : this(SourceType, Type, GID, Variation, Amount)
         {
             this.ID = ID;
 
@@ -123,11 +135,10 @@ namespace BCRPServer.Game.Items
             this.SourceType = SourceType;
         }
 
-        public Gift(uint CID, SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
+        public Gift(SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
         {
             this.ID = MoveNextId();
 
-            this.CID = CID;
             this.Amount = Amount;
             this.Type = Type;
             this.GID = GID;
@@ -149,18 +160,21 @@ namespace BCRPServer.Game.Items
         /// <param name="sType">Источник выдачи</param>
         /// <param name="notify">Уведомить ли игрока?</param>
         /// <param name="spaceHint">Уведомить, но с подсказкой об освобождении места в инвентаре?</param>
-        public static Gift Give(PlayerData pData, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false, bool spaceHint = false)
+        public static Gift Give(PlayerData.PlayerInfo pInfo, Types type, string GID = null, int variation = 0, int amount = 1, SourceTypes sType = SourceTypes.Server, bool notify = false)
         {
-            var player = pData.Player;
+            var gift = new Gift(sType, type, GID, variation, amount);
 
-            var gift = new Gift(pData.CID, sType, type, GID, variation, amount);
+            Add(gift, pInfo.CID);
 
-            Add(gift);
+            pInfo.Gifts.Add(gift);
 
-            player.TriggerEvent("Menu::Gifts::Update", true, gift.ID, notify, spaceHint, (int)type, GID, amount, (int)sType);
+            if (pInfo.PlayerData != null)
+                pInfo.PlayerData.Player.TriggerEvent("Menu::Gifts::Update", true, gift.ID, notify, (int)type, GID, amount, (int)sType);
 
             return gift;
         }
+
+        public static Gift Give(PlayerData.PlayerInfo pInfo, Prototype prototype, bool notify = false) => Give(pInfo, prototype.Type, prototype.GID, prototype.Variation, prototype.Amount, prototype.SourceType, notify);
 
         /// <summary>Метод для распаковки подарка</summary>
         /// <param name="pData">PlayerData игрока</param>

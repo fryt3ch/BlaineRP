@@ -83,6 +83,10 @@ namespace BCRPServer.Game.Houses
                 Game.Items.Container.AllSIDs.Add("h_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
                 Game.Items.Container.AllSIDs.Add("h_wardrobe", new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe));
                 Game.Items.Container.AllSIDs.Add("h_fridge", new Items.Container.Data(50, 100f, Items.Container.AllowedItemTypes.Fridge, Items.Container.ContainerTypes.Fridge));
+
+                Game.Items.Container.AllSIDs.Add("a_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
+                Game.Items.Container.AllSIDs.Add("a_wardrobe", new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe));
+                Game.Items.Container.AllSIDs.Add("a_fridge", new Items.Container.Data(50, 100f, Items.Container.AllowedItemTypes.Fridge, Items.Container.ContainerTypes.Fridge));
             }
         }
 
@@ -199,11 +203,7 @@ namespace BCRPServer.Game.Houses
         /// <summary>Налог</summary>
         public int Tax => GetTax(Class);
 
-        /// <summary>Глобальная позиция</summary>
-        public Vector3 GlobalPosition { get; set; }
-
-        /// <summary>Поворот игрока при выходе из дома</summary>
-        public float ExitHeading { get; set; }
+        public Utils.Vector4 PositionParams { get; set; }
 
         public uint Locker { get; set; }
 
@@ -225,7 +225,7 @@ namespace BCRPServer.Game.Houses
 
         public ClassTypes Class { get; set; }
 
-        public HouseBase(uint ID, Vector3 GlobalPosition, float ExitHeading, Types Type, Style.RoomTypes RoomType)
+        public HouseBase(uint ID, Utils.Vector4 PositionParams, Types Type, Style.RoomTypes RoomType)
         {
             this.Type = Type;
 
@@ -233,10 +233,11 @@ namespace BCRPServer.Game.Houses
 
             this.ID = ID;
 
-            GlobalPosition.Z += 0.5f;
+            PositionParams.Position.Z += 0.5f;
 
-            this.GlobalPosition = GlobalPosition;
-            this.ExitHeading = ExitHeading;
+            this.PositionParams = PositionParams;
+
+            this.Class = GetClass(this);
         }
 
         public void TriggerEventForHouseOwners(string eventName, params object[] args)
@@ -275,7 +276,7 @@ namespace BCRPServer.Game.Houses
         /// <summary>Список транспорта в гараже</summary>
         public VehicleData.VehicleInfo[] Vehicles { get; set; }
 
-        public House(uint HID, Vector3 GlobalPosition, float ExitHeading, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, GlobalPosition, ExitHeading, Types.House, RoomType)
+        public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, PositionParams, Types.House, RoomType)
         {
             this.Price = Price;
             this.Dimension = (uint)(HID + Utils.HouseDimBase);
@@ -287,8 +288,6 @@ namespace BCRPServer.Game.Houses
             if (this.GarageData != null)
                 this.Vehicles = new VehicleData.VehicleInfo[this.GarageData.MaxVehicles];
 
-            this.Class = GetClass(this);
-
             All.Add(HID, this);
         }
 
@@ -296,7 +295,7 @@ namespace BCRPServer.Game.Houses
         /// <returns>Кол-во загруженных домов</returns>
         public static int LoadAll()
         {
-            new House(1, new Vector3(1724.771f, 4642.161f, 42.8755f), 115f, Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(1723.976f, 4630.187f, 42.84944f, 116.6f));
+            new House(1, new Utils.Vector4(1724.771f, 4642.161f, 42.8755f, 115f), Style.RoomTypes.Two, 50000, Garage.Types.Two, new Utils.Vector4(1723.976f, 4630.187f, 42.84944f, 116.6f));
 
             var lines = new List<string>();
 
@@ -304,7 +303,7 @@ namespace BCRPServer.Game.Houses
             {
                 MySQL.LoadHouse(x);
 
-                lines.Add($"new House({x.ID}, {x.GlobalPosition.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, House.ClassTypes.{x.Class}, {x.Tax});");
+                lines.Add($"new House({x.ID}, {x.PositionParams.Position.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "HOUSES_TO_REPLACE", lines);
@@ -354,42 +353,47 @@ namespace BCRPServer.Game.Houses
                 Cheap1 = 0,
             }
 
-            /// <summary>Тип многоквартирного дома</summary>
             public Types Type { get; set; }
 
-            /// <summary>Позиция входа</summary>
-            public Vector3 PositionEnter { get; set; }
+            public Utils.Vector4 EnterParams { get; set; }
 
-            /// <summary>Позиция выхода</summary>
-            public Vector3 PositionExit { get; set; }
+            public Utils.Vector4 ExitParams { get; set; }
 
-            /// <summary>Поворот игрока при входе</summary>
-            public float EnterHeading { get; set; }
-
-            /// <summary>Поворот игрока при выходе</summary>
-            public float ExitHeading { get; set; }
+            public List<Utils.Vector4> Floors { get; set; }
 
             /// <summary>Измерение многоквартирного дома</summary>
             public uint Dimension { get; set; }
 
-            public ApartmentsRoot(Types Type, Vector3 PositionEnter, float EnterHeading, Vector3 PositionExit, float ExitHeading)
+            public ApartmentsRoot(Types Type, Utils.Vector4 EnterParams, Utils.Vector4 ExitParams, List<Utils.Vector4> Floors)
             {
                 this.Type = Type;
 
-                this.PositionEnter = PositionEnter;
-                this.PositionExit = PositionExit;
+                this.EnterParams = EnterParams;
+                this.ExitParams = ExitParams;
 
                 this.Dimension = (uint)(Utils.ApartmentsRootDimBase + (int)Type);
 
-                this.EnterHeading = EnterHeading;
-                this.ExitHeading = ExitHeading;
+                this.Floors = Floors;
 
                 All.Add(Type, this);
             }
 
             public static void LoadAll()
             {
-                new ApartmentsRoot(Types.Cheap1, new Vector3(0, 0, 0), 0f, new Vector3(0, 0, 0), 0f);
+                new ApartmentsRoot(Types.Cheap1, new Utils.Vector4(-150.497f, 6416.68f, 31.9159f, 45f), new Utils.Vector4(696.9186f, 1299.008f, -186.5668f, 92f),
+                    new List<Utils.Vector4>()
+                    {
+                        new Utils.Vector4(697.21f, 1302.987f, -186.5703f, 181.7173f),
+                    });
+
+                var lines = new List<string>();
+
+                foreach (var x in All.Values)
+                {
+                    lines.Add($"new ApartmentsRoot(ApartmentsRoot.Types.{x.Type.ToString()}, {x.EnterParams.Position.ToCSharpStr()}, {x.ExitParams.Position.ToCSharpStr()}, new List<Vector3>() {{ {string.Join(',', x.Floors.Select(y => y.Position.ToCSharpStr()))} }});");
+                }
+
+                Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "AROOTS_TO_REPLACE", lines);
             }
 
             public static ApartmentsRoot Get(Types type) => All.GetValueOrDefault(type);
@@ -409,9 +413,20 @@ namespace BCRPServer.Game.Houses
         {
             ApartmentsRoot.LoadAll();
 
+            new Apartments(1, new Utils.Vector4(692.4949f, 1293.174f, -186.5667f, 273.5f), ApartmentsRoot.Types.Cheap1, Style.RoomTypes.Two, 50000);
+
+            var lines = new List<string>();
+
+            foreach (var x in All.Values)
+            {
+                lines.Add($"new Apartments({x.ID}, {x.PositionParams.Position.ToCSharpStr()}, ApartmentsRoot.Types.{x.Root.Type.ToString()}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+            }
+
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "APARTMENTS_TO_REPLACE", lines);
+
             return All.Count;
         }
-        public Apartments(uint HID, Vector3 GlobalPosition, float ExitHeading, ApartmentsRoot.Types RootType, Style.RoomTypes RoomType, int Price) : base(HID, GlobalPosition, ExitHeading, Types.Apartments, RoomType)
+        public Apartments(uint HID, Utils.Vector4 EnterParams, ApartmentsRoot.Types RootType, Style.RoomTypes RoomType, int Price) : base(HID, EnterParams, Types.Apartments, RoomType)
         {
             this.Root = ApartmentsRoot.Get(RootType);
 

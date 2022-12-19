@@ -159,6 +159,8 @@ namespace BCRPServer
 
             public DateTime RegistrationDate { get; set; }
 
+            public uint OwnersCount { get; set; }
+
             public uint? TID { get; set; }
 
             public Game.Items.Numberplate Numberplate { get; set; }
@@ -217,6 +219,16 @@ namespace BCRPServer
 
                     return VehicleData;
                 }
+            }
+
+            public void ShowPassport(Player player)
+            {
+                var owner = PlayerData.PlayerInfo.Get(OwnerID);
+
+                if (owner == null)
+                    player.TriggerEvent("Documents::Show", 2, Data.Name, "null", "null", VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
+                else
+                    player.TriggerEvent("Documents::Show", 2, Data.Name, owner.Name, owner.Surname, VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
             }
 
             public static void PreloadAll()

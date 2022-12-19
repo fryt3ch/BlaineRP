@@ -692,5 +692,26 @@ namespace BCRPServer.Events.Vehicles
 
             vData.IsAnchored = state;
         }
+
+        [RemoteEvent("Vehicles::ShowPass")]
+        private static void ShowPassport(Player player, Vehicle veh)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            vData.Info.ShowPassport(player);
+        }
     }
 }

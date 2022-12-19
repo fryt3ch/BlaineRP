@@ -17,6 +17,8 @@ namespace BCRPClient.Sync
             Exchange,
             /// <summary>Нести игркока</summary>
             Carry,
+            /// <summary>Сыграть в орел и решка</summary>
+            HeadsOrTails,
             /// <summary>Приглашение во фракцию</summary>
             InviteFraction,
             /// <summary>Приглашение в организацию</summary>
@@ -24,9 +26,27 @@ namespace BCRPClient.Sync
             /// <summary>Передать наличные</summary>
             Cash,
             /// <summary>Показать паспорт</summary>
-            ShowPasport,
+            ShowPassport,
+            /// <summary>Показать мед. карту</summary>
+            ShowMedicalCard,
+            /// <summary>Показать лицензии</summary>
+            ShowLicenses,
+            /// <summary>Показать тех. паспорт</summary>
+            ShowVehiclePassport,
+            /// <summary>Показать резюме</summary>
+            ShowResume,
             /// <summary>Продажа имущества</summary>
             PropertySell,
+            /// <summary>Поделиться меткой</summary>
+            WaypointShare,
+            /// <summary>Подселить в дом/квартиру</summary>
+            Settle,
+            /// <summary>Продать недвижимость</summary>
+            SellEstate,
+            /// <summary>Продать транспорт</summary>
+            SellVehicle,
+            /// <summary>Продать бизнес</summary>
+            SellBusiness,
         }
 
         public enum ReplyTypes
@@ -76,7 +96,7 @@ namespace BCRPClient.Sync
             {
                 Player player = (Player)args[0];
                 Types type = (Types)(int)args[1];
-                object data = RAGE.Util.Json.Deserialize<object>((string)args[2]);
+                object data = args.Length < 3 ? null : RAGE.Util.Json.Deserialize<object>((string)args[2]);
 
                 if (player?.Exists != true)
                     return;
@@ -134,7 +154,7 @@ namespace BCRPClient.Sync
             GameEvents.Update += OfferTick;
 
             var name = player.GetName(true, false, true);
-            string text = data == null ? string.Format(Locale.Notifications.Offers.Types[type], name) : string.Format(Locale.Notifications.Offers.Types[type], name, data);
+            string text = data == null ? string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type), name) : string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, data);
 
             CEF.Notification.ShowOffer(text);
 
@@ -169,13 +189,13 @@ namespace BCRPClient.Sync
             if (player?.Exists != true)
                 return;
 
-            if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
             if (Utils.IsAnyCefActive() || LastSent.IsSpam(2000, false, false) || !Utils.CanDoSomething(ActionsToCheck))
                 return;
 
-            Events.CallRemote("Offers::Send", player, type, RAGE.Util.Json.Serialize(data));
+            Events.CallRemote("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data));
 
             CurrentTarget = player;
 

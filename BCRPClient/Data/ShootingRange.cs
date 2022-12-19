@@ -242,8 +242,15 @@ namespace BCRPClient.Data
 
                 var srType = (Types)(int)args[0];
 
+                Utils.SetActionAsPending("ShootingRange", true);
+
                 while (Additional.SkyCamera.IsFadedOut)
                     await RAGE.Game.Invoker.WaitAsync(25);
+
+                if (!Utils.IsActionPending("ShootingRange"))
+                    return;
+
+                Utils.SetActionAsPending("ShootingRange", false);
 
                 Start(srType, pData.Skills[Sync.Players.SkillTypes.Shooting]);
             });
@@ -269,7 +276,7 @@ namespace BCRPClient.Data
             CurrentScore = 0;
             CurrentLooseScore = 0;
 
-            CurrentPosSpeed = 0.00095f + curSkill * 0.000075f;
+            CurrentPosSpeed = 0.00095f + curSkill * 0.000045f;
             CurrentRotSpeed = 2f + curSkill * 0.045f;
 
             CurrentMaxScore = curSkill < 10 ? 10 : curSkill / 10 * 10;
@@ -280,6 +287,8 @@ namespace BCRPClient.Data
             OldTargetDelay = 5000 - curSkill * 20;
 
             LastTargetAdded = DateTime.MinValue;
+
+            CEF.Notification.ShowHint(string.Format(Locale.Notifications.General.ShootingRangeHint1, Math.Round(MinAccuracy, 2)), false);
 
             task = new AsyncTask(async () =>
             {
@@ -335,10 +344,16 @@ namespace BCRPClient.Data
             Targets.Clear();
 
             Targets = null;
+
+            Utils.SetActionAsPending("ShootingRange", false);
+
+            RAGE.Game.Audio.PlaySoundFrontend(-1, "SHOOTING_RANGE_ROUND_OVER", "HUD_AWARDS", true);
         }
 
         private static void Render()
         {
+            //CurrentScore = CurrentMaxScore;
+
             var srType = (Types)CurrentType;
 
             var rData = Ranges[srType];
@@ -383,6 +398,8 @@ namespace BCRPClient.Data
                 }
             }
 
+            var fpsCoef = Utils.GetFpsCoef();
+
             for (int i = 0; i < Targets.Count; i++)
             {
                 var x = Targets[i];
@@ -396,8 +413,7 @@ namespace BCRPClient.Data
                 {
                     if (x.RotationX >= 0f)
                     {
-                        RAGE.Game.Audio.PlaySoundFrontend(-1, "Target_Activate", "DLC_GR_Bunker_Shooting_Range_Sounds", true);
-                        //RAGE.Game.Audio.PlaySoundFromEntity(-1, "Target_Activate", Player.LocalPlayer.Handle, "DLC_GR_Bunker_Shooting_Range_Sounds", false, 0);
+                        RAGE.Game.Audio.PlaySoundFromEntity(-1, "Pin_Good", obj.Handle, "DLC_HEIST_BIOLAB_PREP_HACKING_SOUNDS", false, 0);
 
                         x.CurrentState = Target.StateTypes.Idle;
 
@@ -405,7 +421,7 @@ namespace BCRPClient.Data
                     }
                     else
                     {
-                        x.RotationX += CurrentRotSpeed;
+                        x.RotationX += CurrentRotSpeed * fpsCoef;
 
                         var dRot = rData.TargetRotation;
 
@@ -422,7 +438,7 @@ namespace BCRPClient.Data
                     }
                     else
                     {
-                        x.RotationX -= CurrentRotSpeed;
+                        x.RotationX -= CurrentRotSpeed * fpsCoef;
 
                         var dRot = rData.TargetRotation;
 
@@ -439,8 +455,7 @@ namespace BCRPClient.Data
                 {
                     if (DateTime.Now.Subtract(x.CreationTime).TotalMilliseconds >= OldTargetDelay)
                     {
-                        RAGE.Game.Audio.PlaySoundFrontend(-1, "Target_Deactivate", "DLC_GR_Bunker_Shooting_Range_Sounds", true);
-                        //RAGE.Game.Audio.PlaySoundFromEntity(-1, "Target_Deactivate", Player.LocalPlayer.Handle, "DLC_GR_Bunker_Shooting_Range_Sounds", false, 0);
+                        RAGE.Game.Audio.PlaySoundFromEntity(-1, "Pin_Bad", obj.Handle, "DLC_HEIST_BIOLAB_PREP_HACKING_SOUNDS", false, 0);
 
                         x.CurrentState = Target.StateTypes.Closing;
 
@@ -459,8 +474,7 @@ namespace BCRPClient.Data
 
                             LastShotRegistered = DateTime.Now;
 
-                            RAGE.Game.Audio.PlaySoundFrontend(-1, "Target_Hit_Head_Black", "DLC_GR_Bunker_Shooting_Range_Sounds", true);
-                            //RAGE.Game.Audio.PlaySoundFromEntity(-1, "Target_Hit_Head_Black", Player.LocalPlayer.Handle, "DLC_GR_Bunker_Shooting_Range_Sounds", false, 0);
+                            //RAGE.Game.Audio.PlaySoundFromEntity(-1, "Target_Hit_Head_Black", obj.Handle, "DLC_GR_Bunker_Shooting_Range_Sounds", false, 0);
 
                             x.CurrentState = Target.StateTypes.Closing;
 
@@ -487,7 +501,7 @@ namespace BCRPClient.Data
                                     x.Direction = true;
                             }
 
-                            x.CurrentInterpolation += x.Direction ? CurrentPosSpeed : -CurrentPosSpeed;
+                            x.CurrentInterpolation += (x.Direction ? CurrentPosSpeed : -CurrentPosSpeed) * fpsCoef;
 
                             var newPos = RAGE.Vector3.Lerp(rData.GetLeftRowPosition(x.Row), rData.GetRightRowPosition(x.Row), x.CurrentInterpolation);
 
@@ -498,10 +512,7 @@ namespace BCRPClient.Data
             }
         }
 
-        private static void ShotHandler(Vector3 pos, Player target, RAGE.Events.CancelEventArgs cancel)
-        {
-            CurrentTotalShots++;
-        }
+        private static void ShotHandler(Vector3 pos, Player target, RAGE.Events.CancelEventArgs cancel) => CurrentTotalShots++;
 
         private static void Finish()
         {

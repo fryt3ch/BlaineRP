@@ -29,7 +29,7 @@ namespace BCRPServer.Events.Players
             if (house == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.GlobalPosition) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.PositionParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             if (house.IsLocked && house.Owner != pData.Info && !house.Settlers.ContainsKey(pData.Info))
@@ -64,7 +64,7 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != house.Dimension)
                 return;
 
-            player.Teleport(house.GlobalPosition, false, Utils.Dimensions.Main, house.ExitHeading, true);
+            player.Teleport(house.PositionParams.Position, false, Utils.Dimensions.Main, house.PositionParams.RotationZ, true);
 
             player.TriggerEvent("House::Exit");
         }

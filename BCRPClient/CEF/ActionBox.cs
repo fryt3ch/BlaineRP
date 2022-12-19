@@ -43,6 +43,7 @@ namespace BCRPClient.CEF
 
             TuningShopDeleteMod,
             NumberplateSelect,
+            VehiclePassportSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -231,7 +232,61 @@ namespace BCRPClient.CEF
                                 }
                             }
                         }
-                    }
+                    },
+
+                    {
+                        Contexts.VehiclePassportSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var player = BCRPClient.Interaction.CurrentEntity as Player;
+
+                                        if (player == null)
+                                            return;
+
+                                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                        if (pData == null)
+                                            return;
+
+                                        var allVehs = pData.OwnedVehicles;
+
+                                        if (allVehs.Count <= id)
+                                        {
+                                            Close(true);
+
+                                            return;
+                                        }
+
+                                        Close(true);
+
+                                        Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[id].VID);
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            }
+                        }
+                    },
                 }
             },
 

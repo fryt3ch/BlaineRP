@@ -389,6 +389,10 @@ namespace BCRPClient.Additional
 
             TuningEnter,
             ShootingRangeEnter,
+
+            ApartmentsRootEnter,
+            ApartmentsRootExit,
+            ApartmentsRootElevator,
         }
 
         public enum ActionTypes
@@ -417,6 +421,10 @@ namespace BCRPClient.Additional
 
             ReachableBlip,
             ShootingRangeEnter,
+
+            ApartmentsRootEnter,
+            ApartmentsRootExit,
+            ApartmentsRootElevator,
         }
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
@@ -585,6 +593,40 @@ namespace BCRPClient.Additional
                         return false;
 
                     Events.CallRemote("SRange::Enter::Shop", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.WeaponShop>("CurrentShootingRange").Id);
+
+                    LastSent = DateTime.Now;
+
+                    return true;
+                }
+            },
+
+            {
+                InteractionTypes.ApartmentsRootEnter, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentApartmentsRoot"))
+                        return false;
+
+                    Events.CallRemote("ARoot::Enter", (int)Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("CurrentApartmentsRoot").Type);
+
+                    LastSent = DateTime.Now;
+
+                    return true;
+                }
+            },
+
+            {
+                InteractionTypes.ApartmentsRootExit, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("ApartmentsRoot::Current"))
+                        return false;
+
+                    Events.CallRemote("ARoot::Exit");
 
                     LastSent = DateTime.Now;
 
@@ -890,6 +932,34 @@ namespace BCRPClient.Additional
                         (cs) =>
                         {
                             Player.LocalPlayer.ResetData("CurrentShootingRange");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.ApartmentsRootEnter,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is BCRPClient.Data.Locations.ApartmentsRoot aRoot)
+                            {
+                                Player.LocalPlayer.SetData("CurrentApartmentsRoot", aRoot);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentApartmentsRoot");
                         }
                     },
                 }

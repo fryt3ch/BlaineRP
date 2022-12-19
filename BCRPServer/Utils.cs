@@ -26,6 +26,11 @@ namespace BCRPServer
             public const uint Demorgan = 2;
         }
 
+        public static class Randoms
+        {
+            public static Random Chat { get; private set; } = new Random(DateTime.Now.Ticks.GetHashCode());
+        }
+
         public enum RespawnTypes
         {
             /// <summary>Смерть</summary>
@@ -1203,5 +1208,24 @@ namespace BCRPServer
 
         public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new Vector3({v.X}f, {v.Y}f, {v.Z}f)";
         public static string ToCSharpStr(this Utils.Vector4 v) => v == null ? "null" : $"new Utils.Vector4({v.X}f, {v.Y}f, {v.Z}f, {v.RotationZ}f)";
+
+        public static string GetBeautyString(this TimeSpan ts)
+        {
+            var hours = ts.TotalHours;
+
+            if (hours >= 1)
+            {
+                var mins = hours % 60;
+
+                if (hours % 60 >= 1)
+                    return string.Format("{0:0} ч. и {0:0} мин.", hours, mins);
+
+                return string.Format("{0:0} ч.", hours);
+            }
+            else if (ts.TotalMinutes >= 1)
+                return string.Format("{0:0} мин.", ts.TotalMinutes);
+            else
+                return string.Format("{0:0} сек.", ts.TotalSeconds);
+        }
     }
 }

@@ -10,6 +10,11 @@ namespace BCRPClient
         #region General
         public static class General
         {
+            public static string PropertyHouseString = "Дом";
+            public static string PropertyApartmentsString = "Квартира";
+            public static string PropertyGarageString = "Гараж";
+            public static string PropertyBusinessClass = "Business";
+
             public static class Blip
             {
                 public static Dictionary<Additional.ExtraBlip.Types, string> TypesNames = new Dictionary<Additional.ExtraBlip.Types, string>()
@@ -64,6 +69,12 @@ namespace BCRPClient
                     { Sync.Players.SkillTypes.Fishing, "рыболовства" },
                     { Sync.Players.SkillTypes.Cooking, "кулинарии" },
                     { Sync.Players.SkillTypes.Strength, "силы" },
+                };
+
+                public static Dictionary<Sync.Players.AchievementTypes, (string Title, string Desc)> AchievementTexts = new Dictionary<Sync.Players.AchievementTypes, (string, string)>()
+                {
+                    { Sync.Players.AchievementTypes.SR1, ("В яблочко!", "Получите навык стрельбы 80 в тире") },
+                    { Sync.Players.AchievementTypes.SR2, ("Концентрация", "Продержите точность 100% в тире при навыке стрельбы 100") }
                 };
             }
             #endregion
@@ -146,6 +157,8 @@ namespace BCRPClient
 
                 public static string NotMarriedMale = "не женат";
                 public static string NotMarriedFemale = "не замужем";
+
+                public static string VehiclePassportNoPlate = "отсутствует";
             }
 
             public static class Animations
@@ -771,6 +784,10 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.TuningEnter, "чтобы перейти к тюнингу" },
 
                 { Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter, "чтобы войти в тир [${0}]" },
+
+                { Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter, "чтобы войти" },
+                { Additional.ExtraColshape.InteractionTypes.ApartmentsRootExit, "чтобы выйти на улицу" },
+                { Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator, "чтобы воспользоваться лифтом" },
             };
         }
 
@@ -793,6 +810,8 @@ namespace BCRPClient
             public static string GarageVehicleActionBoxHeader = "Загнать Т/С в гараж";
 
             public static string NumberplateSelectHeader = "Выбор номерного знака";
+
+            public static string VehiclePassportSelectHeader = "Выбор тех. паспорта";
         }
 
         public static class HudMenu
@@ -853,6 +872,11 @@ namespace BCRPClient
                 { Data.Locations.Business.Types.WeaponShop, "Оружейный магазин" },
             };
 
+            public static Dictionary<Data.Locations.ApartmentsRoot.Types, string> ApartmentsRootNames = new Dictionary<Data.Locations.ApartmentsRoot.Types, string>()
+            {
+                { Data.Locations.ApartmentsRoot.Types.Cheap1, "ЖК Paleto" },
+            };
+
             public static string NoOwner = "Государство";
         }
 
@@ -889,6 +913,12 @@ namespace BCRPClient
 
                 public static string DontFlood = "Не так быстро!";
                 public static string Warning = "Прекратите спаммить!\nВ случае продолжения, вы будете кикнуты!\nВаш лимит: {0}/{1}";
+
+                public static string CooldownText1 = "Вы должны подождать некоторое время, прежде чем вновь сможете сделать это!";
+                public static string CooldownText2 = "Вы устали, подождите некоторое время и возвращайтесь!";
+                public static string CooldownText3 = "Подождите еще {0}, прежде чем сделать это!";
+
+                public static string CooldownText4 = "Сейчас вы не можете сделать это, приходите завтра!";
             }
 
             public static class General
@@ -935,6 +965,17 @@ namespace BCRPClient
 
                 public static string TuningAlreadyHaveThisColour = "У вас уже установлен этот цвет!";
                 public static string TuningAlreadyHaveThisColour2 = "У вас уже установлены эти цвета!";
+
+                public static string TuningNotAllowed = "Этот транспорт нельзя тюнинговать!";
+
+                public static string ShootingRangeHint1 = "Будьте внимательны, вы проиграете, если ваша меткость будет ниже {0}%!";
+
+                public static string AchievementUnlockedText = "Достижение разблокировано!";
+
+                public static string NoMedicalCard = "У вас нет мед. карты!";
+
+                public static string NoOwnedBusiness = "Вы не владеете ни одним бизнесом!";
+                public static string NoOwnedEstate = "Вы не владеете ни одним видом недвижимости!";
             }
 
             public static class House
@@ -942,6 +983,7 @@ namespace BCRPClient
                 public static string Header = "Дом";
 
                 public static string NotInAnyHouse = "Вы не находитесь в доме!";
+                public static string NotInAnyHouseOrApartments = "Вы не находитесь в доме/квартире!";
 
                 public static string NotAllowed = "У вас недостаточно прав!";
 
@@ -1121,12 +1163,12 @@ namespace BCRPClient
                 public static string Header = "Подарки";
 
                 public static string Added = "{0} у вас в подарках!\n\nЗабрать: {1} - Меню - Подарки";
-                public static string SpaceHint = "\n\nЗаберите, когда освободите место в инвентаре";
 
                 public static Dictionary<CEF.Menu.GiftSourceTypes, string> SourceNames = new Dictionary<CEF.Menu.GiftSourceTypes, string>()
                 {
                     { CEF.Menu.GiftSourceTypes.Server, "Сервер" },
                     { CEF.Menu.GiftSourceTypes.Shop, "Магазин" },
+                    { CEF.Menu.GiftSourceTypes.Achievement, "Достижение" },
                 };
             }
 
@@ -1138,9 +1180,30 @@ namespace BCRPClient
                 public static Dictionary<Sync.Offers.Types, string> Types = new Dictionary<Sync.Offers.Types, string>()
                 {
                     { Sync.Offers.Types.Handshake, "{0} предлагает вам поздороваться" },
+
+                    { Sync.Offers.Types.HeadsOrTails, "{0} предлагает вам сыграть в орел и решку" },
+
                     { Sync.Offers.Types.Exchange, "{0} предлагает вам обменяться" },
+                    { Sync.Offers.Types.SellEstate, "{0} предлагает вам продажу недвижимости" },
+                    { Sync.Offers.Types.SellVehicle, "{0} предлагает вам продажу транспорта" },
+                    { Sync.Offers.Types.SellBusiness, "{0} предлагает вам продажу бизнеса" },
+
+                    { Sync.Offers.Types.Settle, "{0} предлагает вам подселиться в {1}" },
+
                     { Sync.Offers.Types.Carry, "{0} предлагает понести вас" },
+
                     { Sync.Offers.Types.Cash, "{0} предлагает вам ${1}" },
+
+                    { Sync.Offers.Types.WaypointShare, "{0} предлагает вам свою метку" },
+
+                    { Sync.Offers.Types.ShowPassport, "{0} предлагает вам посмотреть паспорт" },
+                    { Sync.Offers.Types.ShowMedicalCard, "{0} предлагает вам посмотреть мед. карту" },
+                    { Sync.Offers.Types.ShowVehiclePassport, "{0} предлагает вам посмотреть тех. паспорт" },
+                    { Sync.Offers.Types.ShowLicenses, "{0} предлагает вам посмотреть лицензии" },
+                    { Sync.Offers.Types.ShowResume, "{0} предлагает вам посмотреть резюме" },
+
+                    { Sync.Offers.Types.InviteFraction, "{0} предлагает вам вступить во фракцию {1}" },
+                    { Sync.Offers.Types.InviteOrganisation, "{0} предлагает вам вступить в организацию {1}" },
                 };
 
                 public static string Cancel = "Предложение было отменено!";
@@ -1351,6 +1414,8 @@ namespace BCRPClient
                 public static string NoPlate = "На этом транспорте не установлен номерной знак!";
                 public static string PlateExists = "На этом транспорте уже установлен номерной знак!\nДля начала нужно его снять";
                 public static string PlateInstalled = "Номерной знак [{0}] установлен!";
+
+                public static string NoOwnedVehicles = "Вы не владеете ни одним транспортом!";
             }
         }
         #endregion

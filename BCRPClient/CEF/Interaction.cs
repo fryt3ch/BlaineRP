@@ -191,6 +191,10 @@ namespace BCRPClient.CEF
                     case OutVehicleActions.SetNumberplate:
                         Sync.Vehicles.SetupPlate(vehicle);
                     break;
+
+                    case OutVehicleActions.VehDocuments:
+                        Events.CallRemote("Vehicles::ShowPass", vehicle);
+                    break;
                 }
             });
             #endregion
@@ -210,6 +214,10 @@ namespace BCRPClient.CEF
 
                 switch (action)
                 {
+                    case InVehicleActions.VehDocuments:
+                        Events.CallRemote("Vehicles::ShowPass", vehicle);
+                    break;
+
                     case InVehicleActions.Doors:
                         Sync.Vehicles.Lock(null, vehicle);
                     break;
@@ -311,6 +319,104 @@ namespace BCRPClient.CEF
 
                 switch (action)
                 {
+                    case PlayerActions.Settle:
+                        var currentHouse = Player.LocalPlayer.GetData<Data.Locations.House>("House::CurrentHouse");
+
+                        if (currentHouse == null)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotInAnyHouseOrApartments);
+
+                            return;
+                        }
+
+                        if (!pData.OwnedHouses.Contains(currentHouse))
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotAllowed);
+
+                            return;
+                        }
+
+                        Sync.Offers.Request(player, Sync.Offers.Types.Settle);
+                        break;
+
+                    case PlayerActions.SellVehicle:
+                        if (pData.OwnedVehicles.Count == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoOwnedVehicles);
+
+                            return;
+                        }
+
+                        CEF.Estate.ShowSellVehicle(player, true);
+                        break;
+
+                    case PlayerActions.SellBuisiness:
+                        if (pData.OwnedBusinesses.Count == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedBusiness);
+
+                            return;
+                        }
+
+                        CEF.Estate.ShowSellBusiness(player, true);
+                        break;
+
+                    case PlayerActions.SellHouse:
+/*                        if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedEstate);
+
+                            return;
+                        }*/
+
+                        CEF.Estate.ShowSellEstate(player, true);
+                        break;
+
+                    case PlayerActions.Coin:
+                        Sync.Offers.Request(player, Sync.Offers.Types.HeadsOrTails);
+                        break;
+
+                    case PlayerActions.DocumentsMedical:
+                        if (pData.MedicalCard == null)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoMedicalCard);
+
+                            return;
+                        }
+
+                        Sync.Offers.Request(player, Sync.Offers.Types.ShowMedicalCard);
+                        break;
+
+                    case PlayerActions.DocumentsPassport:
+                        Sync.Offers.Request(player, Sync.Offers.Types.ShowPassport);
+                        break;
+
+                    case PlayerActions.DocumentsVehicle:
+                        var allVehs = pData.OwnedVehicles;
+
+                        if (allVehs.Count == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoOwnedVehicles);
+
+                            return;
+                        }
+
+                        if (allVehs.Count == 1)
+                        {
+                            Sync.Offers.Show(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
+
+                            return;
+                        }
+
+                        int t = 0;
+
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePassportSelect, Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => (t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray());
+                        break;
+
+                    case PlayerActions.DocumentsLicenses:
+                        Sync.Offers.Request(player, Sync.Offers.Types.ShowLicenses);
+                        break;
+
                     case PlayerActions.Handshake:
                         Sync.Offers.Request(player, Sync.Offers.Types.Handshake);
                         break;

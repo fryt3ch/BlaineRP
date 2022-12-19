@@ -45,12 +45,21 @@ namespace BCRPServer.Events.Players
 
             var diff = score < maxScore ? -1 : 1;
 
-            diff = Utils.GetCorrectDiff(pData.Skills[PlayerData.SkillTypes.Shooting], diff, 0, PlayerData.MaxSkills[PlayerData.SkillTypes.Shooting]);
+            var currentSkill = pData.Skills[PlayerData.SkillTypes.Shooting];
+
+            diff = Utils.GetCorrectDiff(currentSkill, diff, 0, PlayerData.MaxSkills[PlayerData.SkillTypes.Shooting]);
 
             if (diff != 0)
             {
+                currentSkill += diff;
+
                 pData.UpdateSkill(PlayerData.SkillTypes.Shooting, diff);
+
+                pData.Info.Achievements[PlayerData.Achievement.Types.SR1].UpdateProgress(pData.Info, currentSkill);
             }
+
+            if (currentSkill == 100)
+                pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (int)Math.Round(accuracy));
         }
 
         [RemoteEvent("SRange::Enter::Shop")]
@@ -74,8 +83,13 @@ namespace BCRPServer.Events.Players
             if (Vector3.Distance(player.Position, ws.PositionInfo) > 20f)
                 return;
 
+            if (pData.HasCooldown(PlayerData.CooldownTypes.ShootingRange, 2))
+                return;
+
             if (!ws.BuyShootingRange(pData))
                 return;
+
+            pData.Info.SetCooldown(PlayerData.CooldownTypes.ShootingRange);
 
             pData.CurrentBusiness = ws;
 

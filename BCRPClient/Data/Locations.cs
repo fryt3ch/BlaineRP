@@ -51,10 +51,137 @@ namespace BCRPClient.Data
             }
         }
 
-        public class House
+        public class ApartmentsRoot
         {
-            public static Dictionary<uint, House> All = new Dictionary<uint, House>();
+            public static Dictionary<Types, ApartmentsRoot> All { get; set; } = new Dictionary<Types, ApartmentsRoot>();
 
+            public enum Types
+            {
+                Cheap1 = 0,
+            }
+
+            public Types Type { get; set; }
+
+            public Vector3 PositionEnter { get; set; }
+
+            public Vector3 PositionExit { get; set; }
+
+            public List<Vector3> Floors { get; set; }
+
+            public Additional.ExtraColshape Colshape { get; set; }
+
+            public TextLabel InfoText { get; set; }
+
+            public Blip Blip { get; set; }
+
+            public string Name => Locale.Property.ApartmentsRootNames.GetValueOrDefault(Type) ?? "null";
+
+            public List<Apartments> AllApartments => Apartments.All.Values.Where(x => x.RootType == Type).ToList();
+
+            public List<Additional.ExtraColshape> LoadedColshapes { get => Player.LocalPlayer.GetData<List<Additional.ExtraColshape>>("ApartmentsRoot::LoadedColshapes"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedColshapes"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedColshapes", value); } }
+            
+            public List<TextLabel> LoadedTextLabels { get => Player.LocalPlayer.GetData<List<TextLabel>>("ApartmentsRoot::LoadedTextLabels"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedTextLabels"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedTextLabels", value); } }
+            
+            public List<Blip> LoadedBlips { get => Player.LocalPlayer.GetData<List<Blip>>("ApartmentsRoot::LoadedBlips"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedBlips"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedBlips", value); } }
+
+            public ApartmentsRoot(Types Type, Vector3 PositionEnter, Vector3 PositionExit, List<Vector3> Floors)
+            {
+                this.Type = Type;
+
+                this.PositionEnter = PositionEnter;
+                this.PositionExit = PositionExit;
+
+                All.Add(Type, this);
+
+                this.Floors = Floors;
+
+                this.Colshape = new Additional.Cylinder(PositionEnter, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+
+                this.Colshape.ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootEnter;
+                this.Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter;
+
+                this.Colshape.Data = this;
+
+                Blip = new Blip(475, PositionEnter, Name, 1f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            }
+
+            public void Load()
+            {
+                var aps = AllApartments;
+
+                var loadedColshapes = new List<Additional.ExtraColshape>();
+
+                foreach (var x in aps)
+                {
+
+                }
+
+                foreach (var x in Floors)
+                {
+                    var elevatorCs = new Additional.Cylinder(x, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
+                    {
+                        ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootElevator,
+                        InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator,
+
+                        Data = this,
+                    };
+
+                    loadedColshapes.Add(elevatorCs);
+                }
+
+                var exitCs = new Additional.Cylinder(PositionExit, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null)
+                {
+                    ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootExit,
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootExit,
+
+                    Data = this,
+                };
+
+                loadedColshapes.Add(exitCs);
+            }
+
+            public void Unload()
+            {
+                var loadedColshapes = LoadedColshapes;
+
+                if (loadedColshapes != null)
+                {
+                    foreach (var x in loadedColshapes)
+                        x?.Delete();
+
+                    loadedColshapes.Clear();
+
+                    LoadedColshapes = null;
+                }
+
+                var loadedTextLabels = LoadedTextLabels;
+
+                if (loadedTextLabels != null)
+                {
+                    foreach (var x in loadedTextLabels)
+                        x?.Destroy();
+
+                    loadedTextLabels.Clear();
+
+                    LoadedTextLabels = null;
+                }
+
+                var loadedBlips = LoadedBlips;
+
+                if (loadedBlips != null)
+                {
+                    foreach (var x in loadedBlips)
+                        x?.Destroy();
+
+                    loadedBlips.Clear();
+
+                    LoadedBlips = null;
+                }
+            }
+        }
+
+        public abstract class HouseBase
+        {
             public enum ClassTypes
             {
                 A = 0,
@@ -70,47 +197,97 @@ namespace BCRPClient.Data
 
             public uint Id { get; set; }
 
-            public string OwnerName => Sync.World.GetSharedData<string>($"House::{Id}::OName");
-
             public int Price { get; set; }
 
             public int Tax { get; set; }
 
             public ClassTypes Class { get; set; }
 
+            public abstract string OwnerName { get; }
+
             public Vector3 Position { get; set; }
 
             public Sync.House.Style.RoomTypes RoomType { get; set; }
-
-            public Garage.Types? GarageType { get; set; }
-
-            public Vector3 GaragePosition { get; set; }
 
             public Additional.ExtraColshape Colshape { get; set; }
 
             public RAGE.Elements.TextLabel InfoText { get; set; }
 
-            public Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
+            public abstract Blip OwnerBlip { get; set; }
+
+            public HouseBase(uint Id, int Price, Vector3 Position, Sync.House.Style.RoomTypes RoomType, ClassTypes Class, int Tax)
+            {
+                this.Id = Id;
+                this.Price = Price;
+                this.Position = Position;
+                this.RoomType = RoomType;
+                this.Class = Class;
+                this.Tax = Tax;
+            }
+
+            public abstract void ToggleOwnerBlip(bool state);
+        }
+
+        public class Apartments : HouseBase
+        {
+            public static Dictionary<uint, Apartments> All = new Dictionary<uint, Apartments>();
+
+            public override string OwnerName => Sync.World.GetSharedData<string>($"Apartments::{Id}::OName");
+
+            public override Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"Apartments::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Apartments::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Apartments::{Id}::OBlip", value); } }
+
+            public ApartmentsRoot.Types RootType { get; set; }
+
+            public Apartments(uint Id, Vector3 Position, ApartmentsRoot.Types RootType, Sync.House.Style.RoomTypes RoomType, int Price, ClassTypes Class, int Tax) : base(Id, Price, Position, RoomType, Class, Tax)
+            {
+                this.RootType = RootType;
+            }
+
+            public override void ToggleOwnerBlip(bool state)
+            {
+                if (state)
+                {
+                    var oBlip = OwnerBlip;
+
+                    oBlip?.Destroy();
+
+                    OwnerBlip = new Blip(40, Position, $"Квартира #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                }
+                else
+                {
+                    var oBlip = OwnerBlip;
+
+                    if (oBlip != null)
+                    {
+                        oBlip.Destroy();
+
+                        OwnerBlip = null;
+                    }
+                }
+            }
+        }
+
+        public class House : HouseBase
+        {
+            public static Dictionary<uint, House> All = new Dictionary<uint, House>();
+
+            public override string OwnerName => Sync.World.GetSharedData<string>($"House::{Id}::OName");
+
+            public Garage.Types? GarageType { get; set; }
+
+            public Vector3 GaragePosition { get; set; }
+
+            public override Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
 
             public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"House::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGCS"); else Player.LocalPlayer.SetData($"House::{Id}::OGCS", value); } }
            
             public Blip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
 
-            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, int Price, ClassTypes Class, int Tax)
+            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, int Price, ClassTypes Class, int Tax) : base(Id, Price, Position, RoomType, Class, Tax)
             {
-                this.Id = Id;
-
-                this.Price = Price;
-
-                this.Position = Position;
-
-                this.RoomType = RoomType;
-
                 this.GarageType = GarageType;
 
                 this.GaragePosition = GaragePosition;
-
-                this.Tax = Tax;
 
                 Colshape = new Additional.Cylinder(Position, 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
 
@@ -121,8 +298,6 @@ namespace BCRPClient.Data
 
                 InfoText = new TextLabel(Position, $"Дом #{Id}", new RGBA(255, 255, 255, 255), 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
-                this.Class = Class;
-
                 All.Add(Id, this);
             }
 
@@ -132,7 +307,7 @@ namespace BCRPClient.Data
                     name = Locale.Property.NoOwner;
             }
 
-            public void ToggleOwnerBlip(bool state)
+            public override void ToggleOwnerBlip(bool state)
             {
                 if (state)
                 {
@@ -714,6 +889,14 @@ namespace BCRPClient.Data
             #endregion
 
             #region BANKS_TO_REPLACE
+
+            #endregion
+
+            #region AROOTS_TO_REPLACE
+
+            #endregion
+
+            #region APARTMENTS_TO_REPLACE
 
             #endregion
 

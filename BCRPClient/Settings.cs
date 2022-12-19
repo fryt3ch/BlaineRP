@@ -9,6 +9,10 @@ namespace BCRPClient
 {
     class Settings : Events.Script
     {
+        /// <summary>Базовый FPS для выравнивания скорости работы некоторых механик</summary>
+        /// <remarks>Используется, например, в тире, для обеспечения одинаковой скорости перемещения мишеней у игроков с разным FPS</remarks>
+        public const float BASE_FPS = 185f;
+
         public static float STREAM_DISTANCE = 0f;
 
         public static float ENTITY_INTERACTION_MAX_DISTANCE = 0f;

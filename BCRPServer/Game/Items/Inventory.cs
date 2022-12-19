@@ -570,6 +570,8 @@ namespace BCRPServer.Game.Items
                                         fromItem = null;
 
                                         pData.Items[slotFrom] = null;
+
+                                        MySQL.CharacterItemsUpdate(pData.Info);
                                     }
                                 }
 
@@ -751,6 +753,9 @@ namespace BCRPServer.Game.Items
 
                                 pData.Weapons[slotTo] = fromWeapon;
                                 pData.Items[slotFrom] = toItem;
+
+                                MySQL.CharacterItemsUpdate(pData.Info);
+                                MySQL.CharacterWeaponsUpdate(pData.Info);
                             }
                             #endregion
                             #region Load
@@ -948,6 +953,9 @@ namespace BCRPServer.Game.Items
                             pData.Clothes[slotTo] = fromClothes;
                             pData.Items[slotFrom] = toItem;
 
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterClothesUpdate(pData.Info);
+
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
 
@@ -992,6 +1000,9 @@ namespace BCRPServer.Game.Items
                             pData.Accessories[slotTo] = fromClothes;
                             pData.Items[slotFrom] = toItem;
 
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterAccessoriesUpdate(pData.Info);
+
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
 
@@ -1030,6 +1041,9 @@ namespace BCRPServer.Game.Items
 
                             pData.Holster = fromHolster;
                             pData.Items[slotFrom] = toItem;
+
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterHolsterUpdate(pData.Info);
 
                             (pData.Items[slotFrom] as Game.Items.Holster)?.Unwear(pData);
 
@@ -1074,6 +1088,9 @@ namespace BCRPServer.Game.Items
                             pData.Bag = fromBag;
                             pData.Items[slotFrom] = toItem;
 
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterBagUpdate(pData.Info);
+
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
 
@@ -1112,6 +1129,9 @@ namespace BCRPServer.Game.Items
 
                             pData.Armour = fromArmour;
                             pData.Items[slotFrom] = toItem;
+
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterArmourUpdate(pData.Info);
 
                             var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
 
@@ -1906,6 +1926,9 @@ namespace BCRPServer.Game.Items
 
                                 pData.Items[slotTo] = fromItem;
                                 pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
+
+                                MySQL.CharacterItemsUpdate(pData.Info);
+                                MySQL.CharacterWeaponsUpdate(pData.Info);
                             }
                             else
                                 return Results.Error;
@@ -2416,6 +2439,9 @@ namespace BCRPServer.Game.Items
                             pData.Armour = (Game.Items.Armour)toItem;
                             pData.Items[slotTo] = fromItem;
 
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterArmourUpdate(pData.Info);
+
                             var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
 
                             (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
@@ -2513,6 +2539,9 @@ namespace BCRPServer.Game.Items
 
                             pData.Items[slotTo] = fromItem;
                             pData.Clothes[slotFrom] = (Game.Items.Clothes)toItem;
+
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterClothesUpdate(pData.Info);
 
                             var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
@@ -2617,6 +2646,9 @@ namespace BCRPServer.Game.Items
                             pData.Items[slotTo] = fromItem;
                             pData.Accessories[slotFrom] = (Game.Items.Clothes)toItem;
 
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterAccessoriesUpdate(pData.Info);
+
                             var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
@@ -2717,6 +2749,9 @@ namespace BCRPServer.Game.Items
                             pData.Bag = (Game.Items.Bag)toItem;
                             pData.Items[slotTo] = fromItem;
 
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterBagUpdate(pData.Info);
+
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
@@ -2762,6 +2797,9 @@ namespace BCRPServer.Game.Items
 
                             pData.Holster = (Game.Items.Holster)toItem;
                             pData.Items[slotTo] = fromItem;
+
+                            MySQL.CharacterItemsUpdate(pData.Info);
+                            MySQL.CharacterHolsterUpdate(pData.Info);
 
                             (pData.Items[slotTo] as Game.Items.Holster).Unwear(pData);
                             pData.Holster?.Wear(pData);

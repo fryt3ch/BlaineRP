@@ -247,7 +247,7 @@ namespace BCRPServer.Game.Businesses
 
                 pData.Cash -= realPrice;
 
-                MySQL.CharacterUpdateCash(pData.Info);
+                MySQL.CharacterCashUpdate(pData.Info);
             }
             else
             {
@@ -275,7 +275,7 @@ namespace BCRPServer.Game.Businesses
 
                 pData.Cash -= fixedPrice;
 
-                MySQL.CharacterUpdateCash(pData.Info);
+                MySQL.CharacterCashUpdate(pData.Info);
             }
             else
             {
@@ -312,7 +312,7 @@ namespace BCRPServer.Game.Businesses
                         Owner.Cash += Cash + Bank + GovPrice / 2;
                     }
 
-                    MySQL.CharacterUpdateCash(Owner);
+                    MySQL.CharacterCashUpdate(Owner);
                 }
             }
             else
@@ -332,7 +332,7 @@ namespace BCRPServer.Game.Businesses
                         Owner.PlayerData.Cash += Cash + Bank + GovPrice / 2;
                     }
 
-                    MySQL.CharacterUpdateCash(Owner);
+                    MySQL.CharacterCashUpdate(Owner);
                 }
 
                 Owner.PlayerData.RemoveBusinessProperty(this);

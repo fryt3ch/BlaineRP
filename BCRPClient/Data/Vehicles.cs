@@ -138,6 +138,20 @@ namespace BCRPClient.Data
 
                 All.Add(ID, this);
             }
+
+            public string GetEstateSvgName()
+            {
+                if (Type == Types.Car)
+                    return "Veh";
+
+                if (Type == Types.Motorcycle)
+                    return "Moto";
+
+                if (Type == Types.Helicopter)
+                    return "Heli";
+
+                return Type.ToString();
+        }
         }
 
         public static Dictionary<string, Vehicle> All = new Dictionary<string, Vehicle>();

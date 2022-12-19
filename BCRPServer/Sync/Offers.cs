@@ -21,13 +21,36 @@ namespace BCRPServer.Sync
             Exchange,
             /// <summary>Нести игркока</summary>
             Carry,
+            /// <summary>Сыграть в орел и решка</summary>
+            HeadsOrTails,
             /// <summary>Приглашение во фракцию</summary>
             InviteFraction,
             /// <summary>Приглашение в организацию</summary>
             InviteOrganisation,
+            /// <summary>Передать наличные</summary>
             Cash,
+            /// <summary>Показать паспорт</summary>
+            ShowPassport,
+            /// <summary>Показать мед. карту</summary>
+            ShowMedicalCard,
+            /// <summary>Показать лицензии</summary>
+            ShowLicenses,
+            /// <summary>Показать тех. паспорт</summary>
+            ShowVehiclePassport,
+            /// <summary>Показать резюме</summary>
+            ShowResume,
             /// <summary>Продажа имущества</summary>
             PropertySell,
+            /// <summary>Поделиться меткой</summary>
+            WaypointShare,
+            /// <summary>Подселить в дом/квартиру</summary>
+            Settle,
+            /// <summary>Продать недвижимость</summary>
+            SellEstate,
+            /// <summary>Продать транспорт</summary>
+            SellVehicle,
+            /// <summary>Продать бизнес</summary>
+            SellBusiness,
         }
 
         private static Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>> OfferActions = new Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>>()
@@ -66,6 +89,41 @@ namespace BCRPServer.Sync
                             }
 
                             pData.AddFamiliar(tData);
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.HeadsOrTails,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            Sync.Chat.SendLocal(Chat.Types.Me, sPlayer, Locale.Chat.Player.HeadsOrTails1);
+                            Sync.Chat.SendLocal(Chat.Types.Me, tPlayer, Locale.Chat.Player.HeadsOrTails1);
+
+                            var res = Utils.Randoms.Chat.Next(0, 2) == 0;
+
+                            Sync.Chat.SendLocal(Chat.Types.Do, sPlayer, res ? Locale.Chat.Player.HeadsOrTails2 : Locale.Chat.Player.HeadsOrTails3);
                         }
                     }
                 }
@@ -198,7 +256,301 @@ namespace BCRPServer.Sync
                         }
                     }
                 }
-            }
+            },
+
+            {
+                Types.SellVehicle,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, true);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (offer.Data is Offer.PropertySellData psData)
+                            {
+                                if (psData.Data is VehicleData.VehicleInfo vInfo)
+                                {
+                                    tPlayer.CloseAll();
+
+                                    tPlayer.TriggerEvent("Estate::Show", 1, 0, vInfo.ID, vInfo.VID, sPlayer, psData.Price, vInfo.Numberplate?.Tag);
+
+                                    offer.TradeData = new Offer.Trade()
+                                    {
+                                        SenderReady = true,
+
+                                        ReceiverMoney = psData.Price,
+                                    };
+
+                                    offer.TradeData.SenderVehicles.Add(vInfo);
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.TradeData = null;
+
+                            if (tData != null)
+                            {
+                                var tPlayer = tData.Player;
+
+                                tPlayer?.CloseAll();
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.SellBusiness,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, true);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (offer.Data is Offer.PropertySellData psData)
+                            {
+                                if (psData.Data is Game.Businesses.Business businessInfo)
+                                {
+                                    tPlayer.CloseAll();
+
+                                    tPlayer.TriggerEvent("Estate::Show", 1, 1, businessInfo.ID, sPlayer, psData.Price);
+
+                                    offer.TradeData = new Offer.Trade()
+                                    {
+                                        SenderReady = true,
+
+                                        ReceiverMoney = psData.Price,
+                                    };
+
+                                    offer.TradeData.SenderBusinesses.Add(businessInfo);
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.TradeData = null;
+
+                            if (tData != null)
+                            {
+                                var tPlayer = tData.Player;
+
+                                tPlayer?.CloseAll();
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.WaypointShare,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        async (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            var pos = offer.Data as Vector3;
+
+                            if (pos == null)
+                                return;
+
+                            tPlayer.TriggerEvent("Player::Waypoint::Set", pos.X, pos.Y);
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ShowPassport,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        async (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            tPlayer.TriggerEvent("Documents::Show", 0, pData.Name, pData.Surname, pData.Sex, pData.BirthDate.SerializeToJson(), null, pData.CID, pData.CreationDate.SerializeToJson(), false, pData.Info.LosSantosAllowed);
+
+                            tData.AddFamiliar(pData);
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ShowLicenses,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        async (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            tPlayer.TriggerEvent("Documents::Show", 1, pData.Name, pData.Surname, pData.Licenses);
+
+                            tData.AddFamiliar(pData);
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ShowVehiclePassport,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        async (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (offer.Data is VehicleData.VehicleInfo vInfo)
+                            {
+                                if (!pData.OwnedVehicles.Contains(vInfo))
+                                    return;
+
+                                vInfo.ShowPassport(tPlayer);
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ShowMedicalCard,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        async (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (pData.Info.MedicalCard == null)
+                                return;
+
+                            tPlayer.TriggerEvent("Documents::Show", 3, pData.Name, pData.Surname, pData.Info.MedicalCard.Diagnose, pData.Info.MedicalCard.IssueFraction, pData.Info.MedicalCard.DoctorName, pData.Info.MedicalCard.IssueDate.SerializeToJson());
+                        }
+                    }
+                }
+            },
         };
 
         public enum ReturnTypes
@@ -221,6 +573,19 @@ namespace BCRPServer.Sync
         public class Offer
         {
             #region Trade Subclass
+            public class PropertySellData
+            {
+                public object Data { get; set; }
+
+                public int Price { get; set; }
+
+                public PropertySellData(object Data, int Price)
+                {
+                    this.Data = Data;
+                    this.Price = Price;
+                }
+            }
+
             public class Trade
             {
                 public class TradeItem
@@ -242,6 +607,9 @@ namespace BCRPServer.Sync
 
                 public List<VehicleData.VehicleInfo> SenderVehicles { get; set; }
                 public List<VehicleData.VehicleInfo> ReceiverVehicles { get; set; }
+
+                public List<Game.Businesses.Business> SenderBusinesses { get; set; }
+                public List<Game.Businesses.Business> ReceiverBusinesses { get; set; }
 
                 public int SenderMoney { get; set; }
                 public int ReceiverMoney { get; set; }
@@ -298,6 +666,18 @@ namespace BCRPServer.Sync
                             return (Game.Items.Inventory.Results.Error, null);
                     }
 
+                    foreach (var x in SenderBusinesses)
+                    {
+                        if (x.Owner != pData.Info)
+                            return (Game.Items.Inventory.Results.Error, null);
+                    }
+
+                    foreach (var x in ReceiverBusinesses)
+                    {
+                        if (x.Owner != pData.Info)
+                            return (Game.Items.Inventory.Results.Error, null);
+                    }
+
                     foreach (var x in SenderVehicles)
                     {
                         x.OwnerID = tData.CID;
@@ -316,6 +696,16 @@ namespace BCRPServer.Sync
                         pData.AddVehicleProperty(x);
 
                         MySQL.VehicleOwnerUpdate(x);
+                    }
+
+                    foreach (var x in SenderBusinesses)
+                    {
+                        x.ChangeOwner(tData.Info);
+                    }
+
+                    foreach (var x in ReceiverBusinesses)
+                    {
+                        x.ChangeOwner(pData.Info);
                     }
 
                     if (ReceiverMoney > 0)
@@ -448,6 +838,9 @@ namespace BCRPServer.Sync
 
                     SenderVehicles = new List<VehicleData.VehicleInfo>();
                     ReceiverVehicles = new List<VehicleData.VehicleInfo>();
+
+                    SenderBusinesses = new List<Game.Businesses.Business>();
+                    ReceiverBusinesses = new List<Game.Businesses.Business>();
 
                     SenderMoney = 0;
                     ReceiverMoney = 0;

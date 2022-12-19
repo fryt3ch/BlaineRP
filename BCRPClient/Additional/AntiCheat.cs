@@ -309,7 +309,7 @@ namespace BCRPClient.Additional
                 {
                     Events.CallRemote("AC::Detect::TP", diff);
 
-                    Utils.ConsoleOutput("ASDAS");
+                    //Utils.ConsoleOutput("ASDAS");
                 }
             }
             else

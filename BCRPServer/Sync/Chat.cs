@@ -10,9 +10,6 @@ namespace BCRPServer.Sync
 {
     class Chat
     {
-        /// <summary>Генератор случайных чисел для /try</summary>
-        private static Random Random = new Random(Utils.GetCurrentTime().Ticks.GetHashCode());
-
         #region All Types
         public enum Types
         {
@@ -125,7 +122,7 @@ namespace BCRPServer.Sync
             }
             else
             {
-                bool result = Random.Next(0, 2) != 0;
+                bool result = Utils.Randoms.Chat.Next(0, 2) != 0;
 
                 NAPI.Task.Run(() =>
                 {

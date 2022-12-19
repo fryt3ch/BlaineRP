@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -313,6 +314,8 @@ namespace BCRPServer
 
                                 var regDate = (DateTime)reader["RegDate"];
 
+                                var ownersCount = Convert.ToUInt32(reader["OwnersCount"]);
+
                                 var vInfo = new VehicleData.VehicleInfo()
                                 {
                                     VID = vid,
@@ -336,6 +339,8 @@ namespace BCRPServer
                                     LastData = lastData,
 
                                     Data = Game.Data.Vehicles.All[sid],
+
+                                    OwnersCount = ownersCount,
                                 };
 
                                 VehicleData.VehicleInfo.AddOnLoad(vInfo);
@@ -369,6 +374,8 @@ namespace BCRPServer
 
                     cmd.CommandText = "SELECT * FROM gifts;";
 
+                    var allGifts = new Dictionary<Game.Items.Gift, uint>();
+
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
@@ -384,9 +391,37 @@ namespace BCRPServer
                                 int variation = (int)reader["Variation"];
                                 int amount = (int)reader["Amount"];
 
-                                var gift = new Game.Items.Gift(cid, id, reason, type, gid, variation, amount);
+                                var gift = new Game.Items.Gift(id, reason, type, gid, variation, amount);
 
                                 Game.Items.Gift.AddOnLoad(gift);
+
+                                allGifts.Add(gift, cid);
+                            }
+                        }
+                    }
+
+                    var allAchievements = new Dictionary<PlayerData.Achievement, uint>();
+
+                    cmd.CommandText = "SELECT * FROM achievements;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            var types = Enum.GetValues(typeof(PlayerData.Achievement.Types)).Cast<PlayerData.Achievement.Types>();
+
+                            while (reader.Read())
+                            {
+                                var cid = Convert.ToUInt32(reader["ID"]);
+
+                                foreach (var x in types)
+                                {
+                                    var data = ((string)reader[x.ToString()]).DeserializeFromJson<JObject>();
+
+                                    var achievement = new PlayerData.Achievement(x, (int)data["P"], (bool)data["IR"]);
+
+                                    allAchievements.Add(achievement, cid);
+                                }
                             }
                         }
                     }
@@ -421,6 +456,10 @@ namespace BCRPServer
 
                                 var licenses = ((string)reader["Licenses"]).DeserializeFromJson<List<PlayerData.LicenseTypes>>();
 
+                                var medCard = reader["MedicalCard"] is DBNull ? null : ((string)reader["MedicalCard"]).DeserializeFromJson<PlayerData.MedicalCard>();
+
+                                var lsa = (bool)reader["LosSantosAllowed"];
+
                                 var fraction = (PlayerData.FractionTypes)(int)reader["Fraction"];
 
                                 var orgId = (int)reader["OrgID"];
@@ -436,6 +475,16 @@ namespace BCRPServer
                                 var punishments = GetPunishmentsByCID(cid);
 
                                 var ownedVehicles = VehicleData.VehicleInfo.GetAllByCID(cid);
+
+                                var gifts = allGifts.Where(x => x.Value == cid).Select(x => x.Key).ToList();
+
+                                foreach (var x in gifts)
+                                    allGifts.Remove(x);
+
+                                var achievements = allAchievements.Where(x => x.Value == cid).ToDictionary(x => x.Key.Type, y => y.Key);
+
+                                foreach (var x in achievements.Values)
+                                    allAchievements.Remove(x);
 
                                 var pInfo = new PlayerData.PlayerInfo()
                                 {
@@ -460,6 +509,10 @@ namespace BCRPServer
                                     BirthDate = birthDate,
 
                                     Licenses = licenses,
+
+                                    MedicalCard = medCard,
+
+                                    LosSantosAllowed = lsa,
 
                                     Fraction = fraction,
 
@@ -494,7 +547,9 @@ namespace BCRPServer
                                     HairStyle = (Game.Data.Customization.HairStyle)customizations[cid][4],
                                     EyeColor = (byte)customizations[cid][5],
 
-                                    Gifts = Game.Items.Gift.GetAllByCID(cid),
+                                    Gifts = gifts,
+
+                                    Achievements = achievements,
                                 };
 
                                 if (pInfo.BankAccount != null)
@@ -704,9 +759,11 @@ namespace BCRPServer
                         }
                     }
 
+                    var allGifts = PlayerData.PlayerInfo.All.SelectMany(x => x.Value.Gifts).ToDictionary(x => x.ID, y => y);
+
                     for (uint i = 1; i < nextAi; i++)
                     {
-                        if (Game.Items.Gift.Get(i) == null)
+                        if (!allGifts.ContainsKey(i))
                             Game.Items.Gift.AddFreeId(i);
                     }
                 }
@@ -1045,7 +1102,9 @@ namespace BCRPServer
 
                     INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@CID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
 
-                    INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@CID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour); ";
+                    INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@CID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour);
+                    
+                    INSERT INTO achievements (ID) VALUES (@CID);";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
@@ -1125,7 +1184,7 @@ namespace BCRPServer
             CharacterArmourUpdate(pInfo);
         }
 
-        public static void CharacterUpdateCash(PlayerData.PlayerInfo pInfo)
+        public static void CharacterCashUpdate(PlayerData.PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
 
@@ -1237,6 +1296,48 @@ namespace BCRPServer
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Furniture", pInfo.Furniture.Select(x => x.UID).SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterSkillsUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE characters SET Skills=@Skills WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@Skills", pInfo.Skills.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterAchievementUpdate(PlayerData.PlayerInfo pInfo, PlayerData.Achievement achievement)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE achievements SET {achievement.Type.ToString()}=@Data WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@Data", achievement.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterMedicalCardUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE characters SET MedicalCard=@MedCard WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            if (pInfo.MedicalCard == null)
+                cmd.Parameters.AddWithValue("@MedCard", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@MedCard", pInfo.MedicalCard.SerializeToJson());
 
             PushQuery(cmd);
         }
@@ -1587,7 +1688,7 @@ namespace BCRPServer
 
         #region Gifts
 
-        public static void GiftAdd(Game.Items.Gift gift)
+        public static void GiftAdd(Game.Items.Gift gift, uint cid)
         {
             var cmd = new MySqlCommand();
 
@@ -1595,7 +1696,7 @@ namespace BCRPServer
 
             cmd.Parameters.AddWithValue("@ID", gift.ID);
 
-            cmd.Parameters.AddWithValue("@CID", gift.CID);
+            cmd.Parameters.AddWithValue("@CID", cid);
             cmd.Parameters.AddWithValue("@Type", gift.Type);
             cmd.Parameters.AddWithValue("@GID", (object)gift.GID ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Variation", gift.Variation);

@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using static BCRPServer.Sync.Offers;
 
@@ -16,6 +17,9 @@ namespace BCRPServer.Events.Players
             if (sRes.IsSpammer)
                 return;
 
+            if (!Enum.IsDefined(typeof(Types), type))
+                return;
+
             var pData = sRes.Data;
             var tData = target.GetMainData();
 
@@ -24,34 +28,10 @@ namespace BCRPServer.Events.Players
 
             object dataObj = null;
 
+            var oType = (Types)type;
+
             ReturnTypes res = ((Func<ReturnTypes>)(() =>
             {
-                if (!Enum.IsDefined(typeof(Types), type))
-                    return ReturnTypes.Error;
-
-                try
-                {
-                    dataObj = data.DeserializeFromJson<object>();
-                }
-                catch (Exception ex)
-                {
-                    return ReturnTypes.Error;
-                }
-
-                var oType = (Types)type;
-
-                if (oType == Types.Cash)
-                {
-                    try
-                    {
-                        dataObj = Convert.ToInt32(dataObj);
-                    }
-                    catch (Exception ex)
-                    {
-                        return ReturnTypes.Error;
-                    }
-                }
-
                 if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                     return ReturnTypes.Error;
 
@@ -61,22 +41,86 @@ namespace BCRPServer.Events.Players
                 if (tData.IsBusy)
                     return ReturnTypes.TargetBusy;
 
-                if (oType == Types.Cash)
-                {
-                    int cash = (dataObj as int?) ?? 0;
-
-                    if (cash < 0 || cash == 0)
-                        return ReturnTypes.Error;
-
-                    if (pData.Cash < cash)
-                        return ReturnTypes.NotEnoughMoneySource;
-                }
-
                 if (pData.ActiveOffer != null)
                     return ReturnTypes.SourceHasOffer;
 
                 if (tData.ActiveOffer != null)
                     return ReturnTypes.TargetHasOffer;
+
+                try
+                {
+                    dataObj = data.DeserializeFromJson<object>();
+
+                    if (oType == Types.Cash)
+                    {
+                        var cash = Convert.ToInt32(dataObj);
+
+                        dataObj = cash;
+
+                        if (cash < 0 || cash == 0)
+                            return ReturnTypes.Error;
+
+                        if (pData.Cash < cash)
+                            return ReturnTypes.NotEnoughMoneySource;
+                    }
+                    else if (oType == Types.WaypointShare)
+                    {
+                        var dataObjD = ((string)dataObj).Split('_');
+
+                        dataObj = new Vector3(float.Parse(dataObjD[0]), float.Parse(dataObjD[1]), 0f);
+                    }
+                    else if (oType == Types.ShowVehiclePassport)
+                    {
+                        var vid = (uint)(long)dataObj;
+
+                        var found = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
+
+                        if (found == null)
+                            return ReturnTypes.Error;
+
+                        dataObj = found;
+                    }
+                    else if (oType == Types.SellVehicle)
+                    {
+                        var dataObjD = ((string)dataObj).Split('_');
+
+                        var price = int.Parse(dataObjD[1]);
+
+                        if (price <= 0)
+                            return ReturnTypes.Error;
+
+                        var vid = uint.Parse(dataObjD[0]);
+
+                        var vInfo = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
+
+                        if (vInfo == null)
+                            return ReturnTypes.Error;
+
+                        dataObj = new Offer.PropertySellData(vInfo, price);
+                    }
+                    else if (oType == Types.SellBusiness)
+                    {
+                        var dataObjD = ((string)dataObj).Split('_');
+
+                        var price = int.Parse(dataObjD[1]);
+
+                        if (price <= 0)
+                            return ReturnTypes.Error;
+
+                        var businessId = int.Parse(dataObjD[0]);
+
+                        var bInfo = pData.OwnedBusinesses.Where(x => x.ID == businessId).FirstOrDefault();
+
+                        if (bInfo == null)
+                            return ReturnTypes.Error;
+
+                        dataObj = new Offer.PropertySellData(bInfo, price);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return ReturnTypes.Error;
+                }
 
                 Offer.Create(pData, tData, oType, -1, dataObj);
 
@@ -86,9 +130,14 @@ namespace BCRPServer.Events.Players
             switch (res)
             {
                 case ReturnTypes.Success:
-                    data = dataObj.SerializeToJson();
-
-                    target.TriggerEvent("Offer::Show", player.Handle, type, data);
+                    if (oType == Types.Cash)
+                    {
+                        target.TriggerEvent("Offer::Show", player.Handle, type, data);
+                    }
+                    else
+                    {
+                        target.TriggerEvent("Offer::Show", player.Handle, type);
+                    }
 
                     player.TriggerEvent("Offer::Reply::Server", true, false, false);
                     player.Notify("Offer::Sent");
@@ -174,10 +223,18 @@ namespace BCRPServer.Events.Players
 
             var offer = pData.ActiveOffer;
 
-            if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
+            if (offer == null || offer.TradeData == null)
                 return;
 
             bool isSender = offer.Sender == pData;
+
+            if (offer.Type != Types.Exchange)
+            {
+                if (isSender)
+                    return;
+
+                offer.TradeData.ReceiverReady = true;
+            }
 
             var tData = isSender ? offer.Receiver : offer.Sender;
 

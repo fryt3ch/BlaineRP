@@ -906,6 +906,18 @@ namespace BCRPClient
 
             RAGE.Game.Invoker.Invoke(0x48608C3464F58AB4, 0f, 0f, 0f);
         }
+
+        public static float GetFpsCoef() => Settings.BASE_FPS / (GameEvents.FPS > Settings.BASE_FPS ? Settings.BASE_FPS : GameEvents.FPS);
+
+        public static void SetActionAsPending(string key, bool state)
+        {
+            if (state)
+                Player.LocalPlayer.SetData($"PendingAction::{key}", true);
+            else
+                Player.LocalPlayer.ResetData($"PendingAction::{key}");
+        }
+
+        public static bool IsActionPending(string key) => Player.LocalPlayer.HasData($"PendingAction::{key}");
     }
 
     public static class Extensions

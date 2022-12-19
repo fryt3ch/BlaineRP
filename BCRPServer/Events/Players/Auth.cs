@@ -313,7 +313,7 @@ namespace BCRPServer.Events.Players
                 {
                     if (tData.PlayerData.OwnedHouses.Count > 0)
                     {
-                        tData.PositionToSpawn = tData.PlayerData.OwnedHouses[0].GlobalPosition;
+                        tData.PositionToSpawn = tData.PlayerData.OwnedHouses[0].PositionParams.Position;
                         tData.DimensionToSpawn = Utils.Dimensions.Main;
                     }
                     else

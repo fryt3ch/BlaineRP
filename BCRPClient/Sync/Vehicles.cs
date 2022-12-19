@@ -1545,5 +1545,39 @@ namespace BCRPClient.Sync
 
             LastCruiseControlToggled = DateTime.Now;
         }
+
+        public static void SendCoordsToDriver()
+        {
+            var veh = Player.LocalPlayer.Vehicle;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            var pHandle = veh.GetPedInSeat(-1, 0);
+
+            if (pHandle == Player.LocalPlayer.Handle)
+                return;
+
+            var driver = Utils.GetPlayerByHandle(pHandle, true);
+
+            if (driver?.Exists != true)
+                return;
+
+            var wpPos = GameEvents.WaypointPosition;
+
+            if (wpPos == null)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Commands.Teleport.NoWaypoint);
+
+                return;
+            }
+
+            Sync.Offers.Request(driver, Offers.Types.WaypointShare, $"{wpPos.X}_{wpPos.Y}");
+        }
     }
 }

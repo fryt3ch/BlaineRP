@@ -115,6 +115,11 @@ namespace BCRPServer
             /// <summary>Бизнес</summary>
             Business,
         }
+
+        public enum CooldownTypes
+        {
+            ShootingRange = 0,
+        }
         #endregion
 
         #region Subclasses
@@ -276,7 +281,42 @@ namespace BCRPServer
 
             public List<Game.Houses.Furniture> Furniture { get; set; }
 
-            public PlayerInfo() {}
+            public Dictionary<CooldownTypes, DateTime> Cooldowns { get; set; }
+
+            public Dictionary<Achievement.Types, Achievement> Achievements { get; set; }
+
+            public MedicalCard MedicalCard { get; set; }
+
+            public bool LosSantosAllowed { get; set; }
+
+            public DateTime GetCooldownLastTime(CooldownTypes cdType)
+            {
+                DateTime dt;
+
+                if (!Cooldowns.TryGetValue(cdType, out dt))
+                    dt = DateTime.MaxValue;
+
+                return dt;
+            }
+
+            public bool HasCooldown(CooldownTypes cdType) => GetCooldownTimeLeft(cdType).TotalSeconds <= CooldownTimeouts[cdType];
+
+            public TimeSpan GetCooldownTimeLeft(CooldownTypes cdType) => Utils.GetCurrentTime().Subtract(GetCooldownLastTime(cdType));
+
+            public void SetCooldown(CooldownTypes cdType)
+            {
+                var curTime = Utils.GetCurrentTime();
+
+                if (!Cooldowns.TryAdd(cdType, curTime))
+                    Cooldowns[cdType] = curTime;
+            }
+
+            public bool RemoveCooldown(CooldownTypes cdType) => Cooldowns.Remove(cdType);
+
+            public PlayerInfo()
+            {
+                this.Cooldowns = new Dictionary<CooldownTypes, DateTime>();
+            }
         }
 
         public class Punishment
@@ -326,6 +366,138 @@ namespace BCRPServer
             public int GetSecondsLeft() => (int)EndDate.Subtract(StartDate).TotalSeconds;
         }
 
+        public class Achievement
+        {
+            public enum Types
+            {
+                SR1,
+                SR2,
+            }
+
+            private static Dictionary<Types, Data> TypesData = new Dictionary<Types, Data>()
+            {
+                { Types.SR1, new Data(80, Game.Items.Gift.Prototype.CreateAchievement(Gift.Types.Money, null, 0, 10_000)) },
+                { Types.SR2, new Data(100, Game.Items.Gift.Prototype.CreateAchievement(Gift.Types.Money, null, 0, 10_000)) },
+            };
+
+            public class Data
+            {
+                public int Goal { get; set; }
+
+                public bool IsHidden { get; set; }
+
+                public Game.Items.Gift.Prototype Reward { get; set; }
+
+                public Data(int Goal, Game.Items.Gift.Prototype Reward)
+                {
+                    this.Goal = Goal;
+                    this.Reward = Reward;
+                }
+            }
+
+            public static Dictionary<Types, Achievement> GetNewDict() => Enum.GetValues(typeof(Types)).Cast<Types>().ToDictionary(x => x, y => new Achievement(y));
+
+            [JsonProperty(PropertyName = "IR")]
+            public bool IsRecieved { get; set; }
+
+            [JsonProperty(PropertyName = "P")]
+            public int Progress { get; set; }
+
+            [JsonIgnore]
+            public Types Type { get; set; }
+
+            [JsonIgnore]
+            public Data TypeData => TypesData[Type];
+
+            public Achievement(Types Type)
+            {
+                this.Type = Type;
+            }
+
+            public Achievement(Types Type, int Progress, bool IsRecieved) : this(Type)
+            {
+                this.Progress = Progress;
+                this.IsRecieved = IsRecieved;
+            }
+
+            public bool UpdateProgress(PlayerInfo pInfo, int newProgress)
+            {
+                if (IsRecieved)
+                    return true;
+
+                if (newProgress <= Progress)
+                    return false;
+
+                var data = TypeData;
+
+                if (newProgress > data.Goal)
+                    newProgress = data.Goal;
+
+                if (newProgress == Progress)
+                    return false;
+
+                Progress = newProgress;
+
+                if (pInfo.PlayerData != null)
+                {
+                    pInfo.PlayerData.Player.TriggerEvent("Player::Achievements::Update", (int)Type, Progress, data.Goal);
+                }
+
+                if (Progress >= data.Goal)
+                {
+                    if (Progress > data.Goal)
+                        Progress = data.Goal;
+
+                    IsRecieved = true;
+
+                    if (data.Reward != null)
+                        Game.Items.Gift.Give(pInfo, data.Reward, true);
+
+                    MySQL.CharacterAchievementUpdate(pInfo, this);
+
+                    return true;
+                }
+                else
+                {
+                    MySQL.CharacterAchievementUpdate(pInfo, this);
+
+                    return false;
+                }
+            }
+        }
+
+        public class MedicalCard
+        {
+            public enum DiagnoseTypes
+            {
+                Healthy = 0,
+            }
+
+            [JsonProperty(PropertyName = "I")]
+            public DateTime IssueDate { get; set; }
+
+            [JsonProperty(PropertyName = "F")]
+            public FractionTypes IssueFraction { get; set; }
+
+            [JsonProperty(PropertyName = "N")]
+            public string DoctorName { get; set; }
+
+            [JsonProperty(PropertyName = "D")]
+            public DiagnoseTypes Diagnose { get; set; }
+
+            public MedicalCard() { }
+
+            public MedicalCard(DateTime IssueDate, PlayerInfo DoctorInfo, DiagnoseTypes Diagnose)
+            {
+                this.IssueDate = IssueDate;
+
+                this.IssueFraction = DoctorInfo.Fraction;
+                this.DoctorName = $"{DoctorInfo.Name} {DoctorInfo.Surname}";
+
+                this.Diagnose = Diagnose;
+            }
+        }
+
         public class LastPlayerData
         {
             [JsonProperty(PropertyName = "D")]
@@ -359,6 +531,12 @@ namespace BCRPServer
             { SkillTypes.Shooting, 100 },
             { SkillTypes.Cooking, 100 },
             { SkillTypes.Fishing, 100 },
+        };
+
+        /// <summary>Стандартное время кулдаунов (в секундах!)</summary>
+        public static Dictionary<CooldownTypes, int> CooldownTimeouts = new Dictionary<CooldownTypes, int>()
+        {
+            { CooldownTypes.ShootingRange, 3600 },
         };
 
         /// <summary>Сущность игрока</summary>
@@ -589,6 +767,8 @@ namespace BCRPServer
             Skills[sType] = updValue;
 
             Player.TriggerEvent("Player::Skills::Update", sType, updValue);
+
+            MySQL.CharacterSkillsUpdate(Info);
         }
 
         public void AddVehicleProperty(VehicleData.VehicleInfo vInfo)
@@ -644,6 +824,18 @@ namespace BCRPServer
             Player.TriggerEvent("Player::Furniture::Update", false, furn.UID);
 
             MySQL.CharacterFurnitureUpdate(Info);
+        }
+
+        public void UpdateMedicalCard(MedicalCard medCard)
+        {
+            Info.MedicalCard = medCard;
+
+            if (medCard == null)
+                Player.TriggerEvent("Player::MedCard::Update");
+            else
+                Player.TriggerEvent("Player::MedCard::Update", medCard.SerializeToJson());
+
+            MySQL.CharacterMedicalCardUpdate(Info);
         }
         #endregion
 
@@ -703,7 +895,7 @@ namespace BCRPServer
 
             Cash += value;
 
-            MySQL.CharacterUpdateCash(this.Info);
+            MySQL.CharacterCashUpdate(this.Info);
 
             return true;
         }
@@ -755,7 +947,7 @@ namespace BCRPServer
 
         /// <summary>Без сознания ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsKnocked { get => Player.GetSharedData<bool?>("Knocked") ?? false; set { if (value) Player.SetOwnSharedData("Knocked", value); else Player.ResetOwnSharedData("Knocked"); } }
+        public bool IsKnocked { get => Player.GetSharedData<bool?>("Knocked") ?? false; set { if (value) Player.SetSharedData("Knocked", value); else Player.ResetSharedData("Knocked"); } }
 
         public bool IsFrozen { get => Player.GetOwnSharedData<bool?>("IsFrozen") ?? false; set { if (value) Player.SetOwnSharedData("IsFrozen", value); else Player.ResetOwnSharedData("IsFrozen");  } }
 
@@ -847,7 +1039,7 @@ namespace BCRPServer
             }
         }
 
-        public bool BlockRemoteCalls { get; set; }
+        public bool BlockRemoteCalls { get => Player.GetData<bool?>("BlockRC") ?? false; set { if (value) Player.SetData("BlockRC", true); else Player.ResetData("BlockRC"); } }
 
         public byte SpamCounter { get; set; }
 
@@ -860,7 +1052,6 @@ namespace BCRPServer
         {
             this.Player = Player;
 
-            BlockRemoteCalls = false;
             SpamCounter = 0;
 
             LastDamageTime = DateTime.MinValue;
@@ -954,6 +1145,8 @@ namespace BCRPServer
 
             Info.PlayerData = this;
 
+            Info.Achievements = Achievement.GetNewDict();
+
             BankBalance = 0;
 
             PlayerInfo.Add(Info);
@@ -992,6 +1185,9 @@ namespace BCRPServer
             data.Add("Licenses", Licenses.SerializeToJson());
             data.Add("Skills", Skills.SerializeToJson());
 
+            if (Info.MedicalCard != null)
+                data.Add("MedCard", Info.MedicalCard.SerializeToJson());
+
             data.Add("TimePlayed", TimePlayed);
             data.Add("CreationDate", CreationDate);
             data.Add("BirthDate", CreationDate);
@@ -1005,6 +1201,8 @@ namespace BCRPServer
             data.Add("Houses", OwnedHouses.Select(x => x.ID).SerializeToJson());
 
             data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson()); // to change!
+
+            data.Add("Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson());
 
             NAPI.Task.Run(() =>
             {
@@ -1077,6 +1275,26 @@ namespace BCRPServer
             }
 
             return true;
+        }
+
+        public bool HasCooldown(CooldownTypes cdType, int notifyType = -1)
+        {
+            var ts = Info.GetCooldownTimeLeft(cdType);
+
+            if (ts.TotalSeconds > 0)
+            {
+                if (notifyType >= 0)
+                {
+                    if (notifyType != 3)
+                        Player.Notify($"CDown::{notifyType}");
+                    else
+                        Player.Notify("CDown::3", ts.GetBeautyString());
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

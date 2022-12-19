@@ -929,6 +929,21 @@ namespace BCRPServer.Game.Data
             new Vehicle("surge", "surge", "Cheval Surge", 80f, Vehicle.FuelTypes.Electricity, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 2400073108
             new Vehicle("voltic", "voltic", "Coil Voltic", 80f, Vehicle.FuelTypes.Electricity, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 2672523198
             new Vehicle("voltic2", "voltic2", "Coil Rocket Voltic", 80f, Vehicle.FuelTypes.Electricity, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 989294410
+
+            new Vehicle("boor", "boor", "Karin Boor", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 996383885
+            new Vehicle("brickade2", "brickade2", "MTL Brickade 6x6", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 2718380883
+            new Vehicle("broadway", "broadway", "Classique Broadway", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 2361724968
+            new Vehicle("entity3", "entity3", "Overflod Entity MT", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 1748565021
+            new Vehicle("eudora", "eudora", "Willard Eudora", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 3045179290
+            new Vehicle("everon2", "everon2", "Karin Hotring Everon", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 4163619118
+            new Vehicle("issi8", "issi8", "Weeny Issi Rally", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 1550581940
+            new Vehicle("journey2", "journey2", "Zirconium Journey II", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 2667889793
+            new Vehicle("panthere", "panthere", "Toundra Panthere", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 2100457220
+            new Vehicle("r300", "r300", "Annis 300R", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 1076201208
+            new Vehicle("surfer3", "surfer3", "BF Surfer заказной", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 3259477733
+            new Vehicle("tahoma", "tahoma", "Declasse Tahoma Coupe", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 3833117047
+            new Vehicle("tulip2", "tulip2", "Declasse Tulip M-100", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 268758436
+            new Vehicle("virtue", "virtue", "Ocelot Virtue", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Car); // 669204833
             #endregion
 
             #region Motorcycles
@@ -988,6 +1003,9 @@ namespace BCRPServer.Game.Data
             new Vehicle("zombieb", "zombieb", "Western Zombie Chopper", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Motorcycle); // 3724934023
 
             new Vehicle("policeb", "policeb", "Полицейский мотоцикл", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Motorcycle); // 4260343491
+
+            new Vehicle("manchez3", "manchez3", "Maibatsu Manchez Scout C", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Motorcycle); // 1384502824
+            new Vehicle("powersurge", "powersurge", "Western Powersurge", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Motorcycle); // 2908631255
             #endregion
 
             #region Helicopters
@@ -1059,6 +1077,8 @@ namespace BCRPServer.Game.Data
             new Vehicle("vestra", "vestra", "Buckingham Vestra", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Plane); // 1341619767
             new Vehicle("volatol", "volatol", "Volatol", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Plane); // 447548909
             new Vehicle("alkonost", "alkonost", "RO-86 Alkonost", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Plane); // 3929093893
+
+            new Vehicle("cargoplane2", "cargoplane2", "Грузовой самолет", 80f, Vehicle.FuelTypes.Petrol, new Vehicle.Trunk(15, 25), true, false, false, Vehicle.Types.Plane); // 2336777441
             #endregion
 
             #region Boats

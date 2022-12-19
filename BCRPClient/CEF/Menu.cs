@@ -33,6 +33,7 @@ namespace BCRPClient.CEF
             Server = 0,
             /// <summary>Магазин</summary>
             Shop,
+            Achievement,
         }
 
         public enum SectionTypes
@@ -269,18 +270,17 @@ namespace BCRPClient.CEF
                 if (add)
                 {
                     bool notify = (bool)args[2];
-                    bool spaceHint = (bool)args[3];
 
-                    int type = (int)args[4];
-                    string gid = (string)args[5];
-                    int amount = (int)args[6];
-                    GiftSourceTypes reason = (GiftSourceTypes)(int)args[7];
+                    int type = (int)args[3];
+                    string gid = (string)args[4];
+                    int amount = (int)args[5];
+                    GiftSourceTypes reason = (GiftSourceTypes)(int)args[6];
 
                     var name = GetGiftName((GiftTypes)type, gid, amount);
 
                     Gifts.Add(id, (Locale.Notifications.Gifts.SourceNames[reason], GetGiftName((GiftTypes)type, gid, amount)));
 
-                    CEF.Notification.Show(CEF.Notification.Types.Gift, Locale.Notifications.Gifts.Header, (string.Format(Locale.Notifications.Gifts.Added, name, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString())) + (spaceHint ? Locale.Notifications.Gifts.SpaceHint : ""), 5000);
+                    CEF.Notification.Show(CEF.Notification.Types.Gift, Locale.Notifications.Gifts.Header, string.Format(Locale.Notifications.Gifts.Added, name, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString()), 5000);
                 }
                 else
                 {
@@ -399,6 +399,10 @@ namespace BCRPClient.CEF
 
         public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs($"Menu.setSkill", type, current);
 
+        public static void UpdateAchievement(Sync.Players.AchievementTypes aType, int current, int max) => Browser.Window.ExecuteJs($"Menu.updateAchProgress", aType.ToString(), current, max);
+
+        public static void AddAchievement(Sync.Players.AchievementTypes aType, int current, int max, string name, string desc) => Browser.Window.ExecuteJs($"Menu.newAchievement", new object[] { new object[] { aType.ToString(), name, desc, current, max } });
+
         public static void Load(Sync.Players.PlayerData pData, int timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
         {
             Browser.Window.ExecuteJs("Menu.setOrganisation", "none"); // temp
@@ -436,9 +440,9 @@ namespace BCRPClient.CEF
 
             properties.AddRange(pData.OwnedVehicles.Select(x => new object[] { "veh", x.Data.Type.ToString(), x.Data.BrandName, x.Data.SubName, x.Data.Class.ToString(), x.Data.GovPrice }));
 
-            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), "Business", x.Price, x.SubId }));
+            properties.AddRange(pData.OwnedBusinesses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Business.ToString(), x.Name, Utils.GetStreetName(x.InfoColshape.Position), Locale.General.PropertyBusinessClass, x.Price, x.SubId }));
 
-            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), "Дом", Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
+            properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }

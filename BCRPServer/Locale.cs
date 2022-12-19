@@ -40,6 +40,10 @@ namespace BCRPServer
                 public static string PointsAtPerson = "показал(а) пальцем на человека";
 
                 public static string Take = "подобрал(а)";
+
+                public static string HeadsOrTails1 = "подбросил(а) монетку";
+                public static string HeadsOrTails2 = "На подброшенной монетке выпал орёл.";
+                public static string HeadsOrTails3 = "На подброшенной монетке выпала решка.";
             }
 
             public class Server
