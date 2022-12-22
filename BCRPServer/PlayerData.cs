@@ -604,7 +604,39 @@ namespace BCRPServer
         public Game.Businesses.Business CurrentBusiness { get; set; }
 
         /// <summary>Текущий дом, с которым взаимодействует игрок</summary>
-        public Game.Houses.House CurrentHouse => Game.Houses.House.Get(Utils.GetHouseIdByDimension(Player.Dimension));
+        public Game.Houses.House CurrentHouse
+        {
+            get
+            {
+                var id = Utils.GetHouseIdByDimension(Player.Dimension);
+
+                return id == 0 ? null : Game.Houses.House.Get(id);
+            }
+        }
+
+        public Game.Houses.Apartments CurrentApartments
+        {
+            get
+            {
+                var id = Utils.GetApartmentsIdByDimension(Player.Dimension);
+
+                return id == 0 ? null : Game.Houses.Apartments.Get(id);
+            }
+        }
+
+        public Game.Houses.Garage CurrentGarage
+        {
+            get
+            {
+                var id = Utils.GetGarageIdByDimension(Player.Dimension);
+
+                return id == 0 ? null : Game.Houses.Garage.Get(id);
+            }
+        }
+
+        public Game.Houses.HouseBase CurrentHouseBase => Utils.GetHouseBaseByDimension(Player.Dimension);
+
+        public Game.Houses.Apartments.ApartmentsRoot CurrentApartmentsRoot => Utils.GetApartmentsRootTypeByDimension(Player.Dimension) is Game.Houses.Apartments.ApartmentsRoot.Types arType ? Game.Houses.Apartments.ApartmentsRoot.Get(arType) : null;
 
         public int VehicleSlots
         {
@@ -803,6 +835,57 @@ namespace BCRPServer
             OwnedBusinesses.Remove(biz);
 
             Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Business, biz.ID);
+        }
+
+        public void AddHouseProperty(Game.Houses.House house)
+        {
+            if (OwnedHouses.Contains(house))
+                return;
+
+            OwnedHouses.Add(house);
+
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.House, house.ID);
+        }
+
+        public void RemoveHouseProperty(Game.Houses.House house)
+        {
+            OwnedHouses.Remove(house);
+
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.House, house.ID);
+        }
+
+        public void AddApartmentsProperty(Game.Houses.Apartments aps)
+        {
+            if (OwnedApartments.Contains(aps))
+                return;
+
+            OwnedApartments.Add(aps);
+
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.Apartments, aps.ID);
+        }
+
+        public void RemoveApartmentsProperty(Game.Houses.Apartments aps)
+        {
+            OwnedApartments.Remove(aps);
+
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Apartments, aps.ID);
+        }
+
+        public void AddGarageProperty(Game.Houses.Garage garage)
+        {
+            if (OwnedGarages.Contains(garage))
+                return;
+
+            OwnedGarages.Add(garage);
+
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.Garage, garage.Id);
+        }
+
+        public void RemoveGarageProperty(Game.Houses.Garage garage)
+        {
+            OwnedGarages.Remove(garage);
+
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Garage, garage.Id);
         }
 
         public void AddFurniture(Game.Houses.Furniture furn)
@@ -1196,9 +1279,20 @@ namespace BCRPServer
 
             data.Add("Familiars", Familiars.SerializeToJson());
 
-            data.Add("Vehicles", OwnedVehicles.Select(x => $"{x.VID}_{x.ID}").SerializeToJson());
-            data.Add("Businesses", OwnedBusinesses.Select(x => x.ID).SerializeToJson());
-            data.Add("Houses", OwnedHouses.Select(x => x.ID).SerializeToJson());
+            if (OwnedVehicles.Count > 0)
+                data.Add("Vehicles", OwnedVehicles.Select(x => $"{x.VID}_{x.ID}").SerializeToJson());
+
+            if (OwnedBusinesses.Count > 0)
+                data.Add("Businesses", OwnedBusinesses.Select(x => x.ID).SerializeToJson());
+
+            if (OwnedHouses.Count > 0)
+                data.Add("Houses", OwnedHouses.Select(x => x.ID).SerializeToJson());
+
+            if (OwnedApartments.Count > 0)
+                data.Add("Apartments", OwnedApartments.Select(x => x.ID).SerializeToJson());
+
+            if (OwnedGarages.Count > 0)
+                data.Add("Garages", OwnedGarages.Select(x => x.Id).SerializeToJson());
 
             data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson()); // to change!
 
@@ -1215,13 +1309,18 @@ namespace BCRPServer
 
                 Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                Player.Heading = LastData.Position.RotationZ;
+                var houseBase = Utils.GetHouseBaseByDimension(LastData.Dimension);
 
-                Player.Teleport(LastData.Position.Position, true);
+                if (houseBase != null)
+                {
+                    houseBase.SetPlayerInside(Player);
+                }
+                else
+                {
+                    Player.Teleport(LastData.Position.Position, true, LastData.Dimension, LastData.Position.RotationZ, false);
+                }
 
                 Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
-
-                Player.TriggerEvent("FadeScreen", false);
             }, 1000);
         }
 

@@ -46,6 +46,8 @@ namespace BCRPClient.CEF
                 { Types.BlipsMenu, () => CEF.BlipsMenu.Show() },
 
                 { Types.Menu_House, () => CEF.HouseMenu.ShowRequest() },
+
+                { Types.Menu_Apartments, () => CEF.HouseMenu.ShowRequest() },
             };
 
             public static List<Types> CurrentTypes { get; private set; }

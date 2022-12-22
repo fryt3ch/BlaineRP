@@ -375,11 +375,17 @@ namespace BCRPServer.Events.Players
 
             player.ResetData("CharacterNotReady");
 
+            if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
+                emotion = -1;
+
+            if (!Enum.IsDefined(typeof(Sync.Animations.WalkstyleTypes), walkstyle))
+                walkstyle = -1;
+
             pData.IsInvalid = isInvalid;
             pData.Emotion = (Sync.Animations.EmotionTypes)emotion;
             pData.Walkstyle = (Sync.Animations.WalkstyleTypes)walkstyle;
 
-            player.Dimension = Utils.Dimensions.Main;
+            //player.Dimension = Utils.Dimensions.Main;
 
             pData.UpdateWeapons();
         }

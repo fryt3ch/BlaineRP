@@ -393,6 +393,8 @@ namespace BCRPClient.Additional
             ApartmentsRootEnter,
             ApartmentsRootExit,
             ApartmentsRootElevator,
+
+            GarageRootEnter,
         }
 
         public enum ActionTypes
@@ -425,6 +427,8 @@ namespace BCRPClient.Additional
             ApartmentsRootEnter,
             ApartmentsRootExit,
             ApartmentsRootElevator,
+
+            GarageRootEnter,
         }
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
@@ -472,7 +476,7 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("CurrentHouse"))
                         return false;
 
-                    CEF.Estate.ShowHouseInfo(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.House>("CurrentHouse"), true);
+                    CEF.Estate.ShowHouseBaseInfo(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.HouseBase>("CurrentHouse"), true);
 
                     LastSent = DateTime.Now;
 
@@ -489,17 +493,17 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                         return false;
 
-                    var house = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.House>("House::CurrentHouse");
+                    var house = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.HouseBase>("House::CurrentHouse");
 
-                    if (house.GarageType == null)
+                    if (house is Data.Locations.House rHouse && rHouse.GarageType != null)
+                    {
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) });
+                    }
+                    else
                     {
                         Events.CallRemote("House::Exit");
 
                         LastSent = DateTime.Now;
-                    }
-                    else
-                    {
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) });
                     }
 
                     return true;
@@ -514,7 +518,7 @@ namespace BCRPClient.Additional
 
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                     {
-                        // todo
+                        Events.CallRemote("Garage::Exit");
                     }
                     else
                     {
@@ -627,6 +631,52 @@ namespace BCRPClient.Additional
                         return false;
 
                     Events.CallRemote("ARoot::Exit");
+
+                    LastSent = DateTime.Now;
+
+                    return true;
+                }
+            },
+
+            {
+                InteractionTypes.ApartmentsRootElevator, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("ApartmentsRoot::Current"))
+                        return false;
+
+                    var aRoot = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current");
+
+                    if (aRoot == null)
+                        return false;
+
+                    var curFloor = aRoot.GetCurrentFloor();
+
+                    if (curFloor is int floor)
+                    {
+                        CEF.Elevator.Show(aRoot.StartFloor + aRoot.FloorsAmount - 1, floor, Elevator.ContextTypes.ApartmentsRoot);
+
+                        LastSent = DateTime.Now;
+
+                        return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                InteractionTypes.GarageRootEnter, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, false))
+                        return false;
+
+                    if (!Player.LocalPlayer.HasData("CurrentGarageRoot"))
+                        return false;
+
+                    CEF.GarageMenu.Show(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.GarageRoot>("CurrentGarageRoot"));
 
                     LastSent = DateTime.Now;
 
@@ -771,10 +821,10 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (!(cs.Data is Data.Locations.House house))
+                            if (!(cs.Data is Data.Locations.HouseBase houseBase))
                                 return;
 
-                            Player.LocalPlayer.SetData("CurrentHouse", house);
+                            Player.LocalPlayer.SetData("CurrentHouse", houseBase);
                         }
                     },
 
@@ -960,6 +1010,34 @@ namespace BCRPClient.Additional
                         (cs) =>
                         {
                             Player.LocalPlayer.ResetData("CurrentApartmentsRoot");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.GarageRootEnter,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is BCRPClient.Data.Locations.GarageRoot gRoot)
+                            {
+                                Player.LocalPlayer.SetData("CurrentGarageRoot", gRoot);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentGarageRoot");
                         }
                     },
                 }

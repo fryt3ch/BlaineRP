@@ -9,8 +9,8 @@ namespace BCRPServer.Events.Players
 {
     class Houses : Script
     {
-        [RemoteEvent("House::Enter")]
-        public static void HouseEnter(Player player, uint id)
+        [RemoteEvent("ARoot::Elevator")]
+        public static void ApartmentsRootElevator(Player player, int curFloor, int destFloor)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -19,31 +19,132 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var aRoot = pData.CurrentApartmentsRoot;
 
-            if (house != null)
+            if (aRoot == null)
                 return;
 
-            house = Game.Houses.House.All.GetValueOrDefault(id);
+            var curFloorPos = aRoot.GetFloorPosition(curFloor);
 
-            if (house == null)
+            if (curFloorPos == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, house.PositionParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(player.Position, curFloorPos) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            if (house.IsLocked && house.Owner != pData.Info && !house.Settlers.ContainsKey(pData.Info))
+            curFloorPos = aRoot.GetFloorPosition(destFloor);
+
+            if (curFloorPos == null)
+                return;
+
+            player.Teleport(curFloorPos, false, aRoot.Dimension, null, true);
+        }
+
+        [RemoteEvent("ARoot::Enter")]
+        public static void ApartmentsRootEnter(Player player, int numType)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Houses.Apartments.ApartmentsRoot.Types), numType))
+                return;
+
+            var aRoot = Game.Houses.Apartments.ApartmentsRoot.Get((Game.Houses.Apartments.ApartmentsRoot.Types)numType);
+
+            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                return;
+
+            player.Teleport(aRoot.ExitParams.Position, false, aRoot.Dimension, aRoot.ExitParams.RotationZ, true);
+
+            player.TriggerEvent("ARoot::Enter", numType);
+        }
+
+        [RemoteEvent("ARoot::Exit")]
+        public static void ApartmentsRootExit(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var aRoot = pData.CurrentApartmentsRoot;
+
+            if (aRoot == null)
+                return;
+
+            if (Vector3.Distance(player.Position, aRoot.ExitParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                return;
+
+            player.Teleport(aRoot.EnterParams.Position, false, Utils.Dimensions.Main, aRoot.EnterParams.RotationZ, true);
+
+            player.TriggerEvent("ARoot::Exit");
+        }
+
+        [RemoteEvent("House::Enter")]
+        public static void HouseEnter(Player player, int hTypeNum, uint id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Houses.HouseBase.Types), hTypeNum))
+                return;
+
+            var hType = (Game.Houses.HouseBase.Types)hTypeNum;
+
+            if (hType == Game.Houses.HouseBase.Types.House)
             {
-                player.Notify("House::HL");
+                if (player.Dimension != Utils.Dimensions.Main)
+                    return;
 
-                return;
+                var house = Game.Houses.House.Get(id);
+
+                if (house == null)
+                    return;
+
+                if (!house.IsEntityNearEnter(player))
+                    return;
+
+                if (house.IsLocked && house.Owner != pData.Info && !house.Settlers.ContainsKey(pData.Info))
+                {
+                    player.Notify("House::HL");
+
+                    return;
+                }
+
+                house.SetPlayerInside(player);
             }
+            else
+            {
+                var aps = Game.Houses.Apartments.Get(id);
 
-            var sData = house.StyleData;
+                if (aps == null)
+                    return;
 
-            player.Teleport(sData.Position, false, house.Dimension, sData.Heading, true);
+                if (aps.Root != pData.CurrentApartmentsRoot)
+                    return;
 
-            player.TriggerEvent("House::Enter", house.ToClientJson());
+                if (!aps.IsEntityNearEnter(player))
+                    return;
+
+                if (aps.IsLocked && aps.Owner != pData.Info && !aps.Settlers.ContainsKey(pData.Info))
+                {
+                    player.Notify("House::HL");
+
+                    return;
+                }
+
+                aps.SetPlayerInside(player);
+            }
         }
 
         [RemoteEvent("House::Exit")]
@@ -56,17 +157,25 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var house = pData.CurrentHouseBase;
 
             if (house == null)
                 return;
 
-            if (player.Dimension != house.Dimension)
-                return;
+            if (house is Game.Houses.Apartments aps)
+            {
+                player.Teleport(aps.PositionParams.Position, false, aps.Root.Dimension, aps.PositionParams.RotationZ, true);
 
-            player.Teleport(house.PositionParams.Position, false, Utils.Dimensions.Main, house.PositionParams.RotationZ, true);
+                player.TriggerEvent("ARoot::Enter", (int)aps.Root.Type);
 
-            player.TriggerEvent("House::Exit");
+                player.TriggerEvent("House::Exit");
+            }
+            else
+            {
+                player.Teleport(house.PositionParams.Position, false, Utils.Dimensions.Main, house.PositionParams.RotationZ, true);
+
+                player.TriggerEvent("House::Exit");
+            }
         }
 
         [RemoteEvent("House::Garage")]
@@ -91,8 +200,7 @@ namespace BCRPServer.Events.Players
 
             if (to)
             {
-                player.Heading = house.GarageData.EnterHeading;
-                player.Teleport(house.GarageData.EnterPosition, false);
+                player.Teleport(house.GarageData.EnterPosition.Position, false, null, house.GarageData.EnterPosition.RotationZ, false);
             }
             else
             {
@@ -133,7 +241,9 @@ namespace BCRPServer.Events.Players
 
                 vData.EngineOn = false;
 
-                veh.Teleport(house.GarageData.VehiclePositions[0].Position, house.Dimension, house.GarageData.VehiclePositions[0].Heading, true, false);
+                var vPos = house.GarageData.VehiclePositions[0];
+
+                veh.Teleport(vPos.Position, house.Dimension, vPos.RotationZ, true, false);
 
                 veh.SetSharedData("InGarage", true);
             }
@@ -156,27 +266,27 @@ namespace BCRPServer.Events.Players
             if (doorIdx < 0)
                 return;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (doorIdx >= house.DoorsStates.Length)
+            if (doorIdx >= houseBase.DoorsStates.Length)
                 return;
 
-            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[1] != true)
+            if (houseBase.Owner != pData.Info && houseBase.Settlers.GetValueOrDefault(pData.Info)?[1] != true)
             {
                 player.Notify("House::NotAllowed");
 
                 return;
             }
 
-            if (house.DoorsStates[doorIdx] == state)
+            if (houseBase.DoorsStates[doorIdx] == state)
                 return;
 
-            house.DoorsStates[doorIdx] = state;
+            houseBase.DoorsStates[doorIdx] = state;
 
-            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Door", doorIdx, state);
+            NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Door", doorIdx, state);
         }
 
         [RemoteEvent("House::Menu::Show")]
@@ -189,19 +299,19 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (house.Owner != pData.Info && house.Settlers.ContainsKey(pData.Info))
+            if (houseBase.Owner != pData.Info && !houseBase.Settlers.ContainsKey(pData.Info))
             {
                 player.Notify("House::NotAllowed");
 
                 return;
             }
 
-            player.TriggerEvent("HouseMenu::Show", house.Settlers.ToDictionary(x => $"{x.Key.Name}_{x.Key.Surname}_{x.Key.CID}", x => x.Value).SerializeToJson(), house.Balance, house.IsLocked, house.ContainersLocked);
+            player.TriggerEvent("HouseMenu::Show", houseBase.Settlers.ToDictionary(x => $"{x.Key.Name}_{x.Key.Surname}_{x.Key.CID}", x => x.Value).SerializeToJson(), houseBase.Balance, houseBase.IsLocked, houseBase.ContainersLocked);
         }
 
         [RemoteEvent("House::Menu::Light::State")]
@@ -217,27 +327,27 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (idx >= house.LightsStates.Length)
+            if (idx >= houseBase.LightsStates.Length)
                 return;
 
-            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[0] != true)
+            if (houseBase.Owner != pData.Info && houseBase.Settlers.GetValueOrDefault(pData.Info)?[0] != true)
             {
                 player.Notify("House::NotAllowed");
 
                 return;
             }
 
-            if (house.LightsStates[idx].State == state)
+            if (houseBase.LightsStates[idx].State == state)
                 return;
 
-            house.LightsStates[idx].State = state;
+            houseBase.LightsStates[idx].State = state;
 
-            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Light", idx, state);
+            NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Light", idx, state);
         }
 
         [RemoteEvent("House::Menu::Light::RGB")]
@@ -253,26 +363,26 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (idx >= house.LightsStates.Length)
+            if (idx >= houseBase.LightsStates.Length)
                 return;
 
-            if (house.Owner != pData.Info && house.Settlers.GetValueOrDefault(pData.Info)?[0] != true)
+            if (houseBase.Owner != pData.Info && houseBase.Settlers.GetValueOrDefault(pData.Info)?[0] != true)
             {
                 player.Notify("House::NotAllowed");
 
                 return;
             }
 
-            house.LightsStates[idx].Colour.Red = r;
-            house.LightsStates[idx].Colour.Green = g;
-            house.LightsStates[idx].Colour.Blue = b;
+            houseBase.LightsStates[idx].Colour.Red = r;
+            houseBase.LightsStates[idx].Colour.Green = g;
+            houseBase.LightsStates[idx].Colour.Blue = b;
 
-            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Light", idx, house.LightsStates[idx].Colour.SerializeToJson());
+            NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Light", idx, houseBase.LightsStates[idx].Colour.SerializeToJson());
 
             player.TriggerEvent("House::LCC");
         }
@@ -290,22 +400,22 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
             if (idx >= 5)
                 return;
 
-            if (house.Owner != pData.Info)
+            if (houseBase.Owner != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
                 return;
             }
 
-            foreach (var x in house.Settlers)
+            foreach (var x in houseBase.Settlers)
             {
                 if (x.Key.CID == cid)
                 {
@@ -314,7 +424,7 @@ namespace BCRPServer.Events.Players
 
                     x.Value[idx] = state;
 
-                    house.TriggerEventForHouseOwners("HouseMenu::SettlerPerm", cid, idx, state);
+                    houseBase.TriggerEventForHouseOwners("HouseMenu::SettlerPerm", cid, idx, state);
 
                     break;
                 }
@@ -331,12 +441,12 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return false;
 
-            if (house.Owner != pData.Info)
+            if (houseBase.Owner != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
@@ -354,7 +464,7 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                if (!house.Furniture.Contains(furniture))
+                if (!houseBase.Furniture.Contains(furniture))
                     return false;
 
                 return true;
@@ -371,12 +481,12 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (house.Owner != pData.Info)
+            if (houseBase.Owner != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
@@ -401,19 +511,19 @@ namespace BCRPServer.Events.Players
             {
                 pData.RemoveFurniture(furniture);
 
-                house.Furniture.Add(furniture);
+                houseBase.Furniture.Add(furniture);
 
-                MySQL.HouseFurnitureUpdate(house);
+                MySQL.HouseFurnitureUpdate(houseBase);
             }
             else
             {
-                if (!house.Furniture.Contains(furniture))
+                if (!houseBase.Furniture.Contains(furniture))
                     return;
             }
 
             furniture.Data = new Utils.Vector4(x, y, z, rotZ);
 
-            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Furn", furniture.SerializeToJson());
+            NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Furn", furniture.SerializeToJson());
 
             MySQL.FurnitureUpdate(furniture);
         }
@@ -428,12 +538,12 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (house.Owner != pData.Info)
+            if (houseBase.Owner != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
@@ -445,16 +555,16 @@ namespace BCRPServer.Events.Players
             if (furniture == null)
                 return;
 
-            if (!house.Furniture.Contains(furniture))
+            if (!houseBase.Furniture.Contains(furniture))
                 return;
 
-            house.Furniture.Remove(furniture);
+            houseBase.Furniture.Remove(furniture);
 
             pData.AddFurniture(furniture);
 
-            NAPI.ClientEvent.TriggerClientEventInDimension(house.Dimension, "House::Furn", furniture.UID);
+            NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Furn", furniture.UID);
 
-            MySQL.HouseFurnitureUpdate(house);
+            MySQL.HouseFurnitureUpdate(houseBase);
         }
 
         [RemoteEvent("House::Menu::Expel")]
@@ -467,27 +577,24 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (house.Owner != pData.Info)
+            var sInfo = houseBase.Settlers.Where(x => x.Key.CID == cid).Select(x => x.Key).FirstOrDefault();
+
+            if (sInfo == null)
+                return;
+
+            if (houseBase.Owner != pData.Info && sInfo != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
                 return;
             }
 
-            var sInfo = house.Settlers.Where(x => x.Key.CID == cid).Select(x => x.Key).FirstOrDefault();
-
-            if (sInfo == null)
-                return;
-
-            if (sInfo.PlayerData == null)
-            {
-
-            }
+            houseBase.SettlePlayer(sInfo, false, pData);
         }
 
         [RemoteEvent("House::Lock")]
@@ -500,12 +607,12 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var house = pData.CurrentHouse;
+            var houseBase = pData.CurrentHouseBase;
 
-            if (house == null)
+            if (houseBase == null)
                 return;
 
-            if (house.Owner != pData.Info)
+            if (houseBase.Owner != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
@@ -514,20 +621,20 @@ namespace BCRPServer.Events.Players
 
             if (doors)
             {
-                if (state == house.IsLocked)
+                if (state == houseBase.IsLocked)
                     return;
 
-                house.IsLocked = state;
+                houseBase.IsLocked = state;
             }
             else
             {
-                if (state == house.ContainersLocked)
+                if (state == houseBase.ContainersLocked)
                     return;
 
-                house.ContainersLocked = state;
+                houseBase.ContainersLocked = state;
             }
 
-            house.TriggerEventForHouseOwners("House::Lock", doors, state);
+            houseBase.TriggerEventForHouseOwners("House::Lock", doors, state);
         }
     }
 }

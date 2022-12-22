@@ -400,10 +400,44 @@ namespace BCRPClient.CEF
 
                     var properties = new List<string>();
 
+                    var propIds = new List<(Sync.Players.PropertyTypes, uint)>();
+
                     foreach (var x in pData.OwnedVehicles)
                     {
                         properties.Add(string.Format(Locale.Property.VehicleTradeInfoStr, x.Data.TypeName, x.Data.Name, x.VID));
+
+                        propIds.Add((Sync.Players.PropertyTypes.Vehicle, x.VID));
                     }
+
+                    foreach (var x in pData.OwnedHouses)
+                    {
+                        properties.Add(string.Format(Locale.Property.HouseTradeInfoStr, x.Id));
+
+                        propIds.Add((Sync.Players.PropertyTypes.House, x.Id));
+                    }
+
+                    foreach (var x in pData.OwnedApartments)
+                    {
+                        properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[x.RootType].Name, x.NumberInRoot + 1));
+
+                        propIds.Add((Sync.Players.PropertyTypes.Apartments, x.Id));
+                    }
+
+                    foreach (var x in pData.OwnedGarages)
+                    {
+                        properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[x.RootType].Name, x.NumberInRoot + 1));
+
+                        propIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
+                    }
+
+                    foreach (var x in pData.OwnedBusinesses)
+                    {
+                        properties.Add(string.Format(Locale.Property.BusinessTradeInfoStr, x.Name, x.SubId));
+
+                        propIds.Add((Sync.Players.PropertyTypes.Business, (uint)x.Id));
+                    }
+
+                    Player.LocalPlayer.SetData("Trade::Temp::PropIds", propIds);
 
                     Browser.Window.ExecuteJs("Inventory.fillTradeLProperties", new object[] { properties });
 
@@ -707,16 +741,48 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        var str = (string)args[3];
+                        var pType = (Sync.Players.PropertyTypes)(int)args[3];
+                        var propId = (uint)(int)args[4];
+
+                        string text = null;
+
+                        if (pType == Sync.Players.PropertyTypes.Vehicle)
+                        {
+                            var vData = Data.Vehicles.GetById((string)args[5]);
+
+                            text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.House)
+                        {
+                            text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.Apartments)
+                        {
+                            var aps = Data.Locations.Apartments.All[propId];
+
+                            text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.Garage)
+                        {
+                            var garage = Data.Locations.Garage.All[propId];
+
+                            text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.Business)
+                        {
+                            var biz = Data.Locations.Business.All[(int)propId];
+
+                            text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
+                        }
 
                         if ((bool)args[2])
                         {
-                            if (!CurrentGiveProperties.Contains(str))
-                                CurrentGiveProperties.Add(str);
+                            if (!CurrentGiveProperties.Contains(text))
+                                CurrentGiveProperties.Add(text);
                         }
                         else
                         {
-                            CurrentGiveProperties.Remove(str);
+                            CurrentGiveProperties.Remove(text);
                         }
 
                         Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", CurrentGiveProperties });
@@ -747,16 +813,48 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        var str = (string)args[3];
+                        var pType = (Sync.Players.PropertyTypes)(int)args[3];
+                        var propId = (uint)(int)args[4];
+
+                        string text = null;
+
+                        if (pType == Sync.Players.PropertyTypes.Vehicle)
+                        {
+                            var vData = Data.Vehicles.GetById((string)args[5]);
+
+                            text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.House)
+                        {
+                            text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.Apartments)
+                        {
+                            var aps = Data.Locations.Apartments.All[propId];
+
+                            text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.Garage)
+                        {
+                            var garage = Data.Locations.Garage.All[propId];
+
+                            text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
+                        }
+                        else if (pType == Sync.Players.PropertyTypes.Business)
+                        {
+                            var biz = Data.Locations.Business.All[(int)propId];
+
+                            text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
+                        }
 
                         if ((bool)args[2])
                         {
-                            if (!CurrentGetProperties.Contains(str))
-                                CurrentGetProperties.Add(str);
+                            if (!CurrentGetProperties.Contains(text))
+                                CurrentGetProperties.Add(text);
                         }
                         else
                         {
-                            CurrentGetProperties.Remove(str);
+                            CurrentGetProperties.Remove(text);
                         }
 
                         Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", CurrentGetProperties });
@@ -848,7 +946,17 @@ namespace BCRPClient.CEF
                     int idx = (int)args[1];
                     bool state = (bool)args[2];
 
-                    if ((bool)await Events.CallRemoteProc("Trade::UpdateProperty", idx, state))
+                    var propIds = Player.LocalPlayer.GetData<List<(Sync.Players.PropertyTypes, uint)>>("Trade::Temp::PropIds");
+
+                    if (propIds == null)
+                        return;
+
+                    if (idx >= propIds.Count)
+                        return;
+
+                    var prop = propIds[idx];
+
+                    if ((bool)await Events.CallRemoteProc("Trade::UpdateProperty", prop.Item1, prop.Item2, state))
                     {
                         if (CurrentType != Types.Trade)
                             return;
@@ -1165,6 +1273,8 @@ namespace BCRPClient.CEF
                 Browser.Switch(Browser.IntTypes.Trade, false);
 
                 CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
+
+                Player.LocalPlayer.ResetData("Trade::Temp::PropIds");
             }
 
             ActionBox.Close(true);

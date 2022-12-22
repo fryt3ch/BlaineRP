@@ -241,9 +241,9 @@ namespace BCRPClient.Sync
 
             public List<Data.Locations.House> OwnedHouses { get => Player.LocalPlayer.GetData<List<Data.Locations.House>>("OwnedHouses"); set => Player.LocalPlayer.SetData("OwnedHouses", value); }
 
-            public List<int> OwnedApartments { get; set; }
+            public List<Data.Locations.Apartments> OwnedApartments { get => Player.LocalPlayer.GetData<List<Data.Locations.Apartments>>("OwnedApartments"); set => Player.LocalPlayer.SetData("OwnedApartments", value); }
 
-            public List<int> OwnedGarages { get; set; }
+            public List<Data.Locations.Garage> OwnedGarages { get => Player.LocalPlayer.GetData<List<Data.Locations.Garage>>("OwnedGarages"); set => Player.LocalPlayer.SetData("OwnedGarages", value); }
 
             public Dictionary<uint, Data.Furniture> Furniture { get => Player.LocalPlayer.GetData<Dictionary<uint, Data.Furniture>>("Furniture"); set => Player.LocalPlayer.SetData("Furniture", value); }
 
@@ -387,9 +387,30 @@ namespace BCRPClient.Sync
 
                 data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)sData["Skills"]);
 
-                data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
-                data.OwnedBusinesses = RAGE.Util.Json.Deserialize<List<int>>((string)sData["Businesses"]).Select(x => Data.Locations.Business.All[x]).ToList();
-                data.OwnedHouses = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Houses"]).Select(x => Data.Locations.House.All[x]).ToList();
+                if (sData.ContainsKey("Vehicles"))
+                    data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
+                else
+                    data.OwnedVehicles = new List<(uint VID, Data.Vehicles.Vehicle Data)>();
+
+                if (sData.ContainsKey("Businesses"))
+                    data.OwnedBusinesses = RAGE.Util.Json.Deserialize<List<int>>((string)sData["Businesses"]).Select(x => Data.Locations.Business.All[x]).ToList();
+                else
+                    data.OwnedBusinesses = new List<Data.Locations.Business>();
+
+                if (sData.ContainsKey("Houses"))
+                    data.OwnedHouses = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Houses"]).Select(x => Data.Locations.House.All[x]).ToList();
+                else
+                    data.OwnedHouses = new List<Data.Locations.House>();
+
+                if (sData.ContainsKey("Apartments"))
+                    data.OwnedApartments = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Apartments"]).Select(x => Data.Locations.Apartments.All[x]).ToList();
+                else
+                    data.OwnedApartments = new List<Data.Locations.Apartments>();
+
+                if (sData.ContainsKey("Garages"))
+                    data.OwnedGarages = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Garages"]).Select(x => Data.Locations.Garage.All[x]).ToList();
+                else
+                    data.OwnedGarages = new List<Data.Locations.Garage>();
 
                 if (sData.ContainsKey("MedCard"))
                     data.MedicalCard = RAGE.Util.Json.Deserialize<MedicalCard>((string)sData["MedCard"]);
@@ -503,6 +524,12 @@ namespace BCRPClient.Sync
                     x.ToggleOwnerBlip(true);
 
                 foreach (var x in data.OwnedHouses)
+                    x.ToggleOwnerBlip(true);
+
+                foreach (var x in data.OwnedApartments)
+                    x.ToggleOwnerBlip(true);
+
+                foreach (var x in data.OwnedGarages)
                     x.ToggleOwnerBlip(true);
 
                 //CEF.Menu.UpdateProperties(data);
@@ -792,7 +819,57 @@ namespace BCRPClient.Sync
                 }
                 else if (pType == PropertyTypes.House)
                 {
+                    var hid = (uint)(int)args[2];
 
+                    var t = Data.Locations.House.All[hid];
+
+                    if (add)
+                    {
+                        if (!data.OwnedHouses.Contains(t))
+                            data.OwnedHouses.Add(t);
+                    }
+                    else
+                    {
+                        data.OwnedHouses.Remove(t);
+                    }
+
+                    t.ToggleOwnerBlip(add);
+                }
+                else if (pType == PropertyTypes.Apartments)
+                {
+                    var hid = (uint)(int)args[2];
+
+                    var t = Data.Locations.Apartments.All[hid];
+
+                    if (add)
+                    {
+                        if (!data.OwnedApartments.Contains(t))
+                            data.OwnedApartments.Add(t);
+                    }
+                    else
+                    {
+                        data.OwnedApartments.Remove(t);
+                    }
+
+                    t.ToggleOwnerBlip(add);
+                }
+                else if (pType == PropertyTypes.Garage)
+                {
+                    var gid = (uint)(int)args[2];
+
+                    var t = Data.Locations.Garage.All[gid];
+
+                    if (add)
+                    {
+                        if (!data.OwnedGarages.Contains(t))
+                            data.OwnedGarages.Add(t);
+                    }
+                    else
+                    {
+                        data.OwnedGarages.Remove(t);
+                    }
+
+                    t.ToggleOwnerBlip(add);
                 }
                 else if (pType == PropertyTypes.Business)
                 {
@@ -1506,7 +1583,7 @@ namespace BCRPClient.Sync
             CEF.Bank.Close(true);
 
             CEF.Estate.Close(true);
-            CEF.Estate.Agency.Close(true);
+            CEF.EstateAgency.Close(true);
 
             CEF.HouseMenu.Close(true);
             CEF.BusinessMenu.Close(true);

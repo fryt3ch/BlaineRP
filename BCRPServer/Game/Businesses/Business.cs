@@ -111,8 +111,6 @@ namespace BCRPServer.Game.Businesses
 
             this.Type = Type;
 
-            PositionInfo.Z += 0.5f;
-
             this.PositionInfo = PositionInfo;
             this.PositionInteract = PositionInteract;
 
@@ -369,23 +367,22 @@ namespace BCRPServer.Game.Businesses
 
             pData.Cash -= GovPrice;
 
-            UpdateOwner(pData.Info);
-
-            pData.AddBusinessProperty(this);
-
-            MySQL.BusinessUpdateOwner(this);
+            ChangeOwner(pData.Info);
 
             return true;
         }
 
         public void ChangeOwner(PlayerData.PlayerInfo pInfo)
         {
-            if (Owner == null)
-                return;
+            if (Owner != null)
+            {
+                Owner.PlayerData?.RemoveBusinessProperty(this);
+            }
 
-            Owner.PlayerData?.RemoveBusinessProperty(this);
-
-            pInfo.PlayerData?.AddBusinessProperty(this);
+            if (pInfo != null)
+            {
+                pInfo.PlayerData?.AddBusinessProperty(this);
+            }
 
             UpdateOwner(pInfo);
 

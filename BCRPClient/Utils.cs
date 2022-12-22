@@ -81,6 +81,8 @@ namespace BCRPClient
         public static Colour BlueColor = new Colour(0, 0, 255);
         public static Colour GreenColor = new Colour(0, 255, 0);
         public static Colour YellowColor = new Colour(255, 255, 0);
+
+        public static RGBA WhiteColourRGBA = new RGBA(255, 255, 255, 255);
         #endregion
 
         public class Vector4
@@ -918,6 +920,21 @@ namespace BCRPClient
         }
 
         public static bool IsActionPending(string key) => Player.LocalPlayer.HasData($"PendingAction::{key}");
+
+        public static int GetGovSellPrice(int price) => (int)Math.Floor(price / 2f);
+
+        public static string GetPriceString(int price) => $"${price}";
+
+        public static void ToggleInteriorEntitySet(int intId, string entitySetName, bool state)
+        {
+            if (state)
+                RAGE.Game.Invoker.Invoke(0x55E86AF2712B36A1, intId, entitySetName);
+            else
+                RAGE.Game.Invoker.Invoke(0x420BD37289EEE162, intId, entitySetName);
+        }
+
+        public static bool IsInteriorEntitySetActive(int intId, string entitySetName) => RAGE.Game.Invoker.Invoke<bool>(0x35F7DD45E8C0A16D, intId, entitySetName);
+        public static void SetInteriorEntitySetColour(int intId, string entitySetName, int colour) => RAGE.Game.Invoker.Invoke(0xC1F1920BAF281317, intId, entitySetName, colour);
     }
 
     public static class Extensions

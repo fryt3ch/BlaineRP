@@ -70,10 +70,34 @@ namespace BCRPServer
         public const uint HouseDimBase = 10000;
         public const uint ApartmentsDimBase = 20000;
         public const uint ApartmentsRootDimBase = 30000;
+        public const uint GarageDimBase = 50000;
 
         public static uint GetPlayerIdByDimension(uint dim) => dim < PlayerPrivateDimBase ? 0 : dim - PlayerPrivateDimBase;
 
         public static uint GetHouseIdByDimension(uint dim) => dim < HouseDimBase ? 0 : dim - HouseDimBase;
+
+        public static uint GetGarageIdByDimension(uint dim) => dim < GarageDimBase ? 0 : dim - GarageDimBase;
+
+        public static uint GetApartmentsIdByDimension(uint dim) => dim < ApartmentsDimBase ? 0 : dim - ApartmentsDimBase;
+
+        public static Game.Houses.HouseBase GetHouseBaseByDimension(uint dim)
+        {
+            var hid = GetApartmentsIdByDimension(dim);
+
+            if (hid == 0)
+            {
+                hid = GetHouseIdByDimension(dim);
+
+                if (hid == 0)
+                    return null;
+
+                return Game.Houses.House.Get(hid);
+            }
+
+            return Game.Houses.Apartments.Get(hid);
+        }
+
+        public static Game.Houses.Apartments.ApartmentsRoot.Types? GetApartmentsRootTypeByDimension(uint dim) => dim < ApartmentsRootDimBase ? null : (Game.Houses.Apartments.ApartmentsRoot.Types?)(dim - ApartmentsRootDimBase);
 
         /// <summary>Стандартная позиция спавна</summary>
         public static Vector3 DefaultSpawnPosition = new Vector3(-749.78f, 5818.21f, 17f);

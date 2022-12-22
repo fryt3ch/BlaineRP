@@ -140,6 +140,44 @@ namespace BCRPClient.Sync
                         ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
                         ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
                     });
+
+                new Style(HouseTypes.Apartments, RoomTypes.Two, Types.First, "2 комнаты | Стандартный стиль", 100, new Vector3(70f, 70f, -10f), new Vector3(67.955511f, 70.03592f, -10f),
+                    new (string, Vector3)[]
+                    {
+                        ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(0f, -5.349999f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(5.400002f, -6.099998f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(5.641205f, 4.258736f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(3.800003f, -0.75f, 3.976f)),
+                        ("brp_p_light_2_1", new Vector3(6.75f, -0.75f, 3.95f))
+                    },
+                    new (string, Vector3)[]
+                    {
+                        ("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(2.550006f, -5.550001f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(3.25f, -2.800003f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
+                    });
+
+                new Style(HouseTypes.Apartments, RoomTypes.Two, Types.Second, "2 комнаты | Темный стиль", 100, new Vector3(70f, 70f, -20f), new Vector3(67.955511f, 70.03592f, -20f),
+                    new (string, Vector3)[]
+                    {
+                        ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(0f, -5.349999f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(5.400002f, -6.099998f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(5.641205f, 4.258736f, 3.976f)),
+                        ("brp_p_light_3_1", new Vector3(3.800003f, -0.75f, 3.976f)),
+                        ("brp_p_light_2_1", new Vector3(6.75f, -0.75f, 3.95f))
+                    },
+                    new (string, Vector3)[]
+                    {
+                        ("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(2.550006f, -5.550001f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(3.25f, -2.800003f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
+                        ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
+                    });
             }
         }
 
@@ -169,8 +207,49 @@ namespace BCRPClient.Sync
 
             Furniture = new Dictionary<uint, MapObject>();
 
+            Events.Add("Garage::Enter", async (args) =>
+            {
+                Utils.SetActionAsPending("Garage::Load", true);
+
+                while (Additional.SkyCamera.IsFadedOut)
+                    await RAGE.Game.Invoker.WaitAsync(250);
+
+                if (!Utils.IsActionPending("Garage::Load"))
+                    return;
+
+                Sync.Players.CloseAll(false);
+
+                var garage = Data.Locations.Garage.All[(uint)(int)args[0]];
+
+                var style = Data.Locations.Garage.Style.Get(garage.Type, garage.Variation);
+
+                var gExitCs = new Additional.Cylinder(style.EnterPosition, 1f, 2f, false, Utils.RedColor, Player.LocalPlayer.Dimension, null)
+                {
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
+                };
+
+                TempColshapes.Add(gExitCs);
+
+                Utils.SetActionAsPending("Garage::Load", false);
+            });
+
+            Events.Add("Garage::Exit", (args) =>
+            {
+                foreach (var x in TempColshapes)
+                    x?.Delete();
+
+                TempColshapes.Clear();
+
+                Utils.SetActionAsPending("Garage::Load", false);
+            });
+
             Events.Add("ARoot::Enter", async (args) =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 var arType = (Data.Locations.ApartmentsRoot.Types)(int)args[0];
 
                 var aRoot = Data.Locations.ApartmentsRoot.All[arType];
@@ -188,10 +267,19 @@ namespace BCRPClient.Sync
                 aRoot.Load();
 
                 Player.LocalPlayer.SetData("ApartmentsRoot::Current", aRoot);
+
+                foreach (var x in pData.OwnedApartments.ToList())
+                    if (x?.RootType == arType)
+                        x.ToggleOwnerBlip(true);
             });
 
             Events.Add("ARoot::Exit", (args) =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 var aRoot = Player.LocalPlayer.GetData<Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current");
 
                 if (aRoot == null)
@@ -200,15 +288,14 @@ namespace BCRPClient.Sync
                 aRoot.Unload();
 
                 Player.LocalPlayer.ResetData("ApartmentsRoot::Current");
+
+                foreach (var x in pData.OwnedApartments.ToList())
+                    if (x?.RootType == aRoot.Type)
+                        x.ToggleOwnerBlip(true);
             });
 
             Events.Add("House::Enter", async (object[] args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
                 Utils.SetActionAsPending("House::Requested", true);
 
                 while (Additional.SkyCamera.IsFadedOut)
@@ -218,6 +305,11 @@ namespace BCRPClient.Sync
                     return;
 
                 Utils.SetActionAsPending("House::Requested", false);
+
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
 
                 Sync.Players.CloseAll(false);
 
@@ -248,126 +340,122 @@ namespace BCRPClient.Sync
                     CreateObject(fUid, fData, fProps);
                 }
 
-                Player.LocalPlayer.SetData("House::CurrentHouse::Type", hType);
+                var house = hType == HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
 
-                if (hType == HouseTypes.House)
+                var style = Style.Get(hType, house.RoomType, sType);
+
+                Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
+
+                Player.LocalPlayer.SetData("House::CurrentHouse", house);
+
+                var exitCs = new Additional.Cylinder(style.EnterancePos, 1f, 2f, false, Utils.RedColor, dimension);
+
+                exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
+
+                TempColshapes.Add(exitCs);
+
+                if (house is Data.Locations.House rHouse)
                 {
-                    var house = Data.Locations.House.All[id];
-
-                    var style = Style.Get(hType, house.RoomType, sType);
-
-                    Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
-
-                    Player.LocalPlayer.SetData("House::CurrentHouse", house);
-
-                    var exitCs = new Additional.Cylinder(style.EnterancePos, 1f, 2f, false, Utils.RedColor, dimension);
-
-                    exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
-
-                    TempColshapes.Add(exitCs);
-
-                    if (house.GarageType != null)
+                    if (rHouse.GarageType is Data.Locations.Garage.Types grType)
                     {
-                        var gData = Data.Locations.Garage.Style.Get((Data.Locations.Garage.Types)house.GarageType);
+                        var gData = Data.Locations.Garage.Style.Get(grType, 0);
 
-                        var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, dimension, null);
-
-                        gExitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit;
+                        var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, dimension, null)
+                        {
+                            InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
+                        };
 
                         TempColshapes.Add(gExitCs);
                     }
 
-                    TempBlips.Add(new Additional.ExtraBlip(40, style.EnterancePos, "Выход", 0.75f, 1, 255, 0, true, 0, 0, dimension));
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
+                }
+                else if (house is Data.Locations.Apartments rApartments)
+                {
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_Apartments);
+                }
 
-                    if (pData.OwnedHouses.Contains(house))
-                    {
-                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
-                    }
+                TempBlips.Add(new Additional.ExtraBlip(40, style.EnterancePos, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
-                    while (Player.LocalPlayer.Dimension != dimension)
-                    {
-                        await RAGE.Game.Invoker.WaitAsync(250);
-
-                        if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
-                            return;
-                    }
-
-                    await RAGE.Game.Invoker.WaitAsync(1000);
+                while (Player.LocalPlayer.Dimension != dimension)
+                {
+                    await RAGE.Game.Invoker.WaitAsync(250);
 
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                         return;
-
-                    for (int i = 0; i < style.Doors.Length; i++)
-                    {
-                        var x = style.Doors[i];
-
-                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
-
-                        if (handle <= 0)
-                            continue;
-
-                        var t = new MapObject(handle);
-
-                        Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), doors[i]);
-
-                        Doors.Add(i, t);
-
-                        t.SetData("Interactive", true);
-
-                        t.SetData("DoorIdx", i);
-                        t.SetData("DoorState", doors[i]);
-
-                        t.SetData("CustomAction", new Action<MapObject>((obj) =>
-                        {
-                            if (LastSent.IsSpam(1000))
-                                return;
-
-                            Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
-
-                            LastSent = DateTime.Now;
-                        }));
-
-                        t.SetData("CustomText", new Action<float, float>((x, y) =>
-                        {
-                            if (t.GetData<bool>("DoorState"))
-                            {
-                                Utils.DrawText("[Закрыта]", x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
-                            }
-                            else
-                            {
-                                Utils.DrawText("[Открыта]", x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
-                            }
-
-                            Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
-                        }));
-                    }
-
-                    for (int i = 0; i < style.Lights.Length; i++)
-                    {
-                        var x = style.Lights[i];
-
-                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
-
-                        if (handle <= 0)
-                            continue;
-
-                        var t = new MapObject(handle);
-
-                        var rgb = lights[i]["C"].ToObject<Utils.Colour>();
-
-                        t.SetData("State", (bool)lights[i]["S"]);
-                        t.SetData("RGB", rgb);
-
-                        Lights.Add(i, t);
-
-                        RAGE.Game.Entity.SetEntityLights(handle, !(bool)lights[i]["S"]);
-
-                        t.SetLightColour(rgb);
-                    }
                 }
-                else
-                {
+
+                await RAGE.Game.Invoker.WaitAsync(1000);
+
+                if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                     return;
+
+                for (int i = 0; i < style.Doors.Length; i++)
+                {
+                    var x = style.Doors[i];
+
+                    var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
+
+                    if (handle <= 0)
+                        continue;
+
+                    var t = new MapObject(handle);
+
+                    Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), doors[i]);
+
+                    Doors.Add(i, t);
+
+                    t.SetData("Interactive", true);
+
+                    t.SetData("DoorIdx", i);
+                    t.SetData("DoorState", doors[i]);
+
+                    t.SetData("CustomAction", new Action<MapObject>((obj) =>
+                    {
+                        if (LastSent.IsSpam(1000))
+                            return;
+
+                        Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
+
+                        LastSent = DateTime.Now;
+                    }));
+
+                    t.SetData("CustomText", new Action<float, float>((x, y) =>
+                    {
+                        if (t.GetData<bool>("DoorState"))
+                        {
+                            Utils.DrawText("[Закрыта]", x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                        }
+                        else
+                        {
+                            Utils.DrawText("[Открыта]", x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                        }
+
+                        Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                    }));
+                }
+
+                for (int i = 0; i < style.Lights.Length; i++)
+                {
+                    var x = style.Lights[i];
+
+                    var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
+
+                    if (handle <= 0)
+                        continue;
+
+                    var t = new MapObject(handle);
+
+                    var rgb = lights[i]["C"].ToObject<Utils.Colour>();
+
+                    t.SetData("State", (bool)lights[i]["S"]);
+                    t.SetData("RGB", rgb);
+
+                    Lights.Add(i, t);
+
+                    RAGE.Game.Entity.SetEntityLights(handle, !(bool)lights[i]["S"]);
+
+                    t.SetLightColour(rgb);
                 }
             });
 
@@ -405,6 +493,7 @@ namespace BCRPClient.Sync
                 Utils.SetActionAsPending("House::Requested", false);
 
                 CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_House);
+                CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_Apartments);
             });
 
             Events.Add("House::Door", (object[] args) =>
@@ -507,7 +596,7 @@ namespace BCRPClient.Sync
                 if (!CEF.HouseMenu.IsActive)
                     return;
 
-                CEF.HouseMenu.SetButtonState((bool)args[0] ? "entry" : "closet", !(bool)args[1]);
+                CEF.HouseMenu.SetButtonState((bool)args[0] ? "entry" : "closet", (bool)args[1]);
             });
         }
 

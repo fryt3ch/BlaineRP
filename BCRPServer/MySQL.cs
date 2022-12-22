@@ -1873,51 +1873,196 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
-        /*        public static Game.Houses.Apartments GetApartments(Game.Houses.Apartments apartments)
+        public static void HouseUpdateOwner(Game.Houses.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            if (house.Type == Game.Houses.HouseBase.Types.House)
+                cmd.CommandText = "UPDATE houses SET CID=@CID WHERE ID=@ID;";
+            else
+                cmd.CommandText = "UPDATE apartments SET CID=@CID WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.ID);
+
+            if (house.Owner == null)
+                cmd.Parameters.AddWithValue("@CID", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@CID", house.Owner.CID);
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseUpdateSettlers(Game.Houses.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            if (house.Type == Game.Houses.HouseBase.Types.House)
+                cmd.CommandText = "UPDATE houses SET Settlers=@Settlers WHERE ID=@ID;";
+            else
+                cmd.CommandText = "UPDATE apartments SET Settlers=@Settlers WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.ID);
+
+            cmd.Parameters.AddWithValue("@Settlers", house.Settlers.ToDictionary(x => x.Key.CID, x => x.Value).SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void GarageUpdateOwner(Game.Houses.Garage garage)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE garages SET CID=@CID WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", garage.Id);
+
+            if (garage.Owner == null)
+                cmd.Parameters.AddWithValue("@CID", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@CID", garage.Owner.CID);
+
+            PushQuery(cmd);
+        }
+
+        public static void LoadApartments(Game.Houses.Apartments apartments)
+        {
+            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            {
+                conn.Open();
+
+                using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    using (var conn = new MySqlConnection(LocalConnectionCredentials))
+                    cmd.CommandText = "SELECT * FROM apartments WHERE ID=@ID LIMIT 1;";
+
+                    cmd.Parameters.AddWithValue("@ID", apartments.ID);
+
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        conn.Open();
-
-                        using (MySqlCommand cmd = conn.CreateCommand())
+                        if (!reader.HasRows)
                         {
-                            cmd.CommandText = "SELECT * FROM apartments WHERE ID=@ID LIMIT 1;";
+                            return;
+                        }
 
-                            cmd.Parameters.AddWithValue("@ID", apartments.ID);
+                        reader.Read();
 
-                            using (var reader = cmd.ExecuteReader())
+                        if (reader["CID"] is DBNull)
+                            apartments.UpdateOwner(null);
+                        else
+                        {
+                            var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
+
+                            pInfo?.OwnedApartments.Add(apartments);
+
+                            apartments.UpdateOwner(pInfo);
+                        }
+
+                        apartments.StyleData = Game.Houses.HouseBase.Style.Get(apartments.Type, apartments.RoomType, (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"]);
+
+                        apartments.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
+
+/*                        foreach (var x in apartments.Settlers.Keys)
+                            x.SettledHouses.Add(apartments);*/
+
+                        apartments.IsLocked = (bool)reader["IsLocked"];
+                        apartments.ContainersLocked = (bool)reader["ContainersLocked"];
+
+                        apartments.Furniture = ((string)reader["Furniture"]).DeserializeFromJson<List<uint>>().Select(x => Game.Houses.Furniture.Get(x)).Where(x => x != null).ToList();
+
+                        cmd.CommandText = "";
+
+                        if (reader["Locker"] == DBNull.Value)
+                        {
+                            apartments.Locker = Game.Items.Container.Create("a_locker", null).ID;
+
+                            cmd.CommandText += $"UPDATE houses SET Locker={apartments.Locker} WHERE ID={apartments.ID};";
+                        }
+                        else
+                            apartments.Locker = Convert.ToUInt32(reader["Locker"]);
+
+                        if (reader["Wardrobe"] == DBNull.Value)
+                        {
+                            apartments.Wardrobe = Game.Items.Container.Create("a_wardrobe", null).ID;
+
+                            cmd.CommandText += $"UPDATE houses SET Wardrobe={apartments.Wardrobe} WHERE ID={apartments.ID};";
+                        }
+                        else
+                            apartments.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
+
+                        if (reader["Fridge"] == DBNull.Value)
+                        {
+                            apartments.Fridge = Game.Items.Container.Create("a_fridge", null).ID;
+
+                            cmd.CommandText += $"UPDATE houses SET Fridge={apartments.Fridge} WHERE ID={apartments.ID};";
+                        }
+                        else
+                            apartments.Fridge = Convert.ToUInt32(reader["Fridge"]);
+
+                        if (reader["DoorsStates"] == DBNull.Value)
+                        {
+                            apartments.DoorsStates = new bool[apartments.StyleData.DoorsCount];
+
+                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{apartments.DoorsStates.SerializeToJson()}' WHERE ID={apartments.ID};";
+                        }
+                        else
+                            apartments.DoorsStates = NAPI.Util.FromJson<bool[]>((string)reader["DoorsStates"]);
+
+                        if (reader["LightsStates"] == DBNull.Value)
+                        {
+                            apartments.LightsStates = new Game.Houses.HouseBase.Light[apartments.StyleData.LightsCount];
+
+                            for (int i = 0; i < apartments.LightsStates.Length; i++)
                             {
-                                if (!reader.HasRows)
-                                    return null;
-
-                                reader.Read();
-
-                                apartments.Owner = Convert.ToUInt32(reader["CID"]);
-                                apartments.StyleType = (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"];
-                                apartments.Settlers = NAPI.Util.FromJson<List<uint>>((string)reader["Settlers"]);
-                                apartments.IsLocked = (bool)reader["IsLocked"];
-                                apartments.Vehicles = NAPI.Util.FromJson<List<int>>((string)reader["Vehicles"]);
-
-                                if (reader["Locker"] == DBNull.Value)
-                                    apartments.Locker = Game.Items.Container.Create("h_locker", null).ID;
-                                else
-                                    apartments.Locker = Convert.ToUInt32(reader["Locker"]);
-
-                                if (reader["Wardrobe"] == DBNull.Value)
-                                    apartments.Wardrobe = Game.Items.Container.Create("h_wardrobe", null).ID;
-                                else
-                                    apartments.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
-
-                                if (reader["Fridge"] == DBNull.Value)
-                                    apartments.Fridge = Game.Items.Container.Create("h_fridge", null).ID;
-                                else
-                                    apartments.Fridge = Convert.ToUInt32(reader["Fridge"]);
-
-                                return apartments;
+                                apartments.LightsStates[i].Colour = Game.Houses.HouseBase.DefaultLightColour;
+                                apartments.LightsStates[i].State = true;
                             }
+
+                            cmd.CommandText += $"UPDATE houses SET LightsStates='{apartments.LightsStates.SerializeToJson()}' WHERE ID={apartments.ID};";
+                        }
+                        else
+                            apartments.LightsStates = NAPI.Util.FromJson<Game.Houses.HouseBase.Light[]>((string)reader["LightsStates"]);
+                    }
+
+                    if (cmd.CommandText.Length > 0)
+                        cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static void LoadGarage(Game.Houses.Garage garage)
+        {
+            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            {
+                conn.Open();
+
+                using (MySqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT * FROM garages WHERE ID=@ID LIMIT 1;";
+
+                    cmd.Parameters.AddWithValue("@ID", garage.Id);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (!reader.HasRows)
+                        {
+                            return;
+                        }
+
+                        reader.Read();
+
+                        if (reader["CID"] is DBNull)
+                            garage.UpdateOwner(null);
+                        else
+                        {
+                            var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
+
+                            pInfo?.OwnedGarages.Add(garage);
+
+                            garage.UpdateOwner(pInfo);
                         }
                     }
-                }*/
+                }
+            }
+        }
         #endregion
     }
 }

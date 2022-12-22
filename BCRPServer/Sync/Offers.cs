@@ -286,6 +286,9 @@ namespace BCRPServer.Sync
                             {
                                 if (psData.Data is VehicleData.VehicleInfo vInfo)
                                 {
+                                    if (!pData.OwnedVehicles.Contains(vInfo))
+                                        return;
+
                                     tPlayer.CloseAll();
 
                                     tPlayer.TriggerEvent("Estate::Show", 1, 0, vInfo.ID, vInfo.VID, sPlayer, psData.Price, vInfo.Numberplate?.Tag);
@@ -349,6 +352,9 @@ namespace BCRPServer.Sync
                             {
                                 if (psData.Data is Game.Businesses.Business businessInfo)
                                 {
+                                    if (!pData.OwnedBusinesses.Contains(businessInfo))
+                                        return;
+
                                     tPlayer.CloseAll();
 
                                     tPlayer.TriggerEvent("Estate::Show", 1, 1, businessInfo.ID, sPlayer, psData.Price);
@@ -361,6 +367,90 @@ namespace BCRPServer.Sync
                                     };
 
                                     offer.TradeData.SenderBusinesses.Add(businessInfo);
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.TradeData = null;
+
+                            if (tData != null)
+                            {
+                                var tPlayer = tData.Player;
+
+                                tPlayer?.CloseAll();
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.SellEstate,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, true);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            if (offer.Data is Offer.PropertySellData psData)
+                            {
+                                if (psData.Data is Game.Houses.HouseBase houseBase)
+                                {
+                                    if (!pData.OwnedHouses.Contains(houseBase) && !pData.OwnedApartments.Contains(houseBase))
+                                        return;
+
+                                    tPlayer.CloseAll();
+
+                                    tPlayer.TriggerEvent("Estate::Show", 1, houseBase.Type == Game.Houses.HouseBase.Types.House ? 2 : 3, houseBase.ID, sPlayer, psData.Price);
+
+                                    offer.TradeData = new Offer.Trade()
+                                    {
+                                        SenderReady = true,
+
+                                        ReceiverMoney = psData.Price,
+                                    };
+
+                                    offer.TradeData.SenderHouseBases.Add(houseBase);
+                                }
+                                else if (psData.Data is Game.Houses.Garage garage)
+                                {
+                                    if (!pData.OwnedGarages.Contains(garage))
+                                        return;
+
+                                    tPlayer.CloseAll();
+
+                                    tPlayer.TriggerEvent("Estate::Show", 1, 4, garage.Id, sPlayer, psData.Price);
+
+                                    offer.TradeData = new Offer.Trade()
+                                    {
+                                        SenderReady = true,
+
+                                        ReceiverMoney = psData.Price,
+                                    };
+
+                                    offer.TradeData.SenderGarages.Add(garage);
                                 }
                             }
                         }
@@ -414,6 +504,41 @@ namespace BCRPServer.Sync
                                 return;
 
                             tPlayer.TriggerEvent("Player::Waypoint::Set", pos.X, pos.Y);
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.Settle,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        async (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            var houseBase = pData.CurrentHouseBase;
+
+                            if (houseBase == null || houseBase.Owner != pData.Info)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            houseBase.SettlePlayer(tData.Info, true);
                         }
                     }
                 }
@@ -611,6 +736,12 @@ namespace BCRPServer.Sync
                 public List<Game.Businesses.Business> SenderBusinesses { get; set; }
                 public List<Game.Businesses.Business> ReceiverBusinesses { get; set; }
 
+                public List<Game.Houses.HouseBase> SenderHouseBases { get; set; }
+                public List<Game.Houses.HouseBase> ReceiverHouseBases { get; set; }
+
+                public List<Game.Houses.Garage> SenderGarages { get; set; }
+                public List<Game.Houses.Garage> ReceiverGarages { get; set; }
+
                 public int SenderMoney { get; set; }
                 public int ReceiverMoney { get; set; }
 
@@ -678,6 +809,30 @@ namespace BCRPServer.Sync
                             return (Game.Items.Inventory.Results.Error, null);
                     }
 
+                    foreach (var x in SenderHouseBases)
+                    {
+                        if (x.Owner != pData.Info)
+                            return (Game.Items.Inventory.Results.Error, null);
+                    }
+
+                    foreach (var x in ReceiverHouseBases)
+                    {
+                        if (x.Owner != pData.Info)
+                            return (Game.Items.Inventory.Results.Error, null);
+                    }
+
+                    foreach (var x in SenderGarages)
+                    {
+                        if (x.Owner != pData.Info)
+                            return (Game.Items.Inventory.Results.Error, null);
+                    }
+
+                    foreach (var x in ReceiverGarages)
+                    {
+                        if (x.Owner != pData.Info)
+                            return (Game.Items.Inventory.Results.Error, null);
+                    }
+
                     foreach (var x in SenderVehicles)
                     {
                         x.OwnerID = tData.CID;
@@ -704,6 +859,26 @@ namespace BCRPServer.Sync
                     }
 
                     foreach (var x in ReceiverBusinesses)
+                    {
+                        x.ChangeOwner(pData.Info);
+                    }
+
+                    foreach (var x in SenderHouseBases)
+                    {
+                        x.ChangeOwner(tData.Info);
+                    }
+
+                    foreach (var x in ReceiverHouseBases)
+                    {
+                        x.ChangeOwner(pData.Info);
+                    }
+
+                    foreach (var x in SenderGarages)
+                    {
+                        x.ChangeOwner(tData.Info);
+                    }
+
+                    foreach (var x in ReceiverGarages)
                     {
                         x.ChangeOwner(pData.Info);
                     }
@@ -841,6 +1016,12 @@ namespace BCRPServer.Sync
 
                     SenderBusinesses = new List<Game.Businesses.Business>();
                     ReceiverBusinesses = new List<Game.Businesses.Business>();
+
+                    SenderHouseBases = new List<Game.Houses.HouseBase>();
+                    ReceiverHouseBases = new List<Game.Houses.HouseBase>();
+
+                    SenderGarages = new List<Game.Houses.Garage>();
+                    ReceiverGarages = new List<Game.Houses.Garage>();
 
                     SenderMoney = 0;
                     ReceiverMoney = 0;

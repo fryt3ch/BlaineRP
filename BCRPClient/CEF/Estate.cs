@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace BCRPClient.CEF
@@ -107,6 +108,22 @@ namespace BCRPClient.CEF
 
                                 Sync.Offers.Request(player, Sync.Offers.Types.SellBusiness, $"{businessId}_{price}");
                             }
+                            else if (CurrentType == Types.SellEstate)
+                            {
+                                var ids = Player.LocalPlayer.GetData<List<(Sync.Players.PropertyTypes, uint)>>("Estate::CurrentData");
+
+                                if (ids == null)
+                                    return;
+
+                                if (num >= ids.Count)
+                                    return;
+
+                                var estate = ids[num];
+
+                                Close(true);
+
+                                Sync.Offers.Request(player, Sync.Offers.Types.SellEstate, $"{(int)estate.Item1}_{estate.Item2}_{price}");
+                            }
                         }
                         else
                         {
@@ -129,16 +146,16 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType == Types.Info)
                 {
-                    if (CurrentPropertyType == Sync.Players.PropertyTypes.House)
+                    if (CurrentPropertyType == Sync.Players.PropertyTypes.House || CurrentPropertyType == Sync.Players.PropertyTypes.Apartments)
                     {
-                        var house = Player.LocalPlayer.GetData<Data.Locations.House>("Estate::CurrentData");
+                        var houseBase = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("Estate::CurrentData");
 
-                        if (house == null)
+                        if (houseBase == null)
                             return;
 
                         if (id == "enter")
                         {
-                            Events.CallRemote("House::Enter", house.Id);
+                            Events.CallRemote("House::Enter", (int)houseBase.Type, houseBase.Id);
                         }
                         else if (id == "mail")
                         {
@@ -175,8 +192,6 @@ namespace BCRPClient.CEF
                 }
             });
 
-            Events.Add("EstAgency::Close", (object[] args) => Agency.Close(false));
-
             Events.Add("Estate::Show", (args) =>
             {
                 var type = (Types)(int)args[0];
@@ -205,11 +220,31 @@ namespace BCRPClient.CEF
 
                         ShowOfferBusiness(business, player, price, true);
                     }
+                    else if (subType == 2 || subType == 3)
+                    {
+                        var id = (uint)(int)args[2];
+
+                        var houseBase = subType == 2 ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
+
+                        var player = (Player)args[3];
+                        var price = (int)args[4];
+
+                        ShowOfferHouseBase(houseBase, player, price, true);
+                    }
+                    else if (subType == 4)
+                    {
+                        var garage = Data.Locations.Garage.All[(uint)(int)args[2]];
+
+                        var player = (Player)args[3];
+                        var price = (int)args[4];
+
+                        ShowOfferGarage(garage, player, price, true);
+                    }
                 }
             });
         }
 
-        public static async System.Threading.Tasks.Task ShowHouseInfo(Data.Locations.House house, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowHouseBaseInfo(Data.Locations.HouseBase houseBase, bool showCursor = true)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -223,13 +258,20 @@ namespace BCRPClient.CEF
                 return;
 
             CurrentType = Types.Info;
-            CurrentPropertyType = Sync.Players.PropertyTypes.House;
+            CurrentPropertyType = houseBase.Type == Sync.House.HouseTypes.House ? Sync.Players.PropertyTypes.House : Sync.Players.PropertyTypes.Apartments;
 
-            Player.LocalPlayer.SetData("Estate::CurrentData", house);
+            Player.LocalPlayer.SetData("Estate::CurrentData", houseBase);
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", house.Id, new object[] { house.OwnerName, house.Price, house.Tax, (int)house.RoomType, house.GarageType == null ? "0" : ((int)house.GarageType).ToString() }, house.OwnerName == null ? null : (bool?)pData.OwnedHouses.Contains(house));
+            if (houseBase is Data.Locations.House rHouse)
+            {
+                CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "house", houseBase.Id, new object[] { houseBase.OwnerName, houseBase.Price, houseBase.Tax, (int)houseBase.RoomType, rHouse.GarageType == null ? "0" : ((int)rHouse.GarageType).ToString() }, houseBase.OwnerName == null ? null : (bool?)pData.OwnedHouses.Contains(houseBase));
+            }
+            else if (houseBase is Data.Locations.Apartments rApartments)
+            {
+                CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "flat", rApartments.NumberInRoot + 1, new object[] { houseBase.OwnerName, houseBase.Price, houseBase.Tax, (int)houseBase.RoomType }, houseBase.OwnerName == null ? null : (bool?)pData.OwnedApartments.Contains(houseBase));
+            }
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -287,10 +329,33 @@ namespace BCRPClient.CEF
 
             var estToSell = new List<object>();
 
-            estToSell.AddRange(pData.OwnedHouses.SelectMany(x => new object[] { Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
+            var estIds = new List<(Sync.Players.PropertyTypes, uint)>();
+
+            foreach (var x in pData.OwnedHouses.ToList())
+            {
+                estToSell.Add(new object[] { Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
+
+                estIds.Add((Sync.Players.PropertyTypes.House, x.Id));
+            }
+
+            foreach (var x in pData.OwnedApartments.ToList())
+            {
+                estToSell.Add(new object[] { "Flat", Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootType].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 });
+
+                estIds.Add((Sync.Players.PropertyTypes.Apartments, x.Id));
+            }
+
+            foreach (var x in pData.OwnedGarages.ToList())
+            {
+                estToSell.Add(new object[] { Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootType].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
+
+                estIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
+            }
 
             if (estToSell.Count == 0)
                 return;
+
+            Player.LocalPlayer.SetData("Estate::CurrentData", estIds);
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
@@ -300,6 +365,67 @@ namespace BCRPClient.CEF
                 CEF.Cursor.Show(true, true);
 
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+        }
+
+        public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, int price, bool showCursor = true)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (IsActive || CurrentType != null)
+                return;
+
+            if (Utils.IsAnyCefActive(true))
+                return;
+
+            CurrentType = Types.Offer;
+
+            Player.LocalPlayer.SetData("Estate::CurrentData", true);
+
+            await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
+
+            if (houseBase is Data.Locations.House house)
+            {
+                CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "house", house.Id, new object[] { targetPlayer.GetName(true, false, true), price, house.Price, house.Tax, (int)house.RoomType, house.GarageType is Data.Locations.Garage.Types gType ? (int)gType : 0 });
+            }
+            else if (houseBase is Data.Locations.Apartments aps)
+            {
+                CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "flat", aps.NumberInRoot + 1, new object[] { targetPlayer.GetName(true, false, true), price, aps.Price, aps.Tax, (int)aps.RoomType });
+            }
+
+            if (showCursor)
+                CEF.Cursor.Show(true, true);
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+        }
+
+        public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, int price, bool showCursor = true)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (IsActive || CurrentType != null)
+                return;
+
+            if (Utils.IsAnyCefActive(true))
+                return;
+
+            CurrentType = Types.Offer;
+
+            Player.LocalPlayer.SetData("Estate::CurrentData", true);
+
+            await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
+
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "garage", garage.NumberInRoot + 1, new object[] { targetPlayer.GetName(true, false, true), price, garage.Price, garage.Tax, (int)garage.RootType + 1, (int)garage.Type });
+
+            if (showCursor)
+                CEF.Cursor.Show(true, true);
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
 
         public static async System.Threading.Tasks.Task ShowSellVehicle(Player targetPlayer, bool showCursor = true)
@@ -456,56 +582,79 @@ namespace BCRPClient.CEF
 
             Player.LocalPlayer.ResetData("Estate::CurrentData");
         }
+    }
 
-        public class Agency
+    public class EstateAgency : Events.Script
+    {
+        public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.EstateAgency);
+
+        private static bool WasShowed { get; set; }
+
+        public EstateAgency()
         {
-            public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.EstateAgency);
+            Events.Add("EstAgency::Close", (object[] args) => Close(false));
 
-            private static bool WasShowed { get; set; }
-
-            public static async System.Threading.Tasks.Task Show()
+/*            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
             {
-                if (IsActive)
-                    return;
+                Show();
+            });*/
+        }
 
-                // id, name, price, tax, rooms, garage capacity
-                var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
+        public static async System.Threading.Tasks.Task Show()
+        {
+            if (IsActive)
+                return;
 
-                // id, name, price, tax, rooms
-                var apartments = new object[] {};
+            // id, name, price, tax, rooms, garage capacity
+            var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
 
-                // id, name, price, tax, garage capacity
-                var garages = new object[] {};
+            // id, name, price, tax, rooms
+            List<object> apartments = new List<object>();
 
-                await CEF.Browser.Render(Browser.IntTypes.EstateAgency, true, true);
+            foreach (var x in Data.Locations.ApartmentsRoot.All.Values)
+            {
+                var arName = x.Name;
 
-                CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages } });
+                int counter = 0;
 
-                //CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", LastNavId);
-
-                if (!WasShowed)
+                foreach (var y in x.AllApartments)
                 {
-                    WasShowed = true;
+                    if (y.OwnerName == null)
+                        apartments.Add(new object[] { $"a_{y.Id}", string.Format(Locale.General.Blip.ApartmentsOwnedBlip, arName, counter + 1), y.Price, y.Tax, (int)y.RoomType });
 
-                    CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "-info", 0);
+                    counter++;
                 }
-                else
-                {
-                    CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "", 0);
-                }
+            }
+            
+            // id, name, price, tax, garage capacity
+            var garages = new object[] { };
 
-                CEF.Cursor.Show(true, true);
+            await CEF.Browser.Render(Browser.IntTypes.EstateAgency, true, true);
+
+            CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages } });
+
+            if (!WasShowed)
+            {
+                WasShowed = true;
+
+                CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "-info", 0);
+            }
+            else
+            {
+                CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "", 0);
             }
 
-            public static void Close(bool ignoreTimeout = false)
-            {
-                if (!IsActive)
-                    return;
+            CEF.Cursor.Show(true, true);
+        }
 
-                CEF.Browser.Render(Browser.IntTypes.EstateAgency, false);
+        public static void Close(bool ignoreTimeout = false)
+        {
+            if (!IsActive)
+                return;
 
-                CEF.Cursor.Show(false, false);
-            }
+            CEF.Browser.Render(Browser.IntTypes.EstateAgency, false);
+
+            CEF.Cursor.Show(false, false);
         }
     }
 }

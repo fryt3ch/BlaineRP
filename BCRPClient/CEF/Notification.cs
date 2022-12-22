@@ -188,7 +188,9 @@ namespace BCRPClient.CEF
             { "House::CL", new Instance(Types.Error, Locale.Notifications.House.ContainersLocked, Locale.Notifications.ErrorHeader) },
             { "House::LCC", new Instance(Types.Success, Locale.Notifications.House.LightColourChanged, Locale.Notifications.DefHeader) },
             { "House::EH", new Instance(Types.Information, Locale.Notifications.House.ExpelledHouse, Locale.Notifications.DefHeader) },
+            { "House::SH", new Instance(Types.Information, Locale.Notifications.House.SettledHouse, Locale.Notifications.DefHeader) },
             { "House::EA", new Instance(Types.Information, Locale.Notifications.House.ExpelledApartments, Locale.Notifications.DefHeader) },
+            { "House::SA", new Instance(Types.Information, Locale.Notifications.House.SettledApartments, Locale.Notifications.DefHeader) },
             { "House::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfHouses, Locale.Notifications.ErrorHeader) },
 
             { "License::NTB", new Instance(Types.Error, Locale.Notifications.General.NoLicenseToBuy, Locale.Notifications.ErrorHeader) },

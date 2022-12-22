@@ -96,7 +96,7 @@ namespace BCRPClient.Sync
             {
                 Player player = (Player)args[0];
                 Types type = (Types)(int)args[1];
-                object data = args.Length < 3 ? null : RAGE.Util.Json.Deserialize<object>((string)args[2]);
+                object data = args.Length < 3 ? null : args[2];
 
                 if (player?.Exists != true)
                     return;
@@ -154,7 +154,19 @@ namespace BCRPClient.Sync
             GameEvents.Update += OfferTick;
 
             var name = player.GetName(true, false, true);
-            string text = data == null ? string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type), name) : string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, data);
+
+            string text = null;
+
+            if (type == Types.Settle)
+            {
+                var pType = (int)data;
+
+                text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, pType == 0 ? Locale.Notifications.Offers.OfferSettleHouse : Locale.Notifications.Offers.OfferSettleApartments);
+            }
+            else
+            {
+                text = data == null ? string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type), name) : string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, data);
+            }
 
             CEF.Notification.ShowOffer(text);
 

@@ -46,7 +46,7 @@ namespace BCRPClient.CEF
 
                     LastSent = DateTime.Now;
 
-                    Events.CallRemote("House::Lock", id == "entry", !!state);
+                    Events.CallRemote("House::Lock", id == "entry", !state);
                 }
                 else if (id == "locate" || id == "rearrange" || id == "remove" || id == "sellfurn") // furn
                 {
@@ -141,6 +141,11 @@ namespace BCRPClient.CEF
                 else if (id == "expel") // expel settler
                 {
                     uint cid = (uint)(int)args[1];
+
+                    if (LastSent.IsSpam(1000, false, false))
+                        return;
+
+                    Events.CallRemote("House::Menu::Expel", cid);
                 }
                 else if (id == "apply-color" || id == "reset-color") // light colours
                 {
@@ -181,13 +186,13 @@ namespace BCRPClient.CEF
 
                 bool state = (bool)args[1];
 
-                if (id.Contains("-permit"))
+                if (id == "light" || id == "doors" || id == "closet" || id == "wardrobe" || id == "fridge")
                 {
                     var permId = id == "light" ? 0 : id == "doors" ? 1 : id == "closet" ? 2 : id == "wardrobe" ? 3 : 4; // 4 - "fridge"
 
                     var cid = (uint)(int)args[2];
 
-                    Events.CallRemote("House::Menu::Permission", cid, permId);
+                    Events.CallRemote("House::Menu::Permission", permId, cid, state);
                 }
                 else if (id.Contains("ls_"))
                 {
@@ -229,9 +234,23 @@ namespace BCRPClient.CEF
 
                 var state = (bool)args[2];
 
-                if (IsActive)
+                CEF.Browser.Window.ExecuteJs("MenuHome.setPermit", idx, state, cid);
+            });
+
+            Events.Add("HouseMenu::SettlerUpd", (args) =>
+            {
+                if (!IsActive)
+                    return;
+
+                if (args[0] is string str)
                 {
-                    CEF.Browser.Window.ExecuteJs("MenuHome.setPermit", idx, state, cid);
+                    var data = str.Split('_');
+
+                    AddSettler(uint.Parse(data[0]), $"{data[1]} {data[2]}", new bool[5]);
+                }
+                else
+                {
+                    RemoveSettler((uint)(int)args[0]);
                 }
             });
 
@@ -249,7 +268,7 @@ namespace BCRPClient.CEF
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                 return;
 
-            var house = Player.LocalPlayer.GetData<Data.Locations.House>("House::CurrentHouse");
+            var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
 
             if (house == null)
                 return;
@@ -261,7 +280,16 @@ namespace BCRPClient.CEF
 
             var style = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
 
-            var info = new object[] { house.Id, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, house.GarageType == null ? 0 : (int)house.GarageType, new object[] { !doorState, !contState } };
+            object[] info = null;
+
+            if (house is Data.Locations.House rHouse)
+            {
+                info = new object[] { house.Id, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, rHouse.GarageType == null ? 0 : (int)rHouse.GarageType, new object[] { doorState, contState } };
+            }
+            else if (house is Data.Locations.Apartments rApartments)
+            {
+                info = new object[] { rApartments.NumberInRoot + 1, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, 0, new object[] { doorState, contState } };
+            }
 
             var layouts = new object[] { Sync.House.Style.All[style.HouseType][style.RoomType].Select(x => new object[] { "hlo_" + x.Value.Type.ToString(), x.Value.Name, x.Value.Price }), "hlo_" + style.Type.ToString() };
 
@@ -401,6 +429,15 @@ namespace BCRPClient.CEF
 
         private static int TempEscBind { get; set; }
 
+        private static ContextTypes? CurrentContext { get; set; }
+
+        private static int CurrentFloor { get; set; }
+
+        public enum ContextTypes
+        {
+            ApartmentsRoot = 0,
+        }
+
         public Elevator()
         {
             TempEscBind = -1;
@@ -408,15 +445,44 @@ namespace BCRPClient.CEF
             Events.Add("Elevator::Floor", (args) =>
             {
                 var floor = (int)args[0];
+
+                if (HouseMenu.LastSent.IsSpam(500, false, false))
+                    return;
+
+                if (CurrentContext is ContextTypes context)
+                {
+                    if (context == ContextTypes.ApartmentsRoot)
+                    {
+                        if (CurrentFloor == floor)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.ElevatorCurrentFloor);
+
+                            return;
+                        }
+
+                        Events.CallRemote("ARoot::Elevator", CurrentFloor, floor);
+
+                        HouseMenu.LastSent = DateTime.Now;
+
+                        Close();
+                    }
+                }
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(int maxFloor, int curFloor)
+        public static async System.Threading.Tasks.Task Show(int maxFloor, int curFloor, ContextTypes contextType)
         {
             if (IsActive)
                 return;
 
+            if (Utils.IsAnyCefActive(true))
+                return;
+
             await CEF.Browser.Render(Browser.IntTypes.Elevator, true, true);
+
+            CurrentContext = contextType;
+
+            CurrentFloor = curFloor;
 
             CEF.Browser.Window.ExecuteJs("Elevator.setMaxFloor", maxFloor);
             CEF.Browser.Window.ExecuteJs("Elevator.setCurrentFloor", curFloor);
@@ -430,6 +496,8 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
+
+            CurrentContext = null;
 
             CEF.Browser.Render(Browser.IntTypes.Elevator, false);
 

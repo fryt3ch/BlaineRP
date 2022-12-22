@@ -303,26 +303,46 @@ namespace BCRPServer.Events.Players
                 {
                     tData.PositionToSpawn = tData.PlayerData.LastData.Position.Position;
                     tData.DimensionToSpawn = tData.PlayerData.LastData.Dimension;
+
+                    player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
                 }
                 else if (sType == TempData.StartPlaceTypes.Spawn)
                 {
                     tData.PositionToSpawn = Utils.DefaultSpawnPosition;
                     tData.DimensionToSpawn = Utils.Dimensions.Main;
+
+                    player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
                 }
                 else if (sType == TempData.StartPlaceTypes.House)
                 {
                     if (tData.PlayerData.OwnedHouses.Count > 0)
                     {
-                        tData.PositionToSpawn = tData.PlayerData.OwnedHouses[0].PositionParams.Position;
-                        tData.DimensionToSpawn = Utils.Dimensions.Main;
+                        var house = tData.PlayerData.OwnedHouses[0];
+
+                        tData.PositionToSpawn = house.StyleData.Position;
+                        tData.DimensionToSpawn = house.Dimension;
+
+                        player.Teleport(house.PositionParams.Position, true, Utils.GetPrivateDimension(player));
+                    }
+                    else
+                        return;
+                }
+                else if (sType == TempData.StartPlaceTypes.Apartments)
+                {
+                    if (tData.PlayerData.OwnedApartments.Count > 0)
+                    {
+                        var aps = tData.PlayerData.OwnedApartments[0];
+
+                        tData.PositionToSpawn = aps.StyleData.Position;
+                        tData.DimensionToSpawn = aps.Dimension;
+
+                        player.Teleport(aps.Root.EnterParams.Position, true, Utils.GetPrivateDimension(player));
                     }
                     else
                         return;
                 }
                 else
                     return;
-
-                player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
 
                 player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, false, "Auth::StartPlace::Allow", type);
             }

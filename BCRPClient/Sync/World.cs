@@ -126,14 +126,13 @@ namespace BCRPClient.Sync
             foreach (var x in Data.Locations.Business.All.Values)
             {
                 var id = x.Id;
+                var obj = x;
 
                 AddDataHandler($"Business::{id}::OName", (value, oldValue) =>
                 {
                     var name = (string)value;
 
-                    var biz = Data.Locations.Business.All[id];
-
-                    biz.UpdateOwnerName(name);
+                    obj.UpdateOwnerName(name);
                 });
 
                 InvokeHandler($"Business::{id}::OName", GetSharedData<string>($"Business::{id}::OName"), null);
@@ -142,17 +141,49 @@ namespace BCRPClient.Sync
             foreach (var x in Data.Locations.House.All.Values)
             {
                 var id = x.Id;
+                var obj = x;
 
                 AddDataHandler($"House::{id}::OName", (value, oldValue) =>
                 {
                     var name = (string)value;
 
-                    var house = Data.Locations.House.All[id];
-
-                    house.UpdateOwnerName(name);
+                    obj.UpdateOwnerName(name);
                 });
 
                 InvokeHandler($"House::{id}::OName", GetSharedData<string>($"House::{id}::OName"), null);
+            }
+
+            foreach (var x in Data.Locations.Apartments.All.Values)
+            {
+                var id = x.Id;
+                var obj = x;
+
+                AddDataHandler($"Apartments::{id}::OName", (value, oldValue) =>
+                {
+                    var name = (string)value;
+
+                    obj.UpdateOwnerName(name);
+                });
+
+                //InvokeHandler($"Apartments::{id}::OName", GetSharedData<string>($"Apartments::{id}::OName"), null);
+            }
+
+            foreach (var x in Data.Locations.ApartmentsRoot.All.Values)
+                x.UpdateTextLabel();
+
+            foreach (var x in Data.Locations.Garage.All.Values)
+            {
+                var id = x.Id;
+                var obj = x;
+
+                AddDataHandler($"Garages::{id}::OName", (value, oldValue) =>
+                {
+                    var name = (string)value;
+
+                    obj.UpdateOwnerName(name);
+                });
+
+                InvokeHandler($"Garages::{id}::OName", GetSharedData<string>($"Garages::{id}::OName"), null);
             }
 
             Preloaded = true;

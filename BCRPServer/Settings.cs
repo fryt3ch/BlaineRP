@@ -81,6 +81,11 @@ namespace BCRPServer
         /// <summary>Максимальный полный вес инвентаря</summary>
         public const float MAX_INVENTORY_WEIGHT = 15f;
 
+        public const int MAX_VEHICLES_IN_TRADE = 1;
+        public const int MAX_HOUSEBASES_IN_TRADE = 1;
+        public const int MAX_GARAGES_IN_TRADE = 1;
+        public const int MAX_BUSINESS_IN_TRADE = 1;
+
         /// <summary>Время в мс., в течение которого предмет нельзя использовать после ранения</summary>
         public const int WOUNDED_USE_TIMEOUT = 2500;
 

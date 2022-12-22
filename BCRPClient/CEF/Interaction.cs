@@ -320,7 +320,7 @@ namespace BCRPClient.CEF
                 switch (action)
                 {
                     case PlayerActions.Settle:
-                        var currentHouse = Player.LocalPlayer.GetData<Data.Locations.House>("House::CurrentHouse");
+                        var currentHouse = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
 
                         if (currentHouse == null)
                         {
@@ -362,12 +362,12 @@ namespace BCRPClient.CEF
                         break;
 
                     case PlayerActions.SellHouse:
-/*                        if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
+                        if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
                         {
                             CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedEstate);
 
                             return;
-                        }*/
+                        }
 
                         CEF.Estate.ShowSellEstate(player, true);
                         break;

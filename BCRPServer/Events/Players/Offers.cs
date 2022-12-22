@@ -51,7 +51,23 @@ namespace BCRPServer.Events.Players
                 {
                     dataObj = data.DeserializeFromJson<object>();
 
-                    if (oType == Types.Cash)
+                    if (oType == Types.Settle)
+                    {
+                        var curHouseBase = pData.CurrentHouseBase;
+
+                        if (curHouseBase == null)
+                            return ReturnTypes.Error;
+
+                        if (curHouseBase.Owner != pData.Info)
+                        {
+                            player.Notify("House::NotAllowed");
+
+                            return ReturnTypes.Error;
+                        }
+
+                        target.TriggerEvent("Offer::Show", player.Handle, type, curHouseBase.Type);
+                    }
+                    else if (oType == Types.Cash)
                     {
                         var cash = Convert.ToInt32(dataObj);
 
@@ -62,6 +78,8 @@ namespace BCRPServer.Events.Players
 
                         if (pData.Cash < cash)
                             return ReturnTypes.NotEnoughMoneySource;
+
+                        target.TriggerEvent("Offer::Show", player.Handle, type, cash);
                     }
                     else if (oType == Types.WaypointShare)
                     {
@@ -116,6 +134,49 @@ namespace BCRPServer.Events.Players
 
                         dataObj = new Offer.PropertySellData(bInfo, price);
                     }
+                    else if (oType == Types.SellEstate)
+                    {
+                        var dataObjD = ((string)dataObj).Split('_');
+
+                        var price = int.Parse(dataObjD[2]);
+
+                        if (price <= 0)
+                            return ReturnTypes.Error;
+
+                        var estType = (PlayerData.PropertyTypes)int.Parse(dataObjD[0]);
+
+                        var estId = uint.Parse(dataObjD[1]);
+
+                        if (estType == PlayerData.PropertyTypes.House)
+                        {
+                            var house = pData.OwnedHouses.Where(x => x.ID == estId).FirstOrDefault();
+
+                            if (house == null)
+                                return ReturnTypes.Error;
+
+                            dataObj = new Offer.PropertySellData(house, price);
+                        }
+                        else if (estType == PlayerData.PropertyTypes.Apartments)
+                        {
+                            var aps = pData.OwnedApartments.Where(x => x.ID == estId).FirstOrDefault();
+
+                            if (aps == null)
+                                return ReturnTypes.Error;
+
+                            dataObj = new Offer.PropertySellData(aps, price);
+                        }
+                        else if (estType == PlayerData.PropertyTypes.Garage)
+                        {
+                            var garage = pData.OwnedGarages.Where(x => x.Id == estId).FirstOrDefault();
+
+                            if (garage == null)
+                                return ReturnTypes.Error;
+
+                            dataObj = new Offer.PropertySellData(garage, price);
+                        }
+                        else
+                            return ReturnTypes.Error;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -130,11 +191,7 @@ namespace BCRPServer.Events.Players
             switch (res)
             {
                 case ReturnTypes.Success:
-                    if (oType == Types.Cash)
-                    {
-                        target.TriggerEvent("Offer::Show", player.Handle, type, data);
-                    }
-                    else
+                    if (oType != Types.Cash && oType != Types.Settle)
                     {
                         target.TriggerEvent("Offer::Show", player.Handle, type);
                     }
@@ -399,11 +456,11 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Trade::UpdateProperty")]
-        private static bool UpdateProperty(Player player, int idx, bool state)
+        private static bool UpdateProperty(Player player, int pTypeNum, uint pId, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
-            if (sRes.IsSpammer || idx < 0)
+            if (sRes.IsSpammer || !Enum.IsDefined(typeof(PlayerData.PropertyTypes), pTypeNum))
                 return false;
 
             var pData = sRes.Data;
@@ -420,50 +477,126 @@ namespace BCRPServer.Events.Players
 
             var tData = isSender ? offer.Receiver : offer.Sender;
 
-            string data = null;
+            var pType = (PlayerData.PropertyTypes)pTypeNum;
 
-            if (idx < pData.OwnedVehicles.Count)
+            if (pType == PlayerData.PropertyTypes.Vehicle)
             {
-                var veh = pData.OwnedVehicles[idx];
+                var veh = pData.OwnedVehicles.Where(x => x.VID == pId).FirstOrDefault();
 
-                if (isSender)
+                if (veh == null)
+                    return false;
+
+                var tradeVehs = isSender ? offer.TradeData.SenderVehicles : offer.TradeData.ReceiverVehicles;
+
+                if (state == tradeVehs.Contains(veh))
+                    return false;
+
+                if (state)
                 {
-                    if (state == offer.TradeData.SenderVehicles.Contains(veh))
+                    if (tradeVehs.Count >= Settings.MAX_VEHICLES_IN_TRADE)
+                    {
                         return false;
+                    }
 
-                    if (state)
-                    {
-                        offer.TradeData.SenderVehicles.Add(veh);
-                    }
-                    else
-                    {
-                        offer.TradeData.SenderVehicles.Remove(veh);
-                    }
+                    tradeVehs.Add(veh);
                 }
                 else
                 {
-                    if (state == offer.TradeData.ReceiverVehicles.Contains(veh))
-                        return false;
-
-                    if (state)
-                    {
-                        offer.TradeData.ReceiverVehicles.Add(veh);
-                    }
-                    else
-                    {
-                        offer.TradeData.ReceiverVehicles.Remove(veh);
-                    }
+                    tradeVehs.Remove(veh);
                 }
 
-                data = $"{veh.Data.Name} | #{veh.VID}";
+                pData.Player.TriggerEvent("Inventory::Update", 11, false, state, pTypeNum, pId, veh.ID);
+                tData.Player.TriggerEvent("Inventory::Update", 13, false, state, pTypeNum, pId, veh.ID);
+            }
+            else if (pType == PlayerData.PropertyTypes.House || pType == PlayerData.PropertyTypes.Apartments)
+            {
+                var house = pType == PlayerData.PropertyTypes.House ? (Game.Houses.HouseBase)pData.OwnedHouses.Where(x => x.ID == pId).FirstOrDefault() : (Game.Houses.HouseBase)pData.OwnedApartments.Where(x => x.ID == pId).FirstOrDefault();
+
+                if (house == null)
+                    return false;
+
+                var tradeHouses = isSender ? offer.TradeData.SenderHouseBases : offer.TradeData.ReceiverHouseBases;
+
+                if (state == tradeHouses.Contains(house))
+                    return false;
+
+                if (state)
+                {
+                    if (tradeHouses.Count >= Settings.MAX_HOUSEBASES_IN_TRADE)
+                    {
+                        return false;
+                    }
+
+                    tradeHouses.Add(house);
+                }
+                else
+                {
+                    tradeHouses.Remove(house);
+                }
+
+                pData.Player.TriggerEvent("Inventory::Update", 11, false, state, pTypeNum, pId);
+                tData.Player.TriggerEvent("Inventory::Update", 13, false, state, pTypeNum, pId);
+            }
+            else if (pType == PlayerData.PropertyTypes.Garage)
+            {
+                var garage = pData.OwnedGarages.Where(x => x.Id == pId).FirstOrDefault();
+
+                if (garage == null)
+                    return false;
+
+                var tradeGarages = isSender ? offer.TradeData.SenderGarages : offer.TradeData.ReceiverGarages;
+
+                if (state == tradeGarages.Contains(garage))
+                    return false;
+
+                if (state)
+                {
+                    if (tradeGarages.Count >= Settings.MAX_GARAGES_IN_TRADE)
+                    {
+                        return false;
+                    }
+
+                    tradeGarages.Add(garage);
+                }
+                else
+                {
+                    tradeGarages.Remove(garage);
+                }
+
+                pData.Player.TriggerEvent("Inventory::Update", 11, false, state, pTypeNum, pId);
+                tData.Player.TriggerEvent("Inventory::Update", 13, false, state, pTypeNum, pId);
+            }
+            else if (pType == PlayerData.PropertyTypes.Business)
+            {
+                var biz = pData.OwnedBusinesses.Where(x => x.ID == pId).FirstOrDefault();
+
+                if (biz == null)
+                    return false;
+
+                var tradeBusinesses = isSender ? offer.TradeData.SenderBusinesses : offer.TradeData.ReceiverBusinesses;
+
+                if (state == tradeBusinesses.Contains(biz))
+                    return false;
+
+                if (state)
+                {
+                    if (tradeBusinesses.Count >= Settings.MAX_BUSINESS_IN_TRADE)
+                    {
+                        return false;
+                    }
+
+                    tradeBusinesses.Add(biz);
+                }
+                else
+                {
+                    tradeBusinesses.Remove(biz);
+                }
+
+                pData.Player.TriggerEvent("Inventory::Update", 11, false, state, pTypeNum, pId);
+                tData.Player.TriggerEvent("Inventory::Update", 13, false, state, pTypeNum, pId);
             }
             else
-            {
                 return false;
-            }
-
-            pData.Player.TriggerEvent("Inventory::Update", 11, false, state, data);
-            tData.Player.TriggerEvent("Inventory::Update", 13, false, state, data);
 
             return true;
         }

@@ -23,6 +23,9 @@ namespace BCRPClient
                     { Additional.ExtraBlip.Types.Furniture, "Мебель" },
                     { Additional.ExtraBlip.Types.AutoPilot, "Цель автопилота" },
                 };
+
+                public static string ApartmentsOwnedBlip = "{0}, кв. {1}";
+                public static string GarageOwnedBlip = "{0}, #{1}";
             }
 
             public static class Discord
@@ -788,6 +791,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter, "чтобы войти" },
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootExit, "чтобы выйти на улицу" },
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator, "чтобы воспользоваться лифтом" },
+
+                { Additional.ExtraColshape.InteractionTypes.GarageRootEnter, "для взаимодействия" },
             };
         }
 
@@ -850,6 +855,11 @@ namespace BCRPClient
             };
 
             public static string VehicleTradeInfoStr = "{0} | {1} #{2}";
+            public static string VehicleTradeInfoStr1 = "{0} #{1}";
+            public static string HouseTradeInfoStr = "Дом #{0}";
+            public static string ApartmentsTradeInfoStr = "{0}, кв. {1}";
+            public static string GarageTradeInfoStr = "{0}, #{1}";
+            public static string BusinessTradeInfoStr = "{0} #{1}";
 
             public static Dictionary<Data.Locations.Business.Types, string> BusinessNames = new Dictionary<Data.Locations.Business.Types, string>()
             {
@@ -878,6 +888,21 @@ namespace BCRPClient
             };
 
             public static string NoOwner = "Государство";
+
+            public static string BankNameDef = "Банковское отделение";
+            public static string AtmNameDef = "Банковское отделение";
+
+            public static string GarageRootNameDef = "Гаражный комплекс";
+            public static string GarageRootName = "Гаражный комплекс #{0}";
+
+            public static string ApartmentsRootTextLabel = "{0}\nЭтажей: {1}\nКвартир свободно: {2}/{3}";
+            public static string ApartmentsTextLabel = "Квартира #{0}\nВладелец: {1}";
+            public static string HouseTextLabel = "Дом #{0}\nВладелец: {1}";
+
+            public static string ApartmentsRootElevatorTextLabel = "Лифт [{0} этаж]";
+
+            public static string ApartmentsRootExitTextLabel = "Выход на улицу";
+            public static string HouseExitTextLabel = "Выход";
         }
 
         public static class Shop
@@ -976,6 +1001,8 @@ namespace BCRPClient
 
                 public static string NoOwnedBusiness = "Вы не владеете ни одним бизнесом!";
                 public static string NoOwnedEstate = "Вы не владеете ни одним видом недвижимости!";
+
+                public static string ElevatorCurrentFloor = "Вы и так находитесь на этом этаже!";
             }
 
             public static class House
@@ -994,8 +1021,10 @@ namespace BCRPClient
                 public static string IsLocked = "Дверь закрыта владельцем!";
                 public static string ContainersLocked = "Контейнеры закрыты владельцем!";
 
-                public static string ExpelledHouse = "{0} выписал вас из дома #{1}";
-                public static string ExpelledApartments = "{0} выписал вас из квартиры #{1}";
+                public static string ExpelledHouse = "{0} выписал вас из своего дома";
+                public static string SettledHouse = "{0} прописал вас в своем доме!";
+                public static string ExpelledApartments = "{0} выписал вас из своей квартиры";
+                public static string SettledApartments = "{0} прописал вас в своей квартире!";
             }
 
             public static class Commands
@@ -1110,6 +1139,8 @@ namespace BCRPClient
 
                 public static string AdmitToBuy = "Вы уверены? Нажмите еще раз,\nчтобы совершить покупку";
 
+                public static string AdmitToSellGov1 = "Вы уверены? Вы получите {0}\nНажмите еще раз для подтверждения";
+
                 public static string NoMaterialsShop = "В этом магазине недостаточно материалов!";
             }
 
@@ -1177,6 +1208,9 @@ namespace BCRPClient
                 public static string Header = "Предложение";
                 public static string HeaderTrade = "Обмен";
 
+                public static string OfferSettleHouse = "в свой дом";
+                public static string OfferSettleApartments = "в свою квартиру";
+
                 public static Dictionary<Sync.Offers.Types, string> Types = new Dictionary<Sync.Offers.Types, string>()
                 {
                     { Sync.Offers.Types.Handshake, "{0} предлагает вам поздороваться" },
@@ -1188,7 +1222,7 @@ namespace BCRPClient
                     { Sync.Offers.Types.SellVehicle, "{0} предлагает вам продажу транспорта" },
                     { Sync.Offers.Types.SellBusiness, "{0} предлагает вам продажу бизнеса" },
 
-                    { Sync.Offers.Types.Settle, "{0} предлагает вам подселиться в {1}" },
+                    { Sync.Offers.Types.Settle, "{0} предлагает вам подселиться {1}" },
 
                     { Sync.Offers.Types.Carry, "{0} предлагает понести вас" },
 
