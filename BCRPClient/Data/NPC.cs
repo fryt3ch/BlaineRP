@@ -56,7 +56,11 @@ namespace BCRPClient.Data
 
         public Additional.Cylinder Colshape { get; set; }
 
+        public Blip Blip { get => Player.LocalPlayer.GetData<Blip>($"NPC::{Id}::Blip"); set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::Blip"); else Player.LocalPlayer.SetData($"NPC::{Id}::Blip", value); } }
+
         public object Data { get; set; }
+
+        public object TempDialogueData { get => Player.LocalPlayer.HasData($"NPC::{Id}::TDD") ? Player.LocalPlayer.GetData<object>($"NPC::{Id}::TDD") : null; set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::TDD"); else Player.LocalPlayer.SetData($"NPC::{Id}::TDD", value); } }
 
         public NPC(string Id, string Name, Types Type, uint Model, Vector3 Position, float Heading = 0f, uint Dimension = 0, params string[] Dialogues)
         {
@@ -161,6 +165,10 @@ namespace BCRPClient.Data
             };
         }
 
+        public void CallRemote(string actionName, params object[] args) => Events.CallRemote("NPC::Action", Id, actionName, RAGE.Util.Json.Serialize(args));
+
+        public async System.Threading.Tasks.Task<object> CallRemoteProc(string actionName, params object[] args) => await Events.CallRemoteProc("NPC::Proc", Id, actionName, RAGE.Util.Json.Serialize(args));
+
         public void Interact(bool state = true)
         {
 /*            if (state)
@@ -219,6 +227,8 @@ namespace BCRPClient.Data
                 Player.LocalPlayer.SetHeading(t);
                 Ped.SetHeading(t + 180f);
 
+                Player.LocalPlayer.SetVisible(false, false);
+
                 Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
 
                 TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
@@ -235,7 +245,11 @@ namespace BCRPClient.Data
 
                 Additional.Camera.Disable(750);
 
+                Player.LocalPlayer.SetVisible(true, false);
+
                 Ped.SetHeading(DefaultHeading);
+
+                TempDialogueData = null;
 
                 CurrentNPC = null;
 
@@ -245,7 +259,7 @@ namespace BCRPClient.Data
             }
         }
 
-        public void ShowDialogue(string dialogueId)
+        public void ShowDialogue(string dialogueId, params object[] textArgs)
         {
             if (dialogueId == null)
                 return;
@@ -255,7 +269,7 @@ namespace BCRPClient.Data
             if (dialogue == null)
                 return;
 
-            dialogue.Show(this);
+            dialogue.Show(this, null, textArgs);
 
             CurrentDialogue = dialogue;
         }
@@ -287,6 +301,135 @@ namespace BCRPClient.Data
 
         public static Dictionary<string, Dialogue> AllDialogues = new Dictionary<string, Dialogue>()
         {
+            #region Vehicle Pound
+            {
+                "vpound_preprocess",
+
+                new Dialogue(null,
+
+                    async (args) =>
+                    {
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                        if (pData == null)
+                            return;
+
+                        var data = (string)await NPC.CurrentNPC.CallRemoteProc("vpound_d");
+
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        if (data == null)
+                        {
+                            NPC.CurrentNPC.ShowDialogue("vpound_no_vehicles_0");
+                        }
+                        else
+                        {
+                            var dataList = data.Split('_').ToList();
+
+                            var price = Utils.GetPriceString(int.Parse(dataList[0]));
+
+                            var vehs = dataList.Skip(1).Select(x => uint.Parse(x)).ToList();
+
+                            if (vehs.Count == 1)
+                            {
+                                var vid = vehs[0];
+
+                                NPC.CurrentNPC.TempDialogueData = vid;
+
+                                NPC.CurrentNPC.ShowDialogue("vpound_def_dg_0", pData.OwnedVehicles.Where(x => x.VID == vid).Select(x => x.Data.Name).FirstOrDefault() ?? "null", price);
+                            }
+                            else
+                            {
+                                NPC.CurrentNPC.TempDialogueData = vehs;
+
+                                NPC.CurrentNPC.ShowDialogue("vpound_def_dg_1", price);
+                            }
+                        }
+                    }
+
+                    )
+            },
+
+            {
+                "vpound_no_vehicles_0",
+
+                new Dialogue("Так-с, не вижу ни одного вашего транспорта в нашей системе.\nВот когда он у нас окажется - тогда и приходите!",
+
+                    null,
+
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, true)
+
+                    )
+            },
+
+            {
+                "vpound_def_dg_0",
+
+                new Dialogue("Здравствуйте, {0} находится на нашей штрафстоянке, чтобы забрать его оплатите штраф - {1}\nЕсли что, мы принимаем только наличные!",
+
+                    null,
+
+                    new Button("[Оплатить]", async () =>
+                    {
+                        var vid = NPC.CurrentNPC?.TempDialogueData as uint?;
+                        
+                        if (vid == null || NPC.LastSent.IsSpam(500, false, false))
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            if ((bool)await Events.CallRemoteProc("VPound::Pay", NPC.CurrentNPC.Id, vid))
+                                NPC.CurrentNPC?.SwitchDialogue(false);
+                        }
+                    }, true),
+
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+
+                    )
+            },
+
+            {
+                "vpound_def_dg_1",
+
+                new Dialogue("Здравствуйте, Ваш транспорт находится на нашей штрафстоянке, выберите нужный и оплатите штраф - {0}\nЕсли что, мы принимаем только наличные!",
+
+                    null,
+
+                    new Button("[Перейти к выбору]", () =>
+                    {
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                        if (pData == null)
+                            return;
+
+                        var npcId = NPC.CurrentNPC.Id;
+
+                        var vids = NPC.CurrentNPC.TempDialogueData as List<uint>;
+
+                        if (vids == null)
+                            return;
+
+                        NPC.CurrentNPC.SwitchDialogue(false);
+
+                        var counter = 0;
+
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePoundSelect, Locale.Actions.VehiclePoundSelectHeader, vids.Select(x => (counter++, pData.OwnedVehicles.Where(y => y.VID == x).Select(x => $"{x.Data.Name} [#{x.VID}]").FirstOrDefault() ?? "null")).ToArray(), vids, npcId);
+                    }, true),
+
+                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+
+                    )
+            },
+            #endregion
+
             #region Bank
             {
                 "bank_preprocess",
@@ -535,9 +678,8 @@ namespace BCRPClient.Data
 
         /// <summary>Метод для показа диалога</summary>
         /// <param name="npcHolder">NPC-держатель диалога</param>
-        /// <param name="invokeAction">Выполнить ли действие, заданное диалогу? Если true - выполнится действие, если false (или нет действия) - покажется диалог</param>
         /// <param name="args">Аргументы (если выполняется invokeAction, то аргументы для действия, иначе - массив ID кнопок (int), которые нужно показать. Если args пустой, то будут показаны все кнопки</param>
-        public void Show(NPC npcHolder, params object[] args)
+        public void Show(NPC npcHolder, object[] args = null, params object[] textArgs)
         {
             Action?.Invoke(args);
 
@@ -546,7 +688,7 @@ namespace BCRPClient.Data
 
             var buttons = Buttons;
 
-            if (args.Length > 0)
+            if (args != null)
             {
                 var newButtons = new List<Button>();
 
@@ -563,7 +705,7 @@ namespace BCRPClient.Data
                 CEF.NPC.Show();
             }
 
-            CEF.NPC.Draw(npcHolder.Name, Text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
+            CEF.NPC.Draw(npcHolder.Name, textArgs.Length > 0 ? string.Format(Text, textArgs) : Text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
         }
     }
 }

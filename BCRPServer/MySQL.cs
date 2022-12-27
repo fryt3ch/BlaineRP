@@ -426,6 +426,32 @@ namespace BCRPServer
                         }
                     }
 
+                    var allQuests = new Dictionary<Sync.Quest, uint>();
+
+                    cmd.CommandText = "SELECT * FROM quests;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            var types = Enum.GetValues(typeof(Sync.Quest.QuestData.Types)).Cast<Sync.Quest.QuestData.Types>();
+
+                            while (reader.Read())
+                            {
+                                var cid = Convert.ToUInt32(reader["ID"]);
+
+                                foreach (var x in types)
+                                {
+                                    var data = ((string)reader[x.ToString()]).DeserializeFromJson<JObject>();
+
+                                    var quest = new Sync.Quest(x, (bool)data["C"], (int)data["S"], (int)data["SP"]);
+
+                                    allQuests.Add(quest, cid);
+                                }
+                            }
+                        }
+                    }
+
                     cmd.CommandText = "SELECT * FROM characters;";
 
                     using (var reader = cmd.ExecuteReader())
@@ -474,8 +500,6 @@ namespace BCRPServer
 
                                 var punishments = GetPunishmentsByCID(cid);
 
-                                var ownedVehicles = VehicleData.VehicleInfo.GetAllByCID(cid);
-
                                 var gifts = allGifts.Where(x => x.Value == cid).Select(x => x.Key).ToList();
 
                                 foreach (var x in gifts)
@@ -485,6 +509,11 @@ namespace BCRPServer
 
                                 foreach (var x in achievements.Values)
                                     allAchievements.Remove(x);
+
+                                var quests = allQuests.Where(x => x.Value == cid).ToDictionary(x => x.Key.Type, y => y.Key);
+
+                                foreach (var x in quests.Values)
+                                    allQuests.Remove(x);
 
                                 var pInfo = new PlayerData.PlayerInfo()
                                 {
@@ -530,16 +559,6 @@ namespace BCRPServer
 
                                     Punishments = punishments,
 
-                                    OwnedVehicles = ownedVehicles,
-
-                                    OwnedBusinesses = new List<Game.Businesses.Business>(),
-                                    OwnedGarages = new List<Game.Houses.Garage>(),
-                                    OwnedHouses = new List<Game.Houses.House>(),
-                                    OwnedApartments = new List<Game.Houses.Apartments>(),
-
-                                    SettledHouses = new List<Game.Houses.House>(),
-                                    SettledApartments = new List<Game.Houses.Apartments>(),
-
                                     HeadBlend = (HeadBlend)customizations[cid][0],
                                     HeadOverlays = (Dictionary<int, HeadOverlay>)customizations[cid][1],
                                     FaceFeatures = (float[])customizations[cid][2],
@@ -550,6 +569,8 @@ namespace BCRPServer
                                     Gifts = gifts,
 
                                     Achievements = achievements,
+
+                                    Quests = quests,
                                 };
 
                                 if (pInfo.BankAccount != null)
@@ -1104,7 +1125,7 @@ namespace BCRPServer
 
                     INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@CID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour);
                     
-                    INSERT INTO achievements (ID) VALUES (@CID);";
+                    INSERT INTO achievements (ID) VALUES (@CID); INSERT INTO quests (ID) VALUES (@CID);";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
@@ -1322,6 +1343,22 @@ namespace BCRPServer
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Data", achievement.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterQuestUpdate(PlayerData.PlayerInfo pInfo, Sync.Quest quest)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE quests SET {quest.Type.ToString()}=@Data WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            if (quest != null)
+                cmd.Parameters.AddWithValue("@Data", quest.SerializeToJson());
+            else
+                cmd.Parameters.AddWithValue("@Data", DBNull.Value);
 
             PushQuery(cmd);
         }
@@ -1754,9 +1791,6 @@ namespace BCRPServer
 
                         house.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
 
-                        foreach (var x in house.Settlers.Keys)
-                            x.SettledHouses.Add(house);
-
                         house.IsLocked = (bool)reader["IsLocked"];
                         house.ContainersLocked = (bool)reader["ContainersLocked"];
 
@@ -1959,9 +1993,6 @@ namespace BCRPServer
                         apartments.StyleData = Game.Houses.HouseBase.Style.Get(apartments.Type, apartments.RoomType, (Game.Houses.HouseBase.Style.Types)(int)reader["StyleType"]);
 
                         apartments.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
-
-/*                        foreach (var x in apartments.Settlers.Keys)
-                            x.SettledHouses.Add(apartments);*/
 
                         apartments.IsLocked = (bool)reader["IsLocked"];
                         apartments.ContainersLocked = (bool)reader["ContainersLocked"];

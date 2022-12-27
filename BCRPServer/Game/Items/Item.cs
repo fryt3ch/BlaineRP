@@ -3241,8 +3241,6 @@ namespace BCRPServer.Game.Items
             { "vk_0", new ItemData("Ключ", 0.01f, "p_car_keys_01") },
         };
 
-        public Vector3 GetVehiclePos() => VehicleInfo?.VehicleData?.Vehicle?.Position;
-
         [JsonIgnore]
         public VehicleData.VehicleInfo VehicleInfo => VehicleData.VehicleInfo.Get(VID);
 

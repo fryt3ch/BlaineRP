@@ -44,6 +44,10 @@ namespace BCRPClient.CEF
             TuningShopDeleteMod,
             NumberplateSelect,
             VehiclePassportSelect,
+
+            GarageVehiclePlaceSelect,
+
+            VehiclePoundSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -283,6 +287,111 @@ namespace BCRPClient.CEF
                                     }
                                     else
                                         return;
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.GarageVehiclePlaceSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle;
+
+                                        if (vehicle == null)
+                                            return;
+
+                                        Close(true);
+
+                                        if (id < 0)
+                                            id = int.MinValue + id;
+
+                                        Sync.Vehicles.Park(vehicle, id);
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.VehiclePoundSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::VPSL", args[0]);
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::VPSN", args[1]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var vids = Player.LocalPlayer.GetData<List<uint>>("ActionBox::Temp::VPSL");
+
+                                        if (vids == null)
+                                            return;
+
+                                        var npcName = Player.LocalPlayer.GetData<string>("ActionBox::Temp::VPSN");
+
+                                        if (npcName == null)
+                                            return;
+
+                                        var vid = vids[id];
+
+                                        if (LastSent.IsSpam(1000, false, false))
+                                            return;
+
+                                        if ((bool)await Events.CallRemoteProc("VPound::Pay", npcName, vid))
+                                        {
+                                            Close(true);
+                                        }
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("ActionBox::Temp::VPSL");
+                                    Player.LocalPlayer.ResetData("ActionBox::Temp::VPSN");
                                 }
                             }
                         }

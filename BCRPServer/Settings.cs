@@ -138,9 +138,9 @@ namespace BCRPServer
 
         public const int MAX_BUSINESSES = 1;
 
-        public const int MAX_IS_SETTLED = 1;
-
         public const bool NEED_BUSINESS_LICENSE = false;
+
+        public const int VEHICLEPOUND_PAY_PRICE = 525;
 
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 

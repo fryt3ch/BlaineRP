@@ -147,6 +147,8 @@ namespace BCRPServer
 
             public Game.Data.Vehicles.Vehicle Data { get; set; }
 
+            public PlayerData.PlayerInfo FullOwnerPlayer => OwnerType == OwnerTypes.Player ? PlayerData.PlayerInfo.Get(OwnerID) : null;
+
             public uint VID { get; set; }
 
             public string ID { get; set; }
@@ -169,6 +171,9 @@ namespace BCRPServer
 
             public LastVehicleData LastData { get; set; }
 
+            /// <summary>На штрафстоянке ли транспорт?</summary>
+            public bool IsOnVehiclePound { get => LastData.GarageSlot == -2; set => LastData.GarageSlot = -2; }
+
             public VehicleInfo() { }
 
             public Vehicle CreateVehicle()
@@ -184,32 +189,68 @@ namespace BCRPServer
             {
                 if (VehicleData == null)
                 {
-                    if (LastData.Dimension == Utils.Dimensions.Stuff)
+                    if (IsOnVehiclePound)
                         return null;
 
-                    VehicleData = new VehicleData(CreateVehicle(), this);
+                    var owner = FullOwnerPlayer;
 
-                    if (LastData.Dimension != Utils.Dimensions.Main)
+                    var freeGarageSlots = owner.TotalFreeGarageSlots;
+
+                    if (LastData.Dimension != Utils.Dimensions.Main && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
                     {
-                        var house = Game.Houses.House.Get(Utils.GetHouseIdByDimension(LastData.Dimension));
+                        var hId = Utils.GetHouseIdByDimension(LastData.Dimension);
 
-                        if (house == null)
+                        var house = hId == 0 ? null : Game.Houses.House.Get(hId);
+
+                        if (house == null || house.Owner != owner)
                         {
+                            var gId = Utils.GetGarageIdByDimension(LastData.Dimension);
 
+                            var garage = hId == 0 ? null : Game.Houses.Garage.Get(hId);
+
+                            if (garage == null || garage.Owner != owner)
+                            {
+                                IsOnVehiclePound = true;
+                            }
+                            else
+                            {
+                                VehicleData = new VehicleData(CreateVehicle(), this);
+
+                                garage.SetVehicleToGarageOnSpawn(VehicleData);
+                            }
                         }
                         else
                         {
-                            VehicleData.Vehicle.SetSharedData("InGarage", VehicleData.LastData.Heading);
+                            VehicleData = new VehicleData(CreateVehicle(), this);
+
+                            house.SetVehicleToGarageOnSpawn(VehicleData);
+                        }
+                    }
+                    else
+                    {
+                        if (freeGarageSlots <= 0)
+                        {
+                            IsOnVehiclePound = true;
+                        }
+                        else
+                        {
+                            if (LastData.Dimension != Utils.Dimensions.Main)
+                                LastData.Dimension = Utils.Dimensions.Main;
+
+                            VehicleData = new VehicleData(CreateVehicle(), this);
                         }
                     }
 
-                    NAPI.Task.Run(() =>
+                    if (VehicleData != null)
                     {
-                        if (VehicleData?.Vehicle?.Exists != true)
-                            return;
+                        NAPI.Task.Run(() =>
+                        {
+                            if (VehicleData?.Vehicle?.Exists != true)
+                                return;
 
-                        VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
-                    }, 1500);
+                            VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
+                        }, 1500);
+                    }
 
                     return VehicleData;
                 }
@@ -231,45 +272,11 @@ namespace BCRPServer
                     player.TriggerEvent("Documents::Show", 2, Data.Name, owner.Name, owner.Surname, VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
             }
 
-            public static void PreloadAll()
+            public static void UpdateLastDataOnWrongDimension(PlayerData.PlayerInfo pInfo)
             {
-                foreach (var x in All.Values)
+                foreach (var x in pInfo.OwnedHouses)
                 {
-                    if (x.LastData.Dimension == Utils.Dimensions.Stuff || x.LastData.Dimension == Utils.Dimensions.Main)
-                        continue;
 
-                    if (x.LastData.GarageSlot < 0)
-                    {
-                        x.LastData.Dimension = Utils.Dimensions.Stuff;
-
-                        continue;
-                    }
-
-                    var house = Game.Houses.House.Get(Utils.GetHouseIdByDimension(x.LastData.Dimension));
-
-                    if (house == null)
-                    {
-                        // garage check
-
-                        x.LastData.GarageSlot = -1;
-
-                        x.LastData.Dimension = Utils.Dimensions.Stuff;
-
-                        continue;
-                    }
-                    else
-                    {
-                        if (house.GarageData == null || house.Vehicles[x.LastData.GarageSlot] != null)
-                        {
-                            x.LastData.GarageSlot = -1;
-
-                            x.LastData.Dimension = Utils.Dimensions.Stuff;
-
-                            continue;
-                        }
-
-                        house.Vehicles[x.LastData.GarageSlot] = x;
-                    }
                 }
             }
         }
@@ -303,6 +310,7 @@ namespace BCRPServer
         public Vehicle Vehicle { get; set; }
 
         #region Local Data
+
         public OwnerTypes OwnerType { get => Info.OwnerType; set => Info.OwnerType = value; }
 
         /// <summary>Второстепенный ID транспорта</summary>
@@ -397,6 +405,10 @@ namespace BCRPServer
 
         public bool IsAnchored { get => Vehicle.GetSharedData<bool?>("Anchor") ?? false; set { if (value) Vehicle.SetSharedData("Anchor", value); else Vehicle.ResetSharedData("Anchor"); } }
 
+        public bool IsFrozen { get => Vehicle.GetSharedData<bool?>("IsFrozen") ?? false; set { if (value) Vehicle.SetSharedData("IsFrozen", value); else Vehicle.ResetSharedData("IsFrozen"); } }
+
+        public bool IsDead { get => Vehicle.Health <= -4000; set => Vehicle.Health = -4000; }
+
         /// <summary>Уникальный ID транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>VID транспорта, null - если отсутствует</value>
@@ -481,11 +493,7 @@ namespace BCRPServer
                     {
                         var pData = Utils.GetPlayerByCID(OwnerID);
 
-                        if (pData == null)
-                        {
-                            pInfo.OwnedVehicles.Remove(Info);
-                        }
-                        else
+                        if (pData != null)
                         {
                             pData.RemoveVehicleProperty(Info);
                         }
@@ -498,11 +506,19 @@ namespace BCRPServer
             {
                 if (VID > 0)
                 {
-                    LastData.Position = Vehicle.Position;
-                    LastData.Heading = Vehicle.Heading;
-                    LastData.Dimension = Vehicle.Dimension;
+                    if (IsDead)
+                    {
+                        Info.IsOnVehiclePound = true;
+                    }
+                    else
+                    {
+                        LastData.Position = Vehicle.Position;
+                        LastData.Heading = Vehicle.Heading;
+                        LastData.Dimension = Vehicle.Dimension;
+                    }
 
-                    MySQL.VehicleDeletionUpdate(this.Info);
+                    if (Info != null)
+                        MySQL.VehicleDeletionUpdate(Info);
                 }
 
                 Remove(this);

@@ -108,6 +108,7 @@ namespace BCRPClient
 
                     { "seller", "Продавец" },
                     { "bank", "Работник банка" },
+                    { "vpound", "Работник штрафстоянки" },
                 };
             }
 
@@ -816,7 +817,11 @@ namespace BCRPClient
 
             public static string NumberplateSelectHeader = "Выбор номерного знака";
 
+            public static string GarageVehicleSlotSelectHeader = "Выбор места в гараже";
+
             public static string VehiclePassportSelectHeader = "Выбор тех. паспорта";
+
+            public static string VehiclePoundSelectHeader = "Выбор транспорта";
         }
 
         public static class HudMenu
@@ -1021,10 +1026,28 @@ namespace BCRPClient
                 public static string IsLocked = "Дверь закрыта владельцем!";
                 public static string ContainersLocked = "Контейнеры закрыты владельцем!";
 
-                public static string ExpelledHouse = "{0} выписал вас из своего дома";
+                public static string ExpelledHouse = "{0} выписал вас из своего дома!";
                 public static string SettledHouse = "{0} прописал вас в своем доме!";
-                public static string ExpelledApartments = "{0} выписал вас из своей квартиры";
+                public static string ExpelledApartments = "{0} выписал вас из своей квартиры!";
                 public static string SettledApartments = "{0} прописал вас в своей квартире!";
+
+                public static string ExpelledHouseSelf = "Вы выписались из этого дома!";
+                public static string ExpelledApartmentsSelf = "Вы выписались из этой квартиры!";
+
+                public static string ExpelledHouseAuto = "Вы были выписаны из дома!";
+                public static string SettledHouseAuto = "Вы были прописаны в доме!";
+
+                public static string ExpelledApartmentsAuto = "Вы были выписаны из квартиры!";
+                public static string SettledApartmentsAuto = "Вы были прописаны в квартире!";
+
+                public static string AlreadySettledHere = "Вы и так здесь прописаны!";
+                public static string AlreadySettledOtherHouse = "Вы уже прописаны в другом доме!";
+                public static string AlreadySettledOtherApartments = "Вы уже прописаны в другой квартире!";
+
+                public static string OwnsHouseSettle = "У вас уже есть свой дом, вы не можете прописаться!";
+                public static string OwnsApartmentsSettle = "У вас уже есть своя квартира, вы не можете прописаться!";
+
+                public static string NoVehiclePlacesInGarage = "В гараже нет свободных мест для транспорта!";
             }
 
             public static class Commands
@@ -1450,6 +1473,9 @@ namespace BCRPClient
                 public static string PlateInstalled = "Номерной знак [{0}] установлен!";
 
                 public static string NoOwnedVehicles = "Вы не владеете ни одним транспортом!";
+
+                public static string VehicleOnPound = "Этот транспорт находится на штрафстоянке!";
+                public static string VehicleKeyError = "Этот ключ не работает!";
             }
         }
         #endregion

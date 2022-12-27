@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,10 +20,13 @@ namespace BCRPServer
     {
         public static class Dimensions
         {
+            /// <summary>Основное игровое измерение</summary>
             public const uint Main = 0;
 
+            /// <summary>Техническое измерение (в основном, пре-спавнинг сущностей)</summary>
             public const uint Stuff = 1;
 
+            /// <summary>Деморган</summary>
             public const uint Demorgan = 2;
         }
 
@@ -244,6 +248,8 @@ namespace BCRPServer
             }
 
             public Vector4(Vector3 Position, float RotationZ = 0f) : this(Position.X, Position.Y, Position.Z, RotationZ) { }
+
+            public Vector4(Vector4 Position) : this(Position.X, Position.Y, Position.Z, Position.RotationZ) { }
 
             public Vector4() { }
         }
@@ -706,6 +712,7 @@ namespace BCRPServer
         #region Other Stuff
 
         public static string SerializeToJson(this object value) => JsonConvert.SerializeObject(value);
+        //public static string SerializeToJson(this object value) => JsonConvert.SerializeObject(value, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         public static T DeserializeFromJson<T>(this string value) => JsonConvert.DeserializeObject<T>(value);
 
         public static async Task<string> SerializeToJsonAsync(this object value) => await Task.Run<string>(() => JsonConvert.SerializeObject(value));

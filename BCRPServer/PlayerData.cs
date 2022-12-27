@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -242,14 +243,17 @@ namespace BCRPServer
 
             public byte EyeColor { get; set; }
 
-            public List<VehicleData.VehicleInfo> OwnedVehicles { get; set; }
-            public List<Game.Houses.House> OwnedHouses { get; set; }
-            public List<Game.Houses.Apartments> OwnedApartments { get; set; }
-            public List<Game.Houses.Garage> OwnedGarages { get; set; }
-            public List<Game.Businesses.Business> OwnedBusinesses { get; set; }
+            public List<VehicleData.VehicleInfo> OwnedVehicles => VehicleData.VehicleInfo.GetAllByCID(CID);
 
-            public List<Game.Houses.House> SettledHouses { get; set; }
-            public List<Game.Houses.Apartments> SettledApartments { get; set; }
+            public List<Game.Houses.House> OwnedHouses => Game.Houses.House.All.Values.Where(x => x.Owner == this).ToList();
+
+            public List<Game.Houses.Apartments> OwnedApartments => Game.Houses.Apartments.All.Values.Where(x => x.Owner == this).ToList();
+
+            public List<Game.Houses.Garage> OwnedGarages => Game.Houses.Garage.All.Values.Where(x => x.Owner == this).ToList();
+
+            public List<Game.Businesses.Business> OwnedBusinesses => Game.Businesses.Business.All.Values.Where(x => x.Owner == this).ToList();
+
+            public Game.Houses.HouseBase SettledHouseBase => (Game.Houses.HouseBase)Game.Houses.House.All.Values.Where(x => x.Settlers.ContainsKey(this)).FirstOrDefault() ?? (Game.Houses.HouseBase)Game.Houses.Apartments.All.Values.Where(x => x.Settlers.ContainsKey(this)).FirstOrDefault();
 
             /// <summary>Предметы игрока в карманах</summary>
             /// <value>Массив объектов класса Game.Items.Item, в котором null - пустой слот</value>
@@ -285,9 +289,15 @@ namespace BCRPServer
 
             public Dictionary<Achievement.Types, Achievement> Achievements { get; set; }
 
+            public Dictionary<Sync.Quest.QuestData.Types, Sync.Quest> Quests { get; set; }
+
             public MedicalCard MedicalCard { get; set; }
 
             public bool LosSantosAllowed { get; set; }
+
+            public IEnumerable<VehicleData.VehicleInfo> VehiclesOnPound => OwnedVehicles.Where(x => x.VehicleData == null && x.IsOnVehiclePound);
+
+            public int TotalFreeGarageSlots => OwnedHouses.Select(x => x.GarageData == null ? 0 : (x.GarageData.MaxVehicles - x.GetVehiclesInGarage().Count())).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles - x.GetVehiclesInGarage().Count()).Sum();
 
             public DateTime GetCooldownLastTime(CooldownTypes cdType)
             {
@@ -586,15 +596,17 @@ namespace BCRPServer
         public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Player.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { if (value != null) Player.SetData("IsAttachedTo::Entity", value); else Player.ResetData("IsAttachedTo::Entity"); } }
 
         /// <summary>Транспорт, находящийся в собственности у игрока</summary>
-        public List<VehicleData.VehicleInfo> OwnedVehicles { get => Info.OwnedVehicles; set => Info.OwnedVehicles = value; }
+        public List<VehicleData.VehicleInfo> OwnedVehicles { get; set; }
 
-        public List<Game.Houses.House> OwnedHouses { get => Info.OwnedHouses; set => Info.OwnedHouses = value; }
+        public List<Game.Houses.House> OwnedHouses { get; set; }
 
-        public List<Game.Houses.Apartments> OwnedApartments { get => Info.OwnedApartments; set => Info.OwnedApartments = value; }
+        public List<Game.Houses.Apartments> OwnedApartments { get; set; }
 
-        public List<Game.Houses.Garage> OwnedGarages { get => Info.OwnedGarages; set => Info.OwnedGarages = value; }
+        public List<Game.Houses.Garage> OwnedGarages { get; set; }
 
-        public List<Game.Businesses.Business> OwnedBusinesses { get => Info.OwnedBusinesses; set => Info.OwnedBusinesses = value; }
+        public List<Game.Businesses.Business> OwnedBusinesses { get; set; }
+
+        public Game.Houses.HouseBase SettledHouseBase { get; set; }
 
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
@@ -638,13 +650,7 @@ namespace BCRPServer
 
         public Game.Houses.Apartments.ApartmentsRoot CurrentApartmentsRoot => Utils.GetApartmentsRootTypeByDimension(Player.Dimension) is Game.Houses.Apartments.ApartmentsRoot.Types arType ? Game.Houses.Apartments.ApartmentsRoot.Get(arType) : null;
 
-        public int VehicleSlots
-        {
-            get
-            {
-                return Settings.MIN_VEHICLE_SLOTS - OwnedVehicles.Count; // todo
-            }
-        }
+        public int VehicleSlots => (Settings.MIN_VEHICLE_SLOTS + OwnedHouses.Where(x => x.GarageData != null).Select(x => x.GarageData.MaxVehicles).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles).Sum()) - OwnedVehicles.Count;
 
         public int HouseSlots => Settings.MAX_HOUSES - OwnedHouses.Count;
         public int ApartmentsSlots => Settings.MAX_APARTMENTS - OwnedApartments.Count;
@@ -1170,9 +1176,17 @@ namespace BCRPServer
 
             LastJoinDate = Utils.GetCurrentTime();
 
-            Info.PlayerData = this;
+            OwnedHouses = Info.OwnedHouses;
+            OwnedGarages = Info.OwnedGarages;
+            OwnedVehicles = Info.OwnedVehicles;
+            OwnedApartments = Info.OwnedApartments;
+            OwnedBusinesses = Info.OwnedBusinesses;
+
+            SettledHouseBase = Info.SettledHouseBase;
 
             BankBalance = Info.BankAccount?.Balance ?? 0;
+
+            Info.PlayerData = this;
         }
 
         public PlayerData(Player Player, string name, string surname, int age, bool sex, HeadBlend hBlend, Dictionary<int, HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
@@ -1230,7 +1244,15 @@ namespace BCRPServer
 
             Info.Achievements = Achievement.GetNewDict();
 
+            Info.Quests = Sync.Quest.GetNewDict();
+
             BankBalance = 0;
+
+            OwnedHouses = new List<Game.Houses.House>();
+            OwnedGarages = new List<Game.Houses.Garage>();
+            OwnedVehicles = new List<VehicleData.VehicleInfo>();
+            OwnedApartments = new List<Game.Houses.Apartments>();
+            OwnedBusinesses = new List<Game.Businesses.Business>();
 
             PlayerInfo.Add(Info);
         }
@@ -1294,9 +1316,15 @@ namespace BCRPServer
             if (OwnedGarages.Count > 0)
                 data.Add("Garages", OwnedGarages.Select(x => x.Id).SerializeToJson());
 
+            if (SettledHouseBase != null)
+                data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.ID}");
+
             data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson()); // to change!
 
             data.Add("Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson());
+
+            if (Info.Quests.Count > 0)
+                data.Add("Quests", Info.Quests.Where(x => !x.Value.IsCompleted).Select(x => $"{(int)x.Key}_{x.Value.Step}_{x.Value.StepProgress}").SerializeToJson());
 
             NAPI.Task.Run(() =>
             {
@@ -1394,6 +1422,44 @@ namespace BCRPServer
             }
 
             return false;
+        }
+
+        public bool CanBeSettled(Game.Houses.HouseBase houseBase, bool notifyIfNot = true)
+        {
+            if (SettledHouseBase != null)
+            {
+                if (SettledHouseBase == houseBase)
+                {
+                    Player.Notify("House::ASH");
+                }
+                else if (SettledHouseBase.Type == houseBase.Type)
+                {
+                    Player.Notify(houseBase.Type == Game.Houses.HouseBase.Types.House ? "House::ASOH" : "House::ASOA");
+                }
+
+                return false;
+            }
+
+            if (houseBase.Type == Game.Houses.HouseBase.Types.House)
+            {
+                if (OwnedHouses.Count > 0)
+                {
+                    Player.Notify("House::OHSE");
+
+                    return false;
+                }
+            }
+            else
+            {
+                if (OwnedApartments.Count > 0)
+                {
+                    Player.Notify("House::OASE");
+
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

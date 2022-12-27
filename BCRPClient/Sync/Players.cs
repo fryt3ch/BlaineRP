@@ -245,6 +245,8 @@ namespace BCRPClient.Sync
 
             public List<Data.Locations.Garage> OwnedGarages { get => Player.LocalPlayer.GetData<List<Data.Locations.Garage>>("OwnedGarages"); set => Player.LocalPlayer.SetData("OwnedGarages", value); }
 
+            public Data.Locations.HouseBase SettledHouseBase { get => Player.LocalPlayer.GetData<Data.Locations.HouseBase>("SettledHouseBase"); set { if (value == null) Player.LocalPlayer.ResetData("SettledHouseBase"); else Player.LocalPlayer.SetData("SettledHouseBase", value); } }
+
             public Dictionary<uint, Data.Furniture> Furniture { get => Player.LocalPlayer.GetData<Dictionary<uint, Data.Furniture>>("Furniture"); set => Player.LocalPlayer.SetData("Furniture", value); }
 
             public List<uint> Familiars { get => Player.LocalPlayer.GetData<List<uint>>("Familiars"); set => Player.LocalPlayer.SetData("Familiars", value); }
@@ -256,6 +258,8 @@ namespace BCRPClient.Sync
             public MedicalCard MedicalCard { get => Player.LocalPlayer.GetData<MedicalCard>("MedicalCard"); set { if (value == null) Player.LocalPlayer.ResetData("MedicalCard"); else Player.LocalPlayer.SetData("MedicalCard", value); } }
 
             public Dictionary<AchievementTypes, (int Progress, bool IsRecieved)> Achievements { get => Player.LocalPlayer.GetData<Dictionary<AchievementTypes, (int, bool)>>("Achievements"); set => Player.LocalPlayer.SetData("Achievements", value); }
+
+            public List<Sync.Quest> Quests { get => Player.LocalPlayer.GetData<List<Sync.Quest>>("Quests"); set => Player.LocalPlayer.SetData("Quests", value); }
 
             public Entity IsAttachedTo { get => Player.GetData<Entity>("IsAttachedTo::Entity"); set => Player.SetData("IsAttachedTo::Entity", value); }
 
@@ -415,12 +419,28 @@ namespace BCRPClient.Sync
                 if (sData.ContainsKey("MedCard"))
                     data.MedicalCard = RAGE.Util.Json.Deserialize<MedicalCard>((string)sData["MedCard"]);
 
+                if (sData.ContainsKey("SHB"))
+                {
+                    var shbData = ((string)sData["SHB"]).Split('_');
+
+                    data.SettledHouseBase = ((Sync.House.HouseTypes)int.Parse(shbData[0])) == House.HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[uint.Parse(shbData[1])] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[uint.Parse(shbData[1])];
+                }
+
                 var achievements = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Achievements"]).ToDictionary(x => (AchievementTypes)Convert.ToInt32(x.Split('_')[0]), y => { var data = y.Split('_'); return (Convert.ToInt32(data[1]), Convert.ToInt32(data[2])); });
 
                 foreach (var x in achievements)
                     UpdateAchievement(data, x.Key, x.Value.Item1, x.Value.Item2);
 
                 data.Achievements = achievements.ToDictionary(x => x.Key, y => (y.Value.Item1, y.Value.Item1 >= y.Value.Item2));
+
+                if (sData.ContainsKey("Quests"))
+                {
+                    data.Quests = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Quests"]).Select(y => { var data = y.Split('_'); return new Sync.Quest((Sync.Quest.QuestData.Types)Convert.ToInt32(data[0]), Convert.ToInt32(data[1]), Convert.ToInt32(data[2])); }).ToList();
+                }
+                else
+                {
+                    data.Quests = new List<Quest>();
+                }
 
                 data.Furniture = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Furniture"]).ToDictionary(x => x.Key, x => Data.Furniture.GetData(x.Value));
 
@@ -489,7 +509,7 @@ namespace BCRPClient.Sync
                     CEF.Menu.TimePlayed += 1;
                 }, 60000, true, 60000)).Run();
 
-                CEF.HUD.Menu.SetCurrentTypes(HUD.Menu.Types.Menu, HUD.Menu.Types.Documents, HUD.Menu.Types.BlipsMenu);
+                CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu, HUD.Menu.Types.Documents, HUD.Menu.Types.BlipsMenu);
 
                 Settings.Load();
                 KeyBinds.LoadAll();
@@ -532,7 +552,12 @@ namespace BCRPClient.Sync
                 foreach (var x in data.OwnedGarages)
                     x.ToggleOwnerBlip(true);
 
-                //CEF.Menu.UpdateProperties(data);
+                data.SettledHouseBase?.ToggleOwnerBlip(true);
+
+                foreach (var x in data.Quests)
+                {
+                    x.Initialize();
+                }
             });
             #endregion
 
@@ -670,6 +695,59 @@ namespace BCRPClient.Sync
 
             });
 
+            Events.Add("Player::Quest::Upd", (object[] args) =>
+            {
+                var data = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (data == null)
+                    return;
+
+                var qType = (Sync.Quest.QuestData.Types)(int)args[0];
+                var step = (int)args[1];
+
+                var quests = data.Quests;
+
+                var quest = quests.Where(x => x.Type == qType).FirstOrDefault();
+
+                if (step < 0)
+                {
+                    if (quest == null)
+                        return;
+
+                    quests.Remove(quest);
+
+                    quest.Destroy();
+
+                    data.Quests = quests;
+
+                    CEF.Menu.UpdateQuests(data);
+                }
+                else
+                {
+                    var sProgress = (int)args[2];
+
+                    if (quest == null)
+                    {
+                        quest = new Sync.Quest(qType, step, sProgress);
+
+                        quest.Initialize();
+
+                        quests.Add(quest);
+                    }
+                    else
+                    {
+                        if (quest.Step != step)
+                            quest.UpdateStep(step);
+
+                        quest.UpdateProgress(sProgress);
+                    }
+
+                    data.Quests = quests;
+
+                    CEF.Menu.UpdateQuests(data);
+                }
+            });
+
             Events.Add("Player::Achievements::Update", (object[] args) =>
             {
                 var data = Sync.Players.GetData(Player.LocalPlayer);
@@ -782,6 +860,51 @@ namespace BCRPClient.Sync
                 else
                 {
                     data.Familiars.Remove(cid);
+                }
+            });
+
+            Events.Add("Player::SettledHB", (args) =>
+            {
+                var pType = (Sync.House.HouseTypes)(int)args[0];
+
+                var pId = (uint)(int)args[1];
+
+                var state = (bool)args[2];
+
+                var house = pType == House.HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[pId] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[pId];
+
+                house.ToggleOwnerBlip(state);
+
+                if (args.Length > 3)
+                {
+                    var playerInit = (Player)args[3];
+
+                    if (state)
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments, playerInit.GetName(true, false, true)));
+                    }
+                    else
+                    {
+                        if (playerInit?.Handle == Player.LocalPlayer.Handle)
+                        {
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf);
+                        }
+                        else
+                        {
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments, playerInit.GetName(true, false, true)));
+                        }
+                    }
+                }
+                else
+                {
+                    if (state)
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto);
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto);
+                    }
                 }
             });
 
@@ -1585,6 +1708,7 @@ namespace BCRPClient.Sync
             CEF.Estate.Close(true);
             CEF.EstateAgency.Close(true);
 
+            CEF.GarageMenu.Close();
             CEF.HouseMenu.Close(true);
             CEF.BusinessMenu.Close(true);
 

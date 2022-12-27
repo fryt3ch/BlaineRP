@@ -181,6 +181,11 @@ namespace BCRPServer
                 sTypes.Add(StartPlaceTypes.Apartments);
             }
 
+            if (PlayerData.SettledHouseBase != null)
+            {
+                sTypes.Add(PlayerData.SettledHouseBase.Type == Game.Houses.HouseBase.Types.House ? StartPlaceTypes.House : StartPlaceTypes.Apartments);
+            }
+
             Player.TriggerEvent("Auth::StartPlace::Load", sTypes.SerializeToJson());
         }
     }

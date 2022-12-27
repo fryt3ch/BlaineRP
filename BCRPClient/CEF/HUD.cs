@@ -254,6 +254,11 @@ namespace BCRPClient.CEF
                 Browser.Switch(Browser.IntTypes.HUD_Left, true);
                 Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.Interface.HideHints);
 
+                if (!Settings.Interface.HideQuest && Sync.Quest.ActualQuest != null)
+                {
+                    EnableQuest(true);
+                }
+
                 if (SpeedometerMustBeEnabled)
                     Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
             }
@@ -262,6 +267,7 @@ namespace BCRPClient.CEF
                 Browser.Switch(Browser.IntTypes.HUD_Top, false);
                 Browser.Switch(Browser.IntTypes.HUD_Left, false);
                 Browser.Switch(Browser.IntTypes.HUD_Help, false);
+                Browser.Switch(Browser.IntTypes.HUD_Quest, false);
 
                 Browser.Switch(Browser.IntTypes.HUD_Speedometer, false);
             }
@@ -391,6 +397,33 @@ namespace BCRPClient.CEF
 
                     InteractionBind = -1;
                 }
+            }
+        }
+
+        public static void SetQuestParams(string questGiver, string questName, string goal) => CEF.Browser.Window.ExecuteJs("Hud.drawQuest", new object[] { new object[] { questName, questGiver, goal, "NA" } });
+
+        public static void EnableQuest(bool state)
+        {
+            if (!Sync.Players.CharacterLoaded)
+                return;
+
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (state)
+            {
+                if (Sync.Quest.ActualQuest != null)
+                {
+                    CEF.Browser.Switch(Browser.IntTypes.HUD_Quest, true);
+
+                    Sync.Quest.ActualQuest.UpdateHudQuest();
+                }
+            }
+            else
+            {
+                CEF.Browser.Switch(Browser.IntTypes.HUD_Quest, false);
             }
         }
 

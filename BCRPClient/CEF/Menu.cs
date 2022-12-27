@@ -289,6 +289,23 @@ namespace BCRPClient.CEF
 
                 Browser.Window.ExecuteJs("Menu.drawGifts", new object[] { Gifts.Select(x => new object[] { x.Key, x.Value.Reason, x.Value.Name }) });
             });
+
+            Events.Add("Menu::Quests::Locate", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                var quests = pData.Quests;
+
+                var quest = quests.Where(x => x.Type == (Sync.Quest.QuestData.Types)Enum.Parse(typeof(Sync.Quest.QuestData.Types), (string)args[0])).FirstOrDefault();
+
+                if (quest == null)
+                    return;
+
+                quest.MenuIconFunc();
+            });
             #endregion
         }
 
@@ -397,11 +414,13 @@ namespace BCRPClient.CEF
 
         public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? Locale.General.Players.FractionNames[Sync.Players.FractionTypes.None]);
 
-        public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs($"Menu.setSkill", type, current);
+        public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs("Menu.setSkill", type, current);
 
-        public static void UpdateAchievement(Sync.Players.AchievementTypes aType, int current, int max) => Browser.Window.ExecuteJs($"Menu.updateAchProgress", aType.ToString(), current, max);
+        public static void UpdateAchievement(Sync.Players.AchievementTypes aType, int current, int max) => Browser.Window.ExecuteJs("Menu.updateAchProgress", aType.ToString(), current, max);
 
-        public static void AddAchievement(Sync.Players.AchievementTypes aType, int current, int max, string name, string desc) => Browser.Window.ExecuteJs($"Menu.newAchievement", new object[] { new object[] { aType.ToString(), name, desc, current, max } });
+        public static void AddAchievement(Sync.Players.AchievementTypes aType, int current, int max, string name, string desc) => Browser.Window.ExecuteJs("Menu.newAchievement", new object[] { new object[] { aType.ToString(), name, desc, current, max } });
+
+        public static void UpdateQuestProgress() => Browser.Window.ExecuteJs("Menu.updateQuestProgress"); // id, new_progress
 
         public static void Load(Sync.Players.PlayerData pData, int timePlayed, DateTime creationDate, DateTime birthDate, Dictionary<uint, (int Type, string GID, int Amount, int Reason)> gifts)
         {
@@ -423,6 +442,8 @@ namespace BCRPClient.CEF
             }
 
             UpdateProperties(pData);
+
+            UpdateQuests(pData);
         }
 
         public static void UpdateProperties(Sync.Players.PlayerData pData = null)
@@ -449,6 +470,19 @@ namespace BCRPClient.CEF
             properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootType].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
+        }
+
+        public static void UpdateQuests(Sync.Players.PlayerData pData = null)
+        {
+            if (pData == null)
+                pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            var quests = pData.Quests;
+
+            Browser.Window.ExecuteJs("Menu.drawQuests", new object[] { quests.Select(x => new object[] { x.Type.ToString(), x.Data.Name, x.Data.GiverName, x.GoalWithProgress ?? "null", "NA" }) });
         }
     }
 }

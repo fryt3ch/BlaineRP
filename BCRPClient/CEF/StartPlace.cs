@@ -2,6 +2,7 @@
 using RAGE;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using static BCRPClient.Additional.Camera;
 
@@ -43,14 +44,14 @@ namespace BCRPClient.CEF
 
                 CurrentTypes = RAGE.Util.Json.Deserialize<Types[]>((string)args[0]);
 
-                LastType = Types.Last;
+                LastType = CurrentTypes.Contains(Types.Last) ? Types.Last : CurrentTypes.First();
 
-                Events.CallRemote("Auth::StartPlace", false, (int)Types.Last);
+                Events.CallRemoteProc("Auth::StartPlace", false, LastType);
 
                 LastSent = DateTime.Now;
             });
 
-            Events.Add("Auth::StartPlace::Select", (object[] args) =>
+            Events.Add("Auth::StartPlace::Select", async (object[] args) =>
             {
                 Types type = (Types)(int)args[0];
 
@@ -59,11 +60,12 @@ namespace BCRPClient.CEF
 
                 if (!LastSent.IsSpam(500, false, false))
                 {
-                    LastType = type;
+                    if ((bool)await Events.CallRemoteProc("Auth::StartPlace", false, (int)type))
+                    {
+                        LastType = type;
 
-                    CEF.Browser.Switch(Browser.IntTypes.StartPlace, false);
-
-                    Events.CallRemote("Auth::StartPlace", false, (int)type);
+                        CEF.Browser.Switch(Browser.IntTypes.StartPlace, false);
+                    }
 
                     LastSent = DateTime.Now;
                 }
@@ -76,7 +78,7 @@ namespace BCRPClient.CEF
 
                 if (!LastSent.IsSpam(1000, false, false))
                 {
-                    Events.CallRemote("Auth::StartPlace", true, LastType);
+                    Events.CallRemoteProc("Auth::StartPlace", true, LastType);
 
                     LastSent = DateTime.Now;
                 }

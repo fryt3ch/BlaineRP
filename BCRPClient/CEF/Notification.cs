@@ -106,6 +106,8 @@ namespace BCRPClient.CEF
             { "NP::Set", new Instance(Types.Success, Locale.Notifications.Vehicles.PlateInstalled, Locale.Notifications.Vehicles.Header) },
 
             { "Vehicle::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.NotAllowed, Locale.Notifications.Vehicles.Header) },
+            { "Vehicle::OVP", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleOnPound, Locale.Notifications.ErrorHeader) },
+            { "Vehicle::KE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyError, Locale.Notifications.ErrorHeader) },
 
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
@@ -187,11 +189,15 @@ namespace BCRPClient.CEF
             { "House::HL", new Instance(Types.Error, Locale.Notifications.House.IsLocked, Locale.Notifications.ErrorHeader) },
             { "House::CL", new Instance(Types.Error, Locale.Notifications.House.ContainersLocked, Locale.Notifications.ErrorHeader) },
             { "House::LCC", new Instance(Types.Success, Locale.Notifications.House.LightColourChanged, Locale.Notifications.DefHeader) },
-            { "House::EH", new Instance(Types.Information, Locale.Notifications.House.ExpelledHouse, Locale.Notifications.DefHeader) },
-            { "House::SH", new Instance(Types.Information, Locale.Notifications.House.SettledHouse, Locale.Notifications.DefHeader) },
-            { "House::EA", new Instance(Types.Information, Locale.Notifications.House.ExpelledApartments, Locale.Notifications.DefHeader) },
-            { "House::SA", new Instance(Types.Information, Locale.Notifications.House.SettledApartments, Locale.Notifications.DefHeader) },
             { "House::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfHouses, Locale.Notifications.ErrorHeader) },
+
+            { "House::ASH", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledHere, Locale.Notifications.ErrorHeader) },
+            { "House::ASOH", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledOtherHouse, Locale.Notifications.ErrorHeader) },
+            { "House::ASOA", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledOtherApartments, Locale.Notifications.ErrorHeader) },
+            { "House::OHSE", new Instance(Types.Error, Locale.Notifications.House.OwnsHouseSettle, Locale.Notifications.ErrorHeader) },
+            { "House::OASE", new Instance(Types.Error, Locale.Notifications.House.OwnsApartmentsSettle, Locale.Notifications.ErrorHeader) },
+
+            { "Garage::NVP", new Instance(Types.Error, Locale.Notifications.House.NoVehiclePlacesInGarage, Locale.Notifications.ErrorHeader) },
 
             { "License::NTB", new Instance(Types.Error, Locale.Notifications.General.NoLicenseToBuy, Locale.Notifications.ErrorHeader) },
 

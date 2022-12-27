@@ -114,7 +114,7 @@ namespace BCRPServer.Events.Players
                 if (!house.IsEntityNearEnter(player))
                     return;
 
-                if (house.IsLocked && house.Owner != pData.Info && !house.Settlers.ContainsKey(pData.Info))
+                if (house.IsLocked && house.Owner != pData.Info && pData.SettledHouseBase != house)
                 {
                     player.Notify("House::HL");
 
@@ -136,7 +136,7 @@ namespace BCRPServer.Events.Players
                 if (!aps.IsEntityNearEnter(player))
                     return;
 
-                if (aps.IsLocked && aps.Owner != pData.Info && !aps.Settlers.ContainsKey(pData.Info))
+                if (aps.IsLocked && aps.Owner != pData.Info && pData.SettledHouseBase != aps)
                 {
                     player.Notify("House::HL");
 
@@ -200,17 +200,16 @@ namespace BCRPServer.Events.Players
 
             if (to)
             {
-                player.Teleport(house.GarageData.EnterPosition.Position, false, null, house.GarageData.EnterPosition.RotationZ, false);
+                player.Teleport(house.GarageData.EnterPosition.Position, false, null, house.GarageData.EnterPosition.RotationZ, true);
             }
             else
             {
-                player.Heading = house.StyleData.Heading;
-                player.Teleport(house.StyleData.Position, false);
+                player.Teleport(house.StyleData.Position, false, null, house.StyleData.Heading, true);
             }
         }
 
         [RemoteEvent("House::Garage::Vehicle")]
-        public static void HouseGarageVehicle(Player player, bool to, Vehicle veh, uint houseId)
+        public static void HouseGarageVehicle(Player player, int slot, Vehicle veh, uint houseId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -227,7 +226,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (to)
+            if (slot >= 0)
             {
                 if (player.Dimension != Utils.Dimensions.Main)
                     return;
@@ -237,19 +236,86 @@ namespace BCRPServer.Events.Players
                 if (house == null || house.GarageData == null)
                     return;
 
-                veh.TriggerEventOccupants("House::Enter", house.ToClientJson());
+                var freeSlots = Enumerable.Range(0, house.GarageData.MaxVehicles).ToList();
 
-                vData.EngineOn = false;
+                var garageVehs = house.GetVehiclesInGarage();
 
-                var vPos = house.GarageData.VehiclePositions[0];
+                if (garageVehs == null)
+                    return;
 
-                veh.Teleport(vPos.Position, house.Dimension, vPos.RotationZ, true, false);
+                foreach (var x in garageVehs)
+                {
+                    freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
+                }
 
-                veh.SetSharedData("InGarage", true);
+                if (!freeSlots.Contains(slot))
+                    return;
+
+                house.SetVehicleToGarage(vData, slot);
             }
             else
             {
 
+            }
+        }
+
+        [RemoteEvent("House::Garage::SlotsMenu")]
+        public static void HouseGarageSlotsMenu(Player player, Vehicle veh, uint houseId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (player.Dimension != Utils.Dimensions.Main || vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+                return;
+
+            if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            var house = Game.Houses.House.Get(houseId);
+
+            if (house == null || house.GarageData == null)
+                return;
+
+            if (house.Owner != pData.Info)
+                return;
+
+            var freeSlots = Enumerable.Range(0, house.GarageData.MaxVehicles).ToList();
+
+            var garageVehs = house.GetVehiclesInGarage();
+
+            if (garageVehs == null)
+                return;
+
+            foreach (var x in garageVehs)
+            {
+                freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
+            }
+
+            if (freeSlots.Count == 0)
+            {
+                player.Notify("Garage::NVP");
+
+                return;
+            }
+            else if (freeSlots.Count == 1)
+            {
+                house.SetVehicleToGarage(vData, freeSlots[0]);
+            }
+            else
+            {
+                player.TriggerEvent("Vehicles::Garage::SlotsMenu", freeSlots);
             }
         }
 
@@ -304,7 +370,7 @@ namespace BCRPServer.Events.Players
             if (houseBase == null)
                 return;
 
-            if (houseBase.Owner != pData.Info && !houseBase.Settlers.ContainsKey(pData.Info))
+            if (houseBase.Owner != pData.Info && pData.SettledHouseBase != houseBase)
             {
                 player.Notify("House::NotAllowed");
 

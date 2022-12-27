@@ -23,7 +23,7 @@ namespace BCRPServer.Events.Players
             var pData = sRes.Data;
             var tData = target.GetMainData();
 
-            if (tData?.Player?.Exists != true)
+            if (tData?.Player?.Exists != true || target == player)
                 return;
 
             object dataObj = null;

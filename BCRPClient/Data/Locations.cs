@@ -174,6 +174,13 @@ namespace BCRPClient.Data
                     OwnerBlip = new Blip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootType].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
                     OwnerGarageBlip = new Blip(1, gRoot.VehicleEnterPosition, "", 1f, 3, 125, 0f, true, 0, 25f, Settings.MAIN_DIMENSION);
+
+                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    {
+                        ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
+
+                        Data = gRoot,
+                    };
                 }
                 else
                 {
@@ -620,7 +627,14 @@ namespace BCRPClient.Data
 
                 if (state)
                 {
-                    OwnerBlip = new Blip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    if (GarageType == null)
+                    {
+                        OwnerBlip = new Blip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    }
+                    else
+                    {
+                        OwnerBlip = new Blip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    }
 
                     if (GaragePosition != null)
                     {
@@ -1196,6 +1210,13 @@ namespace BCRPClient.Data
             #region GARAGES_TO_REPLACE
 
             #endregion
+
+            new NPC("vpound_w_0", "Джон", NPC.Types.Talkable, "s_m_y_airworker", new Vector3(485.6506f, -54.18661f, 78.30058f), 55.38f, Settings.MAIN_DIMENSION)
+            {
+                Blip = new Blip(832, new Vector3(485.6506f, -54.18661f, 78.30058f), "Штрафстоянка", 1f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION),
+
+                DefaultDialogueId = "vpound_preprocess",
+            };
         }
     }
 }

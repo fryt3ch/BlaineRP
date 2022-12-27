@@ -530,15 +530,18 @@ namespace BCRPServer.Sync
                             if (sPlayer?.Exists != true || tPlayer?.Exists != true)
                                 return;
 
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
                             var houseBase = pData.CurrentHouseBase;
 
                             if (houseBase == null || houseBase.Owner != pData.Info)
                                 return;
 
-                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                            if (!tData.CanBeSettled(houseBase, true))
                                 return;
 
-                            houseBase.SettlePlayer(tData.Info, true);
+                            houseBase.SettlePlayer(tData.Info, true, pData);
                         }
                     }
                 }

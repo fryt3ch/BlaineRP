@@ -70,6 +70,26 @@ namespace BCRPServer.Events.Vehicles
         }
         #endregion
 
+        [ServerEvent(Event.VehicleDeath)]
+        private static void VehicleDeath(Vehicle veh)
+        {
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (veh.Health != -4000)
+                vData.IsDead = true;
+
+            if (vData.EngineOn)
+                vData.EngineOn = false;
+
+            Console.WriteLine($"{vData.VID} died - {veh.Health}");
+        }
+
         #region Engine
         [RemoteEvent("Vehicles::ToggleEngineSync")]
         private static void ToggleEngineRemote(Player player)
@@ -93,16 +113,39 @@ namespace BCRPServer.Events.Vehicles
 
             ToggleEngine(pData, vData);
 
-            if (veh.GetSharedData<bool?>("InGarage") != null)
+            if (vData.Info != null && vData.Info.LastData.GarageSlot >= 0)
             {
-                if (pData.CurrentHouse == null)
+                if (pData.CurrentHouse is Game.Houses.House house)
+                {
+                    if (house.GarageOutside == null)
+                        return;
+
+                    vData.IsFrozen = false;
+                    vData.IsInvincible = false;
+
+                    vData.Info.LastData.GarageSlot = -1;
+
+                    veh.Teleport(house.GarageOutside.Position, Utils.Dimensions.Main, house.GarageOutside.RotationZ, true);
+
+                    player.TriggerEvent("House::Exit");
+                }
+                else if (pData.CurrentGarage is Game.Houses.Garage garage)
+                {
+                    vData.IsFrozen = false;
+                    vData.IsInvincible = false;
+
+                    vData.Info.LastData.GarageSlot = -1;
+
+                    var ePos = garage.Root.GetNextVehicleExit();
+
+                    veh.Teleport(ePos.Position, Utils.Dimensions.Main, ePos.RotationZ, true);
+
+                    player.TriggerEvent("Garage::Exit");
+                }
+                else
+                {
                     return;
-
-                veh.Teleport(pData.CurrentHouse.GarageOutside.Position, Utils.Dimensions.Main, pData.CurrentHouse.GarageOutside.RotationZ, true);
-
-                veh.ResetSharedData("InGarage");
-
-                player.TriggerEvent("House::Exit");
+                }
             }
         }
 
@@ -712,6 +755,55 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             vData.Info.ShowPassport(player);
+        }
+
+        [RemoteProc("VPound::Pay")]
+        private static bool VehiclePoundPay(Player player, string npcId, uint vid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return false;
+
+            var npcPos = NPC.GetPositionById(npcId);
+
+            if (npcPos == null || player.Position.DistanceTo(npcPos) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                return false;
+
+            var vPoundData = BCRPServer.Sync.Vehicles.GetVehiclePoundData(npcId);
+
+            if (vPoundData == null)
+                return false;
+
+            var vInfo = pData.Info.VehiclesOnPound.FirstOrDefault();
+
+            if (vInfo == null)
+                return false;
+
+            if (!pData.HasEnoughCash(Settings.VEHICLEPOUND_PAY_PRICE, true))
+                return false;
+
+            pData.Cash -= Settings.VEHICLEPOUND_PAY_PRICE;
+
+            vInfo.LastData.GarageSlot = -1;
+
+            var newPos = new Utils.Vector4(vPoundData.GetNextVehicleSpawnPosition());
+
+            vInfo.LastData.Position = newPos.Position;
+            vInfo.LastData.Heading = newPos.RotationZ;
+
+            vInfo.LastData.Dimension = Utils.Dimensions.Main;
+
+            vInfo.Spawn();
+
+            player.CreateGPSBlip(newPos.Position, Utils.Dimensions.Main, true);
+
+            return true;
         }
     }
 }

@@ -292,7 +292,51 @@ namespace BCRPServer.Game.Houses
 
         public abstract void ChangeOwner(PlayerData.PlayerInfo pInfo);
 
-        public abstract void SettlePlayer(PlayerData.PlayerInfo pInfo, bool state, PlayerData pDataInit = null);
+        public void SettlePlayer(PlayerData.PlayerInfo pInfo, bool state, PlayerData pDataInit = null)
+        {
+            if (state)
+            {
+                if (Settlers.ContainsKey(pInfo))
+                    return;
+
+                Settlers.Add(pInfo, new bool[5]);
+
+                TriggerEventForHouseOwners("HouseMenu::SettlerUpd", $"{pInfo.CID}_{pInfo.Name}_{pInfo.Surname}");
+
+                if (pInfo.PlayerData != null)
+                {
+                    pInfo.PlayerData.SettledHouseBase = this;
+
+                    if (pDataInit != null)
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, true, pDataInit.Player);
+                    else
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, true);
+                }
+            }
+            else
+            {
+                Settlers.Remove(pInfo);
+
+                if (pDataInit?.Info == pInfo)
+                {
+                    pDataInit.Player.CloseAll(true);
+                }
+
+                TriggerEventForHouseOwners("HouseMenu::SettlerUpd", pInfo.CID);
+
+                if (pInfo.PlayerData != null)
+                {
+                    pInfo.PlayerData.SettledHouseBase = null;
+
+                    if (pDataInit != null)
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, false, pDataInit.Player);
+                    else
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, false);
+                }
+            }
+
+            MySQL.HouseUpdateSettlers(this);
+        }
     }
 
     public class House : HouseBase
@@ -305,9 +349,6 @@ namespace BCRPServer.Game.Houses
         /// <summary>Тип гаража</summary>
         public Garage.Style GarageData { get; private set; }
 
-        /// <summary>Список транспорта в гараже</summary>
-        public VehicleData.VehicleInfo[] Vehicles { get; set; }
-
         public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, PositionParams, Types.House, RoomType)
         {
             this.Price = Price;
@@ -318,8 +359,6 @@ namespace BCRPServer.Game.Houses
             if (GarageType is Garage.Types gType)
             {
                 this.GarageData = Garage.Style.Get(gType, 0);
-
-                this.Vehicles = new VehicleData.VehicleInfo[this.GarageData.MaxVehicles];
             }
 
             All.Add(HID, this);
@@ -384,36 +423,39 @@ namespace BCRPServer.Game.Houses
             MySQL.HouseUpdateOwner(this);
         }
 
-        public override void SettlePlayer(PlayerData.PlayerInfo pInfo, bool state, PlayerData pDataInit = null)
+        public void SetVehicleToGarage(VehicleData vData, int slot)
         {
-            if (state)
-            {
-                if (Settlers.ContainsKey(pInfo))
-                    return;
+            vData.Vehicle.TriggerEventOccupants("House::Enter", ToClientJson());
 
-                Settlers.Add(pInfo, new bool[5]);
+            vData.EngineOn = false;
 
-                pInfo.PlayerData?.Player.Notify("House::SH");
+            var vPos = GarageData.VehiclePositions[slot];
 
-                TriggerEventForHouseOwners("HouseMenu::SettlerUpd", $"{pInfo.CID}_{pInfo.Name}_{pInfo.Surname}");
-            }
-            else
-            {
-                Settlers.Remove(pInfo);
+            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, false);
 
-                if (pDataInit?.Info == pInfo)
-                {
-                    pDataInit.Player.CloseAll(true);
-                }
-                else
-                {
-                    pInfo.PlayerData?.Player.Notify("House::EH");
-                }
+            vData.IsFrozen = true;
+            vData.IsInvincible = true;
 
-                TriggerEventForHouseOwners("HouseMenu::SettlerUpd", pInfo.CID);
-            }
+            vData.Info.LastData.GarageSlot = slot;
+        }
 
-            MySQL.HouseUpdateSettlers(this);
+        public void SetVehicleToGarageOnSpawn(VehicleData vData)
+        {
+            var vPos = GarageData.VehiclePositions[vData.LastData.GarageSlot];
+
+            vData.Vehicle.Position = vPos.Position;
+            vData.Vehicle.SetHeading(vPos.RotationZ);
+
+            vData.IsFrozen = true;
+            vData.IsInvincible = true;
+        }
+
+        public IEnumerable<VehicleData.VehicleInfo> GetVehiclesInGarage()
+        {
+            if (GarageData == null || Owner == null)
+                return null;
+
+            return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension);
         }
     }
 
@@ -566,38 +608,6 @@ namespace BCRPServer.Game.Houses
 
             MySQL.HouseUpdateOwner(this);
         }
-
-        public override void SettlePlayer(PlayerData.PlayerInfo pInfo, bool state, PlayerData pDataInit = null)
-        {
-            if (state)
-            {
-                if (Settlers.ContainsKey(pInfo))
-                    return;
-
-                Settlers.Add(pInfo, new bool[5]);
-
-                pInfo.PlayerData?.Player.Notify("House::SA");
-
-                TriggerEventForHouseOwners("HouseMenu::SettlerUpd", $"{pInfo.CID}_{pInfo.Name}_{pInfo.Surname}");
-            }
-            else
-            {
-                Settlers.Remove(pInfo);
-
-                if (pDataInit?.Info == pInfo)
-                {
-                    pDataInit.Player.CloseAll(true);
-                }
-                else
-                {
-                    pInfo.PlayerData?.Player.Notify("House::EA");
-                }
-
-                TriggerEventForHouseOwners("HouseMenu::SettlerUpd", pInfo.CID);
-            }
-
-            MySQL.HouseUpdateSettlers(this);
-        }
     }
 
     public class Garage
@@ -734,7 +744,7 @@ namespace BCRPServer.Game.Houses
             {
                 var nextId = LastExitUsed + 1;
 
-                if (nextId > VehicleExitPositions.Count)
+                if (nextId >= VehicleExitPositions.Count)
                     nextId = 0;
 
                 LastExitUsed = nextId;
@@ -862,6 +872,41 @@ namespace BCRPServer.Game.Houses
             UpdateOwner(pInfo);
 
             MySQL.GarageUpdateOwner(this);
+        }
+
+        public void SetVehicleToGarage(VehicleData vData, int slot)
+        {
+            vData.Vehicle.TriggerEventOccupants("Garage::Enter", Id);
+
+            vData.EngineOn = false;
+
+            var vPos = StyleData.VehiclePositions[slot];
+
+            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, false);
+
+            vData.IsFrozen = true;
+            vData.IsInvincible = true;
+
+            vData.Info.LastData.GarageSlot = slot;
+        }
+
+        public void SetVehicleToGarageOnSpawn(VehicleData vData)
+        {
+            var vPos = StyleData.VehiclePositions[vData.LastData.GarageSlot];
+
+            vData.Vehicle.Position = vPos.Position;
+            vData.Vehicle.SetHeading(vPos.RotationZ);
+
+            vData.IsFrozen = true;
+            vData.IsInvincible = true;
+        }
+
+        public IEnumerable<VehicleData.VehicleInfo> GetVehiclesInGarage()
+        {
+            if (Owner == null)
+                return null;
+
+            return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension);
         }
     }
 }

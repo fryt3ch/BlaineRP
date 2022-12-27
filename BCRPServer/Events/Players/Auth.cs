@@ -261,23 +261,23 @@ namespace BCRPServer.Events.Players
         }
         #endregion
 
-        [RemoteEvent("Auth::StartPlace")]
-        private static void StartPlaceSelect(Player player, bool start, int type)
+        [RemoteProc("Auth::StartPlace")]
+        private static bool StartPlaceSelect(Player player, bool start, int type)
         {
             var sRes = player.CheckSpamAttackTemp();
 
             if (sRes.IsSpammer)
-                return;
+                return false;
 
             var tData = sRes.Data;
 
             if (tData.StepType != TempData.StepTypes.StartPlace)
-                return;
+                return false;
 
             if (start)
             {
                 if (tData.PositionToSpawn == null)
-                    return;
+                    return false;
 
                 var pData = tData.PlayerData;
 
@@ -295,7 +295,7 @@ namespace BCRPServer.Events.Players
             else
             {
                 if (!Enum.IsDefined(typeof(TempData.StartPlaceTypes), type))
-                    return;
+                    return false;
 
                 var sType = (TempData.StartPlaceTypes)type;
 
@@ -315,37 +315,39 @@ namespace BCRPServer.Events.Players
                 }
                 else if (sType == TempData.StartPlaceTypes.House)
                 {
-                    if (tData.PlayerData.OwnedHouses.Count > 0)
-                    {
-                        var house = tData.PlayerData.OwnedHouses[0];
+                    var house = tData.PlayerData.OwnedHouses.FirstOrDefault() ?? tData.PlayerData.SettledHouseBase as Game.Houses.House;
 
+                    if (house != null)
+                    {
                         tData.PositionToSpawn = house.StyleData.Position;
                         tData.DimensionToSpawn = house.Dimension;
 
                         player.Teleport(house.PositionParams.Position, true, Utils.GetPrivateDimension(player));
                     }
                     else
-                        return;
+                        return false;
                 }
                 else if (sType == TempData.StartPlaceTypes.Apartments)
                 {
-                    if (tData.PlayerData.OwnedApartments.Count > 0)
-                    {
-                        var aps = tData.PlayerData.OwnedApartments[0];
+                    var aps = tData.PlayerData.OwnedApartments.FirstOrDefault() ?? tData.PlayerData.SettledHouseBase as Game.Houses.Apartments;
 
+                    if (aps != null)
+                    {
                         tData.PositionToSpawn = aps.StyleData.Position;
                         tData.DimensionToSpawn = aps.Dimension;
 
                         player.Teleport(aps.Root.EnterParams.Position, true, Utils.GetPrivateDimension(player));
                     }
                     else
-                        return;
+                        return false;
                 }
                 else
-                    return;
+                    return false;
 
                 player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, false, "Auth::StartPlace::Allow", type);
             }
+
+            return true;
         }
 
         #region Stuff

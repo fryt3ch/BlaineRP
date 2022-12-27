@@ -76,9 +76,16 @@ namespace BCRPClient.Additional
 
                 Player.LocalPlayer.FreezePosition(true);
 
-                if (Player.LocalPlayer.Vehicle != null)
+                var veh = Player.LocalPlayer.Vehicle;
+
+                if (veh != null)
                 {
-                    Player.LocalPlayer.Vehicle.FreezePosition(true);
+                    var vData = Sync.Vehicles.GetData(veh);
+
+                    if (vData != null && !vData.IsFrozen)
+                    {
+                        veh.FreezePosition(true);
+                    }
                 }
 
                 Sync.Players.CloseAll(false);
@@ -96,7 +103,22 @@ namespace BCRPClient.Additional
 
                 AllowTP.Push(true);
 
-                if (Player.LocalPlayer.Vehicle == null)
+                if (veh != null)
+                {
+                    var vData = Sync.Vehicles.GetData(veh);
+
+                    if (vData != null && !vData.IsFrozen)
+                    {
+                        veh.FreezePosition(false);
+                    }
+
+                    Player.LocalPlayer.FreezePosition(false);
+
+                    veh.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
+
+                    veh.SetHeading(heading);
+                }
+                else
                 {
                     Player.LocalPlayer.FreezePosition(false);
 
@@ -108,15 +130,6 @@ namespace BCRPClient.Additional
                     {
                         RAGE.Game.Player.StartPlayerTeleport(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, heading, false, onGround, true);
                     }
-                }
-                else
-                {
-                    Player.LocalPlayer.FreezePosition(false);
-                    Player.LocalPlayer.Vehicle.FreezePosition(false);
-
-                    Player.LocalPlayer.Vehicle.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
-
-                    Player.LocalPlayer.Vehicle.SetHeading(heading);
                 }
 
                 GameEvents.DisableAllControls(false);
@@ -398,9 +411,12 @@ namespace BCRPClient.Additional
                 if (vData == null)
                     continue;
 
+                var lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
+                var curHp = veh.GetEngineHealth();
+
                 if (!vData.IsInvincible)
                 {
-                    if (Player.LocalPlayer.Vehicle == veh)
+                    if (Player.LocalPlayer.Vehicle == veh || curHp < 0)
                     {
                         if (!veh.GetCanBeDamaged())
                         {
@@ -418,13 +434,14 @@ namespace BCRPClient.Additional
                     }
                 }
 
-                var lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
-                var curHp = veh.GetEngineHealth();
-
-                if (veh.GetEngineHealth() - lastHp > 0)
+/*                if (veh.GetEngineHealth() - lastHp > 0)
+                {
                     veh.SetEngineHealth(lastHp);
-
-                veh.SetData("LastHealth", curHp);
+                }
+                else
+                {
+                    veh.SetData("LastHealth", curHp);
+                }*/
             }
 
             RAGE.Game.Player.RestorePlayerStamina(100);

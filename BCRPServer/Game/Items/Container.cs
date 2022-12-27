@@ -68,6 +68,96 @@ namespace BCRPServer.Game.Items
             MySQL.ContainerDelete(cont);
         }
 
+        private static Dictionary<string, Func<Container, PlayerData, bool>> PermissionCheckFuncs = new Dictionary<string, Func<Container, PlayerData, bool>>()
+        {
+            {
+                "h_locker",
+
+                (cont, pData) =>
+                {
+                    var house = pData.CurrentHouse;
+
+                    if (house == null || house.Locker != cont.ID)
+                        return false;
+
+                    if (house.Owner == pData.Info || house.Settlers.GetValueOrDefault(pData.Info)?[2] == true)
+                        return true;
+
+                    return !house.ContainersLocked;
+                }
+            },
+
+            {
+                "h_wardrobe",
+
+                (cont, pData) =>
+                {
+                    var house = pData.CurrentHouse;
+
+                    if (house == null || house.Wardrobe != cont.ID)
+                        return false;
+
+                    if (house.Owner == pData.Info || house.Settlers.GetValueOrDefault(pData.Info)?[3] == true)
+                        return true;
+
+                    return !house.ContainersLocked;
+                }
+            },
+
+            {
+                "h_fridge",
+
+                (cont, pData) =>
+                {
+                    var house = pData.CurrentHouse;
+
+                    if (house == null || house.Fridge != cont.ID)
+                        return false;
+
+                    if (house.Owner == pData.Info || house.Settlers.GetValueOrDefault(pData.Info)?[4] == true)
+                        return true;
+
+                    return !house.ContainersLocked;
+                }
+            },
+        };
+
+        private static Dictionary<string, Func<Container, PlayerData, bool>> NearnessCheckFuncs = new Dictionary<string, Func<Container, PlayerData, bool>>()
+        {
+            {
+                "h_locker",
+
+                (cont, pData) =>
+                {
+                    var house = pData.CurrentHouse;
+
+                    return house != null && house.Locker == cont.ID;
+                }
+            },
+
+            {
+                "h_wardrobe",
+
+                (cont, pData) =>
+                {
+                    var house = pData.CurrentHouse;
+
+                    return house != null && house.Wardrobe == cont.ID;
+                }
+            },
+
+            {
+                "h_fridge",
+
+                (cont, pData) =>
+                {
+                    var house = pData.CurrentHouse;
+
+                    return house != null && house.Fridge == cont.ID;
+                }
+            },
+        };
+
         public enum AllowedItemTypes
         {
             All = 0, Wardrobe, Fridge
@@ -149,84 +239,46 @@ namespace BCRPServer.Game.Items
         /// <summary>Сущность держателя контейнера</summary>
         public Entity Entity { get; set; }
 
-        /// <summary>Метод для проверки, есть ли у игрока возможность просматривать контейнер</summary>
+        /// <summary>Метод для проверки, есть ли у игрока возможность взаимодействовать с контейнером</summary>
         public bool IsAccessableFor(PlayerData pData)
         {
             var player = pData.Player;
 
-            if (Entity is Vehicle)
+            if (Entity?.Exists == true)
             {
-                if (Entity?.Exists != true)
-                    return false;
-
-                var vData = (Entity as Vehicle).GetMainData();
-
-                if (vData == null)
-                    return false;
-
-                if (vData.IsOwner(pData) != null)
-                    return true;
-
-                return !vData.TrunkLocked;
-            }
-            else if (Entity == null)
-            {
-                if (SID == "h_locker")
+                if (Entity is Vehicle veh)
                 {
-                    var house = pData.CurrentHouse;
+                    var vData = veh.GetMainData();
 
-                    if (house == null || house.Locker != ID)
+                    if (vData == null)
                         return false;
 
-                    if (house.Owner == pData.Info)
+                    if (vData.IsOwner(pData) != null)
                         return true;
 
-                    return !house.ContainersLocked;
+                    return !vData.TrunkLocked;
                 }
-                else if (SID == "h_wardrobe")
-                {
-                    var house = pData.CurrentHouse;
 
-                    if (house == null || house.Wardrobe != ID)
-                        return false;
-
-                    if (house.Owner == pData.Info)
-                        return true;
-
-                    return !house.ContainersLocked;
-                }
-                else if (SID == "h_fridge")
-                {
-                    var house = pData.CurrentHouse;
-
-                    if (house == null || house.Fridge != ID)
-                        return false;
-
-                    if (house.Owner == pData.Info)
-                        return true;
-
-                    return !house.ContainersLocked;
-                }
-                else
-                    return false;
+                return false;
             }
             else
-                return false;
+            {
+                return PermissionCheckFuncs.GetValueOrDefault(SID)?.Invoke(this, pData) ?? false;
+            }
         }
 
-        /// <summary>Метод для проверки, рядом ли игрок (см. MaxDistance) </summary>
+        /// <summary>Метод для проверки, рядом ли игрок (см. MaxDistance)</summary>
         public bool IsNear(PlayerData pData)
         {
             var player = pData.Player;
 
             if (Entity?.Exists == true)
+            {
                 return player.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+            }
             else
             {
-                if (SID == "h_locker" || SID == "h_wardrobe" || SID == "h_fridge")
-                    return pData.CurrentHouse != null;
-
-                return false;
+                return NearnessCheckFuncs.GetValueOrDefault(SID)?.Invoke(this, pData) ?? false;
             }
         }
 

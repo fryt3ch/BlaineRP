@@ -81,6 +81,8 @@ namespace BCRPClient.Sync
             #region Vehicle Data
             public bool IsInvincible => Vehicle.GetSharedData<bool>("IsInvincible", false);
 
+            public bool IsFrozen => Vehicle.GetSharedData<bool>("IsFrozen", false);
+
             public bool EngineOn => Vehicle.GetSharedData<bool>("Engine::On", false);
 
             public bool DoorsLocked => Vehicle.GetSharedData<bool>("Doors::Locked", false);
@@ -295,7 +297,7 @@ namespace BCRPClient.Sync
 
                     InvokeHandler("Anchor", data, data.IsAnchored, null);
 
-                    InvokeHandler("InGarage", data, veh.GetSharedData<bool?>("InGarage"), null);
+                    InvokeHandler("IsFrozen", data, veh.GetSharedData<bool?>("IsFrozen"), null);
 
                     InvokeHandler("IsInvincible", data, data.IsInvincible, null);
 
@@ -673,7 +675,7 @@ namespace BCRPClient.Sync
                 veh.SetBoatAnchor(state);
             });
 
-            AddDataHandler("InGarage", (vData, value, oldValue) =>
+            AddDataHandler("IsFrozen", (vData, value, oldValue) =>
             {
                 if (value != null)
                 {
@@ -701,6 +703,18 @@ namespace BCRPClient.Sync
                 int counter = 0;
 
                 CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, items.Select(x => (counter++, $"[{x.Value}]")).ToArray(), items);
+            });
+
+            Events.Add("Vehicles::Garage::SlotsMenu", (args) =>
+            {
+                if (Utils.IsAnyCefActive(true))
+                    return;
+
+                var freeSlots = ((JArray)args[0]).ToObject<List<int>>();
+
+                freeSlots.Insert(0, int.MinValue + freeSlots[(new Random()).Next(0, freeSlots.Count)]);
+
+                CEF.ActionBox.ShowSelect(ActionBox.Contexts.GarageVehiclePlaceSelect, Locale.Actions.GarageVehicleSlotSelectHeader, freeSlots.Select(x => (x, x < 0 ? "Случайное место" : $"Место #{x + 1}")).ToArray());
             });
 
             Events.Add("Vehicles::Fuel", (args) =>
@@ -1220,7 +1234,7 @@ namespace BCRPClient.Sync
             Events.CallRemote("Vehicles::KickPlayer", player);
         }
 
-        public static void Park(Vehicle vehicle)
+        public static void Park(Vehicle vehicle, int slot = -1)
         {
             if (vehicle == null)
             {
@@ -1234,10 +1248,33 @@ namespace BCRPClient.Sync
             {
                 var house = Player.LocalPlayer.GetData<Data.Locations.House>("CurrentHouse");
 
-                if (house.GarageType == null)
+                if (house?.GarageType == null)
                     return;
 
-                Events.CallRemote("House::Garage::Vehicle", true, vehicle, house.Id);
+                if (slot < 0)
+                {
+                    Events.CallRemote("House::Garage::SlotsMenu", vehicle, house.Id);
+                }
+                else
+                {
+                    Events.CallRemote("House::Garage::Vehicle", slot, vehicle, house.Id);
+                }
+            }
+            else if (Player.LocalPlayer.HasData("CurrentGarageRoot"))
+            {
+                var gRoot = Player.LocalPlayer.GetData<Data.Locations.GarageRoot>("CurrentGarageRoot");
+
+                if (gRoot == null)
+                    return;
+
+                if (slot < 0)
+                {
+                    Events.CallRemote("Garage::SlotsMenu", vehicle, (int)gRoot.Type);
+                }
+                else
+                {
+                    Events.CallRemote("Garage::Vehicle", slot, vehicle, (int)gRoot.Type);
+                }
             }
             else
             {

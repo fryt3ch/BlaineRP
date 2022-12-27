@@ -1,7 +1,9 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using static BCRPServer.Game.Items.Gift;
 
 namespace BCRPServer.Events.Players
 {
@@ -148,6 +150,124 @@ namespace BCRPServer.Events.Players
             player.Teleport(garage.Root.EnterPosition.Position, false, Utils.Dimensions.Main, garage.Root.EnterPosition.RotationZ, true);
 
             player.TriggerEvent("Garage::Exit");
+        }
+
+        [RemoteEvent("Garage::SlotsMenu")]
+        private static void GarageSlotsMenu(Player player, Vehicle veh, int gRootTypeNum)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Houses.Garage.GarageRoot.Types), gRootTypeNum))
+                return;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            var gRootType = (Game.Houses.Garage.GarageRoot.Types)gRootTypeNum;
+
+            if (player.Dimension != Utils.Dimensions.Main || vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+                return;
+
+            if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            var garage = pData.OwnedGarages.Where(x => x.Root.Type == gRootType).FirstOrDefault();
+
+            if (garage == null)
+                return;
+
+            var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
+
+            var garageVehs = garage.GetVehiclesInGarage();
+
+            if (garageVehs == null)
+                return;
+
+            foreach (var x in garage.GetVehiclesInGarage())
+            {
+                freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
+            }
+
+            if (freeSlots.Count == 0)
+            {
+                player.Notify("Garage::NVP");
+
+                return;
+            }
+            else if (freeSlots.Count == 1)
+            {
+                garage.SetVehicleToGarage(vData, freeSlots[0]);
+            }
+            else
+            {
+                player.TriggerEvent("Vehicles::Garage::SlotsMenu", freeSlots);
+            }
+        }
+
+        [RemoteEvent("Garage::Vehicle")]
+        private static void GarageVehicle(Player player, int slot, Vehicle veh, int gRootTypeNum)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Houses.Garage.GarageRoot.Types), gRootTypeNum))
+                return;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            var gRootType = (Game.Houses.Garage.GarageRoot.Types)gRootTypeNum;
+
+            if (slot >= 0)
+            {
+                if (player.Dimension != Utils.Dimensions.Main)
+                    return;
+
+                var garage = pData.OwnedGarages.Where(x => x.Root.Type == gRootType).FirstOrDefault();
+
+                if (garage == null)
+                    return;
+
+                var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
+
+                var garageVehs = garage.GetVehiclesInGarage();
+
+                if (garageVehs == null)
+                    return;
+
+                foreach (var x in garageVehs)
+                {
+                    freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
+                }
+
+                if (!freeSlots.Contains(slot))
+                    return;
+
+                garage.SetVehicleToGarage(vData, slot);
+            }
+            else
+            {
+
+            }
         }
     }
 }
