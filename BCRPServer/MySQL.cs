@@ -602,6 +602,8 @@ namespace BCRPServer
 
                                 var furniture = ((string)reader["Furniture"]).DeserializeFromJson<uint[]>();
 
+                                var wskins = ((string)reader["WSkins"]).DeserializeFromJson<Dictionary<Game.Items.WeaponSkin.ItemData.Types, uint>>();
+
                                 var pInfo = PlayerData.PlayerInfo.Get(cid);
 
                                 if (pInfo == null)
@@ -617,6 +619,8 @@ namespace BCRPServer
                                 pInfo.Bag = bag == 0 ? null : Game.Items.Item.Get(bag) as Game.Items.Bag;
 
                                 pInfo.Furniture = furniture.Select(x => Game.Houses.Furniture.Get(x)).Where(x => x != null).ToList();
+
+                                pInfo.WeaponSkins = wskins.Where(x => Game.Items.Item.Get(x.Value) is Game.Items.WeaponSkin).ToDictionary(x => x.Key, x => (Game.Items.WeaponSkin)Game.Items.Item.Get(x.Value));
                             }
                         }
                     }
@@ -632,44 +636,39 @@ namespace BCRPServer
 
                 using (var cmd = conn.CreateCommand())
                 {
-                    var toDelete = new List<uint>();
-
                     var usedItems = new List<Game.Items.Item>();
 
                     usedItems.AddRange(Game.Items.Container.All.Values.SelectMany(x => x.Items));
 
-                    usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour })));
+                    usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(x.WeaponSkins.Values).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour })));
 
                     usedItems.AddRange(VehicleData.VehicleInfo.All.Values.Select(x => x.Numberplate));
 
                     usedItems.RemoveAll(x => x == null);
 
                     foreach (var x in usedItems.ToList())
+                    {
                         if (x is Game.Items.IContainer cont)
+                        {
                             usedItems.AddRange(cont.Items);
 
-                    foreach (var x in Game.Items.Item.All.Values.Except(usedItems))
-                    {
-                        toDelete.Add(x.UID);
-
-                        if (x is Game.Items.IContainer cont)
-                        {
-                            foreach (var y in cont.Items.Where(x => x != null))
+                            foreach (var y in cont.Items)
                             {
-                                toDelete.Add(y.UID);
-
-                                Game.Items.Item.RemoveOnLoad(y);
+                                if (y is Game.Items.IContainer cont1)
+                                {
+                                    usedItems.AddRange(cont1.Items);
+                                }
                             }
-                        }
-                        else
-                        {
-                            Game.Items.Item.RemoveOnLoad(x);
                         }
                     }
 
-                    if (toDelete.Count > 0)
+                    var toDel = Game.Items.Item.All.Values.Except(usedItems).ToList();
+
+                    toDel.ForEach(x => Game.Items.Item.RemoveOnLoad(x));
+
+                    if (toDel.Count > 0)
                     {
-                        cmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(", ", toDelete)})";
+                        cmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', toDel)})";
 
                         cmd.ExecuteNonQuery();
                     }
@@ -1317,6 +1316,19 @@ namespace BCRPServer
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
             cmd.Parameters.AddWithValue("@Furniture", pInfo.Furniture.Select(x => x.UID).SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterWeaponSkinsUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE inventories SET WSkins=@WSkins WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@WSkins", pInfo.WeaponSkins.ToDictionary(x => x.Key, x => x.Value.UID).SerializeToJson());
 
             PushQuery(cmd);
         }

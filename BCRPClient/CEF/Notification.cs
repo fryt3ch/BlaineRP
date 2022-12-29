@@ -108,6 +108,7 @@ namespace BCRPClient.CEF
             { "Vehicle::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.NotAllowed, Locale.Notifications.Vehicles.Header) },
             { "Vehicle::OVP", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleOnPound, Locale.Notifications.ErrorHeader) },
             { "Vehicle::KE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyError, Locale.Notifications.ErrorHeader) },
+            { "Vehicle::RKDE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleIsDeadFixError, Locale.Notifications.ErrorHeader) },
 
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
@@ -127,6 +128,9 @@ namespace BCRPClient.CEF
 
             { "Inventory::ArmourBroken", new Instance(Types.Information, Locale.Notifications.Inventory.ArmourBroken, Locale.Notifications.Inventory.Header) },
             { "Inventory::Wounded", new Instance(Types.Error, Locale.Notifications.Inventory.Wounded, Locale.Notifications.Inventory.Header) },
+
+            { "Inventory::WHTC", new Instance(Types.Error, Locale.Notifications.Inventory.WeaponHasThisComponent, Locale.Notifications.Inventory.Header) },
+            { "Inventory::WWC", new Instance(Types.Error, Locale.Notifications.Inventory.WeaponWrongComponent, Locale.Notifications.Inventory.Header) },
 
             { "Kick", new Instance(Types.Information, Locale.Notifications.General.Kick, Locale.Notifications.DefHeader) },
             { "TeleportBy", new Instance(Types.Information, Locale.Notifications.General.TeleportBy, Locale.Notifications.DefHeader) },

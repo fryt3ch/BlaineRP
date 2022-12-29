@@ -1,4 +1,5 @@
 ﻿using GTANetworkAPI;
+using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using System;
@@ -77,8 +78,13 @@ namespace BCRPServer.Sync
 
         public class AttachmentObjectNet
         {
+            [JsonProperty(PropertyName = "M")]
             public uint Model { get; set; }
+
+            [JsonProperty(PropertyName = "I")]
             public int Id { get; set; }
+
+            [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
             public AttachmentObjectNet(int Id, uint Model, Types Type)
@@ -91,8 +97,13 @@ namespace BCRPServer.Sync
 
         public class AttachmentEntityNet
         {
+            [JsonProperty(PropertyName = "E")]
             public EntityType EntityType { get; set; }
+
+            [JsonProperty(PropertyName = "I")]
             public int Id { get; set; }
+
+            [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
             public AttachmentEntityNet(int Id, EntityType EntityType, Types Type)

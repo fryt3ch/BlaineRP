@@ -533,7 +533,7 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Game.Items.Inventory.Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], Game.Items.Inventory.Groups.Container);
 
-                            player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slotFrom, upd1);
 
                             foreach (var x in cont.PlayersObserving)
                             {
@@ -542,7 +542,7 @@ namespace BCRPServer.Game.Items
                                 if (target?.Exists != true)
                                     continue;
 
-                                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slotTo, upd2);
+                                target.InventoryUpdate(Game.Items.Inventory.Groups.Container, slotTo, upd2);
                             }
 
                             return Game.Items.Inventory.Results.Success;
@@ -663,7 +663,7 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Game.Items.Inventory.Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(cont.Items[slotTo], Game.Items.Inventory.Groups.Container);
 
-                            player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Bag, slotFrom, upd1);
+                            player.InventoryUpdate(Game.Items.Inventory.Groups.Bag, slotFrom, upd1);
 
                             foreach (var x in cont.PlayersObserving.ToList())
                             {
@@ -672,7 +672,7 @@ namespace BCRPServer.Game.Items
                                 if (target?.Exists != true)
                                     continue;
 
-                                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slotTo, upd2);
+                                target.InventoryUpdate(Game.Items.Inventory.Groups.Container, slotTo, upd2);
                             }
 
                             return Game.Items.Inventory.Results.Success;
@@ -772,8 +772,8 @@ namespace BCRPServer.Game.Items
                                 if (target?.Exists != true)
                                     continue;
 
-                                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slotFrom, upd1);
-                                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slotTo, upd2);
+                                target.InventoryUpdate(Game.Items.Inventory.Groups.Container, slotFrom, upd1);
+                                target.InventoryUpdate(Game.Items.Inventory.Groups.Container, slotTo, upd2);
                             }
 
                             return Game.Items.Inventory.Results.Success;
@@ -889,7 +889,7 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], Game.Items.Inventory.Groups.Container);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Game.Items.Inventory.Groups.Items);
 
-                            player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slotTo, upd2);
 
                             foreach (var x in cont.PlayersObserving)
                             {
@@ -898,7 +898,7 @@ namespace BCRPServer.Game.Items
                                 if (target?.Exists != true)
                                     continue;
 
-                                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slotFrom, upd1);
+                                target.InventoryUpdate(Game.Items.Inventory.Groups.Container, slotFrom, upd1);
                             }
 
                             return Game.Items.Inventory.Results.Success;
@@ -1015,7 +1015,7 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(cont.Items[slotFrom], Game.Items.Inventory.Groups.Container);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Game.Items.Inventory.Groups.Bag);
 
-                            player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(Game.Items.Inventory.Groups.Bag, slotTo, upd2);
 
                             foreach (var x in cont.PlayersObserving.ToList())
                             {
@@ -1024,7 +1024,7 @@ namespace BCRPServer.Game.Items
                                 if (target?.Exists != true)
                                     continue;
 
-                                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slotFrom, upd1);
+                                target.InventoryUpdate(Game.Items.Inventory.Groups.Container, slotFrom, upd1);
                             }
 
                             return Game.Items.Inventory.Results.Success;

@@ -737,8 +737,8 @@ namespace BCRPServer.Events.Players
                         offer.TradeData.ReceiverItems[slotFrom] = iData;
                     }
 
-                    pData.Player.TriggerEvent("Inventory::Update", 10, -1, slotFrom, "null");
-                    tData.Player.TriggerEvent("Inventory::Update", 12, slotFrom, "null");
+                    pData.Player.TriggerEvent("Inventory::Update", 10, -1, slotFrom, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+                    tData.Player.TriggerEvent("Inventory::Update", 12, slotFrom, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
                 }
                 else
                 {

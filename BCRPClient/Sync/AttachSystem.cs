@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace BCRPClient.Sync
 {
-    class AttachSystem : Events.Script
+    public class AttachSystem : Events.Script
     {
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
@@ -99,9 +99,14 @@ namespace BCRPClient.Sync
 
         public class AttachmentObjectNet
         {
-            public int Id;
-            public uint Model;
-            public Types Type;
+            [JsonProperty(PropertyName = "M")]
+            public uint Model { get; set; }
+
+            [JsonProperty(PropertyName = "I")]
+            public int Id { get; set; }
+
+            [JsonProperty(PropertyName = "T")]
+            public Types Type { get; set; }
 
             public AttachmentObjectNet(int Id, uint Model, Types Type)
             {
@@ -117,14 +122,20 @@ namespace BCRPClient.Sync
 
                 return false;
             }
+
             public override int GetHashCode() => Id.GetHashCode() + Model.GetHashCode() + Type.GetHashCode();
         }
 
         public class AttachmentEntityNet
         {
-            public int Id;
-            public RAGE.Elements.Type EntityType;
-            public Types Type;
+            [JsonProperty(PropertyName = "E")]
+            public RAGE.Elements.Type EntityType { get; set; }
+
+            [JsonProperty(PropertyName = "I")]
+            public int Id { get; set; }
+
+            [JsonProperty(PropertyName = "T")]
+            public Types Type { get; set; }
 
             public AttachmentEntityNet(int Id, RAGE.Elements.Type EntityType, Types Type)
             {
@@ -140,14 +151,17 @@ namespace BCRPClient.Sync
 
                 return false;
             }
+
             public override int GetHashCode() => EntityType.GetHashCode() + Id.GetHashCode() + Type.GetHashCode();
         }
 
         public class AttachmentObject
         {
-            public int Id;
-            public GameEntity Object;
-            public Types Type;
+            public int Id { get; set; }
+
+            public GameEntity Object { get; set; }
+
+            public Types Type { get; set; }
 
             public AttachmentObject(GameEntity Object, Types Type, int Id)
             {
@@ -159,9 +173,11 @@ namespace BCRPClient.Sync
 
         public class AttachmentEntity
         {
-            public int RemoteID;
-            public RAGE.Elements.Type EntityType;
-            public Types Type;
+            public int RemoteID { get; set; }
+
+            public RAGE.Elements.Type EntityType { get; set; }
+
+            public Types Type { get; set; }
 
             public AttachmentEntity(int RemoteID, RAGE.Elements.Type EntityType, Types Type)
             {

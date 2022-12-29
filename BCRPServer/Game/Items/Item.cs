@@ -70,23 +70,7 @@ namespace BCRPServer.Game.Items
             {
                 foreach (var x in cont.Items)
                 {
-                    if (x != null)
-                    {
-                        if (x is Game.Items.Numberplate np)
-                        {
-                            Numberplate.UsedTags.Remove(np.Tag);
-                        }
-                        else if (x is Game.Items.Weapon weapon)
-                        {
-                            Weapon.UsedTags.Remove(weapon.Tag);
-                        }
-
-                        AddFreeId(x.UID);
-
-                        All.Remove(x.UID);
-
-                        MySQL.ItemDelete(x);
-                    }
+                    Remove(x);
                 }
             }
             else
@@ -131,11 +115,11 @@ namespace BCRPServer.Game.Items
 
         private static Dictionary<Game.Items.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.Groups, Func<Item, string>>()
         {
-            { Game.Items.Inventory.Groups.Items, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Items, (item) => $"{item.ID}&{Items.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Items.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.Groups.Bag, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Bag, (item) => $"{item.ID}&{Items.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Items.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.Groups.Container, (item) => (new object[] { item.ID, Items.GetItemAmount(item), item is IStackable ? item.BaseWeight : item.Weight, Items.GetItemTag(item) }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Container, (item) => $"{item.ID}&{Items.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Items.GetItemTag(item)}" },
 
             {
                 Game.Items.Inventory.Groups.Weapons,
@@ -144,7 +128,7 @@ namespace BCRPServer.Game.Items
                 {
                     var weapon = (Weapon)item;
 
-                    return (new object[] { item.ID, weapon.Ammo, weapon.Equiped, weapon.Tag }).SerializeToJson();
+                    return $"{item.ID}&{weapon.Ammo}&{(weapon.Equiped ? 1 : 0)}&{weapon.Tag}&{weapon.GetWeaponComponentsString()}";
                 }
             },
 
@@ -155,11 +139,11 @@ namespace BCRPServer.Game.Items
                 {
                     var weapon = (Weapon)item;
 
-                    return (new object[] { item.ID, weapon.Ammo, weapon.Equiped, weapon.Tag }).SerializeToJson();
+                    return $"{item.ID}&{weapon.Ammo}&{(weapon.Equiped ? 1 : 0)}&{weapon.Tag}&{weapon.GetWeaponComponentsString()}";
                 }
             },
 
-            { Game.Items.Inventory.Groups.Armour, (item) => (new object[] { item.ID, ((Armour)item).Strength }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Armour, (item) => $"{item.ID}&{((Armour)item).Strength}" },
 
             {
                 Game.Items.Inventory.Groups.BagItem,
@@ -168,13 +152,13 @@ namespace BCRPServer.Game.Items
                 {
                     var bag = (Bag)item;
 
-                    return (new object[] { item.ID, bag.Data.MaxWeight, bag.Items.Select(x => ToClientJson(x, Game.Items.Inventory.Groups.Bag)) }).SerializeToJson();
+                    return $"{item.ID}&{bag.Data.MaxWeight}|{string.Join('|', bag.Items.Select(x => ToClientJson(x, Game.Items.Inventory.Groups.Bag)))}";
                 }
             },
 
-            { Game.Items.Inventory.Groups.Clothes, (item) => (new object[] { item.ID }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Clothes, (item) => $"{item.ID}" },
 
-            { Game.Items.Inventory.Groups.Accessories, (item) => (new object[] { item.ID }).SerializeToJson() },
+            { Game.Items.Inventory.Groups.Accessories, (item) => $"{item.ID}" },
 
             {
                 Game.Items.Inventory.Groups.HolsterItem,
@@ -183,7 +167,7 @@ namespace BCRPServer.Game.Items
                 {
                     var holster = (Holster)item;
 
-                    return (new object[] { item.ID, ToClientJson(holster.Items[0], Game.Items.Inventory.Groups.Holster) }).SerializeToJson();
+                    return $"{item.ID}|{ToClientJson(holster.Items[0], Game.Items.Inventory.Groups.Holster)}";
                 }
             },
         };
@@ -304,12 +288,12 @@ namespace BCRPServer.Game.Items
             var func = ClientJsonFuncs.GetValueOrDefault(group);
 
             if (func == null)
-                return "null";
+                return "";
 
             return func.Invoke(this);
         }
 
-        public static string ToClientJson(Item item, Game.Items.Inventory.Groups group) => item == null ? "null" : item.ToClientJson(group);
+        public static string ToClientJson(Item item, Game.Items.Inventory.Groups group) => item == null ? "" : item.ToClientJson(group);
 
         public Item(string ID, ItemData Data, Type Type)
         {
@@ -392,7 +376,7 @@ namespace BCRPServer.Game.Items
     #endregion
 
     #region Weapon
-    public class Weapon : Item, ITagged, IWearable
+    public class Weapon : Item, ITagged, IWearable, IContainer
     {
         public static List<string> UsedTags { get; private set; } = new List<string>();
 
@@ -484,7 +468,7 @@ namespace BCRPServer.Game.Items
             { "w_minismg", new ItemData("Мини SMG", 1f, "w_sb_minismg", ItemData.TopTypes.SubMachine, "am_5.56", WeaponHash.Minismg, 15, true) },
             { "w_smg", new ItemData("MP5", 1f, "w_sb_smg", ItemData.TopTypes.SubMachine, "am_5.56", WeaponHash.Smg, 15, true) },
             { "w_smg_mk2", new ItemData("MP5 (улучш.)", 1f, "w_sb_smgmk2", ItemData.TopTypes.SubMachine, "am_5.56", WeaponHash.Smg_mk2, 15, true) },
-            { "w_asmsg", new ItemData("null", 1f, "w_sb_assaultsmg", ItemData.TopTypes.SubMachine, "am_5.56", WeaponHash.Assaultsmg, 15, false) },
+            { "w_asmsg", new ItemData("Штурмовой SMG", 1f, "w_sb_assaultsmg", ItemData.TopTypes.SubMachine, "am_5.56", WeaponHash.Assaultsmg, 15, false) },
             { "w_combpdw", new ItemData("Боевой PDW", 1f, "w_sb_pdw", ItemData.TopTypes.SubMachine, "am_5.56", WeaponHash.Combatpdw, 15, false) },
 
             { "w_combmg", new ItemData("M249", 1f, "w_mg_combatmg", ItemData.TopTypes.LightMachine, "am_9", WeaponHash.Combatmg, 15, false) },
@@ -494,11 +478,11 @@ namespace BCRPServer.Game.Items
             { "w_markrifle", new ItemData("Винтовка Марксмана", 1f, "w_sr_marksmanrifle", ItemData.TopTypes.SniperRifle, "am_12.7", WeaponHash.Marksmanrifle, 15, false) },
             { "w_musket", new ItemData("Мушкет", 1f, "w_ar_musket", ItemData.TopTypes.SniperRifle, "am_12.7", WeaponHash.Musket, 15, false) },
 
-            { "w_assgun", new ItemData("null", 1f, "w_sg_assaultshotgun", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Assaultshotgun, 15, false) },
-            { "w_heavysgun", new ItemData("null", 1f, "w_sg_heavyshotgun", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Heavyshotgun, 15, false) },
-            { "w_pumpsgun", new ItemData("null", 1f, "w_sg_pumpshotgun", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Pumpshotgun, 15, false) },
-            { "w_pumpsgun_mk2", new ItemData("null", 1f, "w_sg_pumpshotgunmk2", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Pumpshotgun_mk2, 15, false) },
-            { "w_sawnsgun", new ItemData("null", 1f, "w_sg_sawnoff", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Sawnoffshotgun, 15, false) },
+            { "w_assgun", new ItemData("Штурмовой дробовик", 1f, "w_sg_assaultshotgun", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Assaultshotgun, 15, false) },
+            { "w_heavysgun", new ItemData("Тяжелый дробовик", 1f, "w_sg_heavyshotgun", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Heavyshotgun, 15, false) },
+            { "w_pumpsgun", new ItemData("Помповый дробовик", 1f, "w_sg_pumpshotgun", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Pumpshotgun, 15, false) },
+            { "w_pumpsgun_mk2", new ItemData("Помповый дробовик (улучш.)", 1f, "w_sg_pumpshotgunmk2", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Pumpshotgun_mk2, 15, false) },
+            { "w_sawnsgun", new ItemData("Обрез", 1f, "w_sg_sawnoff", ItemData.TopTypes.Shotgun, "am_12", WeaponHash.Sawnoffshotgun, 15, false) },
 
             { "w_pistol", new ItemData("Пистолет", 0.5f, "w_pi_pistol", ItemData.TopTypes.HandGun, "am_5.56", WeaponHash.Pistol, 15, true) },
             { "w_pistol_mk2", new ItemData("Пистолет (улучш.)", 1f, "w_pi_pistolmk2", ItemData.TopTypes.HandGun, "am_5.56", WeaponHash.Pistol_mk2, 20, true) },
@@ -533,9 +517,12 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Обший вес оружия (вместе с патронами в обойме)</summary>
         [JsonIgnore]
-        public override float Weight { get => Data.AmmoID == null ? BaseWeight : BaseWeight + Ammo * (Game.Items.Ammo.IDList[Data.AmmoID].Weight); }
+        public override float Weight { get => Items.Sum(x => x?.Weight ?? 0f) + (Data.AmmoID == null ? BaseWeight : BaseWeight + Ammo * (Game.Items.Ammo.IDList[Data.AmmoID].Weight)); }
 
         public string Tag { get; set; }
+
+        [JsonIgnore]
+        public Item[] Items { get; set; }
 
         /// <summary>Используется ли оружие?</summary>
         [JsonIgnore]
@@ -556,6 +543,8 @@ namespace BCRPServer.Game.Items
             if (Equiped)
                 return;
 
+            var data = Data;
+
             var player = pData.Player;
 
             Sync.Players.StopUsePhone(pData);
@@ -564,18 +553,9 @@ namespace BCRPServer.Game.Items
 
             Equiped = true;
 
-            player.SetWeapon(Data.Hash, Ammo);
+            player.SetWeapon(data.Hash, Ammo);
 
-/*            NAPI.Task.Run(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                var weap = pData.ActiveWeapon;
-
-                if (weap != null && weap.Value.WeaponItem == this)
-                    player.SetWeapon(Data.Hash, Ammo);
-            }, 250);*/
+            UpdateWeaponComponents(pData);
         }
 
         /// <summary>Метод, чтобы забрать оружие у игрока</summary>
@@ -589,22 +569,26 @@ namespace BCRPServer.Game.Items
             if (!Equiped)
                 return;
 
+            var data = Data;
+
             if (updateLastAmmoFirst)
             {
-                var amount = NAPI.Player.GetPlayerWeaponAmmo(player, this.Data.Hash);
+                var amount = NAPI.Player.GetPlayerWeaponAmmo(player, data.Hash);
 
                 if (amount < 0)
                     amount = 0;
 
-                if (amount < this.Ammo)
+                if (amount < Ammo)
                 {
-                    this.Ammo = amount;
+                    Ammo = amount;
 
-                    this.Update();
+                    Update();
                 }
             }
 
             player.SetWeapon((uint)WeaponHash.Unarmed);
+
+            pData.WeaponComponents = null;
 
             Equiped = false;
 
@@ -671,9 +655,30 @@ namespace BCRPServer.Game.Items
             AttachID = -1;
         }
 
+        public string GetWeaponComponentsString()
+        {
+            var t = Items.Where(x => x is WeaponComponent).Select(x => (int)((WeaponComponent)x).Data.Type);
+
+            return t.Any() ? string.Join('_', t) : "";
+        }
+
+        public void UpdateWeaponComponents(PlayerData pData)
+        {
+            if (!Equiped)
+                return;
+
+            var wcStr = GetWeaponComponentsString();
+
+            var wSkin = pData.Info.WeaponSkins.GetValueOrDefault(WeaponSkin.ItemData.Types.UniDef);
+
+            pData.WeaponComponents = wcStr.Length == 0 ? $"{Data.Hash}_{(wSkin == null ? 0 : wSkin.Data.Variation)}" : $"{Data.Hash}_{(wSkin == null ? 0 : wSkin.Data.Variation)}_{wcStr}";
+        }
+
         public Weapon(string ID) : base(ID, IDList[ID], typeof(Weapon))
         {
             this.AttachID = -1;
+
+            Items = new Item[5];
         }
     }
     #endregion
@@ -722,6 +727,114 @@ namespace BCRPServer.Game.Items
         }
     }
     #endregion
+
+    public class WeaponComponent : Item
+    {
+        new public class ItemData : Item.ItemData
+        {
+            public enum Types
+            {
+                Suppressor = 0,
+                Flashlight,
+                Grip,
+                Scope,
+            }
+
+            private static Dictionary<Types, List<uint>> SupportedWeaponHashes = new Dictionary<Types, List<uint>>();
+
+            public Types Type { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, Sync.WeaponSystem.Weapon.ComponentTypes.{Type}";
+
+            public ItemData(string Name, float Weight, string Model, Types Type, params uint[] SupportedWeapons) : base(Name, Weight, Model)
+            {
+                this.Type = Type;
+
+                if (!SupportedWeaponHashes.ContainsKey(Type))
+                    SupportedWeaponHashes.Add(Type, new List<uint>());
+
+                SupportedWeaponHashes[Type].AddRange(SupportedWeapons);
+            }
+
+            //public bool IsAllowedFor(uint wHash) => SupportedWeaponHashes[Type].Contains(wHash);
+            public bool IsAllowedFor(uint wHash) => true;
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "wc_s", new ItemData("Глушитель (компонент)", 0.01f, "w_am_case", ItemData.Types.Suppressor, (uint)WeaponHash.Pistol, (uint)WeaponHash.Combatpistol, (uint)WeaponHash.Appistol, (uint)WeaponHash.Pistol50, (uint)WeaponHash.Heavypistol, (uint)WeaponHash.Snspistol_mk2 ) },
+            { "wc_f", new ItemData("Фонарик (компонент)", 0.01f, "w_am_case", ItemData.Types.Flashlight) },
+            { "wc_g", new ItemData("Рукоятка (компонент)", 0.01f, "w_am_case", ItemData.Types.Grip) },
+            { "wc_sc", new ItemData("Прицел (компонент)", 0.01f, "w_am_case", ItemData.Types.Scope) },
+        };
+
+        public static ItemData GetData(string id) => (ItemData)IDList[id];
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public override float Weight { get => Amount * BaseWeight; }
+
+        public int Amount { get; set; }
+
+        public WeaponComponent(string ID) : base(ID, IDList[ID], typeof(WeaponComponent))
+        {
+
+        }
+    }
+
+    public class WeaponSkin : Item
+    {
+        new public class ItemData : Item.ItemData
+        {
+            public override string ClientData => $"\"{Name}\", {Weight}f, WeaponSkin.ItemData.Types.{Type}";
+
+            public enum Types
+            {
+                UniDef = 0,
+                UniMk2,
+            }
+
+            public Types Type { get; set; }
+
+            public int Variation { get; set; }
+
+            public ItemData(string Name, float Weight, string Model, Types Type, int Variation) : base(Name, Weight, Model)
+            {
+                this.Type = Type;
+                this.Variation = Variation;
+            }
+
+            public bool IsAllowedFor(uint wHash) => true;
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "ws_0_0", new ItemData("Зеленая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 1 ) },
+            { "ws_0_1", new ItemData("Золотая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 2 ) },
+            { "ws_0_2", new ItemData("Розовая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 3 ) },
+            { "ws_0_3", new ItemData("Армейская раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 4 ) },
+            { "ws_0_4", new ItemData("Синяя раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 5 ) },
+            { "ws_0_5", new ItemData("Оранжевая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 6 ) },
+            { "ws_0_6", new ItemData("Платиновая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 7 ) },
+        };
+
+        public static ItemData GetData(string id) => (ItemData)IDList[id];
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        public override float Weight { get => Amount * BaseWeight; }
+
+        public int Amount { get; set; }
+
+        public WeaponSkin(string ID) : base(ID, IDList[ID], typeof(WeaponSkin))
+        {
+
+        }
+    }
 
     #region Clothes
     public abstract class Clothes : Item, IWearable
@@ -3615,6 +3728,45 @@ namespace BCRPServer.Game.Items
         }
     }
 
+    public class VehicleRepairKit : Item, IConsumable
+    {
+        new public class ItemData : Item.ItemData, Item.ItemData.IConsumable
+        {
+            public int MaxAmount { get; set; }
+
+            public override string ClientData => $"\"{Name}\", {Weight}f, {MaxAmount}";
+
+            public ItemData(string Name, string Model, int MaxAmount, float Weight) : base(Name, Weight, Model)
+            {
+                this.MaxAmount = MaxAmount;
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "vrk_0", new ItemData("Ремонтный набор S", "imp_prop_tool_box_01b", 3, 1f) },
+            { "vrk_1", new ItemData("Ремонтный набор M", "gr_prop_gr_tool_box_01a", 7, 1.5f) },
+        };
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; }
+
+        [JsonIgnore]
+        public int MaxAmount => Data.MaxAmount;
+
+        public int Amount { get; set; }
+
+        public void Apply(PlayerData pData, VehicleData vData)
+        {
+            vData.Vehicle.SetFixed();
+        }
+
+        public VehicleRepairKit(string ID) : base(ID, IDList[ID], typeof(VehicleRepairKit))
+        {
+            this.Amount = MaxAmount;
+        }
+    }
+
     public class Items
     {
         private static Dictionary<string, Type> AllTypes = new Dictionary<string, Type>();
@@ -3676,7 +3828,7 @@ namespace BCRPServer.Game.Items
             if (notifyOnSuccess)
                 player.TriggerEvent("Item::Added", item.ID, GetItemAmount(item));
 
-            player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, freeIdx, upd);
+            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -3721,12 +3873,13 @@ namespace BCRPServer.Game.Items
             }
             else if (item is Weapon weapon)
             {
-                if (amount < 0)
+                if (amount <= 1)
                     amount = 0;
 
                 var maxAmount = weapon.Data.MaxAmmo;
 
-                weapon.Ammo = amount > maxAmount ? maxAmount : amount;
+                if (amount > 0)
+                    weapon.Ammo = amount > maxAmount ? maxAmount : amount;
             }
 
             if (!isTemp)
@@ -3764,7 +3917,7 @@ namespace BCRPServer.Game.Items
             if (item is ITagged tagged)
                 return tagged.Tag;
 
-            return null;
+            return "";
         }
 
         public static Type GetType(string id, bool checkFullId = true)

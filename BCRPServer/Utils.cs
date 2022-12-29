@@ -405,31 +405,14 @@ namespace BCRPServer
             task.Run(action, delay);
         }
 
-        public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args)
-        {
-            var players = PlayerData.All.Keys.Where(x => x != null && AreEntitiesNearby(x, entity, Settings.STREAM_DISTANCE));
+        public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args) => TriggerEventInDistance(entity, Settings.STREAM_DISTANCE, eventName, args);
 
-            foreach (var player in players)
-                player.TriggerEvent(eventName, args);
-        }
+        public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args) => NAPI.ClientEvent.TriggerClientEventToPlayers(PlayerData.All.Keys.Where(x => AreEntitiesNearby(x, entity, distance)).ToArray(), eventName, args);
 
-        public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args)
-        {
-            var players = PlayerData.All.Keys.Where(x => x != null && AreEntitiesNearby(x, entity, distance));
-
-            foreach (var player in players)
-                player.TriggerEvent(eventName, args);
-        }
-
-        public static void TriggerEventToStreamed(this Vector3 pos, uint dimension, string eventName, params object[] args)
-        {
-            var players = PlayerData.All.Keys.Where(x => x != null && x.Dimension == dimension && Vector3.Distance(pos, x.Position) <= Settings.STREAM_DISTANCE);
-
-            foreach (var player in players)
-                player.TriggerEvent(eventName, args);
-        }
+        public static void TriggerEventToStreamed(this Vector3 pos, uint dimension, string eventName, params object[] args) => NAPI.ClientEvent.TriggerClientEventToPlayers(PlayerData.All.Keys.Where(x => x.Dimension == dimension && x.Position.DistanceTo(pos) <= Settings.STREAM_DISTANCE).ToArray(), eventName, args);
 
         public static bool AreEntitiesNearby(this Entity entity, Entity target, float radius) => (entity.Dimension == target.Dimension && Vector3.Distance(entity.Position, target.Position) <= radius);
+        
         public static bool AreEntitiesNearbyDiffDims(this Entity entity, Entity target, float radius) => (Vector3.Distance(entity.Position, target.Position) <= radius);
 
         public static Entity GetEntityById(EntityType eType, int id)
@@ -584,7 +567,7 @@ namespace BCRPServer
             }
 
             foreach (var x in updList)
-                pData.Player.TriggerEvent("Inventory::Update", (int)x.Group, x.Slot, "null");
+                pData.Player.InventoryUpdate(x.Group, x.Slot, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
         }
 
 
@@ -622,7 +605,7 @@ namespace BCRPServer
 
                     tempItems.Add((weapon, Game.Items.Inventory.Groups.Weapons, i));
 
-                    pData.Player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Weapons, i, "null");
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Weapons, i, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
                 }
             }
 
@@ -648,7 +631,7 @@ namespace BCRPServer
                     pData.Weapons[x.Slot] = x.Item as Game.Items.Weapon;
                 }
 
-                pData.Player.TriggerEvent("Inventory::Update", (int)x.Group, x.Slot, x.Item.ToClientJson(x.Group));
+                pData.Player.InventoryUpdate(x.Group, x.Slot, x.Item.ToClientJson(x.Group));
             }
 
             pData.TempItems = null;
@@ -1234,7 +1217,11 @@ namespace BCRPServer
             foreach (var x in linesToInsert)
                 lines.Insert(++insIdx, x);
 
-            File.WriteAllLines(fPath, lines);
+            using (var sw = new StreamWriter(fPath))
+            {
+                foreach (var x in lines)
+                    sw.WriteLine(x);
+            }
         }
 
         public static string ToCSharpStr(this Vector3 v) => v == null ? "null" : $"new Vector3({v.X}f, {v.Y}f, {v.Z}f)";
@@ -1258,5 +1245,9 @@ namespace BCRPServer
             else
                 return string.Format("{0:0} сек.", ts.TotalSeconds);
         }
+
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
+
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, updStr);
     }
 }

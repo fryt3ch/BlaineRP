@@ -48,6 +48,8 @@ namespace BCRPClient.CEF
             GarageVehiclePlaceSelect,
 
             VehiclePoundSelect,
+
+            WeaponSkinsMenuSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -394,6 +396,59 @@ namespace BCRPClient.CEF
                                     Player.LocalPlayer.ResetData("ActionBox::Temp::VPSN");
                                 }
                             }
+                        }
+                    },
+
+                    {
+                        Contexts.WeaponSkinsMenuSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    var wSkins = pData.WeaponSkins;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        if (!wSkins.Keys.Where(x => (int)x == id).Any())
+                                        {
+                                            Close(true);
+
+                                            return;
+                                        }
+
+                                        if (LastSent.IsSpam(1000, false, false))
+                                            return;
+
+                                        if ((bool)await Events.CallRemoteProc("WSkins::Rm", id))
+                                        {
+                                            Close(true);
+                                        }
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
                         }
                     },
                 }

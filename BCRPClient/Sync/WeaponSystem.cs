@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace BCRPClient.Sync
 {
-    class WeaponSystem : Events.Script
+    public class WeaponSystem : Events.Script
     {
         private const float IN_VEHICLE_DAMAGE_COEF = 0.75f;
 
@@ -26,14 +26,29 @@ namespace BCRPClient.Sync
         #region Supported Weapons
         public class Weapon
         {
+            public enum ComponentTypes
+            {
+                Suppressor = 0,
+                Flashlight,
+                Grip,
+                Scope,
+            }
+
             public uint Hash { get; set; }
+
             public string Name { get; set; }
+
             public string GameName { get; set; }
+
             public float BaseDamage { get; set; }
+
             public float MaxDistance { get; set; }
+
             public float DistanceRatio { get; set; }
 
-            private Dictionary<PartTypes, float> BodyRatios;
+            private Dictionary<PartTypes, float> BodyRatios { get; set; }
+
+            public Dictionary<ComponentTypes, uint> ComponentsHashes { get; set; }
 
             public bool HasAmmo { get; set; }
 
@@ -45,6 +60,8 @@ namespace BCRPClient.Sync
 
                 return ratio;
             }
+
+            public uint? GetComponentHash(ComponentTypes cType) => ComponentsHashes?.ContainsKey(cType) == true ? (uint?)ComponentsHashes[cType] : (uint?)null;
 
             public Weapon(string Name, string GameName, float BaseDamage, float MaxDistance, float DistanceRatio, float HeadRatio, float ChestRatio, float LimbRatio, bool HasAmmo = true)
             {
@@ -87,54 +104,278 @@ namespace BCRPClient.Sync
             new Weapon("Нож", "weapon_knife", 10f, 5f, 0f, 1.5f, 1f, 0.5f, false),    
 
             // Пистолеты (9мм)
-            new Weapon("Пистолет", "weapon_pistol", 8f, 80f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Пистолет MK2", "weapon_pistol_mk2", 10f, 90f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Боевой пистолет", "weapon_combatpistol", 10f, 75f, 0.12f, 1.5f, 1f, 0.5f),
-            new Weapon("Тяжёлый пистолет", "weapon_heavypistol", 12f, 85f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Старинный пистолет", "weapon_vintagepistol", 7f, 70f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Керамический пистолет", "weapon_ceramicpistol", 8f, 80f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Скорострельный пистолет", "weapon_appistol", 5f, 60f, 0.08f, 1.5f, 1f, 0.5f),
+            new Weapon("Пистолет", "weapon_pistol", 8f, 80f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP_02") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH") },
+                }
+            },
+            new Weapon("Пистолет MK2", "weapon_pistol_mk2", 10f, 90f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP_02") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH_02") },
+                }
+            },
+            new Weapon("Боевой пистолет", "weapon_combatpistol", 10f, 75f, 0.12f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH") },
+                }
+            },
+            new Weapon("Тяжёлый пистолет", "weapon_heavypistol", 12f, 85f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH") },
+                }
+            },
+            new Weapon("Старинный пистолет", "weapon_vintagepistol", 7f, 70f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                }
+            },
+            new Weapon("Керамический пистолет", "weapon_ceramicpistol", 8f, 80f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_CERAMICPISTOL_SUPP") },
+                }
+            },
+            new Weapon("Скорострельный пистолет", "weapon_appistol", 5f, 60f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH") },
+                }
+            },
 
             // Полуавтоматические винтовки (5.56мм)
-            new Weapon("SMG", "weapon_smg", 6f, 60f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("SMG MK2", "weapon_smg_mk2", 7f, 70f, 0.08f, 1.5f, 1f, 0.5f),
-            new Weapon("Штурмовая SMG", "weapon_assaultsmg", 8f, 75f, 0.08f, 1.5f, 1f, 0.5f),
-            new Weapon("Малокалиберная винтовка", "weapon_combatpdw", 8f, 80f, 0.08f, 1.5f, 1f, 0.5f),
-            new Weapon("Автоматический пистолет", "weapon_machinepistol", 6f, 60f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Микро SMG", "weapon_microsmg", 8f, 55f, 0.12f, 1.5f, 1f, 0.5f),
-            new Weapon("Мини SMG", "weapon_minismg)", 7f, 70f, 0.1f, 1.5f, 1f, 0.5f),
+            new Weapon("SMG", "weapon_smg", 6f, 60f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO_02") },
+                }
+            },
+            new Weapon("SMG MK2", "weapon_smg_mk2", 7f, 70f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO_02_SMG_MK2") },
+                }
+            },
+            new Weapon("Штурмовая SMG", "weapon_assaultsmg", 8f, 75f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP_02") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO") },
+                }
+            },
+            new Weapon("Малокалиберная винтовка", "weapon_combatpdw", 8f, 80f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_SMALL") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP") },
+                }
+            },
+            new Weapon("Автоматический пистолет", "weapon_machinepistol", 6f, 60f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_SUPP") },
+                }
+            },
+            new Weapon("Микро SMG", "weapon_microsmg", 8f, 55f, 0.12f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP_02") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO") },
+                }
+            },
+            new Weapon("Мини SMG", "weapon_minismg)", 7f, 70f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+
+            },
 
             // Штурмовые винтовки (7.62мм)
-            new Weapon("Карабин", "weapon_carbinerifle", 9f, 100f, 0.09f, 1.5f, 1f, 0.5f),
-            new Weapon("Штурмовая винтовка", "weapon_assaultrifle", 9f, 110f, 0.08f, 1.5f, 1f, 0.5f),
-            new Weapon("Штурмовая винтовка MK2", "weapon_assaultriflemk2", 9f, 110f, 0.08f, 1.5f, 1f, 0.5f),
-            new Weapon("Компактная винтовка", "weapon_compactrifle", 8f, 80f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Военная винтовка", "weapon_militaryrifle", 10f, 120f, 0.08f, 1.5f, 1f, 0.5f),
-            new Weapon("Улучшенная винтовка", "weapon_advancedrifle", 9f, 90f, 0.1f, 1.5f, 1f, 0.5f),
-            new Weapon("Тяжелая винтовка", "weapon_heavyrifle", 12f, 120f, 0.09f, 1.5f, 1f, 0.5f),
+            new Weapon("Карабин", "weapon_carbinerifle", 9f, 100f, 0.09f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MEDIUM") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP") },
+                }
+            },
+            new Weapon("Штурмовая винтовка", "weapon_assaultrifle", 9f, 110f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP_02") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP") },
+                }
+            },
+            new Weapon("Штурмовая винтовка MK2", "weapon_assaultriflemk2", 9f, 110f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP_02") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO_MK2") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP_02") },
+                }
+            },
+            new Weapon("Компактная винтовка", "weapon_compactrifle", 8f, 80f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+
+            },
+            new Weapon("Военная винтовка", "weapon_militaryrifle", 10f, 120f, 0.08f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_SMALL") },
+                }
+            },
+            new Weapon("Улучшенная винтовка", "weapon_advancedrifle", 9f, 90f, 0.1f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP") },
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_SMALL") },
+                }
+            },
+            new Weapon("Тяжелая винтовка", "weapon_heavyrifle", 12f, 120f, 0.09f, 1.5f, 1f, 0.5f)
+            {
+
+            },
 
             // Пулеметы (7.62мм)
-            new Weapon("Боевой пулемёт", "weapon_combatmg", 9f, 70f, 0.12f, 1.5f, 1f, 0.5f),
-            new Weapon("Пулемёт Гузенберга", "weapon_gusenberg", 8f, 60f, 0.13f, 1.5f, 1f, 0.5f),
+            new Weapon("Боевой пулемёт", "weapon_combatmg", 9f, 70f, 0.12f, 1.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_SMALL_02") },
+                }
+            },
+            new Weapon("Пулемёт Гузенберга", "weapon_gusenberg", 8f, 60f, 0.13f, 1.5f, 1f, 0.5f)
+            {
+
+            },
 
             // Револьверы (11.43мм)
-            new Weapon("Тяжелый револьвер", "weapon_revolver", 40f, 70f, 0.5f, 2f, 1f, 0.5f),
-            new Weapon("Тяжелый револьвер MK2", "weapon_revolver_mk2", 45f, 80f, 0.4f, 2.5f, 1f, 0.5f),
-            new Weapon("Классический револьвер", "weapon_doubleaction", 35f, 60f, 1.75f, 1.5f, 1f, 0.5f),
-            new Weapon("Короткий мушкет", "weapon_marksmanpistol", 25f, 30f, 0.8f, 1.5f, 1f, 0.5f),
-            new Weapon("Длинный револьвер", "weapon_navyrevolver", 30f, 70f, 0.4f, 1.75f, 1f, 0.5f),
+            new Weapon("Тяжелый револьвер", "weapon_revolver", 40f, 70f, 0.5f, 2f, 1f, 0.5f)
+            {
+
+            },
+            new Weapon("Тяжелый револьвер MK2", "weapon_revolver_mk2", 45f, 80f, 0.4f, 2.5f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_PI_FLSH") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO_MK2") },
+                }
+            },
+            new Weapon("Классический револьвер", "weapon_doubleaction", 35f, 60f, 1.75f, 1.5f, 1f, 0.5f)
+            {
+
+            },
+            new Weapon("Короткий мушкет", "weapon_marksmanpistol", 25f, 30f, 0.8f, 1.5f, 1f, 0.5f)
+            {
+
+            },
+            new Weapon("Длинный револьвер", "weapon_navyrevolver", 30f, 70f, 0.4f, 1.75f, 1f, 0.5f)
+            {
+
+            },
 
             // Дробовики (12мм)
-            new Weapon("Помповый дробовик", "weapon_pumpshotgun", 40f, 10f, 4f, 2f, 1f, 0.5f),
-            new Weapon("Помповый дробовик MK2", "weapon_pumpshotgun_mk2", 50f, 15f, 3f, 2f, 1f, 0.5f),
-            new Weapon("Обрез", "weapon_sawnoffshotgun", 35f, 5f, 7f, 2f, 1f, 0.5f),
-            new Weapon("Штурмовой дробовик", "weapon_assaultshotgun", 45f, 15f, 3f, 2f, 1f, 0.5f),
-            new Weapon("Тяжелый дробовик", "weapon_heavyshotgun", 60f, 15f, 4f, 2f, 1f, 0.5f),
-            new Weapon("Охотничье ружье", "weapon_musket", 50f, 25f, 2f, 2f, 1f, 0.5f),
+            new Weapon("Помповый дробовик", "weapon_pumpshotgun", 40f, 10f, 4f, 2f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_SR_SUPP") },
+                }
+            },
+            new Weapon("Помповый дробовик MK2", "weapon_pumpshotgun_mk2", 50f, 15f, 3f, 2f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_SR_SUPP_03") },
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_MACRO_MK2") },
+                }
+            },
+            new Weapon("Обрез", "weapon_sawnoffshotgun", 35f, 5f, 7f, 2f, 1f, 0.5f)
+            {
+
+            },
+            new Weapon("Штурмовой дробовик", "weapon_assaultshotgun", 45f, 15f, 3f, 2f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP") },
+                }
+            },
+            new Weapon("Тяжелый дробовик", "weapon_heavyshotgun", 60f, 15f, 4f, 2f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP") },
+                }
+            },
+            new Weapon("Охотничье ружье", "weapon_musket", 50f, 25f, 2f, 2f, 1f, 0.5f)
+            {
+
+            },
 
             // Снайперские винтовки (12.7мм)
-            new Weapon("Винтовка Марксмана", "weapon_marksmanrifle", 80f, 100f, 0.3f, 2f, 1f, 0.5f),
+            new Weapon("Винтовка Марксмана", "weapon_marksmanrifle", 80f, 100f, 0.3f, 2f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Flashlight, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_FLSH") },
+                    { Weapon.ComponentTypes.Suppressor, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_SUPP") },
+                    { Weapon.ComponentTypes.Grip, RAGE.Util.Joaat.Hash("COMPONENT_AT_AR_AFGRIP") },
+                }
+            },
             new Weapon("Тяжелая снайперская винтовка", "weapon_heavysniper", 150f, 500f, 0.25f, 2f, 1f, 0.5f)
+            {
+                ComponentsHashes = new Dictionary<Weapon.ComponentTypes, uint>()
+                {
+                    { Weapon.ComponentTypes.Scope, RAGE.Util.Joaat.Hash("COMPONENT_AT_SCOPE_LARGE") },
+                }
+            },
         };
         #endregion
 
@@ -446,13 +687,43 @@ namespace BCRPClient.Sync
         }
 
         #region Stuff
+
+        public static void UpdateWeaponComponents(Player player, string strData)
+        {
+            var wcData = strData.Split('_');
+
+            var wHash = uint.Parse(wcData[0]);
+
+            var wTint = int.Parse(wcData[1]);
+
+            var curGunData = WeaponList.Where(x => x.Hash == wHash).FirstOrDefault();
+
+            if (player.GetWeaponTintIndex(wHash) != wTint)
+                player.SetWeaponTintIndex(wHash, wTint);
+
+            if (curGunData?.ComponentsHashes != null)
+            {
+                foreach (var x in curGunData.ComponentsHashes.Values)
+                    player.RemoveWeaponComponentFrom(wHash, x);
+
+                wcData.Skip(2).Select(x => curGunData.GetComponentHash((Sync.WeaponSystem.Weapon.ComponentTypes)int.Parse(x))).ToList().ForEach((x) =>
+                {
+                    if (x is uint hash)
+                    {
+                        player.GiveWeaponComponentTo(curGunData.Hash, hash);
+                        player.GiveWeaponComponentTo(curGunData.Hash, hash);
+                    }
+                });
+
+                player.SetCurrentWeapon(wHash, true);
+            }
+        }
+
         public static void UpdateWeapon()
         {
             var weapon = RAGE.Elements.Player.LocalPlayer.GetSelectedWeapon();
 
             var curAmmo = Additional.AntiCheat.LastAllowedAmmo;
-
-            Player.LocalPlayer.SetCurrentWeapon(weapon, true);
 
             CEF.HUD.SetAmmo(curAmmo);
 

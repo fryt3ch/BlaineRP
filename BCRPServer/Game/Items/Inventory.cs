@@ -164,7 +164,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     weapons[slot].Unequip(pData);
 
-                                    player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
+                                    player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
                                 }
                                 else
                                 {
@@ -180,18 +180,18 @@ namespace BCRPServer.Game.Items
                                         {
                                             weapons[idxToCheck].Unequip(pData);
 
-                                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, idxToCheck, Game.Items.Item.ToClientJson(weapons[idxToCheck], Groups.Weapons));
+                                            player.InventoryUpdate(Groups.Weapons, idxToCheck, Game.Items.Item.ToClientJson(weapons[idxToCheck], Groups.Weapons));
                                         }
                                         else if (holster != null && (holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
                                         {
                                             ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
 
-                                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
                                         }
 
                                         weapons[slot].Equip(pData);
 
-                                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
+                                        player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
                                     }
                                 }
 
@@ -203,7 +203,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
 
-                                    player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                    player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
                                 }
                                 else
                                 {
@@ -211,18 +211,18 @@ namespace BCRPServer.Game.Items
                                     {
                                         weapons[0].Unequip(pData);
 
-                                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 0, Game.Items.Item.ToClientJson(weapons[0], Groups.Weapons));
+                                        player.InventoryUpdate(Groups.Weapons, 0, Game.Items.Item.ToClientJson(weapons[0], Groups.Weapons));
                                     }
                                     else if (weapons[1]?.Equiped == true)
                                     {
                                         weapons[1].Unequip(pData);
 
-                                        player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, 1, Game.Items.Item.ToClientJson(weapons[1], Groups.Weapons));
+                                        player.InventoryUpdate(Groups.Weapons, 1, Game.Items.Item.ToClientJson(weapons[1], Groups.Weapons));
                                     }
 
                                     ((Game.Items.Weapon)holster.Items[0]).Equip(pData);
 
-                                    player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                    player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
                                 }
 
                                 return Results.Success;
@@ -289,6 +289,198 @@ namespace BCRPServer.Game.Items
                                     return Results.Error;
 
                                 return Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
+                            }
+
+                            return Results.Error;
+                        }
+                    },
+
+                    {
+                        7,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group == Groups.Weapons || group == Groups.Holster)
+                            {
+                                var weapon = (Game.Items.Weapon)item;
+
+                                if (weapon.Items[0] is Game.Items.WeaponComponent wc)
+                                {
+                                    var freeIdx = -1;
+                                    var totalWeight = 0f;
+
+                                    for (int i = 0; i < pData.Items.Length; i++)
+                                    {
+                                        if (pData.Items[i] == null)
+                                        {
+                                            if (freeIdx < 0)
+                                                freeIdx = i;
+                                        }
+                                        else
+                                        {
+                                            totalWeight += pData.Items[i].Weight;
+                                        }
+                                    }
+
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                        return Results.NoSpace;
+
+                                    pData.Items[freeIdx] = wc;
+                                    weapon.Items[0] = null;
+
+                                    weapon.UpdateWeaponComponents(pData);
+
+                                    pData.Player.InventoryUpdate(group, slot, weapon.ToClientJson(group));
+                                    pData.Player.InventoryUpdate(Groups.Items, freeIdx, wc.ToClientJson(Groups.Items));
+
+                                    weapon.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
+                                }
+                            }
+
+                            return Results.Error;
+                        }
+                    },
+
+                    {
+                        8,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group == Groups.Weapons || group == Groups.Holster)
+                            {
+                                var weapon = (Game.Items.Weapon)item;
+
+                                if (weapon.Items[1] is Game.Items.WeaponComponent wc)
+                                {
+                                    var freeIdx = -1;
+                                    var totalWeight = 0f;
+
+                                    for (int i = 0; i < pData.Items.Length; i++)
+                                    {
+                                        if (pData.Items[i] == null)
+                                        {
+                                            if (freeIdx < 0)
+                                                freeIdx = i;
+                                        }
+                                        else
+                                        {
+                                            totalWeight += pData.Items[i].Weight;
+                                        }
+                                    }
+
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                        return Results.NoSpace;
+
+                                    pData.Items[freeIdx] = wc;
+                                    weapon.Items[0] = null;
+
+                                    weapon.UpdateWeaponComponents(pData);
+
+                                    pData.Player.InventoryUpdate(group, slot, weapon.ToClientJson(group));
+                                    pData.Player.InventoryUpdate(Groups.Items, freeIdx, wc.ToClientJson(Groups.Items));
+
+                                    weapon.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
+                                }
+                            }
+
+                            return Results.Error;
+                        }
+                    },
+
+                    {
+                        9,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group == Groups.Weapons || group == Groups.Holster)
+                            {
+                                var weapon = (Game.Items.Weapon)item;
+
+                                if (weapon.Items[2] is Game.Items.WeaponComponent wc)
+                                {
+                                    var freeIdx = -1;
+                                    var totalWeight = 0f;
+
+                                    for (int i = 0; i < pData.Items.Length; i++)
+                                    {
+                                        if (pData.Items[i] == null)
+                                        {
+                                            if (freeIdx < 0)
+                                                freeIdx = i;
+                                        }
+                                        else
+                                        {
+                                            totalWeight += pData.Items[i].Weight;
+                                        }
+                                    }
+
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                        return Results.NoSpace;
+
+                                    pData.Items[freeIdx] = wc;
+                                    weapon.Items[0] = null;
+
+                                    weapon.UpdateWeaponComponents(pData);
+
+                                    pData.Player.InventoryUpdate(group, slot, weapon.ToClientJson(group));
+                                    pData.Player.InventoryUpdate(Groups.Items, freeIdx, wc.ToClientJson(Groups.Items));
+
+                                    weapon.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
+                                }
+                            }
+
+                            return Results.Error;
+                        }
+                    },
+
+                    {
+                        10,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group == Groups.Weapons || group == Groups.Holster)
+                            {
+                                var weapon = (Game.Items.Weapon)item;
+
+                                if (weapon.Items[3] is Game.Items.WeaponComponent wc)
+                                {
+                                    var freeIdx = -1;
+                                    var totalWeight = 0f;
+
+                                    for (int i = 0; i < pData.Items.Length; i++)
+                                    {
+                                        if (pData.Items[i] == null)
+                                        {
+                                            if (freeIdx < 0)
+                                                freeIdx = i;
+                                        }
+                                        else
+                                        {
+                                            totalWeight += pData.Items[i].Weight;
+                                        }
+                                    }
+
+                                    if (freeIdx < 0 || (totalWeight + wc.Weight >= Settings.MAX_INVENTORY_WEIGHT))
+                                        return Results.NoSpace;
+
+                                    pData.Items[freeIdx] = wc;
+                                    weapon.Items[0] = null;
+
+                                    weapon.UpdateWeaponComponents(pData);
+
+                                    pData.Player.InventoryUpdate(group, slot, weapon.ToClientJson(group));
+                                    pData.Player.InventoryUpdate(Groups.Items, freeIdx, wc.ToClientJson(Groups.Items));
+
+                                    weapon.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
+                                }
                             }
 
                             return Results.Error;
@@ -475,7 +667,7 @@ namespace BCRPServer.Game.Items
 
                                 var upd = Game.Items.Item.ToClientJson(item, group);
 
-                                player.TriggerEvent("Inventory::Update", (int)group, slot, upd);
+                                player.InventoryUpdate(group, slot, upd);
 
                                 return Results.Success;
                             }
@@ -553,7 +745,55 @@ namespace BCRPServer.Game.Items
                         }
                     }
                 }
-            }
+            },
+
+            {
+                typeof(Game.Items.WeaponSkin),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, object[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var ws = (Game.Items.WeaponSkin)item;
+
+                            var wsData = ws.Data;
+
+                            var oldWs = pData.Info.WeaponSkins.GetValueOrDefault(wsData.Type);
+
+                            if (oldWs != null)
+                                pData.Info.WeaponSkins[wsData.Type] = ws;
+                            else
+                                pData.Info.WeaponSkins.Add(wsData.Type, ws);
+
+                            if (group == Groups.Bag)
+                            {
+                                pData.Bag.Items[slot] = oldWs;
+
+                                pData.Bag.Update();
+                            }
+                            else if (group == Groups.Items)
+                            {
+                                pData.Items[slot] = oldWs;
+
+                                MySQL.CharacterItemsUpdate(pData.Info);
+                            }
+
+                            MySQL.CharacterWeaponSkinsUpdate(pData.Info);
+
+                            pData.Player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(oldWs, group));
+
+                            pData.Player.TriggerEvent("Player::WSkins::Update", true, ws.ID);
+
+                            pData.ActiveWeapon?.WeaponItem?.UpdateWeaponComponents(pData);
+
+                            return Results.Success;
+                        }
+                    }
+                }
+            },
         };
 
         private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>>()
@@ -645,8 +885,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Items, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -762,8 +1002,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Bag, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -797,6 +1037,46 @@ namespace BCRPServer.Game.Items
 
                                 MySQL.CharacterItemsUpdate(pData.Info);
                                 MySQL.CharacterWeaponsUpdate(pData.Info);
+                            }
+                            else if (fromItem is Game.Items.WeaponComponent wc)
+                            {
+                                if (toItem == null)
+                                    return Results.Error;
+
+                                var wcData = wc.Data;
+
+                                if (!wcData.IsAllowedFor(toItem.Data.Hash))
+                                {
+                                    pData.Player.Notify("Inventory::WWC");
+
+                                    return Results.Error;
+                                }
+
+                                var wcIdx = (int)wcData.Type;
+
+                                if (toItem.Items[wcIdx] != null)
+                                {
+                                    pData.Player.Notify("Inventory::WHTC");
+
+                                    return Results.Error;
+                                }
+                                else
+                                {
+                                    toItem.Items[wcIdx] = wc;
+
+                                    pData.Items[slotFrom] = null;
+
+                                    player.InventoryUpdate(Groups.Weapons, slotTo, toItem.ToClientJson(Groups.Weapons));
+                                    player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Items));
+
+                                    toItem.UpdateWeaponComponents(pData);
+
+                                    toItem.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
+
+                                    return Results.Success;
+                                }
                             }
                             #endregion
                             #region Load
@@ -856,8 +1136,8 @@ namespace BCRPServer.Game.Items
                                 pData.Weapons[slotTo].Wear(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.InventoryUpdate(Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -956,8 +1236,8 @@ namespace BCRPServer.Game.Items
                                 ((Game.Items.Weapon)pData.Holster.Items[0]).Wear(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom,  Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(Groups.Items, slotFrom,  Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -1000,8 +1280,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Clothes, slotTo, upd2);
 
                             (pData.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Clothes[slotTo].Wear(pData);
@@ -1047,8 +1327,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Accessories, slotTo, upd2);
 
                             (pData.Accessories[slotTo] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Accessories[slotTo].Wear(pData);
@@ -1096,8 +1376,8 @@ namespace BCRPServer.Game.Items
                                 ((Game.Items.Weapon)pData.Holster.Items[0])?.Equip(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             return Results.Success;
                         }
@@ -1135,8 +1415,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd2);
+                            player.InventoryUpdate(Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.BagItem, upd2);
 
                             (pData.Items[slotFrom] as Game.Items.Bag)?.Unwear(pData);
                             pData.Bag.Wear(pData);
@@ -1179,8 +1459,8 @@ namespace BCRPServer.Game.Items
                             (pData.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
                             pData.Armour.Wear(pData);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
+                            player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items));
+                            player.InventoryUpdate(Groups.Armour, upd2);
 
                             return Results.Success;
                         }
@@ -1272,8 +1552,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Bag, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -1388,8 +1668,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Items, slotTo, upd2);
 
                             return Results.Success;
                         }
@@ -1485,8 +1765,8 @@ namespace BCRPServer.Game.Items
                                 pData.Weapons[slotTo].Wear(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.InventoryUpdate(Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -1585,8 +1865,8 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -1629,8 +1909,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Clothes, slotTo, upd2);
 
                             (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Clothes[slotTo].Wear(pData);
@@ -1679,8 +1959,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Accessories, slotTo, upd2);
 
                             (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Accessories[slotTo].Wear(pData);
@@ -1727,8 +2007,8 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             pData.Bag.Update();
                             MySQL.CharacterHolsterUpdate(pData.Info);
@@ -1771,8 +2051,8 @@ namespace BCRPServer.Game.Items
                             (pData.Bag.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
                             pData.Armour.Wear(pData);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd2);
+                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag));
+                            player.InventoryUpdate(Groups.Armour, upd2);
 
                             pData.Bag.Update();
                             MySQL.CharacterArmourUpdate(pData.Info);
@@ -1817,8 +2097,8 @@ namespace BCRPServer.Game.Items
                                 pData.Weapons[slotTo].Equip(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -1861,8 +2141,8 @@ namespace BCRPServer.Game.Items
                             else
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             pData.Holster.Update();
 
@@ -1995,8 +2275,8 @@ namespace BCRPServer.Game.Items
                                 }
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.InventoryUpdate(Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -2128,8 +2408,8 @@ namespace BCRPServer.Game.Items
                             }
 
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.InventoryUpdate(Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
 
                             return Results.Success;
                         }
@@ -2176,8 +2456,8 @@ namespace BCRPServer.Game.Items
                             else
                                 pData.Weapons[slotTo].Unwear(pData);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             pData.Holster.Update();
 
@@ -2307,8 +2587,8 @@ namespace BCRPServer.Game.Items
                                 }
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -2437,8 +2717,8 @@ namespace BCRPServer.Game.Items
                             }
 
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
 
                             return Results.Success;
                         }
@@ -2488,8 +2768,8 @@ namespace BCRPServer.Game.Items
                             (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
                             pData.Armour?.Wear(pData);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.InventoryUpdate(Groups.Armour, upd1);
+                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
 
                             return Results.Success;
                         }
@@ -2535,8 +2815,8 @@ namespace BCRPServer.Game.Items
                             (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
                             pData.Armour?.Wear(pData);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Armour, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.InventoryUpdate(Groups.Armour, upd1);
+                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
 
                             pData.Bag.Update();
                             MySQL.CharacterArmourUpdate(pData.Info);
@@ -2587,8 +2867,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Clothes, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Items, slotTo, upd2);
 
                             (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             pData.Clothes[slotFrom]?.Wear(pData);
@@ -2638,8 +2918,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Clothes, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Bag, slotTo, upd2);
 
                             (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             pData.Clothes[slotFrom]?.Wear(pData);
@@ -2693,8 +2973,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Accessories, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Items, slotTo, upd2);
 
                             (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             (pData.Accessories[slotFrom])?.Wear(pData);
@@ -2744,8 +3024,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slotFrom, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(Groups.Accessories, slotFrom, upd1);
+                            player.InventoryUpdate(Groups.Bag, slotTo, upd2);
 
                             (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             pData.Accessories[slotFrom]?.Wear(pData);
@@ -2796,8 +3076,8 @@ namespace BCRPServer.Game.Items
                             var upd1 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
                             var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, upd1);
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Groups.BagItem, upd1);
+                            player.InventoryUpdate(Groups.Items, slotTo, upd2);
 
                             (pData.Items[slotTo] as Game.Items.Bag).Unwear(pData);
                             pData.Bag?.Wear(pData);
@@ -2851,8 +3131,8 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             return Results.Success;
                         }
@@ -2893,8 +3173,8 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
-                            player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
-                            player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
 
                             pData.Bag.Update();
                             MySQL.CharacterHolsterUpdate(pData.Info);
@@ -2948,7 +3228,7 @@ namespace BCRPServer.Game.Items
 
                     var upd = Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items);
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Items, slot, upd);
+                    player.InventoryUpdate(Groups.Items, slot, upd);
 
                     MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -2996,7 +3276,7 @@ namespace BCRPServer.Game.Items
 
                     var upd = Game.Items.Item.ToClientJson(pData.Bag.Items[slot], Groups.Bag);
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Bag, slot, upd);
+                    player.InventoryUpdate(Groups.Bag, slot, upd);
 
                     pData.Bag.Update();
 
@@ -3022,7 +3302,7 @@ namespace BCRPServer.Game.Items
                     if (item.Equiped)
                         Sync.WeaponSystem.UpdateAmmo(pData, item, false);
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
+                    player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
 
                     if (item.Equiped)
                         item.Unequip(pData, false, false);
@@ -3055,7 +3335,7 @@ namespace BCRPServer.Game.Items
                     if (item.Equiped)
                         Sync.WeaponSystem.UpdateAmmo(pData, item, false);
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
+                    player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
 
                     if (item.Equiped)
                         item.Unequip(pData, false, false);
@@ -3085,7 +3365,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
+                    player.InventoryUpdate(Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
 
                     item.Unwear(pData);
 
@@ -3112,7 +3392,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
+                    player.InventoryUpdate(Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
 
                     item.Unwear(pData);
 
@@ -3136,7 +3416,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
+                    player.InventoryUpdate(Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
 
                     item.Unwear(pData);
 
@@ -3163,7 +3443,7 @@ namespace BCRPServer.Game.Items
                     if ((pData.Holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
                         Sync.WeaponSystem.UpdateAmmo(pData, pData.Holster.Items[0] as Game.Items.Weapon, false);
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
+                    player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
 
                     item.Unwear(pData);
 
@@ -3189,7 +3469,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.TriggerEvent("Inventory::Update", (int)Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
+                    player.InventoryUpdate(Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
 
                     item.Unwear(pData);
 
@@ -3407,13 +3687,13 @@ namespace BCRPServer.Game.Items
             if (notifyOnSuccess)
                 pData.Player.TriggerEvent("Item::Added", item.ID, amount);
 
-            pData.Player.TriggerEvent("Inventory::Update", (int)Groups.Items, freeIdx, upd);
+            pData.Player.InventoryUpdate(Groups.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
             return true;
         }
 
-        public static void ClearSlot(PlayerData pData, Groups group, int slot) => pData.Player.TriggerEvent("Inventory::Update", (int)group, slot, "null");
+        public static void ClearSlot(PlayerData pData, Groups group, int slot) => pData.Player.InventoryUpdate(group, slot, "null");
     }
 }

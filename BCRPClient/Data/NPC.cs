@@ -48,8 +48,6 @@ namespace BCRPClient.Data
 
         public string Name { get; set; }
 
-        public string[] Dialogues { get; set; }
-
         public string DefaultDialogueId { get; set; }
 
         public Dialogue CurrentDialogue { get; set; }
@@ -62,7 +60,7 @@ namespace BCRPClient.Data
 
         public object TempDialogueData { get => Player.LocalPlayer.HasData($"NPC::{Id}::TDD") ? Player.LocalPlayer.GetData<object>($"NPC::{Id}::TDD") : null; set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::TDD"); else Player.LocalPlayer.SetData($"NPC::{Id}::TDD", value); } }
 
-        public NPC(string Id, string Name, Types Type, uint Model, Vector3 Position, float Heading = 0f, uint Dimension = 0, params string[] Dialogues)
+        public NPC(string Id, string Name, Types Type, uint Model, Vector3 Position, float Heading = 0f, uint Dimension = 0)
         {
             this.Id = Id;
 
@@ -75,19 +73,15 @@ namespace BCRPClient.Data
 
             this._Invincible = true;
 
-            this.Dialogues = Dialogues;
-
-            if (Dialogues.Length > 0)
-                this.DefaultDialogueId = Dialogues[0];
-
             if (Type == Types.Talkable)
             {
-                this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+                this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                {
+                    ActionType = Additional.ExtraColshape.ActionTypes.NpcDialogue,
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.NpcDialogue,
 
-                this.Colshape.ActionType = Additional.ExtraColshape.ActionTypes.NpcDialogue;
-                this.Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.NpcDialogue;
-
-                this.Colshape.Data = this;
+                    Data = this,
+                };
             }
 
             this.SubName = Locale.General.NPC.TypeNames.GetValueOrDefault(Id.Split('_')[0]);
@@ -95,7 +89,7 @@ namespace BCRPClient.Data
             AllNPCs.Add(Ped, this);
         }
 
-        public NPC(string Id, string Name, Types Type, string Model, Vector3 Position, float Heading, uint Dimension = 0, params string[] Dialogues) : this(Id, Name, Type, RAGE.Util.Joaat.Hash(Model), Position, Heading, Dimension, Dialogues) { }
+        public NPC(string Id, string Name, Types Type, string Model, Vector3 Position, float Heading, uint Dimension = 0) : this(Id, Name, Type, RAGE.Util.Joaat.Hash(Model), Position, Heading, Dimension) { }
 
         public NPC()
         {
@@ -105,21 +99,23 @@ namespace BCRPClient.Data
 
             Events.OnEntityStreamIn += (Entity entity) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Ped)
-                    return;
+                if (entity is Ped ped)
+                {
+                    var data = GetData(ped);
 
-                var data = GetData(entity as Ped);
+                    if (data == null)
+                        return;
 
-                if (data == null)
-                    return;
-
-                data.Ped.SetHeading(data.DefaultHeading);
+                    data.Ped.SetHeading(data.DefaultHeading);
+                }
             };
 
             Events.OnEntityStreamOut += (Entity entity) =>
             {
-                if (entity?.Type != RAGE.Elements.Type.Ped)
-                    return;
+                if (entity is Ped ped)
+                {
+
+                }
             };
 
             GameEvents.Render += () =>
@@ -171,41 +167,7 @@ namespace BCRPClient.Data
 
         public void Interact(bool state = true)
         {
-/*            if (state)
-            {
-                if (Type == Types.Static)
-                    return;
 
-                CEF.Notification.ClearAll();
-
-                CurrentNPC = this;
-
-                var pedPos = Ped.GetRealPosition();
-                var playerPos = Player.LocalPlayer.GetRealPosition();
-
-                var t = Utils.RadiansToDegrees((float)Math.Atan2(pedPos.Y - playerPos.Y, pedPos.X - playerPos.X)) - 90f;
-
-                Player.LocalPlayer.SetHeading(t);
-                Ped.SetHeading(t + 180f);
-
-                Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
-
-                CEF.NPC.Show();
-
-                ShowDialogue(DefaultDialogueId);
-            }
-            else
-            {
-                Additional.Camera.Disable(750);
-
-                Ped.SetHeading(DefaultHeading);
-
-                CurrentNPC = null;
-
-                CurrentDialogue = null;
-
-                CEF.NPC.Close();
-            }*/
         }
 
         public void SwitchDialogue(bool state = true)
@@ -361,9 +323,16 @@ namespace BCRPClient.Data
 
                     null,
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, true)
+                    new Button("[Выйти]", CloseCurrentDialogue, true)
 
                     )
+                {
+                    TimedTexts = new Dictionary<TimeTypes, string>()
+                    {
+                        { TimeTypes.Morning, "Доброе утро! `ddg`" },
+                        { TimeTypes.Night, "[зевает]\n\n`ddg` И желательно - не ночью..." },
+                    }
+                }
             },
 
             {
@@ -388,7 +357,7 @@ namespace BCRPClient.Data
                         }
                     }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -424,7 +393,7 @@ namespace BCRPClient.Data
                         CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePoundSelect, Locale.Actions.VehiclePoundSelectHeader, vids.Select(x => (counter++, pData.OwnedVehicles.Where(y => y.VID == x).Select(x => $"{x.Data.Name} [#{x.VID}]").FirstOrDefault() ?? "null")).ToArray(), vids, npcId);
                     }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -461,7 +430,7 @@ namespace BCRPClient.Data
 
                     new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -484,7 +453,7 @@ namespace BCRPClient.Data
                         }
                     }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -507,7 +476,7 @@ namespace BCRPClient.Data
                         }
                     }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -524,7 +493,7 @@ namespace BCRPClient.Data
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); }, false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -540,7 +509,7 @@ namespace BCRPClient.Data
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
@@ -570,7 +539,7 @@ namespace BCRPClient.Data
 
                     new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_gas_greeting_0"); }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
+                    new Button("[Выйти]", CloseCurrentDialogue,false)
 
                     )
             },
@@ -584,11 +553,13 @@ namespace BCRPClient.Data
 
                     new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0"); }, true),
 
-                    new Button("[Выйти]", () => { NPC.CurrentNPC?.SwitchDialogue(false); },false)
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
 
                     )
             },
         };
+
+        private static void CloseCurrentDialogue() => NPC.CurrentNPC?.SwitchDialogue(false);
 
         public static Dialogue Get(string id) => AllDialogues.GetValueOrDefault(id);
 
@@ -630,6 +601,8 @@ namespace BCRPClient.Data
         public Button[] Buttons { get; set; }
 
         public Action<object[]> Action { get; set; }
+
+        public Dictionary<TimeTypes, string> TimedTexts { get; set; }
 
         public Dialogue(string Text, Action<object[]> Action = null, params Button[] Buttons)
         {
@@ -705,7 +678,53 @@ namespace BCRPClient.Data
                 CEF.NPC.Show();
             }
 
-            CEF.NPC.Draw(npcHolder.Name, textArgs.Length > 0 ? string.Format(Text, textArgs) : Text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
+            var currentTimeType = GetCurrentTimeType();
+
+            var text = (TimedTexts == null ? Text : TimedTexts.GetValueOrDefault(currentTimeType) ?? Text) ?? "null";
+
+            var tArr = text.Split('`');
+
+            if (tArr.Length > 2 && tArr.Length % 2 != 0)
+            {
+                for (int i = 1; i < tArr.Length; i += 2)
+                {
+                    if (tArr[i] == "ddg")
+                    {
+                        text = text.Replace($"`{tArr[i]}`", Text ?? "null");
+
+                        continue;
+                    }
+
+                    var tArr2 = tArr[i].Split('-');
+
+                    if (tArr2.Length < 2)
+                        continue;
+
+                    object dTypeObj = null;
+
+                    if (!Enum.TryParse(typeof(TimeTypes), tArr2[0], out dTypeObj))
+                        continue;
+
+                    var dType = (TimeTypes)dTypeObj;
+
+                    int dNum = 0;
+
+                    if (!int.TryParse(tArr2[1], out dNum))
+                        continue;
+
+                    var textToReplace = Locale.General.NPC.TimeWords.GetValueOrDefault(dType)?.GetValueOrDefault(dNum);
+
+                    if (textToReplace == null)
+                        continue;
+
+                    text = text.Replace($"`{tArr[i]}`", textToReplace);
+                }
+            }
+
+            if (textArgs.Length > 0)
+                text = string.Format(Text, textArgs);
+
+            CEF.NPC.Draw(npcHolder.Name, text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
         }
     }
 }

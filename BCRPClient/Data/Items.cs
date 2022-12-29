@@ -8,7 +8,7 @@ using System.Text;
 
 namespace BCRPClient.Data
 {
-    class Items : Events.Script
+    public class Items : Events.Script
     {
         public abstract class Item
         {
@@ -456,6 +456,57 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
+        public class VehicleRepairKit : Item, IConsumable
+        {
+            new public class ItemData : Item.ItemData, Item.ItemData.IConsumable
+            {
+                public int MaxAmount { get; set; }
+
+                public ItemData(string Name, float Weight, int MaxAmount) : base(Name, Weight)
+                {
+                    this.MaxAmount = MaxAmount;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class WeaponComponent : Item
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public Sync.WeaponSystem.Weapon.ComponentTypes Type { get; set; }
+
+                public ItemData(string Name, float Weight, Sync.WeaponSystem.Weapon.ComponentTypes Type) : base(Name, Weight)
+                {
+                    this.Type = Type;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class WeaponSkin : Item
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public enum Types
+                {
+                    UniDef = 0,
+                    UniMk2,
+                }
+
+                public Types Type { get; set; }
+
+                public ItemData(string Name, float Weight, Types Type) : base(Name, Weight)
+                {
+                    this.Type = Type;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         #region Enums
         public enum ActionTypes
         {
@@ -588,6 +639,8 @@ namespace BCRPClient.Data
             { typeof(IWearable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
 
             { typeof(VehicleKey), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FindVehicle } } },
+
+            { typeof(WeaponSkin), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
         };
         #endregion
     }

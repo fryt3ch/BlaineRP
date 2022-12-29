@@ -82,6 +82,8 @@ namespace BCRPClient
 
                 Sync.AttachSystem.ReattachObjects(Player.LocalPlayer, true);
 
+                Player.LocalPlayer.SetFlashLightEnabled(true);
+
                 Additional.ExtraColshape.UpdateStreamed();
             };
 

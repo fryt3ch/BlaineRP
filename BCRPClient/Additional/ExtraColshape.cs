@@ -365,6 +365,22 @@ namespace BCRPClient.Additional
             Polygon,
         }
 
+        public enum ApproveTypes
+        {
+            None = -1,
+
+            OnlyByFoot = 0,
+
+            OnlyVehicle = 1,
+            OnlyVehicleDriver = 2,
+
+            OnlyLocalVehicle = 3,
+            OnlyLocalVehicleDriver = 4,
+
+            OnlyServerVehicle = 5,
+            OnlyServerVehicleDriver = 6,
+        }
+
         public enum InteractionTypes
         {
             None = -1,
@@ -430,6 +446,117 @@ namespace BCRPClient.Additional
 
             GarageRootEnter,
         }
+
+        public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
+        {
+            {
+                ApproveTypes.OnlyByFoot,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle != null)
+                        return false;
+
+                    return true;
+                }
+            },
+
+            {
+                ApproveTypes.OnlyVehicle,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                ApproveTypes.OnlyVehicleDriver,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                    {
+                        if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+                            return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                ApproveTypes.OnlyLocalVehicle,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                    {
+                        if (veh.IsLocal)
+                            return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                ApproveTypes.OnlyLocalVehicleDriver,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                    {
+                        if (veh.IsLocal && veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+                            return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                ApproveTypes.OnlyServerVehicle,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                    {
+                        var vData = Sync.Vehicles.GetData(veh);
+
+                        if (vData != null)
+                            return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                ApproveTypes.OnlyServerVehicleDriver,
+
+                () =>
+                {
+                    if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                    {
+                        var vData = Sync.Vehicles.GetData(veh);
+
+                        if (vData != null)
+                        {
+                            if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
+                                return true;
+                        }
+                    }
+
+                    return false;
+                }
+            },
+        };
 
         public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
         {
@@ -905,13 +1032,6 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (Player.LocalPlayer.Vehicle == null || Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle || Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle) == null)
-                            {
-                                ExtraColshapes.CancelLastColshape = true;
-
-                                return;
-                            }
-
                             if (cs.Data is Data.Locations.TuningShop ts)
                             {
                                 Player.LocalPlayer.SetData("CurrentTuning", ts);
@@ -1056,6 +1176,9 @@ namespace BCRPClient.Additional
         /// <summary>Тип действия для взаимодействия</summary>
         public InteractionTypes InteractionType { get; set; }
 
+        /// <summary>Тип действия для проверки на возможность взаимодействия с колшейпом</summary>
+        public ApproveTypes ApproveType { get; set; }
+
         /// <summary>Позиция</summary>
         public Vector3 Position { get; set; }
 
@@ -1131,6 +1254,8 @@ namespace BCRPClient.Additional
             this.InteractionType = InteractionType;
             this.ActionType = ActionType;
 
+            this.ApproveType = ApproveTypes.OnlyByFoot;
+
             All.Add(this.Colshape, this); // the same key problem???
         }
 
@@ -1194,6 +1319,8 @@ namespace BCRPClient.Additional
         {
             bool interactionAllowed = InteractionColshapesAllowed;
 
+            var pos = Player.LocalPlayer.Vehicle is Vehicle veh ? veh.Position : Player.LocalPlayer.Position;
+
             for (int i = 0; i < Streamed.Count; i++)
             {
                 var curPoly = Streamed[i];
@@ -1208,7 +1335,7 @@ namespace BCRPClient.Additional
 
                 if (curPoly.IsInside)
                 {
-                    if ((curPoly.IsInteraction && !interactionAllowed) || !curPoly.IsPointInside(RAGE.Elements.Player.LocalPlayer.Position))
+                    if ((curPoly.IsInteraction && !interactionAllowed) || !curPoly.IsPointInside(pos) || !(ApproveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
                     {
                         curPoly.IsInside = false;
 
@@ -1217,10 +1344,10 @@ namespace BCRPClient.Additional
                 }
                 else
                 {
-                    if (curPoly.IsInteraction && !interactionAllowed)
+                    if ((curPoly.IsInteraction && !interactionAllowed) || !(ApproveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
                         continue;
 
-                    if (curPoly.IsPointInside(RAGE.Elements.Player.LocalPlayer.Position))
+                    if (curPoly.IsPointInside(pos))
                     {
                         curPoly.IsInside = true;
 

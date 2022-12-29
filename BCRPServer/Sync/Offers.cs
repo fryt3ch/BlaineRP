@@ -727,7 +727,7 @@ namespace BCRPServer.Sync
                         this.Amount = Amount;
                     }
 
-                    public string ToClientJson() => ItemRoot == null ? "null" : (new object[] { ItemRoot.ID, Amount, ItemRoot is IStackable ? ItemRoot.BaseWeight : ItemRoot.Weight, Game.Items.Items.GetItemTag(ItemRoot) }).SerializeToJson();
+                    public string ToClientJson() => ItemRoot == null ? "" : $"{ItemRoot.ID}&{Amount}&{(ItemRoot is IStackable ? ItemRoot.BaseWeight : ItemRoot.Weight)}&{Game.Items.Items.GetItemTag(ItemRoot)}";
                 }
 
                 public TradeItem[] SenderItems { get; set; }
@@ -1001,10 +1001,10 @@ namespace BCRPServer.Sync
                     MySQL.CharacterItemsUpdate(tData.Info);
 
                     for (int i = 0; i < senderSlotsToUpdate.Count; i++)
-                        pData.Player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
+                        pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
 
                     for (int i = 0; i < receiverSlotsToUpdate.Count; i++)
-                        tData.Player.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
+                        tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
 
                     return (Game.Items.Inventory.Results.Success, null);
                 }

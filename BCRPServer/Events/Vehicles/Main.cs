@@ -81,8 +81,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (veh.Health != -4000)
-                vData.IsDead = true;
+            vData.IsDead = true;
 
             if (vData.EngineOn)
                 vData.EngineOn = false;
@@ -697,7 +696,7 @@ namespace BCRPServer.Events.Vehicles
 
             pData.Items[idx] = null;
 
-            player.TriggerEvent("Inventory::Update", (int)Groups.Items, idx, "null");
+            player.InventoryUpdate(Groups.Items, idx, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -757,6 +756,84 @@ namespace BCRPServer.Events.Vehicles
             vData.Info.ShowPassport(player);
         }
 
+        [RemoteEvent("Vehicles::Fix")]
+        private static void VehicleFix(Player player, Vehicle veh)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (player.Vehicle != null || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            if (vData.IsDead)
+            {
+                player.Notify("Vehicle::RKDE");
+
+                return;
+            }
+
+            Game.Items.VehicleRepairKit rKit = null;
+
+            var minAmount = int.MaxValue;
+
+            var idx = -1;
+
+            for (int i = 0; i < pData.Items.Length; i++)
+            {
+                if (pData.Items[i] is Game.Items.VehicleRepairKit vrk)
+                {
+                    if (vrk.Amount < minAmount)
+                    {
+                        rKit = vrk;
+
+                        idx = i;
+
+                        minAmount = vrk.Amount;
+                    }
+                }
+            }
+
+            if (rKit == null)
+            {
+                player.Notify("Inventory::NoItem");
+
+                return;
+            }
+
+            rKit.Apply(pData, vData);
+
+            if (rKit.Amount == 1)
+            {
+                rKit.Delete();
+
+                rKit = null;
+
+                pData.Items[idx] = null;
+
+                MySQL.CharacterItemsUpdate(pData.Info);
+            }
+            else
+            {
+                rKit.Amount -= 1;
+
+                rKit.Update();
+            }
+
+            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, idx, Game.Items.Item.ToClientJson(rKit, Game.Items.Inventory.Groups.Items));
+        }
+
         [RemoteProc("VPound::Pay")]
         private static bool VehiclePoundPay(Player player, string npcId, uint vid)
         {
@@ -780,7 +857,7 @@ namespace BCRPServer.Events.Vehicles
             if (vPoundData == null)
                 return false;
 
-            var vInfo = pData.Info.VehiclesOnPound.FirstOrDefault();
+            var vInfo = pData.Info.VehiclesOnPound.Where(x => x.VID == vid).FirstOrDefault();
 
             if (vInfo == null)
                 return false;

@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BCRPServer.Additional
@@ -136,10 +137,10 @@ namespace BCRPServer.Additional
 
             player.RemoveAllWeapons();
 
-            player.TriggerEvent("AC::State::Weapon", ammo, hash);
-
             if (ammo < 0)
                 ammo = 0;
+
+            player.TriggerEvent("AC::State::Weapon", ammo, hash);
 
             NAPI.Player.GivePlayerWeapon(player, hash, ammo);
         }

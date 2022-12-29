@@ -195,6 +195,17 @@ namespace BCRPClient.CEF
                     case OutVehicleActions.VehDocuments:
                         Events.CallRemote("Vehicles::ShowPass", vehicle);
                     break;
+
+                    case OutVehicleActions.Fix:
+                        if (!vehicle.IsDamaged() && vehicle.GetEngineHealth() >= 1000f && vehicle.GetBodyHealth() >= 1000f)
+                        {
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.Vehicles.VehicleIsNotDamagedFixError);
+                        }
+                        else
+                        {
+                            Events.CallRemote("Vehicles::Fix", vehicle);
+                        }
+                    break;
                 }
             });
             #endregion

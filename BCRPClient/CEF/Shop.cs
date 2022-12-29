@@ -220,6 +220,124 @@ namespace BCRPClient.CEF
                     },
                 }
             },
+
+            {
+                Types.WeaponShop,
+
+                new Dictionary<SectionTypes, string[]>()
+                {
+                    {
+                        SectionTypes.Melee,
+
+                        new string[]
+                        {
+                            "w_bat",
+                            "w_bottle",
+                            "w_crowbar",
+                            "w_dagger",
+                            "w_flashlight",
+                            "w_golfclub",
+                            "w_hammer",
+                            "w_hatchet",
+                            "w_knuckles",
+                            "w_machete",
+                            "w_nightstick",
+                            "w_poolcue",
+                            "w_switchblade",
+                            "w_wrench",
+                        }
+                    },
+
+                    {
+                        SectionTypes.Pistols,
+
+                        new string[]
+                        {
+                            "w_pistol",
+                            "w_pistol_mk2",
+                            "w_appistol",
+                            "w_combpistol",
+                            "w_heavypistol",
+                            "w_machpistol",
+                            "w_markpistol",
+                            "w_vintpistol",
+
+                            "w_revolver",
+                            "w_revolver_mk2",
+                        }
+                    },
+
+                    {
+                        SectionTypes.Rifles,
+
+                        new string[]
+                        {
+                            "w_asrifle",
+                            "w_asrifle_mk2",
+                            "w_advrifle",
+                            "w_carbrifle",
+                            "w_comprifle",
+                            "w_heavyrifle",
+                        }
+                    },
+
+                    {
+                        SectionTypes.Submachines,
+
+                        new string[]
+                        {
+                            "w_microsmg",
+                            "w_minismg",
+                            "w_smg",
+                            "w_smg_mk2",
+                            "w_asmsg",
+                            "w_combpdw",
+                        }
+                    },
+
+                    {
+                        SectionTypes.Shotguns,
+
+
+                        new string[]
+                        {
+                            "w_assgun",
+                            "w_heavysgun",
+                            "w_pumpsgun",
+                            "w_pumpsgun_mk2",
+                            "w_sawnsgun",
+                        }
+                    },
+
+                    {
+                        SectionTypes.Ammo,
+
+
+                        new string[]
+                        {
+                            "am_5.56",
+                            "am_7.62",
+                            "am_9",
+                            "am_11.43",
+                            "am_12",
+                            "am_12.7",
+                        }
+                    },
+
+                    {
+                        SectionTypes.Components,
+
+
+                        new string[]
+                        {
+                            "wc_s",
+                            "wc_f",
+                            "wc_g",
+                            "wc_sc",
+                        }
+                    },
+                }
+            },
         };
 
         public Shop()

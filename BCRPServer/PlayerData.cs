@@ -283,7 +283,11 @@ namespace BCRPServer
             /// <value>Объект класса Game.Items.BodyArmour, null - если отсутствует</value>
             public Game.Items.Armour Armour { get; set; }
 
+            /// <summary>Мебель игрока</summary>
             public List<Game.Houses.Furniture> Furniture { get; set; }
+
+            /// <summary>Скины на оружие игрока</summary>
+            public Dictionary<Game.Items.WeaponSkin.ItemData.Types, Game.Items.WeaponSkin> WeaponSkins { get; set; }
 
             public Dictionary<CooldownTypes, DateTime> Cooldowns { get; set; }
 
@@ -1063,6 +1067,8 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool PhoneOn { get => Player.GetSharedData<bool?>("Phone::On") ?? false; set { if (value) Player.SetSharedData("Phone::On", value); else Player.ResetSharedData("Phone::On"); } }
 
+        public string WeaponComponents { get => Player.GetSharedData<string>("WCD"); set { if (value != null) Player.SetSharedData("WCD", value); else Player.ResetSharedData("WCD"); } }
+
         /// <summary>Уровень администратора игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public int AdminLevel { get => Info.AdminLevel; set { Player.SetSharedData("AdminLevel", value); Info.AdminLevel = value; } }
@@ -1236,6 +1242,10 @@ namespace BCRPServer
             Holster = null;
             Armour = null;
 
+            Furniture = new List<Game.Houses.Furniture>();
+
+            Info.WeaponSkins = new Dictionary<WeaponSkin.ItemData.Types, WeaponSkin>();
+
             Familiars = new List<uint>();
 
             Punishments = new List<Punishment>();
@@ -1285,7 +1295,11 @@ namespace BCRPServer
 
             data.Add("Inventory", inventory);
 
-            data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
+            if (Furniture.Count > 0)
+                data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
+
+            if (Info.WeaponSkins.Count > 0)
+                data.Add("WSkins", Info.WeaponSkins.Select(x => x.Value.ID).SerializeToJson());
 
             data.Add("Licenses", Licenses.SerializeToJson());
             data.Add("Skills", Skills.SerializeToJson());

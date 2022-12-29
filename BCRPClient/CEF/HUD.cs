@@ -35,6 +35,8 @@ namespace BCRPClient.CEF
                 Animations,
                 /// <summary>Меню локальных меток</summary>
                 BlipsMenu,
+                /// <summary>Меню раскрасок для оружия</summary>
+                WeaponSkinsMenu,
             }
 
             private static Dictionary<Types, Action> Actions = new Dictionary<Types, Action>()
@@ -48,6 +50,8 @@ namespace BCRPClient.CEF
                 { Types.Menu_House, () => CEF.HouseMenu.ShowRequest() },
 
                 { Types.Menu_Apartments, () => CEF.HouseMenu.ShowRequest() },
+
+                { Types.WeaponSkinsMenu, () => Sync.Players.TryShowWeaponSkinsMenu() },
             };
 
             public static List<Types> CurrentTypes { get; private set; }

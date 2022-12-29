@@ -407,7 +407,7 @@ namespace BCRPServer
 
         public bool IsFrozen { get => Vehicle.GetSharedData<bool?>("IsFrozen") ?? false; set { if (value) Vehicle.SetSharedData("IsFrozen", value); else Vehicle.ResetSharedData("IsFrozen"); } }
 
-        public bool IsDead { get => Vehicle.Health <= -4000; set => Vehicle.Health = -4000; }
+        public bool IsDead { get => Vehicle.Health <= -4000 || (Vehicle.GetData<bool?>("IsDead") ?? false); set { if (value) Vehicle.SetData("IsDead", value); else Vehicle.ResetData("IsDead"); } }
 
         /// <summary>Уникальный ID транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

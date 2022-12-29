@@ -235,10 +235,22 @@ namespace BCRPClient.Additional
 
                 if (args.Length > 1)
                 {
-                    LastAllowedWeapon = ((int)args[1]).ToUInt32();
-                }
+                    var curGunData = Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon).FirstOrDefault();
 
-                Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
+                    if (curGunData != null)
+                    {
+                        if (curGunData.ComponentsHashes != null)
+                        {
+                            foreach (var x in curGunData.ComponentsHashes.Values)
+                                if (Player.LocalPlayer.HasGotWeaponComponent(LastAllowedWeapon, x))
+                                    Player.LocalPlayer.RemoveWeaponComponentFrom(LastAllowedWeapon, x);
+                        }
+                    }
+
+                    LastAllowedWeapon = ((int)args[1]).ToUInt32();
+
+                    Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
+                }
 
                 Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
 
@@ -379,8 +391,6 @@ namespace BCRPClient.Additional
 
                 if (curWeapon != LastAllowedWeapon && curWeapon != Sync.WeaponSystem.MobileHash)
                 {
-                    //Player.LocalPlayer.RemoveAllWeapons(true);
-
                     Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
                 }
 
@@ -434,14 +444,22 @@ namespace BCRPClient.Additional
                     }
                 }
 
-/*                if (veh.GetEngineHealth() - lastHp > 0)
+                if (veh.IsDead(0))
                 {
-                    veh.SetEngineHealth(lastHp);
+                    if (curHp > -4000f)
+                        veh.SetEngineHealth(-4000f);
                 }
                 else
                 {
-                    veh.SetData("LastHealth", curHp);
-                }*/
+                    if (curHp - lastHp > 0)
+                    {
+                        veh.SetEngineHealth(lastHp);
+                    }
+                    else
+                    {
+                        veh.SetData("LastHealth", curHp);
+                    }
+                }
             }
 
             RAGE.Game.Player.RestorePlayerStamina(100);

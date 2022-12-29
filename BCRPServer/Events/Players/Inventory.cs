@@ -1,5 +1,6 @@
 ﻿using BCRPServer.Game.Items;
 using GTANetworkAPI;
+using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -184,9 +185,7 @@ namespace BCRPServer.Events.Players
                 }
             }
 
-            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], Groups.Items);
-
-            player.TriggerEvent("Inventory::Update", (int)Groups.Items, freeIdx, upd);
+            player.InventoryUpdate(Groups.Items, freeIdx, pData.Items[freeIdx].ToClientJson(Groups.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
         }
@@ -347,7 +346,7 @@ namespace BCRPServer.Events.Players
                 if (target?.Exists != true)
                     return;
 
-                target.TriggerEvent("Inventory::Update", (int)Game.Items.Inventory.Groups.Container, slot, upd);
+                target.InventoryUpdate(Groups.Container, slot, upd);
             }
 
             cont.Update();

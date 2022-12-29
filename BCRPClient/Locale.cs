@@ -110,6 +110,45 @@ namespace BCRPClient
                     { "bank", "Работник банка" },
                     { "vpound", "Работник штрафстоянки" },
                 };
+
+                public static Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>>()
+                {
+                    {
+                        Data.Dialogue.TimeTypes.Morning,
+
+                        new Dictionary<int, string>()
+                        {
+                            { 0, "утро" },
+                        }
+                    },
+
+                    {
+                        Data.Dialogue.TimeTypes.Day,
+
+                        new Dictionary<int, string>()
+                        {
+                            { 0, "день" },
+                        }
+                    },
+
+                    {
+                        Data.Dialogue.TimeTypes.Evening,
+
+                        new Dictionary<int, string>()
+                        {
+                            { 0, "вечер" },
+                        }
+                    },
+
+                    {
+                        Data.Dialogue.TimeTypes.Night,
+
+                        new Dictionary<int, string>()
+                        {
+                            { 0, "ночь" },
+                        }
+                    },
+                };
             }
 
             public static class Containers
@@ -138,6 +177,14 @@ namespace BCRPClient
 
                     public static string Load = "Зарядить";
                     public static string Unload = "Разрядить";
+
+                    public static Dictionary<Sync.WeaponSystem.Weapon.ComponentTypes, string> WeaponComponentsTakeOffStrings = new Dictionary<Sync.WeaponSystem.Weapon.ComponentTypes, string>()
+                    {
+                        { Sync.WeaponSystem.Weapon.ComponentTypes.Suppressor, "Снять глушитель" },
+                        { Sync.WeaponSystem.Weapon.ComponentTypes.Grip, "Снять рукоятку" },
+                        { Sync.WeaponSystem.Weapon.ComponentTypes.Scope, "Снять прицел" },
+                        { Sync.WeaponSystem.Weapon.ComponentTypes.Flashlight, "Снять фонарик" },
+                    };
 
                     public static string Drop = "Выбросить";
 
@@ -822,6 +869,14 @@ namespace BCRPClient
             public static string VehiclePassportSelectHeader = "Выбор тех. паспорта";
 
             public static string VehiclePoundSelectHeader = "Выбор транспорта";
+
+            public static string WeaponSkinsMenuSelectHeader = "Текущие раскраски оружия";
+
+            public static Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>()
+            {
+                { Data.Items.WeaponSkin.ItemData.Types.UniDef, "Универсальная (обыч.)" },
+                { Data.Items.WeaponSkin.ItemData.Types.UniMk2, "Универсальная (Mk2)" },
+            };
         }
 
         public static class HudMenu
@@ -837,7 +892,9 @@ namespace BCRPClient
                 { CEF.HUD.Menu.Types.Phone, "Телефон" },
                 { CEF.HUD.Menu.Types.Animations, "Меню анимаций" },
 
-                { CEF.HUD.Menu.Types.BlipsMenu, "Мои метки" },
+                { CEF.HUD.Menu.Types.BlipsMenu, "Меню меток" },
+
+                { CEF.HUD.Menu.Types.WeaponSkinsMenu, "Раскраски оружия" },
             };
         }
 
@@ -1210,6 +1267,11 @@ namespace BCRPClient
                 public static string NoSuchItemAmount = "У вас нет необходимого кол-ва нужного предмета в инвентаре!";
 
                 public static string InventoryBlocked = "В данный момент вы не можете взаимодействовать с инвентарем!";
+
+                public static string WeaponHasThisComponent = "На это оружие уже установлен этот компонент!";
+                public static string WeaponWrongComponent = "На это оружие нельзя установить этот компонент!";
+
+                public static string NoWeaponSkins = "У вас не активна ни одна раскраска на оружие!";
             }
 
             public static class Gifts
@@ -1476,6 +1538,9 @@ namespace BCRPClient
 
                 public static string VehicleOnPound = "Этот транспорт находится на штрафстоянке!";
                 public static string VehicleKeyError = "Этот ключ не работает!";
+
+                public static string VehicleIsDeadFixError = "Этот транспорт слишком сильно поврежден, вызовите механика!";
+                public static string VehicleIsNotDamagedFixError = "Этот транспорт не поврежден!";
             }
         }
         #endregion

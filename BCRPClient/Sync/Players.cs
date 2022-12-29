@@ -6,6 +6,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -193,6 +194,8 @@ namespace BCRPClient.Sync
 
             public bool CrawlOn => Player.GetSharedData<bool>("Crawl::On", false);
 
+            public string WeaponComponents => Player.GetSharedData<string>("WCD", null);
+
             public float VoiceRange => Player.GetSharedData<float>("VoiceRange", 0f);
 
             public bool IsMuted => VoiceRange < 0f;
@@ -248,6 +251,8 @@ namespace BCRPClient.Sync
             public Data.Locations.HouseBase SettledHouseBase { get => Player.LocalPlayer.GetData<Data.Locations.HouseBase>("SettledHouseBase"); set { if (value == null) Player.LocalPlayer.ResetData("SettledHouseBase"); else Player.LocalPlayer.SetData("SettledHouseBase", value); } }
 
             public Dictionary<uint, Data.Furniture> Furniture { get => Player.LocalPlayer.GetData<Dictionary<uint, Data.Furniture>>("Furniture"); set => Player.LocalPlayer.SetData("Furniture", value); }
+
+            public Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkins { get => Player.LocalPlayer.GetData<Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>>("WeaponSkins"); set => Player.LocalPlayer.SetData("WeaponSkins", value); }
 
             public List<uint> Familiars { get => Player.LocalPlayer.GetData<List<uint>>("Familiars"); set => Player.LocalPlayer.SetData("Familiars", value); }
 
@@ -442,7 +447,23 @@ namespace BCRPClient.Sync
                     data.Quests = new List<Quest>();
                 }
 
-                data.Furniture = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Furniture"]).ToDictionary(x => x.Key, x => Data.Furniture.GetData(x.Value));
+                if (sData.ContainsKey("Furniture"))
+                {
+                    data.Furniture = RAGE.Util.Json.Deserialize<Dictionary<uint, string>>((string)sData["Furniture"]).ToDictionary(x => x.Key, x => Data.Furniture.GetData(x.Value));
+                }
+                else
+                {
+                    data.Furniture = new Dictionary<uint, Data.Furniture>();
+                }
+
+                if (sData.ContainsKey("WSkins"))
+                {
+                    data.WeaponSkins = RAGE.Util.Json.Deserialize<List<string>>((string)sData["WSkins"]).ToDictionary(x => ((Data.Items.WeaponSkin.ItemData)Data.Items.GetData(x, null)).Type, x => x);
+                }
+                else
+                {
+                    data.WeaponSkins = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>();
+                }
 
                 foreach (var x in data.Skills)
                     UpdateSkill(x.Key, x.Value);
@@ -510,6 +531,9 @@ namespace BCRPClient.Sync
                 }, 60000, true, 60000)).Run();
 
                 CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu, HUD.Menu.Types.Documents, HUD.Menu.Types.BlipsMenu);
+
+                if (data.WeaponSkins.Count > 0)
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.WeaponSkinsMenu);
 
                 Settings.Load();
                 KeyBinds.LoadAll();
@@ -596,6 +620,8 @@ namespace BCRPClient.Sync
                     InvokeHandler("IsInvisible", data, data.IsInvisible, null);
 
                     data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
+
+                    InvokeHandler("WCD", data, data.WeaponComponents, null);
 
                     if (data.VoiceRange > 0f)
                         Sync.Microphone.AddTalker(player);
@@ -786,6 +812,41 @@ namespace BCRPClient.Sync
                 UpdateSkill(sType, value);
 
                 CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
+            });
+
+            Events.Add("Player::WSkins::Update", (args) =>
+            {
+                var data = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (data == null)
+                    return;
+
+                var add = (bool)args[0];
+
+                var id = (string)args[1];
+
+                var wSkins = data.WeaponSkins;
+
+                var type = ((Data.Items.WeaponSkin.ItemData)Data.Items.GetData(id, null)).Type;
+
+                if (add)
+                {
+                    if (wSkins.ContainsKey(type))
+                        wSkins[type] = id;
+                    else
+                        wSkins.Add(type, id);
+
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.WeaponSkinsMenu);
+                }
+                else
+                {
+                    wSkins.Remove(type);
+
+                    if (wSkins.Count == 0)
+                        CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.WeaponSkinsMenu);
+                }
+
+                data.WeaponSkins = wSkins;
             });
 
             Events.Add("Player::MedCard::Update", (object[] args) =>
@@ -1149,6 +1210,29 @@ namespace BCRPClient.Sync
 
                         WoundedHandler -= WoundedUpdate;
                     }
+                }
+            });
+
+            AddDataHandler("WCD", (pData, value, oldValue) =>
+            {
+                var player = pData.Player;
+
+                if (value is string strData)
+                {
+                    Sync.WeaponSystem.UpdateWeaponComponents(player, strData);
+                }
+            });
+
+            Events.Add("Players::WCD::U", (args) =>
+            {
+                var player = (Player)args[0];
+
+                if (player?.Exists != true || player.Handle == Player.LocalPlayer.Handle)
+                    return;
+
+                if (player.GetSharedData<string>("WCD", null) is string strData)
+                {
+                    Sync.WeaponSystem.UpdateWeaponComponents(player, strData);
                 }
             });
 
@@ -1554,7 +1638,9 @@ namespace BCRPClient.Sync
                             while (veh?.Exists == true && veh.GetPedInSeat(seat - 1, 0) == Player.LocalPlayer.Handle);
                         }
                         else
+                        {
                             HUD.SwitchSpeedometer(false);
+                        }
                     }
                 }
                 else
@@ -1578,6 +1664,8 @@ namespace BCRPClient.Sync
                     continue;
 
                 player.SetResetFlag(200, true);
+
+                //player.SetFlashLightEnabled(true);
             }
         }
 
@@ -1683,6 +1771,25 @@ namespace BCRPClient.Sync
 
                 CEF.Menu.AddAchievement(aType, value, maxValue, $"[{(int)aType + 1}] {aData.Item1}", aData.Item2);
             }
+        }
+
+        public static void TryShowWeaponSkinsMenu()
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            var wSkins = pData.WeaponSkins;
+
+            if (wSkins.Count == 0)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.NoWeaponSkins);
+
+                return;
+            }
+
+            CEF.ActionBox.ShowSelect(ActionBox.Contexts.WeaponSkinsMenuSelect, Locale.Actions.WeaponSkinsMenuSelectHeader, wSkins.Select(x => ((int)x.Key, $"{(Locale.Actions.WeaponSkinTypeNames.GetValueOrDefault(x.Key) ?? "null")} | {Data.Items.GetName(x.Value).Split('(')[0]}")).ToArray());
         }
 
         public static void CloseAll(bool onlyInterfaces = false)

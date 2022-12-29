@@ -56,6 +56,7 @@ namespace BCRPClient
             BlipsMenu,
             AnchorBoat,
             SendCoordsToDriver,
+            FlashlightToggle,
 
             weapon0, weapon1, weapon2,
             pockets0, pockets1, pockets2, pockets3, pockets4, pockets5, pockets6, pockets7, pockets8, pockets9, pockets10, pockets11, pockets12, pockets13, pockets14, pockets15, pockets16, pockets17, pockets18, pockets19
@@ -366,6 +367,8 @@ namespace BCRPClient
             { Types.AnchorBoat, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.Z } },
 
             { Types.SendCoordsToDriver, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.O } },
+
+            { Types.FlashlightToggle, new RAGE.Ui.VirtualKeys[] { } },
 
             { Types.weapon0, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.N1 } },
             { Types.weapon1, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.N2 } },
@@ -895,6 +898,15 @@ namespace BCRPClient
                 }
             }, true, true)
             { Description = "Якорь (для лодок)" });
+
+            Add(new Bind(Types.FlashlightToggle, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                {
+                    Events.CallRemote("Players::FLT");
+                }
+            }, true, true)
+            { Description = "Фонарик (вкл/выкл)" });
 
             // Inventory Binds
             Add(new Bind(Types.weapon0, () =>

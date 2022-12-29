@@ -299,12 +299,13 @@ namespace BCRPClient.Data
 
                 this.FloorPosition.Z -= 1f;
 
-                this.Colshape = new Additional.Cylinder(PositionEnter, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+                this.Colshape = new Additional.Cylinder(PositionEnter, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                {
+                    ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootEnter,
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter,
 
-                this.Colshape.ActionType = Additional.ExtraColshape.ActionTypes.ApartmentsRootEnter;
-                this.Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter;
-
-                this.Colshape.Data = this;
+                    Data = this,
+                };
 
                 InfoText = new TextLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z + 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
@@ -594,12 +595,13 @@ namespace BCRPClient.Data
 
                 this.GaragePosition = GaragePosition;
 
-                Colshape = new Additional.Cylinder(Position, 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
+                Colshape = new Additional.Cylinder(Position, 1.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                {
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter,
+                    ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter,
 
-                Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseEnter;
-                Colshape.ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter;
-
-                Colshape.Data = this;
+                    Data = this,
+                };
 
                 InfoText = new TextLabel(new Vector3(Position.X, Position.Y, Position.Z + 0.5f), "", Utils.WhiteColourRGBA, 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
@@ -671,7 +673,10 @@ namespace BCRPClient.Data
 
             public static void Initialize()
             {
-                MainColshape = new Additional.Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null);
+                MainColshape = new Additional.Circle(new Vector3(4840.571f, -5174.425f, 0f), 2374f, false, new Utils.Colour(0, 0, 255, 125), uint.MaxValue, null)
+                {
+                    Name = "CayoPerico_Loader",
+                };
 
                 MainColshape.OnEnter += (cancel) =>
                 {
@@ -690,8 +695,6 @@ namespace BCRPClient.Data
                 };
 
                 ToggleCayoPericoIsland(false, false);
-
-                MainColshape.Name = "CayoPerico_Loader";
 
                 MainBlip = new Blip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, uint.MaxValue);
             }
@@ -762,11 +765,12 @@ namespace BCRPClient.Data
                 {
                     posBlip += NPCs[i].Position;
 
-                    var npc = new NPC($"bank_{Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION);
+                    var npc = new NPC($"bank_{Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION)
+                    {
+                        DefaultDialogueId = "bank_preprocess",
 
-                    npc.DefaultDialogueId = "bank_preprocess";
-
-                    npc.Data = this;
+                        Data = this,
+                    };
 
                     Workers.Add(npc);
                 }
@@ -791,14 +795,15 @@ namespace BCRPClient.Data
 
                 All.Add(Id, this);
 
-                Colshape = new Additional.Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+                Colshape = new Additional.Sphere(PositionParams.Position, PositionParams.RotationZ, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                {
+                    Data = this,
 
-                Colshape.Data = this;
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.ATM,
+                    ActionType = Additional.ExtraColshape.ActionTypes.ATM,
 
-                Colshape.InteractionType = Additional.ExtraColshape.InteractionTypes.ATM;
-                Colshape.ActionType = Additional.ExtraColshape.ActionTypes.ATM;
-
-                Colshape.Name = $"atm_{Id}";
+                    Name = $"atm_{Id}",
+                };
 
                 Blip = new Blip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
@@ -871,12 +876,13 @@ namespace BCRPClient.Data
                 this.Rent = Rent;
                 this.Tax = Tax;
 
-                InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null);
+                InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                {
+                    ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo,
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo,
 
-                InfoColshape.ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo;
-                InfoColshape.InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo;
-
-                InfoColshape.Data = this;
+                    Data = this,
+                };
 
                 InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
@@ -930,9 +936,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -949,9 +958,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -968,9 +980,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -987,9 +1002,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1023,9 +1041,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1042,9 +1063,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1061,9 +1085,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1080,9 +1107,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1099,9 +1129,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1118,9 +1151,12 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
             }
         }
 
@@ -1132,12 +1168,15 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.EnteranceColshape = new Additional.Sphere(PositionInteract.Position, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
+                this.EnteranceColshape = new Additional.Sphere(PositionInteract.Position, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                {
+                    ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
-                this.EnteranceColshape.InteractionType = Additional.ExtraColshape.InteractionTypes.TuningEnter;
-                this.EnteranceColshape.ActionType = Additional.ExtraColshape.ActionTypes.TuningEnter;
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.TuningEnter,
+                    ActionType = Additional.ExtraColshape.ActionTypes.TuningEnter,
 
-                this.EnteranceColshape.Data = this;
+                    Data = this,
+                };
 
                 new Marker(44, PositionInteract.Position, 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
             }
@@ -1158,16 +1197,20 @@ namespace BCRPClient.Data
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
 
-                this.Seller.Data = this;
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
 
-                var shootingRangeEnterCs = new Additional.Cylinder(ShootingRangePosition, 1.5f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                var shootingRangeEnterCs = new Additional.Cylinder(ShootingRangePosition, 1.5f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                {
+                    Data = this,
 
-                shootingRangeEnterCs.Data = this;
-
-                shootingRangeEnterCs.InteractionType = Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter;
-                shootingRangeEnterCs.ActionType = Additional.ExtraColshape.ActionTypes.ShootingRangeEnter;
+                    ActionType = Additional.ExtraColshape.ActionTypes.ShootingRangeEnter,
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter,
+                };
 
                 var shootingRangeText = new TextLabel(new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z + 0.5f), Locale.General.Business.ShootingRangeTitle, new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
             }
