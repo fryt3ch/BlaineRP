@@ -406,6 +406,13 @@ namespace BCRPServer.Game.Items
                 Misc
             }
 
+            private static List<uint> Mk2WeaponHashes = new List<uint>()
+            {
+                0x6A6C02E0, 0xA914799, 0xDBBD7280, 0x84D6FAFD, 0x969C3D67, 0xFAD1F1C9, 0x394F415C, 0x555AF99A, 0x78A97CD0, 0xCB96392F, 0x88374054, 0xBFE256D4,
+            };
+
+            public bool IsMk2Weapon => Mk2WeaponHashes.Contains(Hash);
+
             /// <summary>ID подходящих патронов</summary>
             /// <value>Тип патронов, если оружие способно стрелять и заряжаться, null - в противном случае</value>
             public string AmmoID { get; set; }
@@ -528,9 +535,9 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public bool Equiped { get; set; }
 
-        /// <summary>ID привязанного к игроку объекта оружия</summary>
+        /// <summary>Тип привязки к игроку объекта оружия</summary>
         [JsonIgnore]
-        public int AttachID { get; set; }
+        public Sync.AttachSystem.Types? AttachType { get; set; }
 
         /// <summary>Кол-во патронов в обойме</summary>
         public int Ammo { get; set; }
@@ -617,7 +624,7 @@ namespace BCRPServer.Game.Items
 
         public void Wear(PlayerData pData)
         {
-            if (AttachID != -1 || Equiped)
+            if (AttachType != null || Equiped)
                 return;
 
             var player = pData.Player;
@@ -629,15 +636,17 @@ namespace BCRPServer.Game.Items
                 return;
             }
 
-            var attachTypes = this.Data.AttachTypes;
+            var data = Data;
+
+            var attachTypes = data.AttachTypes;
 
             if (attachTypes == null)
                 return;
 
-            if (pData.AttachedObjects.Where(x => x.Type == attachTypes[0]).Any())
-                AttachID = player.AttachObject(Model, attachTypes[1], -1);
-            else
-                AttachID = player.AttachObject(Model, attachTypes[0], -1);
+            var atId = pData.AttachedObjects.Where(x => x.Type == attachTypes[0]).Any() ? 1 : 0;
+
+            if (player.AttachObject(data.Hash, attachTypes[atId], -1, $"{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}"))
+                AttachType = attachTypes[atId];
         }
 
         public void Unwear(PlayerData pData)
@@ -647,12 +656,12 @@ namespace BCRPServer.Game.Items
             if (pData.Holster != null && (pData.Holster.Items[0] == null || pData.Holster.Items[0] == this))
                 pData.Holster.UnwearWeapon(pData);
 
-            if (AttachID == -1)
-                return;
+            if (AttachType is Sync.AttachSystem.Types aType)
+            {
+                player.DetachObject(aType);
 
-            player.DetachObject(AttachID);
-
-            AttachID = -1;
+                AttachType = null;
+            }
         }
 
         public string GetWeaponComponentsString()
@@ -662,22 +671,41 @@ namespace BCRPServer.Game.Items
             return t.Any() ? string.Join('_', t) : "";
         }
 
+        public int GetCurrentSkinVariation(PlayerData pData)
+        {
+            if (Data.IsMk2Weapon)
+            {
+                return pData.Info.WeaponSkins.GetValueOrDefault(WeaponSkin.ItemData.Types.UniMk2)?.Data.Variation ?? 0;
+            }
+            else
+            {
+                return pData.Info.WeaponSkins.GetValueOrDefault(WeaponSkin.ItemData.Types.UniDef)?.Data.Variation ?? 0;
+            }
+        }
+
         public void UpdateWeaponComponents(PlayerData pData)
         {
-            if (!Equiped)
-                return;
+            if (Equiped)
+            {
+                pData.WeaponComponents = $"{Data.Hash}_{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}";
+            }
+            else if (AttachType is Sync.AttachSystem.Types aType)
+            {
+                var atObjects = pData.AttachedObjects;
 
-            var wcStr = GetWeaponComponentsString();
+                var atObj = atObjects.Where(x => x.Type == aType).FirstOrDefault();
 
-            var wSkin = pData.Info.WeaponSkins.GetValueOrDefault(WeaponSkin.ItemData.Types.UniDef);
+                if (atObj == null)
+                    return;
 
-            pData.WeaponComponents = wcStr.Length == 0 ? $"{Data.Hash}_{(wSkin == null ? 0 : wSkin.Data.Variation)}" : $"{Data.Hash}_{(wSkin == null ? 0 : wSkin.Data.Variation)}_{wcStr}";
+                atObj.SyncData = $"{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}";
+
+                pData.AttachedObjects = atObjects;
+            }
         }
 
         public Weapon(string ID) : base(ID, IDList[ID], typeof(Weapon))
         {
-            this.AttachID = -1;
-
             Items = new Item[5];
         }
     }
@@ -811,13 +839,15 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "ws_0_0", new ItemData("Зеленая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 1 ) },
-            { "ws_0_1", new ItemData("Золотая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 2 ) },
-            { "ws_0_2", new ItemData("Розовая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 3 ) },
-            { "ws_0_3", new ItemData("Армейская раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 4 ) },
-            { "ws_0_4", new ItemData("Синяя раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 5 ) },
-            { "ws_0_5", new ItemData("Оранжевая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 6 ) },
-            { "ws_0_6", new ItemData("Платиновая раскраска (обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 7 ) },
+            { "ws_0_0", new ItemData("Зеленая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 1 ) },
+            { "ws_0_1", new ItemData("Золотая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 2 ) },
+            { "ws_0_2", new ItemData("Розовая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 3 ) },
+            { "ws_0_3", new ItemData("Армейская раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 4 ) },
+            { "ws_0_4", new ItemData("Синяя раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 5 ) },
+            { "ws_0_5", new ItemData("Оранжевая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 6 ) },
+            { "ws_0_6", new ItemData("Платиновая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 7 ) },
+
+            { "ws_1_1", new ItemData("Черно-белая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniMk2, 2 ) },
         };
 
         public static ItemData GetData(string id) => (ItemData)IDList[id];
@@ -3451,7 +3481,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation]);
+            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation], null);
 
             pData.PlayAnim(data.Animation);
 
@@ -3530,7 +3560,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, data.MaxTime, data.MaxPuffs);
+            player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, null, data.MaxTime, data.MaxPuffs);
 
             var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
 
@@ -3616,7 +3646,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, data.MaxTime, data.MaxPuffs);
+            player.AttachObject(data.GetModelAt(ItemData.UseCigModelIdx), data.AttachType, -1, null, data.MaxTime, data.MaxPuffs);
 
             var moodDiff = Utils.GetCorrectDiff(pData.Mood, data.Mood, 0, 100);
 
@@ -3687,7 +3717,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation]);
+            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation], null);
 
             pData.PlayAnim(data.Animation);
 
@@ -3708,7 +3738,7 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation]);
+            player.AttachObject(data.Model, data.AttachType, Sync.Animations.FastTimeouts[data.Animation], null);
 
             pData.PlayAnim(data.Animation);
 

@@ -414,7 +414,7 @@ namespace BCRPServer.Game.Items
             this.Entity = owner;
         }
 
-        public string ToClientJson() => (new object[] { ContainerType, MaxWeight, Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Container)) }).SerializeToJson();
+        public string ToClientJson() => $"{(int)ContainerType}&{MaxWeight}|{string.Join('|', Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Container)))}";
 
         private static Dictionary<Game.Items.Inventory.Groups, Dictionary<Game.Items.Inventory.Groups, Func<PlayerData, Container, int, int, int, Game.Items.Inventory.Results>>> ReplaceActions = new Dictionary<Game.Items.Inventory.Groups, Dictionary<Game.Items.Inventory.Groups, Func<PlayerData, Container, int, int, int, Game.Items.Inventory.Results>>>()
         {

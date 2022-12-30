@@ -874,7 +874,7 @@ namespace BCRPClient
 
             public static Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>()
             {
-                { Data.Items.WeaponSkin.ItemData.Types.UniDef, "Универсальная (обыч.)" },
+                { Data.Items.WeaponSkin.ItemData.Types.UniDef, "Универсальная (все)" },
                 { Data.Items.WeaponSkin.ItemData.Types.UniMk2, "Универсальная (Mk2)" },
             };
         }

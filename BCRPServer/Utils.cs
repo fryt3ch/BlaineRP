@@ -567,7 +567,7 @@ namespace BCRPServer
             }
 
             foreach (var x in updList)
-                pData.Player.InventoryUpdate(x.Group, x.Slot, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+                pData.Player.InventoryUpdate(x.Group, x.Slot, Game.Items.Item.ToClientJson(null, x.Group));
         }
 
 
@@ -605,7 +605,7 @@ namespace BCRPServer
 
                     tempItems.Add((weapon, Game.Items.Inventory.Groups.Weapons, i));
 
-                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Weapons, i, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Weapons, i, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Weapons));
                 }
             }
 
@@ -944,10 +944,10 @@ namespace BCRPServer
         public static float DistanceXY(this Vector3 pos1, Vector3 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
 
         /// <inheritdoc cref="Sync.AttachSystem.AttachObject(Entity, string, Sync.AttachSystem.Types, int)"/>
-        public static int AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter = -1, params object[] args) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter, args);
+        public static bool AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter, string syncData, params object[] args) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter, syncData, args);
         
         /// <inheritdoc cref="Sync.AttachSystem.DetachObject(Entity, string)"/>
-        public static void DetachObject(this Entity entity, int id, params object[] args) => Sync.AttachSystem.DetachObject(entity, id, args);
+        public static void DetachObject(this Entity entity, Sync.AttachSystem.Types type, params object[] args) => Sync.AttachSystem.DetachObject(entity, type, args);
         
         /// <inheritdoc cref="Sync.AttachSystem.AttachEntity(Entity, int, Sync.AttachSystem.Types)"/>
         public static void AttachEntity(this Entity entity, Entity target, Sync.AttachSystem.Types type) => Sync.AttachSystem.AttachEntity(entity, target, type);
@@ -1006,7 +1006,7 @@ namespace BCRPServer
                 player.DetachAllEntities();
 
                 foreach (var x in pData.ObjectsInHand)
-                    player.DetachObject(x.Id);
+                    player.DetachObject(x.Type);
 
                 pData.StopAnim();
 

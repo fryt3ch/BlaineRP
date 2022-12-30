@@ -396,6 +396,17 @@ namespace BCRPClient
         public static bool IsPasswordValid(string str) => PasswordPattern.IsMatch(str);
         public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
 
+        public static async System.Threading.Tasks.Task RequestWeaponAsset(uint hash)
+        {
+            if (RAGE.Game.Weapon.HasWeaponAssetLoaded(hash))
+                return;
+
+            RAGE.Game.Weapon.RequestWeaponAsset(hash, 31, 0);
+
+            while (!RAGE.Game.Weapon.HasWeaponAssetLoaded(hash))
+                await RAGE.Game.Invoker.WaitAsync(25);
+        }
+
         public static async System.Threading.Tasks.Task RequestAnimDict(string name)
         {
             if (RAGE.Game.Streaming.HasAnimDictLoaded(name))
@@ -420,6 +431,9 @@ namespace BCRPClient
 
         public static async System.Threading.Tasks.Task RequestModel(uint hash)
         {
+            if (!RAGE.Game.Streaming.IsModelValid(hash))
+                return;
+
             if (RAGE.Game.Streaming.HasModelLoaded(hash))
                 return;
 

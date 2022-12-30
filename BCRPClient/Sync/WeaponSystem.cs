@@ -586,7 +586,7 @@ namespace BCRPClient.Sync
 
             GameEvents.Update += () =>
             {
-                if (RAGE.Game.Invoker.Invoke<bool>(RAGE.Game.Natives.IsAimCamActive) || RAGE.Game.Invoker.Invoke<bool>(RAGE.Game.Natives.IsFirstPersonAimCamActive))
+                if (RAGE.Game.Cam.IsAimCamActive())
                 {
                     if (Settings.Aim.Type == Settings.Aim.Types.Default)
                         return;
@@ -706,16 +706,38 @@ namespace BCRPClient.Sync
                 foreach (var x in curGunData.ComponentsHashes.Values)
                     player.RemoveWeaponComponentFrom(wHash, x);
 
-                wcData.Skip(2).Select(x => curGunData.GetComponentHash((Sync.WeaponSystem.Weapon.ComponentTypes)int.Parse(x))).ToList().ForEach((x) =>
+                wcData.Skip(2).Where(x => x.Length > 0).Select(x => curGunData.GetComponentHash((Sync.WeaponSystem.Weapon.ComponentTypes)int.Parse(x))).ToList().ForEach((x) =>
                 {
                     if (x is uint hash)
                     {
-                        player.GiveWeaponComponentTo(curGunData.Hash, hash);
                         player.GiveWeaponComponentTo(curGunData.Hash, hash);
                     }
                 });
 
                 player.SetCurrentWeapon(wHash, true);
+            }
+        }
+
+        public static void UpdateWeaponObjectComponents(int objHandle, uint wHash, string strData)
+        {
+            var wcData = strData.Split('_');
+
+            var wTint = int.Parse(wcData[0]);
+
+            var curGunData = WeaponList.Where(x => x.Hash == wHash).FirstOrDefault();
+
+            if (RAGE.Game.Weapon.GetWeaponObjectTintIndex(objHandle) != wTint)
+                RAGE.Game.Weapon.SetWeaponObjectTintIndex(objHandle, wTint);
+
+            if (curGunData?.ComponentsHashes != null)
+            {
+                wcData.Skip(1).Where(x => x.Length > 0).Select(x => curGunData.GetComponentHash((Sync.WeaponSystem.Weapon.ComponentTypes)int.Parse(x))).ToList().ForEach((x) =>
+                {
+                    if (x is uint hash)
+                    {
+                        RAGE.Game.Weapon.GiveWeaponComponentToWeaponObject(objHandle, hash);
+                    }
+                });
             }
         }
 

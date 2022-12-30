@@ -253,8 +253,8 @@ namespace BCRPServer.Events.Players
                     if (x == null)
                         continue;
 
-                    if (x.AttachID != -1)
-                        x.AttachID = -1;
+                    if (x.AttachType != null)
+                        x.AttachType = null;
                 }
 
                 data.Info.LastData.Health = player.Health;
@@ -653,7 +653,7 @@ namespace BCRPServer.Events.Players
 
                         pData.PhoneOn = true;
 
-                        player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
+                        player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
 
                         Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
                     }, 250);
@@ -662,7 +662,7 @@ namespace BCRPServer.Events.Players
                 {
                     pData.PhoneOn = true;
 
-                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone);
+                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
 
                     Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
                 }
@@ -890,7 +890,7 @@ namespace BCRPServer.Events.Players
             {
                 if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
                 {
-                    player.DetachObject(x.Id);
+                    player.DetachObject(x.Type);
 
                     pData.StopAnim();
 
@@ -956,8 +956,8 @@ namespace BCRPServer.Events.Players
                 if (player?.Exists != true)
                     return;
 
-                player.DetachObject(attachData.Id, false);
-                player.AttachObject(attachData.Model, oppositeType);
+                player.DetachObject(attachData.Type, false);
+                player.AttachObject(attachData.Model, oppositeType, -1, null);
             }, 500);
         }
 
@@ -1011,7 +1011,18 @@ namespace BCRPServer.Events.Players
             MySQL.CharacterWeaponSkinsUpdate(pData.Info);
             MySQL.CharacterItemsUpdate(pData.Info);
 
-            pData.ActiveWeapon?.WeaponItem?.UpdateWeaponComponents(pData);
+            for (int i = 0; i < pData.Weapons.Length; i++)
+            {
+                if (pData.Weapons[i] is Game.Items.Weapon weapon)
+                {
+                    weapon.UpdateWeaponComponents(pData);
+                }
+            }
+
+            if (pData.Holster?.Items[0] is Game.Items.Weapon hWeapon)
+            {
+                hWeapon.UpdateWeaponComponents(pData);
+            }
 
             return true;
         }

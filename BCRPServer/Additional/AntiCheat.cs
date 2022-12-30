@@ -137,9 +137,6 @@ namespace BCRPServer.Additional
 
             player.RemoveAllWeapons();
 
-            if (ammo < 0)
-                ammo = 0;
-
             player.TriggerEvent("AC::State::Weapon", ammo, hash);
 
             NAPI.Player.GivePlayerWeapon(player, hash, ammo);
@@ -157,8 +154,6 @@ namespace BCRPServer.Additional
             //amount++;
 
             player.TriggerEvent("AC::State::Weapon", amount);
-
-            //NAPI.Player.SetPlayerCurrentWeaponAmmo(player, amount);
         }
         #endregion
     }

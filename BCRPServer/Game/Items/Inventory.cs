@@ -374,7 +374,7 @@ namespace BCRPServer.Game.Items
                                         return Results.NoSpace;
 
                                     pData.Items[freeIdx] = wc;
-                                    weapon.Items[0] = null;
+                                    weapon.Items[1] = null;
 
                                     weapon.UpdateWeaponComponents(pData);
 
@@ -422,7 +422,7 @@ namespace BCRPServer.Game.Items
                                         return Results.NoSpace;
 
                                     pData.Items[freeIdx] = wc;
-                                    weapon.Items[0] = null;
+                                    weapon.Items[2] = null;
 
                                     weapon.UpdateWeaponComponents(pData);
 
@@ -470,7 +470,7 @@ namespace BCRPServer.Game.Items
                                         return Results.NoSpace;
 
                                     pData.Items[freeIdx] = wc;
-                                    weapon.Items[0] = null;
+                                    weapon.Items[3] = null;
 
                                     weapon.UpdateWeaponComponents(pData);
 
@@ -787,7 +787,16 @@ namespace BCRPServer.Game.Items
 
                             pData.Player.TriggerEvent("Player::WSkins::Update", true, ws.ID);
 
-                            pData.ActiveWeapon?.WeaponItem?.UpdateWeaponComponents(pData);
+                            for (int i = 0; i < pData.Weapons.Length; i++)
+                            {
+                                if (pData.Weapons[i] is Game.Items.Weapon weapon)
+                                    weapon.UpdateWeaponComponents(pData);
+                            }
+
+                            if (pData.Holster?.Items[0] is Game.Items.Weapon hWeapon)
+                            {
+                                hWeapon.UpdateWeaponComponents(pData);
+                            }
 
                             return Results.Success;
                         }
@@ -1123,11 +1132,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     pData.Weapons[slotTo].Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    pData.Weapons[slotTo].Wear(pData);
+                                }
                             }
                             else
                             {
@@ -1178,6 +1192,46 @@ namespace BCRPServer.Game.Items
                                 pData.Holster.Update();
                                 MySQL.CharacterItemsUpdate(pData.Info);
                             }
+                            else if (fromItem is Game.Items.WeaponComponent wc)
+                            {
+                                if (toItem == null)
+                                    return Results.Error;
+
+                                var wcData = wc.Data;
+
+                                if (!wcData.IsAllowedFor(toItem.Data.Hash))
+                                {
+                                    pData.Player.Notify("Inventory::WWC");
+
+                                    return Results.Error;
+                                }
+
+                                var wcIdx = (int)wcData.Type;
+
+                                if (toItem.Items[wcIdx] != null)
+                                {
+                                    pData.Player.Notify("Inventory::WHTC");
+
+                                    return Results.Error;
+                                }
+                                else
+                                {
+                                    toItem.Items[wcIdx] = wc;
+
+                                    pData.Items[slotFrom] = null;
+
+                                    player.InventoryUpdate(Groups.Holster, 2, toItem.ToClientJson(Groups.Holster));
+                                    player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Items));
+
+                                    toItem.UpdateWeaponComponents(pData);
+
+                                    toItem.Update();
+
+                                    MySQL.CharacterItemsUpdate(pData.Info);
+
+                                    return Results.Success;
+                                }
+                            }
                             #endregion
                             #region Load
                             else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && (fromItem.ID == toItem.Data.AmmoID))
@@ -1223,11 +1277,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     ((Game.Items.Weapon)pData.Holster.Items[0]).Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    ((Game.Items.Weapon)pData.Holster.Items[0]).Wear(pData);
+                                }
                             }
                             else
                             {
@@ -1707,6 +1766,46 @@ namespace BCRPServer.Game.Items
                                 MySQL.CharacterWeaponsUpdate(pData.Info);
                                 pData.Bag.Update();
                             }
+                            else if (fromItem is Game.Items.WeaponComponent wc)
+                            {
+                                if (toItem == null)
+                                    return Results.Error;
+
+                                var wcData = wc.Data;
+
+                                if (!wcData.IsAllowedFor(toItem.Data.Hash))
+                                {
+                                    pData.Player.Notify("Inventory::WWC");
+
+                                    return Results.Error;
+                                }
+
+                                var wcIdx = (int)wcData.Type;
+
+                                if (toItem.Items[wcIdx] != null)
+                                {
+                                    pData.Player.Notify("Inventory::WHTC");
+
+                                    return Results.Error;
+                                }
+                                else
+                                {
+                                    toItem.Items[wcIdx] = wc;
+
+                                    pData.Bag.Items[slotFrom] = null;
+
+                                    player.InventoryUpdate(Groups.Weapons, slotTo, toItem.ToClientJson(Groups.Weapons));
+                                    player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Bag));
+
+                                    toItem.UpdateWeaponComponents(pData);
+
+                                    toItem.Update();
+
+                                    pData.Bag.Update();
+
+                                    return Results.Success;
+                                }
+                            }
                             #endregion
                             #region Load
                             else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && fromItem.ID == toItem.Data.AmmoID)
@@ -1752,11 +1851,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     pData.Weapons[slotTo].Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    pData.Weapons[slotTo].Wear(pData);
+                                }
                             }
                             else
                             {
@@ -1807,6 +1911,46 @@ namespace BCRPServer.Game.Items
                                 pData.Holster.Update();
                                 pData.Bag.Update();
                             }
+                            else if (fromItem is Game.Items.WeaponComponent wc)
+                            {
+                                if (toItem == null)
+                                    return Results.Error;
+
+                                var wcData = wc.Data;
+
+                                if (!wcData.IsAllowedFor(toItem.Data.Hash))
+                                {
+                                    pData.Player.Notify("Inventory::WWC");
+
+                                    return Results.Error;
+                                }
+
+                                var wcIdx = (int)wcData.Type;
+
+                                if (toItem.Items[wcIdx] != null)
+                                {
+                                    pData.Player.Notify("Inventory::WHTC");
+
+                                    return Results.Error;
+                                }
+                                else
+                                {
+                                    toItem.Items[wcIdx] = wc;
+
+                                    pData.Bag.Items[slotFrom] = null;
+
+                                    player.InventoryUpdate(Groups.Holster, 2, toItem.ToClientJson(Groups.Holster));
+                                    player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Bag));
+
+                                    toItem.UpdateWeaponComponents(pData);
+
+                                    toItem.Update();
+
+                                    pData.Bag.Update();
+
+                                    return Results.Success;
+                                }
+                            }
                             #endregion
                             #region Load
                             else if (fromItem is Game.Items.Ammo fromAmmo && toItem != null && fromItem.ID == toItem.Data.AmmoID)
@@ -1852,11 +1996,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                }
                             }
                             else
                             {
@@ -2094,6 +2243,7 @@ namespace BCRPServer.Game.Items
                             if (pData.Weapons[slotFrom]?.Equiped == true)
                             {
                                 pData.Weapons[slotFrom].Unequip(pData);
+
                                 pData.Weapons[slotTo].Equip(pData);
                             }
 
@@ -2259,11 +2409,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     pData.Weapons[slotFrom]?.Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    pData.Weapons[slotFrom].Wear(pData);
+                                }
                             }
                             else
                             {
@@ -2391,11 +2546,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     pData.Weapons[slotFrom]?.Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    pData.Weapons[slotFrom].Wear(pData);
+                                }
                             }
                             else
                             {
@@ -2571,11 +2731,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                }
                             }
                             else
                             {
@@ -2700,11 +2865,16 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData);
+                                    weapon.Unequip(pData, true, false);
+
                                     (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
                                 else
+                                {
                                     weapon.Unwear(pData);
+
+                                    (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
+                                }
                             }
                             else
                             {
@@ -3694,6 +3864,6 @@ namespace BCRPServer.Game.Items
             return true;
         }
 
-        public static void ClearSlot(PlayerData pData, Groups group, int slot) => pData.Player.InventoryUpdate(group, slot, "null");
+        public static void ClearSlot(PlayerData pData, Groups group, int slot) => pData.Player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
     }
 }

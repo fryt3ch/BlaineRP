@@ -41,7 +41,7 @@ namespace BCRPServer.Sync
             var attachedPhone = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.Phone).FirstOrDefault();
 
             if (attachedPhone != null)
-                player.DetachObject(attachedPhone.Id);
+                player.DetachObject(attachedPhone.Type);
 
             Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOff);
         }

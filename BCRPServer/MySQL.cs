@@ -668,7 +668,10 @@ namespace BCRPServer
 
                     if (toDel.Count > 0)
                     {
-                        cmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', toDel)})";
+                        if (toDel.Count > 1)
+                            cmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', toDel.Select(x => x.UID))})";
+                        else
+                            cmd.CommandText = $"DELETE FROM Items WHERE ID={toDel[0].UID}";
 
                         cmd.ExecuteNonQuery();
                     }

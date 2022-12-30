@@ -71,7 +71,7 @@ namespace BCRPClient
 
             GameEvents.DisableAllControls(true);
 
-            Events.OnPlayerSpawn += (RAGE.Events.CancelEventArgs cancel) =>
+            Events.OnPlayerSpawn += async (RAGE.Events.CancelEventArgs cancel) =>
             {
                 var pos = Player.LocalPlayer.Position;
 

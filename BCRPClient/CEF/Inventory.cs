@@ -131,6 +131,9 @@ namespace BCRPClient.CEF
 
             tooltips.Add(new object[] { 2, Locale.General.Inventory.Actions.Drop });
 
+            if (inUse && Additional.AntiCheat.LastAllowedAmmo < ammo)
+                ammo = Additional.AntiCheat.LastAllowedAmmo;
+
             return new object[] { imgId, name, tooltips.ToArray(), ammo, inUse };
         }
         
@@ -262,9 +265,9 @@ namespace BCRPClient.CEF
 
                                 ammoUpdated = true;
                             }
-                            else if ((int)WeaponsData[activeWeapon][3] != CEF.HUD.LastAmmo)
+                            else if ((int)WeaponsData[activeWeapon][3] != Additional.AntiCheat.LastAllowedAmmo)
                             {
-                                WeaponsData[activeWeapon][3] = CEF.HUD.LastAmmo < 0 ? 0 : CEF.HUD.LastAmmo;
+                                WeaponsData[activeWeapon][3] = Additional.AntiCheat.LastAllowedAmmo;
 
                                 ammoUpdated = true;
                             }
@@ -1561,7 +1564,7 @@ namespace BCRPClient.CEF
                     amount = (int)(((object[])GiveItemsData[slot]?[1])[3] ?? 0);
                 }
 
-                if (name == null || amount == 0)
+                if (name == null || amount <= 0)
                 {
                     CurrentAction = null;
                     CurrentSlotFrom = null;

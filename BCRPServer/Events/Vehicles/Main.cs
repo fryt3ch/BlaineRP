@@ -219,7 +219,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
                 pData.PlayAnim(Animations.FastTypes.VehLocking);
             }
@@ -369,7 +369,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
                 pData.PlayAnim(Animations.FastTypes.VehLocking);
             }
@@ -428,7 +428,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
             {
-                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250);
+                player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
                 pData.PlayAnim(Animations.FastTypes.VehLocking);
             }

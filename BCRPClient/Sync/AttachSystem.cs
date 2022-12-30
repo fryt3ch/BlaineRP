@@ -102,28 +102,26 @@ namespace BCRPClient.Sync
             [JsonProperty(PropertyName = "M")]
             public uint Model { get; set; }
 
-            [JsonProperty(PropertyName = "I")]
-            public int Id { get; set; }
+            [JsonProperty(PropertyName = "D")]
+            public string SyncData { get; set; }
 
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
-            public AttachmentObjectNet(int Id, uint Model, Types Type)
+            public AttachmentObjectNet()
             {
-                this.Id = Id;
-                this.Model = Model;
-                this.Type = Type;
+
             }
 
             public override bool Equals(object obj)
             {
                 if (obj is AttachmentObjectNet other)
-                    return Id == other.Id && Model == other.Model && Type == other.Type;
+                    return SyncData == other.SyncData && Model == other.Model && Type == other.Type;
 
                 return false;
             }
 
-            public override int GetHashCode() => Id.GetHashCode() + Model.GetHashCode() + Type.GetHashCode();
+            public override int GetHashCode() => SyncData?.GetHashCode() ?? 0 + Model.GetHashCode() + Type.GetHashCode();
         }
 
         public class AttachmentEntityNet
@@ -137,11 +135,9 @@ namespace BCRPClient.Sync
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
-            public AttachmentEntityNet(int Id, RAGE.Elements.Type EntityType, Types Type)
+            public AttachmentEntityNet()
             {
-                this.Id = Id;
-                this.EntityType = EntityType;
-                this.Type = Type;
+
             }
 
             public override bool Equals(object obj)
@@ -157,17 +153,21 @@ namespace BCRPClient.Sync
 
         public class AttachmentObject
         {
-            public int Id { get; set; }
+            public string SyncData { get; set; }
 
             public GameEntity Object { get; set; }
 
             public Types Type { get; set; }
 
-            public AttachmentObject(GameEntity Object, Types Type, int Id)
+            public uint Model { get; set; }
+
+            public AttachmentObject(GameEntity Object, Types Type, uint Model, string SyncData)
             {
-                this.Id = Id;
+                this.SyncData = SyncData;
                 this.Object = Object;
                 this.Type = Type;
+
+                this.Model = Model;
             }
         }
 
@@ -327,7 +327,7 @@ namespace BCRPClient.Sync
                 entity.SetData(AttachedObjectsKey, new List<AttachmentObject>());
 
                 foreach (var x in listObjectsNet)
-                    AttachObject(x.Id, x.Model, entity, x.Type, true);
+                    AttachObject(x.Model, entity, x.Type, x.SyncData, true);
 
                 entity.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
@@ -353,7 +353,7 @@ namespace BCRPClient.Sync
                     return;
 
                 foreach (var obj in listObjects.ToList())
-                    DetachObject(entity, obj.Id);
+                    DetachObject(entity, obj.Type);
 
                 listObjects.Clear();
                 entity.ResetData(AttachedObjectsKey);
@@ -402,6 +402,8 @@ namespace BCRPClient.Sync
                 if (!entity.HasData(AttachedObjectsKey))
                     return;
 
+                Utils.ConsoleOutput(RAGE.Util.Json.Serialize(value));
+
                 var currentListEntitiesNet = oldValue == null ? new List<AttachmentObjectNet>() : Utils.ConvertJArrayToList<AttachmentObjectNet>((Newtonsoft.Json.Linq.JArray)oldValue);
                 var newListEntitiesNet = Utils.ConvertJArrayToList<AttachmentObjectNet>((Newtonsoft.Json.Linq.JArray)value);
 
@@ -412,10 +414,10 @@ namespace BCRPClient.Sync
                         if (currentListEntitiesNet.Contains(x))
                             continue;
                         else
-                            AttachObject(x.Id, x.Model, entity, x.Type, false);
+                            AttachObject(x.Model, entity, x.Type, x.SyncData, false);
                     }
                     else
-                        DetachObject(entity, x.Id);
+                        DetachObject(entity, x.Type);
                 }
             });
             #endregion
@@ -529,7 +531,7 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Object Methods
-        public static async void AttachObject(int id, uint hash, Entity target, Types type, bool streamIn = false)
+        public static async void AttachObject(uint hash, Entity target, Types type, string syncData, bool streamIn = false)
         {
             await Utils.RequestModel(hash);
 
@@ -549,18 +551,30 @@ namespace BCRPClient.Sync
             if (list == null)
                 return;
 
-            GameEntity gEntity = new MapObject(hash, target.Position, Vector3.Zero, 255, target.Dimension);
+            GameEntity gEntity = null;
+
+            if (type >= Types.WeaponRightTight && type <= Types.WeaponLeftBack)
+            {
+                await Utils.RequestWeaponAsset(hash);
+
+                gEntity = new MapObject(RAGE.Game.Weapon.CreateWeaponObject(hash, 0, target.Position.X, target.Position.Y, target.Position.Z, true, 0f, 0, 0, 0));
+
+                if (syncData != null)
+                    Sync.WeaponSystem.UpdateWeaponObjectComponents(gEntity.Handle, hash, syncData);
+            }
+            else
+            {
+                gEntity = new MapObject(hash, target.Position, Vector3.Zero, 255, target.Dimension);
+            }
 
             if (gEntity == null)
                 return;
-
-            (gEntity as MapObject).Hidden = true;
 
             AttachmentData props = Attachments[type];
 
             Vector3 positionBase = Vector3.Zero;
 
-            list.Add(new AttachmentObject(gEntity, type, id));
+            list.Add(new AttachmentObject(gEntity, type, hash, syncData));
 
             target.SetData(AttachedObjectsKey, list);
 
@@ -589,14 +603,14 @@ namespace BCRPClient.Sync
             }, 10, true, streamIn ? 500 : 0)).Run();
         }
 
-        public static void DetachObject(Entity target, int id)
+        public static void DetachObject(Entity target, Types type)
         {
             var list = target.GetData<List<AttachmentObject>>(AttachedObjectsKey);
 
             if (list == null)
                 return;
 
-            var item = list.Where(x => x.Id == id).FirstOrDefault();
+            var item = list.Where(x => x.Type == type).FirstOrDefault();
 
             if (item == null)
                 return;
@@ -640,17 +654,14 @@ namespace BCRPClient.Sync
             if (list == null)
                 return;
 
-            list = list.ToList();
-
-            foreach (var x in list)
+            foreach (var x in list.ToList())
             {
-                var model = x?.Object?.Model;
-
-                if (model == null)
+                if (x == null)
                     continue;
 
-                DetachObject(target, x.Id);
-                AttachObject(x.Id, (uint)model, target, x.Type, streamIn);
+                DetachObject(target, x.Type);
+
+                AttachObject(x.Model, target, x.Type, x.SyncData, streamIn);
             }
         }
 

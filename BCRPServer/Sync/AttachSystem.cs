@@ -15,7 +15,6 @@ namespace BCRPServer.Sync
         public const string AttachedObjectsKey = "AttachedObjects";
         public const string AttachedEntitiesKey = "AttachedEntities";
 
-        public const string AttachedObjectsIDsKey = AttachedObjectsKey + "::IDs";
         public const string AttachedObjectsCancelsKey = AttachedObjectsKey + "::Cancels";
 
         private static object[] EmptyArgs = new object[] { };
@@ -81,17 +80,18 @@ namespace BCRPServer.Sync
             [JsonProperty(PropertyName = "M")]
             public uint Model { get; set; }
 
-            [JsonProperty(PropertyName = "I")]
-            public int Id { get; set; }
+            [JsonProperty(PropertyName = "D", NullValueHandling = NullValueHandling.Ignore)]
+            public string SyncData { get; set; }
 
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
-            public AttachmentObjectNet(int Id, uint Model, Types Type)
+            public AttachmentObjectNet(uint Model, Types Type, string SyncData = null)
             {
-                this.Id = Id;
                 this.Model = Model;
                 this.Type = Type;
+
+                this.SyncData = SyncData;
             }
         }
 
@@ -589,30 +589,17 @@ namespace BCRPServer.Sync
         /// <param name="type">Тип прикрепления</param>
         /// <param name="detachAfter">Открепить после (время в мс.), -1 - если не требуется</param>
         /// <returns>-1, если произошла ошибка, число > 0 - ID привязки в противном случае</returns>
-        public static int AttachObject(Entity entity, uint model, Types type, int detachAfter = -1, params object[] args)
+        public static bool AttachObject(Entity entity, uint model, Types type, int detachAfter, string syncData, params object[] args)
         {
-            if (entity?.Exists != true)
-                return - 1;
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey)?.ToList<AttachmentObjectNet>();
 
-            if (!entity.HasSharedData(AttachedObjectsKey))
-                return -1;
+            if (list == null)
+                return false;
 
-            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey).ToList<AttachmentObjectNet>();
+            if (list.Where(x => x.Type == type).Any())
+                return false;
 
-            var ids = entity.GetData<Queue<int>>(AttachedObjectsIDsKey);
-
-            int id;
-
-            if (!ids.TryDequeue(out id))
-            {
-                id = list.Count;
-            }
-            else
-            {
-                entity.SetData(AttachedObjectsIDsKey, ids);
-            }
-
-            var newAttachment = new AttachmentObjectNet(id, model, type);
+            var newAttachment = new AttachmentObjectNet(model, type, syncData);
 
             list.Add(newAttachment);
 
@@ -622,11 +609,11 @@ namespace BCRPServer.Sync
 
             if (detachAfter != -1)
             {
-                var cancels = entity.GetData<Dictionary<int, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+                var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
                 var cts = new CancellationTokenSource();
 
-                cancels.Add(id, cts);
+                cancels.Add(type, cts);
 
                 entity.SetData(AttachedObjectsCancelsKey, cancels);
 
@@ -641,7 +628,7 @@ namespace BCRPServer.Sync
                             if (entity?.Exists != true)
                                 return;
 
-                            entity.DetachObject(id);
+                            entity.DetachObject(type);
                         });
                     }
                     catch (Exception ex)
@@ -652,44 +639,37 @@ namespace BCRPServer.Sync
 
             }
 
-            return id;
+            return true;
         }
 
         /// <summary>Открепить объект от сущности</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <param name="entity">Сущность</param>
         /// <param name="id">ID привязки</param>
-        public static bool DetachObject(Entity entity, int id, params object[] args)
+        public static bool DetachObject(Entity entity, Types type, params object[] args)
         {
-            if (entity?.Exists != true)
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey)?.ToList<AttachmentObjectNet>();
+
+            if (list == null)
                 return false;
 
-            if (!entity.HasSharedData(AttachedObjectsKey))
-                return false;
-
-            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey).ToList<AttachmentObjectNet>();
-            var item = list.Where(x => x.Id == id).FirstOrDefault();
+            var item = list.Where(x => x.Type == type).FirstOrDefault();
 
             if (item == null)
                 return false;
 
-            var ids = entity.GetData<Queue<int>>(AttachedObjectsIDsKey);
-            var cancels = entity.GetData<Dictionary<int, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+            var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
-            var cts = cancels.GetValueOrDefault(id);
+            var cts = cancels.GetValueOrDefault(type);
 
             if (cts != null)
             {
                 cts.Cancel();
 
-                cancels.Remove(id);
+                cancels.Remove(type);
 
                 entity.SetData(AttachedObjectsCancelsKey, cancels);
             }
-
-            ids.Enqueue(id);
-
-            entity.SetData(AttachedObjectsIDsKey, ids);
 
             list.Remove(item);
 
@@ -705,13 +685,12 @@ namespace BCRPServer.Sync
         /// <param name="entity">Сущность</param>
         public static bool DetachAllObjects(Entity entity)
         {
-            if (entity?.Exists != true)
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey)?.ToList<AttachmentObjectNet>();
+
+            if (list == null)
                 return false;
 
-            if (!entity.HasSharedData(AttachedObjectsKey))
-                return false;
-
-            var cancels = entity.GetData<Dictionary<int, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+            var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
             foreach (var x in cancels)
             {
@@ -722,8 +701,6 @@ namespace BCRPServer.Sync
 
             entity.SetData(AttachedObjectsCancelsKey, cancels);
 
-            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey).ToList<AttachmentObjectNet>();
-
             foreach (var x in list)
             {
                 GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
@@ -732,12 +709,6 @@ namespace BCRPServer.Sync
             list.Clear();
 
             entity.SetSharedData(AttachedObjectsKey, list);
-
-            var ids = entity.GetData<Queue<int>>(AttachedObjectsIDsKey);
-
-            ids.Clear();
-
-            entity.SetData(AttachedObjectsIDsKey, ids);
 
             return true;
         }
