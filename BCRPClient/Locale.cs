@@ -109,6 +109,7 @@ namespace BCRPClient
                     { "seller", "Продавец" },
                     { "bank", "Работник банка" },
                     { "vpound", "Работник штрафстоянки" },
+                    { "vrent", "Арендодатель транспорта" },
                 };
 
                 public static Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>>()
@@ -1013,6 +1014,8 @@ namespace BCRPClient
                 public static string Kick = "Вы были кикнуты!\nПричина: {0}";
                 public static string TeleportBy = "Вы были телепортированы!\nАдминистратор: {0}";
 
+                public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";
+
                 public static class PayDay
                 {
                     public static string Header = "Зарплата";
@@ -1344,6 +1347,8 @@ namespace BCRPClient
                 public static string TradeNotEnoughMoney = "У вас недостаточно средств!";
                 public static string TradeNotEnoughMoneyOther = "У другого игрока недостаточно средств!";
                 public static string TradeNotEnoughSpaceOther = "У другого игрока недостаточно места в инвентаре!";
+
+                public static string TradeNotEnoughPropertySpaceOther = "Другой игрок сейчас не может принять некоторое имущество!";
             }
 
             public static class CharacterCreation
@@ -1541,6 +1546,10 @@ namespace BCRPClient
 
                 public static string VehicleIsDeadFixError = "Этот транспорт слишком сильно поврежден, вызовите механика!";
                 public static string VehicleIsNotDamagedFixError = "Этот транспорт не поврежден!";
+
+                public static string AlreadyHaveRentedVehicle = "Вы уже арендуете какой-либо транспорт! Откажитесь от аренды текущего транспорта и попробуйте снова.";
+
+                public static string RentedVehicleTimeLeft = "{0} арендован вами, если вы не вернетесь в него в течение {1}, то аренда будет отменена!";
             }
         }
         #endregion

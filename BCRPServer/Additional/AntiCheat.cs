@@ -20,8 +20,12 @@ namespace BCRPServer.Additional
             {
                 foreach (var x in veh.Occupants)
                 {
+                    var pCount = 0;
+
                     if (x is Player player)
                     {
+                        pCount++;
+
                         if (player.VehicleSeat == 0)
                         {
                             player.TriggerEvent("AC::State::TP", pos, false, heading, fade);
@@ -33,11 +37,25 @@ namespace BCRPServer.Additional
                             player.Dimension = lastDim;
                         }
                     }
+
+                    if (pCount == 0)
+                    {
+                        veh.Position = pos;
+
+                        if (heading is float headingF)
+                            veh.SetHeading(headingF);
+                    }
                 }
             }
             else
             {
-                veh.TriggerEventOccupants("AC::State::TP", pos, false, heading, fade);
+                if (!veh.TriggerEventOccupants("AC::State::TP", pos, false, heading, fade))
+                {
+                    veh.Position = pos;
+
+                    if (heading is float headingF)
+                        veh.SetHeading(headingF);
+                }
             }
         }
 

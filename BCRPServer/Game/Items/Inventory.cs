@@ -79,8 +79,14 @@ namespace BCRPServer.Game.Items
 
             NotEnoughVehicleSlots,
             NotEnoughHouseSlots,
+            NotEnoughGarageSlots,
             NotEnoughApartmentsSlots,
             NotEnoughBusinessSlots,
+
+            SettledToHouse,
+            SettledToApartments,
+
+            NoBusinessLicense,
         }
 
         public static Dictionary<Results, string> ResultsNotifications = new Dictionary<Results, string>()
@@ -692,7 +698,7 @@ namespace BCRPServer.Game.Items
 
                             var vInfo = vk.VehicleInfo;
 
-                            if (vInfo == null || !vk.IsKeyValid(vInfo))
+                            if (!vk.IsKeyValid(vInfo))
                             {
                                 pData.Player.Notify("Vehicle::KE");
 

@@ -89,6 +89,9 @@ namespace BCRPClient
 
             Events.OnPlayerQuit += async (Player player) =>
             {
+                if (player == null || player.Handle == Player.LocalPlayer.Handle || player.Dimension != Player.LocalPlayer.Dimension)
+                    return;
+
                 var pData = Sync.Players.GetData(player);
 
                 if (pData == null)

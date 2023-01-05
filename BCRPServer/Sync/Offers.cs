@@ -423,7 +423,7 @@ namespace BCRPServer.Sync
 
                                     tPlayer.CloseAll();
 
-                                    tPlayer.TriggerEvent("Estate::Show", 1, houseBase.Type == Game.Houses.HouseBase.Types.House ? 2 : 3, houseBase.ID, sPlayer, psData.Price);
+                                    tPlayer.TriggerEvent("Estate::Show", 1, houseBase.Type == Game.Houses.HouseBase.Types.House ? 2 : 3, houseBase.Id, sPlayer, psData.Price);
 
                                     offer.TradeData = new Offer.Trade()
                                     {
@@ -812,16 +812,26 @@ namespace BCRPServer.Sync
                             return (Game.Items.Inventory.Results.Error, null);
                     }
 
+                    var sHCount = 0;
+
                     foreach (var x in SenderHouseBases)
                     {
                         if (x.Owner != pData.Info)
                             return (Game.Items.Inventory.Results.Error, null);
+
+                        if (x.Type == Game.Houses.HouseBase.Types.House)
+                            sHCount++;
                     }
+
+                    var rHCount = 0;
 
                     foreach (var x in ReceiverHouseBases)
                     {
                         if (x.Owner != pData.Info)
                             return (Game.Items.Inventory.Results.Error, null);
+
+                        if (x.Type == Game.Houses.HouseBase.Types.House)
+                            rHCount++;
                     }
 
                     foreach (var x in SenderGarages)
@@ -834,6 +844,83 @@ namespace BCRPServer.Sync
                     {
                         if (x.Owner != pData.Info)
                             return (Game.Items.Inventory.Results.Error, null);
+                    }
+
+                    if (ReceiverVehicles.Count > 0 && (pData.VehicleSlots - SenderVehicles.Count + ReceiverVehicles.Count) <= 0)
+                    {
+                        return (Game.Items.Inventory.Results.NotEnoughVehicleSlots, pData);
+                    }
+
+                    if (SenderVehicles.Count > 0 && (tData.VehicleSlots - ReceiverVehicles.Count + SenderVehicles.Count) <= 0)
+                    {
+                        return (Game.Items.Inventory.Results.NotEnoughVehicleSlots, tData);
+                    }
+
+                    if (ReceiverBusinesses.Count > 0)
+                    {
+                        if (!pData.Licenses.Contains(PlayerData.LicenseTypes.Business))
+                            return (Game.Items.Inventory.Results.NoBusinessLicense, pData);
+
+                        if ((pData.BusinessesSlots - SenderBusinesses.Count + ReceiverBusinesses.Count) <= 0)
+                            return (Game.Items.Inventory.Results.NotEnoughBusinessSlots, pData);
+                    }
+
+                    if (SenderBusinesses.Count > 0)
+                    {
+                        if (!tData.Licenses.Contains(PlayerData.LicenseTypes.Business))
+                            return (Game.Items.Inventory.Results.NoBusinessLicense, tData);
+
+                        if ((tData.BusinessesSlots - ReceiverBusinesses.Count + SenderBusinesses.Count) <= 0)
+                            return (Game.Items.Inventory.Results.NotEnoughBusinessSlots, tData);
+                    }
+
+                    if (ReceiverGarages.Count > 0 && (pData.GaragesSlots - SenderGarages.Count + ReceiverGarages.Count) <= 0)
+                    {
+                        return (Game.Items.Inventory.Results.NotEnoughGarageSlots, pData);
+                    }
+
+                    if (SenderGarages.Count > 0 && (tData.GaragesSlots - ReceiverGarages.Count + SenderGarages.Count) <= 0)
+                    {
+                        return (Game.Items.Inventory.Results.NotEnoughGarageSlots, tData);
+                    }
+
+                    if (rHCount > 0)
+                    {
+                        if (pData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.House)
+                            return (Game.Items.Inventory.Results.SettledToHouse, pData);
+
+                        if ((pData.HouseSlots - sHCount + rHCount) <= 0)
+                            return (Game.Items.Inventory.Results.NotEnoughHouseSlots, pData);
+                    }
+
+                    if (sHCount > 0)
+                    {
+                        if (pData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.House)
+                            return (Game.Items.Inventory.Results.SettledToHouse, tData);
+
+                        if ((tData.HouseSlots - rHCount + sHCount) <= 0)
+                            return (Game.Items.Inventory.Results.NotEnoughHouseSlots, tData);
+                    }
+
+                    rHCount = ReceiverHouseBases.Count - rHCount;
+                    sHCount = SenderHouseBases.Count - sHCount;
+
+                    if (rHCount > 0)
+                    {
+                        if (pData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.Apartments)
+                            return (Game.Items.Inventory.Results.SettledToApartments, pData);
+
+                        if ((pData.ApartmentsSlots - sHCount + rHCount) <= 0)
+                            return (Game.Items.Inventory.Results.NotEnoughApartmentsSlots, pData);
+                    }
+
+                    if (sHCount > 0)
+                    {
+                        if (tData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.Apartments)
+                            return (Game.Items.Inventory.Results.SettledToApartments, tData);
+
+                        if ((tData.ApartmentsSlots - rHCount + sHCount) <= 0)
+                            return (Game.Items.Inventory.Results.NotEnoughApartmentsSlots, tData);
                     }
 
                     foreach (var x in SenderVehicles)

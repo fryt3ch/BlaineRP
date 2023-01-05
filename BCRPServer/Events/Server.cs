@@ -95,6 +95,8 @@ namespace BCRPServer.Events
             Game.Bank.LoadAll();
 
             #region Database Data Load Section
+            MySQL.UpdateServerData();
+
             MySQL.LoadAll();
             MySQL.UpdateFreeUIDs();
 
@@ -132,6 +134,14 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
             Utils.ConsoleOutput();
+
+            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
+
+            var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);
+
+            boat.Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
+
+            //boat.Vehicle.AttachEntity(truck.Vehicle, Sync.AttachSystem.Types.VehicleTrailerObjBoat);
 
             Additional.ConsoleCommands.Activate();
 
@@ -208,10 +218,40 @@ namespace BCRPServer.Events
             NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
         }
 
-        private static List<string> VehicleDataLines = new List<string>();
+        public static async Task OnServerShutdown()
+        {
+            IsRestarting = true;
 
+            foreach (var player in NAPI.Pools.GetAllPlayers())
+            {
+                Utils.KickSilent(player, "Сервер был отключён!", 2000);
+            }
 
-/*        [RemoteEvent("vehicle_data_p")]
+            foreach (var vehicle in VehicleData.All.Values)
+                vehicle?.Delete(false);
+
+            foreach (var x in Game.Businesses.Business.All.Values)
+                MySQL.BusinessUpdateOnRestart(x);
+
+            foreach (var x in Game.Houses.House.All.Values)
+                MySQL.HouseUpdateOnRestart(x);
+
+            foreach (var x in Game.Houses.Apartments.All.Values)
+                MySQL.HouseUpdateOnRestart(x);
+
+            foreach (var x in Game.Houses.Garage.All.Values)
+                MySQL.GarageUpdateOnRestart(x);
+
+            await Task.Delay(Settings.SERVER_STOP_DELAY);
+
+            await MySQL.Wait();
+
+            MySQL.DoAllQueries();
+        }
+
+/*        private static List<string> VehicleDataLines = new List<string>();
+
+        [RemoteEvent("vehicle_data_p")]
         private static void VehicleDataProcess(Player player, string model, string data)
         {
             VehicleDataLines.Add($"\"{model}\":{data},");

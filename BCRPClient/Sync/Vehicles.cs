@@ -51,6 +51,66 @@ namespace BCRPClient.Sync
             DataActions.Add(dataKey, action);
         }
 
+        public class RentedVehicle
+        {
+            public static List<RentedVehicle> All { get; set; } = new List<RentedVehicle>();
+
+            public ushort RemoteId { get; set; }
+
+            public Data.Vehicles.Vehicle VehicleData { get; set; }
+
+            public int TimeToDelete { get; set; }
+
+            public int TimeLeftToDelete { get; set; }
+
+            public RentedVehicle(ushort RemoteId, Data.Vehicles.Vehicle VehicleData, int TimeToDelete)
+            {
+                this.RemoteId = RemoteId;
+                this.VehicleData = VehicleData;
+
+                this.TimeToDelete = TimeToDelete;
+
+                this.TimeLeftToDelete = TimeToDelete;
+            }
+
+            public void ShowTimeLeftNotification()
+            {
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.SubName}\"", DateTime.Now.AddMilliseconds(TimeLeftToDelete).Subtract(DateTime.Now).GetBeautyString()), 5000);
+            }
+
+            public static void Check()
+            {
+                var curVeh = Player.LocalPlayer.Vehicle;
+
+                All.ForEach(x =>
+                {
+                    if (curVeh == null || curVeh.RemoteId != x.RemoteId)
+                    {
+                        if (x.TimeLeftToDelete > 0)
+                            x.TimeLeftToDelete -= 1000;
+
+                        if (x.TimeLeftToDelete < 0)
+                            x.TimeLeftToDelete = 0;
+
+                        if (x.TimeLeftToDelete <= 0)
+                        {
+                            Events.CallRemote("VRent::Cancel", x.RemoteId);
+                        }
+                        else
+                        {
+                            if ((x.TimeLeftToDelete <= 30_000 && x.TimeToDelete % 10_000 == 0) || x.TimeLeftToDelete % 60_000 == 0)
+                                x.ShowTimeLeftNotification();
+                        }
+                    }
+                    else
+                    {
+                        if (x.TimeLeftToDelete != x.TimeToDelete)
+                            x.TimeLeftToDelete = x.TimeToDelete;
+                    }
+                });
+            }
+        }
+
         public static VehicleData GetData(Vehicle vehicle)
         {
             if (vehicle == null)
@@ -120,6 +180,24 @@ namespace BCRPClient.Sync
             public byte DirtLevel => (byte)Vehicle.GetSharedData<int>("DirtLevel");
 
             public Data.Vehicles.Vehicle Data { get; set; }
+
+            public Sync.AttachSystem.AttachmentEntity IsAttachedToVehicle
+            {
+                get
+                {
+                    var streamed = RAGE.Elements.Entities.Vehicles.Streamed;
+
+                    for (int i = 0; i < streamed.Count; i++)
+                    {
+                        var t = streamed[i].GetData<List<Sync.AttachSystem.AttachmentEntity>>(Sync.AttachSystem.AttachedEntitiesKey)?.Where(x => x.RemoteID == Vehicle.RemoteId).FirstOrDefault();
+
+                        if (t != null)
+                            return t;
+                    }
+
+                    return null;
+                }
+            }
             #endregion
 
             public void Reset()
@@ -206,6 +284,9 @@ namespace BCRPClient.Sync
             {
                 if (entity is Vehicle veh)
                 {
+                    if (veh.IsLocal)
+                        return;
+
                     if (newController?.Handle != Player.LocalPlayer.Handle)
                     {
                         ControlledVehicles.Remove(veh);
@@ -374,12 +455,24 @@ namespace BCRPClient.Sync
                     return;
 
                 InvokeHandler("Engine::On", data, data.EngineOn, null);
+
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (RentedVehicle.All.Where(x => x.RemoteId == vehicle.RemoteId).FirstOrDefault() is RentedVehicle rVehData)
+                {
+                    rVehData.ShowTimeLeftNotification();
+                }
             };
 
             Events.OnPlayerEnterVehicle += async (Vehicle vehicle, int seatId) =>
             {
                 if (vehicle?.Exists != true)
                     return;
+
+                Data.NPC.CurrentNPC?.SwitchDialogue(false);
 
                 var data = GetData(vehicle);
 
@@ -1616,5 +1709,15 @@ namespace BCRPClient.Sync
 
             Sync.Offers.Request(driver, Offers.Types.WaypointShare, $"{wpPos.X}_{wpPos.Y}");
         }
+
+/*        public static void ApplyTrailerSattings(Vehicle veh)
+        {
+            veh.SetCanBeVisiblyDamaged(false);
+            veh.SetCanBreak(false);
+            veh.SetDeformationFixed();
+            veh.SetDisablePetrolTankDamage(true);
+            veh.SetDisablePetrolTankFires(true);
+            veh.SetInvincible(true);
+        }*/
     }
 }

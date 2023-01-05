@@ -90,8 +90,6 @@ namespace BCRPServer.Game.Houses
                 Game.Items.Container.AllSIDs.Add("a_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
                 Game.Items.Container.AllSIDs.Add("a_wardrobe", new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe));
                 Game.Items.Container.AllSIDs.Add("a_fridge", new Items.Container.Data(50, 100f, Items.Container.AllowedItemTypes.Fridge, Items.Container.ContainerTypes.Fridge));
-
-                Game.Items.Container.AllSIDs.Add("g_storage", new Items.Container.Data(25, 75f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Storage));
             }
         }
 
@@ -180,7 +178,7 @@ namespace BCRPServer.Game.Houses
         }
 
         /// <summary>ID дома</summary>
-        public uint ID { get; set; }
+        public uint Id { get; set; }
 
         /// <summary>Тип дома</summary>
         public Types Type { get; set; }
@@ -236,7 +234,7 @@ namespace BCRPServer.Game.Houses
 
             this.RoomType = RoomType;
 
-            this.ID = ID;
+            this.Id = ID;
 
             this.PositionParams = PositionParams;
 
@@ -270,7 +268,7 @@ namespace BCRPServer.Game.Houses
         {
             var data = new JObject();
 
-            data.Add("I", ID);
+            data.Add("I", Id);
             data.Add("T", (int)Type);
             data.Add("S", (int)StyleData.Type);
             data.Add("Dim", Dimension);
@@ -308,9 +306,9 @@ namespace BCRPServer.Game.Houses
                     pInfo.PlayerData.SettledHouseBase = this;
 
                     if (pDataInit != null)
-                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, true, pDataInit.Player);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, true, pDataInit.Player);
                     else
-                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, true);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, true);
                 }
             }
             else
@@ -329,9 +327,9 @@ namespace BCRPServer.Game.Houses
                     pInfo.PlayerData.SettledHouseBase = null;
 
                     if (pDataInit != null)
-                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, false, pDataInit.Player);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, false, pDataInit.Player);
                     else
-                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, ID, false);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, false);
                 }
             }
 
@@ -376,7 +374,7 @@ namespace BCRPServer.Game.Houses
             {
                 MySQL.LoadHouse(x);
 
-                lines.Add($"new House({x.ID}, {x.PositionParams.Position.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+                lines.Add($"new House({x.Id}, {x.PositionParams.Position.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "HOUSES_TO_REPLACE", lines);
@@ -390,7 +388,7 @@ namespace BCRPServer.Game.Houses
         {
             base.UpdateOwner(pInfo);
 
-            Sync.World.SetSharedData($"House::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            Sync.World.SetSharedData($"House::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Utils.Dimensions.Main && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
@@ -552,7 +550,7 @@ namespace BCRPServer.Game.Houses
             {
                 MySQL.LoadApartments(x);
 
-                lines.Add($"new Apartments({x.ID}, {x.PositionParams.Position.ToCSharpStr()}, ApartmentsRoot.Types.{x.Root.Type.ToString()}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+                lines.Add($"new Apartments({x.Id}, {x.PositionParams.Position.ToCSharpStr()}, ApartmentsRoot.Types.{x.Root.Type.ToString()}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "APARTMENTS_TO_REPLACE", lines);
@@ -576,7 +574,7 @@ namespace BCRPServer.Game.Houses
         {
             base.UpdateOwner(pInfo);
 
-            Sync.World.SetSharedData($"Apartments::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
+            Sync.World.SetSharedData($"Apartments::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
         public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Root.Dimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;

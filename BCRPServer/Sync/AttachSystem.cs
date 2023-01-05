@@ -24,6 +24,16 @@ namespace BCRPServer.Sync
         #region Types
         public enum Types
         {
+            /// <summary>Прикрепление СЕРВЕРНОГО трейлера к СЕРВЕРНОМУ транспорту</summary>
+            VehicleTrailer,
+
+            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОЙ лодке</summary>
+            TrailerObjOnBoat,
+            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОМУ транспорту</summary>
+            TrailerObjOnVehicle,
+            /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
+            VehicleTrailerObjBoat,
+
             PushVehicleFront,
             PushVehicleBack,
             Phone,
@@ -480,13 +490,7 @@ namespace BCRPServer.Sync
         /// <param name="target">Прикрепленная сущность</param>
         public static AttachmentEntityNet GetEntityAttachmentData(Entity entity, Entity target)
         {
-            if (entity?.Exists != true || target?.Exists != true)
-                return null;
-
-            if (!entity.HasSharedData(AttachedEntitiesKey))
-                return null;
-
-            return entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey).ToList<AttachmentEntityNet>().Where(x => x.Id == target.Id).FirstOrDefault();
+            return entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>().Where(x => x.Id == target.Id).FirstOrDefault();
         }
 
         /// <summary>Прикрепить сущность к сущности</summary>
@@ -496,13 +500,10 @@ namespace BCRPServer.Sync
         /// <param name="type">Тип прикрепления</param>
         public static bool AttachEntity(Entity entity, Entity target, Types type)
         {
-            if (entity?.Exists != true || target?.Exists != true)
-                return false;
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>();
 
-            if (!entity.HasSharedData(AttachedEntitiesKey))
+            if (list == null)
                 return false;
-
-            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey).ToList<AttachmentEntityNet>();
 
             if (list.Where(x => x.Id == target.Id).FirstOrDefault() != null)
                 DetachEntity(entity, target);
@@ -524,13 +525,11 @@ namespace BCRPServer.Sync
         /// <param name="target">Сущность, которую открепляем</param>
         public static bool DetachEntity(Entity entity, Entity target)
         {
-            if (entity?.Exists != true || target?.Exists != true)
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>();
+
+            if (list == null)
                 return false;
 
-            if (!entity.HasSharedData(AttachedEntitiesKey))
-                return false;
-
-            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey).ToList<AttachmentEntityNet>(); ;
             var item = list.Where(x => x.EntityType == target.Type && x.Id == target.Id).FirstOrDefault();
 
             if (item == null)
@@ -539,7 +538,7 @@ namespace BCRPServer.Sync
             list.Remove(item);
 
             entity.SetSharedData(AttachedEntitiesKey, list);
-            target.SetData("IsAttachedTo::Entity", ((Entity, Types)?)null);
+            target.ResetData("IsAttachedTo::Entity");
 
             GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
 
@@ -551,13 +550,10 @@ namespace BCRPServer.Sync
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public static bool DetachAllEntities(Entity entity)
         {
-            if (entity?.Exists != true)
-                return false;
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>();
 
-            if (!entity.HasSharedData(AttachedEntitiesKey))
+            if (list == null)
                 return false;
-
-            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey).ToList<AttachmentEntityNet>();
 
             for (int i = 0; i < list.Count; i++)
             {
@@ -567,7 +563,7 @@ namespace BCRPServer.Sync
 
                 if (target != null)
                 {
-                    target.SetData("IsAttachedTo::Entity", ((Entity, Types)?)null);
+                    target.ResetData("IsAttachedTo::Entity");
                 }
 
                 GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);

@@ -19,6 +19,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (data == null)
+                return;
+
             var npcPos = GetPositionById(npcId);
 
             if (npcPos == null)
@@ -35,7 +38,7 @@ namespace BCRPServer.Events.Players
             if (action == null)
                 return;
 
-            action.Invoke(pData, data);
+            action.Invoke(pData, data.Split('&'));
         }
 
         [RemoteProc("NPC::Proc")]
@@ -47,6 +50,9 @@ namespace BCRPServer.Events.Players
                 return null;
 
             var pData = sRes.Data;
+
+            if (data == null)
+                return null;
 
             var npcPos = GetPositionById(npcId);
 
@@ -64,7 +70,7 @@ namespace BCRPServer.Events.Players
             if (proc == null)
                 return null;
 
-            return proc.Invoke(pData, data);
+            return proc.Invoke(pData, npcId, data.Split('&'));
         }
     }
 }

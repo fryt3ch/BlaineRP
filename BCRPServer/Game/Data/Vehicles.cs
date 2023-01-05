@@ -155,7 +155,7 @@ namespace BCRPServer.Game.Data
                 this.HasAutoPilot = HasAutoPilot;
 
                 if (TrunkData != null)
-                    Game.Items.Container.AllSIDs.Add(ID, new Items.Container.Data(TrunkData.Slots, TrunkData.MaxWeight, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Trunk));
+                    Game.Items.Container.AllSIDs.Add($"vt_{ID}", new Items.Container.Data(TrunkData.Slots, TrunkData.MaxWeight, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Trunk));
 
                 All.Add(ID, this);
             }

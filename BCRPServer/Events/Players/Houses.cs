@@ -226,6 +226,9 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
+            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+                return;
+
             if (slot >= 0)
             {
                 if (player.Dimension != Utils.Dimensions.Main)

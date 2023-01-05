@@ -142,6 +142,8 @@ namespace BCRPServer
 
         public const int VEHICLEPOUND_PAY_PRICE = 525;
 
+        public const int VEHICLERENT_S_PAY_PRICE = 100;
+
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 
         public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES { get => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M }; }

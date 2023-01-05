@@ -460,6 +460,49 @@ namespace BCRPClient.Additional
                         veh.SetData("LastHealth", curHp);
                     }
                 }
+
+                var trailerVehHandle = -1;
+
+                if (veh.GetTrailerVehicle(ref trailerVehHandle))
+                {
+                    var trailerVeh = Utils.GetVehicleByHandle(trailerVehHandle, true);
+
+                    if (trailerVeh?.Exists != true)
+                    {
+                        //veh.DetachFromTrailer();
+                    }
+                    else
+                    {
+                        if (trailerVeh.IsLocal)
+                        {
+                            trailerVeh = trailerVeh.GetData<Vehicle>("TrailerSync::Owner");
+
+                            if (trailerVeh?.Exists != true)
+                            {
+
+                            }
+                            else
+                            {
+                                if (vData.IsAttachedToVehicle == null)
+                                    Events.CallRemoteUnreliable("votc", veh, trailerVeh);
+                            }
+                        }
+                        else
+                        {
+                            if (vData.IsAttachedToVehicle == null)
+                                Events.CallRemoteUnreliable("votc", veh, trailerVeh);
+                        }
+                    }
+                }
+                else
+                {
+                    var actualAttach = vData.IsAttachedToVehicle;
+
+                    if (actualAttach != null && (actualAttach.Type == Sync.AttachSystem.Types.TrailerObjOnVehicle || actualAttach.Type == Sync.AttachSystem.Types.VehicleTrailerObjBoat))
+                    {
+                        Events.CallRemoteUnreliable("votc", veh, null);
+                    }
+                }
             }
 
             RAGE.Game.Player.RestorePlayerStamina(100);

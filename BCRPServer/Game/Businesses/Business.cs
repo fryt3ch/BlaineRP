@@ -34,6 +34,10 @@ namespace BCRPServer.Game.Businesses
 
     public abstract class Business
     {
+        public static int CurrentStatisticsDayIdx { get; set; }
+
+        public static int PreviousStatisticsDayIdx { get; set; }
+
         public const float INCASSATION_TAX = 0.05f;
 
         public enum Types
@@ -85,6 +89,8 @@ namespace BCRPServer.Game.Businesses
         /// <summary>Кол-во заказанных материалов</summary>
         public int OrderedMaterials { get; set; }
 
+        public bool IncassationState { get; set; }
+
         /// <summary>Гос. цена</summary>
         public int GovPrice { get; set; }
 
@@ -104,6 +110,8 @@ namespace BCRPServer.Game.Businesses
         public int[] Statistics { get; set; }
 
         public MaterialsData MaterialsData { get; set; }
+
+        public IEnumerable<PlayerData> PlayersInteracting => PlayerData.All.Values.Where(x => x.CurrentBusiness == this);
 
         public Business(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Types Type)
         {
@@ -181,15 +189,20 @@ namespace BCRPServer.Game.Businesses
             {
                 MySQL.LoadBusiness(x);
 
-                for (int i = 0; i < x.Statistics.Length; i++)
+                var daysDiff = CurrentStatisticsDayIdx - PreviousStatisticsDayIdx;
+
+                for (int j = 0; j < daysDiff; j++)
                 {
-                    if (i == x.Statistics.Length - 1)
+                    for (int i = 0; i < x.Statistics.Length; i++)
                     {
-                        x.Statistics[i] = 0;
-                    }
-                    else
-                    {
-                        x.Statistics[i] = x.Statistics[i + 1];
+                        if (i == x.Statistics.Length - 1)
+                        {
+                            x.Statistics[i] = 0;
+                        }
+                        else
+                        {
+                            x.Statistics[i] = x.Statistics[i + 1];
+                        }
                     }
                 }
 
@@ -232,6 +245,8 @@ namespace BCRPServer.Game.Businesses
             return false;
         }
 
+        public void UpdateStatistics(int value) => Statistics[CurrentStatisticsDayIdx] += value;
+
         public void PaymentProceed(PlayerData pData, bool cash, int mats, int realPrice)
         {
             if (cash)
@@ -240,7 +255,13 @@ namespace BCRPServer.Game.Businesses
                 {
                     Materials -= mats;
 
-                    Cash += (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax));
+                    var moneyGet = (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax));
+
+                    Cash += moneyGet;
+
+                    UpdateStatistics(moneyGet);
+
+                    MySQL.BusinessUpdateBalances(this);
                 }
 
                 pData.Cash -= realPrice;
@@ -253,7 +274,13 @@ namespace BCRPServer.Game.Businesses
                 {
                     Materials -= mats;
 
-                    Bank += (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax - INCASSATION_TAX));
+                    var moneyGet = (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax - INCASSATION_TAX));
+
+                    Bank += moneyGet;
+
+                    UpdateStatistics(moneyGet);
+
+                    MySQL.BusinessUpdateBalances(this);
                 }
 
                 pData.BankBalance -= realPrice;
@@ -268,7 +295,13 @@ namespace BCRPServer.Game.Businesses
             {
                 if (Owner != null)
                 {
-                    Cash += (int)Math.Floor(fixedPrice * (1f - Tax));
+                    var moneyGet = (int)Math.Floor(fixedPrice * (1f - Tax));
+
+                    Cash += moneyGet;
+
+                    UpdateStatistics(moneyGet);
+
+                    MySQL.BusinessUpdateBalances(this);
                 }
 
                 pData.Cash -= fixedPrice;
@@ -279,7 +312,13 @@ namespace BCRPServer.Game.Businesses
             {
                 if (Owner != null)
                 {
-                    Bank += (int)Math.Floor(fixedPrice * (1f - Tax - INCASSATION_TAX));
+                    var moneyGet = (int)Math.Floor(fixedPrice * (1f - Tax - INCASSATION_TAX));
+
+                    Bank += moneyGet;
+
+                    UpdateStatistics(moneyGet);
+
+                    MySQL.BusinessUpdateBalances(this);
                 }
 
                 pData.BankBalance -= fixedPrice;

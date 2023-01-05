@@ -179,6 +179,8 @@ namespace BCRPClient.Data
                     {
                         ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
 
+                        ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+
                         Data = gRoot,
                     };
                 }
@@ -642,6 +644,8 @@ namespace BCRPClient.Data
                     {
                         OwnerGarageColshape = new Additional.Sphere(GaragePosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                         {
+                            ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+
                             ActionType = Additional.ExtraColshape.ActionTypes.HouseEnter,
 
                             Data = this,
@@ -1259,6 +1263,13 @@ namespace BCRPClient.Data
                 Blip = new Blip(832, new Vector3(485.6506f, -54.18661f, 78.30058f), "Штрафстоянка", 1f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION),
 
                 DefaultDialogueId = "vpound_preprocess",
+            };
+
+            new NPC("vrent_s_0", "Джон", NPC.Types.Talkable, "s_m_y_airworker", new Vector3(-718.6724f, 5821.765f, 17.21804f), 106.9247f, Settings.MAIN_DIMENSION)
+            {
+                Blip = new Blip(76, new Vector3(-718.6724f, 5821.765f, 17.21804f), "Аренда мопедов", 0.85f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION),
+
+                DefaultDialogueId = "vrent_s_preprocess",
             };
         }
     }

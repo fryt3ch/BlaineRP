@@ -126,129 +126,95 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                var data = player.GetMainData();
+                var pData = player.GetMainData();
 
-                if (data == null)
+                if (pData == null)
                     return;
 
-                data.ActiveOffer?.Cancel(false, true, Sync.Offers.ReplyTypes.AutoCancel, false);
+                pData.ActiveOffer?.Cancel(false, true, Sync.Offers.ReplyTypes.AutoCancel, false);
 
                 player.DetachAllEntities();
 
-                data.IsAttachedTo?.Entity?.DetachEntity(player);
+                pData.IsAttachedTo?.Entity?.DetachEntity(player);
 
                 if (player.Vehicle != null)
                 {
                     player.WarpOutOfVehicle();
                 }
 
-                var items = data.Items;
-                var ownedVehs = data.OwnedVehicles;
-
-                var keysVehs = items.Where(x => x is Game.Items.VehicleKey vKey && !ownedVehs.Where(y => y.VID == vKey.VID).Any()).GroupBy(x => ((Game.Items.VehicleKey)x).VID).Select(x => x.First() as Game.Items.VehicleKey).ToList();
-
                 #region Check&Start Deletion of Owned Vehicles
-                foreach (var vid in ownedVehs)
+
+                pData.RentedVehicle?.StartDeletionTask();
+
+                var vehsToStartDeletion = pData.OwnedVehicles.Where(x => x.VehicleData != null).ToList();
+
+                for (int i = 0; i < pData.Items.Length; i++)
                 {
-                    var veh = VehicleData.All.Values.Where(x => x?.VID == vid.VID).FirstOrDefault();
-
-                    if (veh == null)
-                        continue;
-
-                    var keys = veh.Keys;
-
-                    bool foundDescendant = false;
-
-                    foreach (var x in PlayerData.All.Values)
+                    if (pData.Items[i] is Game.Items.VehicleKey vKey)
                     {
-                        var pItems = x?.Items;
+                        var vInfo = vKey.VehicleInfo;
 
-                        if (pItems == null)
+                        if (vInfo?.VehicleData == null)
                             continue;
 
-                        for (int j = 0; j < keys.Count; j++)
-                            if ((pItems[j] is Game.Items.VehicleKey) && pItems[j].UID == keys[j])
-                            {
-                                foundDescendant = true;
-
-                                break;
-                            }
-
-                        if (foundDescendant)
-                            break;
-                    }
-
-                    if (!foundDescendant)
-                        veh.StartDeletionTask();
-                }
-                #endregion
-
-                #region Check&Start Deletion of Vehicles By Keys
-                foreach (var key in keysVehs)
-                {
-                    var foundDescendant = false;
-
-                    var veh = VehicleData.All.Values.Where(x => x?.VID == key.VID && x.Keys.Contains(key.UID)).FirstOrDefault();
-
-                    if (veh == null)
-                        continue;
-
-                    var keys = veh.Keys;
-
-                    foreach (var x in PlayerData.All.Values)
-                    {
-                        var pItems = x?.Items;
-
-                        if (items == null)
+                        if (vehsToStartDeletion.Contains(vInfo))
                             continue;
 
-                        for (int j = 0; j < keys.Count; j++)
-                            if ((pItems[j] is Game.Items.VehicleKey) && pItems[j].UID == keys[j])
-                            {
-                                foundDescendant = true;
-
-                                break;
-                            }
-
-                        if (foundDescendant)
-                            break;
+                        if (vKey.IsKeyValid(vInfo))
+                            vehsToStartDeletion.Add(vInfo);
                     }
-
-                    if (!foundDescendant)
-                        veh.StartDeletionTask();
                 }
+
+                foreach (var x in PlayerData.All.Values)
+                {
+                    if (x == pData)
+                        continue;
+
+                    for (int i = 0; i < x.Items.Length; i++)
+                    {
+                        if (x.Items[i] is Game.Items.VehicleKey vKey)
+                        {
+                            var vInfo = vehsToStartDeletion.Where(x => x.VID == vKey.VID).FirstOrDefault();
+
+                            if (vKey.IsKeyValid(vInfo))
+                                vehsToStartDeletion.Remove(vInfo);
+                        }
+                    }
+                }
+
+                vehsToStartDeletion.ForEach(x => x.VehicleData.StartDeletionTask());
                 #endregion
 
-                if (data.Armour != null)
+                if (pData.Armour != null)
                 {
                     var arm = player.Armor;
 
                     if (arm < 0)
                         arm = 0;
 
-                    if (arm < data.Armour.Strength)
+                    if (arm < pData.Armour.Strength)
                     {
-                        data.Armour.Strength = arm;
+                        pData.Armour.Strength = arm;
 
-                        if (data.Armour.Strength == 0)
+                        if (pData.Armour.Strength == 0)
                         {
-                            data.Armour.Delete();
+                            pData.Armour.Delete();
 
-                            data.Armour = null;
+                            pData.Armour = null;
                         }
                         else
-                            data.Armour.Update();
+                            pData.Armour.Update();
                     }
                 }
 
-                var aWeapon = data.ActiveWeapon;
+                var aWeapon = pData.ActiveWeapon;
 
                 if (aWeapon != null)
                 {
-                    aWeapon.Value.WeaponItem.Unequip(data, true, false);
+                    aWeapon.Value.WeaponItem.Unequip(pData, true, false);
                 }
 
-                foreach (var x in data.Weapons)
+                foreach (var x in pData.Weapons)
                 {
                     if (x == null)
                         continue;
@@ -257,18 +223,18 @@ namespace BCRPServer.Events.Players
                         x.AttachType = null;
                 }
 
-                data.Info.LastData.Health = player.Health;
+                pData.Info.LastData.Health = player.Health;
 
-                if (data.Info.LastData.Health < 0 || data.IsKnocked)
-                    data.Info.LastData.Health = 0;
+                if (pData.Info.LastData.Health < 0 || pData.IsKnocked)
+                    pData.Info.LastData.Health = 0;
 
-                data.Info.LastData.Position.Position = player.Position;
-                data.Info.LastData.Dimension = player.Dimension;
-                data.Info.LastData.Position.RotationZ = player.Heading;
+                pData.Info.LastData.Position.Position = player.Position;
+                pData.Info.LastData.Dimension = player.Dimension;
+                pData.Info.LastData.Position.RotationZ = player.Heading;
 
-                MySQL.CharacterSaveOnExit(data.Info);
+                MySQL.CharacterSaveOnExit(pData.Info);
 
-                data.Remove();
+                pData.Remove();
             }
         }
         #endregion
@@ -816,10 +782,10 @@ namespace BCRPServer.Events.Players
             {
                 var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry).FirstOrDefault();
 
-                if (aData == null || aData.EntityType != EntityType.Player)
+                if (aData == null || aData.EntityType != EntityType.Player || aData.Id < 0)
                     return;
 
-                var target = Utils.FindReadyPlayerOnline(aData.Id);
+                var target = Utils.FindReadyPlayerOnline((uint)aData.Id);
 
                 if (target == null || target.Player?.Exists != true)
                     return;

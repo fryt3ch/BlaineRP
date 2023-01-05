@@ -175,6 +175,7 @@ namespace BCRPServer
         public static void ReleaseGlobal() => GlobalConnectionSemaphore.Release();
 
         public static async Task Wait() => await LocalConnectionSemaphore.WaitAsync();
+
         public static void Release() => LocalConnectionSemaphore.Release();
 
         public static int SetOfflineAll()
@@ -188,6 +189,44 @@ namespace BCRPServer
                     cmd.CommandText = "UPDATE characters SET IsOnline=false";
 
                     return cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static void UpdateServerData()
+        {
+            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            {
+                conn.Open();
+
+                var currentTime = Utils.GetCurrentTime();
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT * FROM server_data; UPDATE server_data SET LastLaunchTime=@LLT";
+
+                    cmd.Parameters.AddWithValue("@LLT", currentTime);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var llt = (DateTime)reader["LastLaunchTime"];
+
+                                var businessMaxDayIdx = 14;
+
+                                var timePassedSinceLastLaunch = currentTime.Subtract(llt);
+
+                                var bTime = DateTime.MinValue;
+
+                                Game.Businesses.Business.PreviousStatisticsDayIdx = ((int)Math.Floor(llt.Subtract(bTime).TotalDays)) % businessMaxDayIdx;
+
+                                Game.Businesses.Business.CurrentStatisticsDayIdx = (Game.Businesses.Business.PreviousStatisticsDayIdx + ((int)Math.Floor(timePassedSinceLastLaunch.TotalDays))) % businessMaxDayIdx;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -692,7 +731,7 @@ namespace BCRPServer
 
                     for (uint i = 1; i < nextAi; i++)
                     {
-                        if (Game.Items.Item.Get(i) == null)
+                        if (Game.Items.Item.Get(i) == null && !Game.Items.Item.FreeIDs.Contains(i))
                             Game.Items.Item.AddFreeId(i);
                     }
                 }
@@ -1617,16 +1656,18 @@ namespace BCRPServer
                         reader.Read();
 
                         if (reader["CID"] is DBNull)
+                        {
                             business.UpdateOwner(null);
+                        }
                         else
                         {
                             business.UpdateOwner(PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"])));
-
-                            business.Owner?.OwnedBusinesses.Add(business);
                         }
 
                         business.Cash = (int)reader["Cash"];
                         business.Bank = (int)reader["Bank"];
+
+                        business.IncassationState = (bool)reader["IncassationState"];
 
                         business.Materials = (int)reader["Materials"];
                         business.OrderedMaterials = (int)reader["OrderedMaterials"];
@@ -1685,28 +1726,18 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
-        public static void BusinessUpdateCash(Game.Businesses.Business business)
+        public static void BusinessUpdateBalances(Game.Businesses.Business business)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE businesses SET Cash=@Cash WHERE ID=@ID;";
+            cmd.CommandText = "UPDATE businesses SET Cash=@Cash, Bank=@Bank, Materials=@Mats WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", business.ID);
 
             cmd.Parameters.AddWithValue("@Cash", business.Cash);
-
-            PushQuery(cmd);
-        }
-
-        public static void BusinessUpdateBank(Game.Businesses.Business business)
-        {
-            var cmd = new MySqlCommand();
-
-            cmd.CommandText = "UPDATE businesses SET Bank=@Bank WHERE ID=@ID;";
-
-            cmd.Parameters.AddWithValue("@ID", business.ID);
-
             cmd.Parameters.AddWithValue("@Bank", business.Bank);
+
+            cmd.Parameters.AddWithValue("@Mats", business.Materials);
 
             PushQuery(cmd);
         }
@@ -1728,11 +1759,13 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE businesses SET Statistics=@Statistics WHERE ID=@ID;";
+            cmd.CommandText = "UPDATE businesses SET Statistics=@Stats, IncassationState=@IncState, OrderedMaterials=OMats WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", business.ID);
 
-            cmd.Parameters.AddWithValue("@Statistics", business.Statistics.SerializeToJson());
+            cmd.Parameters.AddWithValue("@Stats", business.Statistics.SerializeToJson());
+            cmd.Parameters.AddWithValue("@IncState", business.IncassationState);
+            cmd.Parameters.AddWithValue("@OMats", business.OrderedMaterials);
 
             PushQuery(cmd);
         }
@@ -1762,9 +1795,9 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "DELETE FROM gifts WHERE ID = @ID;";
+            cmd.CommandText = "DELETE FROM gifts WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("ID", gift.ID);
+            cmd.Parameters.AddWithValue("@ID", gift.ID);
 
             PushQuery(cmd);
         }
@@ -1782,7 +1815,7 @@ namespace BCRPServer
                 {
                     cmd.CommandText = "SELECT * FROM houses WHERE ID=@ID LIMIT 1;";
 
-                    cmd.Parameters.AddWithValue("@ID", house.ID);
+                    cmd.Parameters.AddWithValue("@ID", house.Id);
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -1817,7 +1850,7 @@ namespace BCRPServer
                         {
                             house.Locker = Game.Items.Container.Create("h_locker", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Locker={house.Locker} WHERE ID={house.ID};";
+                            cmd.CommandText += $"UPDATE houses SET Locker={house.Locker} WHERE ID={house.Id};";
                         }
                         else
                             house.Locker = Convert.ToUInt32(reader["Locker"]);
@@ -1826,7 +1859,7 @@ namespace BCRPServer
                         {
                             house.Wardrobe = Game.Items.Container.Create("h_wardrobe", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Wardrobe={house.Wardrobe} WHERE ID={house.ID};";
+                            cmd.CommandText += $"UPDATE houses SET Wardrobe={house.Wardrobe} WHERE ID={house.Id};";
                         }
                         else
                             house.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
@@ -1835,7 +1868,7 @@ namespace BCRPServer
                         {
                             house.Fridge = Game.Items.Container.Create("h_fridge", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Fridge={house.Fridge} WHERE ID={house.ID};";
+                            cmd.CommandText += $"UPDATE houses SET Fridge={house.Fridge} WHERE ID={house.Id};";
                         }
                         else
                             house.Fridge = Convert.ToUInt32(reader["Fridge"]);
@@ -1844,7 +1877,7 @@ namespace BCRPServer
                         {
                             house.DoorsStates = new bool[house.StyleData.DoorsCount];
 
-                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{house.DoorsStates.SerializeToJson()}' WHERE ID={house.ID};";
+                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{house.DoorsStates.SerializeToJson()}' WHERE ID={house.Id};";
                         }
                         else
                             house.DoorsStates = NAPI.Util.FromJson<bool[]>((string)reader["DoorsStates"]);
@@ -1859,7 +1892,7 @@ namespace BCRPServer
                                 house.LightsStates[i].State = true;
                             }
 
-                            cmd.CommandText += $"UPDATE houses SET LightsStates='{house.LightsStates.SerializeToJson()}' WHERE ID={house.ID};";
+                            cmd.CommandText += $"UPDATE houses SET LightsStates='{house.LightsStates.SerializeToJson()}' WHERE ID={house.Id};";
                         }
                         else
                             house.LightsStates = NAPI.Util.FromJson<Game.Houses.HouseBase.Light[]>((string)reader["LightsStates"]);
@@ -1916,7 +1949,7 @@ namespace BCRPServer
             else
                 cmd.CommandText = "UPDATE apartments SET Furniture=@Furniture WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@ID", house.ID);
+            cmd.Parameters.AddWithValue("@ID", house.Id);
             cmd.Parameters.AddWithValue("@Furniture", house.Furniture.Select(x => x.UID).SerializeToJson());
 
             PushQuery(cmd);
@@ -1931,7 +1964,7 @@ namespace BCRPServer
             else
                 cmd.CommandText = "UPDATE apartments SET CID=@CID WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@ID", house.ID);
+            cmd.Parameters.AddWithValue("@ID", house.Id);
 
             if (house.Owner == null)
                 cmd.Parameters.AddWithValue("@CID", DBNull.Value);
@@ -1950,9 +1983,26 @@ namespace BCRPServer
             else
                 cmd.CommandText = "UPDATE apartments SET Settlers=@Settlers WHERE ID=@ID;";
 
-            cmd.Parameters.AddWithValue("@ID", house.ID);
+            cmd.Parameters.AddWithValue("@ID", house.Id);
 
             cmd.Parameters.AddWithValue("@Settlers", house.Settlers.ToDictionary(x => x.Key.CID, x => x.Value).SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseUpdateOnRestart(Game.Houses.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Houses.HouseBase.Types.House ? "houses" : "apartments")} SET IsLocked=@IsLocked, ContainersLocked=@ContLocked, DoorsStates=DStates, LightsStates=LStates WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.Id);
+
+            cmd.Parameters.AddWithValue("@IsLocked", house.IsLocked);
+            cmd.Parameters.AddWithValue("@ContLocked", house.ContainersLocked);
+
+            cmd.Parameters.AddWithValue("@DStates", house.DoorsStates.SerializeToJson());
+            cmd.Parameters.AddWithValue("@LStates", house.LightsStates.SerializeToJson());
 
             PushQuery(cmd);
         }
@@ -1973,6 +2023,19 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void GarageUpdateOnRestart(Game.Houses.Garage garage)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE garages SET IsLocked=@IsLocked WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", garage.Id);
+
+            cmd.Parameters.AddWithValue("@IsLocked", garage.IsLocked);
+
+            PushQuery(cmd);
+        }
+
         public static void LoadApartments(Game.Houses.Apartments apartments)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
@@ -1983,7 +2046,7 @@ namespace BCRPServer
                 {
                     cmd.CommandText = "SELECT * FROM apartments WHERE ID=@ID LIMIT 1;";
 
-                    cmd.Parameters.AddWithValue("@ID", apartments.ID);
+                    cmd.Parameters.AddWithValue("@ID", apartments.Id);
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -2020,7 +2083,7 @@ namespace BCRPServer
                         {
                             apartments.Locker = Game.Items.Container.Create("a_locker", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Locker={apartments.Locker} WHERE ID={apartments.ID};";
+                            cmd.CommandText += $"UPDATE houses SET Locker={apartments.Locker} WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.Locker = Convert.ToUInt32(reader["Locker"]);
@@ -2029,7 +2092,7 @@ namespace BCRPServer
                         {
                             apartments.Wardrobe = Game.Items.Container.Create("a_wardrobe", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Wardrobe={apartments.Wardrobe} WHERE ID={apartments.ID};";
+                            cmd.CommandText += $"UPDATE houses SET Wardrobe={apartments.Wardrobe} WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
@@ -2038,7 +2101,7 @@ namespace BCRPServer
                         {
                             apartments.Fridge = Game.Items.Container.Create("a_fridge", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Fridge={apartments.Fridge} WHERE ID={apartments.ID};";
+                            cmd.CommandText += $"UPDATE houses SET Fridge={apartments.Fridge} WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.Fridge = Convert.ToUInt32(reader["Fridge"]);
@@ -2047,7 +2110,7 @@ namespace BCRPServer
                         {
                             apartments.DoorsStates = new bool[apartments.StyleData.DoorsCount];
 
-                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{apartments.DoorsStates.SerializeToJson()}' WHERE ID={apartments.ID};";
+                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{apartments.DoorsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.DoorsStates = NAPI.Util.FromJson<bool[]>((string)reader["DoorsStates"]);
@@ -2062,7 +2125,7 @@ namespace BCRPServer
                                 apartments.LightsStates[i].State = true;
                             }
 
-                            cmd.CommandText += $"UPDATE houses SET LightsStates='{apartments.LightsStates.SerializeToJson()}' WHERE ID={apartments.ID};";
+                            cmd.CommandText += $"UPDATE houses SET LightsStates='{apartments.LightsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.LightsStates = NAPI.Util.FromJson<Game.Houses.HouseBase.Light[]>((string)reader["LightsStates"]);

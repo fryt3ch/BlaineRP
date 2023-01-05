@@ -84,7 +84,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle::Temp", Player.LocalPlayer.RemoteId, id);
+            CallRemote("veh_temp", Player.LocalPlayer.RemoteId, id);
 
             LastSent = DateTime.Now;
         }
@@ -98,7 +98,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle::Temp", pid, id);
+            CallRemote("veh_temp", pid, id);
 
             LastSent = DateTime.Now;
         }
@@ -112,7 +112,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle", Player.LocalPlayer.RemoteId, id);
+            CallRemote("veh_new", Player.LocalPlayer.RemoteId, id);
 
             LastSent = DateTime.Now;
         }
@@ -126,7 +126,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle", pid, id);
+            CallRemote("veh_new", pid, id);
 
             LastSent = DateTime.Now;
         }
@@ -137,7 +137,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle::Respawn", vid);
+            CallRemote("veh_rs", vid);
 
             LastSent = DateTime.Now;
         }
@@ -148,7 +148,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle::Delete", vid, false);
+            CallRemote("veh_del", vid, false);
 
             LastSent = DateTime.Now;
         }
@@ -159,7 +159,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Vehicle::Delete", vid, true);
+            CallRemote("veh_del", vid, true);
 
             LastSent = DateTime.Now;
         }
@@ -176,7 +176,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Items::Clear", delay);
+            CallRemote("w_iog_cl", delay);
 
             LastSent = DateTime.Now;
         }
@@ -187,7 +187,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Items::Clear", -1);
+            CallRemote("w_iog_cl", -1);
 
             LastSent = DateTime.Now;
         }
@@ -202,7 +202,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Weapon::Temp", Player.LocalPlayer.RemoteId, id.StartsWith("w_") ? id : "w_" + id, ammo);
+            CallRemote("p_titem", Player.LocalPlayer.RemoteId, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
 
             LastSent = DateTime.Now;
         }
@@ -216,7 +216,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Weapon::Temp", pid, id.StartsWith("w_") ? id : "w_" + id, ammo);
+            CallRemote("p_titem", pid, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
 
             LastSent = DateTime.Now;
         }
@@ -231,7 +231,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Item::Temp", Player.LocalPlayer.RemoteId, id, amount, variation);
+            CallRemote("p_titem", Player.LocalPlayer.RemoteId, id, amount, variation);
 
             LastSent = DateTime.Now;
         }
@@ -245,7 +245,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Item::Temp", pid, id, amount, variation);
+            CallRemote("p_titem", pid, id, amount, variation);
 
             LastSent = DateTime.Now;
         }
@@ -259,7 +259,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Item", Player.LocalPlayer.RemoteId, id, amount, variation);
+            CallRemote("p_item", Player.LocalPlayer.RemoteId, id, amount, variation);
 
             LastSent = DateTime.Now;
         }
@@ -273,7 +273,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Item", pid, id, amount, variation);
+            CallRemote("p_item", pid, id, amount, variation);
 
             LastSent = DateTime.Now;
         }
@@ -284,12 +284,16 @@ namespace BCRPClient.Data
             if (id == null)
                 return;
 
-            if (LastSent.IsSpam(1000, false, true))
-                return;
+            var type = Data.Items.GetType(id, true);
 
-            Events.CallRemote("Cmd::Item::Info", id);
+            if (type == null)
+            {
 
-            LastSent = DateTime.Now;
+            }
+            else
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Commands.Item.Header, string.Format(Locale.Notifications.Commands.Item.Info, id, Data.Items.GetName(id), type.BaseType.Name, type.Name, string.Join(", ", type.GetInterfaces().Select(x => x.Name))), 10000);
+            }
         }
 
         #endregion
@@ -312,7 +316,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::TP::Pos", position.X, position.Y, position.Z, true);
+            CallRemote("p_tpp", Player.LocalPlayer.RemoteId, position.X, position.Y, position.Z, true);
 
             LastSent = DateTime.Now;
         }
@@ -336,7 +340,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::TP::Pos", x, y, z, toGround);
+            CallRemote("p_tpp", Player.LocalPlayer.RemoteId, x, y, z, toGround);
 
             LastSent = DateTime.Now;
         }
@@ -348,18 +352,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::TP::To", pid);
-
-            LastSent = DateTime.Now;
-        }
-
-        [Command("tptoveh", true, "Телепорт к транспорту", "gotoveh", "tpv")]
-        public static void TeleportToVehicle(uint vid)
-        {
-            if (LastSent.IsSpam(1000, false, true))
-                return;
-
-            Events.CallRemote("Cmd::TP::To::Veh", vid);
+            CallRemote("p_tppl", pid, false);
 
             LastSent = DateTime.Now;
         }
@@ -370,7 +363,18 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::TP::Get", pid);
+            CallRemote("p_tppl", pid, true);
+
+            LastSent = DateTime.Now;
+        }
+
+        [Command("tptoveh", true, "Телепорт к транспорту", "gotoveh", "tpv")]
+        public static void TeleportToVehicle(uint vid)
+        {
+            if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            CallRemote("p_tpveh", vid, false);
 
             LastSent = DateTime.Now;
         }
@@ -381,7 +385,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::TP::Get::Veh", vid);
+            CallRemote("p_tpveh", vid, true);
 
             LastSent = DateTime.Now;
         }
@@ -392,7 +396,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::TP::Dim", pid, dimension);
+            CallRemote("p_sdim", pid, dimension);
 
             LastSent = DateTime.Now;
         }
@@ -425,7 +429,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Invis", state == null, state ?? false);
+            CallRemote("p_invis", state == null ? "" : state.ToString());
         }
 
         public static void GodMode(bool? state = null)
@@ -433,7 +437,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::GM", state == null, state ?? false);
+            CallRemote("p_gm", state == null ? "" : state.ToString());
         }
         #endregion
 
@@ -444,7 +448,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Kick", pid, reason, false);
+            CallRemote("p_kick", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -455,7 +459,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Kick", pid, reason, true);
+            CallRemote("p_skick", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -466,7 +470,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Mute", pid, mins, reason);
+            CallRemote("p_mute", pid, mins, reason);
 
             LastSent = DateTime.Now;
         }
@@ -477,7 +481,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Unmute", pid, reason);
+            CallRemote("p_mute", pid, -1, reason);
 
             LastSent = DateTime.Now;
         }
@@ -488,7 +492,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Warn", pid, reason);
+            CallRemote("p_warn", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -499,7 +503,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Unwarn", pid, reason);
+            CallRemote("p_uwarn", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -510,7 +514,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Ban", pid, days, reason);
+            CallRemote("p_ban", pid, days, reason);
 
             LastSent = DateTime.Now;
         }
@@ -521,7 +525,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Unban", pid, reason);
+            CallRemote("p_uban", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -532,7 +536,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Ban::Hard", pid, reason);
+            CallRemote("p_hban", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -543,7 +547,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Unban::Hard", pid, reason);
+            CallRemote("p_uhban", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -554,7 +558,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Jail", pid, mins, reason);
+            CallRemote("p_jail", pid, mins, reason);
 
             LastSent = DateTime.Now;
         }
@@ -565,7 +569,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Unjail", pid, reason);
+            CallRemote("p_ujail", pid, reason);
 
             LastSent = DateTime.Now;
         }
@@ -577,7 +581,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Clothes", slot, drawable, texture, true);
+            CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, true);
 
             LastSent = DateTime.Now;
         }
@@ -588,7 +592,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Clothes", slot, drawable, texture, false);
+            CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, false);
 
             LastSent = DateTime.Now;
         }
@@ -599,7 +603,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Clothes", -1, -1, -1, true);
+            CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, -1, -1, -1, true);
 
             LastSent = DateTime.Now;
         }
@@ -613,7 +617,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Health", pid, value);
+            CallRemote("p_hp", pid, value);
 
             LastSent = DateTime.Now;
         }
@@ -627,7 +631,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Health", Player.LocalPlayer.RemoteId, value);
+            CallRemote("p_hp", Player.LocalPlayer.RemoteId, value);
 
             LastSent = DateTime.Now;
         }
@@ -641,7 +645,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Mood", Player.LocalPlayer.RemoteId,value);
+            CallRemote("p_mood", Player.LocalPlayer.RemoteId,value);
 
             LastSent = DateTime.Now;
         }
@@ -655,7 +659,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::Satiety", Player.LocalPlayer.RemoteId, value);
+            CallRemote("p_satiety", Player.LocalPlayer.RemoteId, value);
 
             LastSent = DateTime.Now;
         }
@@ -669,7 +673,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::SetMood", pid, value);
+            CallRemote("p_mood", pid, value);
 
             LastSent = DateTime.Now;
         }
@@ -683,7 +687,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("Cmd::SetSatiety", pid, value);
+            CallRemote("p_satiety", pid, value);
 
             LastSent = DateTime.Now;
         }
@@ -1153,7 +1157,7 @@ namespace BCRPClient.Data
 
                         newArgs[i] = Convert.ChangeType(args[i], Nullable.GetUnderlyingType(inst.Parameters[i].ParameterType) ?? inst.Parameters[i].ParameterType, Settings.CultureInfo);
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         correct = false;
 
@@ -1179,6 +1183,8 @@ namespace BCRPClient.Data
             else
                 inst.MethodInfo.Invoke(null, newArgs.Length > 0 ? newArgs : null);
         }
+
+        public static void CallRemote(string cmdId, params object[] args) => Events.CallRemote("Cmd::Exec", cmdId, string.Join('&', args));
         #endregion
 
         public Commands()
@@ -1194,11 +1200,6 @@ namespace BCRPClient.Data
 
                 All.Add(new Instance(method));
             }
-
-            Events.Add("Item::Info", (object[] args) =>
-            {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Commands.Item.Header, string.Format(Locale.Notifications.Commands.Item.Info, (string)args[0], Data.Items.GetName((string)args[0]), (string)args[1], (string)args[2], (string)args[3]), 10000);
-            });
         }
     }
 }

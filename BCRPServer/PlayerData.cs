@@ -612,6 +612,8 @@ namespace BCRPServer
 
         public Game.Houses.HouseBase SettledHouseBase { get; set; }
 
+        public VehicleData RentedVehicle => VehicleData.All.Values.Where(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRent && x.OwnerID == CID).FirstOrDefault();
+
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
         public uint? CurrentContainer { get; set; }
@@ -813,6 +815,16 @@ namespace BCRPServer
             MySQL.CharacterSkillsUpdate(Info);
         }
 
+        public void AddRentedVehicle(VehicleData vData, int timeDel)
+        {
+            Player.TriggerEvent("Player::RVehs::U", vData.Vehicle.Id, vData.ID, timeDel);
+        }
+
+        public void RemoveRentedVehicle(VehicleData vData)
+        {
+            Player.TriggerEvent("Player::RVehs::U", vData.Vehicle.Id);
+        }
+
         public void AddVehicleProperty(VehicleData.VehicleInfo vInfo)
         {
             if (OwnedVehicles.Contains(vInfo))
@@ -854,14 +866,14 @@ namespace BCRPServer
 
             OwnedHouses.Add(house);
 
-            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.House, house.ID);
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.House, house.Id);
         }
 
         public void RemoveHouseProperty(Game.Houses.House house)
         {
             OwnedHouses.Remove(house);
 
-            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.House, house.ID);
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.House, house.Id);
         }
 
         public void AddApartmentsProperty(Game.Houses.Apartments aps)
@@ -871,14 +883,14 @@ namespace BCRPServer
 
             OwnedApartments.Add(aps);
 
-            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.Apartments, aps.ID);
+            Player.TriggerEvent("Player::Properties::Update", true, PropertyTypes.Apartments, aps.Id);
         }
 
         public void RemoveApartmentsProperty(Game.Houses.Apartments aps)
         {
             OwnedApartments.Remove(aps);
 
-            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Apartments, aps.ID);
+            Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Apartments, aps.Id);
         }
 
         public void AddGarageProperty(Game.Houses.Garage garage)
@@ -1321,16 +1333,16 @@ namespace BCRPServer
                 data.Add("Businesses", OwnedBusinesses.Select(x => x.ID).SerializeToJson());
 
             if (OwnedHouses.Count > 0)
-                data.Add("Houses", OwnedHouses.Select(x => x.ID).SerializeToJson());
+                data.Add("Houses", OwnedHouses.Select(x => x.Id).SerializeToJson());
 
             if (OwnedApartments.Count > 0)
-                data.Add("Apartments", OwnedApartments.Select(x => x.ID).SerializeToJson());
+                data.Add("Apartments", OwnedApartments.Select(x => x.Id).SerializeToJson());
 
             if (OwnedGarages.Count > 0)
                 data.Add("Garages", OwnedGarages.Select(x => x.Id).SerializeToJson());
 
             if (SettledHouseBase != null)
-                data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.ID}");
+                data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.Id}");
 
             data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson()); // to change!
 

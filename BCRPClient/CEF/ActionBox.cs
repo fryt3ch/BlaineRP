@@ -375,7 +375,12 @@ namespace BCRPClient.CEF
                                         if (LastSent.IsSpam(1000, false, false))
                                             return;
 
-                                        if ((bool)await Events.CallRemoteProc("VPound::Pay", npcName, vid))
+                                        var npcData = Data.NPC.GetData(npcName);
+
+                                        if (npcData == null)
+                                            return;
+
+                                        if ((bool?)await npcData.CallRemoteProc("vpound_p", vid) ?? false)
                                         {
                                             Close(true);
                                         }

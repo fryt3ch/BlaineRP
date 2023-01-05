@@ -123,7 +123,7 @@ namespace BCRPClient.CEF
             var stats = RAGE.Util.Json.Deserialize<int[]>((string)res["S"]);
 
             for (int i = 0; i < stats.Length; i++)
-                dates.Add(currentDate.AddDays(-(stats.Length - i)).ToString("MM.dd"));
+                dates.Add(currentDate.AddDays(-(stats.Length - i - 1)).ToString("MM.dd"));
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBusiness, true, true);
 

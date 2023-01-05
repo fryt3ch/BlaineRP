@@ -70,14 +70,22 @@ namespace BCRPServer
             Owner = 0,
             /// <summary>Имеет действительный ключ</summary>
             HasKey,
+            /// <summary>Арендует</summary>
+            Renter,
         }
 
         public enum OwnerTypes
         {
-            Player = 0,
-            PlayerRent,
+            /// <summary>Доступна всем</summary>
+            AlwaysFree = -1,
+            /// <summary>Принадлежит игроку</summary>
+            Player,
+            /// <summary>Временная, назначена игроку</summary>
             PlayerTemp,
-            Fraction,
+            /// <summary>Арендуется игроком</summary>
+            PlayerRent,
+            /// <summary>Арендуется игроком, при этом - принадлежит работе</summary>
+            PlayerRentJob,
         }
 
         #region Subclasses
@@ -399,7 +407,7 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool HoodLocked { get => Vehicle.GetSharedData<bool>("Hood::Locked"); set { Vehicle.SetSharedData("Hood::Locked", value); } }
 
-        public bool IsInvincible { get => Vehicle.GetSharedData<bool>("IsInvincible"); set { Vehicle.SetSharedData("IsInvincible", value); } }
+        public bool IsInvincible { get => Vehicle.GetSharedData<bool?>("IsInvincible") ?? false; set { if (value) Vehicle.SetSharedData("IsInvincible", value); else Vehicle.ResetSharedData("IsInvincible"); } }
 
         public byte DirtLevel { get => (byte)Vehicle.GetSharedData<int>("DirtLevel"); set { Vehicle.SetSharedData("DirtLevel", value); } }
 
@@ -424,6 +432,8 @@ namespace BCRPServer
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
         public List<Sync.AttachSystem.AttachmentEntityNet> AttachedEntities { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedEntitiesKey).ToList<Sync.AttachSystem.AttachmentEntityNet>(); set { Vehicle.SetSharedData(Sync.AttachSystem.AttachedEntitiesKey, value); } }
         #endregion
+
+        public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Vehicle.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { if (value != null) Vehicle.SetData("IsAttachedTo::Entity", value); else Vehicle.ResetData("IsAttachedTo::Entity"); } }
 
         public VehicleData(Vehicle Vehicle)
         {
@@ -519,6 +529,18 @@ namespace BCRPServer
 
                     if (Info != null)
                         MySQL.VehicleDeletionUpdate(Info);
+                }
+                else
+                {
+                    if (OwnerType == OwnerTypes.PlayerRent)
+                    {
+                        var oPData = PlayerData.All.Values.Where(x => x.CID == OwnerID).FirstOrDefault();
+
+                        if (oPData != null)
+                        {
+                            oPData.RemoveRentedVehicle(this);
+                        }
+                    }
                 }
 
                 Remove(this);
@@ -643,6 +665,81 @@ namespace BCRPServer
             return vData;
         }
 
+        public static VehicleData NewTemp(Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension)
+        {
+            var vInfo = new VehicleInfo()
+            {
+                VID = 0,
+
+                Data = vType,
+                AllKeys = new List<uint>(),
+                OwnerType = OwnerTypes.AlwaysFree,
+                OwnerID = 0,
+                ID = vType.ID,
+                Numberplate = null,
+                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
+                RegistrationDate = Utils.GetCurrentTime(),
+            };
+
+            var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
+
+            var veh = vData.Vehicle;
+
+            NAPI.Task.Run(() =>
+            {
+                if (veh?.Exists != true)
+                    return;
+
+                veh.Dimension = dimension;
+            }, 1500);
+
+            return vData;
+        }
+
+        public static VehicleData NewRent(PlayerData pData, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Vector3 position, float heading, uint dimension)
+        {
+            var player = pData.Player;
+
+            var vInfo = new VehicleInfo()
+            {
+                VID = 0,
+
+                Data = vType,
+                AllKeys = new List<uint>(),
+                OwnerType = OwnerTypes.PlayerRent,
+                OwnerID = pData.CID,
+                ID = vType.ID,
+                Numberplate = null,
+                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
+                RegistrationDate = Utils.GetCurrentTime(),
+            };
+
+            var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
+
+            pData.AddRentedVehicle(vData, 300_000);
+
+            var veh = vData.Vehicle;
+
+            veh.NumberPlate = "RENT";
+
+            NAPI.Task.Run(() =>
+            {
+                if (veh?.Exists != true)
+                    return;
+
+                veh.Dimension = dimension;
+
+                if (player?.Exists != true)
+                    return;
+
+                player.SetIntoVehicle(veh, 0);
+            }, 1500);
+
+            return vData;
+        }
+
         public void StartDeletionTask()
         {
             if (CTSDelete != null)
@@ -696,15 +793,27 @@ namespace BCRPServer
 
         public OwningTypes? IsOwner(PlayerData pData)
         {
-            if (OwnerType == OwnerTypes.Player && OwnerID == pData.CID)
-                return OwningTypes.Owner;
+            if (OwnerType == OwnerTypes.AlwaysFree)
+                return OwningTypes.Renter;
 
-            foreach (var key in pData.Items.Where(x => x is Game.Items.VehicleKey key && key.VID == this.VID))
+            if (OwnerType == OwnerTypes.Player)
             {
-                if (this.Keys.Contains(key.UID))
+                if (OwnerID == pData.CID)
+                    return OwningTypes.Owner;
+
+                for (int i = 0; i < pData.Items.Length; i++)
                 {
-                    return OwningTypes.HasKey;
+                    if (pData.Items[i] is Game.Items.VehicleKey vKey)
+                    {
+                        if (vKey.IsKeyValid(Info))
+                            return OwningTypes.HasKey;
+                    }
                 }
+            }
+            else if (OwnerType == OwnerTypes.PlayerRent)
+            {
+                if (OwnerID == pData.CID)
+                    return OwningTypes.Owner;
             }
 
             return null;

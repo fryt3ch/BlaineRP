@@ -235,6 +235,9 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
+            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+                return;
+
             var gRootType = (Game.Houses.Garage.GarageRoot.Types)gRootTypeNum;
 
             if (slot >= 0)

@@ -44,7 +44,7 @@ namespace BCRPClient
 
             if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle || entity.Type == RAGE.Elements.Type.Ped)
             {
-                if (!entity.GetScreenPosition(ref x, ref y))
+                if (!entity.GetScreenPosition(ref x, ref y) || (entity.Type == RAGE.Elements.Type.Vehicle && entity.IsLocal))
                 {
                     CurrentEntity = null;
 

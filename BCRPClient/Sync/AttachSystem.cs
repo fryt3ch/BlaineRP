@@ -17,6 +17,16 @@ namespace BCRPClient.Sync
 
         public enum Types
         {
+            /// <summary>Прикрепление СЕРВЕРНОГО трейлера к СЕРВЕРНОМУ транспорту</summary>
+            VehicleTrailer,
+
+            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОЙ лодке</summary>
+            TrailerObjOnBoat,
+            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОМУ транспорту</summary>
+            TrailerObjOnVehicle,
+            /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
+            VehicleTrailerObjBoat,
+
             PushVehicleFront,
             PushVehicleBack,
             Phone,
@@ -206,6 +216,8 @@ namespace BCRPClient.Sync
 
             { Types.VehicleTrunk, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
             { Types.VehicleTrunkForced, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+
+            { Types.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
 
             {
                 Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, async (args) =>
@@ -434,30 +446,37 @@ namespace BCRPClient.Sync
 
             Vector3 positionBase = Vector3.Zero;
 
-            if (entity.Type == RAGE.Elements.Type.Vehicle)
+            if (entity is Vehicle veh)
             {
-                (Vector3 Min, Vector3 Max) vehSize = entity.GetModelDimensions();
+                if (type == Types.VehicleTrailer)
+                {
 
-                if (type == Types.PushVehicleFront || type == Types.PushVehicleBack)
-                {
-                    if (type == Types.PushVehicleFront)
-                    {
-                        positionBase.Y = vehSize.Max.Y;
-                        positionBase.Z = vehSize.Min.Z;
-                    }
-                    else
-                    {
-                        positionBase.Y = vehSize.Min.Y;
-                        positionBase.Z = vehSize.Min.Z;
-                    }
                 }
-                else if (type == Types.VehicleTrunk || type == Types.VehicleTrunkForced)
+                else
                 {
-                    positionBase.Y = -(vehSize.Max.Y - vehSize.Min.Y) / 2f;
+                    (Vector3 Min, Vector3 Max) vehSize = entity.GetModelDimensions();
+
+                    if (type == Types.PushVehicleFront || type == Types.PushVehicleBack)
+                    {
+                        if (type == Types.PushVehicleFront)
+                        {
+                            positionBase.Y = vehSize.Max.Y;
+                            positionBase.Z = vehSize.Min.Z;
+                        }
+                        else
+                        {
+                            positionBase.Y = vehSize.Min.Y;
+                            positionBase.Z = vehSize.Min.Z;
+                        }
+                    }
+                    else if (type == Types.VehicleTrunk || type == Types.VehicleTrunkForced)
+                    {
+                        positionBase.Y = -(vehSize.Max.Y - vehSize.Min.Y) / 2f;
+                    }
                 }
             }
 
-            AttachmentData props = Attachments[type];
+            AttachmentData props = Attachments.GetValueOrDefault(type);
 
             var list = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
 
@@ -471,7 +490,22 @@ namespace BCRPClient.Sync
 
                 if (gEntity.Handle != 0 && gTarget.Handle != 0)
                 {
-                    RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                    if (props != null)
+                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+
+                    if (type == Types.VehicleTrailer)
+                    {
+                        RAGE.Game.Vehicle.AttachVehicleToTrailer(gEntity.Handle, gTarget.Handle, float.MaxValue);
+                    }
+                    else if (type == Types.VehicleTrailerObjBoat)
+                    {
+                        var trailerObj = gEntity.GetData<List<AttachmentObject>>(AttachedObjectsKey)?.Where(x => x.Type == Types.TrailerObjOnBoat).FirstOrDefault()?.Object;
+
+                        if (trailerObj != null)
+                        {
+                            RAGE.Game.Vehicle.AttachVehicleToTrailer(gTarget.Handle, trailerObj.Handle, float.MaxValue);
+                        }
+                    }
 
                     list.Add(new AttachmentEntity(remoteId, eType, type));
 
@@ -508,7 +542,7 @@ namespace BCRPClient.Sync
             GameEntity gEntity = Utils.GetGameEntity(entity);
             GameEntity gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
 
-            AttachmentData props = Attachments[item.Type];
+            AttachmentData props = Attachments.GetValueOrDefault(item.Type);
 
             list.Remove(item);
 
@@ -517,7 +551,13 @@ namespace BCRPClient.Sync
             if (gTarget == null || gEntity == null)
                 return;
 
-            RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props.Collision);
+            if (props != null)
+                RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props.Collision);
+
+            if (item.Type == Types.VehicleTrailer || item.Type == Types.VehicleTrailerObjBoat)
+            {
+                RAGE.Game.Vehicle.DetachVehicleFromTrailer(gTarget.Handle);
+            }
 
             if (gTarget?.Type == RAGE.Elements.Type.Player && (gTarget as Player).Handle == Player.LocalPlayer.Handle)
             {
@@ -562,6 +602,14 @@ namespace BCRPClient.Sync
                 if (syncData != null)
                     Sync.WeaponSystem.UpdateWeaponObjectComponents(gEntity.Handle, hash, syncData);
             }
+            else if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+            {
+                var vTypeData = Data.Vehicles.GetByModel(hash);
+
+                gEntity = new Vehicle(hash, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
+
+                gEntity.SetData("TrailerSync::Owner", target as Vehicle);
+            }
             else
             {
                 gEntity = new MapObject(hash, target.Position, Vector3.Zero, 255, target.Dimension);
@@ -585,9 +633,15 @@ namespace BCRPClient.Sync
 
                 if (gEntity.Handle != 0 && gTarget.Handle != 0)
                 {
-                    RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                    if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                    else
+                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
 
-                    (gEntity as MapObject).Hidden = false;
+                    if (gEntity is MapObject mObj)
+                    {
+                        mObj.Hidden = false;
+                    }
 
                     props.EntityAction?.Invoke(new object[] { gEntity });
 
@@ -615,19 +669,28 @@ namespace BCRPClient.Sync
             if (item == null)
                 return;
 
-            GameEntity gEntity = item.Object;
+            var gEntity = item.Object;
+            var gTarget = Utils.GetGameEntity(target);
+
+            if (gTarget == null || gEntity == null)
+                return;
 
             AttachmentData props = Attachments[item.Type];
 
-            RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props.Collision);
+            if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+                RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, props.Collision);
+            else
+                RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props.Collision);
 
             if (gEntity.HasData("PtfxHandle"))
             {
                 RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
             }
 
-            if (gEntity.Type == RAGE.Elements.Type.Object)
+            if (gEntity.IsLocal)
+            {
                 gEntity.Destroy();
+            }
 
             gEntity = null;
 

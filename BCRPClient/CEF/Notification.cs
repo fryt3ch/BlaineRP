@@ -110,6 +110,8 @@ namespace BCRPClient.CEF
             { "Vehicle::KE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyError, Locale.Notifications.ErrorHeader) },
             { "Vehicle::RKDE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleIsDeadFixError, Locale.Notifications.ErrorHeader) },
 
+            { "Vehicle::AHRV", new Instance(Types.Error, Locale.Notifications.Vehicles.AlreadyHaveRentedVehicle, Locale.Notifications.ErrorHeader) },
+
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
             { "Container::Wait", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },
@@ -188,6 +190,7 @@ namespace BCRPClient.CEF
             { "Trade::NotEnoughMoney", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughMoney, Locale.Notifications.ErrorHeader) },
             { "Trade::NotEnoughMoneyOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughMoneyOther, Locale.Notifications.ErrorHeader) },
             { "Trade::NotEnoughSpaceOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughSpaceOther, Locale.Notifications.ErrorHeader) },
+            { "Trade::NPSO", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughPropertySpaceOther, Locale.Notifications.ErrorHeader) },
 
             { "House::NotAllowed", new Instance(Types.Error, Locale.Notifications.House.NotAllowed, Locale.Notifications.ErrorHeader) },
             { "House::HL", new Instance(Types.Error, Locale.Notifications.House.IsLocked, Locale.Notifications.ErrorHeader) },

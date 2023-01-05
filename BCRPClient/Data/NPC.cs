@@ -161,9 +161,9 @@ namespace BCRPClient.Data
             };
         }
 
-        public void CallRemote(string actionName, params object[] args) => Events.CallRemote("NPC::Action", Id, actionName, RAGE.Util.Json.Serialize(args));
+        public void CallRemote(string actionName, params object[] args) => Events.CallRemote("NPC::Action", Id, actionName, string.Join('&', args));
 
-        public async System.Threading.Tasks.Task<object> CallRemoteProc(string actionName, params object[] args) => await Events.CallRemoteProc("NPC::Proc", Id, actionName, RAGE.Util.Json.Serialize(args));
+        public async System.Threading.Tasks.Task<object> CallRemoteProc(string actionName, params object[] args) => await Events.CallRemoteProc("NPC::Proc", Id, actionName, string.Join('&', args));
 
         public void Interact(bool state = true)
         {
@@ -263,6 +263,67 @@ namespace BCRPClient.Data
 
         public static Dictionary<string, Dialogue> AllDialogues = new Dictionary<string, Dialogue>()
         {
+            {
+                "vrent_s_preprocess",
+
+                new Dialogue(null,
+
+                    async (args) =>
+                    {
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                        if (pData == null)
+                            return;
+
+                        var data = (int?)await NPC.CurrentNPC.CallRemoteProc("vrent_s_d") ?? -1;
+
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        if (data < 0)
+                        {
+                            NPC.CurrentNPC.SwitchDialogue(false);
+                        }
+                        else
+                        {
+                            var dg = AllDialogues["vrent_s_def_0"];
+
+                            dg.Buttons[0].Text = $"Конечно [{Utils.GetPriceString(data)}]";
+
+                            NPC.CurrentNPC.ShowDialogue("vrent_s_def_0");
+                        }
+                    }
+
+                    )
+            },
+
+            {
+                "vrent_s_def_0",
+
+                new Dialogue("Привет! Хочешь недорого арендовать простенький мопед, с которым будет проще изучать наш округ?",
+
+                    null,
+
+                    new Button(null, async () =>
+                    {
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        if ((bool?)await NPC.CurrentNPC.CallRemoteProc("vrent_s_p") ?? false)
+                            NPC.CurrentNPC?.SwitchDialogue(false);
+                    }, true),
+
+                    new Button("[Выйти]", CloseCurrentDialogue, false)
+
+                    )
+                {
+
+                }
+            },
+
             #region Vehicle Pound
             {
                 "vpound_preprocess",
@@ -352,7 +413,7 @@ namespace BCRPClient.Data
                         }
                         else
                         {
-                            if ((bool)await Events.CallRemoteProc("VPound::Pay", NPC.CurrentNPC.Id, vid))
+                            if ((bool?)await NPC.CurrentNPC.CallRemoteProc("vpound_p", vid) == true)
                                 NPC.CurrentNPC?.SwitchDialogue(false);
                         }
                     }, true),
@@ -410,7 +471,7 @@ namespace BCRPClient.Data
                         if (NPC.CurrentNPC == null)
                             return;
 
-                        var hasAccount = (bool)await Events.CallRemoteProc("Bank::HasAccount");
+                        var hasAccount = (bool?)await Events.CallRemoteProc("Bank::HasAccount") == true;
 
                         if (NPC.CurrentNPC == null)
                             return;
@@ -598,7 +659,7 @@ namespace BCRPClient.Data
 
         public string Text { get; set; }
 
-        public Button[] Buttons { get; set; }
+        public List<Button> Buttons { get; set; }
 
         public Action<object[]> Action { get; set; }
 
@@ -610,7 +671,7 @@ namespace BCRPClient.Data
 
             this.Text = Text;
 
-            this.Buttons = Buttons;
+            this.Buttons = Buttons.ToList();
 
             for (int i = 0; i < Buttons.Length; i++)
                 this.Buttons[i].Id = i;
@@ -634,7 +695,7 @@ namespace BCRPClient.Data
 
         public void InvokeButtonAction(int buttonId)
         {
-            if (buttonId >= Buttons.Length)
+            if (buttonId < 0 || buttonId >= Buttons.Count)
                 return;
 
             Buttons[buttonId].Action?.Invoke();
@@ -663,14 +724,7 @@ namespace BCRPClient.Data
 
             if (args != null)
             {
-                var newButtons = new List<Button>();
-
-                for (int i = 0; i < args.Length; i++)
-                    if (args[i] is int)
-                        newButtons.Add(Buttons[(int)args[i]]);
-
-                if (newButtons.Count > 0)
-                    buttons = newButtons.ToArray();
+                // ?
             }
 
             if (!CEF.NPC.IsActive)

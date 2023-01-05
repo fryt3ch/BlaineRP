@@ -207,6 +207,9 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
+            if (player.Vehicle != null && (player.Vehicle != veh || pData.VehicleSeat != 0))
+                return;
+
             var ts = Game.Businesses.Business.Get(id) as Game.Businesses.TuningShop;
 
             if (ts == null)
@@ -222,6 +225,11 @@ namespace BCRPServer.Events.Players
             var pDim = Utils.GetPrivateDimension(player);
 
             veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, true);
+
+            if (player.Vehicle == null)
+            {
+                player.Teleport(ts.EnterProperties.Position, false, pDim, ts.EnterProperties.RotationZ, true);
+            }
 
             vData.EngineOn = true;
             vData.LightsOn = true;

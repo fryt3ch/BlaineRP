@@ -149,7 +149,7 @@ namespace BCRPServer.Events.Players
 
                         if (estType == PlayerData.PropertyTypes.House)
                         {
-                            var house = pData.OwnedHouses.Where(x => x.ID == estId).FirstOrDefault();
+                            var house = pData.OwnedHouses.Where(x => x.Id == estId).FirstOrDefault();
 
                             if (house == null)
                                 return ReturnTypes.Error;
@@ -158,7 +158,7 @@ namespace BCRPServer.Events.Players
                         }
                         else if (estType == PlayerData.PropertyTypes.Apartments)
                         {
-                            var aps = pData.OwnedApartments.Where(x => x.ID == estId).FirstOrDefault();
+                            var aps = pData.OwnedApartments.Where(x => x.Id == estId).FirstOrDefault();
 
                             if (aps == null)
                                 return ReturnTypes.Error;
@@ -510,7 +510,7 @@ namespace BCRPServer.Events.Players
             }
             else if (pType == PlayerData.PropertyTypes.House || pType == PlayerData.PropertyTypes.Apartments)
             {
-                var house = pType == PlayerData.PropertyTypes.House ? (Game.Houses.HouseBase)pData.OwnedHouses.Where(x => x.ID == pId).FirstOrDefault() : (Game.Houses.HouseBase)pData.OwnedApartments.Where(x => x.ID == pId).FirstOrDefault();
+                var house = pType == PlayerData.PropertyTypes.House ? (Game.Houses.HouseBase)pData.OwnedHouses.Where(x => x.Id == pId).FirstOrDefault() : (Game.Houses.HouseBase)pData.OwnedApartments.Where(x => x.Id == pId).FirstOrDefault();
 
                 if (house == null)
                     return false;

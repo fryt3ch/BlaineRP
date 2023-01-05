@@ -833,21 +833,19 @@ namespace BCRPServer.Game.Items
                 this.Type = Type;
                 this.Variation = Variation;
             }
-
-            public bool IsAllowedFor(uint wHash) => true;
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "ws_0_0", new ItemData("Зеленая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 1 ) },
-            { "ws_0_1", new ItemData("Золотая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 2 ) },
-            { "ws_0_2", new ItemData("Розовая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 3 ) },
-            { "ws_0_3", new ItemData("Армейская раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 4 ) },
-            { "ws_0_4", new ItemData("Синяя раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 5 ) },
-            { "ws_0_5", new ItemData("Оранжевая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 6 ) },
-            { "ws_0_6", new ItemData("Платиновая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniDef, 7 ) },
+            { "ws_0_0", new ItemData("Зеленая раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 1 ) },
+            { "ws_0_1", new ItemData("Золотая раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 2 ) },
+            { "ws_0_2", new ItemData("Розовая раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 3 ) },
+            { "ws_0_3", new ItemData("Армейская раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 4 ) },
+            { "ws_0_4", new ItemData("Синяя раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 5 ) },
+            { "ws_0_5", new ItemData("Оранжевая раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 6 ) },
+            { "ws_0_6", new ItemData("Платиновая раскраска (уни, обыч.)", 0f, "w_am_case", ItemData.Types.UniDef, 7 ) },
 
-            { "ws_1_1", new ItemData("Черно-белая раскраска (уни.)", 0f, "w_am_case", ItemData.Types.UniMk2, 2 ) },
+            { "ws_1_1", new ItemData("Черно-белая раскраска (уни, Mk2)", 0f, "w_am_case", ItemData.Types.UniMk2, 2 ) },
         };
 
         public static ItemData GetData(string id) => (ItemData)IDList[id];
@@ -3178,8 +3176,8 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "holster_m_0", new ItemData("Кобура на ногу", true, 136, new int[] { 0, 1 }, 134, null) },
-            { "holster_m_1", new ItemData("Кобура простая", true, 135, new int[] { 0, 1 }, 137, null) },
+            { "hl_m_0", new ItemData("Кобура на ногу", true, 148, new int[] { 0 }, 146, null) },
+            { "hl_m_1", new ItemData("Кобура простая", true, 149, new int[] { 0 }, 147, null) },
         };
 
         public const int Slot = 10;
@@ -3194,7 +3192,7 @@ namespace BCRPServer.Game.Items
         public Item[] Items { get; set; }
 
         [JsonIgnore]
-        public Weapon Weapon { get => (Weapon)Items[0]; }
+        public Weapon Weapon => (Weapon)Items[0];
 
         public override void Wear(PlayerData pData)
         {
@@ -3387,7 +3385,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public VehicleData.VehicleInfo VehicleInfo => VehicleData.VehicleInfo.Get(VID);
 
-        public bool IsKeyValid(VehicleData.VehicleInfo vInfo) => vInfo.AllKeys.Contains(UID);
+        public bool IsKeyValid(VehicleData.VehicleInfo vInfo) => (vInfo == null || vInfo.VID != VID) ? false : vInfo.AllKeys.Contains(UID);
 
         public string Tag { get; set; }
 

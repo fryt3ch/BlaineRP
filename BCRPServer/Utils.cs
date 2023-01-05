@@ -264,21 +264,18 @@ namespace BCRPServer
         /// <param name="delay">Задержка перед киком</param>
         public static void KickSilent(Player player, string reason, int delay = 2000)
         {
+            if (player?.Exists != true)
+                return;
+
+            player.Notify("Kick", reason);
+
             NAPI.Task.Run(() =>
             {
                 if (player?.Exists != true)
                     return;
 
-                player.Notify("Kick", reason);
-
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    player.KickSilent(reason);
-                }, delay);
-            });
+                player.KickSilent(reason);
+            }, delay);
         }
 
         /// <summary>Кик игрока со сторорны администратора</summary>
@@ -324,7 +321,7 @@ namespace BCRPServer
         /// <param name="vid">VID или RemoteID</param>
         /// <returns>Объект класса VehicleData, если транспорт найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static VehicleData FindVehicleOnline(int vid) => vid >= FirstVID ? VehicleData.All.Where(x => x.Value?.VID == vid).Select(x => x.Value).FirstOrDefault() : VehicleData.All.Where(x => x.Key?.Id == vid).Select(x => x.Value).FirstOrDefault();
+        public static VehicleData FindVehicleOnline(uint vid) => vid >= FirstVID ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Where(x => x.Key.Id == vid).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Является ли транспорт автомобилем?</summary>
         /// <param name="vehicle">Сущность транспорта</param>
@@ -476,13 +473,13 @@ namespace BCRPServer
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса PlayerData, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData FindReadyPlayerOnline(int pid) => pid >= FirstCID ? PlayerData.All.Where(x => x.Value?.CID == pid).Select(x => x.Value).FirstOrDefault() : PlayerData.All.Where(x => x.Key?.Id == pid).Select(x => x.Value).FirstOrDefault();
+        public static PlayerData FindReadyPlayerOnline(uint pid) => pid >= FirstCID ? PlayerData.All.Values.Where(x => x.CID == pid).FirstOrDefault() : PlayerData.All.Where(x => x.Key.Id == pid).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Метод для получения сущности игрока, который в сети</summary>
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса Player, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player FindPlayerOnline(int pid) => pid >= FirstCID ? PlayerData.All.Where(x => x.Value?.CID == pid).Select(x => x.Key).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
+        public static Player FindPlayerOnline(uint pid) => pid >= FirstCID ? PlayerData.All.Values.Where(x => x.CID == pid).Select(x => x.Player).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
 
         /// <summary>Метод для получения пола игрока</summary>
         /// <param name="player">Сущность игрока</param>
@@ -1134,7 +1131,7 @@ namespace BCRPServer
             return null;
         }
 
-        public static void TriggerEventOccupants(this Vehicle veh, string eventName, params object[] args)
+        public static bool TriggerEventOccupants(this Vehicle veh, string eventName, params object[] args)
         {
             var occupants = new List<Player>();
 
@@ -1145,7 +1142,15 @@ namespace BCRPServer
             }
 
             if (occupants.Count > 0)
+            {
                 NAPI.ClientEvent.TriggerClientEventToPlayers(occupants.ToArray(), eventName, args);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public static void SetFixed(this Vehicle veh) => Sync.Vehicles.SetFixed(veh);
@@ -1153,20 +1158,18 @@ namespace BCRPServer
 
         public static void SetCleaned(this VehicleData vData) => vData.DirtLevel = 0;
 
-        public static void SetHeading(this Vehicle veh, float value, bool resetXY = false)
+        public static void SetHeading(this Vehicle veh, float value, bool resetXY = true)
         {
+            var rot = veh.Rotation;
+
             if (resetXY)
             {
-                veh.Rotation = new Vector3(0f, 0f, value);
+                rot.X = 0f; rot.Y = 0f;
             }
-            else
-            {
-                var rot = veh.Rotation;
 
-                rot.Z = value;
+            rot.Z = value;
 
-                veh.Rotation = rot;
-            }
+            veh.Rotation = rot;
         }
 
         public static void CreateGPSBlip(this Player player, Vector3 pos, uint dim, bool drawRoute = false) => player.TriggerEvent("Blip::CreateGPS", pos, dim, drawRoute);

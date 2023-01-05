@@ -1344,5 +1344,24 @@ namespace BCRPClient
         public static bool GetCanBeDamaged(this GameEntity gEntity) => RAGE.Game.Invoker.Invoke<bool>(0xD95CC5D2AB15A09F, gEntity.Handle);
 
         public static void SetFlashLightEnabled(this PedBase ped, bool state) => RAGE.Game.Invoker.Invoke(0x988DB6FE9B3AC000, ped.Handle, state);
+
+        public static string GetBeautyString(this TimeSpan ts)
+        {
+            var hours = ts.TotalHours;
+
+            if (hours >= 1)
+            {
+                var mins = hours % 60;
+
+                if (hours % 60 >= 1)
+                    return string.Format("{0:0} ч. и {0:0} мин.", hours, mins);
+
+                return string.Format("{0:0} ч.", hours);
+            }
+            else if (ts.TotalMinutes >= 1)
+                return string.Format("{0:0} мин.", ts.TotalMinutes);
+            else
+                return string.Format("{0:0} сек.", ts.TotalSeconds);
+        }
     }
 }

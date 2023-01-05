@@ -17,27 +17,13 @@ namespace BCRPServer.Additional
             #region Exit
             { "exit", () =>
                 {
-                    Events.Server.IsRestarting = true;
-
                     Active = false;
 
                     NAPI.Task.Run(async () =>
                     {
                         Console.WriteLine("Server is shutting down...");
 
-                        foreach (var player in NAPI.Pools.GetAllPlayers())
-                        {
-                            Utils.KickSilent(player, "Сервер был отключён!", 2000);
-                        }
-
-                        foreach (var vehicle in VehicleData.All.Values)
-                            vehicle?.Delete(false);
-
-                        await Task.Delay(Settings.SERVER_STOP_DELAY);
-
-                        await MySQL.Wait();
-
-                        MySQL.DoAllQueries();
+                        await Events.Server.OnServerShutdown();
 
                         Environment.Exit(0);
                     });

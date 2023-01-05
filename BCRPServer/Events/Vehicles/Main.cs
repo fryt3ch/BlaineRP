@@ -8,7 +8,7 @@ using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer.Events.Vehicles
 {
-    class Main : Script
+   class Main : Script
     {
         #region Player Enter Vehicle
         [ServerEvent(Event.PlayerEnterVehicle)]
@@ -87,6 +87,55 @@ namespace BCRPServer.Events.Vehicles
                 vData.EngineOn = false;
 
             Console.WriteLine($"{vData.VID} died - {veh.Health}");
+        }
+
+        [RemoteEvent("votc")]
+        private static void VehicleTrailerChange(Player player, Vehicle veh, Vehicle trailer)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (veh.Controller != player)
+                return;
+
+            if (trailer == null)
+            {
+                var atData = vData.IsAttachedTo;
+
+                if (atData == null || (atData.Value.Type != AttachSystem.Types.TrailerObjOnVehicle && atData.Value.Type != AttachSystem.Types.VehicleTrailerObjBoat))
+                    return;
+
+                var vOwner = atData.Value.Entity;
+
+                if (vOwner?.Exists != true)
+                    return;
+
+                vOwner.DetachEntity(veh);
+
+                Console.WriteLine("trailer detached");
+            }
+            else
+            {
+                var tData = trailer.GetMainData();
+
+                if (tData == null)
+                    return;
+
+                var atData = vData.IsAttachedTo;
+
+                if (atData != null)
+                    return;
+
+                if (tData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Boat)
+                    trailer.AttachEntity(veh, AttachSystem.Types.VehicleTrailerObjBoat);
+
+                Console.WriteLine("trailer attached");
+            }
         }
 
         #region Engine
@@ -357,6 +406,9 @@ namespace BCRPServer.Events.Vehicles
             var vData = veh.GetMainData();
 
             if (vData == null)
+                return;
+
+            if (vData.TID == null)
                 return;
 
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
@@ -834,53 +886,25 @@ namespace BCRPServer.Events.Vehicles
             player.InventoryUpdate(Game.Items.Inventory.Groups.Items, idx, Game.Items.Item.ToClientJson(rKit, Game.Items.Inventory.Groups.Items));
         }
 
-        [RemoteProc("VPound::Pay")]
-        private static bool VehiclePoundPay(Player player, string npcId, uint vid)
+        [RemoteEvent("VRent::Cancel")]
+        private static void VehicleRentCancel(Player player, ushort vId)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return false;
+                return;
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
-                return false;
+            var vData = VehicleData.All.Values.Where(x => x.Vehicle.Id == vId).FirstOrDefault();
 
-            var npcPos = NPC.GetPositionById(npcId);
+            if (vData == null)
+                return;
 
-            if (npcPos == null || player.Position.DistanceTo(npcPos) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
-                return false;
+            if (vData.OwnerType != VehicleData.OwnerTypes.PlayerRent || vData.OwnerID != pData.CID)
+                return;
 
-            var vPoundData = BCRPServer.Sync.Vehicles.GetVehiclePoundData(npcId);
-
-            if (vPoundData == null)
-                return false;
-
-            var vInfo = pData.Info.VehiclesOnPound.Where(x => x.VID == vid).FirstOrDefault();
-
-            if (vInfo == null)
-                return false;
-
-            if (!pData.HasEnoughCash(Settings.VEHICLEPOUND_PAY_PRICE, true))
-                return false;
-
-            pData.Cash -= Settings.VEHICLEPOUND_PAY_PRICE;
-
-            vInfo.LastData.GarageSlot = -1;
-
-            var newPos = new Utils.Vector4(vPoundData.GetNextVehicleSpawnPosition());
-
-            vInfo.LastData.Position = newPos.Position;
-            vInfo.LastData.Heading = newPos.RotationZ;
-
-            vInfo.LastData.Dimension = Utils.Dimensions.Main;
-
-            vInfo.Spawn();
-
-            player.CreateGPSBlip(newPos.Position, Utils.Dimensions.Main, true);
-
-            return true;
+            vData.Delete(false);
         }
     }
 }

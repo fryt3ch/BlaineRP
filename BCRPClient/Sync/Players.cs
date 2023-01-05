@@ -35,6 +35,8 @@ namespace BCRPClient.Sync
         private static GameEvents.UpdateHandler WoundedHandler;
         private static GameEvents.UpdateHandler HungryHandler;
 
+        private static AsyncTask RentedVehiclesCheckTask { get; set; }
+
         private static List<Player> KnockedPlayers { get; set; }
 
         private static Dictionary<string, Action<PlayerData, object, object>> DataActions = new Dictionary<string, Action<PlayerData, object, object>>();
@@ -657,6 +659,47 @@ namespace BCRPClient.Sync
             #endregion
 
             #region Local Player Events
+
+            Events.Add("Player::RVehs::U", (args) =>
+            {
+                var rId = (ushort)(int)args[0];
+
+                var rentedVehs = Sync.Vehicles.RentedVehicle.All;
+
+                if (args.Length > 1)
+                {
+                    var vTypeId = (string)args[1];
+
+                    var timeToDelete = (int)args[2];
+
+                    var vTypeData = Data.Vehicles.GetById(vTypeId);
+
+                    rentedVehs.Add(new Vehicles.RentedVehicle(rId, vTypeData, timeToDelete));
+
+                    if (RentedVehiclesCheckTask == null)
+                    {
+                        RentedVehiclesCheckTask = new AsyncTask(Sync.Vehicles.RentedVehicle.Check, 1000, true, 0);
+
+                        RentedVehiclesCheckTask.Run();
+                    }
+                }
+                else
+                {
+                    var rVeh = rentedVehs.Where(x => x.RemoteId == rId).FirstOrDefault();
+
+                    if (rVeh == null)
+                        return;
+
+                    rentedVehs.Remove(rVeh);
+
+                    if (rentedVehs.Count == 0)
+                    {
+                        RentedVehiclesCheckTask?.Cancel();
+
+                        RentedVehiclesCheckTask = null;
+                    }
+                }
+            });
 
             Events.Add("Player::Waypoint::Set", (args) =>
             {
