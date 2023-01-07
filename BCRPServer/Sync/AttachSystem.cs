@@ -14,6 +14,7 @@ namespace BCRPServer.Sync
     {
         public const string AttachedObjectsKey = "AttachedObjects";
         public const string AttachedEntitiesKey = "AttachedEntities";
+        public const string EntityIsAttachedToKey = "IAT::E";
 
         public const string AttachedObjectsCancelsKey = AttachedObjectsKey + "::Cancels";
 
@@ -488,10 +489,7 @@ namespace BCRPServer.Sync
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <param name="entity">Сущность-владелец</param>
         /// <param name="target">Прикрепленная сущность</param>
-        public static AttachmentEntityNet GetEntityAttachmentData(Entity entity, Entity target)
-        {
-            return entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>().Where(x => x.Id == target.Id).FirstOrDefault();
-        }
+        public static AttachmentEntityNet GetEntityAttachmentData(Entity entity, Entity target) => entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>().Where(x => x.Id == target.Id && x.EntityType == target.Type).FirstOrDefault();
 
         /// <summary>Прикрепить сущность к сущности</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -512,7 +510,7 @@ namespace BCRPServer.Sync
             list.Add(newAttachment);
 
             entity.SetSharedData(AttachedEntitiesKey, list);
-            target.SetData("IsAttachedTo::Entity", (entity, type));
+            target.SetData(EntityIsAttachedToKey, entity);
 
             GetOnAction(type)?.Invoke(entity, target, type, EmptyArgs);
 
@@ -538,7 +536,7 @@ namespace BCRPServer.Sync
             list.Remove(item);
 
             entity.SetSharedData(AttachedEntitiesKey, list);
-            target.ResetData("IsAttachedTo::Entity");
+            target.ResetData(EntityIsAttachedToKey);
 
             GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
 
@@ -563,7 +561,7 @@ namespace BCRPServer.Sync
 
                 if (target != null)
                 {
-                    target.ResetData("IsAttachedTo::Entity");
+                    target.ResetData(EntityIsAttachedToKey);
                 }
 
                 GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
@@ -708,6 +706,8 @@ namespace BCRPServer.Sync
 
             return true;
         }
+
+        public static Entity GetEntityIsAttachedToEntity(Entity entity) => entity.GetData<Entity>(EntityIsAttachedToKey);
         #endregion
     }
 }

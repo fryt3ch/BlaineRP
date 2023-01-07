@@ -153,21 +153,7 @@ namespace BCRPClient
             return false;
         }
 
-        public static RAGE.Elements.GameEntity GetGameEntity(RAGE.Elements.Entity entity)
-        {
-            if (entity == null)
-                return null;
-
-            switch (entity.Type)
-            {
-                case RAGE.Elements.Type.Ped: return RAGE.Elements.Entities.Peds.GetAt(entity.Id);
-                case RAGE.Elements.Type.Player: return RAGE.Elements.Entities.Players.GetAt(entity.Id);
-                case RAGE.Elements.Type.Vehicle: return RAGE.Elements.Entities.Vehicles.GetAt(entity.Id);
-                case RAGE.Elements.Type.Object: return RAGE.Elements.Entities.Objects.GetAt(entity.Id);
-            }
-
-            return null;
-        }
+        public static RAGE.Elements.GameEntity GetGameEntity(RAGE.Elements.Entity entity) => entity as GameEntity;
 
         public static Vector3 GetBonePositionOfEntity(GameEntity entity, object boneId)
         {
@@ -220,6 +206,47 @@ namespace BCRPClient
 
                 if (distance <= radius && minDistance >= distance)
                 {
+                    vehicle = veh;
+                    minDistance = distance;
+                }
+            }
+
+            return vehicle;
+        }
+
+        public static RAGE.Elements.Vehicle GetClosestVehicleToSeatIn(Vector3 position, float radius, int seatId = -1)
+        {
+            float minDistance = radius;
+
+            RAGE.Elements.Vehicle vehicle = null;
+
+            seatId--;
+
+            for (int i = 0; i < RAGE.Elements.Entities.Vehicles.Streamed.Count; i++)
+            {
+                var veh = RAGE.Elements.Entities.Vehicles.Streamed[i];
+
+                if (veh == null)
+                    continue;
+
+                float distance = Vector3.Distance(position, veh.Position);
+
+                if (distance <= radius && minDistance >= distance)
+                {
+                    if (veh.IsDead(0) || veh.GetEngineHealth() < 0)
+                        continue;
+
+                    if (seatId < 0)
+                    {
+                        if (!veh.AreAnySeatsFree())
+                            continue;
+                    }
+                    else
+                    {
+                        if (!veh.IsSeatFree(seatId, 0))
+                            continue;
+                    }
+
                     vehicle = veh;
                     minDistance = distance;
                 }
@@ -957,16 +984,20 @@ namespace BCRPClient
         {
             await RAGE.Game.Invoker.WaitAsync(500);
 
-            int handle = -1;
+            var handle = -1;
+
+            var counter = 0;
 
             do
             {
-                if (gEntity?.Exists != true)
+                if (gEntity?.Exists != true || counter > 20)
                     return false;
 
                 await RAGE.Game.Invoker.WaitAsync(25);
 
                 handle = gEntity?.Handle ?? -1;
+
+                counter++;
             }
             while (handle <= 0);
 
@@ -1362,6 +1393,26 @@ namespace BCRPClient
                 return string.Format("{0:0} мин.", ts.TotalMinutes);
             else
                 return string.Format("{0:0} сек.", ts.TotalSeconds);
+        }
+
+        public static int GetTrailerVehicle(this Vehicle veh)
+        {
+            int res = -1;
+
+            veh.GetTrailerVehicle(ref res);
+
+            return res;
+        }
+
+        public static bool IsAttachedToTrailer(this Vehicle veh, int trailerHandle) => veh.GetTrailerVehicle() == trailerHandle;
+
+        public static int GetFirstFreeSeatId(this Vehicle veh, int startIdx = 0)
+        {
+            for (int i = startIdx; i < RAGE.Game.Vehicle.GetVehicleModelNumberOfSeats(veh.Model); i++)
+                if (veh.IsSeatFree(i - 1, 0))
+                    return i;
+
+            return -1;
         }
     }
 }

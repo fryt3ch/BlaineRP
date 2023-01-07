@@ -101,6 +101,28 @@ namespace BCRPServer
             return Game.Houses.Apartments.Get(hid);
         }
 
+        public static Game.Houses.Apartments.ApartmentsRoot GetApartmentsRootByDimension(uint dim)
+        {
+            if (GetApartmentsRootTypeByDimension(dim) is Game.Houses.Apartments.ApartmentsRoot.Types type)
+                return Game.Houses.Apartments.ApartmentsRoot.Get(type);
+
+            return null;
+        }
+
+        public static Game.Houses.IDimensionable GetDimensionable(uint dim)
+        {
+            if (dim < HouseDimBase)
+                return null;
+
+            if (dim < ApartmentsRootDimBase)
+                return GetHouseBaseByDimension(dim);
+
+            if (dim < GarageDimBase)
+                return GetApartmentsRootByDimension(dim);
+
+            return null;
+        }
+
         public static Game.Houses.Apartments.ApartmentsRoot.Types? GetApartmentsRootTypeByDimension(uint dim) => dim < ApartmentsRootDimBase ? null : (Game.Houses.Apartments.ApartmentsRoot.Types?)(dim - ApartmentsRootDimBase);
 
         /// <summary>Стандартная позиция спавна</summary>
@@ -426,10 +448,10 @@ namespace BCRPServer
 
         #region Client Utils
 
-        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, bool onlyDriver = true) => Additional.AntiCheat.SetVehiclePos(vehicle, position, dimension, heading, fade, onlyDriver);
+        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, Additional.AntiCheat.VehicleTeleportTypes tpType = Additional.AntiCheat.VehicleTeleportTypes.Default) => Additional.AntiCheat.SetVehiclePos(vehicle, position, dimension, heading, fade, tpType);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerPos(Player, Vector3, bool, uint?)"/>
-        public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetPlayerPos(player, position, toGround, dimension, heading, fade);
+        public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetPlayerPos(position, toGround, dimension, heading, fade, false, player);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerInvincible(Player, bool)"/>
         public static void SetInvincible(this Player player, bool state) => Additional.AntiCheat.SetPlayerInvincible(player, state);
@@ -961,6 +983,8 @@ namespace BCRPServer
         /// <inheritdoc cref="Sync.AttachSystem.GetEntityAttachmentData(Entity, Entity)"/>
         public static Sync.AttachSystem.AttachmentEntityNet GetAttachmentData(this Entity entity, Entity target) => Sync.AttachSystem.GetEntityAttachmentData(entity, target);
 
+        public static Entity GetEntityIsAttachedTo(this Entity entity) => Sync.AttachSystem.GetEntityIsAttachedToEntity(entity);
+
         /// <inheritdoc cref="Sync.Animations.Play(PlayerData, Sync.Animations.GeneralTypes)"/>
         public static void PlayAnim(this PlayerData pData, Sync.Animations.GeneralTypes type) => Sync.Animations.Play(pData, type);
 
@@ -983,52 +1007,7 @@ namespace BCRPServer
         /// <inheritdoc cref="Sync.Animations.Set(PlayerData, Sync.Animations.WalkstyleTypes, bool)"/>
         public static void SetWalkstyle(this PlayerData pData, Sync.Animations.WalkstyleTypes type) => Sync.Animations.Set(pData, type, false);
 
-        public static bool CanPlayAnim(this PlayerData pData) => pData.CrawlOn || pData.PhoneOn || pData.IsAttachedTo != null || pData.FastAnim != Sync.Animations.FastTypes.None || pData.GeneralAnim != Sync.Animations.GeneralTypes.None || pData.OtherAnim != Sync.Animations.OtherTypes.None;
-
-        public static void Respawn(this PlayerData pData, Vector3 position, float heading, RespawnTypes rType = RespawnTypes.Teleport)
-        {
-            if (pData != null)
-            {
-                var player = pData.Player;
-
-                var offer = pData.ActiveOffer;
-
-                if (offer != null)
-                {
-                    offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
-                }
-
-                pData.IsAttachedTo?.Entity?.DetachEntity(player);
-
-                player.DetachAllEntities();
-
-                foreach (var x in pData.ObjectsInHand)
-                    player.DetachObject(x.Type);
-
-                pData.StopAnim();
-
-                var arm = pData.Armour;
-
-/*                if (arm != null)
-                {
-                    pData.Armour = null;
-
-                    arm.Unwear(pData);
-
-                    NAPI.Player.SpawnPlayer(player, position, heading);
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
-
-                        pData.Armour = arm;
-
-                        arm.Wear(pData);
-                    }, 500);
-                }*/
-            }
-        }
+        public static bool CanPlayAnim(this PlayerData pData) => pData.CrawlOn || pData.PhoneOn || pData.IsAttachedToEntity != null || pData.FastAnim != Sync.Animations.FastTypes.None || pData.GeneralAnim != Sync.Animations.GeneralTypes.None || pData.OtherAnim != Sync.Animations.OtherTypes.None;
 
         /// <inheritdoc cref="Additional.SkyCamera.Move(Player, Additional.SkyCamera.SwitchTypes, bool, string, object[])"></inheritdoc>
         public static void SkyCameraMove(this Player player, Additional.SkyCamera.SwitchTypes switchType, bool fade, string eventOnFinish = null, params object[] args) => Additional.SkyCamera.Move(player, switchType, fade, eventOnFinish, args);

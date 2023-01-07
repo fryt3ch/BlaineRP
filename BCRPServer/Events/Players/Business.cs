@@ -224,7 +224,7 @@ namespace BCRPServer.Events.Players
 
             var pDim = Utils.GetPrivateDimension(player);
 
-            veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, true);
+            veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
 
             if (player.Vehicle == null)
             {

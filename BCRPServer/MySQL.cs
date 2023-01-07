@@ -1759,7 +1759,7 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE businesses SET Statistics=@Stats, IncassationState=@IncState, OrderedMaterials=OMats WHERE ID=@ID;";
+            cmd.CommandText = "UPDATE businesses SET Statistics=@Stats, IncassationState=@IncState, OrderedMaterials=@OMats WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", business.ID);
 
@@ -1994,7 +1994,7 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = $"UPDATE {(house.Type == Game.Houses.HouseBase.Types.House ? "houses" : "apartments")} SET IsLocked=@IsLocked, ContainersLocked=@ContLocked, DoorsStates=DStates, LightsStates=LStates WHERE ID=@ID;";
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Houses.HouseBase.Types.House ? "houses" : "apartments")} SET IsLocked=@IsLocked, ContainersLocked=@ContLocked, DoorsStates=@DStates, LightsStates=@LStates WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", house.Id);
 

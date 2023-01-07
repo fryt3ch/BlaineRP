@@ -108,6 +108,7 @@ namespace BCRPClient.CEF
             { "Vehicle::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.NotAllowed, Locale.Notifications.Vehicles.Header) },
             { "Vehicle::OVP", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleOnPound, Locale.Notifications.ErrorHeader) },
             { "Vehicle::KE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyError, Locale.Notifications.ErrorHeader) },
+            { "Vehicle::KENS", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyNoSignalError, Locale.Notifications.ErrorHeader) },
             { "Vehicle::RKDE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleIsDeadFixError, Locale.Notifications.ErrorHeader) },
 
             { "Vehicle::AHRV", new Instance(Types.Error, Locale.Notifications.Vehicles.AlreadyHaveRentedVehicle, Locale.Notifications.ErrorHeader) },

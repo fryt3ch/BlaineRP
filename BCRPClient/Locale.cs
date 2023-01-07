@@ -1543,6 +1543,7 @@ namespace BCRPClient
 
                 public static string VehicleOnPound = "Этот транспорт находится на штрафстоянке!";
                 public static string VehicleKeyError = "Этот ключ не работает!";
+                public static string VehicleKeyNoSignalError = "Отсутвует связь между ключом и транспортом! Попробуйте позже.";
 
                 public static string VehicleIsDeadFixError = "Этот транспорт слишком сильно поврежден, вызовите механика!";
                 public static string VehicleIsNotDamagedFixError = "Этот транспорт не поврежден!";

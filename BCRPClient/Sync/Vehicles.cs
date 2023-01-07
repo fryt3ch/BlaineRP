@@ -21,6 +21,8 @@ namespace BCRPClient.Sync
 
         private static DateTime LastRadioSent;
         private static DateTime LastSyncSent;
+
+        private static DateTime LastVehicleExitedTime;
         #endregion
 
         private static AsyncTask CurrentDriverSyncTask { get; set; }
@@ -141,7 +143,7 @@ namespace BCRPClient.Sync
             #region Vehicle Data
             public bool IsInvincible => Vehicle.GetSharedData<bool>("IsInvincible", false);
 
-            public bool IsFrozen => Vehicle.GetSharedData<bool>("IsFrozen", false);
+            public bool IsFrozen => FrozenPosition != null;
 
             public bool EngineOn => Vehicle.GetSharedData<bool>("Engine::On", false);
 
@@ -177,7 +179,9 @@ namespace BCRPClient.Sync
 
             public Utils.Colour TyreSmokeColour => Vehicle.GetSharedData<JObject>("Mods::TSColour")?.ToObject<Utils.Colour>();
 
-            public byte DirtLevel => (byte)Vehicle.GetSharedData<int>("DirtLevel");
+            public byte DirtLevel => (byte)Vehicle.GetSharedData<int>("DirtLevel", 0);
+
+            public string FrozenPosition => Vehicle.GetSharedData<string>("IsFrozen");
 
             public Data.Vehicles.Vehicle Data { get; set; }
 
@@ -198,6 +202,8 @@ namespace BCRPClient.Sync
                     return null;
                 }
             }
+
+            public Vehicle IsAttachedToLocalTrailer => Vehicle.GetData<List<Sync.AttachSystem.AttachmentObject>>(Sync.AttachSystem.AttachedObjectsKey)?.Where(x => x.Type == AttachSystem.Types.TrailerObjOnBoat).FirstOrDefault()?.Object as Vehicle;
             #endregion
 
             public void Reset()
@@ -209,6 +215,93 @@ namespace BCRPClient.Sync
 
                 Vehicle.ResetData();
             }
+        }
+
+        public static async System.Threading.Tasks.Task OnVehicleStreamIn(Vehicle veh)
+        {
+            if (veh.IsLocal)
+            {
+/*                if (veh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle trVeh && GetData(trVeh)?.IsFrozen == true)
+                    veh.FreezePosition(true);*/
+
+                return;
+            }
+
+            var data = GetData(veh);
+
+            if (data != null)
+            {
+                data.Reset();
+            }
+
+            #region Required Things For Normal Behaviour
+            RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+            RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+            veh.SetLoadCollisionFlag(true, 0);
+            veh.TrackVisibility();
+
+            veh.SetUndriveable(true);
+            #endregion
+
+            #region Default Settings
+            veh.SetDisablePetrolTankDamage(true);
+            #endregion
+
+            data = new VehicleData(veh);
+
+            InvokeHandler("Anchor", data, data.IsAnchored, null);
+
+            InvokeHandler("IsFrozen", data, data.FrozenPosition, null);
+
+            InvokeHandler("IsInvincible", data, data.IsInvincible, null);
+
+            InvokeHandler("Mods::TSColour", data, veh.GetSharedData<JObject>("Mods::TSColour", null), null);
+            InvokeHandler("Mods::Turbo", data, data.HasTurboTuning, null);
+
+            InvokeHandler("Mods::Xenon", data, veh.GetSharedData<int>("Mods::Xenon", -2), null);
+
+            InvokeHandler("Mods::CT", data, veh.GetSharedData<int>("Mods::CT", 0), null);
+
+            //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
+
+            InvokeHandler("Engine::On", data, data.EngineOn, null);
+
+            InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
+            InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
+
+            InvokeHandler("Radio", data, data.Radio, null);
+
+            InvokeHandler("DirtLevel", data, data.DirtLevel, null);
+
+            if (data.TrunkLocked)
+            {
+                veh.SetDoorShut(5, false);
+            }
+            else
+            {
+                veh.SetDoorOpen(5, false, false);
+            }
+
+            if (data.HoodLocked)
+            {
+                veh.SetDoorShut(4, false);
+            }
+            else
+            {
+                veh.SetDoorOpen(4, false, false);
+            }
+
+            SetData(veh, data);
+        }
+
+        public static async System.Threading.Tasks.Task OnVehicleStreamOut(Vehicle veh)
+        {
+            var data = GetData(veh);
+
+            if (data == null)
+                return;
+
+            data.Reset();
         }
 
         public Vehicles()
@@ -340,105 +433,6 @@ namespace BCRPClient.Sync
                 }
             };
 
-            #region New Vehicle Stream
-            #region Stream In
-            Events.OnEntityStreamIn += async (Entity entity) =>
-            {
-                if (entity is Vehicle veh)
-                {
-                    if (!veh.Exists || veh.IsLocal)
-                        return;
-
-                    var loaded = await veh.WaitIsLoaded();
-
-                    if (!loaded)
-                        return;
-
-                    var data = GetData(veh);
-
-                    if (data != null)
-                    {
-                        data.Reset();
-                    }
-
-                    #region Required Things For Normal Behaviour
-                    RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-                    RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-                    veh.SetLoadCollisionFlag(true, 0);
-                    veh.TrackVisibility();
-
-                    veh.SetUndriveable(true);
-                    #endregion
-
-                    #region Default Settings
-                    veh.SetDisablePetrolTankDamage(true);
-                    #endregion
-
-                    data = new VehicleData(veh);
-
-                    InvokeHandler("Anchor", data, data.IsAnchored, null);
-
-                    InvokeHandler("IsFrozen", data, veh.GetSharedData<bool?>("IsFrozen"), null);
-
-                    InvokeHandler("IsInvincible", data, data.IsInvincible, null);
-
-                    InvokeHandler("Mods::TSColour", data, veh.GetSharedData<JObject>("Mods::TSColour", null), null);
-                    InvokeHandler("Mods::Turbo", data, data.HasTurboTuning, null);
-
-                    InvokeHandler("Mods::Xenon", data, veh.GetSharedData<int>("Mods::Xenon", -2), null);
-
-                    InvokeHandler("Mods::CT", data, veh.GetSharedData<int>("Mods::CT", 0), null);
-
-                    //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
-
-                    InvokeHandler("Engine::On", data, data.EngineOn, null);
-
-                    InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
-                    InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
-
-                    InvokeHandler("Radio", data, data.Radio, null);
-
-                    InvokeHandler("DirtLevel", data, data.DirtLevel, null);
-
-                    if (data.TrunkLocked)
-                    {
-                        veh.SetDoorShut(5, false);
-                    }
-                    else
-                    {
-                        veh.SetDoorOpen(5, false, false);
-                    }
-
-                    if (data.HoodLocked)
-                    {
-                        veh.SetDoorShut(4, false);
-                    }
-                    else
-                    {
-                        veh.SetDoorOpen(4, false, false);
-                    }
-
-                    SetData(veh, data);
-                }
-            };
-            #endregion
-
-            #region Stream Out
-            Events.OnEntityStreamOut += (Entity entity) =>
-            {
-                if (entity is Vehicle veh)
-                {
-                    var data = GetData(veh);
-
-                    if (data == null)
-                        return;
-
-                    data.Reset();
-                }
-            };
-            #endregion
-            #endregion
-
             #region Leave/Enter Vehicle Events
             Events.OnPlayerLeaveVehicle += (Vehicle vehicle, int seatId) =>
             {
@@ -471,6 +465,9 @@ namespace BCRPClient.Sync
             {
                 if (vehicle?.Exists != true)
                     return;
+
+                GameEvents.Render -= InVehicleRender;
+                GameEvents.Render += InVehicleRender;
 
                 Data.NPC.CurrentNPC?.SwitchDialogue(false);
 
@@ -581,7 +578,7 @@ namespace BCRPClient.Sync
             {
                 var veh = vData.Vehicle;
 
-                bool state = (bool)value;
+                var state = (bool?)value ?? false;
 
                 veh.SetInvincible(state);
                 veh.SetCanBeDamaged(!state);
@@ -770,13 +767,17 @@ namespace BCRPClient.Sync
 
             AddDataHandler("IsFrozen", (vData, value, oldValue) =>
             {
-                if (value != null)
+                if (value is string valueStr)
                 {
                     vData.Vehicle.FreezePosition(true);
+
+                    vData.IsAttachedToLocalTrailer?.FreezePosition(true);
                 }
                 else
                 {
                     vData.Vehicle.FreezePosition(false);
+
+                    vData.IsAttachedToLocalTrailer?.FreezePosition(false);
                 }
             });
 
@@ -873,6 +874,12 @@ namespace BCRPClient.Sync
 
                 veh.SetFixed();
                 veh.SetDeformationFixed();
+            });
+
+            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                    Sync.Vehicles.TryEnterVehicle(Interaction.CurrentEntity as Vehicle, -1);
             });
         }
 
@@ -1311,7 +1318,88 @@ namespace BCRPClient.Sync
             }
             else
             {
-                Utils.JsEval("mp.players.local.taskEnterVehicle", vehicle.Handle, 5000, seatId - 1, 2f, 1, 0);
+                TryEnterVehicle(vehicle, seatId);
+            }
+        }
+
+        public static void TryEnterVehicle(Vehicle veh = null, int seatId = -1)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (Player.LocalPlayer.IsInAnyVehicle(false) || LastVehicleExitedTime.IsSpam(1000, false, false))
+                return;
+
+            if (Player.LocalPlayer.GetScriptTaskStatus(2500551826) != 7)
+            {
+                Player.LocalPlayer.ClearTasks();
+
+                return;
+            }
+
+            if (veh == null)
+            {
+                veh = Utils.GetClosestVehicleToSeatIn(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE, seatId);
+
+                if (veh == null)
+                    return;
+            }
+
+            if (seatId < 0)
+            {
+                seatId = veh.GetFirstFreeSeatId(0);
+
+                if (seatId < 0)
+                    return;
+            }
+
+            Player.LocalPlayer.SetData("TEV::V", veh);
+            Player.LocalPlayer.SetData("TEV::S", seatId);
+            Player.LocalPlayer.SetData("TEV::T", DateTime.Now);
+
+            Utils.JsEval("mp.players.local.taskEnterVehicle", veh.Handle, -1, seatId - 1, 1.5f, 1, 0);
+
+            GameEvents.Render -= EnterVehicleRender;
+            GameEvents.Render += EnterVehicleRender;
+        }
+
+        private static void EnterVehicleRender()
+        {
+            var tStatus = Player.LocalPlayer.GetScriptTaskStatus(2500551826);
+
+            var seatId = Player.LocalPlayer.GetData<int>("TEV::S");
+            var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
+            var timePassed = DateTime.Now.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
+
+            if (tStatus == 7 || veh?.Exists != true || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 5000 || (timePassed > 500 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
+            {
+                if (tStatus != 7)
+                    Player.LocalPlayer.ClearTasks();
+
+                Player.LocalPlayer.ResetData("TEV::V");
+                Player.LocalPlayer.ResetData("TEV::S");
+                Player.LocalPlayer.ResetData("TEV::T");
+
+                GameEvents.Render -= EnterVehicleRender;
+            }
+        }
+
+        private static bool SetIntoVehicle(Vehicle veh, int seatId)
+        {
+            Player.LocalPlayer.SetIntoVehicle(veh.Handle, seatId - 1);
+
+            return true;
+        }
+
+        private static void InVehicleRender()
+        {
+            if (!Player.LocalPlayer.IsInAnyVehicle(false))
+            {
+                LastVehicleExitedTime = DateTime.Now;
+
+                GameEvents.Render -= InVehicleRender;
             }
         }
         #endregion

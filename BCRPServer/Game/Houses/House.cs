@@ -8,7 +8,14 @@ using System.Text;
 
 namespace BCRPServer.Game.Houses
 {
-    public abstract class HouseBase
+    public interface IDimensionable
+    {
+        public void SetPlayersInside(params Player[] players);
+
+        public void SetPlayersOutside(params Player[] players);
+    }
+
+    public abstract class HouseBase : IDimensionable
     {
         public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
 
@@ -284,6 +291,16 @@ namespace BCRPServer.Game.Houses
             return data.SerializeToJson();
         }
 
+        public void SetPlayersInside(params Player[] players)
+        {
+            NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Enter", ToClientJson());
+        }
+
+        public void SetPlayersOutside(params Player[] players)
+        {
+
+        }
+
         public abstract bool IsEntityNearEnter(Entity entity);
 
         public abstract void SetPlayerInside(Player player);
@@ -429,9 +446,9 @@ namespace BCRPServer.Game.Houses
 
             var vPos = GarageData.VehiclePositions[slot];
 
-            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, false);
+            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
 
-            vData.IsFrozen = true;
+            vData.SetFreezePosition(vPos.Position);
             vData.IsInvincible = true;
 
             vData.Info.LastData.GarageSlot = slot;
@@ -459,7 +476,7 @@ namespace BCRPServer.Game.Houses
 
     public class Apartments : HouseBase
     {
-        public class ApartmentsRoot
+        public class ApartmentsRoot : IDimensionable
         {
             public static Dictionary<Types, ApartmentsRoot> All { get; set; } = new Dictionary<Types, ApartmentsRoot>();
 
@@ -525,6 +542,16 @@ namespace BCRPServer.Game.Houses
                     return null;
 
                 return new Vector3(FloorPosition.X, FloorPosition.Y, FloorPosition.Z + (floor - StartFloor) * FloorDistZ);
+            }
+
+            public void SetPlayersInside(params Player[] players)
+            {
+
+            }
+
+            public void SetPlayersOutside(params Player[] players)
+            {
+
             }
         }
 
@@ -608,7 +635,7 @@ namespace BCRPServer.Game.Houses
         }
     }
 
-    public class Garage
+    public class Garage : IDimensionable
     {
         public static Dictionary<uint, Garage> All { get; set; } = new Dictionary<uint, Garage>();
 
@@ -880,9 +907,9 @@ namespace BCRPServer.Game.Houses
 
             var vPos = StyleData.VehiclePositions[slot];
 
-            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, false);
+            vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
 
-            vData.IsFrozen = true;
+            vData.SetFreezePosition(vPos.Position);
             vData.IsInvincible = true;
 
             vData.Info.LastData.GarageSlot = slot;
@@ -905,6 +932,16 @@ namespace BCRPServer.Game.Houses
                 return null;
 
             return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension);
+        }
+
+        public void SetPlayersInside(params Player[] players)
+        {
+
+        }
+
+        public void SetPlayersOutside(params Player[] players)
+        {
+
         }
     }
 }

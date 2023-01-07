@@ -71,6 +71,57 @@ namespace BCRPClient.Sync
             ItemMedKit,
         }
 
+        private static Dictionary<int, List<int>> StreamedAttachments { get; set; } = new Dictionary<int, List<int>>();
+
+        public static void AddLocalAttachment(int fromHandle, int toHandle)
+        {
+            var list = StreamedAttachments.GetValueOrDefault(toHandle);
+
+            if (list == null)
+            {
+                list = new List<int>() { fromHandle };
+
+                StreamedAttachments.Add(toHandle, list);
+            }
+            else
+            {
+                if (!list.Contains(fromHandle))
+                    list.Add(fromHandle);
+            }
+
+            Utils.ConsoleOutput($"Attached {fromHandle} to {toHandle}");
+        }
+
+        public static void RemoveLocalAttachment(int fromHandle, int toHandle)
+        {
+            var list = StreamedAttachments.GetValueOrDefault(toHandle);
+
+            if (list == null)
+                return;
+
+            if (list.Remove(fromHandle) && list.Count == 0)
+                StreamedAttachments.Remove(toHandle);
+
+            Utils.ConsoleOutput($"Detached {fromHandle} from {toHandle}");
+        }
+
+        public static void DetachAllFromLocalEntity(int toHandle)
+        {
+            RAGE.Game.Entity.DetachEntity(toHandle, false, false);
+
+            var list = StreamedAttachments.GetValueOrDefault(toHandle);
+
+            if (list == null)
+                return;
+
+            list.ForEach(x =>
+            {
+                RAGE.Game.Entity.DetachEntity(x, false, false);
+            });
+
+            StreamedAttachments.Remove(toHandle);
+        }
+
         #region Classes
         public class AttachmentData
         {
@@ -318,67 +369,72 @@ namespace BCRPClient.Sync
             { Types.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
         };
 
+        public static async System.Threading.Tasks.Task OnEntityStreamIn(Entity entity)
+        {
+            if (entity.IsLocal)
+                return;
+
+            var objects = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null);
+
+            if (objects == null)
+                return;
+
+            var listObjectsNet = Utils.ConvertJArrayToList<AttachmentObjectNet>(objects);
+
+            entity.SetData(AttachedObjectsKey, new List<AttachmentObject>());
+
+            foreach (var x in listObjectsNet)
+                await AttachObject(x.Model, entity, x.Type, x.SyncData);
+
+            entity.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
+
+            var entities = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey, null);
+
+            if (entities == null)
+                return;
+
+            var listEntitiesNet = Utils.ConvertJArrayToList<AttachmentEntityNet>(entities);
+
+            foreach (var x in listEntitiesNet)
+                await AttachEntity(entity, x.Type, x.Id, x.EntityType);
+        }
+
+        public static async System.Threading.Tasks.Task OnEntityStreamOut(Entity entity)
+        {
+            if (entity.IsLocal)
+            {
+                var gEntity = entity as GameEntity;
+
+                if (gEntity != null)
+                    DetachAllFromLocalEntity(gEntity.Handle);
+
+                return;
+            }
+
+            var listObjects = entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
+
+            if (listObjects == null)
+                return;
+
+            foreach (var obj in listObjects.ToList())
+                DetachObject(entity, obj.Type);
+
+            listObjects.Clear();
+            entity.ResetData(AttachedObjectsKey);
+
+            var listEntities = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
+
+            foreach (var obj in listEntities.ToList())
+                DetachEntity(entity, obj.RemoteID, obj.EntityType);
+
+            listEntities.Clear();
+            entity.ResetData(AttachedEntitiesKey);
+        }
+
         public AttachSystem()
         {
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
-
-            #region New Entity Stream
-            Events.OnEntityStreamIn += (Entity entity) =>
-            {
-                if (entity.IsLocal)
-                    return;
-
-                var objects = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null);
-
-                if (objects == null)
-                    return;
-
-                var listObjectsNet = Utils.ConvertJArrayToList<AttachmentObjectNet>(objects);
-
-                entity.SetData(AttachedObjectsKey, new List<AttachmentObject>());
-
-                foreach (var x in listObjectsNet)
-                    AttachObject(x.Model, entity, x.Type, x.SyncData, true);
-
-                entity.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
-
-                var entities = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey, null);
-
-                if (entities == null)
-                    return;
-
-                var listEntitiesNet = Utils.ConvertJArrayToList<AttachmentEntityNet>(entities);
-
-                foreach (var x in listEntitiesNet)
-                    AttachEntity(entity, x.Type, x.Id, x.EntityType, true);
-            };
-
-            Events.OnEntityStreamOut += (Entity entity) =>
-            {
-                if (entity.IsLocal)
-                    return;
-
-                var listObjects = entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
-
-                if (listObjects == null)
-                    return;
-
-                foreach (var obj in listObjects.ToList())
-                    DetachObject(entity, obj.Type);
-
-                listObjects.Clear();
-                entity.ResetData(AttachedObjectsKey);
-
-                var listEntities = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
-
-                foreach (var obj in listEntities.ToList())
-                    DetachEntity(entity, obj.RemoteID, obj.EntityType);
-
-                listEntities.Clear();
-                entity.ResetData(AttachedEntitiesKey);
-            };
-            #endregion
 
             #region Events
             Events.AddDataHandler(AttachedEntitiesKey, (Entity entity, object value, object oldValue) =>
@@ -399,7 +455,7 @@ namespace BCRPClient.Sync
                         if (currentListEntitiesNet.Contains(x))
                             continue;
                         else
-                            AttachEntity(entity, x.Type, x.Id, x.EntityType, false);
+                            AttachEntity(entity, x.Type, x.Id, x.EntityType);
                     }
                     else
                         DetachEntity(entity, x.Id, x.EntityType);
@@ -414,7 +470,7 @@ namespace BCRPClient.Sync
                 if (!entity.HasData(AttachedObjectsKey))
                     return;
 
-                Utils.ConsoleOutput(RAGE.Util.Json.Serialize(value));
+                //Utils.ConsoleOutput(RAGE.Util.Json.Serialize(value));
 
                 var currentListEntitiesNet = oldValue == null ? new List<AttachmentObjectNet>() : Utils.ConvertJArrayToList<AttachmentObjectNet>((Newtonsoft.Json.Linq.JArray)oldValue);
                 var newListEntitiesNet = Utils.ConvertJArrayToList<AttachmentObjectNet>((Newtonsoft.Json.Linq.JArray)value);
@@ -426,7 +482,7 @@ namespace BCRPClient.Sync
                         if (currentListEntitiesNet.Contains(x))
                             continue;
                         else
-                            AttachObject(x.Model, entity, x.Type, x.SyncData, false);
+                            AttachObject(x.Model, entity, x.Type, x.SyncData);
                     }
                     else
                         DetachObject(entity, x.Type);
@@ -436,7 +492,7 @@ namespace BCRPClient.Sync
         }
 
         #region Entity Methods
-        public static void AttachEntity(Entity entity, Types type, int remoteId, RAGE.Elements.Type eType, bool streamIn = false)
+        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, int remoteId, RAGE.Elements.Type eType)
         {
             GameEntity gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
             GameEntity gEntity = Utils.GetGameEntity(entity);
@@ -483,48 +539,35 @@ namespace BCRPClient.Sync
             if (list == null)
                 return;
 
-            (new AsyncTask(() =>
+            if (props != null)
+                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+
+            if (type == Types.VehicleTrailer)
             {
-                if (gEntity?.Exists != true)
-                    return true;
+                RAGE.Game.Vehicle.AttachVehicleToTrailer(gEntity.Handle, gTarget.Handle, float.MaxValue);
+            }
+            else if (type == Types.VehicleTrailerObjBoat)
+            {
+                var trailerObj = gEntity.GetData<List<AttachmentObject>>(AttachedObjectsKey)?.Where(x => x.Type == Types.TrailerObjOnBoat).FirstOrDefault()?.Object;
 
-                if (gEntity.Handle != 0 && gTarget.Handle != 0)
+                if (trailerObj != null)
                 {
-                    if (props != null)
-                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
-
-                    if (type == Types.VehicleTrailer)
-                    {
-                        RAGE.Game.Vehicle.AttachVehicleToTrailer(gEntity.Handle, gTarget.Handle, float.MaxValue);
-                    }
-                    else if (type == Types.VehicleTrailerObjBoat)
-                    {
-                        var trailerObj = gEntity.GetData<List<AttachmentObject>>(AttachedObjectsKey)?.Where(x => x.Type == Types.TrailerObjOnBoat).FirstOrDefault()?.Object;
-
-                        if (trailerObj != null)
-                        {
-                            RAGE.Game.Vehicle.AttachVehicleToTrailer(gTarget.Handle, trailerObj.Handle, float.MaxValue);
-                        }
-                    }
-
-                    list.Add(new AttachmentEntity(remoteId, eType, type));
-
-                    entity.SetData(AttachedEntitiesKey, list);
-
-                    if (gTarget?.Type == RAGE.Elements.Type.Player && (gTarget as Player).Handle == Player.LocalPlayer.Handle)
-                    {
-                        TargetAction(type, entity);
-                    }
-                    else if (gEntity?.Type == RAGE.Elements.Type.Player && (gEntity as Player).Handle == Player.LocalPlayer.Handle)
-                    {
-                        RootAction(type, gTarget);
-                    }
-
-                    return true;
+                    RAGE.Game.Vehicle.AttachVehicleToTrailer(gTarget.Handle, trailerObj.Handle, float.MaxValue);
                 }
+            }
 
-                return false;
-            }, 10, true, streamIn ? 500 : 0)).Run();
+            list.Add(new AttachmentEntity(remoteId, eType, type));
+
+            entity.SetData(AttachedEntitiesKey, list);
+
+            if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
+            {
+                TargetAction(type, entity);
+            }
+            else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
+            {
+                RootAction(type, gTarget);
+            }
         }
 
         public static void DetachEntity(Entity entity, int remoteId, RAGE.Elements.Type eType)
@@ -559,11 +602,11 @@ namespace BCRPClient.Sync
                 RAGE.Game.Vehicle.DetachVehicleFromTrailer(gTarget.Handle);
             }
 
-            if (gTarget?.Type == RAGE.Elements.Type.Player && (gTarget as Player).Handle == Player.LocalPlayer.Handle)
+            if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
                 TargetAction(item.Type, null);
             }
-            else if (gEntity?.Type == RAGE.Elements.Type.Player && (gEntity as Player).Handle == Player.LocalPlayer.Handle)
+            else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
             {
                 RootAction(item.Type, null);
             }
@@ -571,7 +614,7 @@ namespace BCRPClient.Sync
         #endregion
 
         #region Object Methods
-        public static async void AttachObject(uint hash, Entity target, Types type, string syncData, bool streamIn = false)
+        public static async System.Threading.Tasks.Task AttachObject(uint hash, Entity target, Types type, string syncData)
         {
             await Utils.RequestModel(hash);
 
@@ -606,13 +649,29 @@ namespace BCRPClient.Sync
             {
                 var vTypeData = Data.Vehicles.GetByModel(hash);
 
-                gEntity = new Vehicle(hash, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
+                var rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
 
-                gEntity.SetData("TrailerSync::Owner", target as Vehicle);
+                var veh = new Vehicle(hash, target.Position, rot.Z, "", 255, true, 0, 0, target.Dimension);
+
+                veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
+
+                var targetVeh = target as Vehicle;
+
+                var targetData = Sync.Vehicles.GetData(targetVeh);
+
+                if (targetData != null)
+                {
+                    if (targetData.IsFrozen)
+                        veh.FreezePosition(true);
+                }
+
+                gEntity = veh;
+
+                gEntity.SetData("TrailerSync::Owner", targetVeh);
             }
             else
             {
-                gEntity = new MapObject(hash, target.Position, Vector3.Zero, 255, target.Dimension);
+                gEntity = new MapObject(RAGE.Game.Object.CreateObject(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
             }
 
             if (gEntity == null)
@@ -626,35 +685,28 @@ namespace BCRPClient.Sync
 
             target.SetData(AttachedObjectsKey, list);
 
-            (new AsyncTask(() =>
+            if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
             {
-                if (gEntity?.Exists != true)
-                    return true;
+                AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
-                if (gEntity.Handle != 0 && gTarget.Handle != 0)
-                {
-                    if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
-                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
-                    else
-                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+            }
+            else
+            {
+                RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+            }
 
-                    if (gEntity is MapObject mObj)
-                    {
-                        mObj.Hidden = false;
-                    }
+            if (gEntity is MapObject mObj)
+            {
+                mObj.Hidden = false;
+            }
 
-                    props.EntityAction?.Invoke(new object[] { gEntity });
+            props.EntityAction?.Invoke(new object[] { gEntity });
 
-                    if (gTarget?.Type == RAGE.Elements.Type.Player && (gTarget as Player).Handle == Player.LocalPlayer.Handle)
-                    {
-                        RootAction(type, gEntity);
-                    }
-
-                    return true;
-                }
-
-                return false;
-            }, 10, true, streamIn ? 500 : 0)).Run();
+            if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
+            {
+                RootAction(type, gEntity);
+            }
         }
 
         public static void DetachObject(Entity target, Types type)
@@ -678,7 +730,11 @@ namespace BCRPClient.Sync
             AttachmentData props = Attachments[item.Type];
 
             if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+            {
+                RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
+
                 RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, props.Collision);
+            }
             else
                 RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props.Collision);
 
@@ -698,20 +754,14 @@ namespace BCRPClient.Sync
 
             target.SetData(AttachedObjectsKey, list);
 
-            if (target?.Type == RAGE.Elements.Type.Player && (target as Player).Handle == Player.LocalPlayer.Handle)
+            if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
                 RootAction(item.Type, null);
             }
         }
 
-        public static void ReattachObjects(Entity target, bool streamIn)
+        public static void ReattachObjects(Entity target)
         {
-            if (target == null)
-                return;
-
-            if (!target.HasData(AttachedObjectsKey))
-                return;
-
             var list = target.GetData<List<AttachmentObject>>(AttachedObjectsKey);
 
             if (list == null)
@@ -724,7 +774,40 @@ namespace BCRPClient.Sync
 
                 DetachObject(target, x.Type);
 
-                AttachObject(x.Model, target, x.Type, x.SyncData, streamIn);
+                AttachObject(x.Model, target, x.Type, x.SyncData);
+            }
+        }
+
+        public static void DetachAllObjects(Entity target)
+        {
+            var list = target.GetData<List<AttachmentObject>>(AttachedObjectsKey);
+
+            if (list == null)
+                return;
+
+            foreach (var x in list.ToList())
+            {
+                if (x == null)
+                    continue;
+
+                DetachObject(target, x.Type);
+            }
+        }
+
+        public static async System.Threading.Tasks.Task AttachAllObjects(Entity target)
+        {
+            var objects = target.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey, null);
+
+            if (objects == null)
+                return;
+
+            var listObjectsNet = Utils.ConvertJArrayToList<AttachmentObjectNet>(objects);
+
+            //target.SetData(AttachedObjectsKey, new List<AttachmentObject>());
+
+            foreach (var x in listObjectsNet)
+            {
+                await AttachObject(x.Model, target, x.Type, x.SyncData);
             }
         }
 

@@ -135,7 +135,7 @@ namespace BCRPServer.Events.Players
 
                 player.DetachAllEntities();
 
-                pData.IsAttachedTo?.Entity?.DetachEntity(player);
+                pData.IsAttachedToEntity?.DetachEntity(player);
 
                 if (player.Vehicle != null)
                 {
@@ -277,27 +277,21 @@ namespace BCRPServer.Events.Players
 
             if (pData.IsKnocked)
             {
-                var arm = player.Armor;
-
-                NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
-
-                player.Armor = arm;
+                player.Teleport(null, false, null, null, false);
 
                 player.SetHealth(10);
-
-                pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
                 pData.IsKnocked = false;
             }
             else
             {
+                player.Teleport(null, false, null, null, false);
+
                 var arm = player.Armor;
 
                 NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 
                 player.Armor = arm;
-
-                pData.Respawn(player.Position, player.Heading, Utils.RespawnTypes.Death);
 
                 pData.IsKnocked = true;
                 pData.IsWounded = false;
@@ -485,7 +479,7 @@ namespace BCRPServer.Events.Players
             if (veh?.Exists != true || veh.EngineStatus || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (pData.IsAttachedTo != null || vehData.ForcedSpeed != 0f)
+            if (pData.IsAttachedToEntity != null || vehData.ForcedSpeed != 0f)
                 return;
 
             veh.AttachEntity(player, isInFront ? AttachSystem.Types.PushVehicleFront : AttachSystem.Types.PushVehicleBack);
@@ -501,20 +495,20 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var attachData = pData.IsAttachedTo;
+            var atVeh = pData.IsAttachedToEntity as Vehicle;
+
+            if (atVeh?.Exists != true)
+                return;
+
+            var attachData = atVeh.GetAttachmentData(player);
 
             if (attachData == null)
                 return;
 
-            var vehicle = attachData.Value.Entity;
-
-            if (vehicle?.Exists != true || vehicle.Type != EntityType.Vehicle)
+            if (attachData.Type != AttachSystem.Types.PushVehicleFront && attachData.Type != AttachSystem.Types.PushVehicleBack)
                 return;
 
-            if (attachData.Value.Type != AttachSystem.Types.PushVehicleFront && attachData.Value.Type != AttachSystem.Types.PushVehicleBack)
-                return;
-
-            vehicle.DetachEntity(player);
+            atVeh.DetachEntity(player);
         }
         #endregion
 
@@ -776,28 +770,25 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var attachData = pData.IsAttachedTo;
+            var atPlayer = pData.IsAttachedToEntity as Player;
 
-            if (attachData == null)
+            if (atPlayer?.Exists != true)
             {
-                var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry).FirstOrDefault();
+                var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry && x.EntityType == EntityType.Player && x.Id >= 0).FirstOrDefault();
 
-                if (aData == null || aData.EntityType != EntityType.Player || aData.Id < 0)
+                if (aData == null)
                     return;
 
                 var target = Utils.FindReadyPlayerOnline((uint)aData.Id);
 
-                if (target == null || target.Player?.Exists != true)
+                if (target?.Player?.Exists != true)
                     return;
 
                 player.DetachEntity(target.Player);
             }
             else
             {
-                if (attachData.Value.Entity?.Exists != true)
-                    return;
-
-                attachData.Value.Entity.DetachEntity(player);
+                atPlayer.DetachEntity(player);
             }
         }
 
@@ -811,7 +802,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var attachData = pData.IsAttachedTo;
+            var attachData = pData.IsAttachedToEntity;
 
             if (attachData != null)
                 return;
@@ -834,12 +825,16 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var attachData = pData.IsAttachedTo;
+            var atVeh = pData.IsAttachedToEntity as Vehicle;
 
-            if (attachData == null || attachData.Value.Type != AttachSystem.Types.VehicleTrunk || attachData.Value.Entity?.Exists != true)
+            if (atVeh?.Exists != true)
                 return;
 
-            attachData.Value.Entity.DetachEntity(player);
+            var atData = atVeh.GetAttachmentData(player);
+
+            if (atData == null || atData.Type != AttachSystem.Types.VehicleTrunk)
+
+            atVeh.DetachEntity(player);
         }
 
         [RemoteEvent("Players::Smoke::Stop")]

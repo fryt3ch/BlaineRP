@@ -251,6 +251,9 @@ namespace BCRPServer
 
                     if (VehicleData != null)
                     {
+                        if (VehicleData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Boat)
+                            VehicleData.Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
+
                         NAPI.Task.Run(() =>
                         {
                             if (VehicleData?.Vehicle?.Exists != true)
@@ -413,7 +416,7 @@ namespace BCRPServer
 
         public bool IsAnchored { get => Vehicle.GetSharedData<bool?>("Anchor") ?? false; set { if (value) Vehicle.SetSharedData("Anchor", value); else Vehicle.ResetSharedData("Anchor"); } }
 
-        public bool IsFrozen { get => Vehicle.GetSharedData<bool?>("IsFrozen") ?? false; set { if (value) Vehicle.SetSharedData("IsFrozen", value); else Vehicle.ResetSharedData("IsFrozen"); } }
+        public bool IsFrozen { get => Vehicle.GetSharedData<string>("IsFrozen") != null; set { if (value) Vehicle.SetSharedData("IsFrozen", $"{Vehicle.Position.X}_{Vehicle.Position.Y}_{Vehicle.Position.Z}"); else Vehicle.ResetSharedData("IsFrozen"); } }
 
         public bool IsDead { get => Vehicle.Health <= -4000 || (Vehicle.GetData<bool?>("IsDead") ?? false); set { if (value) Vehicle.SetData("IsDead", value); else Vehicle.ResetData("IsDead"); } }
 
@@ -433,7 +436,7 @@ namespace BCRPServer
         public List<Sync.AttachSystem.AttachmentEntityNet> AttachedEntities { get => Vehicle.GetSharedData<Newtonsoft.Json.Linq.JArray>(Sync.AttachSystem.AttachedEntitiesKey).ToList<Sync.AttachSystem.AttachmentEntityNet>(); set { Vehicle.SetSharedData(Sync.AttachSystem.AttachedEntitiesKey, value); } }
         #endregion
 
-        public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Vehicle.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { if (value != null) Vehicle.SetData("IsAttachedTo::Entity", value); else Vehicle.ResetData("IsAttachedTo::Entity"); } }
+        public Entity IsAttachedTo => Vehicle.GetEntityIsAttachedTo();
 
         public VehicleData(Vehicle Vehicle)
         {
@@ -483,6 +486,8 @@ namespace BCRPServer
                 }
             }
         }
+
+        public void SetFreezePosition(Vector3 pos) => Vehicle.SetSharedData("IsFrozen", $"{pos.X}_{pos.Y}_{pos.Z}");
 
         public void Delete(bool completely)
         {

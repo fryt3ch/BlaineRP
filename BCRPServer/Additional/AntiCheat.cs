@@ -6,55 +6,107 @@ using System.Text;
 
 namespace BCRPServer.Additional
 {
-    class AntiCheat
+    public class AntiCheat
     {
-        #region Legalization Methods
-        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, bool onlyDriver = true)
+        public enum VehicleTeleportTypes
         {
+            /// <summary>Без игроков</summary>
+            Default = 0,
+            /// <summary>Вместе с водителем</summary>
+            OnlyDriver,
+            /// <summary>Вместе со всеми пассажирами</summary>
+            All,
+        }
+
+        #region Legalization Methods
+        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportTypes tpType = VehicleTeleportTypes.Default)
+        {
+            veh.DetachAllEntities();
+
+            veh.GetEntityIsAttachedTo()?.DetachEntity(veh);
+
             var lastDim = veh.Dimension;
 
-            if (dimension is uint dim)
-                veh.Dimension = dim;
-
-            if (onlyDriver)
+            if (tpType == VehicleTeleportTypes.Default)
             {
-                foreach (var x in veh.Occupants)
+                if (dimension is uint dim)
                 {
-                    var pCount = 0;
+                    veh.Dimension = dim;
 
-                    if (x is Player player)
+                    veh.Occupants.ForEach(x =>
                     {
-                        pCount++;
-
-                        if (player.VehicleSeat == 0)
-                        {
-                            player.TriggerEvent("AC::State::TP", pos, false, heading, fade);
-                        }
-                        else
+                        if (x is Player player)
                         {
                             player.WarpOutOfVehicle();
 
                             player.Dimension = lastDim;
                         }
-                    }
-
-                    if (pCount == 0)
-                    {
-                        veh.Position = pos;
-
-                        if (heading is float headingF)
-                            veh.SetHeading(headingF);
-                    }
+                    });
                 }
+
+                veh.Position = pos;
+
+                if (heading is float headingF)
+                    veh.SetHeading(headingF);
             }
-            else
+            else if (tpType == VehicleTeleportTypes.OnlyDriver)
             {
-                if (!veh.TriggerEventOccupants("AC::State::TP", pos, false, heading, fade))
+                if (dimension is uint dim)
+                    veh.Dimension = dim;
+
+                var wasDriver = false;
+
+                veh.Occupants.ForEach(x =>
+                {
+                    if (x is Player player)
+                    {
+                        if (player.VehicleSeat == 0)
+                        {
+                            SetPlayerPos(pos, false, veh.Dimension, heading, false, true, player);
+
+                            wasDriver = true;
+                        }
+                        else
+                        {
+                            player.WarpOutOfVehicle();
+
+                            if (player.Dimension != lastDim)
+                                player.Dimension = lastDim;
+                        }
+                    }
+                });
+
+                if (!wasDriver)
                 {
                     veh.Position = pos;
 
                     if (heading is float headingF)
                         veh.SetHeading(headingF);
+                }
+            }
+            else if (tpType == VehicleTeleportTypes.All)
+            {
+                if (dimension is uint dim)
+                    veh.Dimension = dim;
+
+                var occupants = new List<Player>();
+
+                veh.Occupants.ForEach(x =>
+                {
+                    if (x is Player player)
+                        occupants.Add(player);
+                });
+
+                if (occupants.Count == 0)
+                {
+                    veh.Position = pos;
+
+                    if (heading is float headingF)
+                        veh.SetHeading(headingF);
+                }
+                else
+                {
+                    SetPlayerPos(pos, false, null, heading, false, true, occupants.ToArray());
                 }
             }
         }
@@ -66,25 +118,69 @@ namespace BCRPServer.Additional
         /// <param name="toGround">Привязывать ли к земле?</param>
         /// <param name="dimension">Новое измерение</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void SetPlayerPos(Player player, Vector3 pos, bool toGround, uint? dimension = null, float? heading = null, bool fade = false)
+        public static void SetPlayerPos(Vector3 pos, bool toGround, uint? dimension = null, float? heading = null, bool fade = false, bool withVehicle = false, params Player[] players)
         {
-            if (player?.Exists != true)
-                return;
-
-            if (dimension != null)
+            if (dimension is uint dim)
             {
-                player.Dimension = (uint)dimension;
+
+            }
+
+            for (int i = 0; i < players.Length; i++)
+            {
+                var player = players[i];
+
+                player.DetachAllEntities();
+
+                player.GetEntityIsAttachedTo()?.DetachEntity(player);
+
+                var pData = player.GetMainData();
+
+                if (pData != null)
+                {
+                    pData.ActiveOffer?.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
+
+                    foreach (var x in pData.ObjectsInHand)
+                        player.DetachObject(x.Type);
+
+                    pData.StopAnim();
+                }
+
+                if (dimension is uint cDim)
+                {
+                    player.Dimension = cDim;
+                }
             }
 
             if (pos != null)
-                player.TriggerEvent("AC::State::TP", pos, toGround, heading, fade);
-
-            var pData = player.GetMainData();
-
-            if (pData != null)
             {
-                pData.Respawn(pos, player.Heading, Utils.RespawnTypes.Teleport);
+                if (withVehicle)
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", pos, toGround, heading, fade, true);
+                else
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", pos, toGround, heading, fade);
             }
+        }
+
+        private static void OnDimensionChange(uint oDim, uint dim, params Player[] players)
+        {
+            if (oDim == dim)
+                return;
+
+            Game.Houses.HouseBase oHouseBase = null;
+            Game.Houses.Garage oGarage = null;
+            Game.Houses.Apartments.ApartmentsRoot oApRoot = null;
+
+            Game.Houses.HouseBase houseBase = null;
+            Game.Houses.Garage garage = null;
+            Game.Houses.Apartments.ApartmentsRoot apRoot = null;
+
+            if (oDim != Utils.Dimensions.Main)
+            {
+                oHouseBase = Utils.GetHouseBaseByDimension(oDim);
+
+
+            }
+
+
         }
 
         /// <summary>Установить здоровье игрока</summary>

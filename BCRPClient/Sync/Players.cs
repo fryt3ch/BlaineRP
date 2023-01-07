@@ -322,6 +322,64 @@ namespace BCRPClient.Sync
             player.SetData("SyncedData", data);
         }
 
+        public static async System.Threading.Tasks.Task OnPlayerStreamIn(Player player)
+        {
+            if (player.IsLocal)
+                return;
+
+            var data = GetData(player);
+
+            if (data != null)
+            {
+                data.Reset();
+            }
+
+            player.AutoVolume = false;
+            player.Voice3d = false;
+            player.VoiceVolume = 0f;
+
+            data = new PlayerData(player);
+
+            if (data.CID == 0)
+                return;
+
+            if (data.VehicleSeat >= 0)
+                InvokeHandler("VehicleSeat", data, data.VehicleSeat, null);
+
+            InvokeHandler("IsInvisible", data, data.IsInvisible, null);
+
+            data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
+
+            InvokeHandler("WCD", data, data.WeaponComponents, null);
+
+            if (data.VoiceRange > 0f)
+                Sync.Microphone.AddTalker(player);
+
+            if (data.CrouchOn)
+                Crouch.On(true, player);
+
+            if (data.PhoneOn)
+                Phone.On(true, player);
+
+            if (data.GeneralAnim != Animations.GeneralTypes.None)
+                Sync.Animations.Play(player, data.GeneralAnim);
+
+            if (data.OtherAnim != Animations.OtherTypes.None)
+                Sync.Animations.Play(player, data.OtherAnim);
+
+            SetData(player, data);
+        }
+
+        public static async System.Threading.Tasks.Task OnPlayerStreamOut(Player player)
+        {
+            var data = GetData(player);
+
+            if (data == null)
+                return;
+
+            data.Reset();
+        }
+
         public Players()
         {
             CharacterLoaded = false;
@@ -585,77 +643,6 @@ namespace BCRPClient.Sync
                     x.Initialize();
                 }
             });
-            #endregion
-
-            #region New Player Stream
-            Events.OnEntityStreamIn += async (Entity entity) =>
-            {
-                if (entity is Player player)
-                {
-                    if (!player.Exists || player.IsLocal)
-                        return;
-
-                    var loaded = await player.WaitIsLoaded();
-
-                    if (!loaded)
-                        return;
-
-                    var data = GetData(player);
-
-                    if (data != null)
-                    {
-                        data.Reset();
-                    }
-
-                    player.AutoVolume = false;
-                    player.Voice3d = false;
-                    player.VoiceVolume = 0f;
-
-                    data = new PlayerData(player);
-
-                    if (data.CID == 0)
-                        return;
-
-                    if (data.VehicleSeat >= 0)
-                        InvokeHandler("VehicleSeat", data, data.VehicleSeat, null);
-
-                    InvokeHandler("IsInvisible", data, data.IsInvisible, null);
-
-                    data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
-
-                    InvokeHandler("WCD", data, data.WeaponComponents, null);
-
-                    if (data.VoiceRange > 0f)
-                        Sync.Microphone.AddTalker(player);
-
-                    if (data.CrouchOn)
-                        Crouch.On(true, player);
-
-                    if (data.PhoneOn)
-                        Phone.On(true, player);
-
-                    if (data.GeneralAnim != Animations.GeneralTypes.None)
-                        Sync.Animations.Play(player, data.GeneralAnim);
-
-                    if (data.OtherAnim != Animations.OtherTypes.None)
-                        Sync.Animations.Play(player, data.OtherAnim);
-
-                    SetData(player, data);
-                }
-            };
-
-            Events.OnEntityStreamOut += (Entity entity) =>
-            {
-                if (entity is Player player)
-                {
-                    var data = GetData(player);
-
-                    if (data == null)
-                        return;
-
-                    data.Reset();
-                }
-            };
             #endregion
 
             #region Local Player Events

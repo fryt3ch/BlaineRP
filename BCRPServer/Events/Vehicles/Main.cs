@@ -105,17 +105,17 @@ namespace BCRPServer.Events.Vehicles
 
             if (trailer == null)
             {
-                var atData = vData.IsAttachedTo;
+                var atVeh = vData.IsAttachedTo as Vehicle;
 
-                if (atData == null || (atData.Value.Type != AttachSystem.Types.TrailerObjOnVehicle && atData.Value.Type != AttachSystem.Types.VehicleTrailerObjBoat))
+                if (atVeh?.Exists != true)
                     return;
 
-                var vOwner = atData.Value.Entity;
+                var atData = atVeh.GetAttachmentData(veh);
 
-                if (vOwner?.Exists != true)
+                if (atData == null || (atData.Type != AttachSystem.Types.TrailerObjOnVehicle && atData.Type != AttachSystem.Types.VehicleTrailerObjBoat))
                     return;
 
-                vOwner.DetachEntity(veh);
+                atVeh.DetachEntity(veh);
 
                 Console.WriteLine("trailer detached");
             }
@@ -159,8 +159,6 @@ namespace BCRPServer.Events.Vehicles
             if (player.VehicleSeat != 0)
                 return;
 
-            ToggleEngine(pData, vData);
-
             if (vData.Info != null && vData.Info.LastData.GarageSlot >= 0)
             {
                 if (pData.CurrentHouse is Game.Houses.House house)
@@ -173,7 +171,7 @@ namespace BCRPServer.Events.Vehicles
 
                     vData.Info.LastData.GarageSlot = -1;
 
-                    veh.Teleport(house.GarageOutside.Position, Utils.Dimensions.Main, house.GarageOutside.RotationZ, true);
+                    veh.Teleport(house.GarageOutside.Position, Utils.Dimensions.Main, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
 
                     player.TriggerEvent("House::Exit");
                 }
@@ -186,7 +184,7 @@ namespace BCRPServer.Events.Vehicles
 
                     var ePos = garage.Root.GetNextVehicleExit();
 
-                    veh.Teleport(ePos.Position, Utils.Dimensions.Main, ePos.RotationZ, true);
+                    veh.Teleport(ePos.Position, Utils.Dimensions.Main, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
 
                     player.TriggerEvent("Garage::Exit");
                 }
@@ -195,6 +193,8 @@ namespace BCRPServer.Events.Vehicles
                     return;
                 }
             }
+
+            ToggleEngine(pData, vData);
         }
 
         public static void ToggleEngine(PlayerData pData, VehicleData vData, bool? forceStatus = null)

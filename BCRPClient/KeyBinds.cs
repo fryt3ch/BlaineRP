@@ -750,7 +750,7 @@ namespace BCRPClient
             Add(new Bind(Types.DoorsLock, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.Lock();
+                    Sync.Vehicles.Lock(null, Interaction.CurrentEntity as Vehicle);
             }, true, true)
             { Description = "Блокировка Т/С" });
 

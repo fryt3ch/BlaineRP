@@ -597,7 +597,7 @@ namespace BCRPServer
         public List<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
 
         /// <summary>Сущность, к которой прикреплен игрок</summary>
-        public (Entity Entity, Sync.AttachSystem.Types Type)? IsAttachedTo { get => Player.GetData<(Entity, Sync.AttachSystem.Types)?>("IsAttachedTo::Entity"); set { if (value != null) Player.SetData("IsAttachedTo::Entity", value); else Player.ResetData("IsAttachedTo::Entity"); } }
+        public Entity IsAttachedToEntity => Player.GetEntityIsAttachedTo();
 
         /// <summary>Транспорт, находящийся в собственности у игрока</summary>
         public List<VehicleData.VehicleInfo> OwnedVehicles { get; set; }
@@ -1142,7 +1142,7 @@ namespace BCRPServer
         {
             get
             {
-                return PhoneOn || CurrentContainer != null || IsAttachedTo != null || CurrentBusiness != null;
+                return PhoneOn || CurrentContainer != null || IsAttachedToEntity != null || CurrentBusiness != null;
             }
         }
 

@@ -298,7 +298,10 @@ namespace BCRPServer.Events.Players
                         }
                     }
 
-                    tData.Player.Teleport(new Vector3(x, y, z), toGround, null, null, false);
+                    if (tData.Player.Vehicle == null)
+                        tData.Player.Teleport(new Vector3(x, y, z), toGround, null, null, false);
+                    else
+                        tData.Player.Vehicle.Teleport(new Vector3(x, y, z), null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
                 })
             },
 
@@ -401,7 +404,7 @@ namespace BCRPServer.Events.Players
 
                     if (here)
                     {
-                        vData.Vehicle.Teleport(pData.Player.Position, pData.Player.Dimension, null, false, false);
+                        vData.Vehicle.Teleport(pData.Player.Position, pData.Player.Dimension, null, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
                     }
                     else
                     {

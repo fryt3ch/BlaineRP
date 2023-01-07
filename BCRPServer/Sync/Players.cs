@@ -72,8 +72,7 @@ namespace BCRPServer.Sync
                     {
                         if (player.Vehicle != veh.Vehicle)
                         {
-                            veh.Vehicle.Dimension = Utils.Dimensions.Main;
-                            veh.Vehicle.Position = t.Position;
+                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
 
                             player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
 
@@ -81,7 +80,7 @@ namespace BCRPServer.Sync
                         }
                         else
                         {
-                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true);
+                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                         }
 
                         veh.Tuning.Apply(veh.Vehicle);

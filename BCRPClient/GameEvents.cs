@@ -80,7 +80,7 @@ namespace BCRPClient
                 // SetPedCanLosePropsOnDamage
                 RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0);
 
-                Sync.AttachSystem.ReattachObjects(Player.LocalPlayer, true);
+                Sync.AttachSystem.ReattachObjects(Player.LocalPlayer);
 
                 Player.LocalPlayer.SetFlashLightEnabled(true);
 
@@ -114,6 +114,55 @@ namespace BCRPClient
 
                 marker?.Destroy();
                 text?.Destroy();
+            };
+
+            Events.OnEntityStreamIn += async (entity) =>
+            {
+                var gEntity = entity as GameEntity;
+
+                if (gEntity == null || !await gEntity.WaitIsLoaded())
+                    return;
+
+                await Sync.AttachSystem.OnEntityStreamIn(entity);
+
+                if (entity is Vehicle veh)
+                {
+                    await Sync.Vehicles.OnVehicleStreamIn(veh);
+                }
+                else if (entity is Player player)
+                {
+                    await Sync.Players.OnPlayerStreamIn(player);
+                }
+                else if (entity is Ped ped)
+                {
+                    await Data.NPC.OnPedStreamIn(ped);
+                }
+                else if (entity is MapObject obj)
+                {
+                    await Sync.World.OnMapObjectStreamIn(obj);
+                }
+            };
+
+            Events.OnEntityStreamOut += async (entity) =>
+            { 
+                await Sync.AttachSystem.OnEntityStreamOut(entity);
+
+                if (entity is Vehicle veh)
+                {
+                    await Sync.Vehicles.OnVehicleStreamOut(veh);
+                }
+                else if (entity is Player player)
+                {
+                    await Sync.Players.OnPlayerStreamOut(player);
+                }
+                else if (entity is Ped ped)
+                {
+                    await Data.NPC.OnPedStreamOut(ped);
+                }
+                else if (entity is MapObject obj)
+                {
+                    await Sync.World.OnMapObjectStreamOut(obj);
+                }
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
@@ -250,6 +299,9 @@ namespace BCRPClient
 
             // Disable Z
             RAGE.Game.Pad.DisableControlAction(0, 48, true);
+
+            // Disable F (enter vehicle)
+            RAGE.Game.Pad.DisableControlAction(0, 23, true);
         }
         #endregion
 

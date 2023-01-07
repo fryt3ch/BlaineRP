@@ -189,6 +189,41 @@ namespace BCRPClient.Sync
             Preloaded = true;
         }
 
+        public static async System.Threading.Tasks.Task OnMapObjectStreamIn(MapObject obj)
+        {
+            if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
+                return;
+
+            obj.SetCanBeDamaged(false);
+            obj.SetInvincible(true);
+
+            obj.PlaceOnGroundProperly();
+
+            obj.FreezePosition(true);
+
+            obj.SetCollision(false, true);
+
+            obj.SetData("Name", Data.Items.GetName(obj.GetSharedData<string>("ID", null)));
+            obj.SetData("UID", obj.GetSharedData<int>("UID").ToUInt32());
+            obj.SetData("Amount", obj.GetSharedData<int>("Amount", -1));
+
+            if (obj.GetData<string>("Name") == null)
+                return;
+
+            if (!ItemsOnGround.Contains(obj))
+                ItemsOnGround.Add(obj);
+        }
+
+        public static async System.Threading.Tasks.Task OnMapObjectStreamOut(MapObject obj)
+        {
+            if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
+                return;
+
+            obj.ResetData();
+
+            ItemsOnGround.Remove(obj);
+        }
+
         public World()
         {
             Preloaded = false;
@@ -219,49 +254,6 @@ namespace BCRPClient.Sync
                 MapObject obj = entity as MapObject;
 
                 obj.SetData("Amount", (int)value);
-            });
-            #endregion
-
-            #region New IOG Stream
-            Events.OnEntityStreamIn += (async (Entity entity) =>
-            {
-                if (entity is MapObject obj)
-                {
-                    if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
-                        return;
-
-                    obj.SetCanBeDamaged(false);
-                    obj.SetInvincible(true);
-
-                    obj.PlaceOnGroundProperly();
-
-                    obj.FreezePosition(true);
-
-                    obj.SetCollision(false, true);
-
-                    obj.SetData("Name", Data.Items.GetName(obj.GetSharedData<string>("ID", null)));
-                    obj.SetData("UID", obj.GetSharedData<int>("UID").ToUInt32());
-                    obj.SetData("Amount", obj.GetSharedData<int>("Amount", -1));
-
-                    if (obj.GetData<string>("Name") == null)
-                        return;
-
-                    if (!ItemsOnGround.Contains(obj))
-                        ItemsOnGround.Add(obj);
-                }
-            });
-
-            Events.OnEntityStreamOut += ((Entity entity) =>
-            {
-                if (entity is MapObject obj)
-                {
-                    if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
-                        return;
-
-                    obj.ResetData();
-
-                    ItemsOnGround.Remove(obj);
-                }
             });
             #endregion
         }

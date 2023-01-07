@@ -79,6 +79,16 @@ namespace BCRPServer.Game.Data
                 return ClassTypes.Elite;
             }
 
+            private static List<string> CanTrailVehicles = new List<string>()
+            {
+                "bison", "bison2",
+            };
+
+            private static List<string> CanBeTrailedVehicles = new List<string>()
+            {
+
+            };
+
             public class Trunk
             {
                 /// <summary>Кол-во слотов в багажнике</summary>
@@ -122,6 +132,8 @@ namespace BCRPServer.Game.Data
             public Types Type { get; set; }
 
             public int GovPrice { get; set; }
+
+            public bool CanTrail => CanTrailVehicles.Contains(ID);
 
             public ClassTypes Class => GetClass(this);
             

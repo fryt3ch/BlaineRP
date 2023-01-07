@@ -91,32 +91,26 @@ namespace BCRPClient.Data
 
         public NPC(string Id, string Name, Types Type, string Model, Vector3 Position, float Heading, uint Dimension = 0) : this(Id, Name, Type, RAGE.Util.Joaat.Hash(Model), Position, Heading, Dimension) { }
 
+        public static async System.Threading.Tasks.Task OnPedStreamIn(Ped ped)
+        {
+            var data = GetData(ped);
+
+            if (data == null)
+                return;
+
+            data.Ped.SetHeading(data.DefaultHeading);
+        }
+
+        public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
+        {
+
+        }
+
         public NPC()
         {
             LastSent = DateTime.MinValue;
 
             TempBinds = new List<int>();
-
-            Events.OnEntityStreamIn += (Entity entity) =>
-            {
-                if (entity is Ped ped)
-                {
-                    var data = GetData(ped);
-
-                    if (data == null)
-                        return;
-
-                    data.Ped.SetHeading(data.DefaultHeading);
-                }
-            };
-
-            Events.OnEntityStreamOut += (Entity entity) =>
-            {
-                if (entity is Ped ped)
-                {
-
-                }
-            };
 
             GameEvents.Render += () =>
             {

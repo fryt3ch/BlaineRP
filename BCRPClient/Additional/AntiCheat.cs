@@ -65,26 +65,33 @@ namespace BCRPClient.Additional
             {
                 var pos = (Vector3)args[0];
 
-                var heading = args[2] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
-
                 var onGround = (bool)args[1];
+
+                var heading = args[2] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
 
                 var fade = (bool)args[3];
 
+                var withVehicle = args.Length > 4;
+
                 GameEvents.DisableAllControls(true);
                 KeyBinds.DisableAll();
+
+                Player.LocalPlayer.Detach(false, false);
 
                 Player.LocalPlayer.FreezePosition(true);
 
                 var veh = Player.LocalPlayer.Vehicle;
 
-                if (veh != null)
+                if (withVehicle && veh != null)
                 {
+                    veh.Detach(false, false);
+
                     var vData = Sync.Vehicles.GetData(veh);
 
-                    if (vData != null && !vData.IsFrozen)
+                    if (vData != null)
                     {
-                        veh.FreezePosition(true);
+                        if (!vData.IsFrozen)
+                            veh.FreezePosition(true);
                     }
                 }
 
@@ -103,23 +110,31 @@ namespace BCRPClient.Additional
 
                 AllowTP.Push(true);
 
-                if (veh != null)
+                if (withVehicle && veh != null)
                 {
                     var vData = Sync.Vehicles.GetData(veh);
 
-                    if (vData != null && !vData.IsFrozen)
+                    if (vData != null)
                     {
-                        veh.FreezePosition(false);
+                        Player.LocalPlayer.FreezePosition(false);
+
+                        veh.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
+
+                        veh.SetHeading(heading);
+
+                        if (!vData.IsFrozen)
+                            veh.FreezePosition(false);
+
+                        AsyncTask.RunSlim(() =>
+                        {
+                            Sync.AttachSystem.ReattachObjects(veh);
+                        }, 500);
                     }
-
-                    Player.LocalPlayer.FreezePosition(false);
-
-                    veh.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
-
-                    veh.SetHeading(heading);
                 }
                 else
                 {
+                    Player.LocalPlayer.ClearTasksImmediately();
+
                     Player.LocalPlayer.FreezePosition(false);
 
                     Player.LocalPlayer.Position = pos;
@@ -459,6 +474,21 @@ namespace BCRPClient.Additional
                     {
                         veh.SetData("LastHealth", curHp);
                     }
+                }
+
+                if (vData.FrozenPosition is string posStr && (Player.LocalPlayer.Vehicle != veh || AllowTP.Peek()))
+                {
+                    var posData = posStr.Split('_');
+
+                    var vect = new Vector3(float.Parse(posData[0]), float.Parse(posData[1]), float.Parse(posData[2]));
+
+                    var tpVeh = veh;
+
+                    if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)
+                        tpVeh = trVeh;
+
+                    if (tpVeh.GetCoords(false).DistanceTo(vect) > 0.5f)
+                        tpVeh.SetCoordsNoOffset(vect.X, vect.Y, vect.Z, false, false, false);
                 }
 
                 var trailerVehHandle = -1;
