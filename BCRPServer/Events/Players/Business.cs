@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BCRPServer.Events.Players
@@ -91,8 +92,6 @@ namespace BCRPServer.Events.Players
 
             pData.Info.SetCooldown(PlayerData.CooldownTypes.ShootingRange);
 
-            pData.CurrentBusiness = ws;
-
             var pDim = Utils.GetPrivateDimension(player);
 
             player.Teleport(Game.Businesses.WeaponShop.ShootingRangePosition.Position, false, pDim, Game.Businesses.WeaponShop.ShootingRangePosition.RotationZ, true);
@@ -104,6 +103,8 @@ namespace BCRPServer.Events.Players
             pData.TakeWeapons();
 
             pData.GiveTempWeapon("w_pistol", -1);
+
+            pData.CurrentBusiness = ws;
         }
 
         [RemoteProc("Business::BuyGov")]
@@ -207,15 +208,31 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (player.Vehicle != null && (player.Vehicle != veh || pData.VehicleSeat != 0))
-                return;
-
             var ts = Game.Businesses.Business.Get(id) as Game.Businesses.TuningShop;
 
             if (ts == null)
                 return;
 
-            pData.CurrentBusiness = ts;
+            if (player.Vehicle != veh)
+            {
+                if (player.Vehicle?.Exists != true)
+                    return;
+
+                var plVehData = player.Vehicle.GetMainData();
+
+                if (plVehData == null)
+                    return;
+
+                if (veh.GetAttachmentData(plVehData.Vehicle)?.Type != Sync.AttachSystem.Types.VehicleTrailerObjBoat)
+                    return;
+
+                var exitPos = Game.Businesses.Business.GetNextExitProperty(ts);
+
+                plVehData.Vehicle.Teleport(exitPos.Position, null, exitPos.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
+            }
+
+            vData.DetachBoatFromTrailer();
+
             pData.CurrentTuningVehicle = vData;
 
             pData.UnequipActiveWeapon();
@@ -224,17 +241,35 @@ namespace BCRPServer.Events.Players
 
             var pDim = Utils.GetPrivateDimension(player);
 
-            veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
-
-            if (player.Vehicle == null)
+            if (player.Vehicle == veh)
             {
+                if (vData.IsAttachedTo is Vehicle attachedVeh)
+                {
+                    var exitPos = Game.Businesses.Business.GetNextExitProperty(ts);
+
+                    attachedVeh.Teleport(exitPos.Position, null, exitPos.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
+                }
+
+                veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+            }
+            else
+            {
+                veh.Teleport(ts.EnterProperties.Position, pDim, ts.EnterProperties.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.Default);
+
                 player.Teleport(ts.EnterProperties.Position, false, pDim, ts.EnterProperties.RotationZ, true);
             }
 
-            vData.EngineOn = true;
-            vData.LightsOn = true;
+            vData.SetFreezePosition(ts.EnterProperties.Position);
+
+            if (!vData.EngineOn)
+                vData.EngineOn = true;
+
+            if (!vData.LightsOn)
+                vData.LightsOn = true;
 
             player.TriggerEvent("Shop::Show", (int)ts.Type, ts.Margin, ts.EnterProperties.RotationZ, ts.GetVehicleClassMargin(vData.Data.Class), veh);
+
+            pData.CurrentBusiness = ts;
         }
 
         [RemoteEvent("Business::Enter")]
@@ -260,8 +295,6 @@ namespace BCRPServer.Events.Players
 
             if (business is Game.Businesses.IEnterable enterable)
             {
-                pData.CurrentBusiness = business;
-
                 pData.UnequipActiveWeapon();
 
                 Sync.Players.DisableMicrophone(pData);
@@ -271,14 +304,16 @@ namespace BCRPServer.Events.Players
                 player.Teleport(enterable.EnterProperties.Position, false, Utils.GetPrivateDimension(player), enterable.EnterProperties.RotationZ, true);
 
                 player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.EnterProperties.RotationZ);
+
+                pData.CurrentBusiness = business;
             }
             else
             {
-                pData.CurrentBusiness = business;
-
                 player.CloseAll(true);
 
                 player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin);
+
+                pData.CurrentBusiness = business;
             }
         }
 
@@ -370,11 +405,11 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.PositionInfo) > 50f)
                 return;
 
-            pData.CurrentBusiness = gs;
-
             player.CloseAll(true);
 
             player.TriggerEvent("GasStation::Show", gs.Margin);
+
+            pData.CurrentBusiness = gs;
         }
 
         [RemoteEvent("GasStation::Exit")]

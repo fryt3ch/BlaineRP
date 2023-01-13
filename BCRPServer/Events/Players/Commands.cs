@@ -318,6 +318,9 @@ namespace BCRPServer.Events.Players
                     if (!uint.TryParse(args[0], out pid) || !uint.TryParse(args[1], out dim))
                         return;
 
+                    if (dim == 0)
+                        dim = Utils.Dimensions.Main;
+
                     var tData = pData;
 
                     if (pData.CID != pid && pData.Player.Id != pid)
@@ -604,7 +607,7 @@ namespace BCRPServer.Events.Players
                         return;
                     }
 
-                    Game.Items.Items.GiveItem(tData, id, variation, amount, true);
+                    tData.GiveItem(id, variation, amount);
                 })
             },
 
@@ -645,7 +648,7 @@ namespace BCRPServer.Events.Players
                         return;
                     }
 
-                    Game.Items.Items.GiveItem(tData, id, variation, amount, false);
+                    tData.GiveItem(id, variation, amount);
                 })
             },
 

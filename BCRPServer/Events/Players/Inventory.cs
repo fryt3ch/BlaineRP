@@ -31,7 +31,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Inventory::Action")]
-        private static void InventoryAction(Player player, int group, int slot, int action)
+        private static void InventoryAction(Player player, int group, int slot, int action, string data)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -39,6 +39,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (data == null)
+                return;
 
             if (!Enum.IsDefined(typeof(Groups), group) || slot < 0 || action < 5)
                 return;
@@ -49,7 +52,7 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true))
                 return;
 
-            Action(pData, (Groups)group, slot, action);
+            Action(pData, (Groups)group, slot, action, data.Split('&'));
         }
 
         [RemoteEvent("Inventory::Drop")]

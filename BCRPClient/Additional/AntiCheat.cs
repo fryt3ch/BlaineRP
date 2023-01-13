@@ -63,15 +63,28 @@ namespace BCRPClient.Additional
             #region Teleport
             Events.Add("AC::State::TP", async (object[] args) =>
             {
-                var pos = (Vector3)args[0];
+                var dim = (int)args[0] < 0 ? Player.LocalPlayer.Dimension : (uint)(int)args[0];
 
-                var onGround = (bool)args[1];
+                if (args.Length == 1)
+                {
+                    Sync.Players.CloseAll(false);
 
-                var heading = args[2] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
+                    Utils.ResetGameplayCameraRotation();
 
-                var fade = (bool)args[3];
+                    Events.OnPlayerSpawn?.Invoke(null);
 
-                var withVehicle = args.Length > 4;
+                    return;
+                }
+
+                LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.Position;
+
+                var onGround = (bool)args[2];
+
+                var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
+
+                var fade = (bool)args[4];
+
+                var withVehicle = args.Length > 5;
 
                 GameEvents.DisableAllControls(true);
                 KeyBinds.DisableAll();
@@ -106,8 +119,6 @@ namespace BCRPClient.Additional
                     Additional.SkyCamera.FadeScreen(false, 1500, -1);
                 }
 
-                LastAllowedPos = pos;
-
                 AllowTP.Push(true);
 
                 if (withVehicle && veh != null)
@@ -118,7 +129,7 @@ namespace BCRPClient.Additional
                     {
                         Player.LocalPlayer.FreezePosition(false);
 
-                        veh.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
+                        veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
 
                         veh.SetHeading(heading);
 
@@ -137,7 +148,7 @@ namespace BCRPClient.Additional
 
                     Player.LocalPlayer.FreezePosition(false);
 
-                    Player.LocalPlayer.Position = pos;
+                    Player.LocalPlayer.Position = LastAllowedPos;
 
                     Player.LocalPlayer.SetHeading(heading);
 
@@ -487,8 +498,16 @@ namespace BCRPClient.Additional
                     if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)
                         tpVeh = trVeh;
 
-                    if (tpVeh.GetCoords(false).DistanceTo(vect) > 0.5f)
+                    if (tpVeh.GetCoords(false).DistanceTo(vect) > 0.01f)
                         tpVeh.SetCoordsNoOffset(vect.X, vect.Y, vect.Z, false, false, false);
+
+                    if (posData.Length > 3)
+                    {
+                        var heading = float.Parse(posData[3]);
+
+                        if (tpVeh.GetHeading() != heading)
+                            tpVeh.SetHeading(heading);
+                    }
                 }
 
                 var trailerVehHandle = -1;

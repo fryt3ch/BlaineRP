@@ -592,6 +592,20 @@ namespace BCRPServer
             }
         }
 
+        public (Game.Items.IUsable Item, int Slot)? CurrentItemInUse
+        {
+            get
+            {
+                for (int i = 0; i < Items.Length; i++)
+                {
+                    if (Items[i] is Game.Items.IUsable itemU && itemU.InUse)
+                        return (itemU, i);
+                }
+
+                return null;
+            }
+        }
+
         /// <summary>Знакомые игроки</summary>
         /// <value>Список CID игроков</value>
         public List<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
@@ -616,10 +630,10 @@ namespace BCRPServer
 
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
-        public uint? CurrentContainer { get; set; }
+        public uint? CurrentContainer { get => Player.GetData<uint?>("CCont"); set { if (value == null) Player.ResetData("CCont"); else Player.SetData("CCont", value); } }
 
         /// <summary>Текущий бизнес, с которым взаимодействует игрок</summary>
-        public Game.Businesses.Business CurrentBusiness { get; set; }
+        public Game.Businesses.Business CurrentBusiness { get => Player.GetData<Game.Businesses.Business>("CBusiness"); set { if (value == null) Player.ResetData("CBusiness"); else Player.SetData("CBusiness", value); } }
 
         /// <summary>Текущий дом, с которым взаимодействует игрок</summary>
         public Game.Houses.House CurrentHouse
@@ -1362,16 +1376,7 @@ namespace BCRPServer
 
                 Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                var houseBase = Utils.GetHouseBaseByDimension(LastData.Dimension);
-
-                if (houseBase != null)
-                {
-                    houseBase.SetPlayerInside(Player);
-                }
-                else
-                {
-                    Player.Teleport(LastData.Position.Position, true, LastData.Dimension, LastData.Position.RotationZ, false);
-                }
+                Player.Teleport(LastData.Position.Position, true, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Utils.HouseDimBase);
 
                 Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
             }, 1000);

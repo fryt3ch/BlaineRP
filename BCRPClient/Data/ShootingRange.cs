@@ -16,8 +16,6 @@ namespace BCRPClient.Data
 
         public static Types? CurrentType { get; private set; }
 
-        private static AsyncTask CurrentTask { get; set; }
-
         private static List<Target> Targets { get; set; }
 
         private static float CurrentRotSpeed { get; set; }
@@ -265,8 +263,6 @@ namespace BCRPClient.Data
 
             Sync.WeaponSystem.DisabledFiring = true;
 
-            AsyncTask task = null;
-
             Targets = new List<Target>();
 
             LastShotRegistered = DateTime.MinValue;
@@ -290,33 +286,35 @@ namespace BCRPClient.Data
 
             CEF.Notification.ShowHint(string.Format(Locale.Notifications.General.ShootingRangeHint1, Math.Round(MinAccuracy, 2)), false);
 
+            AsyncTask task = null;
+
             task = new AsyncTask(async () =>
             {
                 await Utils.RequestModel(RAGE.Util.Joaat.Hash("prop_range_target_01"));
                 await Utils.RequestModel(RAGE.Util.Joaat.Hash("prop_range_target_03"));
 
+                if (!Utils.IsTaskStillPending("SRange::Start::D", task))
+                    return;
+
                 Additional.Scaleform.ShowCounter(Locale.Scaleform.ShootingRangeCountdownTitle, Locale.Scaleform.ShootingRangeCountdownText, 5, Additional.Scaleform.CounterSoundTypes.Deep);
 
                 await RAGE.Game.Invoker.WaitAsync(5000);
 
-                if (task.IsCancelled)
+                if (!Utils.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
                 Sync.WeaponSystem.DisabledFiring = false;
-
-                if (task.IsCancelled)
-                    return;
 
                 Events.OnPlayerWeaponShot -= ShotHandler;
                 Events.OnPlayerWeaponShot += ShotHandler;
 
                 GameEvents.Render -= Render;
                 GameEvents.Render += Render;
+
+                Utils.CancelPendingTask("SRange::Start::D");
             }, 0, false, 0);
 
-            CurrentTask = task;
-
-            CurrentTask.Run();
+            Utils.SetTaskAsPending("SRange::Start::D", task);
         }
 
         public static void Stop()
@@ -328,13 +326,11 @@ namespace BCRPClient.Data
 
             Events.OnPlayerWeaponShot -= ShotHandler;
 
+            Utils.CancelPendingTask("SRange::Start::D");
+
             Additional.Scaleform.Close();
 
             CurrentType = null;
-
-            CurrentTask?.Cancel();
-
-            CurrentTask = null;
 
             Sync.WeaponSystem.DisabledFiring = false;
 

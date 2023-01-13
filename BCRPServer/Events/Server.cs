@@ -139,9 +139,7 @@ namespace BCRPServer.Events
 
             var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);
 
-            boat.Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
-
-            //boat.Vehicle.AttachEntity(truck.Vehicle, Sync.AttachSystem.Types.VehicleTrailerObjBoat);
+            boat.AttachBoatToTrailer();
 
             Additional.ConsoleCommands.Activate();
 

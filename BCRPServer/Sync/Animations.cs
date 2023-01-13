@@ -60,6 +60,8 @@ namespace BCRPServer.Sync
             HostageA, HostageB,
 
             LieInTrunk,
+
+            FishingIdle0, FishingProcess0,
         }
 
         public enum OtherTypes

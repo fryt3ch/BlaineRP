@@ -926,7 +926,7 @@ namespace BCRPClient
             Add(new Bind(Types.weapon2, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    CEF.Inventory.BindedAction(5, "holster", 2);
+                    CEF.Inventory.BindedAction(5, "weapon", 2);
 
             }, true, true, Types.None, true));
 

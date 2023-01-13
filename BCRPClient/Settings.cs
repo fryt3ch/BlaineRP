@@ -25,7 +25,7 @@ namespace BCRPClient
 
         public static CultureInfo CultureInfo = CultureInfo.GetCultureInfo("en-US");
 
-        public const uint MAIN_DIMENSION = 0;
+        public const uint MAIN_DIMENSION = 7;
         public const uint STUFF_DIMENSION = 1;
 
         public const float FINGER_POINT_ENTITY_MAX_DISTANCE = 10f;

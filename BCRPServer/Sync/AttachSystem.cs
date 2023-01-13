@@ -51,6 +51,8 @@ namespace BCRPServer.Sync
 
             VehicleTrunk, VehicleTrunkForced,
 
+            ItemFishingRodG, ItemFishG,
+
             ItemCigHand,
             ItemCig1Hand,
             ItemCig2Hand,
@@ -447,7 +449,57 @@ namespace BCRPServer.Sync
                         }
                     }
                 }
-            }
+            },
+
+            {
+                Types.ItemFishingRodG,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("MG::F::S", args);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("MG::F::S");
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ItemFishG,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("MG::F::S", args);
+                            }
+                        }
+                    },
+                }
+            },
         };
 
         private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type)
@@ -459,12 +511,12 @@ namespace BCRPServer.Sync
                 Types sType;
 
                 if (SameActionsTypes.TryGetValue(type, out sType))
-                    return Actions.GetValueOrDefault(sType)?[false];
+                    return Actions.GetValueOrDefault(sType)?.GetValueOrDefault(false);
 
                 return null;
             }
 
-            return action[false];
+            return action.GetValueOrDefault(false);
         }
 
         private static Action<Entity, Entity, Types, object[]> GetOnAction(Types type)
@@ -476,12 +528,12 @@ namespace BCRPServer.Sync
                 Types sType;
 
                 if (SameActionsTypes.TryGetValue(type, out sType))
-                    return Actions.GetValueOrDefault(sType)?[true];
+                    return Actions.GetValueOrDefault(sType)?.GetValueOrDefault(true);
 
                 return null;
             }
 
-            return action[true];
+            return action.GetValueOrDefault(true);
         }
 
         #region Entities

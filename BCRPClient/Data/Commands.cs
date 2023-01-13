@@ -692,6 +692,13 @@ namespace BCRPClient.Data
             LastSent = DateTime.Now;
         }
 
+        [Command("btw", true, "Установить сытость игроку")]
+        public static void BoatToWater()
+        {
+            if (BCRPClient.Interaction.CurrentEntity is Vehicle veh)
+                Sync.Vehicles.BoatFromTrailerToWater(veh);
+        }
+
         #endregion
 
         #region Debug Labels (DL)

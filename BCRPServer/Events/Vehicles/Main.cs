@@ -906,5 +906,41 @@ namespace BCRPServer.Events.Vehicles
 
             vData.Delete(false);
         }
+
+        [RemoteEvent("Vehicles::BTOW")]
+        private static void VehicleBoatTrailerOnWater(Player player, Vehicle veh, float x, float y, float z)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+                return;
+
+            if (x == 56.77f)
+            {
+                vData.AttachBoatToTrailer();
+
+                return;
+            }
+
+            if (vData.DetachBoatFromTrailer())
+            {
+                var waterPos = new Vector3(x, y, z);
+
+                vData.Vehicle.Teleport(waterPos, null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
+            }
+        }
     }
 }

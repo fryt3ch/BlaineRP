@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Linq;
 
@@ -72,27 +73,6 @@ namespace BCRPClient.CEF
         public static Dictionary<uint, (string Reason, string Name)> Gifts;
 
         private static int TempBindEsc;
-
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            //Utils.Actions.Frozen,
-            //Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            //Utils.Actions.Crawl,
-            //Utils.Actions.Finger,
-            //Utils.Actions.PushingVehicle,
-
-            //Utils.Actions.Animation,
-            //Utils.Actions.CustomAnimation,
-            //Utils.Actions.Scenario,
-
-            //Utils.Actions.InVehicle,
-            //Utils.Actions.InWater,
-            Utils.Actions.Shooting, //Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-                                    //Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-        };
 
         public Menu()
         {
@@ -309,9 +289,39 @@ namespace BCRPClient.CEF
             #endregion
         }
 
+        public static void Preload()
+        {
+            CEF.Browser.Window.ExecuteJs("Menu.selectOption", "menu-char");
+
+            CEF.Browser.Window.ExecuteJs("Menu.drawSkills", new object[] { Sync.Players.MaxSkills.Select(x => new object[] { x.Key, x.Value }) });
+
+
+            var mainDict = new Dictionary<string, string>()
+            {
+                { "time", "Время сервера" },
+                { "help", "Скрыть подсказки" },
+                { "names", "Скрыть имена игроков" },
+                { "cid", "Скрыть CID игроков" },
+                { "hud", "Скрыть HUD" },
+                { "quest", "Скрыть задание" },
+            };
+
+            var extraDict = new Dictionary<string, string>()
+            {
+                { "interact", "Скрыть кнопку взаимодействия" },
+                { "items", "Скрыть названия предметов на земле" },
+                { "reload", "Автоматическая перезарядка" },
+                { "finger", "Включить указание пальцем на объекты" },
+            };
+
+            CEF.Browser.Window.ExecuteJs("Menu.createManyToggles", "main", mainDict.Select(x => new object[] { x.Key, x.Value }));
+
+            CEF.Browser.Window.ExecuteJs("Menu.createManyToggles", "extra", extraDict.Select(x => new object[] { x.Key, x.Value }));
+        }
+
         public static void Show(SectionTypes sType = SectionTypes.Last)
         {
-            if (IsActive || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+            if (IsActive || Utils.IsAnyCefActive() || !Utils.CanDoSomething(Utils.Actions.Knocked, Utils.Actions.Shooting))
                 return;
 
             if (LastSwitched.IsSpam(1000, false, false))
@@ -482,7 +492,7 @@ namespace BCRPClient.CEF
 
             var quests = pData.Quests;
 
-            Browser.Window.ExecuteJs("Menu.drawQuests", new object[] { quests.Select(x => new object[] { x.Type.ToString(), x.Data.Name, x.Data.GiverName, x.GoalWithProgress ?? "null", "NA" }) });
+            Browser.Window.ExecuteJs("Menu.drawQuests", new object[] { quests.Select(x => new object[] { x.Type.ToString(), x.Data.Name, x.Data.GiverName, x.GoalWithProgress ?? "null", (int)x.Data.ColourType }) });
         }
     }
 }

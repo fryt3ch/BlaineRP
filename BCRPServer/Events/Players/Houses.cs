@@ -121,7 +121,7 @@ namespace BCRPServer.Events.Players
                     return;
                 }
 
-                house.SetPlayerInside(player);
+                house.SetPlayersInside(true, player);
             }
             else
             {
@@ -143,7 +143,7 @@ namespace BCRPServer.Events.Players
                     return;
                 }
 
-                aps.SetPlayerInside(player);
+                aps.SetPlayersInside(true, player);
             }
         }
 
@@ -162,20 +162,7 @@ namespace BCRPServer.Events.Players
             if (house == null)
                 return;
 
-            if (house is Game.Houses.Apartments aps)
-            {
-                player.Teleport(aps.PositionParams.Position, false, aps.Root.Dimension, aps.PositionParams.RotationZ, true);
-
-                player.TriggerEvent("ARoot::Enter", (int)aps.Root.Type);
-
-                player.TriggerEvent("House::Exit");
-            }
-            else
-            {
-                player.Teleport(house.PositionParams.Position, false, Utils.Dimensions.Main, house.PositionParams.RotationZ, true);
-
-                player.TriggerEvent("House::Exit");
-            }
+            house.SetPlayersOutside(true, player);
         }
 
         [RemoteEvent("House::Garage")]

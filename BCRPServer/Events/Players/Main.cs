@@ -207,12 +207,10 @@ namespace BCRPServer.Events.Players
                     }
                 }
 
-                var aWeapon = pData.ActiveWeapon;
+                pData.ActiveWeapon?.WeaponItem.Unequip(pData, true, false);
 
-                if (aWeapon != null)
-                {
-                    aWeapon.Value.WeaponItem.Unequip(pData, true, false);
-                }
+                if (pData.CurrentItemInUse?.Item is Game.Items.IUsable ciiu)
+                    ciiu.InUse = false;
 
                 foreach (var x in pData.Weapons)
                 {
@@ -986,6 +984,24 @@ namespace BCRPServer.Events.Players
             }
 
             return true;
+        }
+
+        [RemoteEvent("Player::SUCI")]
+        private static void StopUseCurrentItem(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var item = pData.CurrentItemInUse;
+
+            if (item == null)
+                return;
+
+            item.Value.Item.StopUse(pData, Groups.Items, item.Value.Slot, true);
         }
     }
 }

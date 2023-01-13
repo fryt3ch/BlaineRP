@@ -5,6 +5,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 
 namespace BCRPClient.Sync
 {
@@ -874,6 +875,47 @@ namespace BCRPClient.Sync
 
                 veh.SetFixed();
                 veh.SetDeformationFixed();
+            });
+
+            Events.Add("Vehicles::WTS", (args) =>
+            {
+                var veh = (Vehicle)args[0];
+                var seat = (int)args[1] - 1;
+
+                var timeout = (int)args[2];
+
+                Utils.CancelPendingTask("Vehicles::WTS");
+
+                AsyncTask task = null;
+
+                task = new AsyncTask(async () =>
+                {
+                    var time = DateTime.Now;
+
+                    while (Utils.IsTaskStillPending("Vehicles::WTS", task) && DateTime.Now.Subtract(time).TotalMilliseconds <= timeout)
+                    {
+                        await RAGE.Game.Invoker.WaitAsync(50);
+
+                        if (Additional.SkyCamera.IsFadedOut)
+                            continue;
+
+                        if (Player.LocalPlayer.Vehicle == veh)
+                        {
+                            Utils.CancelPendingTask("Vehicles::WTS");
+
+                            return;
+                        }
+
+                        if (veh.IsSeatFree(seat, 0))
+                        {
+                            Player.LocalPlayer.SetIntoVehicle(veh.Handle, seat);
+                        }
+                    }
+
+                    Utils.CancelPendingTask("Vehicles::WTS");
+                }, 0, false, 0);
+
+                Utils.SetTaskAsPending("Vehicles::WTS", task);
             });
 
             RAGE.Input.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
@@ -1796,6 +1838,48 @@ namespace BCRPClient.Sync
             }
 
             Sync.Offers.Request(driver, Offers.Types.WaypointShare, $"{wpPos.X}_{wpPos.Y}");
+        }
+
+        public static void BoatFromTrailerToWater(Vehicle veh)
+        {
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                return;
+
+            if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)
+            {
+                var heading = trVeh.GetRotation(2).Z;
+
+                var waterPos = veh.GetCoords(false);
+
+                if (!veh.IsInWater())
+                {
+                    var wPos = Utils.FindEntityWaterIntersectionCoord(veh, new Vector3(0f, 0f, 2.5f), 10f, 1.5f, -7.5f, 45f, 0.5f, 31);
+
+                    if (wPos != null)
+                    {
+                        waterPos = wPos;
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
+
+                        return;
+                    }
+                }
+
+                Events.CallRemote("Vehicles::BTOW", veh, waterPos.X, waterPos.Y, waterPos.Z);
+            }
+            else
+            {
+                Events.CallRemote("Vehicles::BTOW", veh, 56.77f, 0f, 0f);
+
+                return;
+            }
         }
 
 /*        public static void ApplyTrailerSattings(Vehicle veh)

@@ -31,9 +31,7 @@ namespace BCRPServer.Game.Items
             uint id;
 
             if (!FreeIDs.TryDequeue(out id))
-            {
                 id = ++LastAddedMaxId;
-            }
 
             return id;
         }
@@ -55,6 +53,9 @@ namespace BCRPServer.Game.Items
         {
             if (item == null)
                 return;
+
+            if (item.UID > LastAddedMaxId)
+                LastAddedMaxId = item.UID;
 
             All.Add(item.UID, item);
 
@@ -115,7 +116,7 @@ namespace BCRPServer.Game.Items
 
         private static Dictionary<Game.Items.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.Groups, Func<Item, string>>()
         {
-            { Game.Items.Inventory.Groups.Items, (item) => $"{item.ID}&{Items.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Items.GetItemTag(item)}" },
+            { Game.Items.Inventory.Groups.Items, (item) => $"{item.ID}&{Items.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Items.GetItemTag(item)}&{((item is IUsable itemU && itemU.InUse) ? 1 : 0)}" },
 
             { Game.Items.Inventory.Groups.Bag, (item) => $"{item.ID}&{Items.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Items.GetItemTag(item)}" },
 
@@ -243,11 +244,11 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Стандартный вес предмета (1 единица)</summary>
         [JsonIgnore]
-        public float BaseWeight { get => Data.Weight; }
+        public float BaseWeight => Data.Weight;
 
         /// <summary>Фактический вес предмета</summary>
         [JsonIgnore]
-        public virtual float Weight { get => BaseWeight; }
+        public virtual float Weight => BaseWeight;
 
         /// <summary>ID модели предмета</summary>
         [JsonIgnore]
@@ -255,7 +256,7 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Является ли предмет временным?</summary>
         [JsonIgnore]
-        public bool IsTemp { get => UID == 0; }
+        public bool IsTemp => UID == 0;
 
         /// <summary>Уникальный ID предмета</summary>
         /// <value>UID предмета, 0 - если предмет временный и не хранится в базе данных</value>
@@ -305,6 +306,16 @@ namespace BCRPServer.Game.Items
     #endregion
 
     #region Interfaces
+    public interface IUsable
+    {
+        [JsonIgnore]
+        public bool InUse { get; set; }
+
+        public void StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args);
+
+        public void StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args);
+    }
+
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые могут хранить в себе другие предметы</summary>
     public interface IContainer
     {
@@ -3795,222 +3806,140 @@ namespace BCRPServer.Game.Items
         }
     }
 
-    public class Items
+    public class FishingRod : Item, IUsable
     {
-        private static Dictionary<string, Type> AllTypes = new Dictionary<string, Type>();
-
-        private static Dictionary<Type, Dictionary<string, Item.ItemData>> AllData = new Dictionary<Type, Dictionary<string, Item.ItemData>>();
-
-        #region Give
-        /// <summary>Создать и выдать предмет игроку</summary>
-        /// <param name="player">Сущность игрока, которому необходимо выдать предмет</param>
-        /// <inheritdoc cref="CreateItem(string, int, int, bool)"/>
-        public static Item GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false, bool notifyOnSuccess = true, bool notifyOnFault = true)
+        new public class ItemData : Item.ItemData
         {
-            var player = pData.Player;
+            public static uint FakeFishItem { get; } = NAPI.Util.GetHashKey("prop_starfish_01");
 
-            var type = GetType(id, false);
-
-            if (type == null)
-                return null;
-
-            var data = GetData(id, type);
-
-            if (data == null)
-                return null;
-
-            var totalWeight = 0f;
-            var freeIdx = -1;
-
-            for (int i = 0; i < pData.Items.Length; i++)
+            public class RandomItem
             {
-                var curItem = pData.Items[i];
+                public string Id { get; set; }
 
-                if (curItem != null)
+                public int MinAmount { get; set; }
+
+                public int MaxAmount { get; set; }
+
+                public RandomItem(string Id, int MinAmount = 1, int MaxAmount = 1)
                 {
-                    totalWeight += curItem.Weight;
-                }
-                else if (freeIdx < 0)
-                {
-                    freeIdx = i;
+                    this.Id = Id;
+                    this.MinAmount = MinAmount;
+                    this.MaxAmount = MaxAmount;
                 }
             }
 
-            if (freeIdx < 0 || totalWeight + data.Weight * amount >= Settings.MAX_INVENTORY_WEIGHT)
+            private static Dictionary<float, List<RandomItem>> AllRandomItems = new Dictionary<float, List<RandomItem>>()
             {
-                if (notifyOnFault)
-                    player.Notify("Inventory::NoSpace");
-
-                return null;
-            }
-
-            var item = CreateItem(id, type, data, variation, amount, isTemp);
-
-            if (item == null)
-                return null;
-
-            pData.Items[freeIdx] = item;
-
-            var upd = Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items);
-
-            if (notifyOnSuccess)
-                player.TriggerEvent("Item::Added", item.ID, GetItemAmount(item));
-
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, freeIdx, upd);
-
-            MySQL.CharacterItemsUpdate(pData.Info);
-
-            return item;
-        }
-        #endregion
-
-        #region Create
-        /// <summary>Метод для создания нового предмета</summary>
-        /// <param name="id">ID предмета (см. Game.Items.Item.LoadAll</param>
-        /// <param name="variation">Вариация предмета (только для IWearable, в противном случае - игнорируется)</param>
-        /// <param name="amount">Кол-во предмета (только для IStakable и Weapon, в противном случае - игнорируется)</param>
-        /// <param name="isTemp">Временный ли предмет?<br/>Такой предмет не будет сохраняться в базу данных и его будет нельзя: <br/><br/>1) Разделять (если IStackable или Weapon)<br/>2) Перемещать в IContainer и Game.Items.Container<br/>3) Выбрасывать (предмет удалится, но не появится на земле)<br/>4) Передавать другим игрокам</param>
-        /// <returns>Объект класса Item, если предмет был создан, null - в противном случае</returns>
-        public static Item CreateItem(string id, int variation = 0, int amount = 1, bool isTemp = false)
-        {
-            var type = GetType(id, false);
-
-            if (type == null)
-                return null;
-
-            var data = GetData(id, type);
-
-            if (data == null)
-                return null;
-
-            return CreateItem(id, type, data, variation, amount, isTemp);
-        }
-
-        public static Item CreateItem(string id, Type type, Item.ItemData data, int variation, int amount, bool isTemp)
-        {
-            Item item = typeof(Clothes).IsAssignableFrom(type) ? (Clothes)Activator.CreateInstance(type, id, variation) : (Item)Activator.CreateInstance(type, id);
-
-            if (item is IStackable stackable)
-            {
-                if (amount <= 0)
-                    amount = 1;
-
-                var maxAmount = stackable.MaxAmount;
-
-                stackable.Amount = amount > maxAmount ? maxAmount : amount;
-            }
-            else if (item is Weapon weapon)
-            {
-                if (amount <= 1)
-                    amount = 0;
-
-                var maxAmount = weapon.Data.MaxAmmo;
-
-                if (amount > 0)
-                    weapon.Ammo = amount > maxAmount ? maxAmount : amount;
-            }
-
-            if (!isTemp)
-            {
-                item.UID = Item.MoveNextId();
-
-                Item.Add(item);
-
-                return item;
-            }
-            else
-            {
-                item.UID = 0;
-
-                return item;
-            }
-        }
-        #endregion
-
-        #region Stuff
-
-        public static int GetItemAmount(Game.Items.Item item) => item is IStackable stackable ? stackable.Amount : 1;
-
-        public static string GetItemTag(Game.Items.Item item)
-        {
-            if (item is Weapon weapon)
-                return weapon.Ammo > 0 ? weapon.Ammo.ToString() : null;
-
-            if (item is Armour armour)
-                return armour.Strength.ToString();
-
-            if (item is IConsumable consumable)
-                return consumable.Amount.ToString();
-
-            if (item is ITagged tagged)
-                return tagged.Tag;
-
-            return "";
-        }
-
-        public static Type GetType(string id, bool checkFullId = true)
-        {
-            var data = id.Split('_');
-
-            var type = AllTypes.GetValueOrDefault(data[0]);
-
-            if (type == null || (checkFullId && !AllData[type].ContainsKey(id)))
-                return null;
-
-            return type;
-        }
-
-        public static Item.ItemData GetData(string id, Type type = null)
-        {
-            if (type == null)
-            {
-                type = GetType(id, false);
-
-                if (type == null)
-                    return null;
-            }
-
-            return AllData[type].GetValueOrDefault(id);
-        }
-        #endregion
-
-        public static int LoadAll()
-        {
-            var ns = typeof(Item).Namespace;
-
-            int counter = 0;
-
-            var lines = new List<string>();
-
-            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass && !t.IsAbstract && typeof(Item).IsAssignableFrom(t)))
-            {
-                //var idList= (IDictionary)x.GetField("IDList")?.GetValue(null).Cast<dynamic>().ToDictionary(a => (string)a.Key, a => (Item.ItemData)a.Value);
-
-                var idList = (Dictionary<string, Item.ItemData>)x.GetField("IDList")?.GetValue(null);
-
-                if (idList == null)
-                    continue;
-
-                AllData.Add(x, idList);
-
-                counter += idList.Count;
-
-                foreach (var t in idList)
                 {
-                    var id = t.Key.Split('_');
+                    0.5f,
 
-                    if (!AllTypes.ContainsKey(id[0]))
-                        AllTypes.Add(id[0], x);
+                    new List<RandomItem>()
+                    {
+                        new RandomItem("am_5.56", 10, 50),
+                    }
+                }
+            };
 
-                    lines.Add($"{x.Name}.IDList.Add(\"{t.Key}\", (Item.ItemData)new {x.Name}.ItemData({t.Value.ClientData}));");
+            public static (string Id, int Amount) GetRandomItem()
+            {
+                var rProb = Utils.Randoms.Chat.NextDouble();
+
+                var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
+
+                var rItem = rItems.Value[Utils.Randoms.Chat.Next(0, rItems.Value.Count)];
+
+                if (rItem.MinAmount != rItem.MaxAmount)
+                {
+                    return (rItem.Id, Utils.Randoms.Chat.Next(rItem.MinAmount, rItem.MaxAmount + 1));
+                }
+                else
+                {
+                    return (rItem.Id, rItem.MinAmount);
                 }
             }
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_ITEMS_DATA_PATH, "TO_REPLACE", lines);
+            public override string ClientData => $"\"{Name}\", {Weight}f";
 
-            return counter;
+            public ItemData(string Name, string Model, float Weight) : base(Name, Weight, Model)
+            {
+
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "rod_0", new ItemData("Удочка (обычн.)", "prop_fishing_rod_02", 1f) },
+            { "rod_1", new ItemData("Удочка (улучш.)", "prop_fishing_rod_02", 1f) },
+        };
+
+        [JsonIgnore]
+        new public ItemData Data => (ItemData)base.Data;
+
+        [JsonIgnore]
+        public bool InUse { get; set; }
+
+        public void StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        {
+            if (InUse)
+                return;
+
+            InUse = true;
+
+            pData.Player.AttachObject(Model, Sync.AttachSystem.Types.ItemFishingRodG, -1, null, 5_000);
+
+            pData.PlayAnim(Sync.Animations.GeneralTypes.FishingIdle0);
+
+            if (needUpdate && slot >= 0)
+            {
+                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+            }
+        }
+
+        public void StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        {
+            if (!InUse)
+                return;
+
+            InUse = false;
+
+            pData.Player.DetachObject(Sync.AttachSystem.Types.ItemFishingRodG);
+            pData.Player.DetachObject(Sync.AttachSystem.Types.ItemFishG);
+
+            pData.StopAnim();
+
+            if (needUpdate && slot >= 0)
+            {
+                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+            }
+        }
+
+        public void StartCatchProcess(PlayerData pData, int maxCatchTime, float fishSpeed, int catchCount, float fishZCoord)
+        {
+            if (!InUse)
+                return;
+
+            var fPos = pData.Player.GetFrontOf(7.5f);
+
+            pData.Player.AttachObject(ItemData.FakeFishItem, Sync.AttachSystem.Types.ItemFishG, -1, $"{fPos.X}&{fPos.Y}&{fishZCoord}", maxCatchTime, fishSpeed, catchCount);
+
+            pData.PlayAnim(Sync.Animations.GeneralTypes.FishingIdle0);
+
+            pData.PlayAnim(Sync.Animations.GeneralTypes.FishingProcess0);
+        }
+
+        public FishingRod(string ID) : base(ID, IDList[ID], typeof(FishingRod))
+        {
+
         }
     }
+
+/*    public class RandomWallet : Item
+    {
+        public RandomWallet(string ID) : base(ID, IDList[ID], typeof(RandomWallet))
+        {
+
+        }
+    }*/
 
     #region Item JSON Converter
 

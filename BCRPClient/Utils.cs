@@ -48,6 +48,9 @@ namespace BCRPClient
             [JsonProperty(PropertyName = "H")]
             public string HEX => $"#{Red:X2}{Green:X2}{Blue:X2}{Alpha:X2}";
 
+            [JsonIgnore]
+            public string HEXNoAlpha => $"#{Red:X2}{Green:X2}{Blue:X2}";
+
             public Colour(byte Red, byte Green, byte Blue, byte Alpha = 255)
             {
                 this.Red = Red;
@@ -294,6 +297,62 @@ namespace BCRPClient
             else if (type == 3)
             {
                 return GetMapObjectByHandle(endEntity, false);
+            }
+
+            return null;
+        }
+
+        public static Vector3 GetWaterIntersectionCoord(Vector3 startPos, Vector3 endPos, int flags, int ignoreHandle)
+        {
+            var pos = Vector3.Zero;
+
+            if (RAGE.Game.Invoker.Invoke<bool>(RAGE.Game.Natives.TestProbeAgainstAllWater, startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 128, pos))
+            {
+                int hit = -1, materialHash = -1, eHit = -1;
+
+                RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, pos.X, pos.Y, pos.Z, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref eHit);
+
+                if (eHit > 0 || materialHash != 0)
+                    return null;
+
+                return pos;
+            }
+
+            return null;
+        }
+
+        public static Vector3 FindEntityWaterIntersectionCoord(GameEntity gEntity, Vector3 baseOffset, float range, float offsetStep, float offsetZ, float angleRotation = 90f, float minimalWaterHeight = 1f, int flags = 31) => FindWaterIntersectionCoord(RAGE.Game.Entity.GetEntityCoords(gEntity.Handle, false), RAGE.Game.Entity.GetEntityHeading(gEntity.Handle), baseOffset, range, offsetStep, offsetZ, angleRotation, minimalWaterHeight, flags, gEntity.Handle);
+
+        public static Vector3 FindWaterIntersectionCoord(Vector3 startPos, float heading, Vector3 baseOffset, float range, float offsetStep, float offsetZ, float angleRotation = 90f, float minimalWaterHeight = 1f, int flags = 31, int ignoreHandle = 0)
+        {
+            var t = 360f / angleRotation;
+
+            var c = range / offsetStep + 1;
+
+            startPos += baseOffset;
+
+            for (int i = 0; i < t; i++)
+            {
+                for (int j = 1; j < c; j++)
+                {
+                    var endPos = GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
+
+                    endPos.Z += offsetZ;
+
+                    var pos = GetWaterIntersectionCoord(startPos, endPos, flags, ignoreHandle);
+
+                    if (pos != null)
+                    {
+                        var wHeight = -1f;
+
+                        RAGE.Game.Misc.GetGroundZFor3dCoord(pos.X, pos.Y, pos.Z, ref wHeight, false);
+
+                        wHeight = pos.Z - wHeight;
+
+                        if (wHeight >= minimalWaterHeight)
+                            return pos;
+                    }
+                }
             }
 
             return null;
@@ -576,7 +635,7 @@ namespace BCRPClient
         {
             Knocked = 0, Frozen,
             InVehicle,
-            InWater, HasWeapon, Crouch, Crawl, Shooting, Climbing,
+            IsSwimming, InWater, HasWeapon, Crouch, Crawl, Shooting, Climbing,
             Cuffed, Falling, Jumping, Ragdoll, Scenario, OtherAnimation, Animation, FastAnimation, PushingVehicle, OnFoot, Reloading, Finger,
             HasItemInHands, IsAttachedTo,
         }
@@ -635,7 +694,9 @@ namespace BCRPClient
 
             { Actions.InVehicle, () => Player.LocalPlayer.IsInAnyVehicle(true) || Player.LocalPlayer.IsInAnyVehicle(false) },
 
-            { Actions.InWater, () => Player.LocalPlayer.IsInWater() || Player.LocalPlayer.IsDiving() },
+            { Actions.IsSwimming, () => Player.LocalPlayer.IsSwimming() || Player.LocalPlayer.IsSwimmingUnderWater() || Player.LocalPlayer.IsDiving() },
+
+            { Actions.InWater, () => Player.LocalPlayer.IsInWater() },
 
             { Actions.HasWeapon, () => Player.LocalPlayer.HasWeapon() },
 
@@ -961,6 +1022,31 @@ namespace BCRPClient
         }
 
         public static bool IsActionPending(string key) => Player.LocalPlayer.HasData($"PendingAction::{key}");
+
+        public static void SetTaskAsPending(string key, AsyncTask aTask)
+        {
+            Player.LocalPlayer.SetData($"PendingTask::{key}", aTask);
+
+            aTask.Run();
+        }
+
+        public static bool CancelPendingTask(string key)
+        {
+            var aTask = Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}");
+
+            if (aTask != null)
+            {
+                aTask.Cancel();
+
+                Player.LocalPlayer.ResetData($"PendingTask::{key}");
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsTaskStillPending(string key, AsyncTask aTask) => Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}") == aTask && aTask?.IsCancelled == false;
 
         public static int GetGovSellPrice(int price) => (int)Math.Floor(price / 2f);
 
@@ -1413,6 +1499,15 @@ namespace BCRPClient
                     return i;
 
             return -1;
+        }
+
+        public static bool IsTypeOrAssignable(this System.Type bType, System.Type type) => bType == type || bType.IsAssignableFrom(type);
+
+        public static Vector3 GetFrontOf(this Vector3 pos, float rotationZ = 0f, float coeffXY = 1.2f)
+        {
+            var radians = -rotationZ * Math.PI / 180;
+
+            return new Vector3(pos.X + (float)(coeffXY * Math.Sin(radians)), pos.Y + (float)(coeffXY * Math.Cos(radians)), pos.Z);
         }
     }
 }

@@ -198,6 +198,11 @@ namespace BCRPClient
 
                     public static string Use = "Использовать";
 
+                    public static string FishingRodUseBait = "Рыбачить (на приманку)";
+                    public static string FishingRodUseWorms = "Рыбачить (на червя)";
+
+                    public static string StopUse = "Перестать использовать";
+
                     public static string FindVehicle = "Найти транспорт";
                 }
             }
@@ -873,6 +878,8 @@ namespace BCRPClient
 
             public static string WeaponSkinsMenuSelectHeader = "Текущие раскраски оружия";
 
+            public static string VehicleTuningVehicleSelect = "Выбор транспорта для тюнинга";
+
             public static Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>()
             {
                 { Data.Items.WeaponSkin.ItemData.Types.UniDef, "Универсальная (все)" },
@@ -1052,9 +1059,6 @@ namespace BCRPClient
                 public static string BusinessAlreadyBought = "Этот бизнес уже кем-то приобретен!";
 
                 public static string NoLicenseToBuy = "У вас нет необходимой лицензии для совершения покупки!";
-
-                public static string TuningAlreadyHaveThisColour = "У вас уже установлен этот цвет!";
-                public static string TuningAlreadyHaveThisColour2 = "У вас уже установлены эти цвета!";
 
                 public static string TuningNotAllowed = "Этот транспорт нельзя тюнинговать!";
 
@@ -1252,12 +1256,17 @@ namespace BCRPClient
             {
                 public static string Header = "Инвентарь";
 
+                public static string FishingHeader = "Рыбалка";
+
                 public static string ActionRestricted = "В данный момент вы не можете делать это!";
                 public static string PlaceRestricted = "Вы не можете положить данный предмет в это место!";
                 public static string NoSpace = "Нет свободного места!";
 
                 public static string AddedOne = "{0} у вас в инвентаре!";
                 public static string Added = "{0} x{1} у вас в инвентаре!";
+
+                public static string FishCatchedOne = "Вы выловили {0}";
+                public static string FishCatched = "Вы выловили {0} x{1}";
 
                 public static string TempItem = "Этот предмет является временным!\nВы не можете выполнить данное действие!";
                 public static string TempItemDeleted = "Этот предмет был временным и был удалён";
@@ -1275,6 +1284,9 @@ namespace BCRPClient
                 public static string WeaponWrongComponent = "На это оружие нельзя установить этот компонент!";
 
                 public static string NoWeaponSkins = "У вас не активна ни одна раскраска на оружие!";
+
+                public static string FishingNotAllowedHere = "Вы не можете здесь рыбачить! Найдите достаточно глубокий водоем, встаньте поближе к воде и смотрите в ее сторону";
+                public static string FishingNotCatched = "Вы не смогли выловить добычу!";
             }
 
             public static class Gifts
@@ -1551,6 +1563,8 @@ namespace BCRPClient
                 public static string AlreadyHaveRentedVehicle = "Вы уже арендуете какой-либо транспорт! Откажитесь от аренды текущего транспорта и попробуйте снова.";
 
                 public static string RentedVehicleTimeLeft = "{0} арендован вами, если вы не вернетесь в него в течение {1}, то аренда будет отменена!";
+
+                public static string BoatTrailerNotNearWater  = "Поблизости лодки либо нет водоема, либо он недостаточно глубокий!";
             }
         }
         #endregion

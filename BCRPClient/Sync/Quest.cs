@@ -20,6 +20,12 @@ namespace BCRPClient.Sync
                 TQ1 = 0,
             }
 
+            public enum ColourTypes
+            {
+                Dark = 0,
+                Red,
+            }
+
             public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>()
             {
                 {
@@ -57,6 +63,8 @@ namespace BCRPClient.Sync
 
             public Types Type { get; set; }
 
+            public ColourTypes ColourType { get; set; }
+
             public string Name { get; set; }
 
             public string GiverName { get; set; }
@@ -71,6 +79,8 @@ namespace BCRPClient.Sync
                 this.GiverName = GiverName;
 
                 this.Steps = Steps;
+
+                this.ColourType = ColourTypes.Dark;
             }
 
             public class StepData
@@ -153,7 +163,7 @@ namespace BCRPClient.Sync
         {
             var data = Data;
 
-            CEF.HUD.SetQuestParams(data.GiverName, data.Name, GoalWithProgress);
+            CEF.HUD.SetQuestParams(data.GiverName, data.Name, GoalWithProgress, data.ColourType);
         }
 
         public void UpdateProgress(int newProgress)

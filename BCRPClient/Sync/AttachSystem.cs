@@ -43,6 +43,10 @@ namespace BCRPClient.Sync
 
             VehicleTrunk, VehicleTrunkForced,
 
+            ItemFishingRodG,
+
+            ItemFishG,
+
             ItemCigHand,
             ItemCig1Hand,
             ItemCig2Hand,
@@ -89,7 +93,7 @@ namespace BCRPClient.Sync
                     list.Add(fromHandle);
             }
 
-            Utils.ConsoleOutput($"Attached {fromHandle} to {toHandle}");
+            //Utils.ConsoleOutput($"Attached {fromHandle} to {toHandle}");
         }
 
         public static void RemoveLocalAttachment(int fromHandle, int toHandle)
@@ -102,7 +106,7 @@ namespace BCRPClient.Sync
             if (list.Remove(fromHandle) && list.Count == 0)
                 StreamedAttachments.Remove(toHandle);
 
-            Utils.ConsoleOutput($"Detached {fromHandle} from {toHandle}");
+            //Utils.ConsoleOutput($"Detached {fromHandle} from {toHandle}");
         }
 
         public static void DetachAllFromLocalEntity(int toHandle)
@@ -270,6 +274,17 @@ namespace BCRPClient.Sync
 
             { Types.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
 
+            { Types.ItemFishingRodG, new AttachmentData(60309, new Vector3(0.01f, -0.01f, 0.03f), new Vector3(0.1f, 0f, 0f), false, false, false, 2, true) },
+
+            { Types.ItemFishG, new AttachmentData(int.MinValue, null, new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
+            {
+                var gEntity = (MapObject)args[0];
+
+                await Utils.RequestPtfx("core");
+
+                gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_splash_shark_wade", gEntity.Handle,  0f, 0f, 0f, 0f, 0f, 0f, 2.5f, false, false, false)); // water_splash_animal_wade
+            }) },
+
             {
                 Types.ItemCigHand, new AttachmentData(64097, new Vector3(0.02f, 0.02f, -0.008f), new Vector3(100f, 0f, 100f), false, false, false, 2, true, async (args) =>
                 {
@@ -401,6 +416,12 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task OnEntityStreamOut(Entity entity)
         {
+            if (entity is Vehicle veh)
+            {
+                veh.DetachFromTrailer();
+                veh.DetachFromAnyTowTruck();
+            }
+
             if (entity.IsLocal)
             {
                 var gEntity = entity as GameEntity;
@@ -636,6 +657,8 @@ namespace BCRPClient.Sync
 
             GameEntity gEntity = null;
 
+            Vector3 positionBase = Vector3.Zero;
+
             if (type >= Types.WeaponRightTight && type <= Types.WeaponLeftBack)
             {
                 await Utils.RequestWeaponAsset(hash);
@@ -663,6 +686,10 @@ namespace BCRPClient.Sync
                 {
                     if (targetData.IsFrozen)
                         veh.FreezePosition(true);
+
+                    if (targetData.Data.ID.StartsWith("seashark"))
+                        positionBase.Z -= 0.5f;
+
                 }
 
                 gEntity = veh;
@@ -677,31 +704,46 @@ namespace BCRPClient.Sync
             if (gEntity == null)
                 return;
 
-            AttachmentData props = Attachments[type];
-
-            Vector3 positionBase = Vector3.Zero;
+            AttachmentData props = Attachments.GetValueOrDefault(type);
 
             list.Add(new AttachmentObject(gEntity, type, hash, syncData));
 
             target.SetData(AttachedObjectsKey, list);
 
-            if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+            if (props != null)
             {
-                AddLocalAttachment(gTarget.Handle, gEntity.Handle);
+                if (props.BoneID == int.MinValue)
+                {
+                    if (type == Types.ItemFishG)
+                    {
+                        var pos = syncData.Split('&');
 
-                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
-            }
-            else
-            {
-                RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
-            }
+                        RAGE.Game.Entity.SetEntityCoords(gEntity.Handle, float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]), false, false, false, false);
 
-            if (gEntity is MapObject mObj)
-            {
-                mObj.Hidden = false;
-            }
+                        RAGE.Game.Entity.SetEntityVisible(gEntity.Handle, false, true);
+                    }
+                }
+                else
+                {
+                    if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+                    {
+                        AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
-            props.EntityAction?.Invoke(new object[] { gEntity });
+                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                    }
+                    else
+                    {
+                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                    }
+                }
+
+                if (gEntity is MapObject mObj)
+                {
+                    mObj.Hidden = false;
+                }
+
+                props.EntityAction?.Invoke(new object[] { gEntity });
+            }
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
@@ -810,6 +852,10 @@ namespace BCRPClient.Sync
                 await AttachObject(x.Model, target, x.Type, x.SyncData);
             }
         }
+
+        public static List<AttachmentObject> GetEntityObjectAttachments(Entity entity) => entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
+
+        public static List<AttachmentObject> GetEntityEntityAttachments(Entity entity) => entity.GetData<List<AttachmentObject>>(AttachedEntitiesKey);
 
         private static Dictionary<Types, Types> SameActionsTypes = new Dictionary<Types, Types>()
         {

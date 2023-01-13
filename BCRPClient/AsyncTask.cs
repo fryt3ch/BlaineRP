@@ -12,7 +12,6 @@ namespace BCRPClient
             Async Tasks Manager by frytech
          */
 
-        private Task Task { get; set; }
         private CancellationTokenSource CancellationTokenSource { get; set; }
 
         private Action Action { get; set; }
@@ -71,9 +70,19 @@ namespace BCRPClient
             CancellationTokenSource = new CancellationTokenSource();
 
             if (Action != null)
-                Task = Loop ? ExecuteLoopAction(CancellationTokenSource.Token) : ExecuteOnceAction(CancellationTokenSource.Token);
+            {
+                if (Loop)
+                    ExecuteLoopAction(CancellationTokenSource.Token);
+                else
+                    ExecuteOnceAction(CancellationTokenSource.Token);
+            }
             else
-                Task = Loop ? ExecuteLoopFunc(CancellationTokenSource.Token) : ExecuteOnceFunc(CancellationTokenSource.Token);
+            {
+                if (Loop)
+                    ExecuteLoopFunc(CancellationTokenSource.Token);
+                else
+                    ExecuteOnceFunc(CancellationTokenSource.Token);
+            }
         }
 
         public static void RunSlim(Action action, int timeout) => ExecuteOnceAction(action, timeout);
@@ -85,8 +94,6 @@ namespace BCRPClient
                 return;
 
             CancellationTokenSource.Cancel();
-
-            Task = null;
         }
 
         #region Sub Methods

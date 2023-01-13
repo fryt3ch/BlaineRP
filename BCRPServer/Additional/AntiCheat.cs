@@ -19,11 +19,19 @@ namespace BCRPServer.Additional
         }
 
         #region Legalization Methods
-        public static void SetVehiclePos(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportTypes tpType = VehicleTeleportTypes.Default)
+        public static void TeleportVehicle(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportTypes tpType = VehicleTeleportTypes.Default)
         {
             veh.DetachAllEntities();
 
             veh.GetEntityIsAttachedTo()?.DetachEntity(veh);
+
+            var vData = veh.GetMainData();
+
+            if (vData != null)
+            {
+                if (vData.IsFrozen)
+                    vData.IsFrozen = false;
+            }
 
             var lastDim = veh.Dimension;
 
@@ -44,10 +52,15 @@ namespace BCRPServer.Additional
                     });
                 }
 
+                var wasOnTrailer = veh.DetachObject(Sync.AttachSystem.Types.TrailerObjOnBoat);
+
                 veh.Position = pos;
 
                 if (heading is float headingF)
                     veh.SetHeading(headingF);
+
+                if (wasOnTrailer)
+                    veh.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
             }
             else if (tpType == VehicleTeleportTypes.OnlyDriver)
             {
@@ -62,7 +75,7 @@ namespace BCRPServer.Additional
                     {
                         if (player.VehicleSeat == 0)
                         {
-                            SetPlayerPos(pos, false, veh.Dimension, heading, false, true, player);
+                            TeleportPlayers(pos, false, dimension, heading, fade, true, lastDim, player);
 
                             wasDriver = true;
                         }
@@ -78,10 +91,15 @@ namespace BCRPServer.Additional
 
                 if (!wasDriver)
                 {
+                    var wasOnTrailer = veh.DetachObject(Sync.AttachSystem.Types.TrailerObjOnBoat);
+
                     veh.Position = pos;
 
                     if (heading is float headingF)
                         veh.SetHeading(headingF);
+
+                    if (wasOnTrailer)
+                        veh.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
                 }
             }
             else if (tpType == VehicleTeleportTypes.All)
@@ -99,14 +117,19 @@ namespace BCRPServer.Additional
 
                 if (occupants.Count == 0)
                 {
+                    var wasOnTrailer = veh.DetachObject(Sync.AttachSystem.Types.TrailerObjOnBoat);
+
                     veh.Position = pos;
 
                     if (heading is float headingF)
                         veh.SetHeading(headingF);
+
+                    if (wasOnTrailer)
+                        veh.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
                 }
                 else
                 {
-                    SetPlayerPos(pos, false, null, heading, false, true, occupants.ToArray());
+                    TeleportPlayers(pos, false, dimension, heading, fade, true, lastDim, occupants.ToArray());
                 }
             }
         }
@@ -118,69 +141,129 @@ namespace BCRPServer.Additional
         /// <param name="toGround">Привязывать ли к земле?</param>
         /// <param name="dimension">Новое измерение</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void SetPlayerPos(Vector3 pos, bool toGround, uint? dimension = null, float? heading = null, bool fade = false, bool withVehicle = false, params Player[] players)
+        public static void TeleportPlayers(Vector3 pos, bool toGround, uint? dimension = null, float? heading = null, bool fade = false, bool withVehicle = false, uint? lastDim = null, params Player[] players)
         {
             if (dimension is uint dim)
             {
-
-            }
-
-            for (int i = 0; i < players.Length; i++)
-            {
-                var player = players[i];
-
-                player.DetachAllEntities();
-
-                player.GetEntityIsAttachedTo()?.DetachEntity(player);
-
-                var pData = player.GetMainData();
-
-                if (pData != null)
+                for (int i = 0; i < players.Length; i++)
                 {
-                    pData.ActiveOffer?.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
+                    var player = players[i];
 
-                    foreach (var x in pData.ObjectsInHand)
-                        player.DetachObject(x.Type);
+                    player.DetachAllEntities();
 
-                    pData.StopAnim();
+                    player.GetEntityIsAttachedTo()?.DetachEntity(player);
+
+                    var pData = player.GetMainData();
+
+                    if (pData != null)
+                    {
+                        var ciiu = pData.CurrentItemInUse;
+
+                        ciiu?.Item.StopUse(pData, Game.Items.Inventory.Groups.Items, ciiu.Value.Slot, true);
+
+                        if (pData.CurrentBusiness != null)
+                        {
+                            Sync.Players.ExitFromBuiness(pData, false);
+                        }
+
+                        var pDim = lastDim is uint lDim ? lDim : player.Dimension;
+
+                        if (pDim != dim)
+                        {
+                            if (pDim >= Utils.HouseDimBase)
+                            {
+                                if (dim < Utils.ApartmentsRootDimBase)
+                                {
+                                    Utils.GetHouseBaseByDimension(pDim)?.SetPlayersOutside(false, player);
+                                }
+                                else if (dim < Utils.GarageDimBase)
+                                {
+                                    Utils.GetApartmentsRootByDimension(pDim)?.SetPlayersOutside(false, player);
+                                }
+                                else
+                                {
+                                    Utils.GetGarageByDimension(pDim)?.SetPlayersOutside(false, player);
+                                }
+                            }
+                        }
+
+                        pData.ActiveOffer?.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
+
+                        foreach (var x in pData.ObjectsInHand)
+                            player.DetachObject(x.Type);
+
+                        pData.StopAnim();
+                    }
+
+                    if (!withVehicle)
+                        player.Dimension = dim;
                 }
 
-                if (dimension is uint cDim)
+                if (pos != null)
                 {
-                    player.Dimension = cDim;
+                    if (withVehicle)
+                        NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", dim, pos, toGround, heading, fade, true);
+                    else
+                        NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", dim, pos, toGround, heading, fade);
                 }
-            }
-
-            if (pos != null)
-            {
-                if (withVehicle)
-                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", pos, toGround, heading, fade, true);
                 else
-                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", pos, toGround, heading, fade);
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", dim);
+
+                OnDimensionChange(dim, players);
+            }
+            else
+            {
+                for (int i = 0; i < players.Length; i++)
+                {
+                    var player = players[i];
+
+                    player.DetachAllEntities();
+
+                    player.GetEntityIsAttachedTo()?.DetachEntity(player);
+
+                    var pData = player.GetMainData();
+
+                    if (pData != null)
+                    {
+                        pData.ActiveOffer?.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
+
+                        foreach (var x in pData.ObjectsInHand)
+                            player.DetachObject(x.Type);
+
+                        pData.StopAnim();
+                    }
+                }
+
+                if (pos != null)
+                {
+                    if (withVehicle)
+                        NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", -1, pos, toGround, heading, fade, true);
+                    else
+                        NAPI.ClientEvent.TriggerClientEventToPlayers(players, "AC::State::TP", -1, pos, toGround, heading, fade);
+                }
             }
         }
 
-        private static void OnDimensionChange(uint oDim, uint dim, params Player[] players)
+        private static void OnDimensionChange(uint dim, params Player[] players)
         {
-            if (oDim == dim)
+            if (dim < Utils.HouseDimBase)
                 return;
 
-            Game.Houses.HouseBase oHouseBase = null;
-            Game.Houses.Garage oGarage = null;
-            Game.Houses.Apartments.ApartmentsRoot oApRoot = null;
-
-            Game.Houses.HouseBase houseBase = null;
-            Game.Houses.Garage garage = null;
-            Game.Houses.Apartments.ApartmentsRoot apRoot = null;
-
-            if (oDim != Utils.Dimensions.Main)
+            if (dim < Utils.ApartmentsRootDimBase)
             {
-                oHouseBase = Utils.GetHouseBaseByDimension(oDim);
+                Utils.GetHouseBaseByDimension(dim)?.SetPlayersInside(false, players);
 
-
+                return;
             }
 
+            if (dim < Utils.GarageDimBase)
+            {
+                Utils.GetApartmentsRootByDimension(dim)?.SetPlayersInside(false, players);
 
+                return;
+            }
+
+            Utils.GetGarageByDimension(dim)?.SetPlayersInside(false, players);
         }
 
         /// <summary>Установить здоровье игрока</summary>

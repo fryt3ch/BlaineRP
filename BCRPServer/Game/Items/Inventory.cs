@@ -126,12 +126,12 @@ namespace BCRPServer.Game.Items
             return res == null ? null : res.Invoke(pData, slot);
         }
 
-        private static Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>> Actions { get; set; } = new Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>>()
+        private static Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>> Actions { get; set; } = new Dictionary<Type, Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>>()
         {
             {
                 typeof(Game.Items.Weapon),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -139,18 +139,18 @@ namespace BCRPServer.Game.Items
                         (pData, item, group, slot, args) =>
                         {
                             var player = pData.Player;
-                            var weapons = pData.Weapons;
-                            var holster = pData.Holster;
+
+                            var weapon = (Game.Items.Weapon)item;
 
                             if (group == Groups.Items || group == Groups.Bag)
                             {
                                 int newSlot = 0;
 
-                                if (weapons[0] != null)
+                                if (pData.Weapons[0] != null)
                                 {
                                     newSlot = 1;
 
-                                    if (weapons[1] != null)
+                                    if (pData.Weapons[1] != null)
                                     {
                                         newSlot = -1;
 
@@ -159,22 +159,22 @@ namespace BCRPServer.Game.Items
                                     }
                                 }
 
-                                if (newSlot == -1)
+                                if (newSlot < 0)
                                     return Results.Error;
 
                                 return Replace(pData, newSlot != 2 ? Groups.Weapons : Groups.Holster, newSlot, group, slot, -1);
                             }
                             else if (group == Groups.Weapons)
                             {
-                                if (weapons[slot].Equiped)
+                                if (weapon.Equiped)
                                 {
-                                    weapons[slot].Unequip(pData);
+                                    weapon.Unequip(pData);
 
-                                    player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
+                                    player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(weapon, group));
                                 }
                                 else
                                 {
-                                    if (player.Vehicle != null && !weapons[slot].Data.CanUseInVehicle)
+                                    if (player.Vehicle != null && !pData.Weapons[slot].Data.CanUseInVehicle)
                                     {
                                         player.Notify("Weapon::InVehicleRestricted");
                                     }
@@ -182,22 +182,22 @@ namespace BCRPServer.Game.Items
                                     {
                                         int idxToCheck = slot == 0 ? 1 : 0;
 
-                                        if (weapons[idxToCheck]?.Equiped == true)
+                                        if (pData.Weapons[idxToCheck]?.Equiped == true)
                                         {
-                                            weapons[idxToCheck].Unequip(pData);
+                                            pData.Weapons[idxToCheck].Unequip(pData);
 
-                                            player.InventoryUpdate(Groups.Weapons, idxToCheck, Game.Items.Item.ToClientJson(weapons[idxToCheck], Groups.Weapons));
+                                            player.InventoryUpdate(group, idxToCheck, Game.Items.Item.ToClientJson(pData.Weapons[idxToCheck], group));
                                         }
-                                        else if (holster != null && (holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
+                                        else if (pData.Holster != null && pData.Holster.Items[0] is Game.Items.Weapon hWeapon && hWeapon.Equiped)
                                         {
-                                            ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
+                                            hWeapon.Unequip(pData);
 
-                                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                            player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(hWeapon, Groups.Holster));
                                         }
 
-                                        weapons[slot].Equip(pData);
+                                        weapon.Equip(pData);
 
-                                        player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(weapons[slot], Groups.Weapons));
+                                        player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(weapon, group));
                                     }
                                 }
 
@@ -205,30 +205,27 @@ namespace BCRPServer.Game.Items
                             }
                             else if (group == Groups.Holster)
                             {
-                                if (((Game.Items.Weapon)holster.Items[0]).Equiped)
+                                if (weapon.Equiped)
                                 {
-                                    ((Game.Items.Weapon)holster.Items[0]).Unequip(pData);
+                                    weapon.Unequip(pData);
 
-                                    player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                    player.InventoryUpdate(group, 2, Game.Items.Item.ToClientJson(weapon, group));
                                 }
                                 else
                                 {
-                                    if (weapons[0]?.Equiped == true)
+                                    for (int i = 0; i < pData.Weapons.Length; i++)
                                     {
-                                        weapons[0].Unequip(pData);
+                                        if (pData.Weapons[i] is Game.Items.Weapon wWeapon && wWeapon.Equiped)
+                                        {
+                                            wWeapon.Unequip(pData);
 
-                                        player.InventoryUpdate(Groups.Weapons, 0, Game.Items.Item.ToClientJson(weapons[0], Groups.Weapons));
-                                    }
-                                    else if (weapons[1]?.Equiped == true)
-                                    {
-                                        weapons[1].Unequip(pData);
-
-                                        player.InventoryUpdate(Groups.Weapons, 1, Game.Items.Item.ToClientJson(weapons[1], Groups.Weapons));
+                                            player.InventoryUpdate(Groups.Weapons, 0, Game.Items.Item.ToClientJson(wWeapon, Groups.Weapons));
+                                        }
                                     }
 
-                                    ((Game.Items.Weapon)holster.Items[0]).Equip(pData);
+                                    weapon.Equip(pData);
 
-                                    player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(holster.Items[0], Groups.Holster));
+                                    player.InventoryUpdate(group, 2, Game.Items.Item.ToClientJson(weapon, group));
                                 }
 
                                 return Results.Success;
@@ -243,55 +240,30 @@ namespace BCRPServer.Game.Items
 
                         (pData, item, group, slot, args) =>
                         {
-                            var items = pData.Items;
                             var player = pData.Player;
-                            var weapons = pData.Weapons;
-                            var holster = pData.Holster;
 
-                            if (group == Groups.Weapons)
+                            var weapon = (Game.Items.Weapon)item;
+
+                            if (group == Groups.Weapons || group == Groups.Holster)
                             {
-                                int ammoToFill = weapons[slot].Data.MaxAmmo - weapons[slot].Ammo;
+                                int ammoToFill = weapon.Data.MaxAmmo - weapon.Ammo;
 
-                                if (ammoToFill == 0)
+                                if (ammoToFill <= 0)
                                     return Results.Success;
 
                                 int ammoIdx = -1;
                                 int maxAmmo = 0;
 
-                                for (int i = 0; i < items.Length; i++)
+                                for (int i = 0; i < pData.Items.Length; i++)
                                 {
-                                    if (items[i] != null && items[i].ID == weapons[slot].Data.AmmoID && maxAmmo < (items[i] as Game.Items.Ammo).Amount)
+                                    if (pData.Items[i] is Game.Items.Ammo amItem && amItem.ID == weapon.Data.AmmoID && maxAmmo < amItem.Amount)
                                     {
                                         ammoIdx = i;
-                                        maxAmmo = (items[i] as Game.Items.Ammo).Amount;
+                                        maxAmmo = amItem.Amount;
                                     }
                                 }
 
-                                if (ammoIdx == -1)
-                                    return Results.Error;
-
-                                return Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
-                            }
-                            else if (group == Groups.Holster)
-                            {
-                                int ammoToFill = ((Game.Items.Weapon)holster.Items[0]).Data.MaxAmmo - ((Game.Items.Weapon)holster.Items[0]).Ammo;
-
-                                if (ammoToFill == 0)
-                                    return Results.Success;
-
-                                int ammoIdx = -1;
-                                int maxAmmo = 0;
-
-                                for (int i = 0; i < items.Length; i++)
-                                {
-                                    if (items[i] != null && items[i].ID == ((Game.Items.Weapon)holster.Items[0]).Data.AmmoID && maxAmmo < (items[i] as Game.Items.Ammo).Amount)
-                                    {
-                                        ammoIdx = i;
-                                        maxAmmo = (items[i] as Game.Items.Ammo).Amount;
-                                    }
-                                }
-
-                                if (ammoIdx == -1)
+                                if (ammoIdx < 0)
                                     return Results.Error;
 
                                 return Replace(pData, group, slot, Groups.Items, ammoIdx, ammoToFill);
@@ -498,7 +470,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.Clothes),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -539,7 +511,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.Bag),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -562,7 +534,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.Holster),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -585,7 +557,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.Armour),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -608,7 +580,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.StatusChanger),
 
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -687,7 +659,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.VehicleKey),
 
-                new Dictionary<int, Func<PlayerData, Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -765,7 +737,7 @@ namespace BCRPServer.Game.Items
             {
                 typeof(Game.Items.WeaponSkin),
 
-                new Dictionary<int, Func<PlayerData, Item, Groups, int, object[], Results>>()
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
                 {
                     {
                         5,
@@ -811,6 +783,36 @@ namespace BCRPServer.Game.Items
                             if (pData.Holster?.Items[0] is Game.Items.Weapon hWeapon)
                             {
                                 hWeapon.UpdateWeaponComponents(pData);
+                            }
+
+                            return Results.Success;
+                        }
+                    }
+                }
+            },
+
+            {
+                typeof(Game.Items.FishingRod),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group != Groups.Items)
+                                return Results.ActionRestricted;
+
+                            var itemU = (Game.Items.FishingRod)item;
+
+                            if (itemU.InUse)
+                            {
+                                itemU.StopUse(pData, group, slot, true);
+                            }
+                            else
+                            {
+                                itemU.StartUse(pData, group, slot, true);
                             }
 
                             return Results.Success;
@@ -1017,6 +1019,9 @@ namespace BCRPServer.Game.Items
 
                                 pData.Items[slotFrom] = toItem;
                                 pData.Bag.Items[slotTo] = fromItem;
+
+                                if (fromItem is Game.Items.IUsable fromItemU && fromItemU.InUse)
+                                    fromItemU.StopUse(pData, Groups.Bag, slotTo, false);
 
                                 pData.Bag.Update();
                                 MySQL.CharacterItemsUpdate(pData.Info);
@@ -3409,7 +3414,12 @@ namespace BCRPServer.Game.Items
                             pData.Items[slot] = null;
                     }
                     else
+                    {
                         pData.Items[slot] = null;
+
+                        if (item is Game.Items.IUsable itemU && itemU.InUse)
+                            itemU.StopUse(pData, Groups.Items, -1, false);
+                    }
 
                     var upd = Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items);
 
@@ -3706,7 +3716,7 @@ namespace BCRPServer.Game.Items
         /// <param name="group">Группа</param>
         /// <param name="slot">Слот</param>
         /// <param name="action">Действие (минимум - 5)</param>
-        public static Results Action(PlayerData pData, Groups group, int slot, int action = 5, params object[] args)
+        public static Results Action(PlayerData pData, Groups group, int slot, int action = 5, params string[] args)
         {
             var player = pData.Player;
 

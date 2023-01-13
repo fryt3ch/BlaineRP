@@ -461,6 +461,8 @@ namespace BCRPServer
             AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
             AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
 
+            Vehicle.SetData(Sync.AttachSystem.AttachedObjectsCancelsKey, new Dictionary<Sync.AttachSystem.Types, CancellationTokenSource>());
+
             SetData(Vehicle, this);
         }
 
@@ -487,7 +489,41 @@ namespace BCRPServer
             }
         }
 
-        public void SetFreezePosition(Vector3 pos) => Vehicle.SetSharedData("IsFrozen", $"{pos.X}_{pos.Y}_{pos.Z}");
+        public bool AttachBoatToTrailer()
+        {
+            if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+                return false;
+
+            return Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, AttachSystem.Types.TrailerObjOnBoat, -1, null);
+        }
+
+        public bool DetachBoatFromTrailer()
+        {
+            if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+                return false;
+
+            return Vehicle.DetachObject(AttachSystem.Types.TrailerObjOnBoat);
+        }
+
+        public bool IsBoatAttachedToTrailer()
+        {
+            if (Data.Type != Game.Data.Vehicles.Vehicle.Types.Boat)
+                return false;
+
+            return AttachedObjects.Where(x => x.Type == AttachSystem.Types.TrailerObjOnBoat).Any();
+        }
+
+        public void SetFreezePosition(Vector3 pos, float? heading = null)
+        {
+            if (heading is float fHeading)
+            {
+                Vehicle.SetSharedData("IsFrozen", $"{pos.X}_{pos.Y}_{pos.Z}_{fHeading}");
+            }
+            else
+            {
+                Vehicle.SetSharedData("IsFrozen", $"{pos.X}_{pos.Y}_{pos.Z}");
+            }
+        }
 
         public void Delete(bool completely)
         {

@@ -21,7 +21,7 @@ namespace BCRPServer
         public static class Dimensions
         {
             /// <summary>Основное игровое измерение</summary>
-            public const uint Main = 0;
+            public const uint Main = 7;
 
             /// <summary>Техническое измерение (в основном, пре-спавнинг сущностей)</summary>
             public const uint Stuff = 1;
@@ -109,18 +109,14 @@ namespace BCRPServer
             return null;
         }
 
-        public static Game.Houses.IDimensionable GetDimensionable(uint dim)
+        public static Game.Houses.Garage GetGarageByDimension(uint dim)
         {
-            if (dim < HouseDimBase)
+            var gId = GetGarageIdByDimension(dim);
+
+            if (gId == 0)
                 return null;
 
-            if (dim < ApartmentsRootDimBase)
-                return GetHouseBaseByDimension(dim);
-
-            if (dim < GarageDimBase)
-                return GetApartmentsRootByDimension(dim);
-
-            return null;
+            return Game.Houses.Garage.Get(gId);
         }
 
         public static Game.Houses.Apartments.ApartmentsRoot.Types? GetApartmentsRootTypeByDimension(uint dim) => dim < ApartmentsRootDimBase ? null : (Game.Houses.Apartments.ApartmentsRoot.Types?)(dim - ApartmentsRootDimBase);
@@ -448,10 +444,12 @@ namespace BCRPServer
 
         #region Client Utils
 
-        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, Additional.AntiCheat.VehicleTeleportTypes tpType = Additional.AntiCheat.VehicleTeleportTypes.Default) => Additional.AntiCheat.SetVehiclePos(vehicle, position, dimension, heading, fade, tpType);
+        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, Additional.AntiCheat.VehicleTeleportTypes tpType = Additional.AntiCheat.VehicleTeleportTypes.Default) => Additional.AntiCheat.TeleportVehicle(vehicle, position, dimension, heading, fade, tpType);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerPos(Player, Vector3, bool, uint?)"/>
-        public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.SetPlayerPos(position, toGround, dimension, heading, fade, false, player);
+        public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.TeleportPlayers(position, toGround, dimension, heading, fade, false, player.Dimension, player);
+
+        public static void TeleportPlayers(Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false, params Player[] players) => Additional.AntiCheat.TeleportPlayers(position, toGround, dimension, heading, fade, false, null, players);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerInvincible(Player, bool)"/>
         public static void SetInvincible(this Player player, bool state) => Additional.AntiCheat.SetPlayerInvincible(player, state);
@@ -523,14 +521,17 @@ namespace BCRPServer
         public static Game.Items.Inventory.Results InventoryReplace(this PlayerData pData, Game.Items.Inventory.Groups to, int slotTo, Game.Items.Inventory.Groups from, int slotFrom, int amount = -1) => Game.Items.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
 
         /// <inheritdoc cref="Game.Items.Inventory.Action(PlayerData, Game.Items.Inventory.Groups, int, int, object[])"/>
-        public static Game.Items.Inventory.Results InventoryAction(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int action = 5, params object[] args) => Game.Items.Inventory.Action(pData, slotStr, slot, action, args);
+        public static Game.Items.Inventory.Results InventoryAction(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int action = 5, params string[] args) => Game.Items.Inventory.Action(pData, slotStr, slot, action, args);
 
         /// <inheritdoc cref="Game.Items.Inventory.Drop(PlayerData, Game.Items.Inventory.Groups, int, int)"/>
         public static void InventoryDrop(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int amount) => Game.Items.Inventory.Drop(pData, slotStr, slot, amount);
 
         public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
-        public static Game.Items.Item GiveItem(this PlayerData pData, string id, int variation = 0, int amount = 1, bool isTemp = false, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Items.GiveItem(pData, id, variation, amount, isTemp, notifyOnSuccess, notifyOnFault);
+        public static bool GiveItem(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Items.GiveItem(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
+
+        public static bool GiveItemDropExcess(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Items.GiveItemDropExcess(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
+
         /// <summary>Метод для удаления всего оружия у игрока</summary>
         /// <param name="pData">PlayerData игрока</param>
         /// <param name="fromInventoryToo">Удалить ли всё оружие из инвентаря тоже?</param>
@@ -966,7 +967,7 @@ namespace BCRPServer
         public static bool AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter, string syncData, params object[] args) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter, syncData, args);
         
         /// <inheritdoc cref="Sync.AttachSystem.DetachObject(Entity, string)"/>
-        public static void DetachObject(this Entity entity, Sync.AttachSystem.Types type, params object[] args) => Sync.AttachSystem.DetachObject(entity, type, args);
+        public static bool DetachObject(this Entity entity, Sync.AttachSystem.Types type, params object[] args) => Sync.AttachSystem.DetachObject(entity, type, args);
         
         /// <inheritdoc cref="Sync.AttachSystem.AttachEntity(Entity, int, Sync.AttachSystem.Types)"/>
         public static void AttachEntity(this Entity entity, Entity target, Sync.AttachSystem.Types type) => Sync.AttachSystem.AttachEntity(entity, target, type);
@@ -1231,5 +1232,7 @@ namespace BCRPServer
         public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
 
         public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, updStr);
+
+        public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh, seatId, timeout);
     }
 }

@@ -135,6 +135,8 @@ namespace BCRPClient.CEF
             { "Inventory::WHTC", new Instance(Types.Error, Locale.Notifications.Inventory.WeaponHasThisComponent, Locale.Notifications.Inventory.Header) },
             { "Inventory::WWC", new Instance(Types.Error, Locale.Notifications.Inventory.WeaponWrongComponent, Locale.Notifications.Inventory.Header) },
 
+            { "Inventory::FGNC", new Instance(Types.Error, Locale.Notifications.Inventory.FishingNotCatched, Locale.Notifications.ErrorHeader) },
+
             { "Kick", new Instance(Types.Information, Locale.Notifications.General.Kick, Locale.Notifications.DefHeader) },
             { "TeleportBy", new Instance(Types.Information, Locale.Notifications.General.TeleportBy, Locale.Notifications.DefHeader) },
 
@@ -229,6 +231,11 @@ namespace BCRPClient.CEF
             Events.Add("Item::Added", (object[] args) =>
             {
                 CEF.Notification.Show(CEF.Notification.Types.Item, Locale.Notifications.Inventory.Header, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.Added, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.AddedOne, Data.Items.GetName((string)args[0])), 5000);
+            });
+
+            Events.Add("Item::FCN", (object[] args) =>
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Inventory.FishingHeader, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.FishCatched, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.FishCatchedOne, Data.Items.GetName((string)args[0])), 5000);
             });
         }
 

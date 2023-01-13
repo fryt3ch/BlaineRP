@@ -2613,9 +2613,7 @@ namespace BCRPServer.Game.Businesses
             if (res == null)
                 return false;
 
-            var item = pData.GiveItem(itemId, variation, amount, false, true, true);
-
-            if (item == null)
+            if (!pData.GiveItem(itemId, variation, amount, true, true))
                 return false;
 
             PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);

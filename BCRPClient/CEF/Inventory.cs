@@ -1,13 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.CEF
 {
@@ -55,6 +50,18 @@ namespace BCRPClient.CEF
                 return 3;
         }
 
+        public class ItemParams
+        {
+            public string Id { get; set; }
+
+            public bool InUse { get; set; }
+
+            public ItemParams(string Id)
+            {
+                this.Id = Id;
+            }
+        }
+
         #region Variables
         private static bool FirstOpenInv { get; set; }
         private static bool FirstOpenCrate { get; set; }
@@ -64,6 +71,8 @@ namespace BCRPClient.CEF
 
         private static DateTime LastShowed;
         public static DateTime LastSent;
+
+        private static ItemParams[] ItemsParams { get; set; }
 
         private static object[][] WeaponsData { get; set; }
         private static object[] ArmourData { get; set; }
@@ -145,23 +154,26 @@ namespace BCRPClient.CEF
             return new object[] { imgId, Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
         }
        
-        private static object[] FillItem(string type, int amount, float weight, string tag, bool inBag = false, bool inContainer = false, bool inTrade = false)
+        private static object[] FillItem(string id, int amount, float weight, string tag, bool inUse, bool inBag, bool inContainer, bool inTrade)
         {
-            var iType = Data.Items.GetType(type);
-            var imgId = Data.Items.GetImageId(type, iType);
+            var iType = Data.Items.GetType(id);
+            var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]";
+            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+
+            if (inUse)
+                name = name.Insert(0, "[A] ");
 
             if (inContainer)
-                return new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
+                return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
             else if (inBag)
-                return new object[] { new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, true), amount, weight }, new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, false), amount, weight } };
+                return new object[] { new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight }, new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight } };
             else if (inTrade)
                 return new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftOutOfTrade }, amount, weight };
 
-            var item1 = new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, true), amount, weight };
-            var item2 = new object[] { imgId, name, Data.Items.GetActions(iType, amount, true, false), amount, weight };
-            var item3 = new object[] { imgId, name, Data.Items.GetActions(iType, amount, false, false), amount, weight };
+            var item1 = new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
+            var item2 = new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, false), amount, weight };
+            var item3 = new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, false, false), amount, weight };
             var item4 = new object[] { imgId, name, new object[] { 4, Locale.General.Inventory.Actions.ShiftTrade }, amount, weight };
 
             return new object[] { item1, item2, item3, item4 };
@@ -377,7 +389,7 @@ namespace BCRPClient.CEF
                             else
                             {
                                 foreach (var slot in BagSlotsToUpdateCrate)
-                                    Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, null, BagData[slot]?[0] });
+                                    Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "crate", BagData[slot]?[0] });
                             }
                         }
                         else
@@ -398,7 +410,7 @@ namespace BCRPClient.CEF
 
                     for (int i = 0; i < ContainerData.Length; i++)
                         if (contItems[i] != null)
-                            ContainerData[i] = FillItem(contItems[i][0], int.Parse(contItems[i][1]), float.Parse(contItems[i][2]), contItems[i][3], true, true);
+                            ContainerData[i] = FillItem(contItems[i][0], int.Parse(contItems[i][1]), float.Parse(contItems[i][2]), contItems[i][3], false, true, true, false);
 
                     Browser.Window.ExecuteJs("Inventory.fillCrate", new object[] { Locale.General.Containers.Names[CurrentContainerType], ContainerData, float.Parse(contData[1]) });
                 }
@@ -485,9 +497,21 @@ namespace BCRPClient.CEF
                 if (id == 0)
                 {
                     int slot = (int)args[1];
+
                     var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
 
-                    ItemsData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false);
+                    if (data == null)
+                    {
+                        ItemsData[slot] = null;
+                        ItemsParams[slot] = null;
+                    }
+                    else
+                    {
+                        var inUse = int.Parse(data[4]) == 1;
+
+                        ItemsData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], inUse, false, false, false);
+                        ItemsParams[slot] = new ItemParams(data[0]) { InUse = inUse };
+                    }
 
                     if (CurrentType == Types.Inventory)
                     {
@@ -512,7 +536,7 @@ namespace BCRPClient.CEF
                     int slot = (int)args[1];
                     var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
 
-                    BagData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], true, false);
+                    BagData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, false, false);
 
                     if (CurrentType == Types.Inventory)
                     {
@@ -608,7 +632,7 @@ namespace BCRPClient.CEF
 
                         for (int i = 0; i < BagData.Length; i++)
                             if (items[i] != null)
-                                BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], true, false);
+                                BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
 
                         BagWeight = float.Parse(data[1]);
 
@@ -699,7 +723,7 @@ namespace BCRPClient.CEF
                     int slot = (int)args[1];
                     var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
 
-                    ContainerData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], true, true);
+                    ContainerData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, true, false);
 
                     Browser.Window.ExecuteJs("Inventory.updateCrateSlot", new object[] { slot, ContainerData[slot] });
                 }
@@ -713,7 +737,7 @@ namespace BCRPClient.CEF
 
                     var data = ((string)args[3]).Length == 0 ? null : ((string)args[3]).Split('&');
 
-                    var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, true);
+                    var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
 
                     if (item == null)
                     {
@@ -822,7 +846,7 @@ namespace BCRPClient.CEF
                     int slot = (int)args[1];
                     var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
 
-                    var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, true);
+                    var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
 
                     Browser.Window.ExecuteJs("Inventory.updateReceiveSlot", new object[] { slot, item });
 
@@ -1361,12 +1385,10 @@ namespace BCRPClient.CEF
             if (action < 5)
                 return;
 
-            if (Utils.IsAnyCefActive() || LastSent.IsSpam(500, false, false) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || !Utils.CanDoSomething(ActionsToCheckAction))
+            if (Utils.IsAnyCefActive() || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || !Utils.CanDoSomething(ActionsToCheckAction))
                 return;
 
-            Events.CallRemote("Inventory::Action", Groups[slotStr], slot, action);
-
-            LastSent = DateTime.Now;
+            Action(action, slotStr, slot);
         }
 
         public static void Action(params object[] args)
@@ -1712,6 +1734,33 @@ namespace BCRPClient.CEF
                     return;
                 }
 
+                var eData = new List<string>();
+
+                if (slotStr == "pockets")
+                {
+                    var iParams = ItemsParams[slot];
+
+                    if (iParams == null)
+                        return;
+
+                    var type = Data.Items.GetType(iParams.Id, false);
+
+                    if (type == null)
+                        return;
+
+                    if (!iParams.InUse)
+                    {
+                        if (Data.Items.GetActionToValidate(type)?.Invoke() is List<string> eDataI)
+                        {
+                            eData.AddRange(eDataI);
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+                }
+
                 GetRealSlot(ref slotStr, ref slot);
 
                 if (slotStr == null)
@@ -1720,7 +1769,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(1000, false, false))
                     return;
 
-                Events.CallRemote("Inventory::Action", Groups[slotStr], slot, id);
+                Events.CallRemote("Inventory::Action", Groups[slotStr], slot, id, string.Join('&', eData));
 
                 LastSent = DateTime.Now;
             }
@@ -1914,10 +1963,19 @@ namespace BCRPClient.CEF
                 ArmourData = FillArmour(Armour[0], int.Parse(Armour[1]));
 
             ItemsData = new object[Items.Length][];
+            ItemsParams = new ItemParams[Items.Length];
 
             for (int i = 0; i < ItemsData.Length; i++)
+            {
                 if (Items[i] != null)
-                    ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2]), Items[i][3], false, false);
+                {
+                    var inUse = int.Parse(Items[i][4]) == 1;
+
+                    ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2]), Items[i][3], inUse, false, false, false);
+
+                    ItemsParams[i] = new ItemParams(Items[i][0]) { InUse = inUse };
+                }
+            }
 
             ClothesData = new object[Clothes.Length][];
 
@@ -1943,7 +2001,7 @@ namespace BCRPClient.CEF
 
                 for (int i = 0; i < BagData.Length; i++)
                     if (items[i] != null)
-                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], true, false);
+                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
 
                 BagWeight = float.Parse(Bag[1]);
             }

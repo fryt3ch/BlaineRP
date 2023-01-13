@@ -706,7 +706,34 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("CurrentTuning"))
                         return false;
 
-                    Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, Player.LocalPlayer.Vehicle);
+                    var baseVeh = Player.LocalPlayer.Vehicle;
+
+                    if (baseVeh == null)
+                        return false;
+
+                    var bVehData = Sync.Vehicles.GetData(baseVeh);
+
+                    if (bVehData == null)
+                        return false;
+
+                    var trVehHandle = baseVeh.GetTrailerVehicle();
+
+                    if (trVehHandle > 0 && Utils.GetVehicleByHandle(trVehHandle, true) is Vehicle trVeh)
+                    {
+                        if (trVeh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle boat)
+                        {
+                            var boatData = Sync.Vehicles.GetData(boat);
+
+                            if (boatData == null)
+                                return false;
+
+                            CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehicleTuningVehicleSelect, Locale.Actions.VehicleTuningVehicleSelect, new (int Id, string Text)[] { (1, $"{bVehData.Data.SubName} [#{bVehData.VID}]"), (2, $"{boatData.Data.SubName} [#{boatData.VID}]") }, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, baseVeh, boat);
+
+                            return false;
+                        }
+                    }
+
+                    Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, baseVeh);
 
                     LastSent = DateTime.Now;
 

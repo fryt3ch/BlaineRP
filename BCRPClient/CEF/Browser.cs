@@ -128,8 +128,7 @@ namespace BCRPClient.CEF
 
                 await Render(IntTypes.BlipsMenu, true, false);
 
-                Window.ExecuteJs("Menu.selectOption", "menu-char");
-                Window.ExecuteJs("Menu.drawSkills", new object[] { Sync.Players.MaxSkills.Select(x => new object[] { x.Key, x.Value } ) });
+                CEF.Menu.Preload();
 
                 Window.ExecuteJs("Hud.setTop", new object[] { new object[] { CurrentServer, Player.LocalPlayer.RemoteId, Entities.Players.Count, true } });
 

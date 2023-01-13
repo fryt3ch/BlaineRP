@@ -631,7 +631,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.EstateAgency, true, true);
 
-            CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages } });
+            CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages, new object[] { 25, 50, 100 } } });
 
             if (!WasShowed)
             {

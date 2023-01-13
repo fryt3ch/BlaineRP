@@ -8,14 +8,7 @@ using System.Text;
 
 namespace BCRPServer.Game.Houses
 {
-    public interface IDimensionable
-    {
-        public void SetPlayersInside(params Player[] players);
-
-        public void SetPlayersOutside(params Player[] players);
-    }
-
-    public abstract class HouseBase : IDimensionable
+    public abstract class HouseBase
     {
         public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
 
@@ -291,19 +284,11 @@ namespace BCRPServer.Game.Houses
             return data.SerializeToJson();
         }
 
-        public void SetPlayersInside(params Player[] players)
-        {
-            NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Enter", ToClientJson());
-        }
+        public abstract void SetPlayersInside(bool teleport, params Player[] players);
 
-        public void SetPlayersOutside(params Player[] players)
-        {
-
-        }
+        public abstract void SetPlayersOutside(bool teleport, params Player[] players);
 
         public abstract bool IsEntityNearEnter(Entity entity);
-
-        public abstract void SetPlayerInside(Player player);
 
         public abstract void ChangeOwner(PlayerData.PlayerInfo pInfo);
 
@@ -412,13 +397,30 @@ namespace BCRPServer.Game.Houses
 
         public bool IsEntityNearVehicleEnter(Entity entity) => GarageOutside == null ? false : entity.Dimension == Utils.Dimensions.Main && entity.Position.DistanceIgnoreZ(GarageOutside.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
 
-        public override void SetPlayerInside(Player player)
+        public override void SetPlayersInside(bool teleport, params Player[] players)
         {
-            var sData = StyleData;
+            if (teleport)
+            {
+                var sData = StyleData;
 
-            player.Teleport(sData.Position, false, Dimension, sData.Heading, true);
+                Utils.TeleportPlayers(sData.Position, false, Dimension, sData.Heading, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Enter", ToClientJson());
+            }
+        }
 
-            player.TriggerEvent("House::Enter", ToClientJson());
+        public override void SetPlayersOutside(bool teleport, params Player[] players)
+        {
+            if (teleport)
+            {
+                Utils.TeleportPlayers(PositionParams.Position, false, Utils.Dimensions.Main, PositionParams.RotationZ, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Exit");
+            }
         }
 
         public override void ChangeOwner(PlayerData.PlayerInfo pInfo)
@@ -440,15 +442,13 @@ namespace BCRPServer.Game.Houses
 
         public void SetVehicleToGarage(VehicleData vData, int slot)
         {
-            vData.Vehicle.TriggerEventOccupants("House::Enter", ToClientJson());
-
             vData.EngineOn = false;
 
             var vPos = GarageData.VehiclePositions[slot];
 
             vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
 
-            vData.SetFreezePosition(vPos.Position);
+            vData.SetFreezePosition(vPos.Position, vPos.RotationZ);
             vData.IsInvincible = true;
 
             vData.Info.LastData.GarageSlot = slot;
@@ -476,7 +476,7 @@ namespace BCRPServer.Game.Houses
 
     public class Apartments : HouseBase
     {
-        public class ApartmentsRoot : IDimensionable
+        public class ApartmentsRoot
         {
             public static Dictionary<Types, ApartmentsRoot> All { get; set; } = new Dictionary<Types, ApartmentsRoot>();
 
@@ -544,14 +544,32 @@ namespace BCRPServer.Game.Houses
                 return new Vector3(FloorPosition.X, FloorPosition.Y, FloorPosition.Z + (floor - StartFloor) * FloorDistZ);
             }
 
-            public void SetPlayersInside(params Player[] players)
+            public void SetPlayersInside(bool teleport, params Player[] players)
             {
+                if (teleport)
+                {
+                    var pos = ExitParams;
 
+                    Utils.TeleportPlayers(pos.Position, false, Dimension, pos.RotationZ, true, players);
+                }
+                else
+                {
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "ARoot::Enter", Type);
+                }
             }
 
-            public void SetPlayersOutside(params Player[] players)
+            public void SetPlayersOutside(bool teleport, params Player[] players)
             {
+                if (teleport)
+                {
+                    var pos = EnterParams;
 
+                    Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+                }
+                else
+                {
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(players, "ARoot::Exit");
+                }
             }
         }
 
@@ -606,15 +624,48 @@ namespace BCRPServer.Game.Houses
 
         public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Root.Dimension && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
 
-        public override void SetPlayerInside(Player player)
+        public override void SetPlayersInside(bool teleport, params Player[] players)
         {
-            var sData = StyleData;
+            if (teleport)
+            {
+                var sData = StyleData;
 
-            player.Teleport(sData.Position, false, Dimension, sData.Heading, true);
+                Utils.TeleportPlayers(sData.Position, false, Dimension, sData.Heading, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Enter", ToClientJson());
+            }
+        }
 
-            player.TriggerEvent("House::Enter", ToClientJson());
+        public override void SetPlayersOutside(bool teleport, params Player[] players)
+        {
+            if (teleport)
+            {
+                var pos = PositionParams;
 
-            player.TriggerEvent("ARoot::Exit");
+                Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Exit");
+            }
+        }
+
+        public void SetPlayersOutsideOfRoot(bool teleport, params Player[] players)
+        {
+            if (teleport)
+            {
+                var root = Root;
+
+                var pos = root.EnterParams;
+
+                Utils.TeleportPlayers(pos.Position, false, root.Dimension, pos.RotationZ, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "House::Exit");
+            }
         }
 
         public override void ChangeOwner(PlayerData.PlayerInfo pInfo)
@@ -635,7 +686,7 @@ namespace BCRPServer.Game.Houses
         }
     }
 
-    public class Garage : IDimensionable
+    public class Garage
     {
         public static Dictionary<uint, Garage> All { get; set; } = new Dictionary<uint, Garage>();
 
@@ -901,15 +952,13 @@ namespace BCRPServer.Game.Houses
 
         public void SetVehicleToGarage(VehicleData vData, int slot)
         {
-            vData.Vehicle.TriggerEventOccupants("Garage::Enter", Id);
-
             vData.EngineOn = false;
 
             var vPos = StyleData.VehiclePositions[slot];
 
             vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
 
-            vData.SetFreezePosition(vPos.Position);
+            vData.SetFreezePosition(vPos.Position, vPos.RotationZ);
             vData.IsInvincible = true;
 
             vData.Info.LastData.GarageSlot = slot;
@@ -934,14 +983,32 @@ namespace BCRPServer.Game.Houses
             return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension);
         }
 
-        public void SetPlayersInside(params Player[] players)
+        public void SetPlayersInside(bool teleport, params Player[] players)
         {
+            if (teleport)
+            {
+                var sData = StyleData;
 
+                Utils.TeleportPlayers(sData.EnterPosition.Position, false, Dimension, sData.EnterPosition.RotationZ, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Garage::Enter", Id);
+            }
         }
 
-        public void SetPlayersOutside(params Player[] players)
+        public void SetPlayersOutside(bool teleport, params Player[] players)
         {
+            if (teleport)
+            {
+                var pos = Root.EnterPosition;
 
+                Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+            }
+            else
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Garage::Exit");
+            }
         }
     }
 }

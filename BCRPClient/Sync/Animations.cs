@@ -19,19 +19,26 @@ namespace BCRPClient.Sync
         public class Animation
         {
             /// <summary>Словарь</summary>
-            public string Dict;
+            public string Dict { get; set; }
+
             /// <summary>Название</summary>
-            public string Name;
+            public string Name { get; set; }
+
             /// <summary>Скорость входа в анимацию</summary>
-            public float BlendInSpeed;
+            public float BlendInSpeed { get; set; }
+
             /// <summary>Скорость выхода из анимации</summary>
-            public float BlendOutSpeed;
+            public float BlendOutSpeed { get; set; }
+
             /// <summary>Продолжительность</summary>
-            public int Duration;
+            public int Duration { get; set; }
+
             /// <summary>Флаг</summary>
-            public int Flag;
+            public int Flag { get; set; }
+
             /// <summary>Смещение начала</summary>
-            public float StartOffset;
+            public float StartOffset { get; set; }
+
             public bool BlockX, BlockY, BlockZ;
 
             /// <summary>Название для первого лица</summary>
@@ -98,6 +105,8 @@ namespace BCRPClient.Sync
             HostageA, HostageB,
 
             LieInTrunk,
+
+            FishingIdle0, FishingProcess0,
         }
 
         public enum OtherTypes
@@ -381,6 +390,10 @@ namespace BCRPClient.Sync
             { GeneralTypes.HostageB, new Animation("anim@gangops@hostage@", "victim_idle", 8f, -8f, -1, 49, 0, false, false, false) },
 
             { GeneralTypes.LieInTrunk, new Animation("timetable@floyd@cryingonbed@base", "base", 8f, -8f, -1, 1, 0, false, false, false) },
+
+            { GeneralTypes.FishingIdle0, new Animation("amb@world_human_stand_fishing@base", "base", 1f, 0f, -1, 1, 1, false, false, false) },
+
+            { GeneralTypes.FishingProcess0, new Animation("amb@world_human_stand_fishing@idle_a", "idle_b", 1f, 0f, -1, 1, 1, false, false, false) },
         };
 
         public static Dictionary<OtherTypes, Animation> OtherAnimsList { get; private set; } = new Dictionary<OtherTypes, Animation>()

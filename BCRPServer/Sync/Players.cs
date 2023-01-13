@@ -66,20 +66,28 @@ namespace BCRPServer.Sync
 
                     if (veh?.Vehicle?.Exists != true)
                     {
-                        player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
+                        if (teleport)
+                            player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
                     }
                     else
                     {
-                        if (player.Vehicle != veh.Vehicle)
+                        if (player.Vehicle != veh.Vehicle || !teleport)
                         {
+                            if (teleport)
+                            {
+                                player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
+
+                                player.WarpToVehicleSeat(veh.Vehicle, 0, 5000);
+                            }
+
+                            veh.AttachBoatToTrailer();
+
                             veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
-
-                            player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
-
-                            player.SetIntoVehicle(veh.Vehicle, 0);
                         }
                         else
                         {
+                            veh.AttachBoatToTrailer();
+
                             veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                         }
 

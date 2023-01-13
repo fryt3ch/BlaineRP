@@ -744,13 +744,6 @@ namespace BCRPClient.CEF
                         var rgb1 = TempVehicle.GetPrimaryColour();
                         var rgb2 = TempVehicle.GetSecondaryColour();
 
-                        if (rgb1.HEX == CurrentColor1.HEX && rgb2.HEX == CurrentColor2.HEX)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TuningAlreadyHaveThisColour2);
-
-                            return;
-                        }
-
                         id += $"_{rgb1.Red}_{rgb1.Green}_{rgb1.Blue}_{rgb2.Red}_{rgb2.Green}_{rgb1.Blue}";
 
                         if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
@@ -759,6 +752,8 @@ namespace BCRPClient.CEF
                             {
                                 CurrentColor1 = rgb1;
                                 CurrentColor2 = rgb2;
+
+                                CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "colour", $"{rgb1.HEXNoAlpha}_{rgb2.HEXNoAlpha}");
                             }
                         }
                     }
@@ -766,22 +761,13 @@ namespace BCRPClient.CEF
                     {
                         var rgb = TempVehicle.GetNeonColour();
 
-                        if (rgb.HEX == Player.LocalPlayer.GetData<string>("TuningShop::Temp::CurNeon"))
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TuningAlreadyHaveThisColour);
-
-                            return;
-                        }
-
                         id += $"_{rgb.Red}_{rgb.Green}_{rgb.Blue}";
 
                         if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                             {
-                                CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "neon", rgb.HEX);
-
-                                Player.LocalPlayer.SetData("TuningShop::Temp::CurNeon", rgb.HEX);
+                                CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "neon", rgb.HEXNoAlpha);
                             }
                         }
                     }
@@ -789,22 +775,13 @@ namespace BCRPClient.CEF
                     {
                         var rgb = TempVehicle.GetTyreSmokeColour();
 
-                        if (rgb.HEX == Player.LocalPlayer.GetData<string>("TuningShop::Temp::TyreSmokeCol"))
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TuningAlreadyHaveThisColour);
-
-                            return;
-                        }
-
                         id += $"_{rgb.Red}_{rgb.Green}_{rgb.Blue}";
 
                         if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                             {
-                                CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "tsmoke", rgb.HEX);
-
-                                Player.LocalPlayer.SetData("TuningShop::Temp::TyreSmokeCol", rgb.HEX);
+                                CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "tsmoke", rgb.HEXNoAlpha);
                             }
                         }
                     }
@@ -965,70 +942,75 @@ namespace BCRPClient.CEF
             if (pData == null)
                 return;
 
+            CurrentType = type;
+
             if (heading != null)
             {
-                while (Additional.SkyCamera.IsFadedOut)
-                    await RAGE.Game.Invoker.WaitAsync(250);
+                AsyncTask task = null;
 
-                Sync.Players.CloseAll(false);
-
-                CurrentType = type;
-
-                DefaultHeading = (float)heading;
-
-                CEF.HUD.ShowHUD(false);
-                CEF.Chat.Show(false);
-
-                BCRPClient.Interaction.Enabled = false;
-
-                GameEvents.Render -= CharacterCreation.ClearTasksRender;
-                GameEvents.Render += CharacterCreation.ClearTasksRender;
-
-                GameEvents.DisableAllControls(true);
-
-                KeyBinds.DisableAll(KeyBinds.Types.Cursor);
-
-                CurrentCameraStateNum = 0;
-
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+                task = new AsyncTask(async () =>
                 {
-                    if (CursorTask != null)
+                    while (Additional.SkyCamera.IsFadedOut)
+                        await RAGE.Game.Invoker.WaitAsync(250);
+
+                    if (!Utils.IsTaskStillPending("Shop::Loading", task))
                         return;
 
-                    LastCursorPos = RAGE.Ui.Cursor.Position;
+                    DefaultHeading = (float)heading;
 
-                    CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
-                    CursorTask.Run();
-                }));
+                    CEF.HUD.ShowHUD(false);
+                    CEF.Chat.Show(false);
 
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
-                {
-                    if (CursorTask == null)
-                        return;
+                    BCRPClient.Interaction.Enabled = false;
 
-                    CursorTask.Cancel();
+                    GameEvents.Render -= CharacterCreation.ClearTasksRender;
+                    GameEvents.Render += CharacterCreation.ClearTasksRender;
 
-                    CursorTask = null;
-                }));
+                    GameEvents.DisableAllControls(true);
 
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
-                {
-                    ChangeView(++CurrentCameraStateNum);
-                }));
+                    KeyBinds.DisableAll(KeyBinds.Types.Cursor);
 
-                if (type >= Types.ClothesShop1 && type <= Types.BagShop)
-                {
-                    await Browser.Render(Browser.IntTypes.Shop, true);
+                    CurrentCameraStateNum = 0;
 
-                    Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+                    {
+                        if (CursorTask != null)
+                            return;
 
-                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+                        LastCursorPos = RAGE.Ui.Cursor.Position;
 
-                    CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+                        CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
+                        CursorTask.Run();
+                    }));
 
-                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
+                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+                    {
+                        if (CursorTask == null)
+                            return;
 
-                    RealClothes = new Dictionary<int, (int, int)>()
+                        CursorTask.Cancel();
+
+                        CursorTask = null;
+                    }));
+
+                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+                    {
+                        ChangeView(++CurrentCameraStateNum);
+                    }));
+
+                    if (type >= Types.ClothesShop1 && type <= Types.BagShop)
+                    {
+                        await Browser.Render(Browser.IntTypes.Shop, true);
+
+                        Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
+
+                        RealClothes = new Dictionary<int, (int, int)>()
                         {
                             { 1, (Player.LocalPlayer.GetDrawableVariation(1), Player.LocalPlayer.GetTextureVariation(1)) },
                             { 2, (Player.LocalPlayer.GetDrawableVariation(2), 0) },
@@ -1043,7 +1025,7 @@ namespace BCRPClient.CEF
                             { 11, (Player.LocalPlayer.GetDrawableVariation(11), Player.LocalPlayer.GetTextureVariation(11)) },
                         };
 
-                    RealAccessories = new Dictionary<int, (int, int)>()
+                        RealAccessories = new Dictionary<int, (int, int)>()
                         {
                             { 0, (Player.LocalPlayer.GetPropIndex(0), Player.LocalPlayer.GetPropTextureIndex(0)) },
                             { 1, (Player.LocalPlayer.GetPropIndex(1), Player.LocalPlayer.GetPropTextureIndex(1)) },
@@ -1052,324 +1034,327 @@ namespace BCRPClient.CEF
                             { 7, (Player.LocalPlayer.GetPropIndex(7), Player.LocalPlayer.GetPropTextureIndex(7)) },
                         };
 
-                    Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
-                    Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
+                        Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
+                        Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
 
-                    var currentTop = Data.Items.AllData[typeof(Data.Items.Top)].Where(x => ((Data.Items.Top.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
-                    var currentUnder = Data.Items.AllData[typeof(Data.Items.Under)].Where(x => ((Data.Items.Under.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
-                    var currentGloves = Data.Items.AllData[typeof(Data.Items.Gloves)].Where(x => ((Data.Items.Gloves.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
+                        var currentTop = Data.Items.AllData[typeof(Data.Items.Top)].Where(x => ((Data.Items.Top.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Top.ItemData)x.Value).Drawable == RealClothes[11].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentUnder = Data.Items.AllData[typeof(Data.Items.Under)].Where(x => ((Data.Items.Under.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Under.ItemData)x.Value).Drawable == RealClothes[8].Item1).Select(x => x.Key).FirstOrDefault();
+                        var currentGloves = Data.Items.AllData[typeof(Data.Items.Gloves)].Where(x => ((Data.Items.Gloves.ItemData)x.Value).Sex == pData.Sex && ((Data.Items.Gloves.ItemData)x.Value).BestTorsos.ContainsValue(RealClothes[3].Item1)).Select(x => x.Key).FirstOrDefault();
 
-                    if (currentTop != null)
-                        Player.LocalPlayer.SetData("TempClothes::Top", new Data.Clothes.TempClothes(currentTop, RealClothes[11].Item2));
+                        if (currentTop != null)
+                            Player.LocalPlayer.SetData("TempClothes::Top", new Data.Clothes.TempClothes(currentTop, RealClothes[11].Item2));
 
-                    if (currentUnder != null)
-                        Player.LocalPlayer.SetData("TempClothes::Under", new Data.Clothes.TempClothes(currentUnder, RealClothes[8].Item2));
+                        if (currentUnder != null)
+                            Player.LocalPlayer.SetData("TempClothes::Under", new Data.Clothes.TempClothes(currentUnder, RealClothes[8].Item2));
 
-                    if (currentGloves != null)
-                        Player.LocalPlayer.SetData("TempClothes::Gloves", new Data.Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
+                        if (currentGloves != null)
+                            Player.LocalPlayer.SetData("TempClothes::Gloves", new Data.Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
 
-                    CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false, 7500);
+                        CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false, 7500);
 
-                    var prices = GetPrices(CurrentType);
+                        var prices = GetPrices(CurrentType);
 
-                    if (prices == null)
-                        return;
+                        if (prices == null)
+                            return;
 
-                    List<object[]> hats = new List<object[]>();
-                    List<object[]> tops = new List<object[]>();
-                    List<object[]> unders = new List<object[]>();
-                    List<object[]> pants = new List<object[]>();
-                    List<object[]> shoes = new List<object[]>();
-                    List<object[]> accs = new List<object[]>();
-                    List<object[]> glasses = new List<object[]>();
-                    List<object[]> gloves = new List<object[]>();
-                    List<object[]> watches = new List<object[]>();
-                    List<object[]> bracelets = new List<object[]>();
+                        List<object[]> hats = new List<object[]>();
+                        List<object[]> tops = new List<object[]>();
+                        List<object[]> unders = new List<object[]>();
+                        List<object[]> pants = new List<object[]>();
+                        List<object[]> shoes = new List<object[]>();
+                        List<object[]> accs = new List<object[]>();
+                        List<object[]> glasses = new List<object[]>();
+                        List<object[]> gloves = new List<object[]>();
+                        List<object[]> watches = new List<object[]>();
+                        List<object[]> bracelets = new List<object[]>();
 
-                    var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, 0, false };
+                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, 0, false };
 
-                    hats.Add(clearingItem);
-                    tops.Add(clearingItem);
-                    unders.Add(clearingItem);
-                    pants.Add(clearingItem);
-                    shoes.Add(clearingItem);
-                    accs.Add(clearingItem);
-                    glasses.Add(clearingItem);
-                    gloves.Add(clearingItem);
-                    watches.Add(clearingItem);
-                    bracelets.Add(clearingItem);
+                        hats.Add(clearingItem);
+                        tops.Add(clearingItem);
+                        unders.Add(clearingItem);
+                        pants.Add(clearingItem);
+                        shoes.Add(clearingItem);
+                        accs.Add(clearingItem);
+                        glasses.Add(clearingItem);
+                        gloves.Add(clearingItem);
+                        watches.Add(clearingItem);
+                        bracelets.Add(clearingItem);
 
-                    foreach (var x in prices)
-                    {
-                        var iType = Data.Items.GetType(x.Key, true);
+                        foreach (var x in prices)
+                        {
+                            var iType = Data.Items.GetType(x.Key, true);
 
-                        if (iType == null)
-                            continue;
+                            if (iType == null)
+                                continue;
 
-                        var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(x.Key, iType);
+                            var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(x.Key, iType);
 
-                        if (data == null || data.Sex != pData.Sex)
-                            continue;
+                            if (data == null || data.Sex != pData.Sex)
+                                continue;
 
-                        var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
+                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
 
-                        if (data is Data.Items.Hat.ItemData)
-                            hats.Add(obj);
-                        else if (data is Data.Items.Top.ItemData)
-                            tops.Add(obj);
-                        else if (data is Data.Items.Under.ItemData)
-                            unders.Add(obj);
-                        else if (data is Data.Items.Pants.ItemData)
-                            pants.Add(obj);
-                        else if (data is Data.Items.Shoes.ItemData)
-                            shoes.Add(obj);
-                        else if (data is Data.Items.Accessory.ItemData)
-                            accs.Add(obj);
-                        else if (data is Data.Items.Glasses.ItemData)
-                            glasses.Add(obj);
-                        else if (data is Data.Items.Gloves.ItemData)
-                            gloves.Add(obj);
-                        else if (data is Data.Items.Watches.ItemData)
-                            watches.Add(obj);
-                        else if (data is Data.Items.Bracelet.ItemData)
-                            bracelets.Add(obj);
+                            if (data is Data.Items.Hat.ItemData)
+                                hats.Add(obj);
+                            else if (data is Data.Items.Top.ItemData)
+                                tops.Add(obj);
+                            else if (data is Data.Items.Under.ItemData)
+                                unders.Add(obj);
+                            else if (data is Data.Items.Pants.ItemData)
+                                pants.Add(obj);
+                            else if (data is Data.Items.Shoes.ItemData)
+                                shoes.Add(obj);
+                            else if (data is Data.Items.Accessory.ItemData)
+                                accs.Add(obj);
+                            else if (data is Data.Items.Glasses.ItemData)
+                                glasses.Add(obj);
+                            else if (data is Data.Items.Gloves.ItemData)
+                                gloves.Add(obj);
+                            else if (data is Data.Items.Watches.ItemData)
+                                watches.Add(obj);
+                            else if (data is Data.Items.Bracelet.ItemData)
+                                bracelets.Add(obj);
+                        }
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, hats);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 1, glasses);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 2, tops);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 3, unders);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 4, accs);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 5, gloves);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 6, pants);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
+
+                        Browser.Switch(Browser.IntTypes.Shop, true);
                     }
-
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 0, hats);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 1, glasses);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 2, tops);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 3, unders);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 4, accs);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 5, gloves);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 6, pants);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
-
-                    Browser.Switch(Browser.IntTypes.Shop, true);
-                }
-                else if (type >= Types.CarShop1 && type <= Types.AeroShop)
-                {
-                    await Browser.Render(Browser.IntTypes.Shop, true);
-
-                    Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
-
-                    var prices = GetPrices(type);
-
-                    if (prices == null)
-                        return;
-
-                    Player.LocalPlayer.FreezePosition(true);
-
-                    Player.LocalPlayer.SetVisible(false, false);
-
-                    CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
-                    CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
-
-                    Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
-
-                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
-
-                    Browser.Window.ExecuteJs("Shop.fillContainer", 0, prices.Select(x =>
+                    else if (type >= Types.CarShop1 && type <= Types.AeroShop)
                     {
-                        var data = Data.Vehicles.GetById(x.Key);
+                        await Browser.Render(Browser.IntTypes.Shop, true);
 
-                        return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
-                    }));
+                        Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
 
-                    Browser.Switch(Browser.IntTypes.Shop, true);
-                }
-                else if (type == Types.TuningShop)
-                {
-                    var vClassMargin = (float)args[0];
+                        var prices = GetPrices(type);
 
-                    var prices = GetPrices(CurrentType).ToDictionary(x => x.Key, x => x.Value * vClassMargin);
+                        if (prices == null)
+                            return;
 
-                    Player.LocalPlayer.ClearTasksImmediately();
+                        Player.LocalPlayer.FreezePosition(true);
 
-                    var veh = (Vehicle)args[1];
+                        Player.LocalPlayer.SetVisible(false, false);
 
-                    var vData = Sync.Vehicles.GetData(veh);
+                        CurrentColor1 = new Utils.Colour(255, 255, 255, 255);
+                        CurrentColor2 = new Utils.Colour(255, 255, 255, 255);
 
-                    if (vData == null)
-                        return;
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholeVehicle, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                    var tData = new List<object>();
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
 
-                    var techData = Additional.TuningMenu.Slots.ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Value.ModNames));
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, prices.Select(x =>
+                        {
+                            var data = Data.Vehicles.GetById(x.Key);
 
-                    TempVehicle = veh;
+                            return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
+                        }));
 
-                    veh.FreezePosition(true);
-
-                    GameEvents.Render -= RenderTuning;
-                    GameEvents.Render += RenderTuning;
-
-                    // tech
-                    var subData = new List<object>();
-
-                    subData.Add(new object[] { "engine", techData["engine"].Name, "variants-list", techData["engine"].ModNames.Select(x => new object[] { prices[$"engine_{x.Key + 1}"], x.Value }), $"engine_{veh.GetMod(11) + 1}" });
-
-                    subData.Add(new object[] { "brakes", techData["brakes"].Name, "variants-list", techData["brakes"].ModNames.Select(x => new object[] { prices[$"brakes_{x.Key + 1}"], x.Value }), $"brakes_{veh.GetMod(12) + 1}" });
-
-                    subData.Add(new object[] { "trm", techData["trm"].Name, "variants-list", techData["trm"].ModNames.Select(x => new object[] { prices[$"trm_{x.Key + 1}"], x.Value }), $"trm_{veh.GetMod(13) + 1}" });
-
-                    if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Car)
-                        subData.Add(new object[] { "susp", techData["susp"].Name, "variants-list", techData["susp"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"susp_{veh.GetMod(15) + 1}" });
-
-                    subData.Add(new object[] { "tt", techData["tt"].Name, "variants-list", techData["tt"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"tt_{(veh.IsToggleModOn(18) ? 1 : 0)}" });
-
-                    tData.Add(subData);
-
-                    // style
-                    subData = new List<object>();
-
-                    if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Cycle)
+                        Browser.Switch(Browser.IntTypes.Shop, true);
+                    }
+                    else if (type == Types.TuningShop)
                     {
+                        var vClassMargin = (float)args[0];
+
+                        var prices = GetPrices(CurrentType).ToDictionary(x => x.Key, x => x.Value * vClassMargin);
+
+                        Player.LocalPlayer.ClearTasksImmediately();
+
+                        var veh = (Vehicle)args[1];
+
+                        var vData = Sync.Vehicles.GetData(veh);
+
+                        if (vData == null)
+                            return;
+
+                        var tData = new List<object>();
+
+                        var techData = Additional.TuningMenu.Slots.ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Value.ModNames));
+
+                        TempVehicle = veh;
+
+                        GameEvents.Render -= RenderTuning;
+                        GameEvents.Render += RenderTuning;
+
+                        // tech
+                        var subData = new List<object>();
+
+                        if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                        {
+                            subData.Add(new object[] { "engine", techData["engine"].Name, "variants-list", techData["engine"].ModNames.Select(x => new object[] { prices[$"engine_{x.Key + 1}"], x.Value }), $"engine_{veh.GetMod(11) + 1}" });
+
+                            subData.Add(new object[] { "brakes", techData["brakes"].Name, "variants-list", techData["brakes"].ModNames.Select(x => new object[] { prices[$"brakes_{x.Key + 1}"], x.Value }), $"brakes_{veh.GetMod(12) + 1}" });
+
+                            subData.Add(new object[] { "trm", techData["trm"].Name, "variants-list", techData["trm"].ModNames.Select(x => new object[] { prices[$"trm_{x.Key + 1}"], x.Value }), $"trm_{veh.GetMod(13) + 1}" });
+                        }
+
+                        if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Car)
+                            subData.Add(new object[] { "susp", techData["susp"].Name, "variants-list", techData["susp"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"susp_{veh.GetMod(15) + 1}" });
+
+                        subData.Add(new object[] { "tt", techData["tt"].Name, "variants-list", techData["tt"].ModNames.Select(x => new object[] { prices[$"susp_{x.Key + 1}"], x.Value }), $"tt_{(veh.IsToggleModOn(18) ? 1 : 0)}" });
+
+                        tData.Add(subData);
+
+                        // style
+                        subData = new List<object>();
+
                         subData.Add(new object[] { "wtint", techData["wtint"].Name, "variants-list", techData["wtint"].ModNames.Select(x => new object[] { prices[$"wtint_{x.Key + 1}"], x.Value }), $"wtint_{veh.GetWindowTint()}" });
 
                         subData.Add(new object[] { "xenon", techData["xenon"].Name, "variants-list", techData["xenon"].ModNames.Select(x => new object[] { prices[$"xenon_{x.Key + 1}"], x.Value }), $"xenon_{(veh.GetXenonColour() ?? -2) + 2}" });
-                    }
 
-                    if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Car)
-                    {
-                        var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEX : null;
-
-                        Player.LocalPlayer.SetData("TuningShop::Temp::CurNeon", curNeon);
-
-                        subData.Add(new object[] { "neon", Locale.General.Business.TuningNeon, "color-selection-1", new object[] { "Цвет неона", prices["neon"], prices["neon_0"] }, curNeon });
-                    }
-
-                    foreach (var x in Additional.TuningMenu.Slots.Where(x => x.Value.Id == "spoiler" || x.Value.Id == "fbump" || x.Value.Id == "rbump" || x.Value.Id == "skirt" || x.Value.Id == "exh" || x.Value.Id == "frame" || x.Value.Id == "grill" || x.Value.Id == "hood" || x.Value.Id == "roof" || x.Value.Id == "seats" || x.Value.Id == "swheel" || x.Value.Id == "livery" || x.Value.Id == "horn").ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Key)))
-                    {
-                        var count = veh.GetNumMods(x.Value.Key);
-
-                        if (count > 0)
+                        if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Car)
                         {
-                            subData.Add(new object[] { x.Key, x.Value.Name, "variants-list", Enumerable.Range(0, count + 1).Select(y => prices[x.Key]), $"{x.Key}_{veh.GetMod(x.Value.Key) + 1}" });
+                            var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEXNoAlpha : null;
+
+                            subData.Add(new object[] { "neon", Locale.General.Business.TuningNeon, "color-selection-1", new object[] { "Цвет неона", prices["neon"], prices["neon_0"] }, curNeon });
                         }
-                    }
 
-                    tData.Add(subData);
+                        foreach (var x in Additional.TuningMenu.Slots.Where(x => x.Value.Id == "spoiler" || x.Value.Id == "fbump" || x.Value.Id == "rbump" || x.Value.Id == "skirt" || x.Value.Id == "exh" || x.Value.Id == "frame" || x.Value.Id == "grill" || x.Value.Id == "hood" || x.Value.Id == "roof" || x.Value.Id == "seats" || x.Value.Id == "swheel" || x.Value.Id == "livery" || x.Value.Id == "horn").ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Key)))
+                        {
+                            var count = veh.GetNumMods(x.Value.Key);
 
-                    // colours
-                    subData = new List<object>();
-
-                    CurrentColor1 = veh.GetPrimaryColour();
-                    CurrentColor2 = veh.GetSecondaryColour();
-
-                    subData.Add(new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" });
-
-                    subData.Add(new object[] { "colour", Locale.General.Business.TuningColours, "color-selection-2", new object[] { CurrentColor1.HEX, CurrentColor2.HEX, prices["colour"] } });
-
-                    subData.Add(new object[] { "pearl", Locale.General.Business.TuningPearl, "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
-
-                    subData.Add(new object[] { "wcolour", Locale.General.Business.TuningWheelColour, "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
-
-                    var curTsCol = vData.TyreSmokeColour?.HEX;
-
-                    Player.LocalPlayer.SetData("TuningShop::Temp::TyreSmokeCol", curTsCol);
-
-                    subData.Add(new object[] { "tsmoke", Locale.General.Business.TuningTyreSmokeColour, "color-selection-1", new object[] { Locale.General.Business.TuningTyreSmokeColour, prices["tsmoke"], prices["tsmoke_0"] }, curTsCol });
-
-                    tData.Add(subData);
-
-                    // wheels
-                    subData = new List<object>();
-
-                    if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Motorcycle)
-                    {
-                        veh.SetWheelType(6);
-
-                        var currentWheel = veh.GetMod(23);
-
-                        subData.Add(new object[] { $"wheel_0", Additional.TuningMenu.WheelTypes[0], "variants-list", new object[] { prices[$"wheel_0"] }, currentWheel < 0 ? $"wheel_0_0" : null });
-
-                        var wAmount = veh.GetNumMods(23);
-
-                        if (wAmount > 0)
-                            subData.Add(new object[] { $"wheel_7", Additional.TuningMenu.WheelTypes[7], "variants-list", Enumerable.Range(0, wAmount).Select(y => prices[$"wheel_7"]), currentWheel >= 0 ? $"wheel_0_{currentWheel}" : null });
+                            if (count > 0)
+                            {
+                                subData.Add(new object[] { x.Key, x.Value.Name, "variants-list", Enumerable.Range(0, count + 1).Select(y => prices[x.Key]), $"{x.Key}_{veh.GetMod(x.Value.Key) + 1}" });
+                            }
+                        }
 
                         tData.Add(subData);
 
+                        // colours
                         subData = new List<object>();
 
-                        currentWheel = veh.GetMod(24);
+                        CurrentColor1 = veh.GetPrimaryColour();
+                        CurrentColor2 = veh.GetSecondaryColour();
 
-                        subData.Add(new object[] { $"rwheel_0", Additional.TuningMenu.WheelTypes[0], "variants-list", new object[] { prices[$"rwheel_0"] }, currentWheel < 0 ? $"rwheel_0_0" : null });
+                        if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                            subData.Add(new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" });
 
-                        wAmount = veh.GetNumMods(24);
+                        subData.Add(new object[] { "colour", Locale.General.Business.TuningColours, "color-selection-2", new object[] { CurrentColor1.HEXNoAlpha, CurrentColor2.HEXNoAlpha, prices["colour"] } });
 
-                        if (wAmount > 0)
-                            subData.Add(new object[] { $"rwheel_7", Additional.TuningMenu.WheelTypes[7], "variants-list", Enumerable.Range(0, wAmount).Select(y => prices[$"rwheel_7"]), currentWheel >= 0 ? $"rwheel_0_{currentWheel}" : null });
+                        subData.Add(new object[] { "pearl", Locale.General.Business.TuningPearl, "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
+
+                        if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
+                        {
+                            subData.Add(new object[] { "wcolour", Locale.General.Business.TuningWheelColour, "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
+
+                            var curTsCol = vData.TyreSmokeColour?.HEXNoAlpha;
+
+                            subData.Add(new object[] { "tsmoke", Locale.General.Business.TuningTyreSmokeColour, "color-selection-1", new object[] { Locale.General.Business.TuningTyreSmokeColour, prices["tsmoke"], prices["tsmoke_0"] }, curTsCol });
+                        }
 
                         tData.Add(subData);
-                    }
-                    else
-                    {
-                        var currentWheels = veh.GetMod(23);
-                        var currentWheelsType = veh.GetWheelType() + 1;
 
-                        if (currentWheels < 0)
-                            currentWheelsType = 0;
+                        // wheels
 
-                        foreach (var x in Additional.TuningMenu.WheelTypes)
+                        if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
                         {
-                            if (x.Key == 7)
-                                continue;
+                            subData = new List<object>();
 
-                            if (x.Key == 0)
+                            if (vData.Data.Type == Data.Vehicles.Vehicle.Types.Motorcycle)
                             {
-                                subData.Add(new object[] { $"wheel_{x.Key}", x.Value, "variants-list", new object[] { prices[$"wheel_{x.Key}"] }, currentWheelsType == x.Key ? $"wheel_{x.Key}_0" : null });
-                            }
-                            else
-                            {
-                                veh.SetWheelType(x.Key - 1);
+                                veh.SetWheelType(6);
+
+                                var currentWheel = veh.GetMod(23);
+
+                                subData.Add(new object[] { $"wheel_0", Additional.TuningMenu.WheelTypes[0], "variants-list", new object[] { prices[$"wheel_0"] }, currentWheel < 0 ? $"wheel_0_0" : null });
 
                                 var wAmount = veh.GetNumMods(23);
 
                                 if (wAmount > 0)
-                                    subData.Add(new object[] { $"wheel_{x.Key}", x.Value, "variants-list", Enumerable.Range(0, wAmount).Select(y => prices[$"wheel_{x.Key}"]), currentWheelsType == x.Key ? $"wheel_{x.Key}_{currentWheels}" : null });
+                                    subData.Add(new object[] { $"wheel_7", Additional.TuningMenu.WheelTypes[7], "variants-list", Enumerable.Range(0, wAmount).Select(y => prices[$"wheel_7"]), currentWheel >= 0 ? $"wheel_0_{currentWheel}" : null });
+
+                                tData.Add(subData);
+
+                                subData = new List<object>();
+
+                                currentWheel = veh.GetMod(24);
+
+                                subData.Add(new object[] { $"rwheel_0", Additional.TuningMenu.WheelTypes[0], "variants-list", new object[] { prices[$"rwheel_0"] }, currentWheel < 0 ? $"rwheel_0_0" : null });
+
+                                wAmount = veh.GetNumMods(24);
+
+                                if (wAmount > 0)
+                                    subData.Add(new object[] { $"rwheel_7", Additional.TuningMenu.WheelTypes[7], "variants-list", Enumerable.Range(0, wAmount).Select(y => prices[$"rwheel_7"]), currentWheel >= 0 ? $"rwheel_0_{currentWheel}" : null });
+
+                                tData.Add(subData);
+                            }
+                            else
+                            {
+                                var currentWheels = veh.GetMod(23);
+                                var currentWheelsType = veh.GetWheelType() + 1;
+
+                                if (currentWheels < 0)
+                                    currentWheelsType = 0;
+
+                                foreach (var x in Additional.TuningMenu.WheelTypes)
+                                {
+                                    if (x.Key == 7)
+                                        continue;
+
+                                    if (x.Key == 0)
+                                    {
+                                        subData.Add(new object[] { $"wheel_{x.Key}", x.Value, "variants-list", new object[] { prices[$"wheel_{x.Key}"] }, currentWheelsType == x.Key ? $"wheel_{x.Key}_0" : null });
+                                    }
+                                    else
+                                    {
+                                        veh.SetWheelType(x.Key - 1);
+
+                                        var wAmount = veh.GetNumMods(23);
+
+                                        if (wAmount > 0)
+                                            subData.Add(new object[] { $"wheel_{x.Key}", x.Value, "variants-list", Enumerable.Range(0, wAmount).Select(y => prices[$"wheel_{x.Key}"]), currentWheelsType == x.Key ? $"wheel_{x.Key}_{currentWheels}" : null });
+                                    }
+                                }
+
+                                veh.SetWheelType(currentWheels < 0 ? 0 : currentWheelsType - 1);
+                                veh.SetMod(23, currentWheels, false);
+
+                                tData.Add(subData);
                             }
                         }
 
-                        veh.SetWheelType(currentWheels < 0 ? 0 : currentWheelsType - 1);
-                        veh.SetMod(23, currentWheels, false);
+                        // misc
+                        subData = new List<object>();
+
+                        subData.Add(new object[] { "fix", "Ремонт", "variants-list", new object[] { new object[] { prices["fix_0"], "Полноценный" }, new object[] { prices["fix_1"], "Косметический (визуальный)" } }, null });
+
+                        subData.Add(new object[] { "keys", "Ключи", "variants-list", new object[] { new object[] { prices["keys_0"], "Смена замков" }, new object[] { prices["keys_1"], "Дупликат ключей" } }, null });
 
                         tData.Add(subData);
+
+                        await Browser.Render(Browser.IntTypes.Tuning, true, false);
+
+                        Browser.Window.ExecuteJs("Tuning.draw", new object[] { tData });
+
+                        Browser.Switch(Browser.IntTypes.Tuning, true);
+
+                        Player.LocalPlayer.SetVisible(false, false);
+
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.BackVehicleUpAngle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.TopVehicle };
+
+                        ChangeView(0);
                     }
 
-                    // misc
-                    subData = new List<object>();
+                    SetPricesCoef(margin);
 
-                    subData.Add(new object[] { "fix", "Ремонт", "variants-list", new object[] { new object[] { prices["fix_0"], "Полноценный" }, new object[] { prices["fix_1"], "Косметический (визуальный)" } }, null });
+                    Cursor.Show(true, true);
+                }, 0, false, 0);
 
-                    subData.Add(new object[] { "keys", "Ключи", "variants-list", new object[] { new object[] { prices["keys_0"], "Смена замков" }, new object[] { prices["keys_1"], "Дупликат ключей" } }, null });
-
-                    tData.Add(subData);
-
-                    await Browser.Render(Browser.IntTypes.Tuning, true, false);
-
-                    Browser.Window.ExecuteJs("Tuning.draw", new object[] { tData });
-
-                    Browser.Switch(Browser.IntTypes.Tuning, true);
-
-                    Player.LocalPlayer.SetVisible(false, false);
-
-                    AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.BackVehicleUpAngle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.TopVehicle };
-
-                    ChangeView(0);
-                }
-
-                SetPricesCoef(margin);
-
-                Cursor.Show(true, true);
+                Utils.SetTaskAsPending("Shop::Loading", task);
             }
             else
             {
                 Sync.Players.CloseAll(true);
-
-                CurrentType = type;
 
                 var prices = GetPrices(type);
 
@@ -1419,32 +1404,41 @@ namespace BCRPClient.CEF
             }
             else
             {
-                if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop2)
+                Utils.CancelPendingTask("Shop::Loading");
+
+                if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Top");
                     Player.LocalPlayer.ResetData("TempClothes::Under");
                     Player.LocalPlayer.ResetData("TempClothes::Gloves");
                     Player.LocalPlayer.ResetData("TempClothes::Hat");
 
-                    foreach (var x in RealClothes)
+                    if (RealClothes != null)
                     {
-                        Player.LocalPlayer.SetComponentVariation(x.Key, x.Value.Item1, x.Value.Item2, 2);
-
-                        if (x.Key == 2)
+                        foreach (var x in RealClothes)
                         {
-                            pData.HairOverlay = pData.HairOverlay;
+                            Player.LocalPlayer.SetComponentVariation(x.Key, x.Value.Item1, x.Value.Item2, 2);
+
+                            if (x.Key == 2)
+                            {
+                                pData.HairOverlay = pData.HairOverlay;
+                            }
                         }
+
+                        RealClothes = null;
                     }
 
-                    Player.LocalPlayer.ClearAllProps();
-
-                    foreach (var x in RealAccessories)
+                    if (RealAccessories != null)
                     {
-                        Player.LocalPlayer.SetPropIndex(x.Key, x.Value.Item1, x.Value.Item2, true);
-                    }
+                        Player.LocalPlayer.ClearAllProps();
 
-                    RealClothes.Clear();
-                    RealAccessories.Clear();
+                        foreach (var x in RealAccessories)
+                        {
+                            Player.LocalPlayer.SetPropIndex(x.Key, x.Value.Item1, x.Value.Item2, true);
+                        }
+
+                        RealAccessories = null;
+                    }
                 }
                 else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
                 {
@@ -1458,9 +1452,6 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType == Types.TuningShop)
                 {
-                    Player.LocalPlayer.ResetData("TuningShop::Temp::CurNeon");
-                    Player.LocalPlayer.ResetData("TuningShop::Temp::TyreSmokeCol");
-
                     TempVehicle = null;
                 }
 
@@ -1702,11 +1693,13 @@ namespace BCRPClient.CEF
             {
                 TempVehicle.SetHeading(DefaultHeading);
 
-                var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+                //var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+                var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, 5f };
 
                 var pDef = Additional.Camera.States[AllowedCameraStates[camStateNum]].Position;
 
-                var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
+                //var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
+                var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * 1.5f);
 
                 Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
             }

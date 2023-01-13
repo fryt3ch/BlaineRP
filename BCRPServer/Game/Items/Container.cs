@@ -525,6 +525,9 @@ namespace BCRPServer.Game.Items
                                 pData.Items[slotFrom] = toItem;
                                 cont.Items[slotTo] = fromItem;
 
+                                if (fromItem is Game.Items.IUsable fromItemU && fromItemU.InUse)
+                                    fromItemU.StopUse(pData, Game.Items.Inventory.Groups.Container, slotTo, false);
+
                                 MySQL.CharacterItemsUpdate(pData.Info);
                                 cont.Update();
                             }

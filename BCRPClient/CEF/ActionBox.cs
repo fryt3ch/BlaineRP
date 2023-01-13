@@ -50,6 +50,8 @@ namespace BCRPClient.CEF
             VehiclePoundSelect,
 
             WeaponSkinsMenuSelect,
+
+            VehicleTuningVehicleSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -456,6 +458,59 @@ namespace BCRPClient.CEF
                             },
                         }
                     },
+
+                    {
+                        Contexts.VehicleTuningVehicleSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::VTVST", args[0]);
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::VTVSV1", args[1]);
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::VTVSV2", args[2]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        if (id != 1 && id != 2)
+                                            return;
+
+                                        var vehicle = Player.LocalPlayer.GetData<Vehicle>($"ActionBox::Temp::VTVSV{id}");
+
+                                        Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<int>("ActionBox::Temp::VTVST"), vehicle);
+
+                                        Close(true);
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::VTVST");
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::VTVSV1");
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::VTVSV2");
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
+                        }
+                    },
                 }
             },
 
@@ -504,23 +559,19 @@ namespace BCRPClient.CEF
                                             {
                                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", false, idData[0]);
 
-                                                var sId = id.Split('_')[0];
-
-                                                if (sId == "neon")
+                                                if (idData[0] == "neon")
                                                 {
-                                                    Player.LocalPlayer.SetData("TuningShop::Temp::CurNeon", (string)null);
-
                                                     CEF.Shop.TempVehicle?.SetNeonEnabled(false);
                                                 }
-                                                else if (sId == "tsmoke")
+                                                else if (idData[0] == "tsmoke")
                                                 {
-                                                    Player.LocalPlayer.SetData("TuningShop::Temp::TyreSmokeCol", (string)null);
+                                                    CEF.Shop.TempVehicle?.SetTyreSmokeColor(255, 255, 255);
                                                 }
-                                                else if (sId == "wcolour")
+                                                else if (idData[0] == "wcolour")
                                                 {
                                                     CEF.Shop.TempVehicle?.SetWheelsColour(0);
                                                 }
-                                                else if (sId == "pearl")
+                                                else if (idData[0] == "pearl")
                                                 {
                                                     CEF.Shop.TempVehicle?.SetPearlColour(0);
                                                 }

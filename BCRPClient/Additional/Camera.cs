@@ -531,9 +531,9 @@ namespace BCRPClient.Additional
 
         public static void PointAtPos(Vector3 pos) => RAGE.Game.Cam.PointCamAtCoord(ID, pos.X, pos.Y, pos.Z);
 
-        public static Vector3 GetFrontOf(Vector3 pos, float heading, float distance = 1.2f)
+        public static Vector3 GetFrontOf(Vector3 pos, float angle, float distance = 1.2f)
         {
-            var radians = -heading * Math.PI / 180;
+            var radians = -angle * Math.PI / 180;
 
             var nX = (float)(pos.X + (distance * Math.Sin(radians)));
             var nY = (float)(pos.Y + (distance * Math.Cos(radians)));

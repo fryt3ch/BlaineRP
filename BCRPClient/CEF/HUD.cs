@@ -404,7 +404,7 @@ namespace BCRPClient.CEF
             }
         }
 
-        public static void SetQuestParams(string questGiver, string questName, string goal) => CEF.Browser.Window.ExecuteJs("Hud.drawQuest", new object[] { new object[] { questName, questGiver, goal, "NA" } });
+        public static void SetQuestParams(string questGiver, string questName, string goal, Sync.Quest.QuestData.ColourTypes cType) => CEF.Browser.Window.ExecuteJs("Hud.drawQuest", new object[] { new object[] { questName, questGiver, goal, (int)cType } });
 
         public static void EnableQuest(bool state)
         {

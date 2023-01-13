@@ -18,7 +18,7 @@ namespace BCRPServer
 {
     static class MySQL
     {
-        private const string Host = "192.168.0.109";
+        private const string Host = "localhost";
         private const string User = "root";
         private const string Password = "";
         private const string GlobalDatabase = "bcrp";

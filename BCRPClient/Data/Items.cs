@@ -1,10 +1,8 @@
 using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace BCRPClient.Data
 {
@@ -44,6 +42,11 @@ namespace BCRPClient.Data
                     this.Weight = Weight;
                 }
             }
+        }
+
+        public interface IUsable
+        {
+
         }
 
         public interface IWearable
@@ -507,7 +510,19 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        #region Enums
+        public class FishingRod : Item, IUsable
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public ItemData(string Name, float Weight) : base(Name, Weight)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public enum ActionTypes
         {
             Bind = 0,
@@ -515,13 +530,12 @@ namespace BCRPClient.Data
             Throw = 2,
             Use = 3,
         }
-        #endregion
 
-        private static Dictionary<string, Type> AllTypes { get; set; } = new Dictionary<string, Type>();
+        private static Dictionary<string, System.Type> AllTypes { get; set; } = new Dictionary<string, System.Type>();
 
-        public static Dictionary<Type, Dictionary<string, Item.ItemData>> AllData { get; private set; } = new Dictionary<Type, Dictionary<string, Item.ItemData>>();
+        public static Dictionary<System.Type, Dictionary<string, Item.ItemData>> AllData { get; private set; } = new Dictionary<System.Type, Dictionary<string, Item.ItemData>>();
 
-        private static Dictionary<Type, string[]> AbstractImageTypes = new Dictionary<Type, string[]>() // string[] - exceptions
+        private static Dictionary<System.Type, string[]> AbstractImageTypes = new Dictionary<System.Type, string[]>() // string[] - exceptions
         {
             { typeof(Clothes), new string[] { } },
 
@@ -556,7 +570,7 @@ namespace BCRPClient.Data
         }
 
         #region Stuff
-        public static string GetImageId(string id, Type type = null)
+        public static string GetImageId(string id, System.Type type = null)
         {
             if (type == null)
             {
@@ -574,7 +588,7 @@ namespace BCRPClient.Data
             return id;
         }
 
-        public static Type GetType(string id, bool checkFullId = true)
+        public static System.Type GetType(string id, bool checkFullId = true)
         {
             var data = id.Split('_');
 
@@ -586,7 +600,7 @@ namespace BCRPClient.Data
             return type;
         }
 
-        public static Item.ItemData GetData(string id, Type type = null)
+        public static Item.ItemData GetData(string id, System.Type type = null)
         {
             if (type == null)
             {
@@ -601,21 +615,27 @@ namespace BCRPClient.Data
 
         public static string GetName(string id) => GetData(id, null)?.Name ?? "null";
 
-        public static object[][] GetActions(Type type, int amount, bool hasContainer = false, bool isContainer = false)
+        public static object[][] GetActions(System.Type type, string id, int amount, bool isBag = false, bool inUse = false, bool hasContainer = false, bool isContainer = false)
         {
-            List<object[]> actions;
+            List<object[]> actions = new List<object[]>();
 
-            if (!isContainer)
+            if (inUse)
             {
-                var action = Actions.Where(x => x.Key == type || x.Key.IsAssignableFrom(type)).Select(x => x.Value).FirstOrDefault();
-
-                if (action != null)
-                    actions = new List<object[]>() { action };
-                else
-                    actions = new List<object[]>();
+                actions.Add(new object[] { 5, Locale.General.Inventory.Actions.StopUse });
             }
             else
-                actions = new List<object[]>();
+            {
+                if (!isContainer)
+                {
+                    if (!isBag || !ItemsActionsNotBag.Where(x => x.Key.IsTypeOrAssignable(type) && !x.Value.Contains(id)).Any())
+                    {
+                        var action = Actions.Where(x => x.Key.IsTypeOrAssignable(type)).Select(x => x.Value).FirstOrDefault();
+
+                        if (action != null)
+                            actions.Add(action);
+                    }
+                }
+            }
 
             if (hasContainer)
                 actions.Add(new object[] { 4, Locale.General.Inventory.Actions.Shift });
@@ -630,18 +650,59 @@ namespace BCRPClient.Data
         #endregion
 
         #region All Custom Actions
-        private static Dictionary<Type, object[][]> Actions = new Dictionary<Type, object[][]>()
+        private static List<KeyValuePair<System.Type, object[][]>> Actions { get; set; } = new List<KeyValuePair<System.Type, object[][]>>()
         {
-            { typeof(Weapon), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+            new KeyValuePair<System.Type, object[][]>(typeof(FishingRod), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FishingRodUseBait }, new object[] { 6, Locale.General.Inventory.Actions.FishingRodUseWorms } }),
 
-            { typeof(StatusChanger), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+            new KeyValuePair<System.Type, object[][]>(typeof(IUsable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 
-            { typeof(IWearable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } } },
+            new KeyValuePair<System.Type, object[][]>(typeof(Weapon), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 
-            { typeof(VehicleKey), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FindVehicle } } },
+            new KeyValuePair<System.Type, object[][]>(typeof(StatusChanger), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 
-            { typeof(WeaponSkin), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } } },
+            new KeyValuePair<System.Type, object[][]>(typeof(IWearable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.TakeOn } }),
+
+            new KeyValuePair<System.Type, object[][]>(typeof(VehicleKey), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FindVehicle } }),
+
+            new KeyValuePair<System.Type, object[][]>(typeof(WeaponSkin), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
         };
+
+        private static List<KeyValuePair<System.Type, List<string>>> ItemsActionsNotBag { get; set; } = new List<KeyValuePair<System.Type, List<string>>>()
+        {
+            new KeyValuePair<System.Type, List<string>>(typeof(IUsable), new List<string> { } ),
+        };
+
+        private static List<KeyValuePair<System.Type, Func<List<string>>>> ItemsActionsValidators { get; set; } = new List<KeyValuePair<System.Type, Func<List<string>>>>()
+        {
+            new KeyValuePair<System.Type, Func<List<string>>>(typeof(FishingRod), () =>
+            {
+                var res = Utils.CanDoSomething(Utils.Actions.IsSwimming);
+
+                if (!res)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.ActionRestricted);
+
+                    return null;
+                }
+
+                var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.5f, 31);
+
+                if (waterPos == null)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.FishingNotAllowedHere);
+
+                    return null;
+                }
+
+                Player.LocalPlayer.SetData("MG::F::T::WZ", waterPos.Z);
+
+                var eData = new List<string>() { };
+
+                return eData;
+            }),
+        };
+
+        public static Func<List<string>> GetActionToValidate(System.Type type) => ItemsActionsValidators.Where(x => x.Key.IsTypeOrAssignable(type)).Select(x => x.Value).FirstOrDefault();
         #endregion
     }
 }

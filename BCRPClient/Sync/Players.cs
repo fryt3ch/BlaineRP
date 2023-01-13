@@ -268,7 +268,11 @@ namespace BCRPClient.Sync
 
             public List<Sync.Quest> Quests { get => Player.LocalPlayer.GetData<List<Sync.Quest>>("Quests"); set => Player.LocalPlayer.SetData("Quests", value); }
 
-            public Entity IsAttachedTo { get => Player.GetData<Entity>("IsAttachedTo::Entity"); set => Player.SetData("IsAttachedTo::Entity", value); }
+            public Entity IsAttachedTo { get => Player.GetData<Entity>("IsAttachedTo::Entity"); set { if (value == null) Player.ResetData("IsAttachedTo::Entity"); else Player.SetData("IsAttachedTo::Entity", value); } }
+
+            public List<Sync.AttachSystem.AttachmentObject> AttachedObjects => Sync.AttachSystem.GetEntityObjectAttachments(Player);
+
+            public List<Sync.AttachSystem.AttachmentObject> AttachedEntities => Sync.AttachSystem.GetEntityEntityAttachments(Player);
 
             public Data.Customization.HairOverlay HairOverlay
             {
@@ -1799,7 +1803,7 @@ namespace BCRPClient.Sync
             {
                 var aData = Locale.General.Players.AchievementTexts.ContainsKey(aType) ? Locale.General.Players.AchievementTexts[aType] : ("null", "null");
 
-                CEF.Menu.AddAchievement(aType, value, maxValue, $"[{(int)aType + 1}] {aData.Item1}", aData.Item2);
+                CEF.Menu.AddAchievement(aType, value, maxValue, aData.Item1, aData.Item2);
             }
         }
 

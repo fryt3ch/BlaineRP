@@ -36,7 +36,7 @@ namespace BCRPClient
 
         public static Vector3 WaypointPosition = null;
 
-        public static (int X, int Y) ScreenResolution = (0, 0);
+        public static RAGE.Ui.Cursor.Vector2 ScreenResolution { get; private set; } = new RAGE.Ui.Cursor.Vector2(0f, 0f);
 
         private static int DisableAllControlsCounter { get; set; }
         private static int DisableMoveCounter { get; set; }
@@ -46,6 +46,8 @@ namespace BCRPClient
             RAGE.Ui.Console.Clear();
             RAGE.Chat.Activate(false);
             RAGE.Chat.Show(false);
+
+            RAGE.Game.Graphics.RemoveParticleFxInRange(0f, 0f, 0f, float.MaxValue);
 
             FpsCounterStart();
 
