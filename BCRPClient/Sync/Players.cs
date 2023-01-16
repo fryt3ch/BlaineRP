@@ -274,22 +274,9 @@ namespace BCRPClient.Sync
 
             public List<Sync.AttachSystem.AttachmentObject> AttachedEntities => Sync.AttachSystem.GetEntityEntityAttachments(Player);
 
-            public Data.Customization.HairOverlay HairOverlay
-            {
-                get => Player.GetData<Data.Customization.HairOverlay>("HairOverlay");
+            public List<int> Decorations => Player.GetSharedData<JArray>("DCR", null)?.ToObject<List<int>>();
 
-                set
-                {
-                    Player.SetData("HairOverlay", value);
-
-                    Player.ClearFacialDecorations();
-
-                    if (value == null)
-                        return;
-
-                    Player.SetFacialDecoration(value.Collection, value.Overlay);
-                }
-            }
+            public Data.Customization.HairOverlay HairOverlay => Data.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("Customization::HairOverlay", 0));
             #endregion
 
             public void Reset()
@@ -347,12 +334,16 @@ namespace BCRPClient.Sync
             if (data.CID == 0)
                 return;
 
+            SetData(player, data);
+
             if (data.VehicleSeat >= 0)
                 InvokeHandler("VehicleSeat", data, data.VehicleSeat, null);
 
             InvokeHandler("IsInvisible", data, data.IsInvisible, null);
 
-            data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay", -1));
+            InvokeHandler("Customization::HairOverlay", data, player.GetSharedData<int>("Customization::HairOverlay", 0), null);
+
+            InvokeHandler("DCR", data, player.GetSharedData<JArray>("DCR", null), null);
 
             InvokeHandler("WCD", data, data.WeaponComponents, null);
 
@@ -370,8 +361,6 @@ namespace BCRPClient.Sync
 
             if (data.OtherAnim != Animations.OtherTypes.None)
                 Sync.Animations.Play(player, data.OtherAnim);
-
-            SetData(player, data);
         }
 
         public static async System.Threading.Tasks.Task OnPlayerStreamOut(Player player)
@@ -550,6 +539,8 @@ namespace BCRPClient.Sync
                     await RAGE.Game.Invoker.WaitAsync(10);
                 }
 
+                SetData(Player.LocalPlayer, data);
+
                 CEF.Menu.SetCID(data.CID);
 
                 InvokeHandler("Cash", data, data.Cash, null);
@@ -568,9 +559,9 @@ namespace BCRPClient.Sync
 
                 InvokeHandler("Anim::General", data, (int)data.GeneralAnim, null);
 
-                data.HairOverlay = Data.Customization.GetHairOverlay(data.Sex, player.GetSharedData<int>("Customization::HairOverlay"));
+                InvokeHandler("Customization::HairOverlay", data, player.GetSharedData<int>("Customization::HairOverlay", 0), null);
 
-                SetData(Player.LocalPlayer, data);
+                InvokeHandler("DCR", data, Player.LocalPlayer.GetSharedData<JArray>("DCR", null), null);
             });
 
             Events.Add("Players::CharacterReady", async (object[] args) =>
@@ -646,6 +637,10 @@ namespace BCRPClient.Sync
                 {
                     x.Initialize();
                 }
+
+                var tattoo = Data.Customization.GetTattooData(740);
+
+                Player.LocalPlayer.SetDecoration(tattoo.CollectionHash, (uint)tattoo.HashMale);
             });
             #endregion
 
@@ -1400,9 +1395,29 @@ namespace BCRPClient.Sync
                 }
             });
 
+            AddDataHandler("DCR", (pData, value, oldValue) =>
+            {
+                Data.Customization.TattooData.ClearAll(pData.Player);
+
+                if (value is JArray jArr)
+                {
+                    foreach (var x in jArr.ToObject<List<int>>())
+                    {
+                        var tattoo = Data.Customization.GetTattooData(x);
+
+                        tattoo.TryApply(pData.Player);
+                    }
+                }
+            });
+
             AddDataHandler("Customization::HairOverlay", (pData, value, oldValue) =>
             {
-                pData.HairOverlay = Data.Customization.GetHairOverlay(pData.Sex, (int)value);
+                Data.Customization.HairOverlay.ClearAll(pData.Player);
+
+                if (value is int valueInt)
+                {
+                    Data.Customization.GetHairOverlay(pData.Sex, valueInt)?.Apply(pData.Player);
+                }
             });
 
             AddDataHandler("Belt::On", (pData, value, oldValue) =>

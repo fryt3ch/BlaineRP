@@ -48,6 +48,8 @@ namespace BCRPServer.Game.Businesses
 
             BagShop,
 
+            BarberShop,
+
             CarShop1,
             CarShop2,
             CarShop3,
@@ -182,6 +184,14 @@ namespace BCRPServer.Game.Businesses
             new TuningShop(23, new Vector3(-1139.816f, -1992.655f, 12.16545f), new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f, 0f), new Utils.Vector4[] { new Utils.Vector4(-1151.391f, -1982.481f, 12.77934f, 280f), new Utils.Vector4(-1136.405f, -1975.773f, 12.78101f, 180f), new Utils.Vector4(-1132.026f, -1975.115f, 12.78097f, 180f), new Utils.Vector4(-1127.017f, -1976.082f, 12.79133f, 180f) }, new Utils.Vector4(-1154.301f, -2006.171f, 12.79945f));
 
             new WeaponShop(24, new Vector3(-1109.188f, 2690.507f, 17.6103f), new Utils.Vector4(-1118.7f, 2699.981f, 18.55415f, 218.2682f), new Utils.Vector4(-1122.019f, 2696.923f, 18.55415f, 305.8211f));
+
+            new BarberShop(25, new Vector3(-285.7959f, 6232.987f, 31.49523f), new Utils.Vector4(-277.8783f, 6230.489f, 31.69553f, 42.97519f), new Utils.Vector4(-278.4798f, 6227.705f, 31.69553f, 354.1428f));
+            new BarberShop(26, new Vector3(1933.23f, 3721.24f, 32.86353f), new Utils.Vector4(1930.866f, 3728.215f, 32.84443f, 212.5517f), new Utils.Vector4(-278.4798f, 6227.705f, 31.69553f, 354.1428f));
+            new BarberShop(27, new Vector3(-827.2922f, -186.6121f, 37.63704f), new Utils.Vector4(-822.0836f, -183.4575f, 37.56893f, 202.6368f), new Utils.Vector4(-815.0012f, -183.6297f, 37.56892f, 166.9111f));
+            new BarberShop(28, new Vector3(-31.65811f, -144.1567f, 57.07059f), new Utils.Vector4(-30.80062f, -151.6473f, 57.0765f, 337.2878f), new Utils.Vector4(-278.4798f, 6227.705f, 31.69553f, 354.1428f));
+            new BarberShop(29, new Vector3(1203.78f, -472.2391f, 66.20185f), new Utils.Vector4(1211.432f, -470.6421f, 66.20801f, 71.84773f), new Utils.Vector4(-278.4798f, 6227.705f, 31.69553f, 354.1428f));
+            new BarberShop(30, new Vector3(-1291.942f, -1119.263f, 6.557382f), new Utils.Vector4(-1284.172f, -1115.377f, 6.990112f, 85.004921f), new Utils.Vector4(-278.4798f, 6227.705f, 31.69553f, 354.1428f));
+            new BarberShop(31, new Vector3(129.2226f, -1712.456f, 29.25804f), new Utils.Vector4(134.6306f, -1707.976f, 29.29162f, 139.164f), new Utils.Vector4(-278.4798f, 6227.705f, 31.69553f, 354.1428f));
 
             var lines = new List<string>();
 
@@ -1566,6 +1576,144 @@ namespace BCRPServer.Game.Businesses
             #endregion
 
             {
+                Types.BarberShop,
+
+                new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
+                {
+                    { "hair_m_0", 10 },
+                    { "hair_m_1", 10 },
+                    { "hair_m_2", 10 },
+                    { "hair_m_3", 10 },
+                    { "hair_m_4", 10 },
+                    { "hair_m_5", 10 },
+                    { "hair_m_6", 10 },
+                    { "hair_m_7", 10 },
+                    { "hair_m_8", 10 },
+                    { "hair_m_9", 10 },
+                    { "hair_m_10", 10 },
+                    { "hair_m_11", 10 },
+                    { "hair_m_12", 10 },
+                    { "hair_m_13", 10 },
+                    { "hair_m_14", 10 },
+                    { "hair_m_15", 10 },
+                    { "hair_m_16", 10 },
+                    { "hair_m_17", 10 },
+                    { "hair_m_18", 10 },
+                    { "hair_m_19", 10 },
+                    { "hair_m_20", 10 },
+                    { "hair_m_21", 10 },
+                    { "hair_m_22", 10 },
+                    { "hair_m_23", 10 },
+                    { "hair_m_24", 10 },
+                    { "hair_m_25", 10 },
+                    { "hair_m_26", 10 },
+                    { "hair_m_27", 10 },
+                    { "hair_m_28", 10 },
+                    { "hair_m_29", 10 },
+                    { "hair_m_30", 10 },
+                    { "hair_m_31", 10 },
+                    { "hair_m_32", 10 },
+                    { "hair_m_33", 10 },
+                    { "hair_m_34", 10 },
+                    { "hair_m_35", 10 },
+                    { "hair_m_36", 10 },
+                    { "hair_m_37", 10 },
+                    { "hair_m_38", 10 },
+                    { "hair_m_39", 10 },
+                    { "hair_m_40", 10 },
+
+                    { "hair_f_0", 10 },
+                    { "hair_f_1", 10 },
+                    { "hair_f_2", 10 },
+                    { "hair_f_3", 10 },
+                    { "hair_f_4", 10 },
+                    { "hair_f_5", 10 },
+                    { "hair_f_6", 10 },
+                    { "hair_f_7", 10 },
+                    { "hair_f_8", 10 },
+                    { "hair_f_9", 10 },
+                    { "hair_f_10", 10 },
+                    { "hair_f_11", 10 },
+                    { "hair_f_12", 10 },
+                    { "hair_f_13", 10 },
+                    { "hair_f_14", 10 },
+                    { "hair_f_15", 10 },
+                    { "hair_f_16", 10 },
+                    { "hair_f_17", 10 },
+                    { "hair_f_18", 10 },
+                    { "hair_f_19", 10 },
+                    { "hair_f_20", 10 },
+                    { "hair_f_21", 10 },
+                    { "hair_f_22", 10 },
+                    { "hair_f_23", 10 },
+                    { "hair_f_24", 10 },
+                    { "hair_f_25", 10 },
+                    { "hair_f_26", 10 },
+                    { "hair_f_27", 10 },
+                    { "hair_f_28", 10 },
+                    { "hair_f_29", 10 },
+                    { "hair_f_30", 10 },
+                    { "hair_f_31", 10 },
+                    { "hair_f_32", 10 },
+                    { "hair_f_33", 10 },
+                    { "hair_f_34", 10 },
+                    { "hair_f_35", 10 },
+                    { "hair_f_36", 10 },
+                    { "hair_f_37", 10 },
+                    { "hair_f_38", 10 },
+                    { "hair_f_39", 10 },
+                    { "hair_f_40", 10 },
+                    { "hair_f_41", 10 },
+                    { "hair_f_42", 10 },
+
+                    { "beard_255", 10 },
+                    { "beard_0", 10 },
+                    { "beard_1", 10 },
+                    { "beard_2", 10 },
+                    { "beard_3", 10 },
+                    { "beard_4", 10 },
+                    { "beard_5", 10 },
+                    { "beard_6", 10 },
+                    { "beard_7", 10 },
+                    { "beard_8", 10 },
+                    { "beard_9", 10 },
+                    { "beard_10", 10 },
+                    { "beard_11", 10 },
+                    { "beard_12", 10 },
+                    { "beard_13", 10 },
+                    { "beard_14", 10 },
+                    { "beard_15", 10 },
+                    { "beard_16", 10 },
+                    { "beard_17", 10 },
+                    { "beard_18", 10 },
+                    { "beard_19", 10 },
+                    { "beard_20", 10 },
+                    { "beard_21", 10 },
+                    { "beard_22", 10 },
+                    { "beard_23", 10 },
+                    { "beard_24", 10 },
+                    { "beard_25", 10 },
+                    { "beard_26", 10 },
+                    { "beard_27", 10 },
+
+                    { "chest_255", 10 },
+                    { "chest", 10 },
+
+                    { "eyebrows_255", 10 },
+                    { "eyebrows", 10 },
+
+                    { "makeup_255", 10 },
+                    { "makeup", 10 },
+
+                    { "blush_255", 10 },
+                    { "blush", 10 },
+
+                    { "lipstick_255", 10 },
+                    { "lipstick", 10 },
+                } }
+            },
+
+            {
                 Types.Market,
 
                 new MaterialsData(5, 7, 50) { Prices = new Dictionary<string, int>()
@@ -2606,14 +2754,27 @@ namespace BCRPServer.Game.Businesses
             return (matPrice, realPrice);
         }
 
-        public virtual bool BuyItem(PlayerData pData, bool useCash, string itemId, int variation = 0, int amount = 1)
+        public virtual bool BuyItem(PlayerData pData, bool useCash, string itemId)
         {
-            var res = CanBuy(pData, useCash, itemId, amount);
+            var iData = itemId.Split('&');
+
+            if (iData.Length != 3)
+                return false;
+
+            int variation, amount;
+
+            if (!int.TryParse(iData[1], out variation) || !int.TryParse(iData[2], out amount))
+                return false;
+
+            if (variation < 0 || amount <= 0)
+                return false;
+
+            var res = CanBuy(pData, useCash, iData[0], amount);
 
             if (res == null)
                 return false;
 
-            if (!pData.GiveItem(itemId, variation, amount, true, true))
+            if (!pData.GiveItem(iData[0], variation, amount, true, true))
                 return false;
 
             PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
@@ -2666,6 +2827,131 @@ namespace BCRPServer.Game.Businesses
         public ClothesShop3(int ID, Vector3 Position, Utils.Vector4 PositionInteract) : base(ID, Position, new Utils.Vector4(-1447.433f, -243.1756f, 49.82227f, 70f), Types.ClothesShop3, PositionInteract)
         {
 
+        }
+    }
+
+    public class BarberShop : ClothesShop
+    {
+        public BarberShop(int ID, Vector3 Position, Utils.Vector4 PositionInteract, Utils.Vector4 ViewPosition) : base(ID, Position, ViewPosition, Types.BarberShop, PositionInteract)
+        {
+
+        }
+
+        private static Dictionary<string, int> HeadOverlayNums = new Dictionary<string, int>()
+        {
+            { "beard", 1 },
+            { "eyebrows", 2 },
+            { "makeup", 4 },
+            { "blush", 5 },
+            { "lipstick", 8 },
+            { "chest", 10 },
+        };
+
+        public override bool BuyItem(PlayerData pData, bool useCash, string itemId)
+        {
+            Console.WriteLine(itemId);
+
+            var iData = itemId.Split('&');
+
+            if (iData.Length < 2)
+                return false;
+
+            var itemIdData = iData[0].Split('_');
+
+            if (itemIdData.Length < 2)
+                return false;
+
+            var realItemId = itemIdData[0];
+
+            byte variation;
+
+            if (realItemId == "hair")
+            {
+                if (itemIdData.Length != 3 || iData.Length != 4)
+                    return false;
+
+                if ((itemIdData[1] != "m" && itemIdData[1] != "f") || (itemIdData[1] == "m" && !pData.Sex))
+                    return false;
+
+                if (!byte.TryParse(itemIdData[2], out variation))
+                    return false;
+
+                realItemId = iData[0];
+            }
+            else
+            {
+                if (itemIdData.Length != 2)
+                    return false;
+
+                if (realItemId == "beard" || realItemId == "chest")
+                {
+                    if (!pData.Sex)
+                        return false;
+                }
+
+                if (!byte.TryParse(itemIdData[1], out variation))
+                    return false;
+
+                if (variation == 255 || realItemId == "beard")
+                    realItemId = iData[0];
+            }
+
+            var res = CanBuy(pData, useCash, realItemId, 1);
+
+            if (res == null)
+                return false;
+
+            if (itemIdData[0] == "hair")
+            {
+                byte hairOverlayIdx, colour1, colour2;
+
+                if (!byte.TryParse(iData[1], out hairOverlayIdx) || !byte.TryParse(iData[2], out colour1) || !byte.TryParse(iData[3], out colour2))
+                    return false;
+
+                // hair overlay & colours validation
+
+                pData.HairStyle.Id = variation;
+                pData.HairStyle.Overlay = hairOverlayIdx;
+                pData.HairStyle.Color = colour1;
+                pData.HairStyle.Color2 = colour2;
+
+                //MySQL.CharacterHairStyleUpdate(pData.Info);
+            }
+            else
+            {
+                float opacity = 1f;
+                byte colour;
+
+                if (!byte.TryParse(iData[1], out colour))
+                    return false;
+
+                if (itemIdData[0] != "beard" && itemIdData[0] != "chest" && itemIdData[0] != "eyebrows")
+                {
+                    if (iData.Length != 3)
+                        return false;
+
+                    if (!float.TryParse(iData[2], out opacity))
+                        return false;
+                }
+
+                int headOverlayIdx;
+
+                if (!HeadOverlayNums.TryGetValue(itemIdData[0], out headOverlayIdx))
+                    return false;
+
+                var headOverlay = pData.HeadOverlays[headOverlayIdx];
+
+                headOverlay.Color = colour;
+                headOverlay.SecondaryColor = colour;
+                headOverlay.Index = variation;
+                headOverlay.Opacity = opacity;
+
+                //MySQL.CharacterHeadOverlaysUpdate(pData.Info);
+            }
+
+            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+
+            return true;
         }
     }
 
@@ -2734,7 +3020,7 @@ namespace BCRPServer.Game.Businesses
             this.ExitProperties = new Utils.Vector4[] { new Utils.Vector4(PositionInteract.Position.GetFrontOf(PositionInteract.RotationZ, 1.5f), Utils.GetOppositeAngle(PositionInteract.RotationZ)) };
         }
 
-        public override bool BuyItem(PlayerData pData, bool useCash, string itemId, int variation = 0, int amount = 1)
+        public override bool BuyItem(PlayerData pData, bool useCash, string itemId)
         {
             var iData = itemId.Split('_');
 
@@ -2876,8 +3162,13 @@ namespace BCRPServer.Game.Businesses
             return mod;
         }
 
-        public bool BuyItem(PlayerData pData, VehicleData vData, bool useCash, string item)
+        public override bool BuyItem(PlayerData pData, bool useCash, string item)
         {
+            var vData = pData.CurrentTuningVehicle;
+
+            if (vData?.Vehicle?.Exists != true)
+                return false;
+
             var iData = item.Split('_');
 
             if (iData.Length <= 1)

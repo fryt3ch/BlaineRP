@@ -1750,13 +1750,18 @@ namespace BCRPClient.CEF
 
                     if (!iParams.InUse)
                     {
-                        if (Data.Items.GetActionToValidate(type)?.Invoke() is List<string> eDataI)
+                        var vAction = Data.Items.GetActionToValidate(type);
+
+                        if (vAction != null)
                         {
-                            eData.AddRange(eDataI);
-                        }
-                        else
-                        {
-                            return;
+                            if (vAction.Invoke() is List<string> eDataI)
+                            {
+                                eData.AddRange(eDataI);
+                            }
+                            else
+                            {
+                                return;
+                            }
                         }
                     }
                 }

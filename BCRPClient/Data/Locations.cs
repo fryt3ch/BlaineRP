@@ -823,6 +823,10 @@ namespace BCRPClient.Data
                 ClothesShop2,
                 ClothesShop3,
 
+                BagShop,
+
+                BarberShop,
+
                 CarShop1,
                 CarShop2,
                 CarShop3,
@@ -981,6 +985,28 @@ namespace BCRPClient.Data
             public ClothesShop3(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
             {
                 this.Blip = new Blip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
+
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
+            }
+        }
+
+        public class BarberShop : Business
+        {
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
+            {
+                ("csb_anita", "Анита"),
+            };
+
+            public BarberShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BarberShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 

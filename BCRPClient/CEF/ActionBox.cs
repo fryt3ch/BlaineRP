@@ -551,7 +551,7 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK || rType == ReplyTypes.Cancel)
                                     {
-                                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, rType == ReplyTypes.OK))
+                                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, rType == ReplyTypes.OK))
                                         {
                                             var idData = id.Split('_');
 

@@ -96,9 +96,9 @@ namespace BCRPServer.Events.Players
 
             try
             {
-                var hBlend = NAPI.Util.FromJson<HeadBlend>(hBlendData);
+                var hBlend = NAPI.Util.FromJson<Game.Data.Customization.HeadBlend>(hBlendData);
                 var fFeatures = NAPI.Util.FromJson<float[]>(fFeaturesData);
-                var hOverlays = NAPI.Util.FromJson<Dictionary<int, HeadOverlay>>(hOverlaysData);
+                var hOverlays = NAPI.Util.FromJson<Dictionary<int, Game.Data.Customization.HeadOverlay>>(hOverlaysData);
                 var hStyle = NAPI.Util.FromJson<Game.Data.Customization.HairStyle>(hStyleData);
                 var clothes = NAPI.Util.FromJson<string[]>(clothesData);
 
@@ -156,7 +156,7 @@ namespace BCRPServer.Events.Players
         }
 
         #region Validation
-        public static bool IsCustomizationValid(HeadBlend hBlend, Dictionary<int, HeadOverlay> hOverlays, float[] fFeatures, Game.Data.Customization.HairStyle hStyle, byte eyeColor)
+        public static bool IsCustomizationValid(Game.Data.Customization.HeadBlend hBlend, Dictionary<int, Game.Data.Customization.HeadOverlay> hOverlays, float[] fFeatures, Game.Data.Customization.HairStyle hStyle, byte eyeColor)
         {
             if (hBlend.ShapeFirst < 21 || hBlend.ShapeFirst > 45 || hBlend.ShapeFirst == 42 || hBlend.ShapeFirst == 43 || hBlend.ShapeFirst == 44)
                 return false;

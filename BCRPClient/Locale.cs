@@ -950,6 +950,10 @@ namespace BCRPClient
                 { Data.Locations.Business.Types.TuningShop, "Тюнинг" },
 
                 { Data.Locations.Business.Types.WeaponShop, "Оружейный магазин" },
+
+                { Data.Locations.Business.Types.BarberShop, "Салон красоты" },
+
+                { Data.Locations.Business.Types.BagShop, "Магазин сумок/рюкзаков" },
             };
 
             public static Dictionary<Data.Locations.ApartmentsRoot.Types, string> ApartmentsRootNames = new Dictionary<Data.Locations.ApartmentsRoot.Types, string>()
@@ -980,6 +984,61 @@ namespace BCRPClient
             public static string ModDeletionTitle = "Удаление модификации";
 
             public static string ModDeletionText = "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо!\nВыберите способ оплаты, чтобы продолжить.";
+
+            public static string BarberShopLipstickLabel = "Помада";
+            public static string BarberShopBlushLabel = "Румяна";
+            public static string BarberShopMakeupLabel = "Макияж";
+
+            public static Dictionary<string, string> BarberShopNames = new Dictionary<string, string>()
+            {
+                { "lipstick_0", "Нет" },
+                { "lipstick_1", "Средняя матовая" },
+                { "lipstick_2", "Средняя глянцевая" },
+                { "lipstick_3", "Матовая" },
+                { "lipstick_4", "Глянцевая" },
+                { "lipstick_5", "Насыщенная матовая" },
+                { "lipstick_6", "Насыщенная глянцевая" },
+                { "lipstick_7", "Стёртая матовая" },
+                { "lipstick_8", "Стёртая глянцевая" },
+                { "lipstick_9", "Размазанная" },
+                { "lipstick_10", "Гейша" },
+
+                { "blush_0", "Нет" },
+                { "blush_1", "Полностью" },
+                { "blush_2", "По углам" },
+                { "blush_3", "Вокруг" },
+                { "blush_4", "Горизонтально" },
+                { "blush_5", "От глаз" },
+                { "blush_6", "Сердечки" },
+                { "blush_7", "Восьмидесятые" },
+
+                { "makeup_0", "Нет" },
+                { "makeup_1", "Дымчатый чёрный" },
+                { "makeup_2", "Бронзовый" },
+                { "makeup_3", "Мягкий серый" },
+                { "makeup_4", "Ретро" },
+                { "makeup_5", "Естественный" },
+                { "makeup_6", "Кошачьи глазки" },
+                { "makeup_7", "Чола" },
+                { "makeup_8", "Вамп" },
+                { "makeup_9", "Вайнвудский гламур" },
+                { "makeup_10", "Бабблгам" },
+                { "makeup_11", "Аква дрим" },
+                { "makeup_12", "Пин ап" },
+                { "makeup_13", "Фиолетовая страсть" },
+                { "makeup_14", "Дымчатый кошачий глаз" },
+                { "makeup_15", "Тлеющий рубин" },
+                { "makeup_16", "Поп-принцесса" },
+                { "makeup_17", "Гайлайнер" },
+                { "makeup_18", "Кровавые слезы" },
+                { "makeup_19", "Хэви метал" },
+                { "makeup_20", "Скорбь" },
+                { "makeup_21", "Принц тьмы" },
+                { "makeup_22", "Легкая тушь" },
+                { "makeup_23", "Гот" },
+                { "makeup_24", "Панк" },
+                { "makeup_25", "Потекшая тушь" },
+            };
         }
         #endregion
 

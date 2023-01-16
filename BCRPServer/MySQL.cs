@@ -399,10 +399,10 @@ namespace BCRPServer
                             {
                                 var cid = Convert.ToUInt32(reader["ID"]);
 
-                                var hBlend = ((string)reader["HeadBlend"]).DeserializeFromJson<HeadBlend>();
-                                var hOverlays = ((string)reader["HeadOverlays"]).DeserializeFromJson<Dictionary<int, HeadOverlay>>();
+                                var hBlend = ((string)reader["HeadBlend"]).DeserializeFromJson<Game.Data.Customization.HeadBlend>();
+                                var hOverlays = ((string)reader["HeadOverlays"]).DeserializeFromJson<Dictionary<int, Game.Data.Customization.HeadOverlay>>();
                                 var fFeatures = ((string)reader["FaceFeatures"]).DeserializeFromJson<float[]>();
-                                var decors = ((string)reader["Decorations"]).DeserializeFromJson<List<Decoration>>();
+                                var decors = ((string)reader["Decorations"]).DeserializeFromJson<List<int>>();
                                 var hStyle = ((string)reader["HairStyle"]).DeserializeFromJson<Game.Data.Customization.HairStyle>();
                                 var eyeColour = Convert.ToByte(reader["EyeColor"]);
 
@@ -598,10 +598,10 @@ namespace BCRPServer
 
                                     Punishments = punishments,
 
-                                    HeadBlend = (HeadBlend)customizations[cid][0],
-                                    HeadOverlays = (Dictionary<int, HeadOverlay>)customizations[cid][1],
+                                    HeadBlend = (Game.Data.Customization.HeadBlend)customizations[cid][0],
+                                    HeadOverlays = (Dictionary<int, Game.Data.Customization.HeadOverlay>)customizations[cid][1],
                                     FaceFeatures = (float[])customizations[cid][2],
-                                    Decorations = (List<Decoration>)customizations[cid][3],
+                                    Decorations = (List<int>)customizations[cid][3],
                                     HairStyle = (Game.Data.Customization.HairStyle)customizations[cid][4],
                                     EyeColor = (byte)customizations[cid][5],
 
@@ -1244,6 +1244,45 @@ namespace BCRPServer
             CharacterHolsterUpdate(pInfo);
             CharacterBagUpdate(pInfo);
             CharacterArmourUpdate(pInfo);
+        }
+
+        public static void CharacterCustomizationFullUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE customizations SET HeadBlend=@HBlend, HeadOverlays=@HOverlays, FaceFeatures=@FFeatures, EyeColor=@EColor WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@HBlend", pInfo.HeadBlend.SerializeToJson());
+            cmd.Parameters.AddWithValue("@HOverlays", pInfo.HeadOverlays.SerializeToJson());
+            cmd.Parameters.AddWithValue("@FFeatures", pInfo.FaceFeatures.SerializeToJson());
+            cmd.Parameters.AddWithValue("@EColor", pInfo.EyeColor);
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterHeadOverlaysUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE customizations SET HeadOverlays=@HOverlays WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@HOverlays", pInfo.HeadOverlays.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterHairStyleUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE customizations SET HairStyle=@HStyle WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@HStyle", pInfo.HairStyle.SerializeToJson());
+
+            PushQuery(cmd);
         }
 
         public static void CharacterCashUpdate(PlayerData.PlayerInfo pInfo)

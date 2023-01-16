@@ -50,7 +50,7 @@ namespace BCRPClient.CEF
             HeadBlend.ShapeMix = Sex ? 0.5f : 0f; HeadBlend.SkinMix = 0.5f;
 
             EyeColor = 0;
-            HairStyle.ID = 0; HairStyle.Overlay = 0; HairStyle.Color = 0; HairStyle.Color2 = 0;
+            HairStyle.Id = 0; HairStyle.Overlay = 0; HairStyle.Color = 0; HairStyle.Color2 = 0;
 
             for (int i = 0; i < 20; i++)
                 FaceFeatures[i] = 0;
@@ -295,14 +295,12 @@ namespace BCRPClient.CEF
                 int id = (int)args[0];
                 int value = Data.Customization.GetHair(Sex, id);
 
-                if (HairStyle.ID == id)
+                if (HairStyle.Id == id)
                     return;
 
                 Player.LocalPlayer.SetComponentVariation(2, value, 0, 0);
 
-                //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Info, value.ToString());
-
-                HairStyle.ID = id;
+                HairStyle.Id = id;
 
                 if (IsActive)
                     Browser.Window.ExecuteJs("ChCreate.setHairFuzz", Data.Customization.GetDefaultHairOverlayId(Sex, (int)args[0]));
@@ -341,6 +339,13 @@ namespace BCRPClient.CEF
                     HairStyle.Color = value;
 
                 HairStyle.Color2 = value;
+
+                if (Data.Customization.GetHairOverlay(Sex, HairStyle.Overlay) is Data.Customization.HairOverlay overlay)
+                {
+                    Player.LocalPlayer.ClearFacialDecorations();
+
+                    Player.LocalPlayer.SetFacialDecoration(overlay.Collection, overlay.Overlay);
+                }
             });
             #endregion
 

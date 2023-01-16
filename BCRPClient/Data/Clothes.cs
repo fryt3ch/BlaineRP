@@ -557,7 +557,39 @@ namespace BCRPClient.Data
             Player.LocalPlayer.SetComponentVariation(6, GetNudeDrawable(typeof(Data.Items.Shoes), sex), 0, 2);
             Player.LocalPlayer.SetComponentVariation(5, GetNudeDrawable(typeof(Data.Items.Bag), sex), 0, 2);
             Player.LocalPlayer.SetComponentVariation(7, GetNudeDrawable(typeof(Data.Items.Accessory), sex), 0, 2);
-            //Player.LocalPlayer.SetComponentVariation(1, GetNudeDrawable(typeof(Data.Items.Mask), sex), 0, 2);
+
+            Player.LocalPlayer.SetComponentVariation(10, 0, 0, 2);
+            Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);
+        }
+
+        public static Dictionary<int, (int, int)> GetAllRealClothes(Player player)
+        {
+            return new Dictionary<int, (int, int)>()
+                        {
+                            { 1, (player.GetDrawableVariation(1), player.GetTextureVariation(1)) },
+                            { 2, (player.GetDrawableVariation(2), 0) },
+                            { 3, (player.GetDrawableVariation(3), player.GetTextureVariation(3)) },
+                            { 4, (player.GetDrawableVariation(4), player.GetTextureVariation(4)) },
+                            { 5, (player.GetDrawableVariation(5), player.GetTextureVariation(5)) },
+                            { 6, (player.GetDrawableVariation(6), player.GetTextureVariation(6)) },
+                            { 7, (player.GetDrawableVariation(7), player.GetTextureVariation(7)) },
+                            { 8, (player.GetDrawableVariation(8), player.GetTextureVariation(8)) },
+                            { 9, (player.GetDrawableVariation(9), player.GetTextureVariation(9)) },
+                            { 10, (player.GetDrawableVariation(10), player.GetTextureVariation(10)) },
+                            { 11, (player.GetDrawableVariation(11), player.GetTextureVariation(11)) },
+                        };
+        }
+
+        public static Dictionary<int, (int, int)> GetAllRealAccessories(Player player)
+        {
+            return new Dictionary<int, (int, int)>()
+                        {
+                            { 0, (player.GetPropIndex(0), player.GetPropTextureIndex(0)) },
+                            { 1, (player.GetPropIndex(1), player.GetPropTextureIndex(1)) },
+                            { 2, (player.GetPropIndex(2), player.GetPropTextureIndex(2)) },
+                            { 6, (player.GetPropIndex(6), player.GetPropTextureIndex(6)) },
+                            { 7, (player.GetPropIndex(7), player.GetPropTextureIndex(7)) },
+                        };
         }
         #endregion
     }

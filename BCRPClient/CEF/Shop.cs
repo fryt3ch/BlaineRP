@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,8 @@ namespace BCRPClient.CEF
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Shop, Browser.IntTypes.Retail, Browser.IntTypes.Tuning); }
 
         public static bool IsActiveShop { get => Browser.IsActive(Browser.IntTypes.Shop); }
+
+        public static bool IsActiveSalon { get => Browser.IsActive(Browser.IntTypes.Salon); }
 
         public static bool IsActiveRetail { get => Browser.IsActive(Browser.IntTypes.Retail); }
 
@@ -58,6 +62,8 @@ namespace BCRPClient.CEF
             ClothesShop3,
 
             BagShop,
+
+            BarberShop,
 
             CarShop1,
             CarShop2,
@@ -479,6 +485,11 @@ namespace BCRPClient.CEF
 
             Events.Add("Shop::Choose", async (object[] args) =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.BagShop)
                 {
                     bool newItem = false;
@@ -515,6 +526,225 @@ namespace BCRPClient.CEF
 /*                    var variation = CurrentVariation < data.Textures.Length && CurrentVariation >= 0 ? data.Textures[CurrentVariation] : 0;
 
                     Utils.ConsoleOutput($"ID: {CurrentItem}, Var: {CurrentVariation}, Drawable: {data.Drawable}, Texture: {variation}");*/
+                }
+                else if (CurrentType == Types.BarberShop)
+                {
+                    if (args.Length == 1)
+                    {
+                        var hairId = (string)args[0];
+
+                        var hairData = hairId.Split('_');
+
+                        var variation = int.Parse(hairData[1]) - 1;
+
+                        if (hairData[0] == "hair")
+                        {
+                            var curHair = Player.LocalPlayer.GetData<Data.Customization.HairStyle>("TempAppearance::Hair");
+
+                            curHair.Id = variation;
+
+                            Player.LocalPlayer.SetComponentVariation(2, Data.Customization.GetHair(pData.Sex, curHair.Id), 0, 2);
+                        }
+                        else if (hairData[0] == "beard")
+                        {
+                            var curBeard = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Beard");
+
+                            if (variation == 0)
+                                curBeard.Index = 255;
+                            else
+                                curBeard.Index = (byte)(variation - 1);
+
+                            Player.LocalPlayer.SetHeadOverlay(1, curBeard.Index, curBeard.Opacity);
+                        }
+                        else if (hairData[0] == "chest")
+                        {
+                            var curChest = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Chest");
+
+                            curChest.Index = byte.Parse(hairData[1]);
+
+                            if (variation == 0)
+                                curChest.Index = 255;
+                            else
+                                curChest.Index = (byte)(variation - 1);
+
+                            Player.LocalPlayer.SetHeadOverlay(10, curChest.Index, curChest.Opacity);
+                        }
+                        else if (hairData[0] == "eyebrows")
+                        {
+                            var curEyebrows = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Eyebrows");
+
+                            curEyebrows.Index = byte.Parse(hairData[1]);
+
+                            if (variation == 0)
+                                curEyebrows.Index = 255;
+                            else
+                                curEyebrows.Index = (byte)(variation - 1);
+
+                            Player.LocalPlayer.SetHeadOverlay(2, curEyebrows.Index, curEyebrows.Opacity);
+                        }
+                    }
+                    else
+                    {
+                        var type = (string)args[0];
+
+                        if (type == "colour")
+                        {
+                            var colourNum = (byte)(int)args[1];
+
+                            var apType = (string)args[2];
+
+                            if (apType == "hair")
+                            {
+                                var curHair = Player.LocalPlayer.GetData<Data.Customization.HairStyle>("TempAppearance::Hair");
+
+                                if (args.Length > 3 && args[3] is string str)
+                                {
+                                    if (str == "main")
+                                        curHair.Color = colourNum;
+                                    else if (str == "extra")
+                                        curHair.Color2 = colourNum;
+
+                                    Player.LocalPlayer.SetHairColor(curHair.Color, curHair.Color2);
+
+                                    Data.Customization.HairOverlay.ClearAll(Player.LocalPlayer);
+
+                                    if (Data.Customization.GetHairOverlay(pData.Sex, curHair.Overlay) is Data.Customization.HairOverlay overlay)
+                                        overlay.Apply(Player.LocalPlayer);
+                                }
+                            }
+                            else if (apType == "beard")
+                            {
+                                var curBeard = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Beard");
+
+                                curBeard.Color = colourNum;
+                                curBeard.SecondaryColor = curBeard.Color;
+
+                                Player.LocalPlayer.SetHeadOverlayColor(1, 1, curBeard.Color, curBeard.SecondaryColor);
+                            }
+                            else if (apType == "chest")
+                            {
+                                var curChest = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Chest");
+
+                                curChest.Color = colourNum;
+                                curChest.SecondaryColor = curChest.Color;
+
+                                Player.LocalPlayer.SetHeadOverlayColor(10, 1, curChest.Color, curChest.SecondaryColor);
+                            }
+                            else if (apType == "eyebrows")
+                            {
+                                var curEyebrows = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Eyebrows");
+
+                                curEyebrows.Color = colourNum;
+                                curEyebrows.SecondaryColor = curEyebrows.Color;
+
+                                Player.LocalPlayer.SetHeadOverlayColor(2, 1, curEyebrows.Color, curEyebrows.SecondaryColor);
+                            }
+                            else if (apType == "lipstick")
+                            {
+                                var curLipstick = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Lipstick");
+
+                                curLipstick.Color = colourNum;
+                                curLipstick.SecondaryColor = curLipstick.Color;
+
+                                Player.LocalPlayer.SetHeadOverlayColor(8, 2, curLipstick.Color, curLipstick.SecondaryColor);
+                            }
+                            else if (apType == "blush")
+                            {
+                                var curBlush = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Blush");
+
+                                curBlush.Color = colourNum;
+                                curBlush.SecondaryColor = curBlush.Color;
+
+                                Player.LocalPlayer.SetHeadOverlayColor(5, 2, curBlush.Color, curBlush.SecondaryColor);
+                            }
+                        }
+                        else if (type == "opacity")
+                        {
+                            var value = (float)Convert.ToDouble(args[1]);
+
+                            var fullId = (string)args[2];
+
+                            if (fullId == "lipstick")
+                            {
+                                var curLipstick = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Lipstick");
+
+                                curLipstick.Opacity = value;
+
+                                Player.LocalPlayer.SetHeadOverlay(8, curLipstick.Index, curLipstick.Opacity);
+                            }
+                            else if (fullId == "blush")
+                            {
+                                var curBlush = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Blush");
+
+                                curBlush.Opacity = value;
+
+                                Player.LocalPlayer.SetHeadOverlay(5, curBlush.Index, curBlush.Opacity);
+                            }
+                            else if (fullId == "makeup")
+                            {
+                                var curMakeup = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Makeup");
+
+                                curMakeup.Opacity = value;
+
+                                Player.LocalPlayer.SetHeadOverlay(4, curMakeup.Index, curMakeup.Opacity);
+                            }
+                        }
+                        else if (type == "variant")
+                        {
+                            var fullId = (string)args[1];
+
+                            var apData = fullId.Split('_');
+
+                            var variation = int.Parse(apData[1]);
+
+                            if (apData[0] == "hairoverlay")
+                            {
+                                var curHair = Player.LocalPlayer.GetData<Data.Customization.HairStyle>("TempAppearance::Hair");
+
+                                curHair.Overlay = (byte)variation;
+
+                                Data.Customization.HairOverlay.ClearAll(Player.LocalPlayer);
+
+                                if (Data.Customization.GetHairOverlay(pData.Sex, curHair.Overlay) is Data.Customization.HairOverlay overlay)
+                                    overlay.Apply(Player.LocalPlayer);
+                            }
+                            else if (apData[0] == "lipstick")
+                            {
+                                var curLipstick = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Lipstick");
+
+                                if (variation == 0)
+                                    curLipstick.Index = 255;
+                                else
+                                    curLipstick.Index = (byte)(variation - 1);
+
+                                Player.LocalPlayer.SetHeadOverlay(8, curLipstick.Index, curLipstick.Opacity);
+                            }
+                            else if (apData[0] == "blush")
+                            {
+                                var curBlush = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Blush");
+
+                                curBlush.Index = byte.Parse(apData[1]);
+
+                                if (variation == 0)
+                                    curBlush.Index = 255;
+                                else
+                                    curBlush.Index = (byte)(variation - 1);
+
+                                Player.LocalPlayer.SetHeadOverlay(5, curBlush.Index, curBlush.Opacity);
+                            }
+                            else if (apData[0] == "makeup")
+                            {
+                                var curMakeup = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>("TempAppearance::Makeup");
+
+                                if (variation == 0)
+                                    curMakeup.Index = 255;
+                                else
+                                    curMakeup.Index = (byte)(variation - 1);
+
+                                Player.LocalPlayer.SetHeadOverlay(4, curMakeup.Index, curMakeup.Opacity);
+                            }
+                        }
+                    }
                 }
                 else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
                 {
@@ -608,7 +838,7 @@ namespace BCRPClient.CEF
                         if (wt == 0)
                         {
                             wn = -1;
-                            wt = 6; // for bikes, for cars - no sense if it's 6, stock anyway
+                            wt = 6; // for bikes normal behaviour | for cars - no sense if it's 6, stock anyway
                         }
                         else
                         {
@@ -666,6 +896,11 @@ namespace BCRPClient.CEF
                 if (AllowedCameraStates == null)
                     return;
 
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 if (CurrentType >= Types.ClothesShop1 && CurrentType <= Types.ClothesShop3)
                 {
                     if (id == 0 || id == 1)
@@ -680,6 +915,46 @@ namespace BCRPClient.CEF
                         ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.LeftHand));
                     else if (id == 9)
                         ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.RightHand));
+                }
+                else if (CurrentType == Types.BarberShop)
+                {
+                    if (Player.LocalPlayer.HasData("TempAppearance::Chest"))
+                    {
+                        if (id == 3)
+                        {
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.Body));
+
+                            if (RealClothes != null)
+                            {
+                                Player.LocalPlayer.SetComponentVariation(3, 15, 0, 2);
+                                Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
+                                Player.LocalPlayer.SetComponentVariation(7, 0, 0, 2);
+                                Player.LocalPlayer.SetComponentVariation(8, 15, 0, 2);
+                                Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
+                                Player.LocalPlayer.SetComponentVariation(10, 0, 0, 2);
+                                Player.LocalPlayer.SetComponentVariation(11, 15, 0, 2);
+                            }
+                        }
+                        else
+                        {
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.Head));
+
+                            if (RealClothes != null)
+                            {
+                                Player.LocalPlayer.SetComponentVariation(3, RealClothes[3].Item1, RealClothes[3].Item2, 2);
+                                Player.LocalPlayer.SetComponentVariation(5, RealClothes[5].Item1, RealClothes[5].Item2, 2);
+                                Player.LocalPlayer.SetComponentVariation(7, RealClothes[7].Item1, RealClothes[7].Item2, 2);
+                                Player.LocalPlayer.SetComponentVariation(8, RealClothes[8].Item1, RealClothes[8].Item2, 2);
+                                Player.LocalPlayer.SetComponentVariation(9, RealClothes[9].Item1, RealClothes[9].Item2, 2);
+                                Player.LocalPlayer.SetComponentVariation(10, RealClothes[10].Item1, RealClothes[10].Item2, 2);
+                                Player.LocalPlayer.SetComponentVariation(11, RealClothes[11].Item1, RealClothes[11].Item2, 2);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.Head));
+                    }
                 }
             });
 
@@ -746,7 +1021,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{rgb1.Red}_{rgb1.Green}_{rgb1.Blue}_{rgb2.Red}_{rgb2.Green}_{rgb1.Blue}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                             {
@@ -763,7 +1038,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{rgb.Red}_{rgb.Green}_{rgb.Blue}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                             {
@@ -777,7 +1052,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{rgb.Red}_{rgb.Green}_{rgb.Blue}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                             {
@@ -794,7 +1069,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{p}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "pearl", p);
@@ -809,7 +1084,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{p}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "wcolour", p);
@@ -819,7 +1094,7 @@ namespace BCRPClient.CEF
                     {
                         id += $"_{TempVehicle.GetColourType()}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
@@ -829,7 +1104,7 @@ namespace BCRPClient.CEF
                     {
                         id += $"_{(TempVehicle.IsToggleModOn(18) ? 1 : 0)}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
@@ -839,7 +1114,7 @@ namespace BCRPClient.CEF
                     {
                         id += $"_{(TempVehicle.GetXenonColour() ?? -2) + 2}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
@@ -849,7 +1124,7 @@ namespace BCRPClient.CEF
                     {
                         id += $"_{TempVehicle.GetWindowTint()}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
@@ -872,7 +1147,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{t}_{n}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
@@ -882,7 +1157,7 @@ namespace BCRPClient.CEF
                     {
                         id += $"_{CurrentVariation}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
 
                         }
@@ -896,7 +1171,7 @@ namespace BCRPClient.CEF
 
                         id += $"_{TempVehicle.GetMod(slots[0]) + 1}";
 
-                        if ((bool)await Events.CallRemoteProc("TuningShop::Buy", id, useCash))
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
                             if (IsActiveTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
@@ -913,7 +1188,50 @@ namespace BCRPClient.CEF
                     if (vehData == null)
                         return;
 
-                    Events.CallRemote("Shop::Buy", $"{vehData.ID}_{CurrentColor1.Red}_{CurrentColor1.Green}_{CurrentColor1.Blue}_{CurrentColor2.Red}_{CurrentColor2.Green}_{CurrentColor2.Blue}", 0, 1, useCash);
+                    if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{vehData.ID}_{CurrentColor1.Red}_{CurrentColor1.Green}_{CurrentColor1.Blue}_{CurrentColor2.Red}_{CurrentColor2.Green}_{CurrentColor2.Blue}", useCash))
+                    {
+
+                    }
+                }
+                else if (CurrentType == Types.BarberShop)
+                {
+                    var itemMainId = (string)args[1];
+
+                    var itemMainIdBase = itemMainId;
+                    object boughtItemParams = null;
+
+                    if (itemMainId == "hair")
+                    {
+                        var curHair = Player.LocalPlayer.GetData<Data.Customization.HairStyle>("TempAppearance::Hair");
+
+                        itemMainId = $"{itemMainId}_{(pData.Sex ? "m" : "f")}_{curHair.Id}&{curHair.Overlay}&{curHair.Color}&{curHair.Color2}";
+
+                        boughtItemParams = new object[] { $"hairoverlay_{curHair.Overlay}", $"hair_{curHair.Id + 1}", curHair.Color, curHair.Color2 };
+                    }
+                    else if (itemMainId == "beard" || itemMainId == "chest" || itemMainId == "eyebrows")
+                    {
+                        var curBeard = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>($"TempAppearance::{char.ToUpperInvariant(itemMainId[0]) + itemMainId.Substring(1)}");
+
+                        itemMainId = $"{itemMainId}_{curBeard.Index}&{curBeard.Color}";
+
+                        boughtItemParams = new object[] { curBeard.Color, $"{itemMainIdBase}_{(curBeard.Index == 255 ? 1 : curBeard.Index + 2)}" };
+                    }
+                    else
+                    {
+                        var curBeard = Player.LocalPlayer.GetData<Data.Customization.HeadOverlay>($"TempAppearance::{char.ToUpperInvariant(itemMainId[0]) + itemMainId.Substring(1)}");
+
+                        itemMainId = $"{itemMainId}_{curBeard.Index}&{curBeard.Color}&{curBeard.Opacity}";
+
+                        boughtItemParams = new object[] { itemMainIdBase == "makeup" ? -1 : curBeard.Color, $"{itemMainIdBase}_{(curBeard.Index == 255 ? 0 : curBeard.Index + 1)}", curBeard.Opacity };
+                    }
+
+                    if ((bool)await Events.CallRemoteProc("Shop::Buy", itemMainId, useCash))
+                    {
+                        if (IsActiveSalon)
+                        {
+                            CEF.Browser.Window.ExecuteJs("Salon.buyVariant", itemMainIdBase, boughtItemParams);
+                        }
+                    }
                 }
                 else
                 {
@@ -930,7 +1248,10 @@ namespace BCRPClient.CEF
                     if (itemId == null)
                         return;
 
-                    Events.CallRemote("Shop::Buy", itemId, variation, amount, useCash);
+                    if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{itemId}&{variation}&{amount}", useCash))
+                    {
+
+                    }
                 }
             });
         }
@@ -998,7 +1319,80 @@ namespace BCRPClient.CEF
                         ChangeView(++CurrentCameraStateNum);
                     }));
 
-                    if (type >= Types.ClothesShop1 && type <= Types.BagShop)
+                    if (type == Types.BarberShop)
+                    {
+                        var prices = GetPrices(type);
+
+                        await Browser.Render(Browser.IntTypes.Salon, true);
+
+                        var shopData = new List<object>();
+
+                        var hairStyle = ((JObject)args[0]).ToObject<Data.Customization.HairStyle>();
+
+                        var beard = ((JObject)args[1]).ToObject<Data.Customization.HeadOverlay>();
+                        var chestHair = ((JObject)args[2]).ToObject<Data.Customization.HeadOverlay>();
+
+                        var eyebrows = ((JObject)args[3]).ToObject<Data.Customization.HeadOverlay>();
+                        var lipstick = ((JObject)args[4]).ToObject<Data.Customization.HeadOverlay>();
+                        var blush = ((JObject)args[5]).ToObject<Data.Customization.HeadOverlay>();
+                        var makeup = ((JObject)args[6]).ToObject<Data.Customization.HeadOverlay>();
+
+                        if (pData.Sex)
+                        {
+                            AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body };
+
+                            shopData.Add(new object[] { "hair", prices.Where(x => x.Key.StartsWith("hair_m")).Select(x => { var hairNum = int.Parse(x.Key.Replace("hair_m_", "")); return new object[] { hairNum + 1, x.Value, Data.Customization.GetDefaultHairOverlayId(true, hairNum) }; }), new object[] { $"hairoverlay_{hairStyle.Overlay}", $"hair_{hairStyle.Id + 1}", hairStyle.Color, hairStyle.Color2 }, Enumerable.Range(0, Data.Customization.MaleHairOverlays.Count) });
+                        }
+                        else
+                        {
+                            AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head };
+
+                            shopData.Add(new object[] { "hair", prices.Where(x => x.Key.StartsWith("hair_f")).Select(x => { var hairNum = int.Parse(x.Key.Replace("hair_f_", "")); return new object[] { hairNum + 1, x.Value, Data.Customization.GetDefaultHairOverlayId(false, hairNum) }; }), new object[] { $"hairoverlay_{hairStyle.Overlay}", $"hair_{hairStyle.Id + 1}", hairStyle.Color, hairStyle.Color2 }, Enumerable.Range(0, Data.Customization.FemaleHairOverlays.Count) });
+                        }
+
+                        shopData.Add(new object[] { "eyebrows", Enumerable.Range(1, 33 + 1).Select(x => new object[] { x, x == 1 ? prices["eyebrows_255"] : prices["eyebrows"] }), new object[] { eyebrows.Color, $"eyebrows_{(eyebrows.Index == 255 ? 1 : eyebrows.Index + 2)}" } });
+
+                        if (pData.Sex)
+                        {
+                            shopData.Add(new object[] { "beard", prices.Where(x => x.Key.StartsWith("beard")).Select(x => { var bNum = int.Parse(x.Key.Replace("beard_", "")); return new object[] { bNum == 255 ? 1 : bNum + 2, x.Value }; }), new object[] { beard.Color, $"beard_{(beard.Index == 255 ? 1 : beard.Index + 2)}" } });
+
+                            shopData.Add(new object[] { "chest", Enumerable.Range(1, 16 + 1).Select(x => new object[] { x, x == 1 ? prices["chest_255"] : prices["chest"] }), new object[] { chestHair.Color, $"chest_{(chestHair.Index == 255 ? 1 : chestHair.Index + 2)}" } });
+
+                            Player.LocalPlayer.SetData("TempAppearance::Beard", beard);
+                            Player.LocalPlayer.SetData("TempAppearance::Chest", chestHair);
+                        }
+
+                        RealClothes = Data.Clothes.GetAllRealClothes(Player.LocalPlayer);
+
+                        RealAccessories = Data.Clothes.GetAllRealAccessories(Player.LocalPlayer);
+
+                        Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);
+                        Player.LocalPlayer.ClearProp(0);
+                        Player.LocalPlayer.ClearProp(1);
+
+                        Player.LocalPlayer.SetData("TempAppearance::Hair", hairStyle);
+                        Player.LocalPlayer.SetData("TempAppearance::Eyebrows", eyebrows);
+                        Player.LocalPlayer.SetData("TempAppearance::Lipstick", lipstick);
+                        Player.LocalPlayer.SetData("TempAppearance::Blush", blush);
+                        Player.LocalPlayer.SetData("TempAppearance::Makeup", makeup);
+
+                        var subData = new List<object[]>();
+
+                        subData.Add(new object[] { "lipstick", Locale.Shop.BarberShopLipstickLabel, Enumerable.Range(0, 9 + 2).Select(x => new object[] { x == 1 ? prices["lipstick_255"] : prices["lipstick"], Locale.Shop.BarberShopNames.GetValueOrDefault($"lipstick_{x}") ?? $"lipstick_{x}" }), new object[] { lipstick.Color, $"lipstick_{(lipstick.Index == 255 ? 0 : lipstick.Index + 1)}", lipstick.Opacity } });
+
+                        subData.Add(new object[] { "blush", Locale.Shop.BarberShopBlushLabel, Enumerable.Range(0, 6 + 28).Select(x => new object[] { x == 1 ? prices["blush_255"] : prices["blush"], Locale.Shop.BarberShopNames.GetValueOrDefault($"blush_{x}") ?? $"blush_{x}" }), new object[] { blush.Color, $"blush_{(blush.Index == 255 ? 0 : blush.Index + 1)}", blush.Opacity } });
+
+                        subData.Add(new object[] { "makeup", Locale.Shop.BarberShopMakeupLabel, Enumerable.Range(0, 74 + 22).Select(x => new object[] { x == 1 ? prices["makeup_255"] : prices["makeup"], Locale.Shop.BarberShopNames.GetValueOrDefault($"makeup_{x}") ?? $"makeup_{x}" }), new object[] { -1, $"makeup_{(makeup.Index == 255 ? 0 : makeup.Index + 1)}", makeup.Opacity } });
+
+                        shopData.Add(subData);
+
+                        Browser.Window.ExecuteJs("Salon.draw", new object[] { shopData });
+
+                        Browser.Switch(Browser.IntTypes.Salon, true);
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+                    }
+                    else if (type >= Types.ClothesShop1 && type <= Types.BagShop)
                     {
                         await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -1010,29 +1404,9 @@ namespace BCRPClient.CEF
 
                         AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
 
-                        RealClothes = new Dictionary<int, (int, int)>()
-                        {
-                            { 1, (Player.LocalPlayer.GetDrawableVariation(1), Player.LocalPlayer.GetTextureVariation(1)) },
-                            { 2, (Player.LocalPlayer.GetDrawableVariation(2), 0) },
-                            { 3, (Player.LocalPlayer.GetDrawableVariation(3), Player.LocalPlayer.GetTextureVariation(3)) },
-                            { 4, (Player.LocalPlayer.GetDrawableVariation(4), Player.LocalPlayer.GetTextureVariation(4)) },
-                            { 5, (Player.LocalPlayer.GetDrawableVariation(5), Player.LocalPlayer.GetTextureVariation(5)) },
-                            { 6, (Player.LocalPlayer.GetDrawableVariation(6), Player.LocalPlayer.GetTextureVariation(6)) },
-                            { 7, (Player.LocalPlayer.GetDrawableVariation(7), Player.LocalPlayer.GetTextureVariation(7)) },
-                            { 8, (Player.LocalPlayer.GetDrawableVariation(8), Player.LocalPlayer.GetTextureVariation(8)) },
-                            { 9, (Player.LocalPlayer.GetDrawableVariation(9), Player.LocalPlayer.GetTextureVariation(9)) },
-                            { 10, (Player.LocalPlayer.GetDrawableVariation(10), Player.LocalPlayer.GetTextureVariation(10)) },
-                            { 11, (Player.LocalPlayer.GetDrawableVariation(11), Player.LocalPlayer.GetTextureVariation(11)) },
-                        };
+                        RealClothes = Data.Clothes.GetAllRealClothes(Player.LocalPlayer);
 
-                        RealAccessories = new Dictionary<int, (int, int)>()
-                        {
-                            { 0, (Player.LocalPlayer.GetPropIndex(0), Player.LocalPlayer.GetPropTextureIndex(0)) },
-                            { 1, (Player.LocalPlayer.GetPropIndex(1), Player.LocalPlayer.GetPropTextureIndex(1)) },
-                            { 2, (Player.LocalPlayer.GetPropIndex(2), Player.LocalPlayer.GetPropTextureIndex(2)) },
-                            { 6, (Player.LocalPlayer.GetPropIndex(6), Player.LocalPlayer.GetPropTextureIndex(6)) },
-                            { 7, (Player.LocalPlayer.GetPropIndex(7), Player.LocalPlayer.GetPropTextureIndex(7)) },
-                        };
+                        RealAccessories = Data.Clothes.GetAllRealAccessories(Player.LocalPlayer);
 
                         Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
                         Player.LocalPlayer.SetComponentVariation(9, 0, 0, 2);
@@ -1354,7 +1728,7 @@ namespace BCRPClient.CEF
             }
             else
             {
-                Sync.Players.CloseAll(true);
+                //Sync.Players.CloseAll(true);
 
                 var prices = GetPrices(type);
 
@@ -1406,39 +1780,47 @@ namespace BCRPClient.CEF
             {
                 Utils.CancelPendingTask("Shop::Loading");
 
+                if (RealClothes != null)
+                {
+                    foreach (var x in RealClothes)
+                    {
+                        Player.LocalPlayer.SetComponentVariation(x.Key, x.Value.Item1, x.Value.Item2, 2);
+
+                        if (x.Key == 2)
+                            pData.HairOverlay?.Apply(Player.LocalPlayer);
+                    }
+
+                    RealClothes = null;
+                }
+
+                if (RealAccessories != null)
+                {
+                    Player.LocalPlayer.ClearAllProps();
+
+                    foreach (var x in RealAccessories)
+                    {
+                        Player.LocalPlayer.SetPropIndex(x.Key, x.Value.Item1, x.Value.Item2, true);
+                    }
+
+                    RealAccessories = null;
+                }
+
                 if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Top");
                     Player.LocalPlayer.ResetData("TempClothes::Under");
                     Player.LocalPlayer.ResetData("TempClothes::Gloves");
                     Player.LocalPlayer.ResetData("TempClothes::Hat");
-
-                    if (RealClothes != null)
-                    {
-                        foreach (var x in RealClothes)
-                        {
-                            Player.LocalPlayer.SetComponentVariation(x.Key, x.Value.Item1, x.Value.Item2, 2);
-
-                            if (x.Key == 2)
-                            {
-                                pData.HairOverlay = pData.HairOverlay;
-                            }
-                        }
-
-                        RealClothes = null;
-                    }
-
-                    if (RealAccessories != null)
-                    {
-                        Player.LocalPlayer.ClearAllProps();
-
-                        foreach (var x in RealAccessories)
-                        {
-                            Player.LocalPlayer.SetPropIndex(x.Key, x.Value.Item1, x.Value.Item2, true);
-                        }
-
-                        RealAccessories = null;
-                    }
+                }
+                else if (CurrentType == Types.BarberShop)
+                {
+                    Player.LocalPlayer.ResetData("TempAppearance::Hair");
+                    Player.LocalPlayer.ResetData("TempAppearance::Beard");
+                    Player.LocalPlayer.ResetData("TempAppearance::Chest");
+                    Player.LocalPlayer.ResetData("TempAppearance::Eyebrows");
+                    Player.LocalPlayer.ResetData("TempAppearance::Lipstick");
+                    Player.LocalPlayer.ResetData("TempAppearance::Blush");
+                    Player.LocalPlayer.ResetData("TempAppearance::Makeup");
                 }
                 else if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
                 {
@@ -1457,13 +1839,14 @@ namespace BCRPClient.CEF
 
                 AllowedCameraStates = null;
 
-                if (Browser.IsRendered(Browser.IntTypes.Shop) || Browser.IsRendered(Browser.IntTypes.Tuning))
+                if (Browser.IsRendered(Browser.IntTypes.Shop) || Browser.IsRendered(Browser.IntTypes.Tuning) || Browser.IsRendered(Browser.IntTypes.Salon))
                 {
                     Browser.Render(Browser.IntTypes.Shop, false);
                     Browser.Render(Browser.IntTypes.Tuning, false);
+                    Browser.Render(Browser.IntTypes.Salon, false);
 
-                    while (Additional.SkyCamera.IsFadedOut)
-                        await RAGE.Game.Invoker.WaitAsync(250);
+/*                    while (Additional.SkyCamera.IsFadedOut)
+                        await RAGE.Game.Invoker.WaitAsync(250);*/
 
                     Player.LocalPlayer.SetVisible(true, false);
 

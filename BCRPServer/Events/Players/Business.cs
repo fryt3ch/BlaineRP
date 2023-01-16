@@ -303,7 +303,14 @@ namespace BCRPServer.Events.Players
 
                 player.Teleport(enterable.EnterProperties.Position, false, Utils.GetPrivateDimension(player), enterable.EnterProperties.RotationZ, true);
 
-                player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.EnterProperties.RotationZ);
+                if (business.Type == Game.Businesses.Business.Types.BarberShop)
+                {
+                    player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.EnterProperties.RotationZ, pData.HairStyle, pData.HeadOverlays[1], pData.HeadOverlays[10], pData.HeadOverlays[2], pData.HeadOverlays[8], pData.HeadOverlays[5], pData.HeadOverlays[4]);
+                }
+                else
+                {
+                    player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, enterable.EnterProperties.RotationZ);
+                }
 
                 pData.CurrentBusiness = business;
             }
@@ -335,8 +342,8 @@ namespace BCRPServer.Events.Players
             Sync.Players.ExitFromBuiness(pData, true);
         }
 
-        [RemoteProc("TuningShop::Buy")]
-        private static bool TuningShopBuy(Player player, string item, bool useCash)
+        [RemoteProc("Shop::Buy")]
+        public static bool ShopBuy(Player player, string id, bool useCash)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -345,43 +352,17 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (item == null)
+            if (id == null)
                 return false;
-
-            var ts = pData.CurrentBusiness as Game.Businesses.TuningShop;
-
-            if (ts == null)
-                return false;
-
-            var vData = pData.CurrentTuningVehicle;
-
-            if (vData == null)
-                return false;
-
-            var res = ts.BuyItem(pData, vData, useCash, item);
-
-            return res;
-        }
-
-        [RemoteEvent("Shop::Buy")]
-        public static void ShopBuy(Player player, string id, int variation, int amount, bool useCash)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (amount <= 0 || variation < 0 || id == null)
-                return;
 
             var shop = pData.CurrentBusiness as Game.Businesses.Shop;
 
             if (shop == null)
-                return;
+                return false;
 
-            var res = shop.BuyItem(pData, useCash, id, variation, amount);
+            var res = shop.BuyItem(pData, useCash, id);
+
+            return res;
         }
 
         [RemoteEvent("GasStation::Enter")]

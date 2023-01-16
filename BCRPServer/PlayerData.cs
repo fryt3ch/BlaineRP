@@ -231,13 +231,13 @@ namespace BCRPServer
             public List<Game.Items.Gift> Gifts { get; set; }
 
 
-            public HeadBlend HeadBlend { get; set; }
+            public Game.Data.Customization.HeadBlend HeadBlend { get; set; }
 
-            public Dictionary<int, HeadOverlay> HeadOverlays { get; set; }
+            public Dictionary<int, Game.Data.Customization.HeadOverlay> HeadOverlays { get; set; }
 
             public float[] FaceFeatures { get; set; }
 
-            public List<Decoration> Decorations { get; set; }
+            public List<int> Decorations { get; set; }
 
             public Game.Data.Customization.HairStyle HairStyle { get; set; }
 
@@ -678,13 +678,13 @@ namespace BCRPServer
         public int BusinessesSlots => Settings.MAX_BUSINESSES - OwnedBusinesses.Count;
 
         #region Customization
-        public HeadBlend HeadBlend { get => Info.HeadBlend; set => Info.HeadBlend = value; }
+        public Game.Data.Customization.HeadBlend HeadBlend { get => Info.HeadBlend; set => Info.HeadBlend = value; }
 
-        public Dictionary<int, HeadOverlay> HeadOverlays { get => Info.HeadOverlays; set => Info.HeadOverlays = value; }
+        public Dictionary<int, Game.Data.Customization.HeadOverlay> HeadOverlays { get => Info.HeadOverlays; set => Info.HeadOverlays = value; }
 
         public float[] FaceFeatures { get => Info.FaceFeatures; set => Info.FaceFeatures = value; }
 
-        public List<Decoration> Decorations { get => Info.Decorations; set => Info.Decorations = value; }
+        public List<int> Decorations { get => Info.Decorations; set => Info.Decorations = value; }
 
         public Game.Data.Customization.HairStyle HairStyle { get => Info.HairStyle; set => Info.HairStyle = value; }
 
@@ -1060,9 +1060,8 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public FractionTypes Fraction { get => Info.Fraction; set { Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
 
-        /// <summary>В маске ли игрок?</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool Masked => Player.GetClothesDrawable(1) > 0;
+/*        /// <summary>В маске ли игрок?</summary>
+        public Game.Items.Mask WearedMask => Accessories[1] as Game.Items.Mask;*/
 
         /// <summary>Без сознания ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -1220,7 +1219,7 @@ namespace BCRPServer
             Info.PlayerData = this;
         }
 
-        public PlayerData(Player Player, string name, string surname, int age, bool sex, HeadBlend hBlend, Dictionary<int, HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
+        public PlayerData(Player Player, string name, string surname, int age, bool sex, Game.Data.Customization.HeadBlend hBlend, Dictionary<int, Game.Data.Customization.HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
         {
             Info = new PlayerInfo();
 
@@ -1257,7 +1256,7 @@ namespace BCRPServer
             FaceFeatures = faceFeatures;
             EyeColor = eyeColor;
             HairStyle = hStyle;
-            Decorations = new List<Decoration>();
+            Decorations = new List<int>();
 
             Items = new Game.Items.Item[20];
             Clothes = clothes;
@@ -1409,11 +1408,19 @@ namespace BCRPServer
         {
             var hairStyle = HairStyle;
 
-            Player.SetCustomization(Sex, HeadBlend, EyeColor, hairStyle.Color, hairStyle.Color2, FaceFeatures, HeadOverlays, Decorations.ToArray());
+            Player.SetCustomization(Sex, HeadBlend.RageHeadBlend, EyeColor, hairStyle.Color, hairStyle.Color2, FaceFeatures, HeadOverlays.ToDictionary(x => x.Key, x => x.Value.RageHeadOverlay), Game.Data.Customization.EmptyDecorations);
 
-            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, hairStyle.ID), 0);
+            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, hairStyle.Id), 0);
 
-            Player.SetSharedData("Customization::HairOverlay", hairStyle.Overlay);
+            if (hairStyle.Overlay > 0)
+                Player.SetSharedData("Customization::HairOverlay", hairStyle.Overlay);
+            else
+                Player.ResetSharedData("Customization::HairOverlay");
+
+            if (Decorations.Count > 0)
+                Player.SetSharedData("DCR", Decorations);
+            else
+                Player.ResetSharedData("DCR");
         }
 
         public bool CanUseInventory(bool notifyIfNot = true)

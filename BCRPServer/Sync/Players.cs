@@ -62,6 +62,8 @@ namespace BCRPServer.Sync
 
                 if (business is Game.Businesses.TuningShop ts)
                 {
+                    player.TriggerEvent("Shop::Close::Server");
+
                     var veh = pData.CurrentTuningVehicle;
 
                     if (veh?.Vehicle?.Exists != true)
@@ -95,8 +97,6 @@ namespace BCRPServer.Sync
                     }
 
                     pData.CurrentTuningVehicle = null;
-
-                    player.TriggerEvent("Shop::Close::Server");
                 }
                 else
                 {
@@ -104,6 +104,9 @@ namespace BCRPServer.Sync
                         player.Teleport(t.Position, true, Utils.Dimensions.Main, t.RotationZ, true);
 
                     player.TriggerEvent("Shop::Close::Server");
+
+                    if (business.Type == Game.Businesses.Business.Types.BarberShop)
+                        pData.UpdateCustomization();
                 }
             }
             else
