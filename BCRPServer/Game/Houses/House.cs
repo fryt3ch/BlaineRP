@@ -642,9 +642,11 @@ namespace BCRPServer.Game.Houses
         {
             if (teleport)
             {
+                var root = Root;
+
                 var pos = PositionParams;
 
-                Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, root.Dimension, pos.RotationZ, true, players);
             }
             else
             {
@@ -660,7 +662,7 @@ namespace BCRPServer.Game.Houses
 
                 var pos = root.EnterParams;
 
-                Utils.TeleportPlayers(pos.Position, false, root.Dimension, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
             }
             else
             {

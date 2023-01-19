@@ -107,6 +107,11 @@ namespace BCRPClient
                     { "quest", "Квестодатель" },
 
                     { "seller", "Продавец" },
+                    { "vendor", "Торговец" },
+                    { "tatseller", "Тату-мастер" },
+
+                    { "fishbuyer", "Скупщик рыбы" },
+
                     { "bank", "Работник банка" },
                     { "vpound", "Работник штрафстоянки" },
                     { "vrent", "Арендодатель транспорта" },
@@ -178,6 +183,8 @@ namespace BCRPClient
 
                     public static string Load = "Зарядить";
                     public static string Unload = "Разрядить";
+
+                    public static string Eat = "Употребить";
 
                     public static Dictionary<Sync.WeaponSystem.Weapon.ComponentTypes, string> WeaponComponentsTakeOffStrings = new Dictionary<Sync.WeaponSystem.Weapon.ComponentTypes, string>()
                     {
@@ -937,6 +944,8 @@ namespace BCRPClient
                 { Data.Locations.Business.Types.ClothesShop2, "Магазин премиальной одежды" },
                 { Data.Locations.Business.Types.ClothesShop3, "Магазин брендовой одежды" },
 
+                { Data.Locations.Business.Types.JewelleryShop, "Ювелирный салон" },
+
                 { Data.Locations.Business.Types.Market, "Магазин 24/7" },
 
                 { Data.Locations.Business.Types.GasStation, "АЗС" },
@@ -953,7 +962,10 @@ namespace BCRPClient
 
                 { Data.Locations.Business.Types.BarberShop, "Салон красоты" },
 
-                { Data.Locations.Business.Types.BagShop, "Магазин сумок/рюкзаков" },
+                { Data.Locations.Business.Types.TattooShop, "Тату-салон" },
+
+                { Data.Locations.Business.Types.BagShop, "Торговец сумок и рюкзаков" },
+                { Data.Locations.Business.Types.MaskShop, "Торговец масок" },
             };
 
             public static Dictionary<Data.Locations.ApartmentsRoot.Types, string> ApartmentsRootNames = new Dictionary<Data.Locations.ApartmentsRoot.Types, string>()

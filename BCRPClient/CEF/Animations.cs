@@ -134,7 +134,10 @@ namespace BCRPClient.CEF
 
             GameEvents.Render -= CEF.Animations.Render;
 
-            KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();
+            var cancelAnimKb = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+            if (!cancelAnimKb.IsDisabled)
+                KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();
 
             if (Queue.Count > 0)
             {

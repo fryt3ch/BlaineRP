@@ -91,6 +91,18 @@ namespace BCRPClient.Data
 
         public NPC(string Id, string Name, Types Type, string Model, Vector3 Position, float Heading, uint Dimension = 0) : this(Id, Name, Type, RAGE.Util.Joaat.Hash(Model), Position, Heading, Dimension) { }
 
+        public bool SellerNpcRequestEnterBusiness()
+        {
+            if (NPC.CurrentNPC.Data is Data.Locations.Business businessData)
+            {
+                Events.CallRemote("Business::Enter", businessData.Id);
+
+                return true;
+            }
+
+            return false;
+        }
+
         public static async System.Threading.Tasks.Task OnPedStreamIn(Ped ped)
         {
             var data = GetData(ped);
@@ -225,9 +237,9 @@ namespace BCRPClient.Data
             if (dialogue == null)
                 return;
 
-            dialogue.Show(this, null, textArgs);
-
             CurrentDialogue = dialogue;
+
+            dialogue.Show(this, null, textArgs);
         }
     }
 
@@ -400,7 +412,7 @@ namespace BCRPClient.Data
                     new Button("[Оплатить]", async () =>
                     {
                         var vid = NPC.CurrentNPC?.TempDialogueData as uint?;
-                        
+
                         if (vid == null || NPC.LastSent.IsSpam(500, false, false))
                         {
                             return;
@@ -538,17 +550,51 @@ namespace BCRPClient.Data
             #endregion
 
             {
+                "seller_bags_preprocess",
+
+                new Dialogue(null, (args) =>
+                {
+                    if (NPC.CurrentNPC == null)
+                        return;
+
+                    if (Player.LocalPlayer.GetDrawableVariation(5) > 0)
+                        NPC.CurrentNPC.ShowDialogue("seller_bags_b_0");
+                    else
+                        NPC.CurrentNPC.ShowDialogue("seller_bags_n_0");
+
+                })
+            },
+
+            {
+                "seller_bags_b_0",
+
+                new Dialogue("Привет, вижу у вас уже есть сумка, не у меня покупали случаем? Но не думайте, скидку я никому не даю!", null,
+                    Button.DefaultShopEnterButton,
+                    Button.DefaultExitButton
+                    )
+            },
+
+            {
+                "seller_bags_n_0",
+
+                new Dialogue("Приветствую, вижу, вам чего-то не хватает... Как насчёт новенькой сумочки или рюкзака?", null,
+                    Button.DefaultShopEnterButton,
+                    Button.DefaultExitButton
+                    )
+            },
+
+            {
                 "seller_clothes_greeting_0",
                 
                 new Dialogue("Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!",
                     
                     null,
 
-                    new Button("[Смотреть товары]", () => { Events.CallRemote("Business::Enter", (((Data.Locations.Business)NPC.CurrentNPC.Data).Id)); }, true),
+                    Button.DefaultShopEnterButton,
 
                     new Button("Есть ли работа для меня?", () => { }, true),
 
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
+                    Button.DefaultExitButton
 
                     )
             },
@@ -620,14 +666,15 @@ namespace BCRPClient.Data
 
         public class Button
         {
+            public static Button DefaultExitButton { get; private set; } = new Button("[Выйти]", CloseCurrentDialogue, false);
+
+            public static Button DefaultShopEnterButton { get; private set; } = new Button("[Перейти к товарам]", () => NPC.CurrentNPC?.SellerNpcRequestEnterBusiness(), true);
+
             /// <summary>Красная ли кнопка?</summary>
             public bool IsRed { get; set; }
 
             /// <summary>Текст</summary>
             public string Text { get; set; }
-
-            /// <summary>ID кнопки</summary>
-            public int Id { get; set; }
 
             public Action Action { get; set; }
 
@@ -666,9 +713,6 @@ namespace BCRPClient.Data
             this.Text = Text;
 
             this.Buttons = Buttons.ToList();
-
-            for (int i = 0; i < Buttons.Length; i++)
-                this.Buttons[i].Id = i;
         }
 
         public Dialogue()
@@ -772,7 +816,12 @@ namespace BCRPClient.Data
             if (textArgs.Length > 0)
                 text = string.Format(Text, textArgs);
 
-            CEF.NPC.Draw(npcHolder.Name, text, buttons.Select(x => new object[] { x.IsRed, x.Id, x.Text }).ToArray());
+            var btnsData = new List<object>();
+
+            for (int i = 0; i < buttons.Count; i++)
+                btnsData.Add(new object[] { buttons[i].IsRed, i, buttons[i].Text });
+
+            CEF.NPC.Draw(npcHolder.Name, text, btnsData.ToArray());
         }
     }
 }

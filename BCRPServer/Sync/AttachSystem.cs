@@ -20,7 +20,7 @@ namespace BCRPServer.Sync
 
         private static object[] EmptyArgs = new object[] { };
 
-        public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack };
+        public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack, Types.PedRingLeft3, Types.PedRingRight3 };
 
         #region Types
         public enum Types
@@ -39,6 +39,9 @@ namespace BCRPServer.Sync
             PushVehicleBack,
             Phone,
             VehKey,
+
+            PedRingLeft3,
+            PedRingRight3,
 
             WeaponRightTight,
             WeaponLeftTight,

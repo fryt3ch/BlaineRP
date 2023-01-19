@@ -185,26 +185,26 @@ namespace BCRPClient.CEF
 
             var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
 
-            var item = new object[] { imgId, Data.Items.GetName(type), null };
-
-            if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType))
+            if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType) && Data.Items.GetData(type, iType) is Data.Items.Clothes.ItemData.IToggleable data && data.ExtraData != null)
             {
-                var data = Data.Items.GetData(type, iType);
-
-                if ((data as Data.Items.Hat.ItemData)?.ExtraData != null || (data as Data.Items.Top.ItemData)?.ExtraData != null || (data as Data.Items.Under.ItemData)?.ExtraData != null)
-                    actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
+                actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
             }
 
-            item[2] = actions.ToArray();
-
-            return item;
+            return new object[] { imgId, Data.Items.GetName(type), actions.ToArray() };
         }
         private static object[] FillAccessories(string type)
         {
             var iType = Data.Items.GetType(type);
             var imgId = Data.Items.GetImageId(type, iType);
 
-            return new object[] { imgId, Data.Items.GetName(type), new object[][] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } } };
+            var actions = new List<object[]>() { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } };
+
+            if (typeof(Data.Items.Clothes.IToggleable).IsAssignableFrom(iType))
+            {
+                actions.Insert(1, new object[] { 5, Locale.General.Inventory.Actions.Reset });
+            }
+
+            return new object[] { imgId, Data.Items.GetName(type), actions.ToArray() };
         }
         #endregion
 

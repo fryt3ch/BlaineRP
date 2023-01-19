@@ -23,12 +23,12 @@ namespace BCRPServer.Game.Items
         public static Dictionary<Type, int> AccessoriesSlots = new Dictionary<Type, int>()
         {
             { typeof(Game.Items.Glasses), 0 },
-            //{ typeof(Game.Items.Mask), 1 },
+            { typeof(Game.Items.Mask), 1 },
             { typeof(Game.Items.Earrings), 2 },
             { typeof(Game.Items.Accessory), 3 },
             { typeof(Game.Items.Watches), 4 },
             { typeof(Game.Items.Bracelet), 5 },
-            //{ typeof(Game.Items.Ring), 6 },
+            { typeof(Game.Items.Ring), 6 },
             { typeof(Game.Items.Gloves), 7 },
         };
 
@@ -3725,22 +3725,12 @@ namespace BCRPServer.Game.Items
             if (item == null)
                 return Results.Error;
 
-            var a1 = Actions.GetValueOrDefault(item.Type);
+            var func = Actions.Where(x => x.Key == item.Type || x.Key.IsAssignableFrom(item.Type)).Select(x => x.Value).FirstOrDefault()?.GetValueOrDefault(action);
 
-            if (a1 == null)
-            {
-                a1 = Actions.GetValueOrDefault(item.Type.BaseType);
-
-                if (a1 == null)
-                    return Results.Error;
-            }
-
-            var a2 = a1.GetValueOrDefault(action);
-
-            if (a2 == null)
+            if (func == null)
                 return Results.Error;
 
-            return a2.Invoke(pData, item, group, slot, args);
+            return func.Invoke(pData, item, group, slot, args);
         }
         #endregion
 

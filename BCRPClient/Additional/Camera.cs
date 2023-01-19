@@ -99,6 +99,18 @@ namespace BCRPClient.Additional
             LeftHand,
             WholePed,
 
+            BodyUpper,
+            BodyBackUpper,
+            RightHandUpper,
+            LeftHandUpper,
+            LeftLeg,
+            RightLeg,
+
+            BodyBack,
+
+            RightHandFingers,
+            LeftHandFingers,
+
             WholeVehicle,
             WholeVehicleOpen,
             FrontVehicle,
@@ -119,13 +131,30 @@ namespace BCRPClient.Additional
 
             { StateTypes.Legs, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
+            { StateTypes.LeftLeg, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 46078, MinFov = 10 } },
+            { StateTypes.RightLeg, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 55, new Vector3(0f, 0f, -0.25f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 16335, MinFov = 10 } },
+
             { StateTypes.Body, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+
+            { StateTypes.BodyUpper, new State(new Vector3(0f, 0f, 0.5f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+
+            { StateTypes.BodyBack, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 180f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
+
+            { StateTypes.BodyBackUpper, new State(new Vector3(0f, 0f, 0.5f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 180f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
             { StateTypes.Head, new State(new Vector3(0, 0, 1f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
 
             { StateTypes.LeftHand, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
 
+            { StateTypes.LeftHandFingers, new State(new Vector3(0f, 0f, -1f), new Vector3(0f, 0f, 0f), 25, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 45f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 4137, MinFov = 10 } },
+
+            { StateTypes.LeftHandUpper, new State(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0.2f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
+
             { StateTypes.RightHand, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 57005, MinFov = 10 } },
+
+            { StateTypes.RightHandUpper, new State(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0.2f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 57005, MinFov = 10 } },
+
+            { StateTypes.RightHandFingers, new State(new Vector3(0f, 0f, -1f), new Vector3(0f, 0f, 0f), 25, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -45f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 64064, MinFov = 10 } },
 
             { StateTypes.WholePed, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.5f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 

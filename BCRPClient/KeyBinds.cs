@@ -406,6 +406,8 @@ namespace BCRPClient
             /// <value>-1, если бинд не активен, число в противном случае</value>
             public int BindIndex { get; private set; }
 
+            public bool IsDisabled => DisabledCounter > 0;
+
             private int DisabledCounter { get; set; }
 
             /// <summary>Тип родителя бинда</summary>

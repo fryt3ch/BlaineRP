@@ -6,22 +6,25 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Xml;
 
 namespace BCRPClient.CEF
 {
     class Shop : Events.Script
     {
-        //        Стало : //items[i] = [id, 'name', cash, bank, variants || maxspeed, chageable(t|f) || [slots, weight] || maxtank, cruise, autopilot, maxtrunk, maxweight] 
+        //        Стало : //items[i] = [id, 'name', cash, variants || maxspeed, chageable(t|f) || [slots, weight] || maxtank, cruise, autopilot, maxtrunk, maxweight] 
         //(если магаз не транспортный последние 4 параметра можно либо не передавать вообще, либо передавать как null)
         //- добавлены разделы магазинов машин(6, 7, 8, 9)
 
-        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Shop, Browser.IntTypes.Retail, Browser.IntTypes.Tuning); }
+        public static bool IsActive => Browser.IsActiveOr(Browser.IntTypes.Shop, Browser.IntTypes.Retail, Browser.IntTypes.Tuning, Browser.IntTypes.Salon, Browser.IntTypes.TattooSalon);
 
-        public static bool IsActiveShop { get => Browser.IsActive(Browser.IntTypes.Shop); }
+        public static bool IsActiveShop => Browser.IsActive(Browser.IntTypes.Shop);
 
-        public static bool IsActiveSalon { get => Browser.IsActive(Browser.IntTypes.Salon); }
+        public static bool IsActiveSalon => Browser.IsActive(Browser.IntTypes.Salon);
 
-        public static bool IsActiveRetail { get => Browser.IsActive(Browser.IntTypes.Retail); }
+        public static bool IsActiveTattooSalon => Browser.IsActive(Browser.IntTypes.TattooSalon);
+
+        public static bool IsActiveRetail => Browser.IsActive(Browser.IntTypes.Retail);
 
         public static bool IsActiveTuning => Browser.IsActive(Browser.IntTypes.Tuning);
 
@@ -61,9 +64,15 @@ namespace BCRPClient.CEF
             ClothesShop2,
             ClothesShop3,
 
+            JewelleryShop,
+
+            MaskShop,
+
             BagShop,
 
             BarberShop,
+
+            TattooShop,
 
             CarShop1,
             CarShop2,
@@ -151,6 +160,12 @@ namespace BCRPClient.CEF
             { Types.ClothesShop1, 0 },
             { Types.ClothesShop2, 1 },
             { Types.ClothesShop3, 2 },
+
+            { Types.JewelleryShop, 4 },
+
+            { Types.MaskShop, 3 },
+
+            { Types.BagShop, 5 },
 
             { Types.CarShop1, 6 },
             { Types.CarShop2, 7 },
@@ -500,7 +515,14 @@ namespace BCRPClient.CEF
                     CurrentItem = (string)args[0];
                     CurrentVariation = (int)args[1];
 
-                    Data.Clothes.Wear(CurrentItem, CurrentVariation);
+                    if (CurrentItem?.StartsWith("ring") == true)
+                    {
+                        Data.Clothes.Wear(CurrentItem, CurrentVariation, Player.LocalPlayer.GetData<bool?>("Temp::JewelShop::RingIsLeft") ?? false);
+                    }
+                    else
+                    {
+                        Data.Clothes.Wear(CurrentItem, CurrentVariation);
+                    }
 
                     var type = Data.Items.GetType(CurrentItem, true);
 
@@ -526,6 +548,35 @@ namespace BCRPClient.CEF
 /*                    var variation = CurrentVariation < data.Textures.Length && CurrentVariation >= 0 ? data.Textures[CurrentVariation] : 0;
 
                     Utils.ConsoleOutput($"ID: {CurrentItem}, Var: {CurrentVariation}, Drawable: {data.Drawable}, Texture: {variation}");*/
+                }
+                else if (CurrentType == Types.TattooShop)
+                {
+                    var mainId = (string)args[0];
+
+                    var subId = (string)args[1];
+
+                    var decors = Player.LocalPlayer.GetData<Dictionary<int, Data.Customization.TattooData>>("TempDecorations");
+
+                    if (Data.Customization.TattooData.GetZoneTypeById(mainId) is Data.Customization.TattooData.ZoneTypes zType)
+                    {
+                        Data.Customization.TattooData.ClearAll(Player.LocalPlayer);
+
+                        var idx = decors.Where(x => x.Value.ZoneType == zType).Select(x => (int?)x.Key).FirstOrDefault() ?? -1;
+
+                        decors.Remove(idx);
+
+                        if (subId != "none")
+                        {
+                            var tattoIdx = int.Parse(subId.Split('_')[1]);
+
+                            var tattoData = Data.Customization.GetTattooData(tattoIdx);
+
+                            decors.TryAdd(tattoIdx, tattoData);
+                        }
+
+                        foreach (var x in decors.Values)
+                            x.TryApply(Player.LocalPlayer);
+                    }
                 }
                 else if (CurrentType == Types.BarberShop)
                 {
@@ -885,6 +936,32 @@ namespace BCRPClient.CEF
                 {
                     Data.Clothes.Action(CurrentItem, CurrentVariation);
                 }
+                else if (CurrentType == Types.JewelleryShop)
+                {
+                    if (CurrentItem?.StartsWith("ring") == true)
+                    {
+                        var isLeft = Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft");
+
+                        isLeft = !isLeft;
+
+                        if (isLeft)
+                        {
+                            AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.LeftHandFingers, Additional.Camera.StateTypes.WholePed };
+
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.LeftHandFingers));
+                        }
+                        else
+                        {
+                            AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHandFingers, Additional.Camera.StateTypes.WholePed };
+
+                            ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.RightHandFingers));
+                        }
+
+                        Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", isLeft);
+
+                        Data.Clothes.Action(CurrentItem, CurrentVariation, isLeft);
+                    }
+                }
             });
 
             Events.Add("Shop::NavChange", (object[] args) =>
@@ -915,6 +992,46 @@ namespace BCRPClient.CEF
                         ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.LeftHand));
                     else if (id == 9)
                         ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.RightHand));
+                }
+                else if (CurrentType == Types.JewelleryShop)
+                {
+                    if (id == 0)
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.Body));
+                    else if (id == 1)
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.Head));
+                    else if (id == 2)
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft") ? Additional.Camera.StateTypes.LeftHandFingers : Additional.Camera.StateTypes.RightHandFingers));
+                }
+                else if (CurrentType == Types.TattooShop)
+                {
+                    if (id >= 0 && id <= 3)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.Head));
+                    }
+                    else if (id >= 4 && id <= 5)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.BodyUpper));
+                    }
+                    else if (id == 6)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.BodyBackUpper));
+                    }
+                    else if (id == 7)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.LeftHandUpper));
+                    }
+                    else if (id == 8)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.RightHandUpper));
+                    }
+                    else if (id == 9)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.LeftLeg));
+                    }
+                    else if (id == 10)
+                    {
+                        ChangeView(Array.IndexOf(AllowedCameraStates, Additional.Camera.StateTypes.RightLeg));
+                    }
                 }
                 else if (CurrentType == Types.BarberShop)
                 {
@@ -985,6 +1102,15 @@ namespace BCRPClient.CEF
                         Data.Clothes.Unwear(typeof(Data.Items.Watches));
                     else if (CurrentNavigation == 9)
                         Data.Clothes.Unwear(typeof(Data.Items.Bracelet));
+                }
+                else if (CurrentType == Types.JewelleryShop)
+                {
+                    if (CurrentNavigation == 0)
+                        Data.Clothes.Unwear(typeof(Data.Items.Accessory));
+                    else if (CurrentNavigation == 1)
+                        Data.Clothes.Unwear(typeof(Data.Items.Earrings));
+                    else if (CurrentNavigation == 2)
+                        Data.Clothes.Unwear(typeof(Data.Items.Ring));
                 }
             });
 
@@ -1193,6 +1319,39 @@ namespace BCRPClient.CEF
 
                     }
                 }
+                else if (CurrentType == Types.TattooShop)
+                {
+                    var decors = Player.LocalPlayer.GetData<Dictionary<int, Data.Customization.TattooData>>("TempDecorations");
+
+                    var mainId = (string)args[1];
+                    var boughtItemId = mainId;
+                    var serverItemId = mainId;
+
+                    if (Data.Customization.TattooData.GetZoneTypeById(mainId) is Data.Customization.TattooData.ZoneTypes zType)
+                    {
+                        var idx = decors.Where(x => x.Value.ZoneType == zType).Select(x => (int?)x.Key).FirstOrDefault() ?? -1;
+
+                        if (idx < 0)
+                        {
+                            boughtItemId = "none";
+
+                            serverItemId = $"tat_-1_{(int)zType}";
+                        }
+                        else
+                        {
+                            boughtItemId = $"tat_{idx}";
+                            serverItemId = boughtItemId;
+                        }
+
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", serverItemId, useCash))
+                        {
+                            if (IsActiveTattooSalon)
+                            {
+                                CEF.Browser.Window.ExecuteJs("Tattoo.buyVariant", mainId, boughtItemId);
+                            }
+                        }
+                    }
+                }
                 else if (CurrentType == Types.BarberShop)
                 {
                     var itemMainId = (string)args[1];
@@ -1392,7 +1551,51 @@ namespace BCRPClient.CEF
 
                         Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
                     }
-                    else if (type >= Types.ClothesShop1 && type <= Types.BagShop)
+                    else if (type == Types.TattooShop)
+                    {
+                        var prices = GetPrices(type);
+
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.BodyUpper, Additional.Camera.StateTypes.RightHandUpper, Additional.Camera.StateTypes.LeftHandUpper, Additional.Camera.StateTypes.LeftLeg, Additional.Camera.StateTypes.RightLeg, Additional.Camera.StateTypes.BodyBackUpper, Additional.Camera.StateTypes.WholePed };
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        await Browser.Render(Browser.IntTypes.TattooSalon, true);
+
+                        var tattoos = (pData.Decorations ?? new List<int>()).ToDictionary(x => x, x => Data.Customization.GetTattooData(x));
+
+                        var allTattoos = new Dictionary<Data.Customization.TattooData.ZoneTypes, List<object>>();
+
+                        foreach (var x in prices)
+                        {
+                            var tattooIdx = int.Parse(x.Key.Split('_')[1]);
+
+                            if (tattooIdx < 0)
+                                continue;
+
+                            var tattooData = Data.Customization.GetTattooData(tattooIdx);
+
+                            if (tattooData == null || (tattooData.Sex is bool tSex && tSex != pData.Sex))
+                                continue;
+
+                            if (!allTattoos.ContainsKey(tattooData.ZoneType))
+                                allTattoos.Add(tattooData.ZoneType, new List<object>() { new object[] { "none", Locale.General.Business.NothingItem, prices[$"tat_-1_{(int)tattooData.ZoneType}"] } });
+
+                            allTattoos[tattooData.ZoneType].Add(new object[] { x.Key, tattooData.Name, x.Value });
+                        }
+
+                        Player.LocalPlayer.SetData("TempDecorations", tattoos);
+
+                        RealClothes = Data.Clothes.GetAllRealClothes(Player.LocalPlayer);
+
+                        RealAccessories = Data.Clothes.GetAllRealAccessories(Player.LocalPlayer);
+
+                        Data.Clothes.UndressAll();
+
+                        Browser.Window.ExecuteJs("Tattoo.draw", new object[] { allTattoos.OrderBy(x => x.Key).Select(x => new object[] { Data.Customization.TattooData.GetZoneTypeId(x.Key), Data.Customization.TattooData.GetZoneTypeName(x.Key), x.Value, tattoos.Where(y => y.Value?.ZoneType == x.Key).Select(y => $"tat_{y.Key}").FirstOrDefault() ?? "none" }) });
+
+                        Browser.Switch(Browser.IntTypes.TattooSalon, true);
+                    }
+                    else if (type >= Types.ClothesShop1 && type <= Types.ClothesShop3)
                     {
                         await Browser.Render(Browser.IntTypes.Shop, true);
 
@@ -1431,29 +1634,18 @@ namespace BCRPClient.CEF
                         if (prices == null)
                             return;
 
-                        List<object[]> hats = new List<object[]>();
-                        List<object[]> tops = new List<object[]>();
-                        List<object[]> unders = new List<object[]>();
-                        List<object[]> pants = new List<object[]>();
-                        List<object[]> shoes = new List<object[]>();
-                        List<object[]> accs = new List<object[]>();
-                        List<object[]> glasses = new List<object[]>();
-                        List<object[]> gloves = new List<object[]>();
-                        List<object[]> watches = new List<object[]>();
-                        List<object[]> bracelets = new List<object[]>();
+                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, false };
 
-                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, 0, false };
-
-                        hats.Add(clearingItem);
-                        tops.Add(clearingItem);
-                        unders.Add(clearingItem);
-                        pants.Add(clearingItem);
-                        shoes.Add(clearingItem);
-                        accs.Add(clearingItem);
-                        glasses.Add(clearingItem);
-                        gloves.Add(clearingItem);
-                        watches.Add(clearingItem);
-                        bracelets.Add(clearingItem);
+                        List<object[]> hats = new List<object[]>() { clearingItem };
+                        List<object[]> tops = new List<object[]>() { clearingItem };
+                        List<object[]> unders = new List<object[]>() { clearingItem };
+                        List<object[]> pants = new List<object[]>() { clearingItem };
+                        List<object[]> shoes = new List<object[]>() { clearingItem };
+                        List<object[]> accs = new List<object[]>() { clearingItem };
+                        List<object[]> glasses = new List<object[]>() { clearingItem };
+                        List<object[]> gloves = new List<object[]>() { clearingItem };
+                        List<object[]> watches = new List<object[]>() { clearingItem };
+                        List<object[]> bracelets = new List<object[]>() { clearingItem };
 
                         foreach (var x in prices)
                         {
@@ -1501,6 +1693,135 @@ namespace BCRPClient.CEF
                         Browser.Window.ExecuteJs("Shop.fillContainer", 7, shoes);
                         Browser.Window.ExecuteJs("Shop.fillContainer", 8, watches);
                         Browser.Window.ExecuteJs("Shop.fillContainer", 9, bracelets);
+
+                        Browser.Switch(Browser.IntTypes.Shop, true);
+                    }
+                    else if (type == Types.BagShop)
+                    {
+                        await Browser.Render(Browser.IntTypes.Shop, true);
+
+                        Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.Body, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.BodyBack, Additional.Camera.StateTypes.WholePed };
+
+                        RealClothes = Data.Clothes.GetAllRealClothes(Player.LocalPlayer);
+
+                        RealAccessories = Data.Clothes.GetAllRealAccessories(Player.LocalPlayer);
+
+                        Player.LocalPlayer.SetComponentVariation(5, 0, 0, 2);
+
+                        var prices = GetPrices(CurrentType);
+
+                        var bags = new List<object>();
+
+                        foreach (var x in prices)
+                        {
+                            var data = (Data.Items.Bag.ItemData)Data.Items.GetData(x.Key, typeof(Data.Items.Bag));
+
+                            if (data == null || data.Sex != pData.Sex)
+                                continue;
+
+                            bags.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, new object[] { data.MaxSlots, data.MaxWeight } });
+                        }
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, bags);
+
+                        Browser.Switch(Browser.IntTypes.Shop, true);
+                    }
+                    else if (type == Types.JewelleryShop)
+                    {
+                        await Browser.Render(Browser.IntTypes.Shop, true);
+
+                        Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+
+                        if (pData.WearedRing is Sync.AttachSystem.AttachmentObject atObj)
+                        {
+                            Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", atObj.Type == Sync.AttachSystem.Types.PedRingLeft3);
+                        }
+                        else
+                        {
+                            Player.LocalPlayer.SetData("Temp::JewelShop::RingIsLeft", false);
+                        }
+
+                        if (Player.LocalPlayer.GetData<bool>("Temp::JewelShop::RingIsLeft"))
+                            AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.LeftHandFingers, Additional.Camera.StateTypes.WholePed };
+                        else
+                            AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHandFingers, Additional.Camera.StateTypes.WholePed };
+
+                        RealClothes = Data.Clothes.GetAllRealClothes(Player.LocalPlayer);
+
+                        RealAccessories = Data.Clothes.GetAllRealAccessories(Player.LocalPlayer);
+
+                        var prices = GetPrices(CurrentType);
+
+                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, false };
+
+                        var necklaces = new List<object>() { clearingItem };
+                        var earrings = new List<object>() { clearingItem };
+                        var rings = new List<object>() { clearingItem };
+
+                        foreach (var x in prices)
+                        {
+                            var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(x.Key, null);
+
+                            if (data == null || data.Sex != pData.Sex)
+                                continue;
+
+                            if (data is Data.Items.Accessory.ItemData acc)
+                                necklaces.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, false });
+                            else if (data is Data.Items.Earrings.ItemData ear)
+                                earrings.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, false });
+                            else if (data is Data.Items.Ring.ItemData ring)
+                                rings.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, true });
+                        }
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, necklaces);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 1, earrings);
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 2, rings);
+
+                        Browser.Switch(Browser.IntTypes.Shop, true);
+                    }
+                    else if (type == Types.MaskShop)
+                    {
+                        await Browser.Render(Browser.IntTypes.Shop, true);
+
+                        Browser.Window.ExecuteJs("Shop.draw", ShopJsTypes[type]);
+
+                        Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
+
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+
+                        AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.WholePed };
+
+                        RealClothes = Data.Clothes.GetAllRealClothes(Player.LocalPlayer);
+
+                        RealAccessories = Data.Clothes.GetAllRealAccessories(Player.LocalPlayer);
+
+                        Player.LocalPlayer.SetComponentVariation(1, 0, 0, 2);
+
+                        var prices = GetPrices(CurrentType);
+
+                        var masks = new List<object>();
+
+                        foreach (var x in prices)
+                        {
+                            var data = (Data.Items.Mask.ItemData)Data.Items.GetData(x.Key, typeof(Data.Items.Mask));
+
+                            if (data == null || data.Sex != pData.Sex)
+                                continue;
+
+                            masks.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, false });
+                        }
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, masks);
 
                         Browser.Switch(Browser.IntTypes.Shop, true);
                     }
@@ -1805,6 +2126,23 @@ namespace BCRPClient.CEF
                     RealAccessories = null;
                 }
 
+                if (Player.LocalPlayer.HasData("TempDecorations"))
+                {
+                    Data.Customization.TattooData.ClearAll(Player.LocalPlayer);
+
+                    if (pData.Decorations is List<int> decors)
+                        foreach (var x in decors)
+                            Data.Customization.GetTattooData(x)?.TryApply(Player.LocalPlayer);
+
+                    Player.LocalPlayer.ResetData("TempDecorations");
+                }
+
+                if (CurrentType == Types.JewelleryShop)
+                {
+                    Player.LocalPlayer.ResetData("Temp::JewelShop::RingIsLeft");
+
+                    Data.Clothes.Unwear(typeof(Data.Items.Ring));
+                }
                 if (CurrentType == Types.ClothesShop1 || CurrentType == Types.ClothesShop2 || CurrentType == Types.ClothesShop3)
                 {
                     Player.LocalPlayer.ResetData("TempClothes::Top");
@@ -1839,11 +2177,12 @@ namespace BCRPClient.CEF
 
                 AllowedCameraStates = null;
 
-                if (Browser.IsRendered(Browser.IntTypes.Shop) || Browser.IsRendered(Browser.IntTypes.Tuning) || Browser.IsRendered(Browser.IntTypes.Salon))
+                if (Browser.IsRendered(Browser.IntTypes.Shop) || Browser.IsRendered(Browser.IntTypes.Tuning) || Browser.IsRendered(Browser.IntTypes.Salon) || Browser.IsRendered(Browser.IntTypes.TattooSalon))
                 {
                     Browser.Render(Browser.IntTypes.Shop, false);
                     Browser.Render(Browser.IntTypes.Tuning, false);
                     Browser.Render(Browser.IntTypes.Salon, false);
+                    Browser.Render(Browser.IntTypes.TattooSalon, false);
 
 /*                    while (Additional.SkyCamera.IsFadedOut)
                         await RAGE.Game.Invoker.WaitAsync(250);*/

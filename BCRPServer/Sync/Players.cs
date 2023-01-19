@@ -107,6 +107,8 @@ namespace BCRPServer.Sync
 
                     if (business.Type == Game.Businesses.Business.Types.BarberShop)
                         pData.UpdateCustomization();
+                    else if (business.Type == Game.Businesses.Business.Types.TattooShop)
+                        pData.UpdateDecorations();
                 }
             }
             else

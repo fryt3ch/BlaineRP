@@ -276,7 +276,9 @@ namespace BCRPClient.Sync
 
             public List<int> Decorations => Player.GetSharedData<JArray>("DCR", null)?.ToObject<List<int>>();
 
-            public Data.Customization.HairOverlay HairOverlay => Data.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("Customization::HairOverlay", 0));
+            public Data.Customization.HairOverlay HairOverlay => Data.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("CHO", 0));
+
+            public Sync.AttachSystem.AttachmentObject WearedRing => AttachedObjects.Where(x => x.Type >= Sync.AttachSystem.Types.PedRingLeft3 && x.Type <= Sync.AttachSystem.Types.PedRingRight3).FirstOrDefault();
             #endregion
 
             public void Reset()
@@ -341,7 +343,7 @@ namespace BCRPClient.Sync
 
             InvokeHandler("IsInvisible", data, data.IsInvisible, null);
 
-            InvokeHandler("Customization::HairOverlay", data, player.GetSharedData<int>("Customization::HairOverlay", 0), null);
+            InvokeHandler("CHO", data, player.GetSharedData<int>("CHO", 0), null);
 
             InvokeHandler("DCR", data, player.GetSharedData<JArray>("DCR", null), null);
 
@@ -559,7 +561,7 @@ namespace BCRPClient.Sync
 
                 InvokeHandler("Anim::General", data, (int)data.GeneralAnim, null);
 
-                InvokeHandler("Customization::HairOverlay", data, player.GetSharedData<int>("Customization::HairOverlay", 0), null);
+                InvokeHandler("CHO", data, player.GetSharedData<int>("CHO", 0), null);
 
                 InvokeHandler("DCR", data, Player.LocalPlayer.GetSharedData<JArray>("DCR", null), null);
             });
@@ -740,10 +742,7 @@ namespace BCRPClient.Sync
                 }, 3000);
             });
 
-            Events.Add("Player::CloseAll", (object[] args) =>
-            {
-                CloseAll((bool)args[0]);
-            });
+            Events.Add("Player::CloseAll", args => CloseAll((bool)args[0]));
 
             AddDataHandler("Anim::Fast", (pData, value, oldValue) =>
             {
@@ -1365,7 +1364,11 @@ namespace BCRPClient.Sync
                             CEF.Animations.ToggleAnim("a-" + ((Sync.Animations.OtherTypes)oldAnim).ToString(), false);
 
                         GameEvents.Render -= CEF.Animations.Render;
-                        KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();
+
+                        var cancelAnimKb = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (!cancelAnimKb.IsDisabled)
+                            KeyBinds.Get(KeyBinds.Types.CancelAnimation).Disable();
                     }
                     else
                     {
@@ -1410,7 +1413,7 @@ namespace BCRPClient.Sync
                 }
             });
 
-            AddDataHandler("Customization::HairOverlay", (pData, value, oldValue) =>
+            AddDataHandler("CHO", (pData, value, oldValue) =>
             {
                 Data.Customization.HairOverlay.ClearAll(pData.Player);
 

@@ -195,17 +195,13 @@ namespace BCRPServer.Game.Items
                 public int MaxAmount { get; set; }
             }
 
-            public interface IDependent
+            public interface ICraftIngredient
             {
-                /// <summary>ID предмета, от которого зависит данный предмет</summary>
-                public string DependentByID { get; set;  }
 
-                /// <summary>Необходимое кол-во зависимого предмета для траты</summary>
-                public int DependentByAmount { get; set; }
             }
 
             /// <summary>Стандартная модель</summary>
-            public static uint DefaultModel = NAPI.Util.GetHashKey("prop_drug_package_02");
+            public static uint DefaultModel => NAPI.Util.GetHashKey("prop_drug_package_02");
 
             /// <summary>Название предмета</summary>
             public string Name{ get; set; }
@@ -252,7 +248,7 @@ namespace BCRPServer.Game.Items
 
         /// <summary>ID модели предмета</summary>
         [JsonIgnore]
-        public uint Model { get => Data.Model; }
+        public uint Model => Data.Model;
 
         /// <summary>Является ли предмет временным?</summary>
         [JsonIgnore]
@@ -263,6 +259,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public uint UID { get; set; }
 
+        [JsonProperty(PropertyName = "I", Order = int.MinValue)]
         /// <summary>ID предмета (см. Game.Items.Items.LoadAll)</summary>
         public string ID { get; set; }
 
@@ -351,6 +348,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public float Weight { get; }
 
+        [JsonProperty(PropertyName = "A")]
         /// <summary>Кол-во единиц предмета в стаке</summary>
         public int Amount { get; set; }
     }
@@ -358,6 +356,7 @@ namespace BCRPServer.Game.Items
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые, помимо названия, имеют уникальный тэг</summary>
     public interface ITagged
     {
+        [JsonProperty(PropertyName = "T")]
         /// <summary>Тэг</summary>
         public string Tag { get; set; }
     }
@@ -370,19 +369,14 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public int MaxAmount { get; }
 
+        [JsonProperty(PropertyName = "A")]
         /// <summary>Кол-во оставшихся единиц предмета</summary>
         public int Amount { get; set; }
     }
 
-    public interface IDependent
+    public interface ICraftIngredient
     {
-        /// <summary>ID предмета, от которого зависит данный предмет</summary>
-        [JsonIgnore]
-        public string DependentByID { get; }
 
-        /// <summary>Необходимое кол-во зависимого предмета для траты</summary>
-        [JsonIgnore]
-        public int DependentByAmount { get; }
     }
     #endregion
 
@@ -550,6 +544,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public Sync.AttachSystem.Types? AttachType { get; set; }
 
+        [JsonProperty(PropertyName = "A")]
         /// <summary>Кол-во патронов в обойме</summary>
         public int Ammo { get; set; }
 
@@ -880,7 +875,7 @@ namespace BCRPServer.Game.Items
     {
         public interface IToggleable
         {
-            [JsonIgnore]
+            [JsonProperty(PropertyName = "S")]
             public bool Toggled { get; set; }
 
             public void Action(PlayerData pData);
@@ -941,6 +936,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public ItemData SexAlternativeData { get; set; }
 
+        [JsonProperty(PropertyName = "V")]
         /// <summary>Вариация одежды</summary>
         public int Var { get; set; }
 
@@ -2862,7 +2858,7 @@ namespace BCRPServer.Game.Items
         {
             public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
 
-            public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.1f, "p_tmom_earrings_s", Sex, Drawable, Textures, SexAlternativeID) { }
+            public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.01f, "p_tmom_earrings_s", Sex, Drawable, Textures, SexAlternativeID) { }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
@@ -3170,6 +3166,130 @@ namespace BCRPServer.Game.Items
     }
     #endregion
 
+    public class Mask : Clothes
+    {
+        new public class ItemData : Clothes.ItemData
+        {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Drawable}, new int[] {{ {string.Join(", ", Textures)} }}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
+            public ItemData(string Name, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, 0.15f, "prop_mask_specops", Sex, Drawable, Textures, SexAlternativeID)
+            {
+
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "mask_m_0", new ItemData("Маска свиньи", true, 1, new int[] { 0 }, "mask_f_0") },
+            { "mask_m_1", new ItemData("Маска 'Череп'", true, 2, new int[] { 0 }, "mask_f_1") },
+
+            { "mask_f_0", new ItemData("Маска свиньи", false, 1, new int[] { 0 }, "mask_m_0") },
+            { "mask_f_1", new ItemData("Маска 'Череп'", false, 2, new int[] { 0 }, "mask_m_1") },
+        };
+
+        public const int Slot = 1;
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public override void Wear(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            var data = Data;
+
+            var variation = Var;
+
+            if (Data.Sex != pData.Sex)
+            {
+                data = SexAlternativeData;
+
+                if (data == null)
+                    return;
+
+                if (variation >= data.Textures.Length)
+                    variation = data.Textures.Length;
+            }
+
+            player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
+        }
+
+        public override void Unwear(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            player.SetClothes(Slot, 0, 0);
+        }
+
+        public Mask(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Mask), Variation)
+        {
+
+        }
+    }
+
+    public class Ring : Clothes, Clothes.IToggleable, Clothes.IProp
+    {
+        new public class ItemData : Clothes.ItemData
+        {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Sex.ToString().ToLower()}, {Model}, {(SexAlternativeID == null ? "null" : $"\"{SexAlternativeID}\"")}";
+
+            public ItemData(string Name, bool Sex, string Model, string SexAlternativeID = null) : base(Name, 0.01f, Model, Sex, 1, new int[] { 0 }, SexAlternativeID)
+            {
+
+            }
+        }
+
+        public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "ring_m_0", new ItemData("Золотое кольцо с бриллиантами", true, "brp_p_ring_0_0", "ring_f_0") },
+            { "ring_m_1", new ItemData("Золотое кольцо с красным камнем", true, "brp_p_ring_1_0", "ring_f_1") },
+
+            { "ring_f_0", new ItemData("Золотое кольцо с бриллиантами", false, "brp_p_ring_0_0", "ring_m_0") },
+            { "ring_f_1", new ItemData("Золотое кольцо с красным камнем", false, "brp_p_ring_1_0", "ring_m_1") },
+        };
+
+        public const int Slot = int.MinValue;
+
+        [JsonIgnore]
+        new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
+
+        [JsonIgnore]
+        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+
+        public bool Toggled { get; set; }
+
+        public void Action(PlayerData pData)
+        {
+            Unwear(pData);
+
+            Toggled = !Toggled;
+
+            Wear(pData);
+        }
+
+        public override void Wear(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            player.AttachObject(Model, Toggled ? Sync.AttachSystem.Types.PedRingLeft3 : Sync.AttachSystem.Types.PedRingRight3, -1, null);
+        }
+
+        public override void Unwear(PlayerData pData)
+        {
+            var player = pData.Player;
+
+            player.DetachObject(Toggled ? Sync.AttachSystem.Types.PedRingLeft3 : Sync.AttachSystem.Types.PedRingRight3);
+        }
+
+        public Ring(string ID, int Variation = 0) : base(ID, IDList[ID], typeof(Ring), Variation)
+        {
+
+        }
+    }
+
     #region Holster
     public class Holster : Clothes, IContainer
     {
@@ -3422,7 +3542,9 @@ namespace BCRPServer.Game.Items
             public ItemData(string Name, float Weight, string[] Models, int Satiety = 0, int Mood = 0, int Health = 0) : base(Name, Weight, Models)
             {
                 this.Satiety = Satiety;
+
                 this.Mood = Mood;
+
                 this.Health = Health;
             }
         }
@@ -3471,16 +3593,18 @@ namespace BCRPServer.Game.Items
             { "f_cola", new ItemData("Кола", 0.15f, "prop_food_juice01", 5, 20, 0, 64, Sync.Animations.FastTypes.ItemCola, Sync.AttachSystem.Types.ItemCola) },
 
             { "f_beer", new ItemData("Пиво", 0.15f, "prop_sh_beer_pissh_01", 5, 50, 0, 64, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer) },
+
+            { "f_acod", new ItemData("Антарктический тунец (ж.)", 0.15f, "brp_p_fish_meat_c_0", 25, 15, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
         };
 
         [JsonIgnore]
-        new public ItemData Data { get => (ItemData)base.Data; }
+        new public ItemData Data => (ItemData)base.Data;
 
         [JsonIgnore]
         public int MaxAmount => Data.MaxAmount;
 
         [JsonIgnore]
-        public override float Weight { get => BaseWeight * Amount; }
+        public override float Weight => BaseWeight * Amount;
 
         public int Amount { get; set; }
 
@@ -3515,7 +3639,36 @@ namespace BCRPServer.Game.Items
             }
         }
 
+        [JsonConstructor]
         public Food(string ID) : base(ID, IDList[ID], typeof(Food))
+        {
+            this.Amount = MaxAmount;
+        }
+
+        public Food(string ID, Item.ItemData ItemData, System.Type Type) : base(ID, ItemData, Type)
+        {
+            this.Amount = MaxAmount;
+        }
+    }
+
+    public class FoodIngredient : Food, ICraftIngredient
+    {
+        new public class ItemData : Food.ItemData, Item.ItemData.ICraftIngredient
+        {
+            public override string ClientData => $"\"{Name}\", {Weight}f, {Satiety}, {Mood}, {Health}, {MaxAmount}";
+
+            public ItemData(string Name, float Weight, string Model, int Satiety, int Mood, int Health, int MaxAmount, Sync.Animations.FastTypes Animation, Sync.AttachSystem.Types AttachType) : base(Name, Weight, Model, Satiety, Mood, Health, MaxAmount, Animation, AttachType)
+            {
+
+            }
+        }
+
+        new public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
+        {
+            { "fi_f_acod", new ItemData("Антарктический тунец", 0.15f, "brp_p_fish_acod_0", 25, 0, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
+        };
+
+        public FoodIngredient(string ID) : base(ID, IDList[ID], typeof(FoodIngredient))
         {
             this.Amount = MaxAmount;
         }
@@ -3831,13 +3984,22 @@ namespace BCRPServer.Game.Items
             private static Dictionary<float, List<RandomItem>> AllRandomItems = new Dictionary<float, List<RandomItem>>()
             {
                 {
-                    0.5f,
+                    0.05f,
 
                     new List<RandomItem>()
                     {
                         new RandomItem("am_5.56", 10, 50),
                     }
-                }
+                },
+
+                {
+                    0.30f,
+
+                    new List<RandomItem>()
+                    {
+                        new RandomItem("fi_f_acod", 1, 1),
+                    }
+                },
             };
 
             public static (string Id, int Amount) GetRandomItem()
@@ -3966,7 +4128,7 @@ namespace BCRPServer.Game.Items
 
             JObject jo = JObject.Load(reader);
 
-            var type = Items.GetType(jo["ID"].Value<string>());
+            var type = Items.GetType(jo["I"].Value<string>());
 
             if (type == null)
                 return null;

@@ -1406,17 +1406,25 @@ namespace BCRPServer
         /// <summary>Метод обновляет кастомизацию игрока</summary>
         public void UpdateCustomization()
         {
-            var hairStyle = HairStyle;
+            Player.SetCustomization(Sex, HeadBlend.RageHeadBlend, EyeColor, HairStyle.Color, HairStyle.Color2, FaceFeatures, HeadOverlays.ToDictionary(x => x.Key, x => x.Value.RageHeadOverlay), Game.Data.Customization.Defaults.Decorations);
 
-            Player.SetCustomization(Sex, HeadBlend.RageHeadBlend, EyeColor, hairStyle.Color, hairStyle.Color2, FaceFeatures, HeadOverlays.ToDictionary(x => x.Key, x => x.Value.RageHeadOverlay), Game.Data.Customization.EmptyDecorations);
+            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, HairStyle.Id), 0);
 
-            Player.SetClothes(2, Game.Data.Customization.GetHair(Sex, hairStyle.Id), 0);
+            UpdateHairOverlay();
 
-            if (hairStyle.Overlay > 0)
-                Player.SetSharedData("Customization::HairOverlay", hairStyle.Overlay);
+            UpdateDecorations();
+        }
+
+        public void UpdateHairOverlay()
+        {
+            if (HairStyle.Overlay > 0)
+                Player.SetSharedData("CHO", HairStyle.Overlay);
             else
-                Player.ResetSharedData("Customization::HairOverlay");
+                Player.ResetSharedData("CHO");
+        }
 
+        public void UpdateDecorations()
+        {
             if (Decorations.Count > 0)
                 Player.SetSharedData("DCR", Decorations);
             else

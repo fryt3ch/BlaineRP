@@ -17,7 +17,7 @@ namespace BCRPClient.Data
             { typeof(Data.Items.Pants), 4 },
             { typeof(Data.Items.Shoes), 6 },
             { typeof(Data.Items.Gloves), 3 },
-            //{ typeof(Data.Items.Mask), 1 },
+            { typeof(Data.Items.Mask), 1 },
             { typeof(Data.Items.Accessory), 7 },
             { typeof(Data.Items.Bag), 5 },
 
@@ -26,6 +26,8 @@ namespace BCRPClient.Data
             { typeof(Data.Items.Earrings), 2 },
             { typeof(Data.Items.Watches), 6 },
             { typeof(Data.Items.Bracelet), 7 },
+
+            { typeof(Data.Items.Ring), int.MinValue },
         };
 
         private static Dictionary<bool, Dictionary<System.Type, int>> NudeClothes = new Dictionary<bool, Dictionary<System.Type, int>>()
@@ -41,8 +43,10 @@ namespace BCRPClient.Data
                     { typeof(Data.Items.Pants), 21 },
                     { typeof(Data.Items.Shoes), 34 },
                     { typeof(Data.Items.Accessory), 0 },
-                    //{ typeof(Data.Items.Mask), 0 },
+                    { typeof(Data.Items.Mask), 0 },
                     { typeof(Data.Items.Bag), 0 },
+
+                    { typeof(Data.Items.Ring), 0 },
                 }
             },
 
@@ -57,8 +61,10 @@ namespace BCRPClient.Data
                     { typeof(Data.Items.Pants), 15 },
                     { typeof(Data.Items.Shoes), 35 },
                     { typeof(Data.Items.Accessory), 0 },
-                    //{ typeof(Data.Items.Mask), 0 },
+                    { typeof(Data.Items.Mask), 0 },
                     { typeof(Data.Items.Bag), 0 },
+
+                    { typeof(Data.Items.Ring), 0 },
                 }
             },
         };
@@ -85,7 +91,7 @@ namespace BCRPClient.Data
         #endregion
 
         #region Client-side Clothes Actions
-        public static void Wear(string id, int var = 0)
+        public static async void Wear(string id, int var = 0, params object[] args)
         {
             var type = Data.Items.GetType(id, true);
 
@@ -103,6 +109,32 @@ namespace BCRPClient.Data
 
             var slot = GetSlot(type);
 
+            if (slot < 0)
+            {
+                if (data is Data.Items.Ring.ItemData ringData)
+                {
+                    Unwear(typeof(Data.Items.Ring));
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData != null)
+                    {
+                        if (pData.WearedRing is Sync.AttachSystem.AttachmentObject atObj && atObj.Object?.Exists == true)
+                        {
+                            RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, false, false);
+
+                            atObj.Object.Destroy();
+                        }
+                    }
+
+                    var ringObj = await Sync.AttachSystem.AttachObjectSimpleLocal(ringData.Model, Player.LocalPlayer, (args[0] as bool? ?? false) ? Sync.AttachSystem.Types.PedRingLeft3 : Sync.AttachSystem.Types.PedRingRight3);
+
+                    if (ringObj == null)
+                        return;
+
+                    Player.LocalPlayer.SetData("TempClothes::Ring", ringObj);
+                }
+            }
             if (type.GetInterfaces().Contains(typeof(Data.Items.Clothes.IProp)))
             {
                 if (data is Data.Items.Hat.ItemData hData)
@@ -261,19 +293,48 @@ namespace BCRPClient.Data
             }
         }
 
-        public static void Action(string id, int var)
+        public static async void Action(string id, int var, params object[] args)
         {
-            var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(id, null);
+            var type = Data.Items.GetType(id, true);
+
+            if (type == null)
+                return;
+
+            var data = (Data.Items.Clothes.ItemData)Data.Items.GetData(id, type);
 
             if (data == null)
                 return;
-
-            var type = data.GetType();
 
             var slot = GetSlot(type);
 
             var = var < data.Textures.Length && var >= 0 ? data.Textures[var] : 0;
 
+            if (slot < 0)
+            {
+                if (data is Data.Items.Ring.ItemData ringData)
+                {
+                    Unwear(typeof(Data.Items.Ring));
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData != null)
+                    {
+                        if (pData.WearedRing is Sync.AttachSystem.AttachmentObject atObj && atObj.Object?.Exists == true)
+                        {
+                            RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, false, false);
+
+                            atObj.Object.Destroy();
+                        }
+                    }
+
+                    var ringObj = await Sync.AttachSystem.AttachObjectSimpleLocal(ringData.Model, Player.LocalPlayer, (args[0] as bool? ?? false) ? Sync.AttachSystem.Types.PedRingLeft3 : Sync.AttachSystem.Types.PedRingRight3);
+
+                    if (ringObj == null)
+                        return;
+
+                    Player.LocalPlayer.SetData("TempClothes::Ring", ringObj);
+                }
+            }
             if (data is Data.Items.Hat.ItemData hData)
             {
                 if (hData.ExtraData == null || !Player.LocalPlayer.HasData("TempClothes::Hat"))
@@ -449,6 +510,20 @@ namespace BCRPClient.Data
 
             var slot = GetSlot(type);
 
+            if (slot < 0)
+            {
+                if (type == typeof(Data.Items.Ring))
+                {
+                    if (Player.LocalPlayer.GetData<GameEntity>("TempClothes::Ring") is GameEntity gEntity)
+                    {
+                        RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, false);
+
+                        gEntity.Destroy();
+
+                        Player.LocalPlayer.ResetData("TempClothes::Ring");
+                    }
+                }
+            }
             if (type.GetInterfaces().Contains(typeof(Data.Items.Clothes.IProp)))
             {
                 Player.LocalPlayer.ClearProp(slot);

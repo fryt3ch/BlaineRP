@@ -58,9 +58,7 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            player.Teleport(aRoot.ExitParams.Position, false, aRoot.Dimension, aRoot.ExitParams.RotationZ, true);
-
-            player.TriggerEvent("ARoot::Enter", numType);
+            aRoot.SetPlayersInside(true, player);
         }
 
         [RemoteEvent("ARoot::Exit")]
@@ -81,9 +79,7 @@ namespace BCRPServer.Events.Players
             if (Vector3.Distance(player.Position, aRoot.ExitParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            player.Teleport(aRoot.EnterParams.Position, false, Utils.Dimensions.Main, aRoot.EnterParams.RotationZ, true);
-
-            player.TriggerEvent("ARoot::Exit");
+            aRoot.SetPlayersOutside(true, player);
         }
 
         [RemoteEvent("House::Enter")]

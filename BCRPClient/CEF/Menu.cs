@@ -304,15 +304,15 @@ namespace BCRPClient.CEF
                 { "cid", "Скрыть CID игроков" },
                 { "hud", "Скрыть HUD" },
                 { "quest", "Скрыть задание" },
-            };
+            }.ToDictionary(x => x.Key, x => Utils.ReplaceNewLineHtml(x.Value));
 
             var extraDict = new Dictionary<string, string>()
             {
                 { "interact", "Скрыть кнопку взаимодействия" },
-                { "items", "Скрыть названия предметов на земле" },
+                { "items", "Скрыть названия\nпредметов на земле" },
                 { "reload", "Автоматическая перезарядка" },
-                { "finger", "Включить указание пальцем на объекты" },
-            };
+                { "finger", "Включить указание\nпальцем на объекты" },
+            }.ToDictionary(x => x.Key, x => Utils.ReplaceNewLineHtml(x.Value));
 
             CEF.Browser.Window.ExecuteJs("Menu.createManyToggles", "main", mainDict.Select(x => new object[] { x.Key, x.Value }));
 

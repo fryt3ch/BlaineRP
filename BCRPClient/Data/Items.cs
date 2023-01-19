@@ -32,6 +32,11 @@ namespace BCRPClient.Data
                     public int MaxAmount { get; set; }
                 }
 
+                public interface ICraftIngredient
+                {
+
+                }
+
                 public string Name { get; set; }
 
                 public float Weight { get; set; }
@@ -70,6 +75,11 @@ namespace BCRPClient.Data
         }
 
         public interface IConsumable
+        {
+
+        }
+
+        public interface ICraftIngredient
         {
 
         }
@@ -136,6 +146,19 @@ namespace BCRPClient.Data
                 public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, ExtraData ExtraData = null, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
                 {
                     this.ExtraData = ExtraData;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Mask : Clothes, Clothes.IToggleable
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
+                {
+
                 }
             }
 
@@ -264,6 +287,21 @@ namespace BCRPClient.Data
             new public class ItemData : Clothes.ItemData
             {
                 public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID) { }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Ring : Clothes, Clothes.IToggleable, Clothes.IProp
+        {
+            new public class ItemData : Clothes.ItemData
+            {
+                public uint Model { get; private set; }
+
+                public ItemData(string Name, float Weight, bool Sex, uint Model, string SexAlternativeID = null) : base(Name, Weight, Sex, 1, new int[] { 0 }, SexAlternativeID)
+                {
+                    this.Model = Model;
+                }
             }
 
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
@@ -412,6 +450,19 @@ namespace BCRPClient.Data
             }
 
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class FoodIngredient : Food, ICraftIngredient
+        {
+            new public class ItemData : Food.ItemData, Item.ItemData.ICraftIngredient
+            {
+                public ItemData(string Name, float Weight, int Satiety, int Mood, int Health, int MaxAmount) : base(Name, Weight, Satiety, Mood, Health, MaxAmount)
+                {
+
+                }
+            }
+
+            new public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
         public class CigarettesPack : StatusChanger, IConsumable
@@ -657,6 +708,8 @@ namespace BCRPClient.Data
             new KeyValuePair<System.Type, object[][]>(typeof(IUsable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 
             new KeyValuePair<System.Type, object[][]>(typeof(Weapon), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
+
+            new KeyValuePair<System.Type, object[][]>(typeof(Food), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Eat } }),
 
             new KeyValuePair<System.Type, object[][]>(typeof(StatusChanger), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 

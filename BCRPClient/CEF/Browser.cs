@@ -43,7 +43,7 @@ namespace BCRPClient.CEF
             Documents,
             NPC,
             Interaction, Interaction_Character, Interaction_Vehicle_In, Interaction_Vehicle_Out, Interaction_Passengers,
-            Shop, Retail, Tuning, Salon,
+            Shop, Retail, Tuning, Salon, TattooSalon,
             VehicleMisc,
             Death,
             Chat,
@@ -76,7 +76,7 @@ namespace BCRPClient.CEF
             
             { IntTypes.Interaction, "interaction" }, { IntTypes.Interaction_Character, "char_interaction" }, { IntTypes.Interaction_Vehicle_In, "iv_interaction" }, { IntTypes.Interaction_Vehicle_Out, "ov_interaction" }, { IntTypes.Interaction_Passengers, "pass_interaction"},
             
-            { IntTypes.Shop, "shop" }, { IntTypes.Retail, "retail" }, { IntTypes.Tuning, "tuning" }, { IntTypes.Salon, "salon" },
+            { IntTypes.Shop, "shop" }, { IntTypes.Retail, "retail" }, { IntTypes.Tuning, "tuning" }, { IntTypes.Salon, "salon" }, { IntTypes.TattooSalon, "tattoo_salon" },
             
             { IntTypes.VehicleMisc, "car_maint" },
             

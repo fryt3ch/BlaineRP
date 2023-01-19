@@ -1,15 +1,8 @@
-﻿using BCRPClient.CEF;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace BCRPClient.Data
 {
@@ -823,9 +816,15 @@ namespace BCRPClient.Data
                 ClothesShop2,
                 ClothesShop3,
 
+                JewelleryShop,
+
+                MaskShop,
+
                 BagShop,
 
                 BarberShop,
+
+                TattooShop,
 
                 CarShop1,
                 CarShop2,
@@ -884,15 +883,18 @@ namespace BCRPClient.Data
                 this.Rent = Rent;
                 this.Tax = Tax;
 
-                InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                if (PositionInfo != null)
                 {
-                    ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo,
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo,
+                    InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                    {
+                        ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo,
+                        InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo,
 
-                    Data = this,
-                };
+                        Data = this,
+                    };
 
-                InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                    InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                }
 
                 All.Add(Id, this);
             }
@@ -989,6 +991,96 @@ namespace BCRPClient.Data
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
                 this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
+
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
+            }
+        }
+
+        public class BagShop : Business
+        {
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
+            {
+                ("a_m_o_ktown_01", "Чжан"),
+            };
+
+            public BagShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BagShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(377, PositionInteract.Position, Name, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"vendor_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
+
+                    DefaultDialogueId = "seller_bags_preprocess",
+                };
+            }
+        }
+
+        public class MaskShop : Business
+        {
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
+            {
+                ("a_m_y_jetski_01", "Джулиан"),
+            };
+
+            public MaskShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MaskShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(362, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"vendor_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
+
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
+            }
+        }
+
+
+        public class JewelleryShop : Business
+        {
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
+            {
+                ("csb_anita", "Анита"),
+            };
+
+            public JewelleryShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.JewelleryShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                {
+                    Data = this,
+
+                    DefaultDialogueId = "seller_clothes_greeting_0",
+                };
+            }
+        }
+
+        public class TattooShop : Business
+        {
+            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
+            {
+                ("u_m_y_tattoo_01", "Рикардо"),
+                ("u_m_y_tattoo_01", "Сантьяго"),
+            };
+
+            public TattooShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TattooShop, Price, Rent, Tax)
+            {
+                this.Blip = new Blip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
+
+                this.Seller = new NPC($"tatseller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
                     Data = this,
 

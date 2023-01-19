@@ -32,6 +32,9 @@ namespace BCRPClient.Sync
             Phone,
             VehKey,
 
+            PedRingLeft3,
+            PedRingRight3,
+
             WeaponRightTight,
             WeaponLeftTight,
             WeaponRightBack,
@@ -140,13 +143,13 @@ namespace BCRPClient.Sync
 
             public bool IsPed { get; set; }
 
-            public int VertexIndex { get; set; }
+            public int RotationOrder { get; set; }
 
             public bool FixedRot { get; set; }
 
             public Action<object[]> EntityAction;
 
-            public AttachmentData(int BoneID, Vector3 PositionOffset, Vector3 Rotation, bool UseSoftPinning, bool Collision, bool IsPed, int VertexIndex, bool FixedRot, Action<object[]> EntityAction = null)
+            public AttachmentData(int BoneID, Vector3 PositionOffset, Vector3 Rotation, bool UseSoftPinning, bool Collision, bool IsPed, int RotationOrder, bool FixedRot, Action<object[]> EntityAction = null)
             {
                 this.BoneID = BoneID;
                 this.PositionOffset = PositionOffset;
@@ -155,7 +158,7 @@ namespace BCRPClient.Sync
                 this.UseSoftPinning = UseSoftPinning;
                 this.Collision = Collision;
                 this.IsPed = IsPed;
-                this.VertexIndex = VertexIndex;
+                this.RotationOrder = RotationOrder;
                 this.FixedRot = FixedRot;
 
                 this.EntityAction = EntityAction;
@@ -252,6 +255,31 @@ namespace BCRPClient.Sync
             }
         }
         #endregion
+
+        private static Dictionary<uint, Dictionary<Types, AttachmentData>> ModelDependentAttachments = new Dictionary<string, Dictionary<Types, AttachmentData>>()
+        {
+            {
+                "brp_p_ring_0_0",
+                
+                new Dictionary<Types, AttachmentData>()
+                {
+                    { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(70f, 85f, -5f), false, false, false, 5, true) },
+
+                    { Types.PedRingRight3, new AttachmentData(58869, new Vector3(0.033f, 0.0007f, 0.0029f), new Vector3(105f, -85f, 15f), false, false, false, 5, true) },
+                }
+            },
+
+            {
+                "brp_p_ring_1_0",
+
+                new Dictionary<Types, AttachmentData>()
+                {
+                    { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(80f, 95f, -5f), false, false, false, 5, true) },
+
+                    { Types.PedRingRight3, new AttachmentData(58869, new Vector3(0.033f, 0.0013f, 0.0029f), new Vector3(115f, -105f, 15f), false, false, false, 5, true) },
+                }
+            },
+        }.ToDictionary(x => RAGE.Util.Joaat.Hash(x.Key), x => x.Value);
 
         public static Dictionary<Types, AttachmentData> Attachments = new Dictionary<Types, AttachmentData>()
         {
@@ -561,7 +589,7 @@ namespace BCRPClient.Sync
                 return;
 
             if (props != null)
-                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
 
             if (type == Types.VehicleTrailer)
             {
@@ -704,7 +732,7 @@ namespace BCRPClient.Sync
             if (gEntity == null)
                 return;
 
-            AttachmentData props = Attachments.GetValueOrDefault(type);
+            AttachmentData props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
             list.Add(new AttachmentObject(gEntity, type, hash, syncData));
 
@@ -729,11 +757,11 @@ namespace BCRPClient.Sync
                     {
                         AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
-                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
                     }
                     else
                     {
-                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.VertexIndex, props.FixedRot);
+                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
                     }
                 }
 
@@ -769,25 +797,30 @@ namespace BCRPClient.Sync
             if (gTarget == null || gEntity == null)
                 return;
 
-            AttachmentData props = Attachments[item.Type];
+            AttachmentData props = ModelDependentAttachments.GetValueOrDefault(item.Model)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
-            if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+            if (gTarget.Exists)
             {
-                RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
+                if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+                {
+                    RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
 
-                RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, props.Collision);
-            }
-            else
-                RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props.Collision);
+                    RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, props?.Collision ?? false);
+                }
+                else
+                {
+                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props?.Collision ?? false);
+                }
 
-            if (gEntity.HasData("PtfxHandle"))
-            {
-                RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
-            }
+                if (gEntity.HasData("PtfxHandle"))
+                {
+                    RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
+                }
 
-            if (gEntity.IsLocal)
-            {
-                gEntity.Destroy();
+                if (gEntity.IsLocal)
+                {
+                    gEntity.Destroy();
+                }
             }
 
             gEntity = null;
@@ -1234,5 +1267,49 @@ namespace BCRPClient.Sync
             }
         }
         #endregion
+
+        public static async System.Threading.Tasks.Task<GameEntity> AttachObjectSimpleLocal(uint hash, Entity target, Types type)
+        {
+            await Utils.RequestModel(hash);
+
+            GameEntity gTarget = Utils.GetGameEntity(target);
+
+            if (gTarget == null)
+                return null;
+
+            GameEntity gEntity = null;
+
+            Vector3 positionBase = Vector3.Zero;
+
+            if (type >= Types.WeaponRightTight && type <= Types.WeaponLeftBack)
+            {
+                await Utils.RequestWeaponAsset(hash);
+
+                gEntity = new MapObject(RAGE.Game.Weapon.CreateWeaponObject(hash, 0, target.Position.X, target.Position.Y, target.Position.Z, true, 0f, 0, 0, 0));
+            }
+            else
+            {
+                gEntity = new MapObject(RAGE.Game.Object.CreateObject(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+            }
+
+            if (gEntity == null)
+                return null;
+
+            AttachmentData props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
+
+            if (props != null)
+            {
+                RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+
+                if (gEntity is MapObject mObj)
+                {
+                    mObj.Hidden = false;
+                }
+
+                props.EntityAction?.Invoke(new object[] { gEntity });
+            }
+
+            return gEntity;
+        }
     }
 }

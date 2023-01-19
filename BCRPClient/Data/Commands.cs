@@ -699,6 +699,165 @@ namespace BCRPClient.Data
                 Sync.Vehicles.BoatFromTrailerToWater(veh);
         }
 
+        [Command("attachtool_start", true, "Установить сытость игроку")]
+        public static async void AttachToolStart(string model, int boneId, float offX = 0f, float offY = 0f, float offZ = 0f, float rotX = 0f, float rotY = 0f, float rotZ = 0f, bool fixedRot = true)
+        {
+            AttachToolStop();
+
+            var modelNum = RAGE.Util.Joaat.Hash(model);
+
+            await Utils.RequestModel(modelNum);
+
+            var gameEntity = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObject(modelNum, Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, false, false, false));
+
+            RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle, Player.LocalPlayer.Handle, Player.LocalPlayer.GetBoneIndex(boneId), offX, offY, offZ, rotX, rotY, rotZ, false, false, false, false, 2, fixedRot);
+
+            Player.LocalPlayer.SetData("Temp::ATTOOL::Sens", 0.1f);
+            Player.LocalPlayer.SetData("Temp::ATTOOL::PosOff", new Vector3(offX, offY, offZ));
+            Player.LocalPlayer.SetData("Temp::ATTOOL::Rot", new Vector3(rotX, rotY, rotZ));
+            Player.LocalPlayer.SetData("Temp::ATTOOL::GE", gameEntity);
+            Player.LocalPlayer.SetData("Temp::ATTOOL::FR", fixedRot);
+
+            Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 0);
+
+            var binds = new List<int>()
+            {
+                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+                {
+                    Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 0);
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using X axis now!");
+                }),
+                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+                {
+                    Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 1);
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Y axis now!");
+                }),
+                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
+                {
+                    Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 2);
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Z axis now!");
+                }),
+
+                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
+                {
+                    if (Utils.IsAnyCefActive(true))
+                        return;
+
+                    var sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
+
+                    var xyz = Player.LocalPlayer.GetData<int>("Temp::ATTOOL::XYZ");
+
+                    var rot = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::Rot");
+                    var pos = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::PosOff");
+
+                    var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
+
+                    if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                    {
+                        if (xyz == 0)
+                            rot.X -= sens;
+                        else if (xyz == 1)
+                            rot.Y -= sens;
+                        else
+                            rot.Z -= sens;
+                    }
+                    else
+                    {
+                        if (xyz == 0)
+                            pos.X -= sens;
+                        else if (xyz == 1)
+                            pos.Y -= sens;
+                        else
+                            pos.Z -= sens;
+                    }
+
+                    var ge = Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE");
+
+                    RAGE.Game.Entity.DetachEntity(ge.Handle, false, false);
+
+                    RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle, Player.LocalPlayer.Handle, Player.LocalPlayer.GetBoneIndex(boneId), pos.X, pos.Y, pos.Z, rot.X, rot.Y, rot.Z, false, false, false, false, 2, fr);
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
+                }),
+
+                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
+                {
+                    if (Utils.IsAnyCefActive(true))
+                        return;
+
+                    var sens = Player.LocalPlayer.GetData<float>("Temp::ATTOOL::Sens");
+
+                    var xyz = Player.LocalPlayer.GetData<int>("Temp::ATTOOL::XYZ");
+
+                    var rot = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::Rot");
+                    var pos = Player.LocalPlayer.GetData<Vector3>("Temp::ATTOOL::PosOff");
+
+                    var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
+
+                    if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                    {
+                        if (xyz == 0)
+                            rot.X += sens;
+                        else if (xyz == 1)
+                            rot.Y += sens;
+                        else
+                            rot.Z += sens;
+                    }
+                    else
+                    {
+                        if (xyz == 0)
+                            pos.X += sens;
+                        else if (xyz == 1)
+                            pos.Y += sens;
+                        else
+                            pos.Z += sens;
+                    }
+
+                    var ge = Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE");
+
+                    RAGE.Game.Entity.DetachEntity(ge.Handle, false, false);
+
+                    RAGE.Game.Entity.AttachEntityToEntity(gameEntity.Handle, Player.LocalPlayer.Handle, Player.LocalPlayer.GetBoneIndex(boneId), pos.X, pos.Y, pos.Z, rot.X, rot.Y, rot.Z, false, false, false, false, 2, fr);
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
+                }),
+            };
+
+            Player.LocalPlayer.SetData("Temp::ATTOOL::Binds", binds);
+        }
+
+        [Command("attachtool_sense", true, "Установить сытость игроку")]
+        public static void AttachToolSense(float value)
+        {
+            if (!Player.LocalPlayer.HasData("Temp::ATTOOL::Sens"))
+                return;
+
+            Player.LocalPlayer.SetData("Temp::ATTOOL::Sens", value);
+
+            Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Sense - {value}!");
+        }
+
+        [Command("attachtool_stop", true, "Установить сытость игроку")]
+        public static void AttachToolStop()
+        {
+            if (!Player.LocalPlayer.HasData("Temp::ATTOOL::Sens"))
+                return;
+
+            Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE")?.Destroy();
+
+            Player.LocalPlayer.GetData<List<int>>("Temp::ATTOOL::Binds").ForEach((x) => RAGE.Input.Unbind(x));
+
+            Player.LocalPlayer.ResetData("Temp::ATTOOL::Sens");
+            Player.LocalPlayer.ResetData("Temp::ATTOOL::PosOff");
+            Player.LocalPlayer.ResetData("Temp::ATTOOL::Rot");
+            Player.LocalPlayer.ResetData("Temp::ATTOOL::GE");
+            Player.LocalPlayer.ResetData("Temp::ATTOOL::Binds");
+            Player.LocalPlayer.ResetData("Temp::ATTOOL::FR");
+        }
+
         #endregion
 
         #region Debug Labels (DL)

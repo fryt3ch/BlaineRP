@@ -81,7 +81,7 @@ namespace BCRPServer.Events.Players
             if (ws == null)
                 return;
 
-            if (Vector3.Distance(player.Position, ws.PositionInfo) > 20f)
+            if (!ws.IsPlayerNearShootingRangeEnterPosition(pData))
                 return;
 
             if (pData.HasCooldown(PlayerData.CooldownTypes.ShootingRange, 2))
@@ -122,10 +122,10 @@ namespace BCRPServer.Events.Players
 
             var business = Game.Businesses.Business.Get(id);
 
-            if (business == null)
+            if (business == null || !business.IsBuyable)
                 return false;
 
-            if (Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+            if (!business.IsPlayerNearInfoPosition(pData))
                 return false;
 
             if (business.Owner != null)
@@ -155,10 +155,10 @@ namespace BCRPServer.Events.Players
 
             var business = Game.Businesses.Business.Get(id);
 
-            if (business == null || business.Owner != pData.Info)
+            if (business == null || !business.IsBuyable || business.Owner != pData.Info)
                 return false;
 
-            if (Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+            if (!business.IsPlayerNearInfoPosition(pData))
                 return false;
 
             business.SellToGov(true);
@@ -184,7 +184,7 @@ namespace BCRPServer.Events.Players
             if (business == null || business.Owner != pData.Info)
                 return null;
 
-            if (Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+            if (!business.IsPlayerNearInfoPosition(pData))
                 return null;
 
             return business.ToClientMenuObject();
@@ -200,7 +200,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || pData.CurrentTuningVehicle != null)
+            if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
                 return;
 
             var vData = veh.GetMainData();
@@ -211,6 +211,9 @@ namespace BCRPServer.Events.Players
             var ts = Game.Businesses.Business.Get(id) as Game.Businesses.TuningShop;
 
             if (ts == null)
+                return;
+
+            if (!ts.IsPlayerNearInteractPosition(pData))
                 return;
 
             if (player.Vehicle != veh)
@@ -282,7 +285,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null)
+            if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
                 return;
 
             var business = Game.Businesses.Business.Get(id);
@@ -290,7 +293,7 @@ namespace BCRPServer.Events.Players
             if (business == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, business.PositionInfo) > 20f)
+            if (!business.IsPlayerNearInteractPosition(pData))
                 return;
 
             if (business is Game.Businesses.IEnterable enterable)
@@ -359,6 +362,12 @@ namespace BCRPServer.Events.Players
 
             if (shop == null)
                 return false;
+
+            if (!(shop is Game.Businesses.IEnterable))
+            {
+                if (player.Dimension != Utils.Dimensions.Main || !shop.IsPlayerNearInteractPosition(pData))
+                    return false;
+            }
 
             var res = shop.BuyItem(pData, useCash, id);
 
