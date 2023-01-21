@@ -1841,7 +1841,7 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            CEF.ActionBox.ShowSelect(ActionBox.Contexts.WeaponSkinsMenuSelect, Locale.Actions.WeaponSkinsMenuSelectHeader, wSkins.Select(x => ((int)x.Key, $"{(Locale.Actions.WeaponSkinTypeNames.GetValueOrDefault(x.Key) ?? "null")} | {Data.Items.GetName(x.Value).Split(' ')[0]}")).ToArray());
+            CEF.ActionBox.ShowSelect(ActionBox.Contexts.WeaponSkinsMenuSelect, Locale.Actions.WeaponSkinsMenuSelectHeader, wSkins.Select(x => ((int)x.Key, $"{(Locale.Actions.WeaponSkinTypeNames.GetValueOrDefault(x.Key) ?? "null")} | {Data.Items.GetName(x.Value).Split(' ')[0]}")).ToArray(), Locale.Actions.SelectOkBtn1, Locale.Actions.SelectCancelBtn1);
         }
 
         public static void CloseAll(bool onlyInterfaces = false)

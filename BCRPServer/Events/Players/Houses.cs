@@ -50,10 +50,10 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Game.Houses.Apartments.ApartmentsRoot.Types), numType))
+            if (!Enum.IsDefined(typeof(Game.Estates.Apartments.ApartmentsRoot.Types), numType))
                 return;
 
-            var aRoot = Game.Houses.Apartments.ApartmentsRoot.Get((Game.Houses.Apartments.ApartmentsRoot.Types)numType);
+            var aRoot = Game.Estates.Apartments.ApartmentsRoot.Get((Game.Estates.Apartments.ApartmentsRoot.Types)numType);
 
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
@@ -92,17 +92,17 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Game.Houses.HouseBase.Types), hTypeNum))
+            if (!Enum.IsDefined(typeof(Game.Estates.HouseBase.Types), hTypeNum))
                 return;
 
-            var hType = (Game.Houses.HouseBase.Types)hTypeNum;
+            var hType = (Game.Estates.HouseBase.Types)hTypeNum;
 
-            if (hType == Game.Houses.HouseBase.Types.House)
+            if (hType == Game.Estates.HouseBase.Types.House)
             {
                 if (player.Dimension != Utils.Dimensions.Main)
                     return;
 
-                var house = Game.Houses.House.Get(id);
+                var house = Game.Estates.House.Get(id);
 
                 if (house == null)
                     return;
@@ -121,7 +121,7 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                var aps = Game.Houses.Apartments.Get(id);
+                var aps = Game.Estates.Apartments.Get(id);
 
                 if (aps == null)
                     return;
@@ -217,7 +217,7 @@ namespace BCRPServer.Events.Players
                 if (player.Dimension != Utils.Dimensions.Main)
                     return;
 
-                var house = Game.Houses.House.Get(houseId);
+                var house = Game.Estates.House.Get(houseId);
 
                 if (house == null || house.GarageData == null)
                     return;
@@ -269,7 +269,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            var house = Game.Houses.House.Get(houseId);
+            var house = Game.Estates.House.Get(houseId);
 
             if (house == null || house.GarageData == null)
                 return;
@@ -505,7 +505,7 @@ namespace BCRPServer.Events.Players
                 return false;
             }
 
-            var furniture = Game.Houses.Furniture.Get(fUid);
+            var furniture = Game.Estates.Furniture.Get(fUid);
 
             if (furniture == null)
                 return false;
@@ -545,7 +545,7 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            var furniture = Game.Houses.Furniture.Get(fUid);
+            var furniture = Game.Estates.Furniture.Get(fUid);
 
             if (furniture == null)
                 return;
@@ -602,7 +602,7 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            var furniture = Game.Houses.Furniture.Get(fUid);
+            var furniture = Game.Estates.Furniture.Get(fUid);
 
             if (furniture == null)
                 return;

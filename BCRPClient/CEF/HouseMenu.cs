@@ -102,7 +102,7 @@ namespace BCRPClient.CEF
 
                             furn.SetData("UID", fUid);
 
-                            CEF.MapEditor.Show(furn, MapEditor.ModeTypes.FurnitureEdit, false);
+                            CEF.MapEditor.Show(furn as GameEntity, MapEditor.ModeTypes.FurnitureEdit, false);
 
                             return;
                         }
@@ -386,8 +386,6 @@ namespace BCRPClient.CEF
 
             RAGE.Input.Unbind(EscBind);
 
-            EscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CEF.MapEditor.Close());
-
             SwitchMenu(false);
         }
 
@@ -395,8 +393,6 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
-
-            RAGE.Input.Unbind(EscBind);
 
             EscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 

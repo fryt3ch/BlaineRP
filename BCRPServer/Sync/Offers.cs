@@ -416,14 +416,14 @@ namespace BCRPServer.Sync
 
                             if (offer.Data is Offer.PropertySellData psData)
                             {
-                                if (psData.Data is Game.Houses.HouseBase houseBase)
+                                if (psData.Data is Game.Estates.HouseBase houseBase)
                                 {
                                     if (!pData.OwnedHouses.Contains(houseBase) && !pData.OwnedApartments.Contains(houseBase))
                                         return;
 
                                     tPlayer.CloseAll();
 
-                                    tPlayer.TriggerEvent("Estate::Show", 1, houseBase.Type == Game.Houses.HouseBase.Types.House ? 2 : 3, houseBase.Id, sPlayer, psData.Price);
+                                    tPlayer.TriggerEvent("Estate::Show", 1, houseBase.Type == Game.Estates.HouseBase.Types.House ? 2 : 3, houseBase.Id, sPlayer, psData.Price);
 
                                     offer.TradeData = new Offer.Trade()
                                     {
@@ -434,7 +434,7 @@ namespace BCRPServer.Sync
 
                                     offer.TradeData.SenderHouseBases.Add(houseBase);
                                 }
-                                else if (psData.Data is Game.Houses.Garage garage)
+                                else if (psData.Data is Game.Estates.Garage garage)
                                 {
                                     if (!pData.OwnedGarages.Contains(garage))
                                         return;
@@ -727,7 +727,7 @@ namespace BCRPServer.Sync
                         this.Amount = Amount;
                     }
 
-                    public string ToClientJson() => ItemRoot == null ? "" : $"{ItemRoot.ID}&{Amount}&{(ItemRoot is IStackable ? ItemRoot.BaseWeight : ItemRoot.Weight)}&{Game.Items.Items.GetItemTag(ItemRoot)}";
+                    public string ToClientJson() => ItemRoot == null ? "" : $"{ItemRoot.ID}&{Amount}&{(ItemRoot is IStackable ? ItemRoot.BaseWeight : ItemRoot.Weight)}&{Game.Items.Stuff.GetItemTag(ItemRoot)}";
                 }
 
                 public TradeItem[] SenderItems { get; set; }
@@ -739,11 +739,11 @@ namespace BCRPServer.Sync
                 public List<Game.Businesses.Business> SenderBusinesses { get; set; }
                 public List<Game.Businesses.Business> ReceiverBusinesses { get; set; }
 
-                public List<Game.Houses.HouseBase> SenderHouseBases { get; set; }
-                public List<Game.Houses.HouseBase> ReceiverHouseBases { get; set; }
+                public List<Game.Estates.HouseBase> SenderHouseBases { get; set; }
+                public List<Game.Estates.HouseBase> ReceiverHouseBases { get; set; }
 
-                public List<Game.Houses.Garage> SenderGarages { get; set; }
-                public List<Game.Houses.Garage> ReceiverGarages { get; set; }
+                public List<Game.Estates.Garage> SenderGarages { get; set; }
+                public List<Game.Estates.Garage> ReceiverGarages { get; set; }
 
                 public int SenderMoney { get; set; }
                 public int ReceiverMoney { get; set; }
@@ -819,7 +819,7 @@ namespace BCRPServer.Sync
                         if (x.Owner != pData.Info)
                             return (Game.Items.Inventory.Results.Error, null);
 
-                        if (x.Type == Game.Houses.HouseBase.Types.House)
+                        if (x.Type == Game.Estates.HouseBase.Types.House)
                             sHCount++;
                     }
 
@@ -830,7 +830,7 @@ namespace BCRPServer.Sync
                         if (x.Owner != pData.Info)
                             return (Game.Items.Inventory.Results.Error, null);
 
-                        if (x.Type == Game.Houses.HouseBase.Types.House)
+                        if (x.Type == Game.Estates.HouseBase.Types.House)
                             rHCount++;
                     }
 
@@ -886,7 +886,7 @@ namespace BCRPServer.Sync
 
                     if (rHCount > 0)
                     {
-                        if (pData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.House)
+                        if (pData.SettledHouseBase?.Type == Game.Estates.HouseBase.Types.House)
                             return (Game.Items.Inventory.Results.SettledToHouse, pData);
 
                         if ((pData.HouseSlots - sHCount + rHCount) <= 0)
@@ -895,7 +895,7 @@ namespace BCRPServer.Sync
 
                     if (sHCount > 0)
                     {
-                        if (pData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.House)
+                        if (pData.SettledHouseBase?.Type == Game.Estates.HouseBase.Types.House)
                             return (Game.Items.Inventory.Results.SettledToHouse, tData);
 
                         if ((tData.HouseSlots - rHCount + sHCount) <= 0)
@@ -907,7 +907,7 @@ namespace BCRPServer.Sync
 
                     if (rHCount > 0)
                     {
-                        if (pData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.Apartments)
+                        if (pData.SettledHouseBase?.Type == Game.Estates.HouseBase.Types.Apartments)
                             return (Game.Items.Inventory.Results.SettledToApartments, pData);
 
                         if ((pData.ApartmentsSlots - sHCount + rHCount) <= 0)
@@ -916,7 +916,7 @@ namespace BCRPServer.Sync
 
                     if (sHCount > 0)
                     {
-                        if (tData.SettledHouseBase?.Type == Game.Houses.HouseBase.Types.Apartments)
+                        if (tData.SettledHouseBase?.Type == Game.Estates.HouseBase.Types.Apartments)
                             return (Game.Items.Inventory.Results.SettledToApartments, tData);
 
                         if ((tData.ApartmentsSlots - rHCount + sHCount) <= 0)
@@ -1002,7 +1002,7 @@ namespace BCRPServer.Sync
                                     break;
                                 }
 
-                            senderItems[i].ItemRoot = Game.Items.Items.CreateItem(senderItems[i].ItemRoot.ID, 0, senderItems[i].Amount, false);
+                            senderItems[i].ItemRoot = Game.Items.Stuff.CreateItem(senderItems[i].ItemRoot.ID, 0, senderItems[i].Amount, false);
 
                             if (senderItems[i].ItemRoot == null)
                                 return (Game.Items.Inventory.Results.Error, null);
@@ -1035,7 +1035,7 @@ namespace BCRPServer.Sync
                                     break;
                                 }
 
-                            receiverItems[i].ItemRoot = Game.Items.Items.CreateItem(receiverItems[i].ItemRoot.ID, 0, receiverItems[i].Amount, false);
+                            receiverItems[i].ItemRoot = Game.Items.Stuff.CreateItem(receiverItems[i].ItemRoot.ID, 0, receiverItems[i].Amount, false);
 
                             if (receiverItems[i].ItemRoot == null)
                                 return (Game.Items.Inventory.Results.Error, null);
@@ -1107,11 +1107,11 @@ namespace BCRPServer.Sync
                     SenderBusinesses = new List<Game.Businesses.Business>();
                     ReceiverBusinesses = new List<Game.Businesses.Business>();
 
-                    SenderHouseBases = new List<Game.Houses.HouseBase>();
-                    ReceiverHouseBases = new List<Game.Houses.HouseBase>();
+                    SenderHouseBases = new List<Game.Estates.HouseBase>();
+                    ReceiverHouseBases = new List<Game.Estates.HouseBase>();
 
-                    SenderGarages = new List<Game.Houses.Garage>();
-                    ReceiverGarages = new List<Game.Houses.Garage>();
+                    SenderGarages = new List<Game.Estates.Garage>();
+                    ReceiverGarages = new List<Game.Estates.Garage>();
 
                     SenderMoney = 0;
                     ReceiverMoney = 0;

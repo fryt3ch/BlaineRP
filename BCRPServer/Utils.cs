@@ -84,7 +84,7 @@ namespace BCRPServer
 
         public static uint GetApartmentsIdByDimension(uint dim) => dim < ApartmentsDimBase ? 0 : dim - ApartmentsDimBase;
 
-        public static Game.Houses.HouseBase GetHouseBaseByDimension(uint dim)
+        public static Game.Estates.HouseBase GetHouseBaseByDimension(uint dim)
         {
             var hid = GetApartmentsIdByDimension(dim);
 
@@ -95,31 +95,31 @@ namespace BCRPServer
                 if (hid == 0)
                     return null;
 
-                return Game.Houses.House.Get(hid);
+                return Game.Estates.House.Get(hid);
             }
 
-            return Game.Houses.Apartments.Get(hid);
+            return Game.Estates.Apartments.Get(hid);
         }
 
-        public static Game.Houses.Apartments.ApartmentsRoot GetApartmentsRootByDimension(uint dim)
+        public static Game.Estates.Apartments.ApartmentsRoot GetApartmentsRootByDimension(uint dim)
         {
-            if (GetApartmentsRootTypeByDimension(dim) is Game.Houses.Apartments.ApartmentsRoot.Types type)
-                return Game.Houses.Apartments.ApartmentsRoot.Get(type);
+            if (GetApartmentsRootTypeByDimension(dim) is Game.Estates.Apartments.ApartmentsRoot.Types type)
+                return Game.Estates.Apartments.ApartmentsRoot.Get(type);
 
             return null;
         }
 
-        public static Game.Houses.Garage GetGarageByDimension(uint dim)
+        public static Game.Estates.Garage GetGarageByDimension(uint dim)
         {
             var gId = GetGarageIdByDimension(dim);
 
             if (gId == 0)
                 return null;
 
-            return Game.Houses.Garage.Get(gId);
+            return Game.Estates.Garage.Get(gId);
         }
 
-        public static Game.Houses.Apartments.ApartmentsRoot.Types? GetApartmentsRootTypeByDimension(uint dim) => dim < ApartmentsRootDimBase ? null : (Game.Houses.Apartments.ApartmentsRoot.Types?)(dim - ApartmentsRootDimBase);
+        public static Game.Estates.Apartments.ApartmentsRoot.Types? GetApartmentsRootTypeByDimension(uint dim) => dim < ApartmentsRootDimBase ? null : (Game.Estates.Apartments.ApartmentsRoot.Types?)(dim - ApartmentsRootDimBase);
 
         /// <summary>Стандартная позиция спавна</summary>
         public static Vector3 DefaultSpawnPosition = new Vector3(-749.78f, 5818.21f, 17f);
@@ -528,9 +528,9 @@ namespace BCRPServer
 
         public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
-        public static bool GiveItem(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Items.GiveItem(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
+        public static bool GiveItem(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItem(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
 
-        public static bool GiveItemDropExcess(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Items.GiveItemDropExcess(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
+        public static bool GiveItemDropExcess(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItemDropExcess(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
 
         /// <summary>Метод для удаления всего оружия у игрока</summary>
         /// <param name="pData">PlayerData игрока</param>
@@ -659,7 +659,7 @@ namespace BCRPServer
 
         public static Game.Items.Weapon GiveTempWeapon(this PlayerData pData, string wId, int ammo = -1)
         {
-            var weapon = Game.Items.Items.CreateItem(wId, 0, ammo, true) as Game.Items.Weapon;
+            var weapon = Game.Items.Stuff.CreateItem(wId, 0, ammo, true) as Game.Items.Weapon;
 
             if (weapon == null)
                 return null;
@@ -1212,21 +1212,43 @@ namespace BCRPServer
 
         public static string GetBeautyString(this TimeSpan ts)
         {
-            var hours = ts.TotalHours;
+            var days = ts.Days;
 
-            if (hours >= 1)
+            if (days >= 1)
             {
-                var mins = hours % 60;
+                var hours = ts.Hours;
 
-                if (hours % 60 >= 1)
-                    return string.Format("{0:0} ч. и {0:0} мин.", hours, mins);
+                if (hours >= 1)
+                    return $"{days} дн. и {hours} ч.";
 
-                return string.Format("{0:0} ч.", hours);
+                return $"{days} дн.";
             }
-            else if (ts.TotalMinutes >= 1)
-                return string.Format("{0:0} мин.", ts.TotalMinutes);
-            else
-                return string.Format("{0:0} сек.", ts.TotalSeconds);
+
+            var hours1 = ts.Hours;
+
+            if (hours1 >= 1)
+            {
+                var mins = ts.Minutes;
+
+                if (mins >= 1)
+                    return $"{hours1} ч. и {mins} мин.";
+
+                return $"{hours1} ч.";
+            }
+
+            var mins1 = ts.Minutes;
+
+            var secs = ts.Seconds;
+
+            if (mins1 >= 1)
+            {
+                if (secs >= 1)
+                    return $"{mins1} мин. и {secs} сек.";
+
+                return $"{mins1} мин.";
+            }
+
+            return $"{secs} сек.";
         }
 
         public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
@@ -1234,5 +1256,21 @@ namespace BCRPServer
         public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, updStr);
 
         public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh, seatId, timeout);
+
+        public static void CloneDirectory(DirectoryInfo source, DirectoryInfo dest)
+        {
+            foreach (var source_subdir in source.EnumerateDirectories())
+            {
+                var target_subdir = new DirectoryInfo(Path.Combine(dest.FullName, source_subdir.Name));
+                target_subdir.Create();
+                CloneDirectory(source_subdir, target_subdir);
+            }
+
+            foreach (var source_file in source.EnumerateFiles())
+            {
+                var target_file = new FileInfo(Path.Combine(dest.FullName, source_file.Name));
+                source_file.CopyTo(target_file.FullName, true);
+            }
+        }
     }
 }

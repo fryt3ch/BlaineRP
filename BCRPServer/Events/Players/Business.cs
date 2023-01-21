@@ -61,6 +61,8 @@ namespace BCRPServer.Events.Players
 
             if (currentSkill == 100)
                 pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (int)Math.Round(accuracy));
+
+            pData.Info.SetCooldown(PlayerData.CooldownTypes.ShootingRange);
         }
 
         [RemoteEvent("SRange::Enter::Shop")]
@@ -89,8 +91,6 @@ namespace BCRPServer.Events.Players
 
             if (!ws.BuyShootingRange(pData))
                 return;
-
-            pData.Info.SetCooldown(PlayerData.CooldownTypes.ShootingRange);
 
             var pDim = Utils.GetPrivateDimension(player);
 

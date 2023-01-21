@@ -79,7 +79,7 @@ namespace BCRPClient.CEF
 
             if (gasStationId < 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.NotAtGasStationError, 2500);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.NotAtGasStationError);
 
                 return;
             }
@@ -96,14 +96,14 @@ namespace BCRPClient.CEF
 
             if (Player.LocalPlayer.Vehicle != null)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.InVehicleError, 2500);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.InVehicleError);
 
                 return;
             }
 
             if (vData.FuelLevel == vData.Data.Tank)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? Locale.Notifications.Vehicles.FullOfGasElectrical : Locale.Notifications.Vehicles.FullOfGasDef, 2500);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? Locale.Notifications.Vehicles.FullOfGasElectrical : Locale.Notifications.Vehicles.FullOfGasDef);
 
                 return;
             }

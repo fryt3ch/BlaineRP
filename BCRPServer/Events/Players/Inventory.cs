@@ -184,7 +184,7 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
-                    pData.Items[freeIdx] = Game.Items.Items.CreateItem(item.Item.ID, 0, amount);
+                    pData.Items[freeIdx] = Game.Items.Stuff.CreateItem(item.Item.ID, 0, amount);
                 }
             }
 
@@ -332,7 +332,7 @@ namespace BCRPServer.Events.Players
                     cont.Items[slot] = item;
 
                     item.Update();
-                    item = Game.Items.Items.CreateItem(item.ID, 0, amount);
+                    item = Game.Items.Stuff.CreateItem(item.ID, 0, amount);
                 }
                 else
                     cont.Items[slot] = null;

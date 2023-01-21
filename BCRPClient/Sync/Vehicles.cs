@@ -797,7 +797,7 @@ namespace BCRPClient.Sync
 
                 int counter = 0;
 
-                CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, items.Select(x => (counter++, $"[{x.Value}]")).ToArray(), items);
+                CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, items.Select(x => (counter++, $"[{x.Value}]")).ToArray(), null, null, items);
             });
 
             Events.Add("Vehicles::Garage::SlotsMenu", (args) =>
@@ -809,7 +809,7 @@ namespace BCRPClient.Sync
 
                 freeSlots.Insert(0, int.MinValue + freeSlots[(new Random()).Next(0, freeSlots.Count)]);
 
-                CEF.ActionBox.ShowSelect(ActionBox.Contexts.GarageVehiclePlaceSelect, Locale.Actions.GarageVehicleSlotSelectHeader, freeSlots.Select(x => (x, x < 0 ? "Случайное место" : $"Место #{x + 1}")).ToArray());
+                CEF.ActionBox.ShowSelect(ActionBox.Contexts.GarageVehiclePlaceSelect, Locale.Actions.GarageVehicleSlotSelectHeader, freeSlots.Select(x => (x, x < 0 ? "Случайное место" : $"Место #{x + 1}")).ToArray(), null, null);
             });
 
             Events.Add("Vehicles::Fuel", (args) =>

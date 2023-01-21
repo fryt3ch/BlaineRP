@@ -260,5 +260,151 @@ namespace BCRPServer.Events.Players
 
             return pData.BankAccount != null;
         }
+
+        [RemoteProc("Bank::GHA")]
+        private static string GetHouseAccountData(Player player, uint houseId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            var house = Game.Estates.House.Get(houseId);
+
+            if (house == null || house.Owner != pData.Info)
+                return null;
+
+            return $"{house.Balance}_{Settings.MAX_PAID_HOURS_HOUSE}_{Settings.MIN_PAID_HOURS_HOUSE}";
+        }
+
+        [RemoteProc("Bank::GAA")]
+        private static string GetApartmentsAccountData(Player player, uint houseId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            var aps = Game.Estates.Apartments.Get(houseId);
+
+            if (aps == null || aps.Owner != pData.Info)
+                return null;
+
+            return $"{aps.Balance}_{Settings.MAX_PAID_HOURS_APARTMENTS}_{Settings.MIN_PAID_HOURS_APARTMENTS}";
+        }
+
+        [RemoteProc("Bank::GGA")]
+        private static string GetGarageAccountData(Player player, uint houseId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            var garge = Game.Estates.Garage.Get(houseId);
+
+            if (garge == null || garge.Owner != pData.Info)
+                return null;
+
+            return $"{garge.Balance}_{Settings.MAX_PAID_HOURS_GARAGE}_{Settings.MIN_PAID_HOURS_GARAGE}";
+        }
+
+        [RemoteProc("Bank::GBA")]
+        private static string GetBusinessAccountData(Player player, int businessId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            var business = Game.Businesses.Business.Get(businessId);
+
+            if (business == null || business.Owner != pData.Info)
+                return null;
+
+            return $"{business.Bank}_{Settings.MAX_PAID_HOURS_BUSINESS}_{Settings.MIN_PAID_HOURS_BUSINESS}";
+        }
+
+        [RemoteProc("Bank::HBC")]
+        private static int HouseBalanceChange(Player player, uint houseId, int amount, bool useCash, bool add)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return -1;
+
+            var pData = sRes.Data;
+
+            if (amount <= 0)
+                return -1;
+
+            if (pData.BankAccount == null)
+                return -1;
+
+            var house = Game.Estates.House.Get(houseId);
+
+            if (house == null || house.Owner != pData.Info)
+                return -1;
+
+            if (add)
+            {
+                var newAmount = house.Balance + amount;
+
+                if (house.Tax * Settings.MAX_PAID_HOURS_HOUSE < newAmount)
+                    return -1;
+
+                if (useCash)
+                {
+                    if (!pData.HasEnoughCash(amount, true))
+                        return -1;
+
+                    pData.AddCash(-amount, true);
+                }
+                else
+                {
+                    if (pData.BankAccount.HasEnoughMoneyDebit(amount, false, true) < 0)
+                        return -1;
+
+                    pData.BankAccount.Withdraw(amount);
+                }
+
+                house.Balance = newAmount;
+            }
+            else
+            {
+                var newAmount = house.Balance - amount;
+
+                if (newAmount <= 0)
+                {
+                    return -1;
+                }
+
+                if (house.Tax * Settings.MIN_PAID_HOURS_HOUSE > newAmount)
+                    return -1;
+
+                house.Balance = newAmount;
+
+                if (useCash)
+                {
+                    pData.AddCash(amount, true);
+                }
+                else
+                {
+                    pData.BankAccount.Deposit(amount);
+                }
+            }
+
+            MySQL.HouseUpdateBalance(house);
+
+            return house.Balance;
+        }
     }
 }

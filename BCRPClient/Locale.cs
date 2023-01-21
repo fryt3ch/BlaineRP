@@ -887,6 +887,22 @@ namespace BCRPClient
 
             public static string VehicleTuningVehicleSelect = "Выбор транспорта для тюнинга";
 
+            public static string HouseBalanceDeposit = "Пополнение счета дома";
+            public static string ApartmentsBalanceDeposit = "Пополнение счета квартиры";
+            public static string GarageBalanceDeposit = "Пополнение счета гаража";
+            public static string BusinessBalanceDeposit = "Пополнение счета бизнеса";
+
+            public static string HouseBalanceWithdraw = "Снятие со счета дома";
+            public static string ApartmentsBalanceWithdraw = "Снятие со счета квартиры";
+            public static string GarageBalanceWithdraw = "Снятие со счета гаража";
+            public static string BusinessBalanceWithdraw = "Снятие со счета бизнеса";
+
+            public static string SelectOkBtn0 = "Принять";
+            public static string SelectCancelBtn0 = "Отменить";
+
+            public static string SelectOkBtn1 = "Снять";
+            public static string SelectCancelBtn1 = "Закрыть";
+
             public static Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>()
             {
                 { Data.Items.WeaponSkin.ItemData.Types.UniDef, "Универсальная (все)" },
@@ -1094,6 +1110,9 @@ namespace BCRPClient
 
                 public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";
 
+                public static string LessThanMinValue = "Введенное значение меньше минимально допустимого!";
+                public static string BiggerThanMaxValue = "Введенное значение больше максимально допустимого!";
+
                 public static class PayDay
                 {
                     public static string Header = "Зарплата";
@@ -1294,6 +1313,10 @@ namespace BCRPClient
 
                     public static string SendApprove = "Вы собираетесь отправить ${0} {1} {2}.\nНажмите еще раз для подтверждения";
                 }
+
+                public static string MaximalBalanceAlready = "У вас на счете уже максимальное кол-во средств!";
+
+                public static string MinimalBalanceHouse = "На этом счете должно оставаться минимум {0}, Вы не можете снять этот остаток средств частично или целиком!";
 
                 public static string AdmitToBuy = "Вы уверены? Нажмите еще раз,\nчтобы совершить покупку";
 

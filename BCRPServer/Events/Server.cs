@@ -44,10 +44,11 @@ namespace BCRPServer.Events
 
                 foreach (var dir in ClientCSPackagesSource.GetDirectories().Where(x => x.Name != "bin" && x.Name != "obj"))
                 {
-                    var newSubDir = ClientCSPackagesTarget.CreateSubdirectory(dir.Name);
+                    var newDir = new DirectoryInfo(ClientCSPackagesTarget.FullName + "\\" + dir.Name);
 
-                    foreach (var file in dir.GetFiles("*.cs"))
-                        File.Copy(file.FullName, newSubDir.FullName + "\\" + file.Name, true);
+                    newDir.Create();
+
+                    Utils.CloneDirectory(dir, newDir);
                 }
             }
             catch (Exception ex)
@@ -83,14 +84,14 @@ namespace BCRPServer.Events
 
             #region Local Data Load Section
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all items");
-            Utils.ConsoleOutput($" | ~Red~[{Game.Items.Items.LoadAll()}]~/~", false);
+            Utils.ConsoleOutput($" | ~Red~[{Game.Items.Stuff.LoadAll()}]~/~", false);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles");
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
             #endregion
 
-            Game.Houses.HouseBase.Style.LoadAll();
-            Game.Houses.Garage.Style.LoadAll();
+            Game.Estates.HouseBase.Style.LoadAll();
+            Game.Estates.Garage.Style.LoadAll();
 
             Game.Bank.LoadAll();
 
@@ -102,9 +103,9 @@ namespace BCRPServer.Events
 
             Game.Businesses.Business.LoadAll();
 
-            Game.Houses.House.LoadAll();
-            Game.Houses.Apartments.LoadAll();
-            Game.Houses.Garage.LoadAll();
+            Game.Estates.House.LoadAll();
+            Game.Estates.Apartments.LoadAll();
+            Game.Estates.Garage.LoadAll();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Clearing unused items & Getting free items UID's");
             Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.FreeIDs.Count}]~/~", false);
@@ -121,13 +122,13 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{PlayerData.PlayerInfo.All.Values.Select(x => x.Gifts.Count).Sum()} gifts");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.House.All.Count} houses");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Estates.House.All.Count} houses");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Apartments.All.Count} apartments");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Estates.Apartments.All.Count} apartments");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Garage.All.Count} garages");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Estates.Garage.All.Count} garages");
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Houses.Furniture.All.Count} furniture");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Estates.Furniture.All.Count} furniture");
 
             GC.Collect();
             #endregion
@@ -211,7 +212,7 @@ namespace BCRPServer.Events
         [ServerEvent(Event.Update)]
         public void OnUpdate()
         {
-            var currentTime = Utils.GetCurrentTime().AddHours(2);
+            var currentTime = Utils.GetCurrentTime();
 
             NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
         }
@@ -231,13 +232,13 @@ namespace BCRPServer.Events
             foreach (var x in Game.Businesses.Business.All.Values)
                 MySQL.BusinessUpdateOnRestart(x);
 
-            foreach (var x in Game.Houses.House.All.Values)
+            foreach (var x in Game.Estates.House.All.Values)
                 MySQL.HouseUpdateOnRestart(x);
 
-            foreach (var x in Game.Houses.Apartments.All.Values)
+            foreach (var x in Game.Estates.Apartments.All.Values)
                 MySQL.HouseUpdateOnRestart(x);
 
-            foreach (var x in Game.Houses.Garage.All.Values)
+            foreach (var x in Game.Estates.Garage.All.Values)
                 MySQL.GarageUpdateOnRestart(x);
 
             await Task.Delay(Settings.SERVER_STOP_DELAY);

@@ -510,7 +510,7 @@ namespace BCRPServer.Events.Players
             }
             else if (pType == PlayerData.PropertyTypes.House || pType == PlayerData.PropertyTypes.Apartments)
             {
-                var house = pType == PlayerData.PropertyTypes.House ? (Game.Houses.HouseBase)pData.OwnedHouses.Where(x => x.Id == pId).FirstOrDefault() : (Game.Houses.HouseBase)pData.OwnedApartments.Where(x => x.Id == pId).FirstOrDefault();
+                var house = pType == PlayerData.PropertyTypes.House ? (Game.Estates.HouseBase)pData.OwnedHouses.Where(x => x.Id == pId).FirstOrDefault() : (Game.Estates.HouseBase)pData.OwnedApartments.Where(x => x.Id == pId).FirstOrDefault();
 
                 if (house == null)
                     return false;

@@ -1265,7 +1265,7 @@ namespace BCRPClient.CEF
 
                 KeyBinds.Binds[KeyBinds.Types.TakeItem].Disable();
 
-                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Take, CurrentEntity.GetData<string>("Name")), 1, CurrentEntity.GetData<int>("Amount"), CurrentEntity.GetData<int>("Amount"), -1);
+                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Take, CurrentEntity.GetData<string>("Name")), 1, CurrentEntity.GetData<int>("Amount"), CurrentEntity.GetData<int>("Amount"), -1, ActionBox.RangeSubTypes.Default);
             }
 
             TempBindEsc = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true));
@@ -1659,7 +1659,7 @@ namespace BCRPClient.CEF
 
                 CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
 
-                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name), 1, amount, amount / 2, -1);
+                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name), 1, amount, amount / 2, -1, ActionBox.RangeSubTypes.Default);
 
                 CurrentAction = 1;
 
@@ -1669,7 +1669,7 @@ namespace BCRPClient.CEF
             if (id == 2) // throw
             {
                 CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
-                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Drop, name), 1, amount, amount, -1);
+                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Drop, name), 1, amount, amount, -1, ActionBox.RangeSubTypes.Default);
 
                 CurrentAction = 2;
 

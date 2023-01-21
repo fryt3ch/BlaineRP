@@ -858,6 +858,98 @@ namespace BCRPClient.Data
             Player.LocalPlayer.ResetData("Temp::ATTOOL::FR");
         }
 
+        [Command("prop_spawn", true, "Установить сытость игроку")]
+        public static async void SpawnProp(string model, float? posX = null, float? posY = null, float? posZ = null, float rotX = 0f, float rotY = 0f, float rotZ = 0f, bool onGround = false)
+        {
+            var propsList = Player.LocalPlayer.GetData<List<GameEntity>>("Temp::SPCL");
+
+            if (propsList == null)
+            {
+                propsList = new List<GameEntity>();
+
+                Player.LocalPlayer.SetData("Temp::SPCL", propsList);
+            }
+
+            var hash = RAGE.Util.Joaat.Hash(model);
+
+            if (!await Utils.RequestModel(hash))
+                return;
+
+            if (posX == null || posY == null || posZ == null)
+            {
+                posX = Player.LocalPlayer.Position.X;
+                posY = Player.LocalPlayer.Position.Y;
+                posZ = Player.LocalPlayer.Position.Z;
+            }
+
+            var gEntity = new MapObject(RAGE.Game.Object.CreateObject(hash, (float)posX, (float)posY, (float)posZ, false, false, false));
+
+            RAGE.Game.Entity.FreezeEntityPosition(gEntity.Handle, true);
+
+            RAGE.Game.Entity.SetEntityRotation(gEntity.Handle, rotX, rotY, rotZ, 2, true);
+
+            if (onGround)
+                gEntity.PlaceOnGroundProperly();
+
+            propsList.Add(gEntity);
+        }
+
+        [Command("prop_del", true, "Установить сытость игроку")]
+        public static void DelProp(int? handle = null)
+        {
+            var gEntity = handle is int handleInt ? Utils.GetMapObjectByHandle(handleInt) as GameEntity : Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+
+            if (gEntity == null)
+                return;
+
+            var propsList = Player.LocalPlayer.GetData<List<GameEntity>>("Temp::SPCL");
+
+            if (propsList != null)
+            {
+                propsList.Remove(gEntity);
+
+                if (propsList.Count == 0)
+                    Player.LocalPlayer.ResetData("Temp::SPCL");
+            }
+
+            gEntity.Destroy();
+        }
+
+        [Command("entity_select_start", true, "Установить сытость игроку")]
+        public static void EntitySelectorStart()
+        {
+            Player.LocalPlayer.SetData("Temp::SEntity", (GameEntity)null);
+        }
+
+        [Command("entity_select_stop", true, "Установить сытость игроку")]
+        public static void EntitySelectorStop()
+        {
+            Player.LocalPlayer.ResetData("Temp::SEntity");
+        }
+
+        [Command("entity_select_edit_start", true, "Установить сытость игроку")]
+        public static void EntitySelectorEditStart()
+        {
+            var gEntity = Player.LocalPlayer.GetData<GameEntity>("Temp::SEntity");
+
+            if (gEntity?.Exists != true)
+                return;
+
+            if (CEF.MapEditor.IsActive)
+                CEF.MapEditor.Close();
+
+            CEF.MapEditor.Show(gEntity, CEF.MapEditor.ModeTypes.Default, true);
+        }
+
+        [Command("entity_select_edit_stop", true, "Установить сытость игроку")]
+        public static void EntitySelectorEditStop()
+        {
+            if (!CEF.MapEditor.IsActive)
+                return;
+
+            CEF.MapEditor.Close();
+        }
+
         #endregion
 
         #region Debug Labels (DL)

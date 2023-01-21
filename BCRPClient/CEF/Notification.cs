@@ -77,7 +77,7 @@ namespace BCRPClient.CEF
                 this.Title = Title ?? Locale.Notifications.DefHeader;
                 this.Message = Message;
 
-                this.Timeout = Timeout == -1 ? DefTimeout : Timeout;
+                this.Timeout = Timeout;
             }
         }
 
@@ -221,7 +221,7 @@ namespace BCRPClient.CEF
             LastAntiSpamShowed = DateTime.Now;
 
             // 0 - type, 1 - title, 2 - text, 3 - timeout
-            Events.Add("Notify::Custom", (object[] args) => Show((Types)((int)args[0]), (string)args[1], (string)args[2], (int)args[3]));
+            Events.Add("Notify::Custom", (object[] args) => Show((Types)((int)args[0]), (string)args[1], (string)args[2], args.Length > 3 ? (int)args[3] : -1));
 
             Events.Add("Notify", (object[] args) =>
             {
@@ -230,12 +230,12 @@ namespace BCRPClient.CEF
 
             Events.Add("Item::Added", (object[] args) =>
             {
-                CEF.Notification.Show(CEF.Notification.Types.Item, Locale.Notifications.Inventory.Header, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.Added, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.AddedOne, Data.Items.GetName((string)args[0])), 5000);
+                CEF.Notification.Show(CEF.Notification.Types.Item, Locale.Notifications.Inventory.Header, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.Added, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.AddedOne, Data.Items.GetName((string)args[0])));
             });
 
             Events.Add("Item::FCN", (object[] args) =>
             {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Inventory.FishingHeader, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.FishCatched, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.FishCatchedOne, Data.Items.GetName((string)args[0])), 5000);
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Inventory.FishingHeader, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.FishCatched, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.FishCatchedOne, Data.Items.GetName((string)args[0])));
             });
         }
 
@@ -253,15 +253,15 @@ namespace BCRPClient.CEF
                 Show(inst.Type, inst.Title, inst.Message, inst.Timeout);
         }
 
-        public static void Show(Types type, string title, string content, int timeout = 2500)
+        public static void Show(Types type, string title, string content, int timeout = -1)
         {
             if (!IsActive)
                 return;
 
-            Browser.Window.ExecuteJs("Notific.draw", timeout, type.ToString(), Utils.ReplaceNewLineHtml(title), Utils.ReplaceNewLineHtml(content), MaxNotifications, false);
+            Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(title + content) : timeout, type.ToString(), Utils.ReplaceNewLineHtml(title), Utils.ReplaceNewLineHtml(content), MaxNotifications, false);
         }
 
-        public static void ShowHint(string content, bool showAnyway = false, int timeout = 2500)
+        public static void ShowHint(string content, bool showAnyway = false, int timeout = -1)
         {
             if (!IsActive)
                 return;
@@ -269,7 +269,7 @@ namespace BCRPClient.CEF
             if (!showAnyway && Settings.Interface.HideHints)
                 return;
 
-            Browser.Window.ExecuteJs("Notific.draw", timeout, Types.Information.ToString(), Locale.Notifications.Hints.Header, Utils.ReplaceNewLineHtml(content), MaxNotifications, false);
+            Browser.Window.ExecuteJs("Notific.draw", timeout <= 0 ? GetTextReadingTime(content) : timeout, Types.Information.ToString(), Locale.Notifications.Hints.Header, Utils.ReplaceNewLineHtml(content), MaxNotifications, false);
         }
 
         public static void ShowOffer(string content, int timeout = 9999999)
@@ -309,5 +309,12 @@ namespace BCRPClient.CEF
             return spam;
         }
         #endregion
+
+        public static int GetTextReadingTime(string text)
+        {
+            var optimalTime = text.Where(x => char.IsLetterOrDigit(x)).Count() * 50;
+
+            return optimalTime < DefTimeout ? DefTimeout : optimalTime;
+        }
     }
 }

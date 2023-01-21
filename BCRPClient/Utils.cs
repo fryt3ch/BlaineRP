@@ -515,18 +515,20 @@ namespace BCRPClient
                 await RAGE.Game.Invoker.WaitAsync(25);
         }
 
-        public static async System.Threading.Tasks.Task RequestModel(uint hash)
+        public static async System.Threading.Tasks.Task<bool> RequestModel(uint hash)
         {
             if (!RAGE.Game.Streaming.IsModelValid(hash))
-                return;
+                return false;
 
             if (RAGE.Game.Streaming.HasModelLoaded(hash))
-                return;
+                return true;
 
             RAGE.Game.Streaming.RequestModel(hash);
 
             while (!RAGE.Game.Streaming.HasModelLoaded(hash))
                 await RAGE.Game.Invoker.WaitAsync(25);
+
+            return true;
         }
 
         public static async System.Threading.Tasks.Task RequestPtfx(string name)
@@ -1464,21 +1466,43 @@ namespace BCRPClient
 
         public static string GetBeautyString(this TimeSpan ts)
         {
-            var hours = ts.TotalHours;
+            var days = ts.Days;
 
-            if (hours >= 1)
+            if (days >= 1)
             {
-                var mins = hours % 60;
+                var hours = ts.Hours;
 
-                if (hours % 60 >= 1)
-                    return string.Format("{0:0} ч. и {0:0} мин.", hours, mins);
+                if (hours >= 1)
+                    return $"{days} дн. и {hours} ч.";
 
-                return string.Format("{0:0} ч.", hours);
+                return $"{days} дн.";
             }
-            else if (ts.TotalMinutes >= 1)
-                return string.Format("{0:0} мин.", ts.TotalMinutes);
-            else
-                return string.Format("{0:0} сек.", ts.TotalSeconds);
+
+            var hours1 = ts.Hours;
+
+            if (hours1 >= 1)
+            {
+                var mins = ts.Minutes;
+
+                if (mins >= 1)
+                    return $"{hours1} ч. и {mins} мин.";
+
+                return $"{hours1} ч.";
+            }
+
+            var mins1 = ts.Minutes;
+
+            var secs = ts.Seconds;
+
+            if (mins1 >= 1)
+            {
+                if (secs >= 1)
+                    return $"{mins1} мин. и {secs} сек.";
+
+                return $"{mins1} мин.";
+            }
+
+            return $"{secs} сек.";
         }
 
         public static int GetTrailerVehicle(this Vehicle veh)

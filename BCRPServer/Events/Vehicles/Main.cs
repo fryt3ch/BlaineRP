@@ -161,7 +161,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (vData.Info != null && vData.Info.LastData.GarageSlot >= 0)
             {
-                if (pData.CurrentHouse is Game.Houses.House house)
+                if (pData.CurrentHouse is Game.Estates.House house)
                 {
                     if (house.GarageOutside == null)
                         return;
@@ -175,7 +175,7 @@ namespace BCRPServer.Events.Vehicles
 
                     player.TriggerEvent("House::Exit");
                 }
-                else if (pData.CurrentGarage is Game.Houses.Garage garage)
+                else if (pData.CurrentGarage is Game.Estates.Garage garage)
                 {
                     vData.IsFrozen = false;
                     vData.IsInvincible = false;

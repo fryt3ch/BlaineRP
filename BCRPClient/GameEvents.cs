@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Net.NetworkInformation;
+using Newtonsoft.Json.Linq;
 
 namespace BCRPClient
 {
@@ -23,11 +24,17 @@ namespace BCRPClient
         public delegate void UpdateHandler();
         public delegate void ScreenResolutionChangeHandler(int x, int y);
 
+        public delegate void OnMouseClick(int x, int y, bool up, bool right);
+        public delegate void OnMouseClickCef(int x, int y, bool up, bool right, float relX, float relY, Vector3 worldPos, int eHandle);
+
         public delegate void WaypointCreatedHandler(Vector3 position);
         public delegate void WaypointDeletedHandler();
 
         public static event UpdateHandler Update;
         public static event UpdateHandler Render;
+
+        public static event OnMouseClick MouseClicked;
+        public static event OnMouseClickCef MouseClickedCef;
 
         public static event WaypointCreatedHandler WaypointCreated;
         public static event WaypointDeletedHandler WaypointDeleted;
@@ -73,7 +80,50 @@ namespace BCRPClient
 
             GameEvents.DisableAllControls(true);
 
-            Events.OnPlayerSpawn += async (RAGE.Events.CancelEventArgs cancel) =>
+            Events.OnClick += (x, y, up, right) => MouseClicked?.Invoke(x, y, up, right);
+            Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClickedCef?.Invoke(x, y, up, right, relX, relY, worldPos, eHandle);
+
+            MouseClickedCef += (x, y, up, right, relX, relY, worldPos, eHandle) =>
+            {
+                if (right)
+                {
+                    if (up)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else
+                {
+                    if (up)
+                    {
+
+                    }
+                    else
+                    {
+                        if (Player.LocalPlayer.HasData("Temp::SEntity"))
+                        {
+                            var pPos = Player.LocalPlayer.Position;
+
+                            pPos.Z += 1f;
+
+                            var gEntity = Utils.GetEntityByRaycast(pPos, worldPos, Player.LocalPlayer.Handle, 31) as GameEntity;
+
+                            if (gEntity == null)
+                                return;
+
+                            Player.LocalPlayer.SetData("Temp::SEntity", gEntity);
+
+                            Events.CallLocal("Chat::ShowServerMessage", $"[EntitySelect] Selected: Type: {gEntity.Type}, Handle: {gEntity.Handle}, Id: {gEntity.Id}, RemoteId: {(gEntity.IsLocal ? -1 : gEntity.RemoteId)}");
+                        }
+                    }
+                }
+            };
+
+            Events.OnPlayerSpawn += (RAGE.Events.CancelEventArgs cancel) =>
             {
                 var pos = Player.LocalPlayer.Position;
 
@@ -319,7 +369,7 @@ namespace BCRPClient
 
             KeyBinds.LoadMain();
 
-            CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, KeyBinds.Get(KeyBinds.Types.Cursor).GetKeyString()), false, 5000);
+            CEF.Notification.ShowHint(string.Format(Locale.Notifications.Hints.AuthCursor, KeyBinds.Get(KeyBinds.Types.Cursor).GetKeyString()), false);
 
             Sync.World.Preload();
         }

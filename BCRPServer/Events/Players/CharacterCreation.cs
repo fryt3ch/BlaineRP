@@ -112,18 +112,18 @@ namespace BCRPServer.Events.Players
                 var newClothes = new Game.Items.Clothes[5];
 
                 if (clothes[0] != null)
-                    newClothes[0] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[0], 0, 1);
+                    newClothes[0] = (Game.Items.Clothes)Game.Items.Stuff.CreateItem(clothes[0], 0, 1);
 
                 if (clothes[1] != null)
                 {
-                    newClothes[Game.Items.Items.GetType(clothes[1]) == typeof(Game.Items.Top) ? 1 : 2] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[1], 0, 1);
+                    newClothes[Game.Items.Stuff.GetType(clothes[1]) == typeof(Game.Items.Top) ? 1 : 2] = (Game.Items.Clothes)Game.Items.Stuff.CreateItem(clothes[1], 0, 1);
                 }
 
                 if (clothes[2] != null)
-                    newClothes[3] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[2], 0, 1);
+                    newClothes[3] = (Game.Items.Clothes)Game.Items.Stuff.CreateItem(clothes[2], 0, 1);
 
                 if (clothes[3] != null)
-                    newClothes[4] = (Game.Items.Clothes)Game.Items.Items.CreateItem(clothes[3], 0, 1);
+                    newClothes[4] = (Game.Items.Clothes)Game.Items.Stuff.CreateItem(clothes[3], 0, 1);
 
                 var pData = new PlayerData(player, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
 

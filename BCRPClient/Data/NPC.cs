@@ -33,6 +33,19 @@ namespace BCRPClient.Data
             Talkable,
         }
 
+        public enum PedAnimationTypes
+        {
+            /// <summary>Ничего</summary>
+            None = 0,
+
+            /// <summary>Анимация прерывается при диалоге с игроком, потом - продолжается</summary>
+            /// <remarks>Если анимация была запущена во время диалога с игроком, то она будет проигрываться!</remarks>
+            InterruptOnDialogue,
+            /// <summary>Анимация прерывается при диалоге с игроком, потом - продолжается</summary>
+            ///<remarks>Если анимация была запущена во время диалога с игроком, то она НЕ будет проигрываться!</remarks>
+            DontPlayOnDialogue,
+        }
+
         public string SubName { get; set; }
 
         public string Id { get; set; }
@@ -42,7 +55,14 @@ namespace BCRPClient.Data
         public Ped Ped { get; private set; }
 
         private bool _Invincible { get; set; }
+
         public bool Invincible { get => _Invincible; set { _Invincible = value; Ped.SetInvincible(value); } }
+
+        public PedAnimationTypes AnimationType { get => Ped.GetData<PedAnimationTypes>("AnimType"); set => Ped.SetData("AnimType", value); }
+
+        public Sync.Animations.Animation DefaultAnimation { get => Ped.GetData<Sync.Animations.Animation>("DefaultAnim"); set { if (value != null) { Ped.SetData("DefaultAnim", value); } else { Ped.ResetData("DefaultAnim"); } } }
+
+        public Sync.Animations.Animation CurrentAnimation { get => Ped.GetData<Sync.Animations.Animation>("CurrentAnim") ?? DefaultAnimation; set { if (value != null) { Ped.SetData("CurrentAnim", value); if (IsStreamed) Sync.Animations.Play(Ped, value, -1); } else { Ped.ResetData("CurrentAnim"); if (IsStreamed) Sync.Animations.Stop(Ped); } } }
 
         public float DefaultHeading { get; set; }
 
@@ -50,11 +70,15 @@ namespace BCRPClient.Data
 
         public string DefaultDialogueId { get; set; }
 
-        public Dialogue CurrentDialogue { get; set; }
+        public Dialogue CurrentDialogue { get => Ped.GetData<Dialogue>("CurrentDialogue"); set { if (value != null) { Ped.SetData("CurrentDialogue", value); } else { Ped.ResetData("CurrentDialogue"); } } }
+
+        public List<Dialogue.LastInfo> LastDialogues { get => Ped.GetData<List<Dialogue.LastInfo>>("LastDialogues"); set { if (value != null) { Ped.SetData("LastDialogues", value); } else { Ped.ResetData("LastDialogues"); } } }
 
         public Additional.Cylinder Colshape { get; set; }
 
-        public Blip Blip { get => Player.LocalPlayer.GetData<Blip>($"NPC::{Id}::Blip"); set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::Blip"); else Player.LocalPlayer.SetData($"NPC::{Id}::Blip", value); } }
+        public bool IsStreamed => RAGE.Elements.Entities.Peds.Streamed.Contains(Ped);
+
+        public Blip Blip { get => Ped.GetData<Blip>("Blip"); set { if (value == null) Ped.ResetData("Blip"); else Ped.SetData("Blip", value); } }
 
         public object Data { get; set; }
 
@@ -110,12 +134,28 @@ namespace BCRPClient.Data
             if (data == null)
                 return;
 
+            ped.FreezePosition(true);
+
             data.Ped.SetHeading(data.DefaultHeading);
+
+            if (data.CurrentAnimation is Sync.Animations.Animation curAnim)
+            {
+                Sync.Animations.Play(ped, curAnim, -1);
+            }
         }
 
         public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
         {
+            var data = GetData(ped);
 
+            if (data == null)
+            {
+                ped.ClearTasksImmediately();
+            }
+            else
+            {
+
+            }
         }
 
         public NPC()
@@ -183,6 +223,13 @@ namespace BCRPClient.Data
                 if (CurrentNPC != null)
                     return;
 
+                LastDialogues = new List<Dialogue.LastInfo>();
+
+                var playerHeadCoord = Utils.GetWorldCoordFromScreenCoord(0.5f, 0.5f, 100f);
+
+                if (playerHeadCoord != null)
+                    Ped.TaskLookAtCoord(playerHeadCoord.X, playerHeadCoord.Y, playerHeadCoord.Z, -1f, 2048, 3);
+
                 CEF.Notification.ClearAll();
 
                 CurrentNPC = this;
@@ -206,6 +253,15 @@ namespace BCRPClient.Data
                 if (CurrentNPC == null)
                     return;
 
+                if (LastDialogues is List<Dialogue.LastInfo> lastDialogues)
+                {
+                    lastDialogues.Clear();
+
+                    LastDialogues = null;
+                }
+
+                Ped.TaskClearLookAt();
+
                 foreach (var x in TempBinds)
                     RAGE.Input.Unbind(x);
 
@@ -227,7 +283,7 @@ namespace BCRPClient.Data
             }
         }
 
-        public void ShowDialogue(string dialogueId, params object[] textArgs)
+        public void ShowDialogue(string dialogueId, bool saveAsLast = true, object[] args = null, params object[] textArgs)
         {
             if (dialogueId == null)
                 return;
@@ -237,13 +293,23 @@ namespace BCRPClient.Data
             if (dialogue == null)
                 return;
 
+            if (saveAsLast)
+            {
+                var dgInfo = new Dialogue.LastInfo(dialogue, saveAsLast, args, textArgs);
+
+                if (LastDialogues is List<Dialogue.LastInfo> lastDialogues)
+                    lastDialogues.Add(dgInfo);
+                else
+                    LastDialogues = new List<Dialogue.LastInfo>() { dgInfo };
+            }
+
             CurrentDialogue = dialogue;
 
-            dialogue.Show(this, null, textArgs);
+            dialogue.Show(this, args, textArgs);
         }
     }
 
-    public class Dialogue : Events.Script
+    public partial class Dialogue : Events.Script
     {
         public enum TimeTypes
         {
@@ -267,406 +333,30 @@ namespace BCRPClient.Data
             return TimeTypes.Night;
         }
 
-        public static Dictionary<string, Dialogue> AllDialogues = new Dictionary<string, Dialogue>()
-        {
-            {
-                "vrent_s_preprocess",
+        public static Dictionary<string, Dialogue> AllDialogues { get; private set; } = new Dictionary<string, Dialogue>();
 
-                new Dialogue(null,
-
-                    async (args) =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                        if (pData == null)
-                            return;
-
-                        var data = (int?)await NPC.CurrentNPC.CallRemoteProc("vrent_s_d") ?? -1;
-
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        if (data < 0)
-                        {
-                            NPC.CurrentNPC.SwitchDialogue(false);
-                        }
-                        else
-                        {
-                            var dg = AllDialogues["vrent_s_def_0"];
-
-                            dg.Buttons[0].Text = $"Конечно [{Utils.GetPriceString(data)}]";
-
-                            NPC.CurrentNPC.ShowDialogue("vrent_s_def_0");
-                        }
-                    }
-
-                    )
-            },
-
-            {
-                "vrent_s_def_0",
-
-                new Dialogue("Привет! Хочешь недорого арендовать простенький мопед, с которым будет проще изучать наш округ?",
-
-                    null,
-
-                    new Button(null, async () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        if ((bool?)await NPC.CurrentNPC.CallRemoteProc("vrent_s_p") ?? false)
-                            NPC.CurrentNPC?.SwitchDialogue(false);
-                    }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-                {
-
-                }
-            },
-
-            #region Vehicle Pound
-            {
-                "vpound_preprocess",
-
-                new Dialogue(null,
-
-                    async (args) =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                        if (pData == null)
-                            return;
-
-                        var data = (string)await NPC.CurrentNPC.CallRemoteProc("vpound_d");
-
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        if (data == null)
-                        {
-                            NPC.CurrentNPC.ShowDialogue("vpound_no_vehicles_0");
-                        }
-                        else
-                        {
-                            var dataList = data.Split('_').ToList();
-
-                            var price = Utils.GetPriceString(int.Parse(dataList[0]));
-
-                            var vehs = dataList.Skip(1).Select(x => uint.Parse(x)).ToList();
-
-                            if (vehs.Count == 1)
-                            {
-                                var vid = vehs[0];
-
-                                NPC.CurrentNPC.TempDialogueData = vid;
-
-                                NPC.CurrentNPC.ShowDialogue("vpound_def_dg_0", pData.OwnedVehicles.Where(x => x.VID == vid).Select(x => x.Data.Name).FirstOrDefault() ?? "null", price);
-                            }
-                            else
-                            {
-                                NPC.CurrentNPC.TempDialogueData = vehs;
-
-                                NPC.CurrentNPC.ShowDialogue("vpound_def_dg_1", price);
-                            }
-                        }
-                    }
-
-                    )
-            },
-
-            {
-                "vpound_no_vehicles_0",
-
-                new Dialogue("Так-с, не вижу ни одного вашего транспорта в нашей системе.\nВот когда он у нас окажется - тогда и приходите!",
-
-                    null,
-
-                    new Button("[Выйти]", CloseCurrentDialogue, true)
-
-                    )
-                {
-                    TimedTexts = new Dictionary<TimeTypes, string>()
-                    {
-                        { TimeTypes.Morning, "Доброе утро! `ddg`" },
-                        { TimeTypes.Night, "[зевает]\n\n`ddg` И желательно - не ночью..." },
-                    }
-                }
-            },
-
-            {
-                "vpound_def_dg_0",
-
-                new Dialogue("Здравствуйте, {0} находится на нашей штрафстоянке, чтобы забрать его оплатите штраф - {1}\nЕсли что, мы принимаем только наличные!",
-
-                    null,
-
-                    new Button("[Оплатить]", async () =>
-                    {
-                        var vid = NPC.CurrentNPC?.TempDialogueData as uint?;
-
-                        if (vid == null || NPC.LastSent.IsSpam(500, false, false))
-                        {
-                            return;
-                        }
-                        else
-                        {
-                            if ((bool?)await NPC.CurrentNPC.CallRemoteProc("vpound_p", vid) == true)
-                                NPC.CurrentNPC?.SwitchDialogue(false);
-                        }
-                    }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-
-            {
-                "vpound_def_dg_1",
-
-                new Dialogue("Здравствуйте, Ваш транспорт находится на нашей штрафстоянке, выберите нужный и оплатите штраф - {0}\nЕсли что, мы принимаем только наличные!",
-
-                    null,
-
-                    new Button("[Перейти к выбору]", () =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                        if (pData == null)
-                            return;
-
-                        var npcId = NPC.CurrentNPC.Id;
-
-                        var vids = NPC.CurrentNPC.TempDialogueData as List<uint>;
-
-                        if (vids == null)
-                            return;
-
-                        NPC.CurrentNPC.SwitchDialogue(false);
-
-                        var counter = 0;
-
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePoundSelect, Locale.Actions.VehiclePoundSelectHeader, vids.Select(x => (counter++, pData.OwnedVehicles.Where(y => y.VID == x).Select(x => $"{x.Data.Name} [#{x.VID}]").FirstOrDefault() ?? "null")).ToArray(), vids, npcId);
-                    }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-            #endregion
-
-            #region Bank
-            {
-                "bank_preprocess",
-
-                new Dialogue(null,
-
-                    async (args) =>
-                    {
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        var hasAccount = (bool?)await Events.CallRemoteProc("Bank::HasAccount") == true;
-
-                        if (NPC.CurrentNPC == null)
-                            return;
-
-                        NPC.CurrentNPC.ShowDialogue(hasAccount ? "bank_has_account" : "bank_no_account_0");
-                    }
-
-                    )
-            },
-
-            {
-                "bank_no_account_0",
-
-                new Dialogue("Здравствуйте, могу ли я Вам чем-нибудь помочь?",
-
-                    null,
-
-                    new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-
-            {
-                "bank_no_account_1",
-
-                new Dialogue("Отлично!\n У нас есть несколько выгодных тарифов, ознакомьтесь с ними и выберите интересующий",
-
-                    null,
-
-                    new Button("[Перейти к тарифам]", () =>
-                    {
-                        if (NPC.CurrentNPC?.Data is Data.Locations.Bank bankData)
-                        {
-                            if (NPC.LastSent.IsSpam(1000, false, false))
-                                return;
-
-                            Events.CallRemote("Bank::Show", false, bankData.Id);
-                        }
-                    }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-
-            {
-                "bank_has_account",
-
-                new Dialogue("Здравствуйте, могу ли я Вам чем-нибудь помочь?",
-
-                    null,
-
-                    new Button("[Перейти к управлению счетом]", () =>
-                    {
-                        if (NPC.CurrentNPC?.Data is Data.Locations.Bank bankData)
-                        {
-                            if (NPC.LastSent.IsSpam(1000, false, false))
-                                return;
-
-                            Events.CallRemote("Bank::Show", false, bankData.Id);
-                        }
-                    }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-            #endregion
-
-            {
-                "seller_bags_preprocess",
-
-                new Dialogue(null, (args) =>
-                {
-                    if (NPC.CurrentNPC == null)
-                        return;
-
-                    if (Player.LocalPlayer.GetDrawableVariation(5) > 0)
-                        NPC.CurrentNPC.ShowDialogue("seller_bags_b_0");
-                    else
-                        NPC.CurrentNPC.ShowDialogue("seller_bags_n_0");
-
-                })
-            },
-
-            {
-                "seller_bags_b_0",
-
-                new Dialogue("Привет, вижу у вас уже есть сумка, не у меня покупали случаем? Но не думайте, скидку я никому не даю!", null,
-                    Button.DefaultShopEnterButton,
-                    Button.DefaultExitButton
-                    )
-            },
-
-            {
-                "seller_bags_n_0",
-
-                new Dialogue("Приветствую, вижу, вам чего-то не хватает... Как насчёт новенькой сумочки или рюкзака?", null,
-                    Button.DefaultShopEnterButton,
-                    Button.DefaultExitButton
-                    )
-            },
-
-            {
-                "seller_clothes_greeting_0",
-                
-                new Dialogue("Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!",
-                    
-                    null,
-
-                    Button.DefaultShopEnterButton,
-
-                    new Button("Есть ли работа для меня?", () => { }, true),
-
-                    Button.DefaultExitButton
-
-                    )
-            },
-
-            {
-                "seller_shop_greeting_0",
-
-                new Dialogue("Здравствуйте, хорошо, что вы заглянули к нам сегодня, как раз привезли свежайшие продукты!\n",
-
-                    null,
-
-                    new Button("[Смотреть товары]", () => { }, true),
-
-                    new Button("Есть ли работа для меня?", () => { }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-
-            {
-                "seller_gas_greeting_0",
-
-                new Dialogue("Здравствуйте, хотите что-то приобрести?",
-
-                    null,
-
-                    new Button("[Смотреть товары]", () => { }, true),
-
-                    new Button("Я хочу заправить транспорт", () => { }, true),
-
-                    new Button("Нет, спасибо", () => { CEF.Interaction.CloseMenu(); }, false)
-
-                    )
-            },
-
-            {
-                "seller_gas_info_0",
-
-                new Dialogue("Не, это не ко мне, у меня можно купить разные приблуды для дороги, например, ремонтный набор или канистру с топливом, а заправиться вы можете самостоятельно, поставив транспорт возле бензоколонки.",
-
-                    null,
-
-                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_gas_greeting_0"); }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue,false)
-
-                    )
-            },
-
-            {
-                "seller_no_job_0",
-
-                new Dialogue("К сожалению, пока что ваша помощь ни в чем не требуется, магазин с работой справляется.",
-
-                    null,
-
-                    new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0"); }, true),
-
-                    new Button("[Выйти]", CloseCurrentDialogue, false)
-
-                    )
-            },
-        };
-
-        private static void CloseCurrentDialogue() => NPC.CurrentNPC?.SwitchDialogue(false);
+        public static void CloseCurrentDialogue() => NPC.CurrentNPC?.SwitchDialogue(false);
 
         public static Dialogue Get(string id) => AllDialogues.GetValueOrDefault(id);
 
         public class Button
         {
             public static Button DefaultExitButton { get; private set; } = new Button("[Выйти]", CloseCurrentDialogue, false);
+
+            public static Button DefaultBackButton { get; private set; } = new Button("[Назад]", () =>
+            {
+                if (NPC.CurrentNPC?.LastDialogues is List<Dialogue.LastInfo> lastDialogues)
+                {
+                    if (lastDialogues.Count > 1)
+                    {
+                        var targetDialogueInfo = lastDialogues[lastDialogues.Count - 2];
+
+                        lastDialogues.Remove(targetDialogueInfo);
+
+                        NPC.CurrentNPC?.ShowDialogue(targetDialogueInfo.Dialogue.Id, targetDialogueInfo.SaveAsLast, targetDialogueInfo.Args, targetDialogueInfo.TextArgs);
+                    }
+                }
+            }, false);
 
             public static Button DefaultShopEnterButton { get; private set; } = new Button("[Перейти к товарам]", () => NPC.CurrentNPC?.SellerNpcRequestEnterBusiness(), true);
 
@@ -706,19 +396,25 @@ namespace BCRPClient.Data
 
         public Dictionary<TimeTypes, string> TimedTexts { get; set; }
 
-        public Dialogue(string Text, Action<object[]> Action = null, params Button[] Buttons)
+        public Dialogue(string Id, string Text, Action<object[]> Action = null, params Button[] Buttons)
         {
+            this.Id = Id;
+
             this.Action = Action;
 
             this.Text = Text;
 
             this.Buttons = Buttons.ToList();
+
+            AllDialogues.Add(Id, this);
         }
 
         public Dialogue()
         {
-            foreach (var x in AllDialogues.Keys)
-                AllDialogues[x].Id = x;
+            NPCDialogues.Bank.Load();
+            NPCDialogues.Shop.Load();
+            NPCDialogues.VehiclePound.Load();
+            NPCDialogues.Misc.Load();
 
             Events.Add("Dialogues::Show", (object[] args) =>
             {
@@ -739,15 +435,6 @@ namespace BCRPClient.Data
             Buttons[buttonId].Action?.Invoke();
         }
 
-        public static Dialogue CreateCustom(string id, string text, Action<object[]> action = null, params Button[] buttons)
-        {
-            var dialogue = new Dialogue(text, action, buttons);
-
-            dialogue.Id = id;
-
-            return dialogue;
-        }
-
         /// <summary>Метод для показа диалога</summary>
         /// <param name="npcHolder">NPC-держатель диалога</param>
         /// <param name="args">Аргументы (если выполняется invokeAction, то аргументы для действия, иначе - массив ID кнопок (int), которые нужно показать. Если args пустой, то будут показаны все кнопки</param>
@@ -759,11 +446,6 @@ namespace BCRPClient.Data
                 return;
 
             var buttons = Buttons;
-
-            if (args != null)
-            {
-                // ?
-            }
 
             if (!CEF.NPC.IsActive)
             {
@@ -822,6 +504,27 @@ namespace BCRPClient.Data
                 btnsData.Add(new object[] { buttons[i].IsRed, i, buttons[i].Text });
 
             CEF.NPC.Draw(npcHolder.Name, text, btnsData.ToArray());
+        }
+
+        public class LastInfo
+        {
+            public Dialogue Dialogue { get; set; }
+
+            public object[] Args { get; set; }
+
+            public object[] TextArgs { get; set; }
+
+            public bool SaveAsLast { get; set; }
+
+            public LastInfo(Dialogue Dialogue, bool SaveAsLast, object[] Args, object[] TextArgs)
+            {
+                this.Dialogue = Dialogue;
+
+                this.SaveAsLast = SaveAsLast;
+
+                this.Args = Args;
+                this.TextArgs = TextArgs;
+            }
         }
     }
 }

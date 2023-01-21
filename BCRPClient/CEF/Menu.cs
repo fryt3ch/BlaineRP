@@ -260,7 +260,7 @@ namespace BCRPClient.CEF
 
                     Gifts.Add(id, (Locale.Notifications.Gifts.SourceNames[reason], GetGiftName((GiftTypes)type, gid, amount)));
 
-                    CEF.Notification.Show(CEF.Notification.Types.Gift, Locale.Notifications.Gifts.Header, string.Format(Locale.Notifications.Gifts.Added, name, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString()), 5000);
+                    CEF.Notification.Show(CEF.Notification.Types.Gift, Locale.Notifications.Gifts.Header, string.Format(Locale.Notifications.Gifts.Added, name, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString()));
                 }
                 else
                 {

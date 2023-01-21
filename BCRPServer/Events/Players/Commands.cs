@@ -600,7 +600,7 @@ namespace BCRPServer.Events.Players
                         }
                     }
 
-                    if (Game.Items.Items.GetType(id) == null)
+                    if (Game.Items.Stuff.GetType(id) == null)
                     {
                         pData.Player.Notify("Cmd::IdNotFound");
 
@@ -641,7 +641,7 @@ namespace BCRPServer.Events.Players
                         }
                     }
 
-                    if (Game.Items.Items.GetType(id) == null)
+                    if (Game.Items.Stuff.GetType(id) == null)
                     {
                         pData.Player.Notify("Cmd::IdNotFound");
 

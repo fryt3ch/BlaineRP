@@ -36,6 +36,12 @@ namespace BCRPClient.CEF
             None = -1, Select, Input, Range, Money,
         }
 
+        public enum RangeSubTypes
+        {
+            Default = 0,
+            MoneyRange = 1,
+        }
+
         public enum Contexts
         {
             None = -1, Inventory, GiveCash,
@@ -52,6 +58,15 @@ namespace BCRPClient.CEF
             WeaponSkinsMenuSelect,
 
             VehicleTuningVehicleSelect,
+
+            HouseBalanceDeposit,
+            HouseBalanceWithdraw,
+
+            GarageBalanceDeposit,
+            GarageBalanceWithdraw,
+
+            BusinessBalanceDeposit,
+            BusinessBalanceWithdraw,
         }
 
         public static Types CurrentType { get; private set; }
@@ -128,6 +143,330 @@ namespace BCRPClient.CEF
                                         return;
                                 }
                             },
+                        }
+                    },
+
+                    {
+                        Contexts.HouseBalanceDeposit,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("AB::Temp::HBD::H", (Data.Locations.HouseBase)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("AB::Temp::HBD::H");
+
+                                    if (house == null)
+                                        return;
+
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    LastSent = DateTime.Now;
+
+                                    var useCash = rType == ReplyTypes.OK;
+
+                                    var resultBalance = (int)await Events.CallRemoteProc(house.Type == Sync.House.HouseTypes.House ? "Bank::HBC" : "Bank::ABC", house.Id, amount, useCash, true);
+
+                                    if (resultBalance < 0)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::HBD::H");
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.HouseBalanceWithdraw,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("AB::Temp::HBD::H", (Data.Locations.HouseBase)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("AB::Temp::HBD::H");
+
+                                    if (house == null)
+                                        return;
+
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    LastSent = DateTime.Now;
+
+                                    var useCash = rType == ReplyTypes.OK;
+
+                                    var resultBalance = (int)await Events.CallRemoteProc(house.Type == Sync.House.HouseTypes.House ? "Bank::HBC" : "Bank::ABC", house.Id, amount, useCash, false);
+
+                                    if (resultBalance < 0)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::HBD::H");
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.GarageBalanceDeposit,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("AB::Temp::GBD::H", (Data.Locations.Garage)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    var garage = Player.LocalPlayer.GetData<Data.Locations.Garage>("AB::Temp::GBD::H");
+
+                                    if (garage == null)
+                                        return;
+
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    LastSent = DateTime.Now;
+
+                                    var useCash = rType == ReplyTypes.OK;
+
+                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::GBC", garage.Id, amount, useCash, true);
+
+                                    if (resultBalance < 0)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::GBD::H");
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.GarageBalanceWithdraw,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("AB::Temp::GBD::H", (Data.Locations.Garage)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    var garage = Player.LocalPlayer.GetData<Data.Locations.Garage>("AB::Temp::GBD::H");
+
+                                    if (garage == null)
+                                        return;
+
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    LastSent = DateTime.Now;
+
+                                    var useCash = rType == ReplyTypes.OK;
+
+                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::GBC", garage.Id, amount, useCash, false);
+
+                                    if (resultBalance < 0)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::GBD::H");
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.BusinessBalanceDeposit,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("AB::Temp::BBD::H", (Data.Locations.Business)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("AB::Temp::BBD::H");
+
+                                    if (biz == null)
+                                        return;
+
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    LastSent = DateTime.Now;
+
+                                    var useCash = rType == ReplyTypes.OK;
+
+                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::BBC", biz.Id, amount, useCash, true);
+
+                                    if (resultBalance < 0)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::BBD::H");
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.BusinessBalanceWithdraw,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("AB::Temp::BBD::H", (Data.Locations.Business)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("AB::Temp::BBD::H");
+
+                                    if (biz == null)
+                                        return;
+
+                                    if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    LastSent = DateTime.Now;
+
+                                    var useCash = rType == ReplyTypes.OK;
+
+                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::BBC", biz.Id, amount, useCash, false);
+
+                                    if (resultBalance < 0)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::BBD::H");
+                                }
+                            }
                         }
                     },
                 }
@@ -624,6 +963,19 @@ namespace BCRPClient.CEF
                 {
                     int amount = int.Parse((string)args[1]);
 
+                    if (amount < Player.LocalPlayer.GetData<int>("ActionBox::Temp::MinValue"))
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.LessThanMinValue);
+
+                        return;
+                    }
+                    else if (amount > Player.LocalPlayer.GetData<int>("ActionBox::Temp::MaxValue"))
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.BiggerThanMaxValue);
+
+                        return;
+                    }
+
                     TryInvokeAction(CurrentType, CurrentContext, ActionTypes.Choose, rType, amount);
                 }
                 else if (CurrentType == Types.Select)
@@ -647,7 +999,7 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task ShowSelect(Contexts context, string name, (int Id, string Text)[] variants, params object[] args)
+        public static async System.Threading.Tasks.Task ShowSelect(Contexts context, string name, (int Id, string Text)[] variants, string btnTextOk = null, string btnTextCancel = null, params object[] args)
         {
             if (IsActive)
                 return;
@@ -659,12 +1011,12 @@ namespace BCRPClient.CEF
 
             TryInvokeAction(CurrentType, CurrentContext, ActionTypes.Show, args);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, variants.Select(x => new object[] { x.Id, x.Text }));
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, variants.Select(x => new object[] { x.Id, x.Text }), new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowRange(Contexts context, string name, int minValue, int maxValue, int curValue = -1, int step = -1, params object[] args)
+        public static async System.Threading.Tasks.Task ShowRange(Contexts context, string name, int minValue, int maxValue, int curValue = -1, int step = -1, RangeSubTypes rsType = RangeSubTypes.Default, params object[] args)
         {
             if (IsActive)
                 return;
@@ -676,7 +1028,10 @@ namespace BCRPClient.CEF
 
             TryInvokeAction(CurrentType, CurrentContext, ActionTypes.Show, args);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { minValue, maxValue, curValue == -1 ? maxValue : curValue, step == -1 ? 1 : step });
+            Player.LocalPlayer.SetData("ActionBox::Temp::MinValue", minValue);
+            Player.LocalPlayer.SetData("ActionBox::Temp::MaxValue", maxValue);
+
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { minValue, maxValue, curValue == -1 ? maxValue : curValue, step == -1 ? 1 : step, (int)rsType });
 
             Cursor.Show(true, true);
         }
@@ -734,6 +1089,9 @@ namespace BCRPClient.CEF
 
             CurrentType = Types.None;
             CurrentContext = Contexts.None;
+
+            Player.LocalPlayer.ResetData("ActionBox::Temp::MinValue");
+            Player.LocalPlayer.ResetData("ActionBox::Temp::MaxValue");
         }
 
         private static void Bind()

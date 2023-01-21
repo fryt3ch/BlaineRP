@@ -421,7 +421,7 @@ namespace BCRPClient.CEF
 
                         int t = 0;
 
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePassportSelect, Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => (t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray());
+                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePassportSelect, Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => (t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(), null, null);
                         break;
 
                     case PlayerActions.DocumentsLicenses:
@@ -448,7 +448,7 @@ namespace BCRPClient.CEF
                             return;
                         }
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1);
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default);
                         break;
 
                     case PlayerActions.Money_50:

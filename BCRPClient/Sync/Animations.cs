@@ -971,27 +971,27 @@ namespace BCRPClient.Sync
             Play(player, anim);
         }
 
-        private static async void Play(Player player, Animation anim, int customTime = -1)
+        public static async void Play(PedBase ped, Animation anim, int customTime = -1)
         {
-            if (player == null)
+            if (ped == null)
                 return;
 
-            player.ClearTasks();
+            ped.ClearTasks();
 
             await Utils.RequestAnimDict(anim.Dict);
 
-            if (player.Handle != Player.LocalPlayer.Handle)
-                player.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
+            if (ped.Handle != Player.LocalPlayer.Handle)
+                ped.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
             else
-                player.TaskPlayAnim(anim.Dict, Utils.IsFirstPersonActive() ? (anim.NameFP ?? anim.Name) : anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
+                ped.TaskPlayAnim(anim.Dict, Utils.IsFirstPersonActive() ? (anim.NameFP ?? anim.Name) : anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
         }
 
-        public static void Stop(Player player)
+        public static void Stop(PedBase ped)
         {
-            if (player == null)
+            if (ped == null)
                 return;
 
-            player.ClearTasksImmediately();
+            ped.ClearTasksImmediately();
         }
 
         public static void PlaySync(FastTypes fastType, int delay = 1000)

@@ -19,7 +19,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var garage = Game.Houses.Garage.Get(id);
+            var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
                 return false;
@@ -48,7 +48,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var garage = Game.Houses.Garage.Get(id);
+            var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
                 return null;
@@ -69,7 +69,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var garage = Game.Houses.Garage.Get(id);
+            var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
                 return;
@@ -91,7 +91,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var garage = Game.Houses.Garage.Get(id);
+            var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
                 return;
@@ -116,7 +116,7 @@ namespace BCRPServer.Events.Players
             if (player.Vehicle != null)
                 return;
 
-            var garage = Game.Houses.Garage.Get(id);
+            var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
                 return;
@@ -162,7 +162,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Game.Houses.Garage.GarageRoot.Types), gRootTypeNum))
+            if (!Enum.IsDefined(typeof(Game.Estates.Garage.GarageRoot.Types), gRootTypeNum))
                 return;
 
             if (veh?.Exists != true)
@@ -173,7 +173,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            var gRootType = (Game.Houses.Garage.GarageRoot.Types)gRootTypeNum;
+            var gRootType = (Game.Estates.Garage.GarageRoot.Types)gRootTypeNum;
 
             if (player.Dimension != Utils.Dimensions.Main || vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
                 return;
@@ -190,10 +190,7 @@ namespace BCRPServer.Events.Players
 
             var garageVehs = garage.GetVehiclesInGarage();
 
-            if (garageVehs == null)
-                return;
-
-            foreach (var x in garage.GetVehiclesInGarage())
+            foreach (var x in garageVehs)
             {
                 freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
             }
@@ -224,7 +221,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Game.Houses.Garage.GarageRoot.Types), gRootTypeNum))
+            if (!Enum.IsDefined(typeof(Game.Estates.Garage.GarageRoot.Types), gRootTypeNum))
                 return;
 
             if (veh?.Exists != true)
@@ -238,7 +235,7 @@ namespace BCRPServer.Events.Players
             if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
                 return;
 
-            var gRootType = (Game.Houses.Garage.GarageRoot.Types)gRootTypeNum;
+            var gRootType = (Game.Estates.Garage.GarageRoot.Types)gRootTypeNum;
 
             if (slot >= 0)
             {
@@ -253,9 +250,6 @@ namespace BCRPServer.Events.Players
                 var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
 
                 var garageVehs = garage.GetVehiclesInGarage();
-
-                if (garageVehs == null)
-                    return;
 
                 foreach (var x in garageVehs)
                 {

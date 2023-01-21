@@ -315,7 +315,7 @@ namespace BCRPServer.Events.Players
                 }
                 else if (sType == TempData.StartPlaceTypes.House)
                 {
-                    var house = tData.PlayerData.OwnedHouses.FirstOrDefault() ?? tData.PlayerData.SettledHouseBase as Game.Houses.House;
+                    var house = tData.PlayerData.OwnedHouses.FirstOrDefault() ?? tData.PlayerData.SettledHouseBase as Game.Estates.House;
 
                     if (house != null)
                     {
@@ -329,7 +329,7 @@ namespace BCRPServer.Events.Players
                 }
                 else if (sType == TempData.StartPlaceTypes.Apartments)
                 {
-                    var aps = tData.PlayerData.OwnedApartments.FirstOrDefault() ?? tData.PlayerData.SettledHouseBase as Game.Houses.Apartments;
+                    var aps = tData.PlayerData.OwnedApartments.FirstOrDefault() ?? tData.PlayerData.SettledHouseBase as Game.Estates.Apartments;
 
                     if (aps != null)
                     {

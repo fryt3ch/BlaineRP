@@ -1603,7 +1603,7 @@ namespace BCRPClient.CEF
 
                         Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
                         AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholePed, Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.RightHand, Additional.Camera.StateTypes.LeftHand, Additional.Camera.StateTypes.Legs, Additional.Camera.StateTypes.Foots };
 
@@ -1627,7 +1627,7 @@ namespace BCRPClient.CEF
                         if (currentGloves != null)
                             Player.LocalPlayer.SetData("TempClothes::Gloves", new Data.Clothes.TempClothes(currentGloves, RealClothes[3].Item2));
 
-                        CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false, 7500);
+                        CEF.Notification.ShowHint(Locale.Notifications.Hints.ClothesShopOrder, false);
 
                         var prices = GetPrices(CurrentType);
 
@@ -1704,7 +1704,7 @@ namespace BCRPClient.CEF
 
                         Additional.Camera.Enable(Additional.Camera.StateTypes.Body, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
                         AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.BodyBack, Additional.Camera.StateTypes.WholePed };
 
@@ -1740,7 +1740,7 @@ namespace BCRPClient.CEF
 
                         Additional.Camera.Enable(Additional.Camera.StateTypes.WholePed, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
                         if (pData.WearedRing is Sync.AttachSystem.AttachmentObject atObj)
                         {
@@ -1797,7 +1797,7 @@ namespace BCRPClient.CEF
 
                         Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true, 5000);
+                        CEF.Notification.ShowHint(Locale.Notifications.CharacterCreation.CtrlMovePed, true);
 
                         AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.Head, Additional.Camera.StateTypes.Body, Additional.Camera.StateTypes.WholePed };
 
