@@ -87,8 +87,9 @@ namespace BCRPServer.Sync
 
         public static class Models
         {
-            public static uint Phone = NAPI.Util.GetHashKey("prop_phone_ing");
-            public static uint VehicleRemoteFob = NAPI.Util.GetHashKey("lr_prop_carkey_fob");
+            public static uint Phone { get; private set; } = NAPI.Util.GetHashKey("prop_phone_ing");
+
+            public static uint VehicleRemoteFob { get; private set; } = NAPI.Util.GetHashKey("lr_prop_carkey_fob");
         }
 
         public class AttachmentObjectNet

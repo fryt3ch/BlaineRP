@@ -546,18 +546,33 @@ namespace BCRPClient.CEF
             }
             else if (entity is MapObject obj)
             {
-                if (obj.HasData("Furniture"))
+                if (obj.IsLocal)
                 {
-                    if (obj.GetData<Data.Furniture>("Furniture") is Data.Furniture fData)
+                    if (obj.HasData("Furniture"))
                     {
-                        fData.InteractionAction?.Invoke(obj);
+                        if (obj.GetData<Data.Furniture>("Furniture") is Data.Furniture fData)
+                        {
+                            fData.InteractionAction?.Invoke(obj);
+                        }
+                    }
+                    else if (obj.HasData("CustomAction"))
+                    {
+                        var cAction = obj.GetData<Action<MapObject>>("CustomAction");
+
+                        cAction?.Invoke(obj);
                     }
                 }
-                else if (obj.HasData("CustomAction"))
+                else
                 {
-                    var cAction = obj.GetData<Action<MapObject>>("CustomAction");
+                    if (obj.GetSharedData<int>("IOG") == 1)
+                    {
+                        var iog = Sync.World.ItemOnGround.GetItemOnGroundObject(obj);
 
-                    cAction?.Invoke(obj);
+                        if (iog != null)
+                        {
+                            CEF.ActionBox.ShowSelect(ActionBox.Contexts.PlacedItemOnGroundSelect, Locale.Actions.PlacedItemOnGroundSelectHeader, new (int, string)[] { (0, Locale.Actions.PlacedItemOnGroundSelectInteract), (1, iog.IsLocked ? Locale.Actions.PlacedItemOnGroundSelectUnlock : Locale.Actions.PlacedItemOnGroundSelectLock), (2, Locale.Actions.PlacedItemOnGroundSelectTake) }, null, null, iog);
+                        }
+                    }
                 }
             }
 

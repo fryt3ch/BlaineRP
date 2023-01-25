@@ -37,7 +37,7 @@ namespace BCRPClient.CEF
             Login = 0, Registration, CharacterSelection, StartPlace,
             CharacterCreation,
             HUD, HUD_Top, HUD_Quest, HUD_Help, HUD_Speedometer, HUD_Interact, HUD_Menu, HUD_Left,
-            Inventory_Full, Inventory, CratesInventory, Trade,
+            Inventory_Full, Inventory, CratesInventory, Trade, Workbench,
             ActionBox,
             Animations,
             Documents,
@@ -64,8 +64,8 @@ namespace BCRPClient.CEF
             
             { IntTypes.HUD, "hud" }, { IntTypes.HUD_Top, "hud_top" }, { IntTypes.HUD_Quest, "hud_quest" }, { IntTypes.HUD_Help, "hud_help" }, { IntTypes.HUD_Speedometer, "hud_spd" }, { IntTypes.HUD_Interact, "hud_interact" }, { IntTypes.HUD_Menu, "hud_menu" }, { IntTypes.HUD_Left, "hud_left" },
             
-            { IntTypes.Inventory, "inventory" }, { IntTypes.Inventory_Full, "full_inventory" }, { IntTypes.CratesInventory, "crates_inventory" }, { IntTypes.Trade, "trade" },
-            
+            { IntTypes.Inventory, "inventory" }, { IntTypes.Inventory_Full, "full_inventory" }, { IntTypes.CratesInventory, "crates_inventory" }, { IntTypes.Trade, "trade" }, { IntTypes.Workbench, "workbench" },
+
             { IntTypes.ActionBox, "actionbox" },
             
             { IntTypes.Animations, "anims" },
@@ -101,8 +101,8 @@ namespace BCRPClient.CEF
 
         private static Dictionary<IntTypes, IntTypes> RenderDependencies = new Dictionary<IntTypes, IntTypes>()
         {
-            { IntTypes.CratesInventory, IntTypes.Inventory_Full }, { IntTypes.Inventory, IntTypes.Inventory_Full }, { IntTypes.Trade, IntTypes.Inventory_Full },
-            
+            { IntTypes.CratesInventory, IntTypes.Inventory_Full }, { IntTypes.Inventory, IntTypes.Inventory_Full }, { IntTypes.Trade, IntTypes.Inventory_Full }, { IntTypes.Workbench, IntTypes.Inventory_Full },
+
             { IntTypes.Interaction_Character, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_In, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_Out, IntTypes.Interaction }, { IntTypes.Interaction_Passengers, IntTypes.Interaction },
             
             { IntTypes.HUD_Top, IntTypes.HUD }, { IntTypes.HUD_Quest, IntTypes.HUD }, { IntTypes.HUD_Help, IntTypes.HUD }, { IntTypes.HUD_Speedometer, IntTypes.HUD }, { IntTypes.HUD_Interact, IntTypes.HUD }, { IntTypes.HUD_Menu, IntTypes.HUD }, { IntTypes.HUD_Left, IntTypes.HUD },

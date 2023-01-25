@@ -749,6 +749,11 @@ namespace BCRPServer.Game.Items
                 }
             }
 
+            foreach (var x in Craft.Craft.AllReceipts)
+            {
+                lines.Add($"Craft.AllReceipts.Add(new Craft.Receipt(new Craft.ResultData(\"{x.CraftResultData.ResultItem.Id}\", {x.CraftResultData.ResultItem.Amount}, {x.CraftResultData.CraftTime}), {string.Join(',', x.CraftNeededItems.Select(x => $"new Craft.ItemPrototype(\"{x.Id}\",{x.Amount})"))}));");
+            }
+
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_ITEMS_DATA_PATH, "TO_REPLACE", lines);
 
             return counter;

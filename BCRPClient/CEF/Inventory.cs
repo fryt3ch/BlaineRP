@@ -1,22 +1,26 @@
-﻿using RAGE;
+﻿using BCRPClient.Data;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 
 namespace BCRPClient.CEF
 {
     public class Inventory : Events.Script
     {
-        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade) || ActionBox.CurrentContext == ActionBox.Contexts.Inventory; }
+        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContext == ActionBox.Contexts.Inventory; }
+
+        private static int FreezeCounter { get; set; }
 
         public enum Types
         {
             None = -1,
             Inventory = 0,
-            Container,
-            ItemOnGround,
-            Trade,
+            Container = 1,
+            Trade = 3,
+            Workbench = 4,
         }
 
         public enum ContainerTypes
@@ -27,13 +31,22 @@ namespace BCRPClient.CEF
             Storage,
             Crate,
             Fridge,
-            Wardrobe
+            Wardrobe,
+        }
+
+        public enum WorkbenchTypes
+        {
+            None = -1,
+
+            Grill,
+
+            CraftTable,
         }
 
         private static Dictionary<string, int> Groups = new Dictionary<string, int>()
         {
             { "pockets", 0 }, { "bag", 1 }, { "weapon", 2 }, { "holster", 3 }, { "clothes", 4 }, { "accessories", 5 }, { "bagItem", 6 }, { "holsterItem", 7 }, { "armour", 8 },
-            { "crate", 9 }, { "give", 10 },
+            { "crate", 9 }, { "give", 10 }, { "craft", 20 }, { "tool", 21 }, { "result", 22 },
         };
 
         private static int GetTooltipGroup()
@@ -63,16 +76,20 @@ namespace BCRPClient.CEF
         }
 
         #region Variables
-        private static bool FirstOpenInv { get; set; }
-        private static bool FirstOpenCrate { get; set; }
+        private static bool FirstOpenInv { get => Player.LocalPlayer.HasData("Inv::Temp::FOI"); set { if (value) Player.LocalPlayer.SetData("Inv::Temp::FOI", true); else Player.LocalPlayer.ResetData("Inv::Temp::FOI"); } }
+        private static bool FirstOpenCrate { get => Player.LocalPlayer.HasData("Inv::Temp::FOC"); set { if (value) Player.LocalPlayer.SetData("Inv::Temp::FOC", true); else Player.LocalPlayer.ResetData("Inv::Temp::FOC"); } }
+        private static bool FirstOpenWorkbench { get => Player.LocalPlayer.HasData("Inv::Temp::FOW"); set { if (value) Player.LocalPlayer.SetData("Inv::Temp::FOW", true); else Player.LocalPlayer.ResetData("Inv::Temp::FOW"); } }
 
         private static Types CurrentType { get; set; }
         private static ContainerTypes CurrentContainerType { get; set; }
+        private static WorkbenchTypes CurrentWorkbenchType { get; set; }
 
         private static DateTime LastShowed;
         public static DateTime LastSent;
 
         private static ItemParams[] ItemsParams { get; set; }
+        private static Data.Craft.ItemPrototype[] WorkbenchCraftParams { get; set; }
+        private static Data.Craft.ItemPrototype[] WorkbenchToolsParams { get; set; }
 
         private static object[][] WeaponsData { get; set; }
         private static object[] ArmourData { get; set; }
@@ -81,6 +98,9 @@ namespace BCRPClient.CEF
         private static object[][] AccessoriesData { get; set; }
         private static object[][] BagData { get; set; }
         private static object[][] ContainerData { get; set; }
+        private static object[][] WorkbenchCraftData { get; set; }
+        private static object[][] WorkbenchToolsData { get; set; }
+        private static object[][] WorkbenchResultData { get; set; }
 
         private static float BagWeight { get; set; } = 0f;
 
@@ -95,6 +115,7 @@ namespace BCRPClient.CEF
 
         private static HashSet<int> ItemSlotsToUpdate { get; set; }
         private static HashSet<int> ItemSlotsToUpdateCrate { get; set; }
+        private static HashSet<int> ItemSlotsToUpdateWorkbench { get; set; }
 
         private static HashSet<int> WeaponsSlotsToUpdate { get; set; }
         private static HashSet<int> ClothesSlotsToUpdate { get; set; }
@@ -106,9 +127,9 @@ namespace BCRPClient.CEF
         private static bool UpdateBagCrate { get; set; }
         private static bool UpdateArmour { get; set; }
 
-        private static bool UpdateTooltips { get; set; }
+        private static bool UpdateTooltips { get; set; } = false;
 
-        private static int CurrentGiveMoney { get; set; }
+        private static int CurrentGiveMoney { get; set; } = 0;
 
         private static object[][] GiveItemsData { get; set; }
 
@@ -153,7 +174,43 @@ namespace BCRPClient.CEF
 
             return new object[] { imgId, Data.Items.GetName(type), new object[] { new object[] { 4, Locale.General.Inventory.Actions.TakeOff }, new object[] { 2, Locale.General.Inventory.Actions.Drop } }, strength };
         }
-       
+
+        private static object[] FillCraftResultItem(string id, int amount, float weight, string tag, bool isReady)
+        {
+            var iType = Data.Items.GetType(id);
+            var imgId = Data.Items.GetImageId(id, iType);
+
+            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+
+            if (!isReady)
+                return new object[] { imgId, name, null, amount, weight };
+
+            return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false), amount, weight };
+        }
+
+        private static object[] FillCraftToolsItem(string id, int amount, float weight, string tag)
+        {
+            var iType = Data.Items.GetType(id);
+            var imgId = Data.Items.GetImageId(id, iType);
+
+            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+
+            return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
+        }
+
+        private static object[] FillCraftItem(string id, int amount, float weight, string tag)
+        {
+            var iType = Data.Items.GetType(id);
+            var imgId = Data.Items.GetImageId(id, iType);
+
+            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+
+            if (iType == typeof(Data.Items.WorkbenchTool))
+                return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
+            else
+                return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, true), amount, weight };
+        }
+
         private static object[] FillItem(string id, int amount, float weight, string tag, bool inUse, bool inBag, bool inContainer, bool inTrade)
         {
             var iType = Data.Items.GetType(id);
@@ -212,13 +269,11 @@ namespace BCRPClient.CEF
         {
             FirstOpenInv = true;
             FirstOpenCrate = true;
-
-            UpdateTooltips = false;
-
-            CurrentGiveMoney = 0;
+            FirstOpenWorkbench = true;
 
             ItemSlotsToUpdate = new HashSet<int>();
             ItemSlotsToUpdateCrate = new HashSet<int>();
+            ItemSlotsToUpdateWorkbench = new HashSet<int>();
 
             WeaponsSlotsToUpdate = new HashSet<int>();
             ClothesSlotsToUpdate = new HashSet<int>();
@@ -241,6 +296,44 @@ namespace BCRPClient.CEF
             TempBindEsc = -1;
 
             #region Events
+
+            Events.Add("Workbench::TryCraft", (args) =>
+            {
+                if (CurrentType != Types.Workbench)
+                    return;
+
+                if (LastSent.IsSpam(1000, false, false))
+                    return;
+
+                if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
+                {
+                    var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
+
+                    var receipt = Data.Craft.Receipt.GetByIngredients(notNullItems);
+
+                    if (receipt == null)
+                    {
+                        return;
+                    }
+
+                    if (WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null)
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.WorkbenchResultItemExists);
+
+                        return;
+                    }
+
+                    Events.CallRemote("Workbench::Craft", receipt.Index);
+
+                    LastSent = DateTime.Now;
+                }
+                else
+                {
+                    Events.CallRemote("Workbench::Craft", -1);
+
+                    LastSent = DateTime.Now;
+                }
+            });
 
             #region Show
             Events.Add("Inventory::Show", async (object[] args) =>
@@ -485,6 +578,92 @@ namespace BCRPClient.CEF
                     Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", new object[] { } });
                     Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", new object[] { } });
                 }
+                else if (CurrentType == Types.Workbench)
+                {
+                    if (FirstOpenWorkbench)
+                    {
+                        Browser.Window.ExecuteJs("Inventory.fillPockets", new object[] { "wb", ItemsData.Select(x => x?[0]), Settings.MAX_INVENTORY_WEIGHT });
+
+                        FirstOpenWorkbench = false;
+                    }
+                    else
+                    {
+                        foreach (var slot in ItemSlotsToUpdateWorkbench)
+                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "wb", ItemsData[slot]?[0] });
+
+                        ItemSlotsToUpdateWorkbench.Clear();
+                    }
+
+                    var currentDate = Utils.GetServerTime();
+
+                    var benchData = ((string)args[1]).Split('^');
+
+                    var benchItems = benchData[1].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+                    var benchTools = benchData[2].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+                    var benchResultItem = benchData[3].Length == 0 ? null : benchData[3].Split('&');
+
+                    var benchCraftEndDate = benchData[4].Length == 0 ? currentDate : DateTime.Parse(benchData[4]);
+
+                    var craftTimeLeft = benchData[4].Length == 0 ? 0 : benchCraftEndDate.Subtract(currentDate).TotalMilliseconds;
+
+                    benchData = benchData[0].Split('&');
+
+                    var benchType = (WorkbenchTypes)int.Parse(benchData[0]);
+
+                    CurrentWorkbenchType = benchType;
+
+                    if (craftTimeLeft > 0)
+                    {
+                        StartPendingCraftTask(benchCraftEndDate);
+                    }
+
+                    WorkbenchCraftData = new object[benchItems.Length][];
+                    WorkbenchCraftParams = new Data.Craft.ItemPrototype[benchItems.Length];
+
+                    for (int i = 0; i < WorkbenchCraftData.Length; i++)
+                    {
+                        if (benchItems[i] != null)
+                        {
+                            var amount = int.Parse(benchItems[i][1]);
+
+                            WorkbenchCraftData[i] = FillCraftItem(benchItems[i][0], amount, float.Parse(benchItems[i][2]), benchItems[i][3]);
+
+                            WorkbenchCraftParams[i] = new Data.Craft.ItemPrototype(benchItems[i][0], amount);
+                        }
+                    }
+
+                    WorkbenchToolsData = new object[benchTools.Length][];
+                    WorkbenchToolsParams = new Craft.ItemPrototype[WorkbenchToolsData.Length];
+
+                    for (int i = 0; i < WorkbenchToolsData.Length; i++)
+                    {
+                        if (benchTools[i] != null)
+                        {
+                            if (!WorkbenchCraftParams.Where(x => x != null && x.Id == benchTools[i][0]).Any())
+                                WorkbenchToolsData[i] = FillCraftToolsItem(benchTools[i][0], 1, 0f, null);
+
+                            WorkbenchToolsParams[i] = new Craft.ItemPrototype(benchTools[i][0], 1);
+                        }
+                    }
+
+                    WorkbenchResultData = new object[1][];
+
+                    if (benchResultItem != null)
+                    {
+                        WorkbenchResultData[0] = FillCraftResultItem(benchResultItem[0], int.Parse(benchResultItem[1]), float.Parse(benchResultItem[2]), benchResultItem[3], true);
+
+                        Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { WorkbenchResultData[0] });
+
+                        ResetCraftButton();
+                    }
+                    else
+                    {
+                        UpdateCraftItemVisualization();
+                    }
+
+                    Browser.Window.ExecuteJs("Inventory.fillWbCraft", new object[] { Locale.General.Containers.WorkbenchNames[benchType].Name, WorkbenchCraftData });
+                    Browser.Window.ExecuteJs("Inventory.fillWbTools", new object[] { WorkbenchToolsData });
+                }
             });
             #endregion
 
@@ -492,460 +671,565 @@ namespace BCRPClient.CEF
             // 0 - pockets, 1 - bag, 2 - weapons, 3 - holster, 4 - clothes, 5 - accessories, 6 - bagItem, 7 - holsterItem, 8 - armour, 9 - container, 10 - trade-give (items), 11 - trade-give (properties/money), 12 - trade-get (items), 13 - trade-get (properties/money)
             Events.Add("Inventory::Update", (object[] args) =>
             {
-                int id = (int)args[0];
+                var usedGroups = new HashSet<int>();
 
-                if (id == 0)
+                for (int k = 0; k < args.Length / 3; k++)
                 {
-                    int slot = (int)args[1];
+                    var curArgs = args.Skip(k * 3).ToArray();
 
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
+                    int id = (int)curArgs[0];
 
-                    if (data == null)
+                    usedGroups.Add(id);
+
+                    if (id == 0)
                     {
-                        ItemsData[slot] = null;
-                        ItemsParams[slot] = null;
-                    }
-                    else
-                    {
-                        var inUse = int.Parse(data[4]) == 1;
+                        int slot = (int)curArgs[1];
 
-                        ItemsData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], inUse, false, false, false);
-                        ItemsParams[slot] = new ItemParams(data[0]) { InUse = inUse };
-                    }
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
 
-                    if (CurrentType == Types.Inventory)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "inv", ItemsData[slot]?[GetTooltipGroup()] });
+                        if (data == null)
+                        {
+                            ItemsData[slot] = null;
+                            ItemsParams[slot] = null;
+                        }
+                        else
+                        {
+                            var inUse = int.Parse(data[4]) == 1;
 
-                        ItemSlotsToUpdateCrate.Add(slot);
-                    }
-                    else if (CurrentType == Types.Container)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "crate", ItemsData[slot]?[0] });
-
-                        ItemSlotsToUpdate.Add(slot);
-                    }
-                    else
-                    {
-                        ItemSlotsToUpdate.Add(slot);
-                        ItemSlotsToUpdateCrate.Add(slot);
-                    }
-                }
-                else if (id == 1)
-                {
-                    int slot = (int)args[1];
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
-
-                    BagData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, false, false);
-
-                    if (CurrentType == Types.Inventory)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "inv", BagData[slot]?[GetTooltipGroup()] });
-
-                        BagSlotsToUpdateCrate.Add(slot);
-                    }
-                    else if (CurrentType == Types.Container)
-                    {
-                        Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "crate", BagData[slot]?[0] });
-
-                        BagSlotsToUpdate.Add(slot);
-                    }
-                    else
-                    {
-                        BagSlotsToUpdate.Add(slot);
-                        BagSlotsToUpdateCrate.Add(slot);
-                    }
-                }
-                else if (id == 2 || id == 3)
-                {
-                    int slot = (int)args[1];
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
-
-                    WeaponsData[slot] = data == null ? null : FillWeapon(data[0], int.Parse(data[1]), int.Parse(data[2]) == 1, data[3], data[4]);
-
-                    if (CurrentType == Types.Inventory)
-                        Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { slot, WeaponsData[slot] });
-                    else
-                        WeaponsSlotsToUpdate.Add(slot);
-                }
-                else if (id == 4)
-                {
-                    int slot = (int)args[1];
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
-
-                    ClothesData[slot] = data == null ? null : FillClothes(data[0]);
-
-                    if (CurrentType == Types.Inventory)
-                        Browser.Window.ExecuteJs("Inventory.updateClothesSlot", new object[] { slot, ClothesData[slot] });
-                    else
-                        ClothesSlotsToUpdate.Add(slot);
-                }
-                else if (id == 5)
-                {
-                    int slot = (int)args[1];
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
-
-                    AccessoriesData[slot] = data == null ? null : FillAccessories(data[0]);
-
-                    if (CurrentType == Types.Inventory)
-                        Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { slot, AccessoriesData[slot] });
-                    else
-                        AccessoriesSlotsToUpdate.Add(slot);
-                }
-                else if (id == 6)
-                {
-                    var data = ((string)args[1]).Length == 0 ? null : ((string)args[1]).Split('|');
-
-                    if (data == null)
-                    {
-                        AccessoriesData[8] = null;
-                        BagData = null;
+                            ItemsData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], inUse, false, false, false);
+                            ItemsParams[slot] = new ItemParams(data[0]) { InUse = inUse };
+                        }
 
                         if (CurrentType == Types.Inventory)
                         {
-                            Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", null, null });
+                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "inv", ItemsData[slot]?[GetTooltipGroup()] });
 
-                            for (int i = 0; i < ItemsData.Length; i++)
-                                if (ItemsData[i] != null)
-                                    Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][2])[2] });
+                            ItemSlotsToUpdateCrate.Add(slot);
+                            ItemSlotsToUpdateWorkbench.Add(slot);
                         }
                         else if (CurrentType == Types.Container)
                         {
-                            Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", null, null });
+                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "crate", ItemsData[slot]?[0] });
 
-                            UpdateTooltips = true;
+                            ItemSlotsToUpdate.Add(slot);
+                            ItemSlotsToUpdateWorkbench.Add(slot);
+                        }
+                        else if (CurrentType == Types.Workbench)
+                        {
+                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { slot, "wb", ItemsData[slot]?[0] });
+
+                            ItemSlotsToUpdate.Add(slot);
+                            ItemSlotsToUpdateCrate.Add(slot);
                         }
                         else
-                            UpdateTooltips = true;
-
-                        UpdateBag = false;
-                        UpdateBagCrate = false;
+                        {
+                            ItemSlotsToUpdate.Add(slot);
+                            ItemSlotsToUpdateCrate.Add(slot);
+                            ItemSlotsToUpdateWorkbench.Add(slot);
+                        }
                     }
-                    else
+                    else if (id == 1)
                     {
-                        var items = data.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
 
-                        data = data[0].Split('&');
-
-                        AccessoriesData[8] = FillAccessories(data[0]);
-                        BagData = new object[items.Length][];
-
-                        for (int i = 0; i < BagData.Length; i++)
-                            if (items[i] != null)
-                                BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
-
-                        BagWeight = float.Parse(data[1]);
+                        BagData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, false, false);
 
                         if (CurrentType == Types.Inventory)
                         {
-                            Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", BagData.Select(x => x?[1]), BagWeight });
+                            Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "inv", BagData[slot]?[GetTooltipGroup()] });
 
-                            for (int i = 0; i < ItemsData.Length; i++)
-                                if (ItemsData[i] != null)
-                                    Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][1])[2] });
-
-                            UpdateTooltips = false;
-                            UpdateBagCrate = true;
+                            BagSlotsToUpdateCrate.Add(slot);
                         }
                         else if (CurrentType == Types.Container)
                         {
-                            Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", BagData.Select(x => x?[0]), BagWeight });
+                            Browser.Window.ExecuteJs("Inventory.updateBagSlot", new object[] { slot, "crate", BagData[slot]?[0] });
 
-                            UpdateTooltips = true;
-                            UpdateBag = true;
+                            BagSlotsToUpdate.Add(slot);
                         }
                         else
                         {
-                            UpdateBag = true;
-                            UpdateBagCrate = true;
-
-                            UpdateTooltips = true;
+                            BagSlotsToUpdate.Add(slot);
+                            BagSlotsToUpdateCrate.Add(slot);
                         }
                     }
-
-                    if (CurrentType == Types.Inventory)
-                        Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { 8, AccessoriesData[8] });
-                    else
-                        AccessoriesSlotsToUpdate.Add(8);
-                }
-                else if (id == 7)
-                {
-                    var data = ((string)args[1]).Length == 0 ? null : ((string)args[1]).Split('|');
-
-                    if (data == null)
+                    else if (id == 2 || id == 3)
                     {
-                        AccessoriesData[9] = null;
-                        WeaponsData[2] = null;
-                    }
-                    else
-                    {
-                        var item = data[1].Length == 0 ? null : data[1].Split('&');
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
 
-                        data = data[0].Split('&');
+                        WeaponsData[slot] = data == null ? null : FillWeapon(data[0], int.Parse(data[1]), int.Parse(data[2]) == 1, data[3], data[4]);
 
-                        AccessoriesData[9] = FillAccessories(data[0]);
-
-                        if (item != null)
-                            WeaponsData[2] = FillWeapon(item[0], int.Parse(item[1]), int.Parse(item[2]) == 1, item[3], item[4]);
+                        if (CurrentType == Types.Inventory)
+                            Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { slot, WeaponsData[slot] });
                         else
-                            WeaponsData[2] = null;
+                            WeaponsSlotsToUpdate.Add(slot);
                     }
-
-                    if (CurrentType == Types.Inventory)
+                    else if (id == 4)
                     {
-                        Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { 9, AccessoriesData[9] });
-                        Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { 2, WeaponsData[2] });
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
 
-                        Browser.Window.ExecuteJs("Inventory.switchThirdWeapon", data != null);
-                    }
-                    else
-                    {
-                        AccessoriesSlotsToUpdate.Add(9);
-                        WeaponsSlotsToUpdate.Add(2);
-                    }
-                }
-                else if (id == 8)
-                {
-                    var data = ((string)args[1]).Length == 0 ? null : ((string)args[1]).Split('&');
+                        ClothesData[slot] = data == null ? null : FillClothes(data[0]);
 
-                    ArmourData = data == null ? null : FillArmour(data[0], int.Parse(data[1]));
-
-                    if (CurrentType == Types.Inventory)
-                        Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
-                    else
-                        UpdateArmour = true;
-                }
-                else if (id == 9)
-                {
-                    if (CurrentType != Types.Container)
-                        return;
-
-                    int slot = (int)args[1];
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
-
-                    ContainerData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, true, false);
-
-                    Browser.Window.ExecuteJs("Inventory.updateCrateSlot", new object[] { slot, ContainerData[slot] });
-                }
-                else if (id == 10)
-                {
-                    if (CurrentType != Types.Trade)
-                        return;
-
-                    int realSlot = (int)args[1];
-                    int slot = (int)args[2];
-
-                    var data = ((string)args[3]).Length == 0 ? null : ((string)args[3]).Split('&');
-
-                    var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
-
-                    if (item == null)
-                    {
-                        if (GiveItemsData[slot] != null)
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { (int)GiveItemsData[slot][0], "trade", ItemsData[(int)GiveItemsData[slot][0]]?[3] });
-
-                        GiveItemsData[slot] = null;
-                    }
-                    else
-                    {
-                        if (GiveItemsData[slot] == null)
-                            GiveItemsData[slot] = new object[4];
+                        if (CurrentType == Types.Inventory)
+                            Browser.Window.ExecuteJs("Inventory.updateClothesSlot", new object[] { slot, ClothesData[slot] });
                         else
+                            ClothesSlotsToUpdate.Add(slot);
+                    }
+                    else if (id == 5)
+                    {
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                        AccessoriesData[slot] = data == null ? null : FillAccessories(data[0]);
+
+                        if (CurrentType == Types.Inventory)
+                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { slot, AccessoriesData[slot] });
+                        else
+                            AccessoriesSlotsToUpdate.Add(slot);
+                    }
+                    else if (id == 6)
+                    {
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('|');
+
+                        if (data == null)
                         {
-                            if (realSlot == -1)
-                                realSlot = (int)GiveItemsData[slot][0];
+                            AccessoriesData[8] = null;
+                            BagData = null;
+
+                            if (CurrentType == Types.Inventory)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", null, null });
+
+                                for (int i = 0; i < ItemsData.Length; i++)
+                                    if (ItemsData[i] != null)
+                                        Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][2])[2] });
+                            }
+                            else if (CurrentType == Types.Container)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", null, null });
+
+                                UpdateTooltips = true;
+                            }
                             else
+                                UpdateTooltips = true;
+
+                            UpdateBag = false;
+                            UpdateBagCrate = false;
+                        }
+                        else
+                        {
+                            var items = data.Skip(1).Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
+
+                            data = data[0].Split('&');
+
+                            AccessoriesData[8] = FillAccessories(data[0]);
+                            BagData = new object[items.Length][];
+
+                            for (int i = 0; i < BagData.Length; i++)
+                                if (items[i] != null)
+                                    BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
+
+                            BagWeight = float.Parse(data[1]);
+
+                            if (CurrentType == Types.Inventory)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "inv", BagData.Select(x => x?[1]), BagWeight });
+
+                                for (int i = 0; i < ItemsData.Length; i++)
+                                    if (ItemsData[i] != null)
+                                        Browser.Window.ExecuteJs("Inventory.updatePocketsTooltip", new object[] { i, "inv", ((object[])ItemsData[i][1])[2] });
+
+                                UpdateTooltips = false;
+                                UpdateBagCrate = true;
+                            }
+                            else if (CurrentType == Types.Container)
+                            {
+                                Browser.Window.ExecuteJs("Inventory.fillBag", new object[] { "crate", BagData.Select(x => x?[0]), BagWeight });
+
+                                UpdateTooltips = true;
+                                UpdateBag = true;
+                            }
+                            else
+                            {
+                                UpdateBag = true;
+                                UpdateBagCrate = true;
+
+                                UpdateTooltips = true;
+                            }
+                        }
+
+                        if (CurrentType == Types.Inventory)
+                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { 8, AccessoriesData[8] });
+                        else
+                            AccessoriesSlotsToUpdate.Add(8);
+                    }
+                    else if (id == 7)
+                    {
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('|');
+
+                        if (data == null)
+                        {
+                            AccessoriesData[9] = null;
+                            WeaponsData[2] = null;
+                        }
+                        else
+                        {
+                            var item = data[1].Length == 0 ? null : data[1].Split('&');
+
+                            data = data[0].Split('&');
+
+                            AccessoriesData[9] = FillAccessories(data[0]);
+
+                            if (item != null)
+                                WeaponsData[2] = FillWeapon(item[0], int.Parse(item[1]), int.Parse(item[2]) == 1, item[3], item[4]);
+                            else
+                                WeaponsData[2] = null;
+                        }
+
+                        if (CurrentType == Types.Inventory)
+                        {
+                            Browser.Window.ExecuteJs("Inventory.updateAccessoriesSlot", new object[] { 9, AccessoriesData[9] });
+                            Browser.Window.ExecuteJs("Inventory.updateWeaponSlot", new object[] { 2, WeaponsData[2] });
+
+                            Browser.Window.ExecuteJs("Inventory.switchThirdWeapon", data != null);
+                        }
+                        else
+                        {
+                            AccessoriesSlotsToUpdate.Add(9);
+                            WeaponsSlotsToUpdate.Add(2);
+                        }
+                    }
+                    else if (id == 8)
+                    {
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                        ArmourData = data == null ? null : FillArmour(data[0], int.Parse(data[1]));
+
+                        if (CurrentType == Types.Inventory)
+                            Browser.Window.ExecuteJs("Inventory.fillVest", new object[] { ArmourData });
+                        else
+                            UpdateArmour = true;
+                    }
+                    else if (id == 9)
+                    {
+                        if (CurrentType != Types.Container)
+                            return;
+
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                        ContainerData[slot] = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, true, true, false);
+
+                        Browser.Window.ExecuteJs("Inventory.updateCrateSlot", new object[] { slot, ContainerData[slot] });
+                    }
+                    else if (id == 10)
+                    {
+                        if (CurrentType != Types.Trade)
+                            return;
+
+                        int realSlot = (int)curArgs[1];
+                        int slot = (int)curArgs[2];
+
+                        var data = ((string)curArgs[3]).Length == 0 ? null : ((string)curArgs[3]).Split('&');
+
+                        var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
+
+                        if (item == null)
+                        {
+                            if (GiveItemsData[slot] != null)
                                 Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { (int)GiveItemsData[slot][0], "trade", ItemsData[(int)GiveItemsData[slot][0]]?[3] });
-                        }
 
-                        GiveItemsData[slot][0] = realSlot;
-                        GiveItemsData[slot][1] = item;
-
-                        if (ItemsData[realSlot] != null)
-                        {
-                            var newRealItem = ((object[])ItemsData[realSlot][3]).ToArray();
-
-                            newRealItem[3] = (int)newRealItem[3] - (int)item[3];
-
-                            if ((int)newRealItem[3] <= 0)
-                                newRealItem = null;
-
-                            Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { realSlot, "trade", newRealItem });
-                        }
-                    }
-
-                    Browser.Window.ExecuteJs("Inventory.updateGiveSlot", new object[] { slot, GiveItemsData[slot]?[1] });
-
-                }
-                else if (id == 11)
-                {
-                    if (CurrentType != Types.Trade)
-                        return;
-
-                    if ((bool)args[1])
-                    {
-                        CurrentGiveMoney = (int)args[2];
-
-                        Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
-                    }
-                    else
-                    {
-                        var pType = (Sync.Players.PropertyTypes)(int)args[3];
-                        var propId = (uint)(int)args[4];
-
-                        string text = null;
-
-                        if (pType == Sync.Players.PropertyTypes.Vehicle)
-                        {
-                            var vData = Data.Vehicles.GetById((string)args[5]);
-
-                            text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.House)
-                        {
-                            text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.Apartments)
-                        {
-                            var aps = Data.Locations.Apartments.All[propId];
-
-                            text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.Garage)
-                        {
-                            var garage = Data.Locations.Garage.All[propId];
-
-                            text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.Business)
-                        {
-                            var biz = Data.Locations.Business.All[(int)propId];
-
-                            text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
-                        }
-
-                        if ((bool)args[2])
-                        {
-                            if (!CurrentGiveProperties.Contains(text))
-                                CurrentGiveProperties.Add(text);
+                            GiveItemsData[slot] = null;
                         }
                         else
                         {
-                            CurrentGiveProperties.Remove(text);
+                            if (GiveItemsData[slot] == null)
+                                GiveItemsData[slot] = new object[4];
+                            else
+                            {
+                                if (realSlot == -1)
+                                    realSlot = (int)GiveItemsData[slot][0];
+                                else
+                                    Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { (int)GiveItemsData[slot][0], "trade", ItemsData[(int)GiveItemsData[slot][0]]?[3] });
+                            }
+
+                            GiveItemsData[slot][0] = realSlot;
+                            GiveItemsData[slot][1] = item;
+
+                            if (ItemsData[realSlot] != null)
+                            {
+                                var newRealItem = ((object[])ItemsData[realSlot][3]).ToArray();
+
+                                newRealItem[3] = (int)newRealItem[3] - (int)item[3];
+
+                                if ((int)newRealItem[3] <= 0)
+                                    newRealItem = null;
+
+                                Browser.Window.ExecuteJs("Inventory.updatePocketsSlot", new object[] { realSlot, "trade", newRealItem });
+                            }
                         }
 
-                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", CurrentGiveProperties });
+                        Browser.Window.ExecuteJs("Inventory.updateGiveSlot", new object[] { slot, GiveItemsData[slot]?[1] });
+
                     }
-
-                }
-                else if (id == 12)
-                {
-                    if (CurrentType != Types.Trade)
-                        return;
-
-                    int slot = (int)args[1];
-                    var data = ((string)args[2]).Length == 0 ? null : ((string)args[2]).Split('&');
-
-                    var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
-
-                    Browser.Window.ExecuteJs("Inventory.updateReceiveSlot", new object[] { slot, item });
-
-                }
-                else if (id == 13)
-                {
-                    if (CurrentType != Types.Trade)
-                        return;
-
-                    if ((bool)args[1])
+                    else if (id == 11)
                     {
-                        Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", (int)args[2]);
-                    }
-                    else
-                    {
-                        var pType = (Sync.Players.PropertyTypes)(int)args[3];
-                        var propId = (uint)(int)args[4];
+                        if (CurrentType != Types.Trade)
+                            return;
 
-                        string text = null;
-
-                        if (pType == Sync.Players.PropertyTypes.Vehicle)
+                        if ((bool)curArgs[1])
                         {
-                            var vData = Data.Vehicles.GetById((string)args[5]);
+                            CurrentGiveMoney = (int)curArgs[2];
 
-                            text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.House)
-                        {
-                            text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.Apartments)
-                        {
-                            var aps = Data.Locations.Apartments.All[propId];
-
-                            text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.Garage)
-                        {
-                            var garage = Data.Locations.Garage.All[propId];
-
-                            text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
-                        }
-                        else if (pType == Sync.Players.PropertyTypes.Business)
-                        {
-                            var biz = Data.Locations.Business.All[(int)propId];
-
-                            text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
-                        }
-
-                        if ((bool)args[2])
-                        {
-                            if (!CurrentGetProperties.Contains(text))
-                                CurrentGetProperties.Add(text);
+                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
                         }
                         else
                         {
-                            CurrentGetProperties.Remove(text);
+                            var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
+                            var propId = (uint)(int)curArgs[4];
+
+                            string text = null;
+
+                            if (pType == Sync.Players.PropertyTypes.Vehicle)
+                            {
+                                var vData = Data.Vehicles.GetById((string)curArgs[5]);
+
+                                text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.House)
+                            {
+                                text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.Apartments)
+                            {
+                                var aps = Data.Locations.Apartments.All[propId];
+
+                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.Garage)
+                            {
+                                var garage = Data.Locations.Garage.All[propId];
+
+                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.Business)
+                            {
+                                var biz = Data.Locations.Business.All[(int)propId];
+
+                                text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
+                            }
+
+                            if ((bool)curArgs[2])
+                            {
+                                if (!CurrentGiveProperties.Contains(text))
+                                    CurrentGiveProperties.Add(text);
+                            }
+                            else
+                            {
+                                CurrentGiveProperties.Remove(text);
+                            }
+
+                            Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "give", CurrentGiveProperties });
                         }
 
-                        Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", CurrentGetProperties });
                     }
-                }
-                else if (id == 14)
-                {
-                    if (CurrentType != Types.Trade)
-                        return;
-
-                    if ((bool)args[1])
+                    else if (id == 12)
                     {
-                        Browser.Window.ExecuteJs("Inventory.fillCheckBox", "last", (bool)args[2]);
-                        Browser.Window.ExecuteJs("Inventory.switchTradeBtn", (bool)args[2]);
+                        if (CurrentType != Types.Trade)
+                            return;
 
-                        if (!(bool)args[2])
-                        {
-                            if ((bool)args[3])
-                                CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'none';");
-                        }
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                        var item = data == null ? null : FillItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], false, false, false, true);
+
+                        Browser.Window.ExecuteJs("Inventory.updateReceiveSlot", new object[] { slot, item });
+
                     }
-                    else
+                    else if (id == 13)
                     {
-                        if ((bool)args[2])
-                        {
-                            if (!(bool)args[3])
-                                CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'none';");
+                        if (CurrentType != Types.Trade)
+                            return;
 
-                            CEF.Notification.Show("Trade::PlayerConfirmed");
+                        if ((bool)curArgs[1])
+                        {
+                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", (int)curArgs[2]);
                         }
                         else
                         {
-                            if (!(bool)args[3])
-                                CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'unset';");
+                            var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
+                            var propId = (uint)(int)curArgs[4];
 
-                            CEF.Notification.Show("Trade::PlayerConfirmedCancel");
+                            string text = null;
+
+                            if (pType == Sync.Players.PropertyTypes.Vehicle)
+                            {
+                                var vData = Data.Vehicles.GetById((string)curArgs[5]);
+
+                                text = string.Format(Locale.Property.VehicleTradeInfoStr1, vData.Name, propId);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.House)
+                            {
+                                text = string.Format(Locale.Property.HouseTradeInfoStr, propId);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.Apartments)
+                            {
+                                var aps = Data.Locations.Apartments.All[propId];
+
+                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.Garage)
+                            {
+                                var garage = Data.Locations.Garage.All[propId];
+
+                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
+                            }
+                            else if (pType == Sync.Players.PropertyTypes.Business)
+                            {
+                                var biz = Data.Locations.Business.All[(int)propId];
+
+                                text = string.Format(Locale.Property.BusinessTradeInfoStr, biz.Name, biz.SubId);
+                            }
+
+                            if ((bool)curArgs[2])
+                            {
+                                if (!CurrentGetProperties.Contains(text))
+                                    CurrentGetProperties.Add(text);
+                            }
+                            else
+                            {
+                                CurrentGetProperties.Remove(text);
+                            }
+
+                            Browser.Window.ExecuteJs("Inventory.fillTradeRProperties", new object[] { "receive", CurrentGetProperties });
+                        }
+                    }
+                    else if (id == 14)
+                    {
+                        if (CurrentType != Types.Trade)
+                            return;
+
+                        if ((bool)curArgs[1])
+                        {
+                            Browser.Window.ExecuteJs("Inventory.fillCheckBox", "last", (bool)curArgs[2]);
+                            Browser.Window.ExecuteJs("Inventory.switchTradeBtn", (bool)curArgs[2]);
+
+                            if (!(bool)curArgs[2])
+                            {
+                                if ((bool)curArgs[3])
+                                    CEF.Inventory.FreezeInterface(true, false);
+                            }
+                        }
+                        else
+                        {
+                            if ((bool)curArgs[2])
+                            {
+                                if (!(bool)curArgs[3])
+                                    CEF.Inventory.FreezeInterface(true, false);
+
+                                CEF.Notification.Show("Trade::PlayerConfirmed");
+                            }
+                            else
+                            {
+                                if (!(bool)curArgs[3])
+                                    CEF.Inventory.FreezeInterface(false, false);
+
+                                CEF.Notification.Show("Trade::PlayerConfirmedCancel");
+                            }
+                        }
+                    }
+                    else if (id == 20)
+                    {
+                        if (CurrentType != Types.Workbench)
+                            return;
+
+                        int slot = (int)curArgs[1];
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                        if (data == null)
+                        {
+                            WorkbenchCraftData[slot] = null;
+                            WorkbenchCraftParams[slot] = null;
+                        }
+                        else
+                        {
+                            var amount = int.Parse(data[1]);
+
+                            WorkbenchCraftData[slot] = FillCraftItem(data[0], amount, float.Parse(data[2]), data[3]);
+                            WorkbenchCraftParams[slot] = new Craft.ItemPrototype(data[0], amount);
+                        }
+
+                        for (int i = 0; i < WorkbenchToolsParams.Length; i++)
+                        {
+                            if (!WorkbenchCraftParams.Where(x => x != null && WorkbenchToolsParams[i] != null && x.Id == WorkbenchToolsParams[i].Id).Any())
+                            {
+                                if (WorkbenchToolsParams[i] != null)
+                                {
+                                    var newData = FillCraftToolsItem(WorkbenchToolsParams[i].Id, 1, 0f, null);
+
+                                    if (WorkbenchToolsData[i] == null || WorkbenchToolsData[i][0] != newData[0] || WorkbenchToolsData[i][1] != newData[1])
+                                    {
+                                        WorkbenchToolsData[i] = newData;
+
+                                        Browser.Window.ExecuteJs("Inventory.updateToolSlot", new object[] { i, newData });
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (WorkbenchToolsData[i] != null)
+                                {
+                                    WorkbenchToolsData[i] = null;
+
+                                    Browser.Window.ExecuteJs("Inventory.updateToolSlot", new object[] { i, null });
+                                }
+                            }
+                        }
+
+                        Browser.Window.ExecuteJs("Inventory.updateCraftSlot", new object[] { slot, WorkbenchCraftData[slot] });
+                    }
+                    else if (id == 22)
+                    {
+                        if (CurrentType != Types.Workbench)
+                            return;
+
+                        var data = ((string)curArgs[2]).Length == 0 ? null : ((string)curArgs[2]).Split('&');
+
+                        if (data == null || data.Length > 1)
+                        {
+                            CancelPendingCraftTask();
+
+                            ResetCraftButton();
+
+                            WorkbenchResultData[0] = data == null ? null : FillCraftResultItem(data[0], int.Parse(data[1]), float.Parse(data[2]), data[3], true);
+
+                            Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { WorkbenchResultData[0] });
+
+                            if (data == null)
+                                UpdateCraftItemVisualization();
+                        }
+                        else
+                        {
+                            var craftEndDate = DateTime.Parse(data[0]);
+
+                            CancelPendingCraftTask();
+
+                            StartPendingCraftTask(craftEndDate);
                         }
                     }
                 }
 
                 if (CurrentType == Types.Inventory)
+                {
                     UpdateBinds();
+                }
+                else if (CurrentType == Types.Workbench)
+                {
+                    if (usedGroups.Contains(20))
+                        UpdateCraftItemVisualization();
+                }
             });
             #endregion
 
@@ -1160,7 +1444,7 @@ namespace BCRPClient.CEF
         };
 
         #region Show
-        public static void Show(Types type, uint contId = 0)
+        public static void Show(Types type, params object[] args)
         {
             if (IsActive)
                 return;
@@ -1168,36 +1452,10 @@ namespace BCRPClient.CEF
             if (LastShowed.IsSpam(1000, false, false) || Utils.IsAnyCefActive())
                 return;
 
-            if (type == Types.ItemOnGround)
-            {
-                CurrentEntity = Sync.World.ClosestItemOnGround;
+            CurrentEntity = BCRPClient.Interaction.CurrentEntity;
 
-                if (CurrentEntity == null || !Utils.CanDoSomething(ActionsToCheckIog))
-                    return;
-
-                if (CurrentEntity.GetData<int>("Amount") == 1)
-                {
-                    if (!LastSent.IsSpam(500))
-                    {
-                        Events.CallRemote("Inventory::Take", CurrentEntity.GetData<uint>("UID"), 1);
-
-                        LastSent = DateTime.Now;
-                    }
-
-                    return;
-                }
-
-            }
-            else if (type == Types.Container)
-            {
-                CurrentEntity = BCRPClient.Interaction.CurrentEntity;
-
-                if (CurrentEntity == null && contId == 0)
-                    return;
-            }
-            else
-                if (!Utils.CanDoSomething(ActionsToCheckInventory) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
-                    return;
+            if (!Utils.CanDoSomething(ActionsToCheckInventory) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
+                return;
 
             LastShowed = DateTime.Now;
 
@@ -1205,15 +1463,13 @@ namespace BCRPClient.CEF
             {
                 Events.CallLocal("Inventory::Show", (int)Types.Inventory);
             }
-            else if (type == Types.ItemOnGround)
-            {
-                CurrentType = Types.ItemOnGround;
-
-                SetWindowReady();
-            }
             else if (type == Types.Container)
             {
-                Events.CallRemote("Container::Show", contId);
+                Events.CallRemote("Container::Show", (uint)args[0]);
+            }
+            else if (type == Types.Workbench)
+            {
+                Events.CallRemote("Workbench::Show", (int)args[0], (uint)args[1]);
             }
         }
         #endregion
@@ -1234,56 +1490,49 @@ namespace BCRPClient.CEF
             {
                 Browser.Switch(Browser.IntTypes.Inventory, true);
 
-                KeyBinds.Binds[KeyBinds.Types.Inventory].Disable();
-
                 UpdateStates();
-
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteJs("Inventory.switchCtrl", true)));
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteJs("Inventory.switchCtrl", false)));
             }
             else if (CurrentType == Types.Container)
             {
                 Browser.Switch(Browser.IntTypes.CratesInventory, true);
-
-                KeyBinds.Binds[KeyBinds.Types.Inventory].Disable();
-
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteJs("Inventory.switchCtrl", true)));
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteJs("Inventory.switchCtrl", false)));
+            }
+            else if (CurrentType == Types.Workbench)
+            {
+                Browser.Switch(Browser.IntTypes.Workbench, true);
             }
             else if (CurrentType == Types.Trade)
             {
                 Browser.Switch(Browser.IntTypes.Trade, true);
-
-                KeyBinds.Binds[KeyBinds.Types.Inventory].Disable();
-
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteJs("Inventory.switchCtrl", true)));
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteJs("Inventory.switchCtrl", false)));
             }
-            else if (CurrentType == Types.ItemOnGround)
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
+
+            TempBindEsc = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
-                CurrentAction = 3;
+                if (CEF.ActionBox.CurrentContext == ActionBox.Contexts.Inventory)
+                {
+                    CEF.ActionBox.Close(false);
 
-                KeyBinds.Binds[KeyBinds.Types.TakeItem].Disable();
+                    CurrentAction = null;
+                    CurrentSlotFrom = null;
+                    CurrentSlotTo = null;
+                }
+                else
+                    Close(true);
+            });
 
-                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Take, CurrentEntity.GetData<string>("Name")), 1, CurrentEntity.GetData<int>("Amount"), CurrentEntity.GetData<int>("Amount"), -1, ActionBox.RangeSubTypes.Default);
-            }
+            GameEvents.DisableAllControls(true);
 
-            TempBindEsc = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true));
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(false);
 
-            if (CurrentType != Types.ItemOnGround)
-            {
-                GameEvents.DisableAllControls(true);
+            if (!Settings.Interface.HideNames)
+                BCRPClient.NameTags.Enabled = false;
 
-                if (!Settings.Interface.HideHUD)
-                    CEF.HUD.ShowHUD(false);
+            Chat.Show(false);
 
-                if (!Settings.Interface.HideNames)
-                    BCRPClient.NameTags.Enabled = false;
-
-                Chat.Show(false);
-
-                RAGE.Game.Graphics.TransitionToBlurred(250);
-            }
+            RAGE.Game.Graphics.TransitionToBlurred(250);
 
             Cursor.Show(true, true);
         }
@@ -1295,38 +1544,42 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            if (CurrentType == Types.ItemOnGround)
-            {
-                KeyBinds.Binds[KeyBinds.Types.TakeItem].Enable();
-            }
-            else if (CurrentType == Types.Inventory || CurrentType == Types.Container || CurrentType == Types.Trade)
-            {
-                KeyBinds.Binds[KeyBinds.Types.Inventory].Enable();
+            Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false);
 
-                Browser.Window.ExecuteJs("Inventory.switchCtrl", false);
+            ContainerData = null;
 
-                ContainerData = null;
+            GiveItemsData = null;
 
-                GiveItemsData = null;
+            WorkbenchCraftData = null;
+            WorkbenchResultData = null;
+            WorkbenchToolsData = null;
+            WorkbenchCraftParams = null;
 
-                CurrentContainerType = ContainerTypes.None;
-
-                if (callRemote && CurrentType == Types.Container)
-                    Events.CallRemote("Container::Close");
-                else if (callRemote && CurrentType == Types.Trade)
-                    Sync.Offers.Reply(Sync.Offers.ReplyTypes.AutoCancel);
-
+            if (ActionBox.CurrentContext == ActionBox.Contexts.Inventory)
                 ActionBox.Close(true);
-                Browser.Switch(Browser.IntTypes.Inventory, false);
-                Browser.Switch(Browser.IntTypes.CratesInventory, false);
-                Browser.Switch(Browser.IntTypes.Trade, false);
 
-                CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
-
-                Player.LocalPlayer.ResetData("Trade::Temp::PropIds");
+            if (CurrentType == Types.Workbench)
+            {
+                CancelPendingCraftTask();
             }
 
-            ActionBox.Close(true);
+            CEF.Inventory.FreezeInterface(false, true);
+
+            CurrentContainerType = ContainerTypes.None;
+
+            if (callRemote && CurrentType == Types.Container)
+                Events.CallRemote("Container::Close");
+            else if (callRemote && CurrentType == Types.Workbench)
+                Events.CallRemote("Workbench::Close");
+            else if (callRemote && CurrentType == Types.Trade)
+                Sync.Offers.Reply(Sync.Offers.ReplyTypes.AutoCancel);
+
+            Browser.Switch(Browser.IntTypes.Inventory, false);
+            Browser.Switch(Browser.IntTypes.CratesInventory, false);
+            Browser.Switch(Browser.IntTypes.Workbench, false);
+            Browser.Switch(Browser.IntTypes.Trade, false);
+
+            Player.LocalPlayer.ResetData("Trade::Temp::PropIds");
 
             CurrentEntity = null;
 
@@ -1347,22 +1600,19 @@ namespace BCRPClient.CEF
             Sync.World.EnabledItemsOnGround = true;
             BCRPClient.Interaction.EnabledVisual = !Settings.Interface.HideInteractionBtn;
 
-            if (CurrentType != Types.ItemOnGround)
-            {
-                GameEvents.DisableAllControls(false);
+            GameEvents.DisableAllControls(false);
 
-                RAGE.Game.Graphics.TransitionFromBlurred(250);
+            RAGE.Game.Graphics.TransitionFromBlurred(250);
 
-                AsyncTask.RunSlim(() => RAGE.Game.Graphics.TransitionFromBlurred(0), 300);
+            AsyncTask.RunSlim(() => RAGE.Game.Graphics.TransitionFromBlurred(0), 300);
 
-                if (!Settings.Interface.HideHUD)
-                    CEF.HUD.ShowHUD(true);
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(true);
 
-                if (!Settings.Interface.HideNames)
-                    BCRPClient.NameTags.Enabled = true;
+            if (!Settings.Interface.HideNames)
+                BCRPClient.NameTags.Enabled = true;
 
-                Chat.Show(true);
-            }
+            Chat.Show(true);
 
             Cursor.Show(false, false);
 
@@ -1380,7 +1630,7 @@ namespace BCRPClient.CEF
 
         public static void SwitchHint(bool state) => Browser.Window?.ExecuteJs("Inventory.switchHelp", state);
 
-        public static void BindedAction(int action, string slotStr, int slot)
+        public static void BindedAction(int action, string slotStr, int slot, params string[] args)
         {
             if (action < 5)
                 return;
@@ -1388,7 +1638,7 @@ namespace BCRPClient.CEF
             if (Utils.IsAnyCefActive() || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || !Utils.CanDoSomething(ActionsToCheckAction))
                 return;
 
-            Action(action, slotStr, slot);
+            Action(action, slotStr, slot, args);
         }
 
         public static void Action(params object[] args)
@@ -1404,24 +1654,14 @@ namespace BCRPClient.CEF
 
                 CurrentAction = null;
 
-                if (CurrentType == Types.ItemOnGround)
-                    Close();
-                else
-                {
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
-                    ActionBox.Close(false);
-                }
+                ActionBox.Close(false);
 
                 return;
             }
 
             if (CurrentAction != null)
             {
-                if (CurrentType != Types.ItemOnGround)
-                {
-                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
-                    ActionBox.Close(false);
-                }
+                ActionBox.Close(false);
 
                 if (CurrentAction == 1) // split
                 {
@@ -1459,33 +1699,27 @@ namespace BCRPClient.CEF
                             return;
                         }
 
-                        if (CurrentType == Types.Container && slotStrToThrow == "crate")
-                            Events.CallRemote("Container::Drop", slotToThrow, id); // id = amount
-                        else if (CurrentType == Types.Inventory || CurrentType == Types.Container)
+                        if (CurrentType == Types.Inventory)
+                        {
                             Events.CallRemote("Inventory::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
+                        }
+                        else if (CurrentType == Types.Container)
+                        {
+                            if (slotStrToThrow == "crate")
+                                Events.CallRemote("Container::Drop", slotToThrow, id); // id = amount
+                            else
+                                Events.CallRemote("Inventory::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
+                        }
+                        else if (CurrentType == Types.Workbench)
+                        {
+                            if (slotStrToThrow == "pockets")
+                                Events.CallRemote("Inventory::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
+                            else
+                                Events.CallRemote("Workbench::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
+                        }
 
                         LastSent = DateTime.Now;
                     }
-
-                    return;
-                }
-                else if (CurrentAction == 3) // take by ground
-                {
-                    if (CurrentEntity == null || id <= 0)
-                    {
-                        Close();
-
-                        return;
-                    }
-
-                    if (LastSent.IsSpam(500, false, false))
-                        return;
-
-                    Events.CallRemote("Inventory::Take", CurrentEntity.GetData<uint>("UID"), id); // id = amount
-
-                    LastSent = DateTime.Now;
-
-                    Close();
 
                     return;
                 }
@@ -1522,7 +1756,8 @@ namespace BCRPClient.CEF
                     return;
 
                 Browser.Window.ExecuteJs("Inventory.bindSlot", $"{slot}-inv-{slotStr}");
-                CEF.Notification.ShowHint(Locale.Notifications.Bind.Hint);
+
+                CEF.Notification.ShowHint(Locale.Notifications.Bind.Hint, true);
 
                 return;
             }
@@ -1579,6 +1814,16 @@ namespace BCRPClient.CEF
                 {
                     name = (string)ContainerData[slot]?[1];
                     amount = (int)(ContainerData[slot]?[3] ?? 0);
+                }
+                else if (slotStr == "craft")
+                {
+                    name = (string)WorkbenchCraftData[slot]?[1];
+                    amount = (int)(WorkbenchCraftParams[slot]?.Amount ?? 0);
+                }
+                else if (slotStr == "result")
+                {
+                    name = (string)WorkbenchResultData[slot]?[1];
+                    amount = (int)(WorkbenchResultData[slot]?[3] ?? 0);
                 }
                 else if (slotStr == "give")
                 {
@@ -1644,6 +1889,20 @@ namespace BCRPClient.CEF
                             CurrentSlotTo = ("crate", slotTo);
                     }
                 }
+                else
+                {
+                    if (CurrentType == Types.Workbench)
+                    {
+                        if (CurrentSlotTo.Value.Item1 == "result" || (CurrentSlotTo.Value.Item1 == "tool" && (slotStr == "pockets" || slotStr == "result" || (slotStr == "craft" && !(Data.Items.GetData(WorkbenchCraftParams[slot].Id, null) is Data.Items.WorkbenchTool.ItemData)))))
+                        {
+                            CurrentAction = null;
+                            CurrentSlotFrom = null;
+                            CurrentSlotTo = null;
+
+                            return;
+                        }
+                    }
+                }
 
                 if ((slotStr != "weapon" && amount == 1) || (slotStr == "weapon" && amount == 0))
                 {
@@ -1657,8 +1916,6 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
-
                 ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name), 1, amount, amount / 2, -1, ActionBox.RangeSubTypes.Default);
 
                 CurrentAction = 1;
@@ -1668,7 +1925,12 @@ namespace BCRPClient.CEF
 
             if (id == 2) // throw
             {
-                CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
+                if (CurrentType == Types.Workbench)
+                {
+                    if (slotStr == "tool")
+                        return;
+                }
+
                 ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Drop, name), 1, amount, amount, -1, ActionBox.RangeSubTypes.Default);
 
                 CurrentAction = 2;
@@ -1680,9 +1942,9 @@ namespace BCRPClient.CEF
             {
                 if (id == 4) // replace
                 {
-                    if (slotStr == "clothes" || slotStr == "accessories" || slotStr == "weapon" || slotStr == "bag" || slotStr == "crate")
+                    if (slotStr == "clothes" || slotStr == "accessories" || slotStr == "weapon" || slotStr == "bag" || slotStr == "crate" || slotStr == "result")
                     {
-                        int idx = Array.IndexOf(ItemsData, null);
+                        var idx = GetFreeIdx(slotStr == "bag" ? (string)((object[])BagData[slot][0])[0] : slotStr == "crate" ? (string)ContainerData[slot][0] : slotStr == "result" ? (string)WorkbenchResultData[slot][0] : "", ItemsData);
 
                         if (idx == -1)
                             return;
@@ -1691,34 +1953,55 @@ namespace BCRPClient.CEF
 
                         return;
                     }
-                    else if (slotStr == "pockets" && (BagData != null || ContainerData != null || GiveItemsData != null))
+                    else if (slotStr == "pockets")
                     {
                         if (CurrentType == Types.Inventory)
                         {
-                            int idx = Array.IndexOf(BagData, null);
+                            if (BagData != null)
+                            {
+                                var idx = GetFreeIdx(ItemsParams[slot].Id, BagData);
 
-                            if (idx == -1)
-                                return;
+                                if (idx == -1)
+                                    return;
 
-                            Replace("bag", idx, slotStr, slot, -1);
+                                Replace("bag", idx, slotStr, slot, -1);
+                            }
                         }
                         else if (CurrentType == Types.Container)
                         {
-                            int idx = Array.IndexOf(ContainerData, null);
+                            if (ContainerData != null)
+                            {
+                                var idx = GetFreeIdx(ItemsParams[slot].Id, ContainerData);
 
-                            if (idx == -1)
-                                return;
+                                if (idx == -1)
+                                    return;
 
-                            Replace("crate", idx, slotStr, slot, -1);
+                                Replace("crate", idx, slotStr, slot, -1);
+                            }
+                        }
+                        else if (CurrentType == Types.Workbench)
+                        {
+                            if (WorkbenchCraftData != null)
+                            {
+                                var idx = GetFreeIdx(ItemsParams[slot].Id, WorkbenchCraftData);
+
+                                if (idx == -1)
+                                    return;
+
+                                Replace("craft", idx, slotStr, slot, -1);
+                            }
                         }
                         else if (CurrentType == Types.Trade)
                         {
-                            int idx = Array.IndexOf(GiveItemsData, null);
+                            if (GiveItemsData != null)
+                            {
+                                int idx = Array.IndexOf(GiveItemsData, null);
 
-                            if (idx == -1)
-                                return;
+                                if (idx == -1)
+                                    return;
 
-                            Replace("give", idx, slotStr, slot, -1);
+                                Replace("give", idx, slotStr, slot, -1);
+                            }
                         }
 
                         return;
@@ -1728,6 +2011,54 @@ namespace BCRPClient.CEF
                         if (CurrentType == Types.Trade)
                         {
                             Replace("pockets", 0, slotStr, slot, -1);
+                        }
+                    }
+                    else if (slotStr == "tool")
+                    {
+                        if (CurrentType == Types.Workbench)
+                        {
+                            if (WorkbenchCraftData != null)
+                            {
+                                int idx = Array.IndexOf(WorkbenchCraftData, null);
+
+                                if (idx == -1)
+                                    return;
+
+                                Replace("craft", idx, slotStr, slot, -1);
+                            }
+                        }
+                    }
+                    else if (slotStr == "craft")
+                    {
+                        if (CurrentType == Types.Workbench)
+                        {
+                            if (WorkbenchCraftParams != null && WorkbenchCraftParams[slot] != null)
+                            {
+                                if (Data.Items.GetData(WorkbenchCraftParams[slot].Id, null) is Data.Items.WorkbenchTool.ItemData)
+                                {
+                                    if (WorkbenchToolsParams != null)
+                                    {
+                                        int idx = WorkbenchToolsParams.ToList().FindIndex(x => x?.Id == WorkbenchCraftParams[slot].Id);
+
+                                        if (idx == -1)
+                                            return;
+
+                                        Replace("tool", idx, slotStr, slot, -1);
+                                    }
+                                }
+                                else
+                                {
+                                    if (ItemsData != null)
+                                    {
+                                        var idx = GetFreeIdx(WorkbenchCraftParams[slot].Id, ItemsData);
+
+                                        if (idx == -1)
+                                            return;
+
+                                        Replace("pockets", idx, slotStr, slot, -1);
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -1748,6 +2079,15 @@ namespace BCRPClient.CEF
                     if (type == null)
                         return;
 
+                    bool isPreActionNeeded = true;
+
+                    if (args.Length > 3 && args[3] is string[] strArgs && strArgs.Length > 0)
+                    {
+                        isPreActionNeeded = false;
+
+                        eData.AddRange(strArgs);
+                    }
+
                     if (!iParams.InUse)
                     {
                         var vAction = Data.Items.GetActionToValidate(type);
@@ -1760,6 +2100,18 @@ namespace BCRPClient.CEF
                             }
                             else
                             {
+                                return;
+                            }
+                        }
+
+                        if (isPreActionNeeded)
+                        {
+                            var preAction = Data.Items.GetActionToPreAction(type);
+
+                            if (preAction != null)
+                            {
+                                preAction.Invoke(slot, iParams.Id);
+
                                 return;
                             }
                         }
@@ -1841,6 +2193,16 @@ namespace BCRPClient.CEF
                 else
                     Events.CallRemote("Inventory::Replace", Groups[toStr], toSlot, Groups[fromStr], fromSlot, amount);
             }
+            else if (CurrentType == Types.Workbench)
+            {
+                if (toStr == "result" || (toStr == "tool" && (fromStr == "pockets" || fromStr == "result" || (fromStr == "craft" && !(Data.Items.GetData(WorkbenchCraftParams[fromSlot].Id, null) is Data.Items.WorkbenchTool.ItemData)))))
+                    return;
+
+                if (toStr == "pockets" && fromStr == "pockets")
+                    Events.CallRemote("Inventory::Replace", Groups[toStr], toSlot, Groups[fromStr], fromSlot, amount);
+                else
+                    Events.CallRemote("Workbench::Replace", Groups[toStr], toSlot, Groups[fromStr], fromSlot, amount);
+            }
             else if (CurrentType == Types.Trade)
             {
                 if (fromStr == toStr)
@@ -1891,14 +2253,7 @@ namespace BCRPClient.CEF
 
         private static void OnTickCheck()
         {
-            if (CurrentType == Types.ItemOnGround)
-            {
-                if (Player.LocalPlayer.Vehicle != null || CurrentEntity?.IsNull != false || !CurrentEntity.IsEntityNear(Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                {
-                    Close();
-                }
-            }
-            else if (CurrentType == Types.Container)
+            if (CurrentType == Types.Container)
             {
                 if (CurrentContainerType == ContainerTypes.Trunk)
                 {
@@ -2022,6 +2377,235 @@ namespace BCRPClient.CEF
                 if (item != null)
                     WeaponsData[WeaponsData.Length - 1] = FillWeapon(item[0], int.Parse(item[1]), int.Parse(item[2]) == 1, item[3], item[4]);
             }
+        }
+
+        private static void UpdateCraftItemVisualization()
+        {
+            if (CurrentType != Types.Workbench)
+                return;
+
+            if (WorkbenchCraftParams == null || (WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null))
+                return;
+
+            var notNullItems = WorkbenchCraftParams.Where(x => x != null).OrderBy(x => x.Id).ToList();
+
+            var receipt = Data.Craft.Receipt.GetByIngredients(notNullItems);
+
+            if (receipt != null)
+            {
+                var itemData = Data.Items.GetData(receipt.CraftResultData.ResultItem.Id, null);
+
+                if (itemData == null)
+                    return;
+
+                int realAmount = 1;
+
+                if (itemData is Data.Items.Item.ItemData.IStackable itemDataStackable)
+                {
+                    realAmount = receipt.GetExpectedAmountByIngredients(notNullItems);
+
+                    if (realAmount <= 0)
+                        return;
+
+                    var newData = FillCraftResultItem(receipt.CraftResultData.ResultItem.Id, realAmount, itemData.Weight, null, false);
+
+                    if (WorkbenchResultData[0] == null || (string)WorkbenchResultData[0][0] != (string)newData[0] || (string)WorkbenchResultData[0][1] != (string)newData[1] || (int)WorkbenchResultData[0][3] != (int)newData[3] || (float)WorkbenchResultData[0][4] != (float)newData[4])
+                    {
+                        WorkbenchResultData[0] = newData;
+
+                        CEF.Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { newData });
+                    }
+                }
+                else
+                {
+                    var newData = FillCraftResultItem(receipt.CraftResultData.ResultItem.Id, receipt.CraftResultData.ResultItem.Amount, itemData.Weight, null, false);
+
+                    if (WorkbenchResultData[0] == null || (string)WorkbenchResultData[0][0] != (string)newData[0] || (string)WorkbenchResultData[0][1] != (string)newData[1] || (int)WorkbenchResultData[0][3] != (int)newData[3] || (float)WorkbenchResultData[0][4] != (float)newData[4])
+                    {
+                        WorkbenchResultData[0] = newData;
+
+                        CEF.Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { newData });
+                    }
+                }
+
+                if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
+                    CEF.Browser.Window.ExecuteJs("Inventory.fillCraftBtn", new object[] { new object[] { Locale.General.Containers.WorkbenchNames[CurrentWorkbenchType].CraftBtnText, (new TimeSpan(0, 0, 0, 0, receipt.CraftResultData.CraftTime * (realAmount / receipt.CraftResultData.ResultItem.Amount))).GetBeautyString() } });
+            }
+            else
+            {
+                if (WorkbenchResultData[0] != null)
+                {
+                    WorkbenchResultData[0] = null;
+
+                    CEF.Browser.Window.ExecuteJs("Inventory.updateResultSlot", new object[] { null });
+                }
+
+                ResetCraftButton();
+            }
+        }
+
+        private static void ResetCraftButton()
+        {
+            if (CurrentType != Types.Workbench)
+                return;
+
+            if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
+                CEF.Browser.Window.ExecuteJs("Inventory.fillCraftBtn", new object[] { new object[] { Locale.General.Containers.WorkbenchNames[CurrentWorkbenchType].CraftBtnText } });
+        }
+
+        private static void CancelPendingCraftTask()
+        {
+            CEF.Inventory.FreezeInterface(false, false);
+
+            var task = Player.LocalPlayer.GetData<AsyncTask>("Inv::Temp::WBCPT");
+
+            if (task != null)
+            {
+                task.Cancel();
+
+                Player.LocalPlayer.ResetData("Inv::Temp::WBCPT");
+            }
+        }
+
+        private static void StartPendingCraftTask(DateTime endDate)
+        {
+            var timeOffset = new TimeSpan(0, 0, 0, 1, 0);
+
+            CEF.Inventory.FreezeInterface(true, false);
+
+            var task = new AsyncTask(() =>
+            {
+                if (CurrentType != Types.Workbench)
+                    return true;
+
+                var currentDate = Utils.GetServerTime();
+
+                var timeLeft = endDate.Subtract(currentDate).Add(timeOffset);
+
+                CEF.Browser.Window.ExecuteJs("Inventory.fillCraftBtn", timeLeft.GetBeautyString());
+
+                if (timeLeft.TotalMilliseconds <= 0)
+                    return true;
+
+                return false;
+            }, 500, true, 0);
+
+            task.Run();
+
+            Player.LocalPlayer.SetData("Inv::Temp::WBCPT", task);
+        }
+
+        public static void FreezeInterface(bool state, bool clearCounter = false)
+        {
+            if (clearCounter)
+                FreezeCounter = 0;
+
+            if (!IsActive)
+                return;
+
+            if (state)
+            {
+                FreezeCounter++;
+            }
+            else
+            {
+                if (FreezeCounter > 0)
+                {
+                    FreezeCounter--;
+
+                    if (FreezeCounter > 0)
+                        return;
+                }
+            }
+
+            if (CurrentType == Types.Inventory)
+            {
+                if (state)
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'none';");
+                else
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.Inventory').style.pointerEvents = 'unset';");
+            }
+            else if (CurrentType == Types.Container)
+            {
+                if (state)
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.crates-Inventory').style.pointerEvents = 'none';");
+                else
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.crates-Inventory').style.pointerEvents = 'unset';");
+            }
+            else if (CurrentType == Types.Trade)
+            {
+                if (state)
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'none';");
+                else
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.trade').style.pointerEvents = 'unset';");
+            }
+            else if (CurrentType == Types.Workbench)
+            {
+                if (state)
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.workbench').firstElementChild.style.pointerEvents = 'none';");
+                else
+                    CEF.Browser.Window.ExecuteCachedJs("document.querySelector('.workbench').firstElementChild.style.pointerEvents = 'unset';");
+            }
+        }
+
+        private static int GetFreeIdx(string itemId, object[][] arr)
+        {
+            int eIdx = -1, idx = -1;
+            var minAmount = int.MaxValue;
+
+            var iData = itemId.Length == 0 ? null : Data.Items.GetData(itemId, null) as Data.Items.Item.ItemData.IStackable;
+
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (arr[i] == null)
+                {
+                    if (eIdx < 0)
+                    {
+                        eIdx = i;
+
+                        break;
+                    }
+                }
+                else
+                {
+                    if (iData != null)
+                    {
+                        if (arr[i][0] is object[] tarr)
+                        {
+                            if (itemId == (string)tarr[0])
+                            {
+                                var amount = (int)tarr[3];
+
+                                if (amount < minAmount)
+                                {
+                                    idx = i;
+
+                                    minAmount = amount;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (itemId == (string)arr[i][0])
+                            {
+                                var amount = (int)arr[i][3];
+
+                                if (amount < minAmount)
+                                {
+                                    idx = i;
+
+                                    minAmount = amount;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (eIdx >= 0)
+                return eIdx;
+
+            return idx;
         }
         #endregion
     }

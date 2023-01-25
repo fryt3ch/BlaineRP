@@ -170,8 +170,7 @@ namespace BCRPServer
 
                     if (VehicleData != null)
                     {
-                        if (VehicleData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Boat)
-                            VehicleData.Vehicle.AttachObject(Game.Data.Vehicles.GetData("boattrailer").Model, Sync.AttachSystem.Types.TrailerObjOnBoat, -1, null);
+                        VehicleData.AttachBoatToTrailer();
 
                         NAPI.Task.Run(() =>
                         {

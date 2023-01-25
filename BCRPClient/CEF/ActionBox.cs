@@ -67,6 +67,9 @@ namespace BCRPClient.CEF
 
             BusinessBalanceDeposit,
             BusinessBalanceWithdraw,
+
+            PlacedItemOnGroundSelect,
+            ItemOnGroundTakeRange,
         }
 
         public static Types CurrentType { get; private set; }
@@ -85,10 +88,65 @@ namespace BCRPClient.CEF
                 new Dictionary<Contexts, Dictionary<ActionTypes, Action<object[]>>>()
                 {
                     {
+                        Contexts.ItemOnGroundTakeRange,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Player.LocalPlayer.SetData("AB::Temp::IOGTR", args[0]);
+
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::IOGTR");
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amount = (int)args[1];
+
+                                    if (Sync.World.ItemOnGround.LastSent.IsSpam(500, false, false))
+                                        return;
+
+                                    var iog = Player.LocalPlayer.GetData<Sync.World.ItemOnGround>("AB::Temp::IOGTR");
+
+                                    Close(true);
+
+                                    if (iog?.Object?.Exists != true)
+                                        return;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        Events.CallRemote("Inventory::Take", iog.Uid, amount);
+
+                                        Sync.World.ItemOnGround.LastSent = DateTime.Now;
+                                    }
+                                }
+                            }
+                        }
+                    },
+
+                    {
                         Contexts.Inventory,
 
                         new Dictionary<ActionTypes, Action<object[]>>()
                         {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    CEF.Inventory.FreezeInterface(true, false);
+                                }
+                            },
+
                             {
                                 ActionTypes.Choose, (args) =>
                                 {
@@ -105,6 +163,13 @@ namespace BCRPClient.CEF
                                     }
                                     else
                                         return;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    CEF.Inventory.FreezeInterface(false, false);
                                 }
                             }
                         }
@@ -477,6 +542,57 @@ namespace BCRPClient.CEF
 
                 new Dictionary<Contexts, Dictionary<ActionTypes, Action<object[]>>>()
                 {
+                    {
+                        Contexts.PlacedItemOnGroundSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Player.LocalPlayer.SetData("AB::Temp::PIOGS", args[0]);
+
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) => Player.LocalPlayer.ResetData("AB::Temp::PIOGS")
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var iog = Player.LocalPlayer.GetData<Sync.World.ItemOnGround>("AB::Temp::PIOGS");
+
+                                    Close(true);
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        if (iog?.Object?.Exists != true)
+                                            return;
+
+                                        if (id == 0)
+                                        {
+                                            CEF.Inventory.Show(Inventory.Types.Workbench, 0, iog.Uid);
+                                        }
+                                        else if (id == 1)
+                                        {
+                                            Events.CallRemote("Item::IOGL", iog.Uid, !iog.IsLocked);
+                                        }
+                                        else if (id == 2)
+                                        {
+                                            iog.TakeItem();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+
                     {
                         Contexts.NumberplateSelect,
 

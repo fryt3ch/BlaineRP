@@ -28,6 +28,8 @@ namespace BCRPClient.CEF
             Default = 0,
 
             FurnitureEdit,
+
+            PlaceItem,
         }
 
         public class Mode
@@ -37,6 +39,8 @@ namespace BCRPClient.CEF
                 { ModeTypes.Default, new Mode(true, true, true, true, true, true) },
 
                 { ModeTypes.FurnitureEdit, new Mode(true, true, true, false, true, false) },
+
+                { ModeTypes.PlaceItem, new Mode(true, true, true, false, true, false) },
             };
 
             public bool EnableX { get; set; }
@@ -131,6 +135,10 @@ namespace BCRPClient.CEF
 
                 TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) CEF.HouseMenu.FurntureEditFinish(Entity as MapObject, RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false), RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2)); }));
             }
+            else if (CurrentModeType == ModeTypes.PlaceItem)
+            {
+                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) Data.Items.OnPlaceItemFinish(Entity as MapObject); }));
+            }
 
             Sync.WeaponSystem.DisabledFiring = true;
         }
@@ -213,7 +221,7 @@ namespace BCRPClient.CEF
 
             LastPos = ePos;
 
-            if (CurrentModeType == ModeTypes.FurnitureEdit)
+            if (CurrentModeType != ModeTypes.Default)
             {
                 if (Player.LocalPlayer.Position.DistanceTo(ePos) > 7.5f)
                 {
@@ -294,11 +302,6 @@ namespace BCRPClient.CEF
                 {
                     Utils.DrawText($"Угол поворота: {RAGE.Game.Entity.GetEntityHeading(Entity.Handle).ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                 }
-            }
-
-            if (CurrentModeType == ModeTypes.FurnitureEdit)
-            {
-
             }
         }
     }

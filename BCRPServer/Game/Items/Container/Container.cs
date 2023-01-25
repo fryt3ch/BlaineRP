@@ -76,6 +76,7 @@ namespace BCRPServer.Game.Items
         public enum ContainerTypes
         {
             None = -1,
+
             Trunk,
             Locker,
             Storage,
@@ -133,16 +134,16 @@ namespace BCRPServer.Game.Items
         public List<PlayerData> PlayersObserving { get; set; }
 
         /// <summary>Максимальный вес контейнера</summary>
-        public float MaxWeight { get => ContData.MaxWeight; }
+        public float MaxWeight => ContData.MaxWeight;
 
         /// <summary>Тип предметов, доступных для хранения в контейнере</summary>
-        private Type AllowedItemType { get => AllowedItemsDict[ContData.AllowedItemsType]; }
+        private Type AllowedItemType => AllowedItemsDict[ContData.AllowedItemsType];
 
         /// <summary>Тип контейнера</summary>
-        private ContainerTypes ContainerType { get => ContData.ContainerType; }
+        private ContainerTypes ContainerType => ContData.ContainerType;
 
         /// <summary>Текущий общий вес контейнера</summary>
-        public float Weight { get => Items.Sum(x => x?.Weight ?? 0f); }
+        public float Weight => Items.Sum(x => x?.Weight ?? 0f);
 
         public Data ContData { get; set; }
 
@@ -220,46 +221,54 @@ namespace BCRPServer.Game.Items
         /// <returns>true - если игрок был успешно добавлен, false - в противном случае</returns>
         public bool AddPlayerObserving(PlayerData pData)
         {
-            var player = pData.Player;
-
-            if (pData.CurrentContainer != null || PlayersObserving.Contains(pData))
-                return false;
-
-            foreach (var x in PlayersObserving)
+            PlayersObserving.ForEach(x =>
             {
                 var target = x?.Player;
 
                 if (target?.Exists != true || !target.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                    RemovePlayerObserving(x);
-            }
+                    RemovePlayerObserving(x, true);
+            });
 
             if (PlayersObserving.Count >= Settings.CONTAINER_MAX_PLAYERS)
                 return false;
 
             PlayersObserving.Add(pData);
 
-            pData.CurrentContainer = this.ID;
+            pData.CurrentContainer = this;
 
             return true;
         }
 
         /// <summary>Метод для удаления игрока в качестве смотрящего контейнер</summary>
-        public void RemovePlayerObserving(PlayerData pData)
+        public void RemovePlayerObserving(PlayerData pData, bool callRemoteClose)
         {
             var player = pData.Player;
 
             PlayersObserving.Remove(pData);
 
-            player.TriggerEvent("Inventory::Close");
-
             pData.CurrentContainer = null;
+
+            if (callRemoteClose)
+                player.TriggerEvent("Inventory::Close");
         }
 
         /// <summary>Метод для очистки всех игроков, смотрящих контейнер</summary>
         public void ClearAllObservers()
         {
-            foreach (var player in PlayersObserving)
-                RemovePlayerObserving(player);
+            var players = new List<Player>();
+
+            PlayersObserving.ForEach(x =>
+            {
+                x.CurrentWorkbench = null;
+
+                if (x.Player?.Exists == true)
+                {
+                    players.Add(x.Player);
+                }
+            });
+
+            if (players.Count > 0)
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players.ToArray(), "Inventory::Close");
         }
 
         /// <summary>Метод для создания нового контейнера</summary>
@@ -300,10 +309,12 @@ namespace BCRPServer.Game.Items
         {
             ClearAllObservers();
 
-            foreach (var item in Items)
-                item.Delete();
+            for (int i = 0; i < Items.Length; i++)
+            {
+                Items[i].Delete();
 
-            Items = new Item[Items.Length];
+                Items[i] = null;
+            }
 
             Update();
         }
@@ -314,15 +325,17 @@ namespace BCRPServer.Game.Items
             if (item == null)
                 return true;
 
-            return this.AllowedItemType.IsAssignableFrom(item.Type);
+            return AllowedItemType.IsAssignableFrom(item.Type);
         }
 
         /// <summary>Метод для обновления сущности держателя контейнера</summary>
         /// <param name="owner">Сущность держателя</param>
         public void UpdateOwner(Entity owner)
         {
-            this.Entity = owner;
+            Entity = owner;
         }
+
+        public Player[] GetPlayersObservingArray() => PlayersObserving.Where(x => x.Player?.Exists == true).Select(x => x.Player).ToArray();
 
         public string ToClientJson() => $"{(int)ContainerType}&{MaxWeight}|{string.Join('|', Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Container)))}";
     }

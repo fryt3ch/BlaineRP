@@ -113,7 +113,7 @@ namespace BCRPServer.Game.Businesses
         /// <summary>Статистика прибыли</summary>
         public int[] Statistics { get; set; }
 
-        public MaterialsData MaterialsData { get; set; }
+        public MaterialsData MaterialsData => Shop.AllPrices.GetValueOrDefault(Type);
 
         public IEnumerable<PlayerData> PlayersInteracting => PlayerData.All.Values.Where(x => x.CurrentBusiness == this);
 
@@ -127,8 +127,6 @@ namespace BCRPServer.Game.Businesses
 
             this.PositionInfo = PositionInfo;
             this.PositionInteract = PositionInteract;
-
-            this.MaterialsData = Shop.AllPrices.GetValueOrDefault(Type);
 
             All.Add(ID, this);
         }

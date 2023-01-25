@@ -81,7 +81,9 @@ namespace BCRPServer
 
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
-        public uint? CurrentContainer { get => Player.GetData<uint?>("CCont"); set { if (value == null) Player.ResetData("CCont"); else Player.SetData("CCont", value); } }
+        public Game.Items.Container CurrentContainer { get => Player.GetData<Game.Items.Container>("CCont"); set { if (value == null) Player.ResetData("CCont"); else Player.SetData("CCont", value); } }
+
+        public Game.Items.Craft.Workbench CurrentWorkbench { get => Player.GetData<Game.Items.Craft.Workbench>("CWBench"); set { if (value == null) Player.ResetData("CWBench"); else Player.SetData("CWBench", value); } }
 
         /// <summary>Текущий бизнес, с которым взаимодействует игрок</summary>
         public Game.Businesses.Business CurrentBusiness { get => Player.GetData<Game.Businesses.Business>("CBusiness"); set { if (value == null) Player.ResetData("CBusiness"); else Player.SetData("CBusiness", value); } }
@@ -213,5 +215,7 @@ namespace BCRPServer
         /// <summary>Лицензии игрока</summary>
         /// <value>Список enum LicenseType</value>
         public List<LicenseTypes> Licenses { get => Info.Licenses; set => Info.Licenses = value; }
+
+        public IEnumerable<Sync.World.ItemOnGround> OwnedItemsOnGround => Sync.World.GetItemsOnGroundByOwner(Info);
     }
 }

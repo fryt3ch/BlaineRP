@@ -1087,11 +1087,31 @@ namespace BCRPServer.Sync
                     MySQL.CharacterItemsUpdate(pData.Info);
                     MySQL.CharacterItemsUpdate(tData.Info);
 
-                    for (int i = 0; i < senderSlotsToUpdate.Count; i++)
-                        pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2);
+                    if (senderSlotsToUpdate.Count % 2 != 0)
+                    {
+                        pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[0].Item1, senderSlotsToUpdate[0].Item2);
 
-                    for (int i = 0; i < receiverSlotsToUpdate.Count; i++)
-                        tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2);
+                        for (int i = 1; i < senderSlotsToUpdate.Count; i += 2)
+                            pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i + 1].Item1, senderSlotsToUpdate[i + 1].Item2);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < senderSlotsToUpdate.Count; i += 2)
+                            pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i + 1].Item1, senderSlotsToUpdate[i + 1].Item2);
+                    }
+
+                    if (receiverSlotsToUpdate.Count % 2 != 0)
+                    {
+                        tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[0].Item1, receiverSlotsToUpdate[0].Item2);
+
+                        for (int i = 1; i < receiverSlotsToUpdate.Count; i += 2)
+                            tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i + 1].Item1, receiverSlotsToUpdate[i + 1].Item2);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < receiverSlotsToUpdate.Count; i += 2)
+                            tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i + 1].Item1, receiverSlotsToUpdate[i + 1].Item2);
+                    }
 
                     return (Game.Items.Inventory.Results.Success, null);
                 }

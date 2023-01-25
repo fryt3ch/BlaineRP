@@ -5,11 +5,86 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Security.Cryptography.X509Certificates;
+using System.Net.Http.Headers;
 
 namespace BCRPClient.Sync
 {
     class World : Events.Script
     {
+        public class ItemOnGround
+        {
+            public static DateTime LastShowed;
+            public static DateTime LastSent;
+
+            public enum Types : byte
+            {
+                /// <summary>Стандартный тип предмета на земле</summary>
+                /// <remarks>Автоматически удаляется с определенными условиями, может быть подобран кем угодно</remarks>
+                Default = 0,
+
+                /// <summary>Тип предмета на земле, который был намеренно установлен игроком (предметы, наследующие вбстрактный класс PlaceableItem)</summary>
+                /// <remarks>Предметы данного типа не удаляется автоматически, так же не могут быть подобраны кем угодно (пока действуют определенные условия)</remarks>
+                PlacedItem,
+            }
+
+            public MapObject Object { get; set; }
+
+            public Types Type => (Types)(byte)Object.GetSharedData<int>("IOG", 0);
+
+            public int Amount => Object.GetSharedData<int>("A", 0);
+
+            public string Id => Object.GetSharedData<string>("I", null);
+
+            public uint Uid => Object.GetSharedData<int>("U", 0).ToUInt32();
+
+            public bool IsLocked => Object.GetSharedData<bool>("L", false);
+
+            public string Name { get; private set; }
+
+            private ItemOnGround(MapObject Object)
+            {
+                this.Object = Object;
+
+                this.Name = Data.Items.GetName(Id);
+            }
+
+            public static ItemOnGround GetItemOnGroundObject(MapObject obj)
+            {
+                if (obj == null)
+                    return null;
+
+                if (ItemsOnGround.Where(x => x.Object == obj).FirstOrDefault() is ItemOnGround existingIog)
+                    return existingIog;
+
+                return new ItemOnGround(obj);
+            }
+
+            public void TakeItem()
+            {
+                if (Utils.IsAnyCefActive(true))
+                    return;
+
+                if (Amount == 1)
+                {
+                    if (LastSent.IsSpam(500, false, false))
+                        return;
+
+                    Events.CallRemote("Inventory::Take", Uid, 1);
+
+                    LastSent = DateTime.Now;
+                }
+                else
+                {
+                    if (LastShowed.IsSpam(500, false, false))
+                        return;
+
+                    CEF.ActionBox.ShowRange(CEF.ActionBox.Contexts.ItemOnGroundTakeRange, string.Format(Locale.Actions.Take, Name), 1, Amount, Amount, 1, CEF.ActionBox.RangeSubTypes.Default, this);
+
+                    LastShowed = DateTime.Now;
+                }
+            }
+        }
+        
         public static bool Preloaded { get; private set; }
 
         public enum WeatherTypes : byte
@@ -38,16 +113,14 @@ namespace BCRPClient.Sync
         public static WeatherTypes? CurrentWeatherSpecial { get; set; }
 
         /// <summary>Ближайший к игроку предмет на земле</summary>
-        public static MapObject ClosestItemOnGround { get; set; }
+        public static ItemOnGround ClosestItemOnGround { get; set; }
 
         private static bool _EnabledItemsOnGround;
 
         /// <summary>Включено ли взаимодействие с предметами на земле в данный момент?</summary>
         public static bool EnabledItemsOnGround { get => _EnabledItemsOnGround; set { if (!_EnabledItemsOnGround && value) { GameEvents.Render -= ItemsOnGroundRender; GameEvents.Render += ItemsOnGroundRender; } else if (_EnabledItemsOnGround && !value) GameEvents.Render -= ItemsOnGroundRender; _EnabledItemsOnGround = value; ClosestItemOnGround = null; } }
 
-        public static List<MapObject> ItemsOnGround { get; set; }
-
-        private static List<float> Distances { get; set; }
+        public static List<ItemOnGround> ItemsOnGround { get; set; }
 
         private static RAGE.Elements.Colshape ServerDataColshape { get; set; }
 
@@ -85,7 +158,7 @@ namespace BCRPClient.Sync
             {
                 var x = RAGE.Elements.Entities.Objects.All[i];
 
-                if (x.GetSharedData<bool>("IOG", false))
+                if (x.GetSharedData<int>("IOG", -1) >= 0)
                 {
                     x.NotifyStreaming = true;
                 }
@@ -191,45 +264,62 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task OnMapObjectStreamIn(MapObject obj)
         {
-            if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
+            if (obj.IsLocal)
                 return;
 
-            obj.SetCanBeDamaged(false);
-            obj.SetInvincible(true);
+            if (obj.GetSharedData<int>("IOG", -1) is int iogTypeNum && iogTypeNum >= 0)
+            {
+                if (iogTypeNum == 0)
+                {
+                    obj.PlaceOnGroundProperly();
 
-            obj.PlaceOnGroundProperly();
+                    obj.SetCollision(false, true);
 
-            obj.FreezePosition(true);
+                    obj.SetData("Dist", float.MaxValue);
+                }
+                else if (iogTypeNum == 1)
+                {
+                    obj.SetData("Interactive", true);
+                }
 
-            obj.SetCollision(false, true);
+                obj.SetCanBeDamaged(false);
+                obj.SetInvincible(true);
 
-            obj.SetData("Name", Data.Items.GetName(obj.GetSharedData<string>("ID", null)));
-            obj.SetData("UID", obj.GetSharedData<int>("UID").ToUInt32());
-            obj.SetData("Amount", obj.GetSharedData<int>("Amount", -1));
+                obj.FreezePosition(true);
 
-            if (obj.GetData<string>("Name") == null)
-                return;
+                var iogObj = ItemOnGround.GetItemOnGroundObject(obj);
 
-            if (!ItemsOnGround.Contains(obj))
-                ItemsOnGround.Add(obj);
+                if (!ItemsOnGround.Contains(iogObj))
+                    ItemsOnGround.Add(iogObj);
+            }
         }
 
         public static async System.Threading.Tasks.Task OnMapObjectStreamOut(MapObject obj)
         {
-            if (obj.IsLocal || !obj.GetSharedData<bool>("IOG", false))
+            if (obj.IsLocal)
                 return;
 
-            obj.ResetData();
+            if (obj.GetSharedData<int>("IOG", -1) >= 0)
+            {
+                var iogObj = ItemOnGround.GetItemOnGroundObject(obj);
 
-            ItemsOnGround.Remove(obj);
+                ItemsOnGround.Remove(iogObj);
+
+                if (ClosestItemOnGround != null && ClosestItemOnGround.Object == obj)
+                    ClosestItemOnGround = null;
+            }
+
+            obj.ResetData();
         }
 
         public World()
         {
+            ItemOnGround.LastShowed = DateTime.Now;
+            ItemOnGround.LastSent = DateTime.Now;
+
             Preloaded = false;
 
-            ItemsOnGround = new List<MapObject>();
-            Distances = new List<float>();
+            ItemsOnGround = new List<ItemOnGround>();
 
             ClosestItemOnGround = null;
 
@@ -238,83 +328,67 @@ namespace BCRPClient.Sync
             #region Events
             Events.AddDataHandler("IOG", (Entity entity, object value, object oldValue) =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object)
-                    return;
-
-                MapObject obj = entity as MapObject;
-
-                obj.NotifyStreaming = true;
+                if (entity is MapObject obj)
+                {
+                    obj.NotifyStreaming = true;
+                }
             });
 
-            Events.AddDataHandler("Amount", (Entity entity, object value, object oldValue) =>
+            (new AsyncTask(() =>
             {
-                if (entity.Type != RAGE.Elements.Type.Object || !entity.HasSharedData("IOG"))
-                    return;
+                var minDist = float.MaxValue;
+                var minIdx = -1;
 
-                MapObject obj = entity as MapObject;
+                for (int i = 0; i < ItemsOnGround.Count; i++)
+                {
+                    if (ItemsOnGround[i].Type != ItemOnGround.Types.Default || ItemsOnGround[i].Object?.Exists != true)
+                        continue;
 
-                obj.SetData("Amount", (int)value);
-            });
+                    var dist = Vector3.Distance(Player.LocalPlayer.Position, ItemsOnGround[i].Object.GetCoords(true));
+
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+
+                        minIdx = i;
+                    }
+
+                    ItemsOnGround[i].Object.SetData("Dist", dist);
+                }
+
+                if (minIdx < 0)
+                    ClosestItemOnGround = null;
+                else
+                    ClosestItemOnGround = ItemsOnGround[minIdx];
+            }, 1000, true, 2500)).Run();
             #endregion
         }
 
         #region IOG Render
         private static void ItemsOnGroundRender()
         {
-            Distances.Clear();
+            float screenX = 0f, screenY = 0f;
 
-            float minDist = Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER;
-            int minIdx = -1;
-
-            var allItems = ItemsOnGround.ToList();
-
-            for (int i = 0; i < allItems.Count; i++)
+            for (int i = 0; i < ItemsOnGround.Count; i++)
             {
-                if (allItems[i]?.Exists != true)
+                var temp = ItemsOnGround[i];
+
+                if (temp.Type != ItemOnGround.Types.Default || temp.Object?.Exists != true)
                     continue;
 
-                float dist = Vector3.Distance(Player.LocalPlayer.Position, allItems[i].GetCoords(true));
-
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    minIdx = i;
-                }
-
-                Distances.Add(dist);
-            }
-
-            if (minIdx == -1)
-            {
-                ClosestItemOnGround = null;
-
-                return;
-            }
-
-            ClosestItemOnGround = allItems[minIdx];
-
-            float screenX = 0, screenY = 0;
-
-            for (int i = 0; i < allItems.Count; i++)
-            {
-                if (allItems[i]?.Exists != true)
+                if (temp.Object.GetData<float>("Dist") > Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER)
                     continue;
 
-                var temp = allItems[i];
-
-                if (Distances[i] > Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER)
-                    continue;
-
-                if (!Utils.GetScreenCoordFromWorldCoord(temp.GetCoords(true), ref screenX, ref screenY))
+                if (!Utils.GetScreenCoordFromWorldCoord(temp.Object.GetCoords(true), ref screenX, ref screenY))
                     continue;
 
                 if (!Settings.Interface.HideIOGNames)
                 {
-                    Utils.DrawText($"{temp.GetData<string>("Name")} (x{temp.GetData<int>("Amount")})", screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 }
 
-                if (i == minIdx && !Settings.Interface.HideInteractionBtn)
-                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, screenY + 0.025f, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                if (temp == ClosestItemOnGround && !Settings.Interface.HideInteractionBtn)
+                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
             }
         }
         #endregion
@@ -340,5 +414,7 @@ namespace BCRPClient.Sync
             RAGE.Game.Misc.SetWeatherTypeNow(str);
             //RAGE.Game.Misc.SetOverrideWeather(str);
         }
+
+
     }
 }

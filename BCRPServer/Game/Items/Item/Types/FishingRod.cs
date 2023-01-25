@@ -45,7 +45,7 @@ namespace BCRPServer.Game.Items
 
                     new List<RandomItem>()
                     {
-                        new RandomItem("fi_f_acod", 1, 1),
+                        new RandomItem("f_acod", 1, 1),
                     }
                 },
             };

@@ -834,7 +834,12 @@ namespace BCRPClient
             Add(new Bind(Types.TakeItem, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    CEF.Inventory.Show(CEF.Inventory.Types.ItemOnGround);
+                {
+                    if (Sync.World.ClosestItemOnGround == null)
+                        return;
+
+                    Sync.World.ClosestItemOnGround.TakeItem();
+                }
             }, true, true)
             { Description = "Подобрать предмет" });
 

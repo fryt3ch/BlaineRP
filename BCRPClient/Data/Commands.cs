@@ -938,7 +938,7 @@ namespace BCRPClient.Data
             if (CEF.MapEditor.IsActive)
                 CEF.MapEditor.Close();
 
-            CEF.MapEditor.Show(gEntity, CEF.MapEditor.ModeTypes.Default, true);
+            CEF.MapEditor.Show(gEntity, CEF.MapEditor.ModeTypes.Default, false);
         }
 
         [Command("entity_select_edit_stop", true, "Установить сытость игроку")]

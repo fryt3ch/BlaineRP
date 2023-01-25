@@ -113,6 +113,12 @@ namespace BCRPServer.Game.Items
 
             { Game.Items.Inventory.Groups.Container, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
+            { Game.Items.Inventory.Groups.CraftItems, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+
+            { Game.Items.Inventory.Groups.CraftTools, (item) => $"{item.ID}" },
+
+            { Game.Items.Inventory.Groups.CraftResult, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+
             {
                 Game.Items.Inventory.Groups.Weapons,
 
@@ -223,6 +229,9 @@ namespace BCRPServer.Game.Items
         }
 
         [JsonIgnore]
+        public Sync.World.ItemOnGround OnGroundInstance => Sync.World.GetItemOnGround(UID);
+
+        [JsonIgnore]
         public Type Type { get; set; }
 
         /// <summary>Данные предмета</summary>
@@ -255,10 +264,15 @@ namespace BCRPServer.Game.Items
         public string ID { get; set; }
 
         /// <summary>Метод для удаления предмета из базы данных</summary>
-        public void Delete()
+        public virtual void Delete()
         {
             if (IsTemp)
                 return;
+
+            if (OnGroundInstance is Sync.World.ItemOnGround iog)
+            {
+                iog.Delete(false);
+            }
 
             Remove(this);
         }

@@ -348,47 +348,6 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                typeof(Game.Items.Clothes),
-
-                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
-                {
-                    {
-                        5,
-
-                        (pData, item, group, slot, args) =>
-                        {
-                            var player = pData.Player;
-
-                            if (group == Groups.Items || group == Groups.Bag)
-                            {
-                                int slotTo;
-
-                                if (AccessoriesSlots.TryGetValue(item.Type, out slotTo))
-                                {
-                                    return Replace(pData, Groups.Accessories, slotTo, group, slot, -1);
-                                }
-                                else
-                                {
-                                    return Replace(pData, Groups.Clothes, ClothesSlots[item.Type], group, slot, -1);
-                                }
-                            }
-                            else if (group == Groups.Clothes || group == Groups.Accessories)
-                            {
-                                if (item is Game.Items.Clothes.IToggleable tItem)
-                                {
-                                    tItem.Action(pData);
-                                }
-
-                                return Results.Success;
-                            }
-
-                            return Results.Error;
-                        }
-                    }
-                }
-            },
-
-            {
                 typeof(Game.Items.Bag),
 
                 new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
@@ -449,6 +408,47 @@ namespace BCRPServer.Game.Items
                             if (group == Groups.Items || group == Groups.Bag)
                             {
                                 return Replace(pData, Groups.Armour, 0, group, slot, -1);
+                            }
+
+                            return Results.Error;
+                        }
+                    }
+                }
+            },
+
+            {
+                typeof(Game.Items.Clothes),
+
+                new Dictionary<int, Func<PlayerData, Game.Items.Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var player = pData.Player;
+
+                            if (group == Groups.Items || group == Groups.Bag)
+                            {
+                                int slotTo;
+
+                                if (AccessoriesSlots.TryGetValue(item.Type, out slotTo))
+                                {
+                                    return Replace(pData, Groups.Accessories, slotTo, group, slot, -1);
+                                }
+                                else
+                                {
+                                    return Replace(pData, Groups.Clothes, ClothesSlots[item.Type], group, slot, -1);
+                                }
+                            }
+                            else if (group == Groups.Clothes || group == Groups.Accessories)
+                            {
+                                if (item is Game.Items.Clothes.IToggleable tItem)
+                                {
+                                    tItem.Action(pData);
+                                }
+
+                                return Results.Success;
                             }
 
                             return Results.Error;
@@ -696,6 +696,48 @@ namespace BCRPServer.Game.Items
                             }
 
                             return Results.Success;
+                        }
+                    }
+                }
+            },
+
+            {
+                typeof(Game.Items.PlaceableItem),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group != Groups.Items)
+                                return Results.ActionRestricted;
+
+                            if (args.Length != 4)
+                                return Results.Error;
+
+                            float posX, posY, posZ, rotZ;
+
+                            if (!float.TryParse(args[0], out posX) || !float.TryParse(args[1], out posY) || !float.TryParse(args[2], out posZ) || !float.TryParse(args[3], out rotZ))
+                                return Results.Error;
+
+                            var itemP = (Game.Items.PlaceableItem)item;
+
+                            var iog = itemP.Install(pData, new GTANetworkAPI.Vector3(posX, posY, posZ), new GTANetworkAPI.Vector3(0f, 0f, rotZ));
+
+                            if (iog != null)
+                            {
+                                pData.Items[slot] = null;
+
+                                pData.Player.InventoryUpdate(group, slot, Item.ToClientJson(null, group));
+
+                                MySQL.CharacterItemsUpdate(pData.Info);
+
+                                return Results.Success;
+                            }
+
+                            return Results.Error;
                         }
                     }
                 }

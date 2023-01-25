@@ -3,6 +3,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace BCRPClient.Data
 {
@@ -452,19 +453,6 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class FoodIngredient : Food, ICraftIngredient
-        {
-            new public class ItemData : Food.ItemData, Item.ItemData.ICraftIngredient
-            {
-                public ItemData(string Name, float Weight, int Satiety, int Mood, int Health, int MaxAmount) : base(Name, Weight, Satiety, Mood, Health, MaxAmount)
-                {
-
-                }
-            }
-
-            new public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
-        }
-
         public class CigarettesPack : StatusChanger, IConsumable
         {
             new public class ItemData : StatusChanger.ItemData, Item.ItemData.IConsumable
@@ -574,6 +562,45 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
+        public class WorkbenchTool : Item
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public ItemData(string Name) : base(Name, 0f)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public abstract class PlaceableItem : Item
+        {
+            new public abstract class ItemData : Item.ItemData
+            {
+                public uint Model { get; set; }
+
+                public ItemData(string Name, float Weight, uint Model) : base(Name, Weight)
+                {
+                    this.Model = Model;
+                }
+            }
+        }
+
+        public class Workbench : PlaceableItem
+        {
+            new public class ItemData : PlaceableItem.ItemData
+            {
+                public ItemData(string Name, float Weight, uint Model) : base(Name, Weight, Model)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public enum ActionTypes
         {
             Bind = 0,
@@ -641,6 +668,9 @@ namespace BCRPClient.Data
 
         public static System.Type GetType(string id, bool checkFullId = true)
         {
+            if (id == null)
+                return null;
+
             var data = id.Split('_');
 
             var type = AllTypes.GetValueOrDefault(data[0]);
@@ -666,7 +696,7 @@ namespace BCRPClient.Data
 
         public static string GetName(string id) => GetData(id, null)?.Name ?? "null";
 
-        public static object[][] GetActions(System.Type type, string id, int amount, bool isBag = false, bool inUse = false, bool hasContainer = false, bool isContainer = false)
+        public static object[][] GetActions(System.Type type, string id, int amount, bool isBag = false, bool inUse = false, bool hasContainer = false, bool isContainer = false, bool canSplit = true, bool canDrop = true)
         {
             List<object[]> actions = new List<object[]>();
 
@@ -691,10 +721,11 @@ namespace BCRPClient.Data
             if (hasContainer)
                 actions.Add(new object[] { 4, Locale.General.Inventory.Actions.Shift });
 
-            if (amount > 1)
+            if (canSplit && amount > 1)
                 actions.Add(new object[] { 1, Locale.General.Inventory.Actions.Split });
 
-            actions.Add(new object[] { 2, Locale.General.Inventory.Actions.Drop });
+            if (canDrop)
+                actions.Add(new object[] { 2, Locale.General.Inventory.Actions.Drop });
 
             return actions.ToArray();
         }
@@ -704,6 +735,8 @@ namespace BCRPClient.Data
         private static List<KeyValuePair<System.Type, object[][]>> Actions { get; set; } = new List<KeyValuePair<System.Type, object[][]>>()
         {
             new KeyValuePair<System.Type, object[][]>(typeof(FishingRod), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FishingRodUseBait }, new object[] { 6, Locale.General.Inventory.Actions.FishingRodUseWorms } }),
+
+            new KeyValuePair<System.Type, object[][]>(typeof(PlaceableItem), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.SetupPlaceableItem } }),
 
             new KeyValuePair<System.Type, object[][]>(typeof(IUsable), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
 
@@ -723,6 +756,7 @@ namespace BCRPClient.Data
         private static List<KeyValuePair<System.Type, List<string>>> ItemsActionsNotBag { get; set; } = new List<KeyValuePair<System.Type, List<string>>>()
         {
             new KeyValuePair<System.Type, List<string>>(typeof(IUsable), new List<string> { } ),
+            new KeyValuePair<System.Type, List<string>>(typeof(PlaceableItem), new List<string> { } ),
         };
 
         private static List<KeyValuePair<System.Type, Func<List<string>>>> ItemsActionsValidators { get; set; } = new List<KeyValuePair<System.Type, Func<List<string>>>>()
@@ -755,7 +789,71 @@ namespace BCRPClient.Data
             }),
         };
 
+        private static List<KeyValuePair<System.Type, Action<int, string>>> ItemsActionsPreActions { get; set; } = new List<KeyValuePair<System.Type, Action<int, string>>>()
+        {
+            new KeyValuePair<System.Type, Action<int, string>>(typeof(PlaceableItem), (slot, itemId) =>
+            {
+                CEF.Inventory.Close(true);
+
+                StartPlaceItem(itemId, slot);
+            }),
+        };
+
         public static Func<List<string>> GetActionToValidate(System.Type type) => ItemsActionsValidators.Where(x => x.Key.IsTypeOrAssignable(type)).Select(x => x.Value).FirstOrDefault();
+
+        public static Action<int, string> GetActionToPreAction(System.Type type) => ItemsActionsPreActions.Where(x => x.Key.IsTypeOrAssignable(type)).Select(x => x.Value).FirstOrDefault();
+
+        public static async System.Threading.Tasks.Task StartPlaceItem(string itemId, int itemIdx)
+        {
+            var itemData = GetData(itemId, null) as PlaceableItem.ItemData;
+
+            if (itemData == null)
+                return;
+
+            var coords = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+
+            await Utils.RequestModel(itemData.Model);
+
+            var mapObject = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObject(itemData.Model, coords.X, coords.Y, coords.Z, false, false, false));
+
+            mapObject.SetData("ItemIdx", itemIdx);
+
+            CEF.Cursor.Show(true, true);
+
+            CEF.MapEditor.Show(mapObject, CEF.MapEditor.ModeTypes.PlaceItem, false);
+        }
+
+        public static void OnPlaceItemFinish(MapObject mObj)
+        {
+            if (mObj?.Exists != true)
+            {
+                CEF.Cursor.Show(false, false);
+
+                CEF.MapEditor.Close();
+
+                return;
+            }
+
+            var pos = RAGE.Game.Entity.GetEntityCoords(mObj.Handle, false);
+            var heading = RAGE.Game.Entity.GetEntityHeading(mObj.Handle);
+
+            var itemIdx = mObj.HasData("ItemIdx") ? mObj.GetData<int>("ItemIdx") : -1;
+
+            if (itemIdx < 0)
+            {
+                CEF.Cursor.Show(false, false);
+
+                CEF.MapEditor.Close();
+
+                return;
+            }
+
+            CEF.Cursor.Show(false, false);
+
+            CEF.MapEditor.Close();
+
+            CEF.Inventory.BindedAction(5, "pockets", itemIdx, pos.X.ToString(), pos.Y.ToString(), pos.Z.ToString(), heading.ToString());
+        }
         #endregion
     }
 }

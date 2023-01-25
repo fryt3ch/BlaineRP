@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using BCRPServer.Sync;
+using GTANetworkAPI;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Tls;
 using System;
@@ -129,7 +130,7 @@ namespace BCRPServer
         public static uint GetPrivateDimension(Player player) => player.Id + PlayerPrivateDimBase;
 
         /// <summary>Нулевой вектор (X=0, Y=0, Z=0)</summary>
-        public static Vector3 ZeroVector = new Vector3(0, 0, 0);
+        public static Vector3 ZeroVector => new Vector3(0, 0, 0);
 
         public static Color WhiteColor = new Color(255, 255, 255);
         public static Color BlackColor = new Color(0, 0, 0);
@@ -1253,7 +1254,15 @@ namespace BCRPServer
 
         public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, updStr);
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group1, int slot1, string updStr1, Game.Items.Inventory.Groups group2, int slot2, string updStr2) => player.TriggerEvent("Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
+
+        public static void InventoryUpdate(Game.Items.Inventory.Groups group1, int slot1, string updStr1, Game.Items.Inventory.Groups group2, int slot2, string updStr2, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
+
+        public static void InventoryUpdate(Game.Items.Inventory.Groups group, int slot, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, slot, updStr);
+
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, 0, updStr);
+
+        public static void InventoryUpdate(Game.Items.Inventory.Groups group, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, 0, updStr);
 
         public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh, seatId, timeout);
 

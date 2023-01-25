@@ -54,7 +54,11 @@ namespace BCRPServer.Game.Items
             /// <summary>Бронежилет</summary>
             Armour = 8,
             /// <summary>Контейнер</summary>
-            Container = 9
+            Container = 9,
+
+            CraftItems = 20,
+            CraftTools = 21,
+            CraftResult = 22,
         }
 
         /// <summary>Типы результатов</summary>

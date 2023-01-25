@@ -44,7 +44,7 @@ namespace BCRPClient
 
             if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle || entity.Type == RAGE.Elements.Type.Ped)
             {
-                if (!entity.GetScreenPosition(ref x, ref y) || (entity.Type == RAGE.Elements.Type.Vehicle && entity.IsLocal))
+                if ((entity.Type == RAGE.Elements.Type.Vehicle && entity.IsLocal) || !entity.GetScreenPosition(ref x, ref y))
                 {
                     CurrentEntity = null;
 
@@ -53,7 +53,7 @@ namespace BCRPClient
 
                 CurrentEntity = entity;
             }
-            else if (entity.Type == RAGE.Elements.Type.Object)
+            else if (entity is MapObject mObj)
             {
                 if (!entity.HasData("Interactive"))
                 {
@@ -69,27 +69,45 @@ namespace BCRPClient
                     return;
                 }
 
-                CurrentEntity = entity;
-
-                if (entity.HasData("Furniture"))
+                if (entity.IsLocal)
                 {
-                    var furnData = entity.GetData<Data.Furniture>("Furniture");
+                    CurrentEntity = entity;
 
-                    if (furnData != null)
+                    if (entity.HasData("Furniture"))
+                    {
+                        var furnData = entity.GetData<Data.Furniture>("Furniture");
+
+                        if (furnData != null)
+                        {
+                            if (EnabledVisual)
+                                Utils.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        }
+                    }
+                    else if (entity.HasData("CustomText"))
                     {
                         if (EnabledVisual)
-                            Utils.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        {
+                            var ctAction = entity.GetData<Action<float, float>>("CustomText");
+
+                            if (ctAction != null)
+                            {
+                                ctAction.Invoke(x, y);
+                            }
+                        }
                     }
                 }
-                else if (entity.HasData("CustomText"))
+                else
                 {
-                    if (EnabledVisual)
-                    {
-                        var ctAction = entity.GetData<Action<float, float>>("CustomText");
+                    CurrentEntity = entity;
 
-                        if (ctAction != null)
+                    if (mObj.GetSharedData<int>("IOG", -1) == 1)
+                    {
+                        var iogData = Sync.World.ItemOnGround.GetItemOnGroundObject(mObj);
+
+                        if (iogData != null)
                         {
-                            ctAction.Invoke(x, y);
+                            if (EnabledVisual)
+                                Utils.DrawText(iogData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                         }
                     }
                 }

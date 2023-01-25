@@ -39,7 +39,8 @@ namespace BCRPServer.Game.Items
 
             { "f_beer", new ItemData("Пиво", 0.15f, "prop_sh_beer_pissh_01", 5, 50, 0, 64, Sync.Animations.FastTypes.ItemBeer, Sync.AttachSystem.Types.ItemBeer) },
 
-            { "f_acod", new ItemData("Антарктический тунец (ж.)", 0.15f, "brp_p_fish_meat_c_0", 25, 15, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
+            { "f_acod_f", new ItemData("Антарктический тунец (ж.)", 0.1f, "brp_p_fish_meat_c_0", 25, 15, 0, 128, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
+            { "f_acod", new ItemData("Антарктический тунец", 0.15f, "brp_p_fish_acod_0", 5, 0, 0, 64, Sync.Animations.FastTypes.ItemBurger, Sync.AttachSystem.Types.ItemBurger) },
         };
 
         [JsonIgnore]
