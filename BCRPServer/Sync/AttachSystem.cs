@@ -18,27 +18,18 @@ namespace BCRPServer.Sync
 
         public const string AttachedObjectsCancelsKey = AttachedObjectsKey + "::Cancels";
 
-        private static object[] EmptyArgs = new object[] { };
+        private static object[] EmptyArgs { get; } =  new object[] { };
 
-        public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack, Types.PedRingLeft3, Types.PedRingRight3 };
+        public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
+
+        public static bool IsTypeObjectInHand(Types type) => type >= Types.Phone && type <= Types.ItemMedKit;
 
         #region Types
         public enum Types
         {
-            /// <summary>Прикрепление СЕРВЕРНОГО трейлера к СЕРВЕРНОМУ транспорту</summary>
-            VehicleTrailer,
+            #region Entity-Object Attach | Типы, которые прикрепляют серверную сущность к клиентскому объекту (создается у всех клиентов в зоне стрима)
 
-            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОЙ лодке</summary>
-            TrailerObjOnBoat,
-            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОМУ транспорту</summary>
-            TrailerObjOnVehicle,
-            /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
-            VehicleTrailerObjBoat,
-
-            PushVehicleFront,
-            PushVehicleBack,
-            Phone,
-            VehKey,
+            #region Static Types | Типы, которые не открепляются при телепорте и не влияют на возможность совершения игроком каких-либо действий
 
             PedRingLeft3,
             PedRingRight3,
@@ -48,13 +39,16 @@ namespace BCRPServer.Sync
             WeaponRightBack,
             WeaponLeftBack,
 
-            Carry,
-            PiggyBack,
-            Hostage,
+            #endregion
 
-            VehicleTrunk, VehicleTrunkForced,
+            #region Object In Hand Types | Типы, наличие у игрока которых запрещает определенные действия (ведь предмет находится в руках)
+
+            Phone,
+            VehKey,
 
             ItemFishingRodG, ItemFishG,
+
+            ItemShovel,
 
             ItemCigHand,
             ItemCig1Hand,
@@ -82,14 +76,38 @@ namespace BCRPServer.Sync
 
             ItemBandage,
             ItemMedKit,
+            #endregion
+
+            #endregion
+
+            #region Entity-Entity Attach | Типы, которые прикрепляют серверную сущность с серверной сущности
+            /// <summary>Прикрепление СЕРВЕРНОГО трейлера к СЕРВЕРНОМУ транспорту</summary>
+            VehicleTrailer,
+
+            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОЙ лодке</summary>
+            TrailerObjOnBoat,
+
+            /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
+            VehicleTrailerObjBoat,
+
+            PushVehicleFront,
+            PushVehicleBack,
+
+            Carry,
+            PiggyBack,
+            Hostage,
+
+            VehicleTrunk, VehicleTrunkForced,
+
+            #endregion
         }
         #endregion
 
         public static class Models
         {
-            public static uint Phone { get; private set; } = NAPI.Util.GetHashKey("prop_phone_ing");
+            public static uint Phone { get; } = NAPI.Util.GetHashKey("prop_phone_ing");
 
-            public static uint VehicleRemoteFob { get; private set; } = NAPI.Util.GetHashKey("lr_prop_carkey_fob");
+            public static uint VehicleRemoteFob { get; } = NAPI.Util.GetHashKey("lr_prop_carkey_fob");
         }
 
         public class AttachmentObjectNet
@@ -504,6 +522,37 @@ namespace BCRPServer.Sync
                     },
                 }
             },
+
+            {
+                Types.ItemShovel,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("MG::SHOV::S", args);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                player.TriggerEvent("MG::SHOV::S");
+                            }
+                        }
+                    },
+                }
+            },
         };
 
         private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type)
@@ -665,8 +714,6 @@ namespace BCRPServer.Sync
 
                 cancels.Add(type, cts);
 
-                entity.SetData(AttachedObjectsCancelsKey, cancels);
-
                 System.Threading.Tasks.Task.Run(async () =>
                 {
                     try
@@ -715,10 +762,9 @@ namespace BCRPServer.Sync
             if (cts != null)
             {
                 cts.Cancel();
+                cts.Dispose();
 
                 cancels.Remove(type);
-
-                entity.SetData(AttachedObjectsCancelsKey, cancels);
             }
 
             list.Remove(item);
@@ -742,21 +788,57 @@ namespace BCRPServer.Sync
 
             var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
-            foreach (var x in cancels)
+            list.ForEach(x =>
             {
-                x.Value?.Cancel();
-            }
+                if (cancels.GetValueOrDefault(x.Type) is CancellationTokenSource cts)
+                {
+                    cts.Cancel();
 
-            cancels.Clear();
+                    cts.Dispose();
 
-            entity.SetData(AttachedObjectsCancelsKey, cancels);
+                    cancels.Remove(x.Type);
+                }
 
-            foreach (var x in list)
-            {
                 GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
-            }
 
-            list.Clear();
+                list.Remove(x);
+            });
+
+            entity.SetSharedData(AttachedObjectsKey, list);
+
+            return true;
+        }
+
+        /// <summary>Открепить все объекты в руках (не статичные) от сущности</summary>
+        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
+        /// <param name="entity">Сущность</param>
+        public static bool DetachAllObjectsInHand(Entity entity)
+        {
+            var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedObjectsKey).ToList<AttachmentObjectNet>();
+
+            if (list == null)
+                return false;
+
+            var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+
+            list.ForEach(x =>
+            {
+                if (!IsTypeObjectInHand(x.Type))
+                    return;
+
+                if (cancels.GetValueOrDefault(x.Type) is CancellationTokenSource cts)
+                {
+                    cts.Cancel();
+
+                    cts.Dispose();
+
+                    cancels.Remove(x.Type);
+                }
+
+                GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
+
+                list.Remove(x);
+            });
 
             entity.SetSharedData(AttachedObjectsKey, list);
 

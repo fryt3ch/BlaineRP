@@ -283,6 +283,12 @@ namespace BCRPServer.Events.Players
             }
             else
             {
+                pData.StopAnim();
+
+                player.DetachAllObjectsInHand();
+
+                pData.StopUseCurrentItem();
+
                 player.Teleport(null, false, null, null, false);
 
                 var arm = player.Armor;
@@ -477,7 +483,7 @@ namespace BCRPServer.Events.Players
             if (veh?.Exists != true || veh.EngineStatus || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (pData.IsAttachedToEntity != null || vehData.ForcedSpeed != 0f)
+            if (vehData.ForcedSpeed != 0f)
                 return;
 
             veh.AttachEntity(player, isInFront ? AttachSystem.Types.PushVehicleFront : AttachSystem.Types.PushVehicleBack);
@@ -521,18 +527,28 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            Vehicle veh = player.Vehicle;
+            var veh = player.Vehicle;
 
-            bool isBeltOn = !pData.BeltOn;
+            var isBeltOn = !pData.BeltOn;
 
-            if (veh == null && isBeltOn)
-                return;
+            if (veh == null)
+            {
+                if (isBeltOn)
+                    return;
+            }
+            else
+            {
+                var vData = veh.GetMainData();
 
-            if (veh != null && !Utils.IsCar(veh))
-                return;
+                if (vData == null)
+                    return;
+
+                if (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car)
+                    return;
+            }
+
 
             pData.BeltOn = isBeltOn;
-            player.TriggerEvent("Players::ToggleBelt", isBeltOn);
 
             if (isBeltOn)
             {
@@ -543,6 +559,7 @@ namespace BCRPServer.Events.Players
             else
             {
                 player.SetClothes(5, 0, 0);
+
                 pData.Bag?.Wear(pData);
 
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOff);
@@ -574,7 +591,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (!Utils.IsCar(veh) || vData.IsAnchored)
+            if (vData.Data.HasCruiseControl || vData.IsAnchored)
                 return;
 
             if (vData.ForcedSpeed >= Settings.MIN_CRUISE_CONTROL_SPEED)
@@ -595,26 +612,18 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var hadWeapon = pData.UnequipActiveWeapon();
-
             if (pData.PhoneOn == state)
                 return;
 
             if (state)
             {
-                if (hadWeapon)
+                if (pData.UnequipActiveWeapon())
                 {
-                    NAPI.Task.Run(() =>
-                    {
-                        if (player?.Exists != true)
-                            return;
+                    pData.PhoneOn = true;
 
-                        pData.PhoneOn = true;
+                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
 
-                        player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
-
-                        Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
-                    }, 250);
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
                 }
                 else
                 {
@@ -631,25 +640,6 @@ namespace BCRPServer.Events.Players
             }
         }
         #endregion
-
-        /// <summary>Получен урон от игрока</summary>
-        [RemoteEvent("Players::GotDamage")]
-        private static void GotDamage(Player player, int damage, bool isGun)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            pData.LastDamageTime = Utils.GetCurrentTime();
-
-            if (isGun && !pData.IsWounded && !pData.IsKnocked && (new Random()).NextDouble() <= Settings.WOUND_CHANCE)
-            {
-                pData.IsWounded = true;
-            }
-        }
 
         [RemoteEvent("Player::UpdateTime")]
         private static void UpdateTime(Player player)
@@ -694,8 +684,8 @@ namespace BCRPServer.Events.Players
             pData.IsInvalid = state;
         }
 
-        [RemoteEvent("Players::PlayAnim")]
-        public static void PlayAnim(Player player, bool fast, int anim)
+        [RemoteEvent("Players::PFA")]
+        public static void PlayAnim(Player player, int anim)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -708,6 +698,22 @@ namespace BCRPServer.Events.Players
                 return;
 
             pData.PlayAnim((Sync.Animations.FastTypes)anim);
+        }
+
+        [RemoteEvent("Players::SFTA")]
+        public static void StopFastTimeoutedAnim(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.FastAnim == Animations.FastTypes.None)
+                return;
+
+            pData.StopAnim();
         }
 
         [RemoteEvent("Players::SetWalkstyle")]
@@ -882,7 +888,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Players::Smoke::State")]
-        public static void SmokeSetState(Player player, bool state)
+        public static void SmokeSetState(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -915,93 +921,9 @@ namespace BCRPServer.Events.Players
                 if (player?.Exists != true)
                     return;
 
-                player.DetachObject(attachData.Type, false);
-                player.AttachObject(attachData.Model, oppositeType, -1, null);
+                if (player.DetachObject(attachData.Type, false))
+                    player.AttachObject(attachData.Model, oppositeType, -1, null);
             }, 500);
-        }
-
-        [RemoteProc("WSkins::Rm")]
-        private static bool WeaponSkinsRemove(Player player, int wSkinTypeNum)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return false;
-
-            if (!Enum.IsDefined(typeof(Game.Items.WeaponSkin.ItemData.Types), wSkinTypeNum))
-                return false;
-
-            var wSkinType = (Game.Items.WeaponSkin.ItemData.Types)wSkinTypeNum;
-
-            var pData = sRes.Data;
-
-            var ws = pData.Info.WeaponSkins.GetValueOrDefault(wSkinType);
-
-            if (ws == null)
-                return false;
-
-            var freeIdx = -1;
-
-            for (int i = 0; i < pData.Items.Length; i++)
-            {
-                if (pData.Items[i] == null)
-                {
-                    freeIdx = i;
-
-                    break;
-                }
-            }
-
-            if (freeIdx < 0)
-            {
-                player.Notify("Inventory::NoSpace");
-
-                return false;
-            }
-
-            pData.Info.WeaponSkins.Remove(wSkinType);
-
-            pData.Items[freeIdx] = ws;
-
-            player.InventoryUpdate(Groups.Items, freeIdx, ws.ToClientJson(Groups.Items));
-
-            player.TriggerEvent("Player::WSkins::Update", false, ws.ID);
-
-            MySQL.CharacterWeaponSkinsUpdate(pData.Info);
-            MySQL.CharacterItemsUpdate(pData.Info);
-
-            for (int i = 0; i < pData.Weapons.Length; i++)
-            {
-                if (pData.Weapons[i] is Game.Items.Weapon weapon)
-                {
-                    weapon.UpdateWeaponComponents(pData);
-                }
-            }
-
-            if (pData.Holster?.Items[0] is Game.Items.Weapon hWeapon)
-            {
-                hWeapon.UpdateWeaponComponents(pData);
-            }
-
-            return true;
-        }
-
-        [RemoteEvent("Player::SUCI")]
-        private static void StopUseCurrentItem(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var item = pData.CurrentItemInUse;
-
-            if (item == null)
-                return;
-
-            item.Value.Item.StopUse(pData, Groups.Items, item.Value.Slot, true);
         }
     }
 }

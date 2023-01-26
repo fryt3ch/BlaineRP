@@ -27,7 +27,7 @@ namespace BCRPClient.Sync
             Utils.Actions.InVehicle,
             Utils.Actions.InWater,
             Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
+            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
         };
 
         public static Utils.Actions[] ActionsToCheckLoop = new Utils.Actions[]
@@ -45,7 +45,7 @@ namespace BCRPClient.Sync
             Utils.Actions.InVehicle,
             Utils.Actions.InWater,
             Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
+            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
         };
 
         public PushVehicle()

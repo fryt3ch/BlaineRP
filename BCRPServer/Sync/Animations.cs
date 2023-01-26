@@ -62,6 +62,10 @@ namespace BCRPServer.Sync
             LieInTrunk,
 
             FishingIdle0, FishingProcess0,
+
+            ShovelProcess0,
+
+            CuffedStatic0,
         }
 
         public enum OtherTypes
@@ -328,15 +332,11 @@ namespace BCRPServer.Sync
 
             pData.FastAnim = type;
 
-            int timeout = FastTimeouts[type];
+            int timeout = FastTimeouts.GetValueOrDefault(type);
 
-            if (timeout != -1)
+            if (timeout > 0)
             {
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists == true)
-                        pData.FastAnim = FastTypes.None;
-                }, timeout);
+                player.TriggerEvent("Players::FAST", timeout);
             }
         }
 

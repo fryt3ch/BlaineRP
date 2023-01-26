@@ -23,27 +23,6 @@ namespace BCRPClient.CEF
             Social = 0, Dialogs, Reactions, SeatLie, Sport, Indecent, StandPoses, Dances, Situative, WithWeapon,
         }
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            //Utils.Actions.Crawl,
-            //Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
-
-            Utils.Actions.Animation,
-            //Utils.Actions.CustomAnimation,
-            //Utils.Actions.Scenario,
-
-            Utils.Actions.InVehicle,
-            //Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-        };
-
         public Animations()
         {
             LastSent = DateTime.Now;
@@ -57,7 +36,7 @@ namespace BCRPClient.CEF
                     return;
 
                 var id = (string)args[1];
-                bool state = !(bool)args[2];
+                var state = !(bool)args[2];
 
                 var prefix = id.Substring(0, 2);
                 id = id.Remove(0, 2);
@@ -72,9 +51,19 @@ namespace BCRPClient.CEF
                     var anim = (Sync.Animations.OtherTypes)Enum.Parse(typeof(Sync.Animations.OtherTypes), id);
 
                     if (anim == pData.OtherAnim)
+                    {
                         Events.CallRemote("Players::SetAnim", (int)Sync.Animations.OtherTypes.None);
+                    }
                     else
+                    {
+                        if (!Utils.CanDoSomething(Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot))
+                            return;
+
                         Events.CallRemote("Players::SetAnim", (int)anim);
+
+                        LastSent = DateTime.Now;
+                    }
+                    
                 }
                 else if (prefix == "s-")
                 {
@@ -123,7 +112,7 @@ namespace BCRPClient.CEF
 
         public static void Open()
         {
-            if (IsActive || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+            if (IsActive || Utils.IsAnyCefActive())
                 return;
 
             CEF.Cursor.Show(true, true);

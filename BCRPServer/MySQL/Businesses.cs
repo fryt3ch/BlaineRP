@@ -7,7 +7,7 @@ namespace BCRPServer
 {
     public static partial class MySQL
     {
-        public static void LoadBusiness(Game.Businesses.Business business)
+        public static bool LoadBusiness(Game.Businesses.Business business)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
@@ -22,7 +22,7 @@ namespace BCRPServer
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (!reader.HasRows)
-                            return;
+                            return false;
 
                         reader.Read();
 
@@ -59,6 +59,8 @@ namespace BCRPServer
                     }
                 }
             }
+
+            return true;
         }
 
         public static void BusinessUpdateComplete(Game.Businesses.Business business)

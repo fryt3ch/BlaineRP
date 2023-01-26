@@ -79,7 +79,7 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
+                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.IsAnyAnimActive() && !tData.IsAnyAnimActive())
                             {
                                 tPlayer.Position = sPlayer.GetFrontOf(0.85f);
                                 tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
@@ -153,7 +153,7 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.CanPlayAnim() && !tData.CanPlayAnim())
+                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.IsAnyAnimActive() && !tData.IsAnyAnimActive())
                             {
                                 sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
                             }

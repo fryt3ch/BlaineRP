@@ -562,6 +562,19 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
+        public class Shovel : Item, IUsable
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public ItemData(string Name, float Weight) : base(Name, Weight)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public class WorkbenchTool : Item
         {
             new public class ItemData : Item.ItemData
@@ -595,6 +608,21 @@ namespace BCRPClient.Data
                 public ItemData(string Name, float Weight, uint Model) : base(Name, Weight, Model)
                 {
 
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class MiscStackable : Item, IStackable
+        {
+            new public class ItemData : Item.ItemData, Item.ItemData.IStackable
+            {
+                public int MaxAmount { get; set; }
+
+                public ItemData(string Name, float Weight, int MaxAmount) : base(Name, Weight)
+                {
+                    this.MaxAmount = MaxAmount;
                 }
             }
 

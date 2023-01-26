@@ -45,7 +45,7 @@ namespace BCRPServer
         /// <summary>Текущая анимация игрока (Fast)</summary>
         /// <remarks>НЕ синхронизуется с игроками ВНЕ зоны стрима (т.к. проигрывается быстро)</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public Sync.Animations.FastTypes FastAnim { get => (Sync.Animations.FastTypes)(Player.GetOwnSharedData<int?>("Anim::Fast") ?? -1); set { if (value > Sync.Animations.FastTypes.None) Player.SetOwnSharedData("Anim::Fast", (int)value); else Player.ResetOwnSharedData("Anim::Fast"); } }
+        public Sync.Animations.FastTypes FastAnim { get => (Sync.Animations.FastTypes)(Player.GetData<int?>("Anim::Fast") ?? -1); set { if (value > Sync.Animations.FastTypes.None) Player.SetData("Anim::Fast", (int)value); else Player.ResetData("Anim::Fast"); } }
 
         /// <summary>CID игрока</summary>
         /// <remarks>Т.к. может использоваться для сохранения данных в БД, set - в основном потоке, get - в любом</remarks>
@@ -62,8 +62,8 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public FractionTypes Fraction { get => Info.Fraction; set { Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
 
-        /*        /// <summary>В маске ли игрок?</summary>
-                public Game.Items.Mask WearedMask => Accessories[1] as Game.Items.Mask;*/
+        /// <summary>В маске ли игрок?</summary>
+        public Game.Items.Mask WearedMask => Accessories[1] as Game.Items.Mask;
 
         /// <summary>Без сознания ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -143,12 +143,6 @@ namespace BCRPServer
         /// <summary>Прикрепленные объекты к игроку, которые находятся в руках</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public List<Sync.AttachSystem.AttachmentObjectNet> ObjectsInHand
-        {
-            get
-            {
-                return AttachedObjects.Where(x => !Sync.AttachSystem.StaticObjectsTypes.Contains(x.Type)).ToList();
-            }
-        }
+        public bool HasAnyHandAttachedObject => AttachedObjects.Where(x => Sync.AttachSystem.IsTypeObjectInHand(x.Type)).Any();
     }
 }

@@ -112,12 +112,12 @@ namespace BCRPServer.Events.Vehicles
 
                 var atData = atVeh.GetAttachmentData(veh);
 
-                if (atData == null || (atData.Type != AttachSystem.Types.TrailerObjOnVehicle && atData.Type != AttachSystem.Types.VehicleTrailerObjBoat))
+                if (atData == null || (atData.Type != AttachSystem.Types.VehicleTrailerObjBoat))
                     return;
 
                 atVeh.DetachEntity(veh);
 
-                Console.WriteLine("trailer detached");
+                //Console.WriteLine("trailer detached");
             }
             else
             {
@@ -134,7 +134,7 @@ namespace BCRPServer.Events.Vehicles
                 if (tData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Boat)
                     trailer.AttachEntity(veh, AttachSystem.Types.VehicleTrailerObjBoat);
 
-                Console.WriteLine("trailer attached");
+                //Console.WriteLine("trailer attached");
             }
         }
 
@@ -266,7 +266,7 @@ namespace BCRPServer.Events.Vehicles
 
             bool newState = !vData.Locked;
 
-            if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && !pData.IsAnyAnimActive() && pData.ActiveWeapon == null)
             {
                 player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
@@ -419,7 +419,7 @@ namespace BCRPServer.Events.Vehicles
 
             var newState = !vData.TrunkLocked;
 
-            if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && !pData.IsAnyAnimActive() && pData.ActiveWeapon == null)
             {
                 player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
@@ -478,7 +478,7 @@ namespace BCRPServer.Events.Vehicles
 
             var newState = !vData.HoodLocked;
 
-            if (player.Vehicle == null && !pData.CanPlayAnim() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && !pData.IsAnyAnimActive() && pData.ActiveWeapon == null)
             {
                 player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 

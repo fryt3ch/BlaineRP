@@ -12,6 +12,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace BCRPClient.Sync
 {
+    // Player.LocalPlayer.TaskFollowToOffsetOfEntity(Player.LocalPlayer.Handle, 0, -1f, 0f, 1f, -1, 1f, true);
     public class Players : Events.Script
     {
         /// <summary>Готов ли персонаж к игре?</summary>
@@ -224,7 +225,7 @@ namespace BCRPClient.Sync
 
             public Sync.Animations.GeneralTypes GeneralAnim => (Sync.Animations.GeneralTypes)Player.GetSharedData<int>("Anim::General", -1);
 
-            public Sync.Animations.FastTypes FastAnim => (Sync.Animations.FastTypes)Player.GetSharedData<int>("Anim::Fast", -1);
+            public Sync.Animations.FastTypes FastAnim { get => Player.GetData<Sync.Animations.FastTypes>("Anim::Fast"); set => Player.SetData("Anim::Fast", value); }
 
             public Sync.Animations.OtherTypes OtherAnim => (Sync.Animations.OtherTypes)Player.GetSharedData<int>("Anim::Other", -1);
 
@@ -433,6 +434,8 @@ namespace BCRPClient.Sync
                 var player = Player.LocalPlayer;
 
                 PlayerData data = new PlayerData(Player.LocalPlayer);
+
+                data.FastAnim = Animations.FastTypes.None;
 
                 var settings = RAGE.Util.Json.Deserialize<(float, float, float, float, float, float)>((string)args[0]);
 

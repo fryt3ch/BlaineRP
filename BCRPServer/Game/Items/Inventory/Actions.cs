@@ -688,16 +688,49 @@ namespace BCRPServer.Game.Items
 
                             if (itemU.InUse)
                             {
-                                itemU.StopUse(pData, group, slot, true);
+                                if (!itemU.StopUse(pData, group, slot, true))
+                                    return Results.Error;
                             }
                             else
                             {
-                                itemU.StartUse(pData, group, slot, true);
+                                if (pData.CurrentItemInUse != null)
+                                    return Results.ActionRestricted;
+
+                                if (!itemU.StartUse(pData, group, slot, true, Game.Items.FishingRod.ItemData.BaitId))
+                                    return Results.Error;
                             }
 
                             return Results.Success;
                         }
-                    }
+                    },
+
+                    {
+                        6,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group != Groups.Items)
+                                return Results.ActionRestricted;
+
+                            var itemU = (Game.Items.FishingRod)item;
+
+                            if (itemU.InUse)
+                            {
+                                if (!itemU.StopUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+                            else
+                            {
+                                if (pData.CurrentItemInUse != null)
+                                    return Results.ActionRestricted;
+
+                                if (!itemU.StartUse(pData, group, slot, true, Game.Items.FishingRod.ItemData.WormId))
+                                    return Results.Error;
+                            }
+
+                            return Results.Success;
+                        }
+                    },
                 }
             },
 
@@ -738,6 +771,41 @@ namespace BCRPServer.Game.Items
                             }
 
                             return Results.Error;
+                        }
+                    }
+                }
+            },
+
+            {
+                typeof(Game.Items.Shovel),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            if (group != Groups.Items)
+                                return Results.ActionRestricted;
+
+                            var itemU = (Game.Items.Shovel)item;
+
+                            if (itemU.InUse)
+                            {
+                                if (!itemU.StopUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+                            else
+                            {
+                                if (pData.CurrentItemInUse != null)
+                                    return Results.ActionRestricted;
+
+                                if (!itemU.StartUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+
+                            return Results.Success;
                         }
                     }
                 }

@@ -13,24 +13,16 @@ namespace BCRPClient.Sync
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
 
-        public static Types[] StaticObjectsTypes = new Types[] { Types.WeaponRightTight, Types.WeaponLeftTight, Types.WeaponRightBack, Types.WeaponLeftBack };
+        public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
 
+        public static bool IsTypeObjectInHand(Types type) => type >= Types.Phone && type <= Types.ItemMedKit;
+
+        #region Types
         public enum Types
         {
-            /// <summary>Прикрепление СЕРВЕРНОГО трейлера к СЕРВЕРНОМУ транспорту</summary>
-            VehicleTrailer,
+            #region Entity-Object Attach | Типы, которые прикрепляют серверную сущность к клиентскому объекту (создается у всех клиентов в зоне стрима)
 
-            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОЙ лодке</summary>
-            TrailerObjOnBoat,
-            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОМУ транспорту</summary>
-            TrailerObjOnVehicle,
-            /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
-            VehicleTrailerObjBoat,
-
-            PushVehicleFront,
-            PushVehicleBack,
-            Phone,
-            VehKey,
+            #region Static Types | Типы, которые не открепляются при телепорте и не влияют на возможность совершения игроком каких-либо действий
 
             PedRingLeft3,
             PedRingRight3,
@@ -40,15 +32,16 @@ namespace BCRPClient.Sync
             WeaponRightBack,
             WeaponLeftBack,
 
-            Carry,
-            PiggyBack,
-            Hostage,
+            #endregion
 
-            VehicleTrunk, VehicleTrunkForced,
+            #region Object In Hand Types | Типы, наличие у игрока которых запрещает определенные действия (ведь предмет находится в руках)
 
-            ItemFishingRodG,
+            Phone,
+            VehKey,
 
-            ItemFishG,
+            ItemFishingRodG, ItemFishG,
+
+            ItemShovel,
 
             ItemCigHand,
             ItemCig1Hand,
@@ -76,7 +69,32 @@ namespace BCRPClient.Sync
 
             ItemBandage,
             ItemMedKit,
+            #endregion
+
+            #endregion
+
+            #region Entity-Entity Attach | Типы, которые прикрепляют серверную сущность с серверной сущности
+            /// <summary>Прикрепление СЕРВЕРНОГО трейлера к СЕРВЕРНОМУ транспорту</summary>
+            VehicleTrailer,
+
+            /// <summary>Прикрепление ЛОКАЛЬНОГО трейлера (создается локально при прикреплении) к СЕРВЕРНОЙ лодке</summary>
+            TrailerObjOnBoat,
+
+            /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
+            VehicleTrailerObjBoat,
+
+            PushVehicleFront,
+            PushVehicleBack,
+
+            Carry,
+            PiggyBack,
+            Hostage,
+
+            VehicleTrunk, VehicleTrunkForced,
+
+            #endregion
         }
+        #endregion
 
         private static Dictionary<int, List<int>> StreamedAttachments { get; set; } = new Dictionary<int, List<int>>();
 
@@ -303,6 +321,8 @@ namespace BCRPClient.Sync
             { Types.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
 
             { Types.ItemFishingRodG, new AttachmentData(60309, new Vector3(0.01f, -0.01f, 0.03f), new Vector3(0.1f, 0f, 0f), false, false, false, 2, true) },
+
+            { Types.ItemShovel, new AttachmentData(28422, new Vector3(0.05f, -0.03f, -0.9f), new Vector3(2.1f, -4.2f, 5f), false, false, false, 2, true) },
 
             { Types.ItemFishG, new AttachmentData(int.MinValue, null, new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
             {
@@ -696,7 +716,7 @@ namespace BCRPClient.Sync
                 if (syncData != null)
                     Sync.WeaponSystem.UpdateWeaponObjectComponents(gEntity.Handle, hash, syncData);
             }
-            else if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+            else if (type == Types.TrailerObjOnBoat)
             {
                 var vTypeData = Data.Vehicles.GetByModel(hash);
 
@@ -753,7 +773,7 @@ namespace BCRPClient.Sync
                 }
                 else
                 {
-                    if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+                    if (type == Types.TrailerObjOnBoat)
                     {
                         AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
@@ -801,7 +821,7 @@ namespace BCRPClient.Sync
 
             if (gTarget.Exists)
             {
-                if (type >= Types.TrailerObjOnBoat && type <= Types.TrailerObjOnVehicle)
+                if (type == Types.TrailerObjOnBoat)
                 {
                     RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
 
@@ -1104,7 +1124,7 @@ namespace BCRPClient.Sync
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
-                                    Events.CallRemote("Players::Smoke::State", true);
+                                    Events.CallRemote("Players::Smoke::State");
 
                                     Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
                                 }
@@ -1153,7 +1173,7 @@ namespace BCRPClient.Sync
                                 {
                                     if (!lastSent.IsSpam(1000, false, false))
                                     {
-                                        Events.CallRemote("Players::Smoke::State", false);
+                                        Events.CallRemote("Players::Smoke::State");
 
                                         Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
                                     }

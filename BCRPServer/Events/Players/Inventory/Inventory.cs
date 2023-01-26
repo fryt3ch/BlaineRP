@@ -151,7 +151,7 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            if (!pData.CanPlayAnim())
+            if (!pData.IsAnyAnimActive())
                 pData.PlayAnim(Sync.Animations.FastTypes.Pickup);
 
             if (amount == curAmount)
@@ -280,6 +280,90 @@ namespace BCRPServer.Events.Players
 
                 player.TriggerEvent("Menu::Gifts::Update", false, id);
             }
+        }
+
+        [RemoteProc("WSkins::Rm")]
+        private static bool WeaponSkinsRemove(Player player, int wSkinTypeNum)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            if (!Enum.IsDefined(typeof(Game.Items.WeaponSkin.ItemData.Types), wSkinTypeNum))
+                return false;
+
+            var wSkinType = (Game.Items.WeaponSkin.ItemData.Types)wSkinTypeNum;
+
+            var pData = sRes.Data;
+
+            var ws = pData.Info.WeaponSkins.GetValueOrDefault(wSkinType);
+
+            if (ws == null)
+                return false;
+
+            var freeIdx = -1;
+
+            for (int i = 0; i < pData.Items.Length; i++)
+            {
+                if (pData.Items[i] == null)
+                {
+                    freeIdx = i;
+
+                    break;
+                }
+            }
+
+            if (freeIdx < 0)
+            {
+                player.Notify("Inventory::NoSpace");
+
+                return false;
+            }
+
+            pData.Info.WeaponSkins.Remove(wSkinType);
+
+            pData.Items[freeIdx] = ws;
+
+            player.InventoryUpdate(Groups.Items, freeIdx, ws.ToClientJson(Groups.Items));
+
+            player.TriggerEvent("Player::WSkins::Update", false, ws.ID);
+
+            MySQL.CharacterWeaponSkinsUpdate(pData.Info);
+            MySQL.CharacterItemsUpdate(pData.Info);
+
+            for (int i = 0; i < pData.Weapons.Length; i++)
+            {
+                if (pData.Weapons[i] is Game.Items.Weapon weapon)
+                {
+                    weapon.UpdateWeaponComponents(pData);
+                }
+            }
+
+            if (pData.Holster?.Items[0] is Game.Items.Weapon hWeapon)
+            {
+                hWeapon.UpdateWeaponComponents(pData);
+            }
+
+            return true;
+        }
+
+        [RemoteEvent("Player::SUCI")]
+        private static void StopUseCurrentItem(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var item = pData.CurrentItemInUse;
+
+            if (item == null)
+                return;
+
+            item.Value.Item.StopUse(pData, Groups.Items, item.Value.Slot, true);
         }
     }
 }

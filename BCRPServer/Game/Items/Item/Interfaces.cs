@@ -10,9 +10,9 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public void StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args);
+        public bool StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args);
 
-        public void StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args);
+        public bool StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args);
     }
 
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые могут хранить в себе другие предметы</summary>

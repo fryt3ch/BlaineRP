@@ -76,21 +76,22 @@ namespace BCRPServer.Game.Businesses
 
             foreach (var x in All.Values)
             {
-                MySQL.LoadBusiness(x);
-
-                var daysDiff = CurrentStatisticsDayIdx - PreviousStatisticsDayIdx;
-
-                for (int j = 0; j < daysDiff; j++)
+                if (MySQL.LoadBusiness(x))
                 {
-                    for (int i = 0; i < x.Statistics.Length; i++)
+                    var daysDiff = CurrentStatisticsDayIdx - PreviousStatisticsDayIdx;
+
+                    for (int j = 0; j < daysDiff; j++)
                     {
-                        if (i == x.Statistics.Length - 1)
+                        for (int i = 0; i < x.Statistics.Length; i++)
                         {
-                            x.Statistics[i] = 0;
-                        }
-                        else
-                        {
-                            x.Statistics[i] = x.Statistics[i + 1];
+                            if (i == x.Statistics.Length - 1)
+                            {
+                                x.Statistics[i] = 0;
+                            }
+                            else
+                            {
+                                x.Statistics[i] = x.Statistics[i + 1];
+                            }
                         }
                     }
                 }

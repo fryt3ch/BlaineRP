@@ -19,30 +19,34 @@ namespace BCRPClient.Sync
         public class Animation
         {
             /// <summary>Словарь</summary>
-            public string Dict { get; set; }
+            public string Dict { get; private set; }
 
             /// <summary>Название</summary>
-            public string Name { get; set; }
+            public string Name { get; private set; }
 
             /// <summary>Скорость входа в анимацию</summary>
-            public float BlendInSpeed { get; set; }
+            public float BlendInSpeed { get; private set; }
 
             /// <summary>Скорость выхода из анимации</summary>
-            public float BlendOutSpeed { get; set; }
+            public float BlendOutSpeed { get; private set; }
 
             /// <summary>Продолжительность</summary>
-            public int Duration { get; set; }
+            public int Duration { get; private set; }
 
             /// <summary>Флаг</summary>
-            public int Flag { get; set; }
+            public int Flag { get; private set; }
 
             /// <summary>Смещение начала</summary>
-            public float StartOffset { get; set; }
+            public float StartOffset { get; private set; }
 
-            public bool BlockX, BlockY, BlockZ;
+            public bool BlockX { get; private set; }
+
+            public bool BlockY { get; private set; }
+
+            public bool BlockZ { get; private set; }
 
             /// <summary>Название для первого лица</summary>
-            public string NameFP;
+            public string NameFP { get; set; }
 
             public Animation(string Dict, string Name, float BlendInSpeed = 8f, float BlendOutSpeed = 1f, int Duration = -1, int Flag = 0, float StartOffset = 0f, bool BlockX = false, bool BlockY = false, bool BlockZ = false)
             {
@@ -56,8 +60,6 @@ namespace BCRPClient.Sync
                 this.BlockX = BlockX;
                 this.BlockY = BlockY;
                 this.BlockZ = BlockZ;
-
-                this.NameFP = null;
             }
         }
 
@@ -107,6 +109,10 @@ namespace BCRPClient.Sync
             LieInTrunk,
 
             FishingIdle0, FishingProcess0,
+
+            ShovelProcess0,
+
+            CuffedStatic,
         }
 
         public enum OtherTypes
@@ -394,6 +400,10 @@ namespace BCRPClient.Sync
             { GeneralTypes.FishingIdle0, new Animation("amb@world_human_stand_fishing@base", "base", 1f, 0f, -1, 1, 1, false, false, false) },
 
             { GeneralTypes.FishingProcess0, new Animation("amb@world_human_stand_fishing@idle_a", "idle_b", 1f, 0f, -1, 1, 1, false, false, false) },
+
+            { GeneralTypes.ShovelProcess0, new Animation("random@burial", "a_burial", 1f, 0f, -1, 1, 1, false, false, false) },
+
+            { GeneralTypes.CuffedStatic, new Animation("mp_arresting", "idle", 1f, 0f, -1, 1, 1, false, false, false) },
         };
 
         public static Dictionary<OtherTypes, Animation> OtherAnimsList { get; private set; } = new Dictionary<OtherTypes, Animation>()
@@ -863,25 +873,69 @@ namespace BCRPClient.Sync
             #region Events
             Events.Add("Players::PlayFastAnim", async (object[] args) =>
             {
-                Player player = (Player)args[0];
+                var player = (Player)args[0];
 
                 if (player == null)
                     return;
 
-                FastTypes type = (FastTypes)(int)args[1];
+                var type = (FastTypes)(int)args[1];
 
                 if (!FastAnimsList.ContainsKey(type))
                     return;
 
+                if (player.Handle == Player.LocalPlayer.Handle)
+                {
+                    var pData = Sync.Players.GetData(player);
+
+                    if (pData != null)
+                    {
+                        pData.FastAnim = type;
+                    }
+                }
+
                 Play(player, FastAnimsList[type]);
             });
 
-            Events.Add("Players::StopAnim", async (object[] args) =>
+            Events.Add("Players::FAST", (object[] args) =>
+            {
+                var timeout = (int)args[0];
+
+                Utils.CancelPendingTask("LPFATT");
+
+                if (timeout <= 0)
+                    return;
+
+                AsyncTask task = null;
+
+                task = new AsyncTask(async () =>
+                {
+                    await RAGE.Game.Invoker.WaitAsync(timeout);
+
+                    if (!Utils.IsTaskStillPending("LPFATT", task))
+                        return;
+
+                    Events.CallRemote("Players::SFTA");
+                }, 0, false, 0);
+
+                task.Run();
+
+                Utils.SetTaskAsPending("LPFATT", task);
+            });
+
+            Events.Add("Players::StopAnim", (object[] args) =>
             {
                 Player player = (Player)args[0];
 
                 if (player == null)
                     return;
+
+                if (player.Handle == Player.LocalPlayer.Handle)
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData != null)
+                        pData.FastAnim = FastTypes.None;
+                }
 
                 Stop(player);
             });
@@ -906,7 +960,7 @@ namespace BCRPClient.Sync
             Utils.Actions.InVehicle,
             Utils.Actions.InWater,
             Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
+            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
         };
 
         public static void Set(Player player, EmotionTypes emotion)
@@ -976,9 +1030,14 @@ namespace BCRPClient.Sync
             if (ped == null)
                 return;
 
-            ped.ClearTasks();
+            if (ped.Handle == Player.LocalPlayer.Handle)
+            {
+                Utils.CancelPendingTask("LPFATT");
+            }
 
             await Utils.RequestAnimDict(anim.Dict);
+
+            ped.ClearTasks();
 
             if (ped.Handle != Player.LocalPlayer.Handle)
                 ped.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
@@ -991,10 +1050,15 @@ namespace BCRPClient.Sync
             if (ped == null)
                 return;
 
+            if (ped.Handle == Player.LocalPlayer.Handle)
+            {
+                Utils.CancelPendingTask("LPFATT");
+            }
+
             ped.ClearTasksImmediately();
         }
 
-        public static void PlaySync(FastTypes fastType, int delay = 1000)
+        public static void PlayFastSync(FastTypes fastType, int delay = 1000)
         {
             if (!Utils.CanDoSomething(ActionsToCheck))
                 return;
@@ -1002,7 +1066,7 @@ namespace BCRPClient.Sync
             if (LastSent.IsSpam(delay, false, false))
                 return;
 
-            Events.CallRemote("Players::PlayAnim", true, (int)fastType);
+            Events.CallRemote("Players::PFA", (int)fastType);
 
             LastSent = DateTime.Now;
         }

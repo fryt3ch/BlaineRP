@@ -157,10 +157,6 @@ namespace BCRPServer.Additional
 
                     if (pData != null)
                     {
-                        var ciiu = pData.CurrentItemInUse;
-
-                        ciiu?.Item.StopUse(pData, Game.Items.Inventory.Groups.Items, ciiu.Value.Slot, true);
-
                         if (pData.CurrentBusiness != null)
                         {
                             Sync.Players.ExitFromBuiness(pData, false);
@@ -188,11 +184,6 @@ namespace BCRPServer.Additional
                         }
 
                         pData.ActiveOffer?.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
-
-                        foreach (var x in pData.ObjectsInHand)
-                            player.DetachObject(x.Type);
-
-                        pData.StopAnim();
                     }
 
                     if (!withVehicle)
@@ -226,11 +217,6 @@ namespace BCRPServer.Additional
                     if (pData != null)
                     {
                         pData.ActiveOffer?.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
-
-                        foreach (var x in pData.ObjectsInHand)
-                            player.DetachObject(x.Type);
-
-                        pData.StopAnim();
                     }
                 }
 

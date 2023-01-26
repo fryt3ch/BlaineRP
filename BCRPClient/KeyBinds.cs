@@ -855,7 +855,7 @@ namespace BCRPClient
             Add(new Bind(Types.Whistle, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Animations.PlaySync(Sync.Animations.FastTypes.Whistle, 3000);
+                    Sync.Animations.PlayFastSync(Sync.Animations.FastTypes.Whistle, 3000);
             }, true, true)
             { Description = "Свистеть" });
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer.Game.Items
 {
@@ -11,7 +12,20 @@ namespace BCRPServer.Game.Items
     {
         new public class ItemData : Item.ItemData
         {
-            public static uint FakeFishItem { get; } = NAPI.Util.GetHashKey("prop_starfish_01");
+            public static uint FakeFishModel { get; } = NAPI.Util.GetHashKey("prop_starfish_01");
+
+            public static string BaitId { get; } = "mis_0";
+            public static string WormId { get; } = "mis_1";
+
+            public class FishingData
+            {
+                public string UsedBaitId { get; private set; }
+
+                public FishingData(string UsedBaitId)
+                {
+                    this.UsedBaitId = UsedBaitId;
+                }
+            }
 
             public class RandomItem
             {
@@ -88,10 +102,51 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public void StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        public bool StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
         {
             if (InUse)
-                return;
+                return false;
+
+            var baitId = (string)args[0];
+
+            var baitIdx = -1;
+
+            for (int i = 0; i < pData.Items.Length; i++)
+            {
+                if (pData.Items[i]?.ID == baitId)
+                {
+                    baitIdx = i;
+
+                    break;
+                }
+            }
+
+            if (baitIdx < 0)
+            {
+                pData.Player.Notify("Inventory::NoItem");
+
+                return false;
+            }
+
+            var bait = pData.Items[baitIdx] as Game.Items.MiscStackable;
+
+            if (bait == null)
+                return false;
+
+            bait.Amount -= 1;
+
+            if (bait.Amount <= 0)
+            {
+                bait.Delete();
+
+                pData.Items[baitIdx] = null;
+
+                MySQL.CharacterItemsUpdate(pData.Info);
+            }
+            else
+            {
+                bait.Update();
+            }
 
             InUse = true;
 
@@ -101,14 +156,16 @@ namespace BCRPServer.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
+                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group), Groups.Items, baitIdx, Game.Items.Item.ToClientJson(pData.Items[baitIdx], Groups.Items));
             }
+
+            return true;
         }
 
-        public void StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        public bool StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
         {
             if (!InUse)
-                return;
+                return false;
 
             InUse = false;
 
@@ -121,6 +178,8 @@ namespace BCRPServer.Game.Items
             {
                 pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group));
             }
+
+            return true;
         }
 
         public void StartCatchProcess(PlayerData pData, int maxCatchTime, float fishSpeed, int catchCount, float fishZCoord)
@@ -130,7 +189,7 @@ namespace BCRPServer.Game.Items
 
             var fPos = pData.Player.GetFrontOf(7.5f);
 
-            pData.Player.AttachObject(ItemData.FakeFishItem, Sync.AttachSystem.Types.ItemFishG, -1, $"{fPos.X}&{fPos.Y}&{fishZCoord}", maxCatchTime, fishSpeed, catchCount);
+            pData.Player.AttachObject(ItemData.FakeFishModel, Sync.AttachSystem.Types.ItemFishG, -1, $"{fPos.X}&{fPos.Y}&{fishZCoord}", maxCatchTime, fishSpeed, catchCount);
 
             pData.PlayAnim(Sync.Animations.GeneralTypes.FishingIdle0);
 

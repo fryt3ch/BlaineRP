@@ -638,125 +638,204 @@ namespace BCRPClient
             Knocked = 0, Frozen,
             InVehicle,
             IsSwimming, InWater, HasWeapon, Crouch, Crawl, Shooting, Climbing,
-            Cuffed, Falling, Jumping, Ragdoll, Scenario, OtherAnimation, Animation, FastAnimation, PushingVehicle, OnFoot, Reloading, Finger,
+            Cuffed, Falling, Jumping, Ragdoll, Scenario, OtherAnimation, Animation, FastAnimation, PushingVehicle, NotOnFoot, Reloading, Finger,
             HasItemInHands, IsAttachedTo,
         }
 
-        private static Dictionary<Actions, Func<bool>> ActionsFuncs = new Dictionary<Actions, Func<bool>>()
+        private static Dictionary<Actions, Func<Sync.Players.PlayerData, bool, bool>> ActionsFuncs = new Dictionary<Actions, Func<Sync.Players.PlayerData, bool, bool>>()
         {
-            { Actions.Knocked, () => Sync.Players.GetData(Player.LocalPlayer)?.IsKnocked ?? false },
-
-            { Actions.Frozen, () => Sync.Players.GetData(Player.LocalPlayer)?.IsFrozen ?? false},
-
-            { Actions.Crouch, () => Crouch.Toggled },
-
-            { Actions.Crawl, () => Crawl.Toggled },
-
-            { Actions.Finger, () => Finger.Toggled },
-
-            { Actions.PushingVehicle, () => PushVehicle.Toggled },
-
             {
-                Actions.OtherAnimation, () =>
+                Actions.Knocked, (pData, notify) =>
                 {
-                    var data = Sync.Players.GetData(Player.LocalPlayer);
+                    if (pData?.IsKnocked ?? false)
+                    {
+                        if (notify)
+                        {
 
-                    if (data == null)
+                        }
+
                         return true;
+                    }
 
-                    return data.OtherAnim != Animations.OtherTypes.None;
+                    return false;
                 }
             },
 
             {
-                Actions.Animation, () =>
+                Actions.Frozen, (pData, notify) =>
                 {
-                    var data = Sync.Players.GetData(Player.LocalPlayer);
+                    if (pData?.IsFrozen ?? false)
+                    {
+                        if (notify)
+                        {
 
-                    if (data == null)
+                        }
+
                         return true;
+                    }
 
-                    return data.GeneralAnim != Animations.GeneralTypes.None;
+                    return false;
+                }
+            },
+
+            { Actions.Crouch, (pData, notify) => Crouch.Toggled },
+
+            { Actions.Crawl, (pData, notify) => Crawl.Toggled },
+
+            { Actions.Finger, (pData, notify) => Finger.Toggled },
+
+            { Actions.PushingVehicle, (pData, notify) => PushVehicle.Toggled },
+
+            {
+                Actions.OtherAnimation, (pData, notify) =>
+                {
+                    if (pData == null)
+                        return false;
+
+                    if (pData.OtherAnim != Animations.OtherTypes.None)
+                    {
+                        if (notify)
+                        {
+
+                        }
+
+                        return true;
+                    }
+
+                    return false;
                 }
             },
 
             {
-                Actions.FastAnimation, () =>
+                Actions.Animation, (pData, notify) =>
                 {
-                    var data = Sync.Players.GetData(Player.LocalPlayer);
+                    if (pData == null)
+                        return false;
 
-                    if (data == null)
+                    if (pData.GeneralAnim != Animations.GeneralTypes.None)
+                    {
+                        if (notify)
+                        {
+
+                        }
+
                         return true;
+                    }
 
-                    return data.FastAnim != Animations.FastTypes.None;
+                    return false;
                 }
             },
 
-            { Actions.Scenario, () => false },
+            {
+                Actions.FastAnimation, (pData, notify) =>
+                {
+                    if (pData == null)
+                        return false;
 
-            { Actions.InVehicle, () => Player.LocalPlayer.IsInAnyVehicle(true) || Player.LocalPlayer.IsInAnyVehicle(false) },
+                    if (pData.FastAnim != Animations.FastTypes.None)
+                    {
+                        if (notify)
+                        {
 
-            { Actions.IsSwimming, () => Player.LocalPlayer.IsSwimming() || Player.LocalPlayer.IsSwimmingUnderWater() || Player.LocalPlayer.IsDiving() },
+                        }
 
-            { Actions.InWater, () => Player.LocalPlayer.IsInWater() },
+                        return true;
+                    }
 
-            { Actions.HasWeapon, () => Player.LocalPlayer.HasWeapon() },
+                    return false;
+                }
+            },
 
-            { Actions.Shooting, () => Player.LocalPlayer.IsShooting() },
+            {
+                Actions.Scenario, (pData, notify) =>
+                {
+                    return false;
+                }
+            },
 
-            { Actions.Cuffed, () => Player.LocalPlayer.IsCuffed() },
+            { Actions.InVehicle, (pData, notify) => Player.LocalPlayer.IsInAnyVehicle(true) || Player.LocalPlayer.IsInAnyVehicle(false) },
 
-            { Actions.Climbing, () => Player.LocalPlayer.IsClimbing() },
+            { Actions.IsSwimming, (pData, notify) => Player.LocalPlayer.IsSwimming() || Player.LocalPlayer.IsSwimmingUnderWater() || Player.LocalPlayer.IsDiving() },
 
-            { Actions.Falling, () => Player.LocalPlayer.IsFalling() || Player.LocalPlayer.IsJumpingOutOfVehicle() || Player.LocalPlayer.IsInParachuteFreeFall() },
+            { Actions.InWater, (pData, notify) => Player.LocalPlayer.IsInWater() },
 
-            { Actions.Jumping, () => Player.LocalPlayer.IsJumping() },
+            { Actions.HasWeapon, (pData, notify) => Player.LocalPlayer.HasWeapon() },
 
-            { Actions.Ragdoll, () => Player.LocalPlayer.IsRagdoll() },
+            { Actions.Shooting, (pData, notify) => Player.LocalPlayer.IsShooting() },
 
-            { Actions.OnFoot, () => !Player.LocalPlayer.IsOnFoot() },
+            { Actions.Cuffed, (pData, notify) => Player.LocalPlayer.IsCuffed() },
 
-            { Actions.Reloading, () => WeaponSystem.Reloading },
+            { Actions.Climbing, (pData, notify) => Player.LocalPlayer.IsClimbing() },
 
-            { Actions.IsAttachedTo, () => Player.LocalPlayer.GetAttachedTo() > 0 },
+            { Actions.Falling, (pData, notify) => Player.LocalPlayer.IsFalling() || Player.LocalPlayer.IsJumpingOutOfVehicle() || Player.LocalPlayer.IsInParachuteFreeFall() },
 
-            { Actions.HasItemInHands, () => Player.LocalPlayer.GetData<List<Sync.AttachSystem.AttachmentObject>>(Sync.AttachSystem.AttachedObjectsKey)?.Where(x => !Sync.AttachSystem.StaticObjectsTypes.Contains(x.Type)).Any() ?? false },
+            { Actions.Jumping, (pData, notify) => Player.LocalPlayer.IsJumping() },
+
+            { Actions.Ragdoll, (pData, notify) => Player.LocalPlayer.IsRagdoll() },
+
+            { Actions.NotOnFoot, (pData, notify) => !Player.LocalPlayer.IsOnFoot() },
+
+            {
+                Actions.Reloading, (pData, notify) =>
+                {
+                    if (WeaponSystem.Reloading)
+                    {
+                        if (notify)
+                        {
+
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                Actions.IsAttachedTo, (pData, notify) =>
+                {
+                    if (pData.IsAttachedTo != null)
+                    {
+                        if (notify)
+                        {
+
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+            },
+
+            {
+                Actions.HasItemInHands, (pData, notify) =>
+                {
+                    if (pData == null)
+                        return false;
+
+                    if (pData.AttachedObjects.Where(x => Sync.AttachSystem.IsTypeObjectInHand(x.Type)).Any())
+                    {
+                        if (notify)
+                        {
+
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+            },
         };
 
         /// <summary>Метод для проверки, может ли локальный игрок делать что-либо в данный момент</summary>
         /// <returns>Возврвает true, есле выполняются следующие условия, false - в противном случае</returns>
         public static bool CanDoSomething(params Actions[] actions)
         {
-            /*          
-                var atc = new Utils.Actions[]
-                {
-                    Utils.Actions.Knocked,
-                    Utils.Actions.Frozen,
-                    Utils.Actions.Cuffed,
-
-                    Utils.Actions.Crouch,
-                    Utils.Actions.Crawl,
-                    Utils.Actions.Finger,
-                    Utils.Actions.PushingVehicle,
-
-                    Utils.Actions.Animation,
-                    Utils.Actions.FastAnimation,
-                    Utils.Actions.CustomAnimation,
-                    Utils.Actions.Scenario,
-                    Utils.Actions.CustomScenario,
-                            
-                    Utils.Actions.IsAttachedTo,
-                    Utils.Actions.HasItemInHands,
-
-                    Utils.Actions.InVehicle,
-                    Utils.Actions.InWater,
-                    Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.HasWeapon,
-                    Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-                };
-            */
-
             foreach (var x in actions)
-                if (ActionsFuncs[x].Invoke())
+                if (ActionsFuncs[x].Invoke(Sync.Players.GetData(Player.LocalPlayer), true))
                     return false;
 
             return true;

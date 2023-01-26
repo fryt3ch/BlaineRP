@@ -262,7 +262,7 @@ namespace BCRPServer.Events.Players
             if (players.Length > 0)
                 Utils.InventoryUpdate(group, slot, upd, players);
 
-            if (!pData.CanPlayAnim())
+            if (!pData.IsAnyAnimActive())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
             Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);
