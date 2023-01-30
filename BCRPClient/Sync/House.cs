@@ -605,7 +605,7 @@ namespace BCRPClient.Sync
             }
             else if (fData.Type == Data.Furniture.Types.KitchenSet)
             {
-
+                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, fUid);
             }
             else
             {

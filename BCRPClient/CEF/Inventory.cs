@@ -40,6 +40,9 @@ namespace BCRPClient.CEF
 
             Grill,
 
+            GasStove,
+            KitchenSet,
+
             CraftTable,
         }
 
@@ -1380,69 +1383,6 @@ namespace BCRPClient.CEF
             #endregion
         }
 
-        private static Utils.Actions[] ActionsToCheckInventory = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            //Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
-
-            //Utils.Actions.Animation,
-            //Utils.Actions.CustomAnimation,
-            //Utils.Actions.Scenario,
-
-            //Utils.Actions.InVehicle,
-            //Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-            //Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-        };
-
-        private static Utils.Actions[] ActionsToCheckIog = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            //Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
-
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InVehicle,
-            //Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-            //Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-        };
-
-        private static Utils.Actions[] ActionsToCheckAction = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            //Utils.Actions.Crawl,
-            //Utils.Actions.Finger,
-            //Utils.Actions.PushingVehicle,
-
-            //Utils.Actions.Animation,
-            //Utils.Actions.CustomAnimation,
-            //Utils.Actions.Scenario,
-
-            //Utils.Actions.InVehicle,
-            //Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-            //Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-        };
-
         #region Show
         public static void Show(Types type, params object[] args)
         {
@@ -1452,10 +1392,10 @@ namespace BCRPClient.CEF
             if (LastShowed.IsSpam(1000, false, false) || Utils.IsAnyCefActive())
                 return;
 
-            CurrentEntity = BCRPClient.Interaction.CurrentEntity;
-
-            if (!Utils.CanDoSomething(ActionsToCheckInventory) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
+            if (!Utils.CanDoSomething(true, Utils.Actions.Shooting, Utils.Actions.Reloading) || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || Sync.WeaponSystem.LastArmourLoss.IsSpam(250, false, false))
                 return;
+
+            CurrentEntity = BCRPClient.Interaction.CurrentEntity;
 
             LastShowed = DateTime.Now;
 
@@ -1635,7 +1575,7 @@ namespace BCRPClient.CEF
             if (action < 5)
                 return;
 
-            if (Utils.IsAnyCefActive() || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || !Utils.CanDoSomething(ActionsToCheckAction))
+            if (Utils.IsAnyCefActive() || Sync.WeaponSystem.LastWeaponShot.IsSpam(250, false, false) || !Utils.CanDoSomething(true, Utils.Actions.Reloading, Utils.Actions.Shooting))
                 return;
 
             Action(action, slotStr, slot, args);
@@ -2065,6 +2005,11 @@ namespace BCRPClient.CEF
                     return;
                 }
 
+                GetRealSlot(ref slotStr, ref slot);
+
+                if (slotStr == null)
+                    return;
+
                 var eData = new List<string>();
 
                 if (slotStr == "pockets")
@@ -2117,11 +2062,6 @@ namespace BCRPClient.CEF
                         }
                     }
                 }
-
-                GetRealSlot(ref slotStr, ref slot);
-
-                if (slotStr == null)
-                    return;
 
                 if (LastSent.IsSpam(1000, false, false))
                     return;

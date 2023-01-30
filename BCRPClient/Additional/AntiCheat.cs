@@ -282,12 +282,11 @@ namespace BCRPClient.Additional
 
                 AllowWeapon.Push(true);
 
-                Sync.Phone.Off();
+                if (Sync.WeaponSystem.UnarmedHash != LastAllowedWeapon)
+                    Sync.Phone.DestroyLocalPhone();
 
                 if (Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon && x.HasAmmo).FirstOrDefault() != null)
                 {
-                    KeyBinds.Binds[KeyBinds.Types.ReloadWeapon].Enable();
-
                     CEF.HUD.SetAmmo(LastAllowedAmmo);
 
                     CEF.HUD.SwitchAmmo(true);
@@ -297,8 +296,6 @@ namespace BCRPClient.Additional
                 }
                 else
                 {
-                    KeyBinds.Binds[KeyBinds.Types.ReloadWeapon].Disable();
-
                     CEF.HUD.SwitchAmmo(false);
 
                     GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
@@ -547,7 +544,7 @@ namespace BCRPClient.Additional
                 {
                     var actualAttach = vData.IsAttachedToVehicle;
 
-                    if (actualAttach != null && (actualAttach.Type == Sync.AttachSystem.Types.TrailerObjOnVehicle || actualAttach.Type == Sync.AttachSystem.Types.VehicleTrailerObjBoat))
+                    if (actualAttach != null && (actualAttach.Type == Sync.AttachSystem.Types.VehicleTrailerObjBoat))
                     {
                         Events.CallRemoteUnreliable("votc", veh, null);
                     }

@@ -15,7 +15,7 @@ namespace BCRPClient.Sync
 
         public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
 
-        public static bool IsTypeObjectInHand(Types type) => type >= Types.Phone && type <= Types.ItemMedKit;
+        public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type <= Types.ItemMedKit;
 
         #region Types
         public enum Types
@@ -32,16 +32,19 @@ namespace BCRPClient.Sync
             WeaponRightBack,
             WeaponLeftBack,
 
+            Phone,
+
             #endregion
 
             #region Object In Hand Types | Типы, наличие у игрока которых запрещает определенные действия (ведь предмет находится в руках)
 
-            Phone,
             VehKey,
 
             ItemFishingRodG, ItemFishG,
 
             ItemShovel,
+
+            ItemMetalDetector,
 
             ItemCigHand,
             ItemCig1Hand,
@@ -324,6 +327,8 @@ namespace BCRPClient.Sync
 
             { Types.ItemShovel, new AttachmentData(28422, new Vector3(0.05f, -0.03f, -0.9f), new Vector3(2.1f, -4.2f, 5f), false, false, false, 2, true) },
 
+            { Types.ItemMetalDetector, new AttachmentData(18905, new Vector3(0.15f, 0.1f, 0f), new Vector3(270f, 90f, 80f), false, false, false, 2, true) },
+
             { Types.ItemFishG, new AttachmentData(int.MinValue, null, new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
             {
                 var gEntity = (MapObject)args[0];
@@ -478,6 +483,21 @@ namespace BCRPClient.Sync
                     DetachAllFromLocalEntity(gEntity.Handle);
 
                 return;
+            }
+            else
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData != null)
+                {
+                    if (pData.IsAttachedTo == entity)
+                    {
+                        AsyncTask.RunSlim(() =>
+                        {
+                            Events.CallRemote("atsdme");
+                        }, 2500);
+                    }
+                }
             }
 
             var listObjects = entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
@@ -952,7 +972,7 @@ namespace BCRPClient.Sync
                     {
                         var veh = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
-                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlPressed() || !Utils.CanDoSomething(Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        if (veh?.Exists != true || Utils.AnyOnFootMovingControlPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
                             GameEvents.Update -= GetTargetActions(Types.PushVehicleFront).Value.Loop.Invoke;
 
@@ -988,7 +1008,7 @@ namespace BCRPClient.Sync
 
                         if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
-                            GameEvents.Update -= GetTargetActions(Types.Carry).Value.Loop.Invoke;
+                            GameEvents.Update -= GetTargetActions(Types.VehicleTrunk).Value.Loop.Invoke;
 
                             Events.CallRemote("Players::StopInTrunk");
                         }

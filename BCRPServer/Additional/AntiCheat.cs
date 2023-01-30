@@ -31,6 +31,9 @@ namespace BCRPServer.Additional
             {
                 if (vData.IsFrozen)
                     vData.IsFrozen = false;
+
+                if (vData.ForcedSpeed != 0f)
+                    vData.ForcedSpeed = 0f;
             }
 
             var lastDim = veh.Dimension;

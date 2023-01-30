@@ -83,10 +83,13 @@ namespace BCRPServer.Events
             #endregion
 
             #region Local Data Load Section
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all items");
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all items [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Items.Stuff.LoadAll()}]~/~", false);
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles");
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all furniture [DATA]");
+            Utils.ConsoleOutput($" | ~Red~[{Game.Estates.Furniture.ItemData.LoadAll()}]~/~", false);
+
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
             #endregion
 

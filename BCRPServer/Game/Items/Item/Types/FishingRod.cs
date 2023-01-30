@@ -172,7 +172,7 @@ namespace BCRPServer.Game.Items
             pData.Player.DetachObject(Sync.AttachSystem.Types.ItemFishingRodG);
             pData.Player.DetachObject(Sync.AttachSystem.Types.ItemFishG);
 
-            pData.StopAnim();
+            pData.StopGeneralAnim();
 
             if (needUpdate && slot >= 0)
             {

@@ -65,6 +65,8 @@ namespace BCRPServer.Sync
 
             ShovelProcess0,
 
+            MetalDetectorProcess0,
+
             CuffedStatic0,
         }
 
@@ -328,6 +330,19 @@ namespace BCRPServer.Sync
         {
             var player = pData.Player;
 
+            if (pData.CrawlOn)
+            {
+                pData.CrawlOn = false;
+            }
+            else if (pData.GeneralAnim != GeneralTypes.None)
+            {
+                pData.GeneralAnim = GeneralTypes.None;
+            }
+            else if (pData.OtherAnim != OtherTypes.None)
+            {
+                pData.OtherAnim = OtherTypes.None;
+            }
+
             player.TriggerEventToStreamed("Players::PlayFastAnim", player.Handle, (int)type);
 
             pData.FastAnim = type;
@@ -347,6 +362,21 @@ namespace BCRPServer.Sync
         {
             var player = pData.Player;
 
+            if (pData.CrawlOn)
+            {
+                pData.CrawlOn = false;
+            }
+            else if (pData.FastAnim != FastTypes.None)
+            {
+                pData.FastAnim = FastTypes.None;
+
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+            }
+            else if (pData.OtherAnim != OtherTypes.None)
+            {
+                pData.OtherAnim = OtherTypes.None;
+            }
+
             pData.GeneralAnim = type;
         }
 
@@ -357,38 +387,93 @@ namespace BCRPServer.Sync
         {
             var player = pData.Player;
 
+            if (pData.CrawlOn)
+            {
+                pData.CrawlOn = false;
+            }
+            else if (pData.FastAnim != FastTypes.None)
+            {
+                pData.FastAnim = FastTypes.None;
+
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+            }
+            else if (pData.GeneralAnim != GeneralTypes.None)
+            {
+                pData.GeneralAnim = GeneralTypes.None;
+            }
+
             pData.OtherAnim = type;
         }
 
-        public static void Set(PlayerData pData, WalkstyleTypes walkstyle, bool isCustom = true)
-        {
-            var player = pData.Player;
-
-            pData.Walkstyle = walkstyle;
-        }
-
-        public static void Set(PlayerData pData, EmotionTypes emotion, bool isCustom = true)
-        {
-            var player = pData.Player;
-
-            pData.Emotion = emotion;
-        }
-
-        public static void Stop(PlayerData pData)
+        public static bool StopFastAnim(PlayerData pData)
         {
             if (pData.FastAnim != FastTypes.None)
             {
                 pData.FastAnim = FastTypes.None;
 
                 pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+
+                return true;
             }
 
+            return false;
+        }
+
+        public static bool StopGeneralAnim(PlayerData pData)
+        {
             if (pData.GeneralAnim != GeneralTypes.None)
             {
                 pData.GeneralAnim = GeneralTypes.None;
+
+                return true;
             }
 
+            return false;
+        }
+
+        public static bool StopOtherAnim(PlayerData pData)
+        {
             if (pData.OtherAnim != OtherTypes.None)
+            {
+                pData.OtherAnim = OtherTypes.None;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static void Set(PlayerData pData, WalkstyleTypes walkstyle)
+        {
+            var player = pData.Player;
+
+            pData.Walkstyle = walkstyle;
+        }
+
+        public static void Set(PlayerData pData, EmotionTypes emotion)
+        {
+            var player = pData.Player;
+
+            pData.Emotion = emotion;
+        }
+
+        public static void StopAll(PlayerData pData)
+        {
+            if (pData.CrawlOn)
+            {
+                pData.CrawlOn = false;
+            }
+            else if (pData.FastAnim != FastTypes.None)
+            {
+                pData.FastAnim = FastTypes.None;
+
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+            }
+            else if (pData.GeneralAnim != GeneralTypes.None)
+            {
+                pData.GeneralAnim = GeneralTypes.None;
+            }
+            else if (pData.OtherAnim != OtherTypes.None)
             {
                 pData.OtherAnim = OtherTypes.None;
             }

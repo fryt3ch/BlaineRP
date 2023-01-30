@@ -222,7 +222,7 @@ namespace BCRPServer.Game.Items
                 return;
             }
 
-            if (!pData.IsAnyAnimActive())
+            if (pData.CanPlayAnimNow())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
             Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);

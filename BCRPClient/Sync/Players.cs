@@ -38,8 +38,6 @@ namespace BCRPClient.Sync
 
         private static AsyncTask RentedVehiclesCheckTask { get; set; }
 
-        private static List<Player> KnockedPlayers { get; set; }
-
         private static Dictionary<string, Action<PlayerData, object, object>> DataActions = new Dictionary<string, Action<PlayerData, object, object>>();
 
         private static void InvokeHandler(string dataKey, PlayerData pData, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(pData, value, oldValue);
@@ -280,6 +278,8 @@ namespace BCRPClient.Sync
             public Data.Customization.HairOverlay HairOverlay => Data.Customization.GetHairOverlay(Sex, Player.GetSharedData<int>("CHO", 0));
 
             public Sync.AttachSystem.AttachmentObject WearedRing => AttachedObjects.Where(x => x.Type >= Sync.AttachSystem.Types.PedRingLeft3 && x.Type <= Sync.AttachSystem.Types.PedRingRight3).FirstOrDefault();
+
+            public Sync.Animations.Animation ActualAnimation { get => Player.GetData<Sync.Animations.Animation>("ActualAnim"); set { if (value == null) Player.ResetData("ActualAnim"); Player.SetData("ActualAnim", value); } }
             #endregion
 
             public void Reset()
@@ -293,8 +293,6 @@ namespace BCRPClient.Sync
 
                 Sync.Microphone.RemoveTalker(Player);
                 Sync.Microphone.RemoveListener(Player, false);
-
-                KnockedPlayers.Remove(Player);
 
                 Player.ResetData();
             }
@@ -360,10 +358,13 @@ namespace BCRPClient.Sync
                 Phone.On(true, player);
 
             if (data.GeneralAnim != Animations.GeneralTypes.None)
-                Sync.Animations.Play(player, data.GeneralAnim);
-
-            if (data.OtherAnim != Animations.OtherTypes.None)
-                Sync.Animations.Play(player, data.OtherAnim);
+            {
+                InvokeHandler("Anim::General", data, (int)data.GeneralAnim);
+            }
+            else if (data.OtherAnim != Animations.OtherTypes.None)
+            {
+                InvokeHandler("Anim::Other", data, (int)data.OtherAnim);
+            }
         }
 
         public static async System.Threading.Tasks.Task OnPlayerStreamOut(Player player)
@@ -383,22 +384,22 @@ namespace BCRPClient.Sync
             (new AsyncTask(() => WoundedHandler?.Invoke(), WoundedTime, true, 0)).Run();
             (new AsyncTask(() => HungryHandler?.Invoke(), HungryTime, true, 0)).Run();
 
-            GameEvents.Render += RenderPlayers;
-
-            KnockedPlayers = new List<Player>();
-
-            Player.LocalPlayer.SetData("IsFrozen", false);
-
             (new AsyncTask(() =>
             {
-                for (int i = 0; i < KnockedPlayers.Count; i++)
-                {
-                    var p = KnockedPlayers[i];
+                var players = RAGE.Elements.Entities.Players.Streamed;
 
-                    if (p == null || p.IsPlayingAnim("random@dealgonewrong", "idle_a", 3))
+                for (int i = 0; i < players.Count; i++)
+                {
+                    var pData = Sync.Players.GetData(players[i]);
+
+                    if (pData == null)
                         continue;
 
-                    p.TaskPlayAnim("random@dealgonewrong", "idle_a", 1f, 1f, -1, 1, 0, false, false, false);
+                    if (pData.ActualAnimation is Sync.Animations.Animation anim)
+                    {
+                        if (!pData.Player.IsPlayingAnim(anim.Dict, anim.Name, 3))
+                            Sync.Animations.Play(pData.Player, anim);
+                    }
                 }
             }, 2500, true, 0)).Run();
 
@@ -746,11 +747,6 @@ namespace BCRPClient.Sync
             });
 
             Events.Add("Player::CloseAll", args => CloseAll((bool)args[0]));
-
-            AddDataHandler("Anim::Fast", (pData, value, oldValue) =>
-            {
-
-            });
 
             Events.Add("Player::Quest::Upd", (object[] args) =>
             {
@@ -1380,9 +1376,19 @@ namespace BCRPClient.Sync
                 }
 
                 if (anim == Animations.OtherTypes.None)
+                {
                     Sync.Animations.Stop(player);
+
+                    pData.ActualAnimation = null;
+                }
                 else
-                    Sync.Animations.Play(player, anim);
+                {
+                    var animData = Sync.Animations.OtherAnimsList[anim];
+
+                    Sync.Animations.Play(player, animData);
+
+                    pData.ActualAnimation = animData;
+                }
             });
 
             AddDataHandler("Anim::General", (pData, value, oldValue) =>
@@ -1394,10 +1400,16 @@ namespace BCRPClient.Sync
                 if (anim == Animations.GeneralTypes.None)
                 {
                     Sync.Animations.Stop(player);
+
+                    pData.ActualAnimation = null;
                 }
                 else
                 {
-                    Sync.Animations.Play(player, anim);
+                    var animData = Sync.Animations.GeneralAnimsList[anim];
+
+                    Sync.Animations.Play(player, animData);
+
+                    pData.ActualAnimation = animData;
                 }
             });
 
@@ -1536,14 +1548,6 @@ namespace BCRPClient.Sync
                 var player = pData.Player;
 
                 var state = (bool?)value ?? false;
-
-                if (state)
-                {
-                    if (!KnockedPlayers.Contains(player))
-                        KnockedPlayers.Add(player);
-                }
-                else
-                    KnockedPlayers.Remove(player);
 
                 if (state)
                 {
@@ -1707,21 +1711,6 @@ namespace BCRPClient.Sync
             });
 
             #endregion
-        }
-
-        private static void RenderPlayers()
-        {
-            for (int i = 0; i < RAGE.Elements.Entities.Players.Streamed.Count; i++)
-            {
-                var player = RAGE.Elements.Entities.Players.Streamed[i];
-
-                if (player == null)
-                    continue;
-
-                player.SetResetFlag(200, true);
-
-                //player.SetFlashLightEnabled(true);
-            }
         }
 
         private static void WoundedUpdate()

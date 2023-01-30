@@ -20,8 +20,9 @@ namespace BCRPServer
 
         public const string DIR_CLIENT_ITEMS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Items\Items.cs";
         public const string DIR_CLIENT_VEHICLES_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Vehicles.cs";
+        public const string DIR_CLIENT_FURNITURE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Furniture.cs";
         public const string DIR_CLIENT_SHOP_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\CEF\Shop.cs";
-        public const string DIR_CLIENT_LOCATIONS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Locations.cs";
+        public const string DIR_CLIENT_LOCATIONS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Locations\Locations.cs";
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
@@ -96,6 +97,10 @@ namespace BCRPServer
 
         /// <summary>Максимальное кол-во игроков, которые могут одновременно просматривать контейнер</summary>
         public const int CONTAINER_MAX_PLAYERS = 5;
+
+        public const int FURNITURE_MAX_OWNED = 50;
+
+        public const int HOUSE_MAX_FURNITURE = 50;
 
         /// <summary>Время для удаления выброшенных предметов в мс.</summary>
         public const int IOG_TIME_TO_AUTODELETE = 300000;

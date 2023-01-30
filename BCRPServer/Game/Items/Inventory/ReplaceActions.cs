@@ -334,7 +334,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     pData.Weapons[slotTo].Equip(pData);
                                 }
@@ -477,7 +477,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     ((Game.Items.Weapon)pData.Holster.Items[0]).Equip(pData);
                                 }
@@ -1042,7 +1042,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     pData.Weapons[slotTo].Equip(pData);
                                 }
@@ -1185,7 +1185,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     (pData.Holster.Items[0] as Game.Items.Weapon).Equip(pData);
                                 }
@@ -1517,9 +1517,6 @@ namespace BCRPServer.Game.Items
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
                                     return Results.Error;
 
-                                if (fromItem.Equiped)
-                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
-
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
 
@@ -1593,7 +1590,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     pData.Weapons[slotFrom]?.Equip(pData);
                                 }
@@ -1650,9 +1647,6 @@ namespace BCRPServer.Game.Items
                             {
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
                                     return Results.Error;
-
-                                if (fromItem.Equiped)
-                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
 
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
@@ -1729,7 +1723,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     pData.Weapons[slotFrom]?.Equip(pData);
                                 }
@@ -1836,9 +1830,6 @@ namespace BCRPServer.Game.Items
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
                                     return Results.Error;
 
-                                if (fromItem.Equiped)
-                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
-
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
 
@@ -1912,7 +1903,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }
@@ -1966,9 +1957,6 @@ namespace BCRPServer.Game.Items
                             {
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
                                     return Results.Error;
-
-                                if (fromItem.Equiped)
-                                    Sync.WeaponSystem.UpdateAmmo(pData, fromItem, false);
 
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
@@ -2045,7 +2033,7 @@ namespace BCRPServer.Game.Items
                             {
                                 if (weapon.Equiped)
                                 {
-                                    weapon.Unequip(pData, true, false);
+                                    weapon.Unequip(pData, false);
 
                                     (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                                 }

@@ -57,7 +57,7 @@ namespace BCRPClient.Sync
 
         public static void Toggle(Vehicle vehicle = null)
         {
-            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(true, ActionsToCheck))
                 return;
 
             if (!Toggled)
@@ -78,8 +78,6 @@ namespace BCRPClient.Sync
             {
                 if (Toggled)
                     return;
-
-                Phone.Off();
 
                 if (!vehicle.IsOnAllWheels())
                     return;

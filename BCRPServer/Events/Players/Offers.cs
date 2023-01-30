@@ -21,6 +21,10 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
+                return;
+
             var tData = target.GetMainData();
 
             if (tData?.Player?.Exists != true || target == player)
@@ -34,9 +38,6 @@ namespace BCRPServer.Events.Players
             {
                 if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                     return ReturnTypes.Error;
-
-                if (pData.IsBusy)
-                    return ReturnTypes.SourceBusy;
 
                 if (tData.IsBusy)
                     return ReturnTypes.TargetBusy;
@@ -198,11 +199,6 @@ namespace BCRPServer.Events.Players
 
                     player.TriggerEvent("Offer::Reply::Server", true, false, false);
                     player.Notify("Offer::Sent");
-                    break;
-
-                case ReturnTypes.SourceBusy:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Player::Busy");
                     break;
 
                 case ReturnTypes.TargetBusy:

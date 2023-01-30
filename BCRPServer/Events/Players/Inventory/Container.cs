@@ -21,7 +21,7 @@ namespace BCRPServer.Events.Players
             if (pData.CurrentContainer != null || pData.CurrentWorkbench != null)
                 return;
 
-            if (!pData.CanUseInventory())
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             var cont = Game.Items.Container.Get(uid);
@@ -64,7 +64,7 @@ namespace BCRPServer.Events.Players
             if (cont == null)
                 return;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             if (!Enum.IsDefined(typeof(Game.Items.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), fromStr))
@@ -121,7 +121,7 @@ namespace BCRPServer.Events.Players
             if (item == null)
                 return;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
@@ -163,7 +163,7 @@ namespace BCRPServer.Events.Players
 
             cont.Update();
 
-            if (!pData.IsAnyAnimActive())
+            if (pData.CanPlayAnimNow())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
             Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);

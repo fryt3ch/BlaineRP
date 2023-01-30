@@ -54,6 +54,8 @@ namespace BCRPClient
                 if (player?.Exists != true)
                     continue;
 
+                player.SetResetFlag(200, true);
+
                 var pData = Sync.Players.GetData(player);
 
                 if (Settings.Other.DebugLabels && data.AdminLevel > -1)

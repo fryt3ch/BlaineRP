@@ -79,7 +79,7 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.IsAnyAnimActive() && !tData.IsAnyAnimActive())
+                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && pData.CanPlayAnimNow() && tData.CanPlayAnimNow())
                             {
                                 tPlayer.Position = sPlayer.GetFrontOf(0.85f);
                                 tPlayer.Heading = Utils.GetOppositeAngle(sPlayer.Heading);
@@ -153,7 +153,7 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && !pData.IsAnyAnimActive() && !tData.IsAnyAnimActive())
+                            if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && pData.CanPlayAnimNow() && tData.CanPlayAnimNow())
                             {
                                 sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
                             }
@@ -684,7 +684,7 @@ namespace BCRPServer.Sync
         public enum ReturnTypes
         {
             Error = -1,
-            SourceBusy, TargetBusy,
+            TargetBusy,
             SourceHasOffer, TargetHasOffer,
             NotEnoughMoneySource, NotEnoughMoneyTarget,
             Success,

@@ -124,13 +124,10 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    if (item.Equiped)
-                        Sync.WeaponSystem.UpdateAmmo(pData, item, false);
-
                     player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
 
                     if (item.Equiped)
-                        item.Unequip(pData, false, false);
+                        item.Unequip(pData, false);
                     else
                         item.Unwear(pData);
 
@@ -157,13 +154,10 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    if (item.Equiped)
-                        Sync.WeaponSystem.UpdateAmmo(pData, item, false);
-
                     player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
 
                     if (item.Equiped)
-                        item.Unequip(pData, false, false);
+                        item.Unequip(pData, false);
                     else
                         item.Unwear(pData);
 
@@ -265,14 +259,11 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    if ((pData.Holster.Items[0] as Game.Items.Weapon)?.Equiped == true)
-                        Sync.WeaponSystem.UpdateAmmo(pData, pData.Holster.Items[0] as Game.Items.Weapon, false);
-
                     player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
 
                     item.Unwear(pData);
 
-                    (item.Items[0] as Game.Items.Weapon)?.Unequip(pData, false, false);
+                    item.Weapon?.Unequip(pData, false);
 
                     pData.Holster = null;
 

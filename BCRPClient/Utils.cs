@@ -88,6 +88,46 @@ namespace BCRPClient
         public static RGBA WhiteColourRGBA = new RGBA(255, 255, 255, 255);
         #endregion
 
+        public enum MaterialTypes : uint
+        {
+            SandLoose = 2699818980,
+            SandCompact = 510490462,
+            SandWet = 909950165,
+            SandDryDeep = 509508168,
+            SandWetDeep = 1288448767,
+
+            MudHard = 2352068586,
+            MudPothole = 312396330,
+            MudSoft = 1635937914,
+            MudDeep = 1109728704,
+
+            Soil = 3594309083,
+
+            DirtTrack = 2409420175,
+
+            GrassLong = 3833216577,
+            Grass = 1333033863,
+            GrassShort = 3008270349,
+
+            GravelSmall = 951832588,
+            GravelLarge = 2128369009,
+            GravelDeep = 3938260814,
+        }
+
+        public static List<uint> DiggableMaterials { get; private set; } = new List<MaterialTypes>()
+        {
+            MaterialTypes.SandLoose, MaterialTypes.SandCompact, MaterialTypes.SandWet, MaterialTypes.SandDryDeep, MaterialTypes.SandWetDeep,
+            MaterialTypes.MudHard, MaterialTypes.MudPothole, MaterialTypes.MudSoft, MaterialTypes.MudDeep,
+
+            MaterialTypes.Soil,
+
+            MaterialTypes.DirtTrack,
+
+            MaterialTypes.GrassLong, MaterialTypes.Grass, MaterialTypes.GrassShort,
+
+            MaterialTypes.GravelSmall, MaterialTypes.GravelLarge, MaterialTypes.GravelDeep,
+        }.Select(x => (uint)x).ToList();
+
         public class Vector4
         {
             [JsonProperty(PropertyName = "P")]
@@ -258,13 +298,29 @@ namespace BCRPClient
             return vehicle;
         }
 
-        public static Entity GetEntityByRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle = 0, int flags = 14)
+        public static uint GetMaterialByRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle, int flags = 31)
+        {
+            int hit = -1, materialHash = 0;
+
+            var result = RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref hit);
+
+            if (result != 2 || materialHash == 0)
+                return 0;
+
+            return materialHash.ToUInt32();
+        }
+
+        public static Entity GetEntityByRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle = 0, int flags = 31)
         {
             //RAGE.Game.Graphics.DrawLine(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 255, 0, 0, 255);
 
             int hit = -1, endEntity = -1;
 
-            //int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref endEntity);
+/*            int materialHash = -1;
+            RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref hit);
+
+            if (materialHash > 0)
+                Utils.ConsoleOutputLimited(materialHash.ToUInt32());*/
 
             int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestCapsule(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 0.25f, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref endEntity);
 
@@ -308,7 +364,7 @@ namespace BCRPClient
 
             if (RAGE.Game.Invoker.Invoke<bool>(RAGE.Game.Natives.TestProbeAgainstAllWater, startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 128, pos))
             {
-                int hit = -1, materialHash = -1, eHit = -1;
+                int hit = -1, materialHash = 0, eHit = -1;
 
                 RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, pos.X, pos.Y, pos.Z, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref eHit);
 
@@ -358,18 +414,6 @@ namespace BCRPClient
             return null;
         }
 
-        public static (bool hit, int handle) TestRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle = 0, int flags = 14)
-        {
-            int hit = -1, endEntity = -1;
-
-            int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, flags, ignoreHandle, 0), ref hit, GarbageVector, GarbageVector, ref endEntity);
-
-            if (result != 2)
-                return (false, -1);
-
-            return (hit == 1, endEntity);
-        }
-
         public static Entity GetEntityPlayerLookAt(float distance)
         {
             var headCoord = RAGE.Elements.Player.LocalPlayer.GetBoneCoords(12844, 0f, 0f, 0f);
@@ -380,6 +424,7 @@ namespace BCRPClient
 
             return GetEntityByRaycast(headCoord, screenCenterCoord, Player.LocalPlayer.Handle, 31);
         }
+
         public static Entity GetEntityPlayerPointsAt(float distance)
         {
             var fingerCoord = RAGE.Elements.Player.LocalPlayer.GetBoneCoords(26613, 0f, 0f, 0f);
@@ -649,11 +694,6 @@ namespace BCRPClient
                 {
                     if (pData?.IsKnocked ?? false)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -666,11 +706,6 @@ namespace BCRPClient
                 {
                     if (pData?.IsFrozen ?? false)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -694,11 +729,6 @@ namespace BCRPClient
 
                     if (pData.OtherAnim != Animations.OtherTypes.None)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -714,11 +744,6 @@ namespace BCRPClient
 
                     if (pData.GeneralAnim != Animations.GeneralTypes.None)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -734,11 +759,6 @@ namespace BCRPClient
 
                     if (pData.FastAnim != Animations.FastTypes.None)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -780,11 +800,6 @@ namespace BCRPClient
                 {
                     if (WeaponSystem.Reloading)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -797,11 +812,6 @@ namespace BCRPClient
                 {
                     if (pData.IsAttachedTo != null)
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -817,11 +827,6 @@ namespace BCRPClient
 
                     if (pData.AttachedObjects.Where(x => Sync.AttachSystem.IsTypeObjectInHand(x.Type)).Any())
                     {
-                        if (notify)
-                        {
-
-                        }
-
                         return true;
                     }
 
@@ -832,11 +837,20 @@ namespace BCRPClient
 
         /// <summary>Метод для проверки, может ли локальный игрок делать что-либо в данный момент</summary>
         /// <returns>Возврвает true, есле выполняются следующие условия, false - в противном случае</returns>
-        public static bool CanDoSomething(params Actions[] actions)
+        public static bool CanDoSomething(bool notify, params Actions[] actions)
         {
             foreach (var x in actions)
-                if (ActionsFuncs[x].Invoke(Sync.Players.GetData(Player.LocalPlayer), true))
+            {
+                if (ActionsFuncs[x].Invoke(Sync.Players.GetData(Player.LocalPlayer), notify))
+                {
+                    if (notify)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.AntiSpam.ActionRestrictedNow);
+                    }
+
                     return false;
+                }
+            }
 
             return true;
         }

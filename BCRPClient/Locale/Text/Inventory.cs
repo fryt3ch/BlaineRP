@@ -74,6 +74,8 @@ namespace BCRPClient
 
                     { CEF.Inventory.WorkbenchTypes.CraftTable, ("Верстак", "Создать") },
                     { CEF.Inventory.WorkbenchTypes.Grill, ("Гриль", "Приготовить") },
+                    { CEF.Inventory.WorkbenchTypes.GasStove, ("Газовая плита", "Приготовить") },
+                    { CEF.Inventory.WorkbenchTypes.KitchenSet, ("Кухонный гарнитур", "Приготовить") },
                 };
             }
         }

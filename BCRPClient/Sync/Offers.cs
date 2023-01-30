@@ -204,7 +204,7 @@ namespace BCRPClient.Sync
             if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
-            if (Utils.IsAnyCefActive() || LastSent.IsSpam(2000, false, false) || !Utils.CanDoSomething(ActionsToCheck))
+            if (Utils.IsAnyCefActive() || LastSent.IsSpam(2000, false, false) || !Utils.CanDoSomething(true, ActionsToCheck))
                 return;
 
             Events.CallRemote("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data));

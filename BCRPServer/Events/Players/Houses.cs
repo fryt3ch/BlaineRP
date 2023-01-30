@@ -19,6 +19,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var aRoot = pData.CurrentApartmentsRoot;
 
             if (aRoot == null)
@@ -50,6 +53,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             if (!Enum.IsDefined(typeof(Game.Estates.Apartments.ApartmentsRoot.Types), numType))
                 return;
 
@@ -71,6 +77,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var aRoot = pData.CurrentApartmentsRoot;
 
             if (aRoot == null)
@@ -91,6 +100,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (!Enum.IsDefined(typeof(Game.Estates.HouseBase.Types), hTypeNum))
                 return;
@@ -153,6 +165,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var house = pData.CurrentHouseBase;
 
             if (house == null)
@@ -170,6 +185,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var house = pData.CurrentHouse;
 
@@ -200,6 +218,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (veh?.Exists != true)
                 return;
@@ -254,6 +275,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (veh?.Exists != true)
                 return;
@@ -314,6 +338,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (doorIdx < 0)
                 return;
@@ -379,6 +406,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var houseBase = pData.CurrentHouseBase;
 
             if (houseBase == null)
@@ -414,6 +444,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var houseBase = pData.CurrentHouseBase;
 
@@ -451,6 +484,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var houseBase = pData.CurrentHouseBase;
 
@@ -493,6 +529,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
             var houseBase = pData.CurrentHouseBase;
 
             if (houseBase == null)
@@ -532,6 +571,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var houseBase = pData.CurrentHouseBase;
 
@@ -575,6 +617,8 @@ namespace BCRPServer.Events.Players
 
             furniture.Data = new Utils.Vector4(x, y, z, rotZ);
 
+            furniture.Setup(houseBase);
+
             NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Furn", furniture.SerializeToJson());
 
             MySQL.FurnitureUpdate(furniture);
@@ -589,6 +633,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var houseBase = pData.CurrentHouseBase;
 
@@ -607,10 +654,10 @@ namespace BCRPServer.Events.Players
             if (furniture == null)
                 return;
 
-            if (!houseBase.Furniture.Contains(furniture))
+            if (!houseBase.Furniture.Remove(furniture))
                 return;
 
-            houseBase.Furniture.Remove(furniture);
+            furniture.Delete(houseBase);
 
             pData.AddFurniture(furniture);
 
@@ -628,6 +675,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var houseBase = pData.CurrentHouseBase;
 
@@ -658,6 +708,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var houseBase = pData.CurrentHouseBase;
 

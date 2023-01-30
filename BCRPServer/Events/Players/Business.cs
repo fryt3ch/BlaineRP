@@ -78,6 +78,9 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main)
                 return;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var ws = Game.Businesses.Business.Get(id) as Game.Businesses.WeaponShop;
 
             if (ws == null)
@@ -93,6 +96,10 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pDim = Utils.GetPrivateDimension(player);
+
+            pData.StopUseCurrentItem();
+            player.DetachAllObjectsInHand();
+            pData.StopAllAnims();
 
             player.Teleport(Game.Businesses.WeaponShop.ShootingRangePosition.Position, false, pDim, Game.Businesses.WeaponShop.ShootingRangePosition.RotationZ, true);
 
@@ -118,6 +125,9 @@ namespace BCRPServer.Events.Players
             var pData = sRes.Data;
 
             if (player.Dimension != Utils.Dimensions.Main)
+                return false;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
             var business = Game.Businesses.Business.Get(id);
@@ -153,6 +163,9 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main)
                 return false;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
             var business = Game.Businesses.Business.Get(id);
 
             if (business == null || !business.IsBuyable || business.Owner != pData.Info)
@@ -179,6 +192,9 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main)
                 return null;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
             var business = Game.Businesses.Business.Get(id);
 
             if (business == null || business.Owner != pData.Info)
@@ -201,6 +217,9 @@ namespace BCRPServer.Events.Players
             var pData = sRes.Data;
 
             if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
+                return;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
             var vData = veh.GetMainData();
@@ -240,7 +259,9 @@ namespace BCRPServer.Events.Players
 
             pData.UnequipActiveWeapon();
 
-            Sync.Players.DisableMicrophone(pData);
+            pData.StopUseCurrentItem();
+            player.DetachAllObjectsInHand();
+            pData.StopAllAnims();
 
             var pDim = Utils.GetPrivateDimension(player);
 
@@ -275,6 +296,37 @@ namespace BCRPServer.Events.Players
             pData.CurrentBusiness = ts;
         }
 
+        [RemoteEvent("Business::Furn::Enter")]
+        public static void BusinessFurnitureEnter(Player player, int id, int subTypeNum)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
+                return;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
+            var business = Game.Businesses.Business.Get(id) as Game.Businesses.FurnitureShop;
+
+            if (business == null)
+                return;
+
+            if (!business.IsPlayerNearInteractPosition(pData))
+                return;
+
+            player.CloseAll(true);
+
+            player.TriggerEvent("Shop::Show", (int)business.Type, business.Margin, null, subTypeNum);
+
+            pData.CurrentBusiness = business;
+        }
+
         [RemoteEvent("Business::Enter")]
         public static void BusinessEnter(Player player, int id)
         {
@@ -288,6 +340,9 @@ namespace BCRPServer.Events.Players
             if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
                 return;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var business = Game.Businesses.Business.Get(id);
 
             if (business == null)
@@ -298,9 +353,11 @@ namespace BCRPServer.Events.Players
 
             if (business is Game.Businesses.IEnterable enterable)
             {
-                pData.UnequipActiveWeapon();
+                pData.StopUseCurrentItem();
+                player.DetachAllObjectsInHand();
+                pData.StopAllAnims();
 
-                Sync.Players.DisableMicrophone(pData);
+                pData.UnequipActiveWeapon();
 
                 pData.IsInvincible = true;
 
@@ -361,6 +418,9 @@ namespace BCRPServer.Events.Players
             var shop = pData.CurrentBusiness as Game.Businesses.Shop;
 
             if (shop == null)
+                return false;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
             if (!(shop is Game.Businesses.IEnterable))

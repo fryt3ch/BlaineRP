@@ -1,6 +1,8 @@
-﻿using RAGE.Elements;
+﻿using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using static BCRPClient.Data.Dialogue;
 
@@ -27,10 +29,19 @@ namespace BCRPClient.Data.NPCDialogues
                 Button.DefaultExitButton
             );
 
-            new Dialogue("seller_bags_n_0", "Приветствую, вижу, вам чего-то не хватает... Как насчёт новенькой сумочки или рюкзака?", null,
-                Button.DefaultShopEnterButton,
+            new Dialogue("seller_furn_g_0", "Здравствуйте, добро пожаловать в наш магазин мебели! Хотите ознакомиться с каталогом?", null,
+                new Button("Да, давайте", () => NPC.CurrentNPC?.ShowDialogue("seller_furn_c_0")),
+
                 Button.DefaultExitButton
             );
+
+            new Dialogue("seller_furn_c_0", "Пожалуйста, вот все типы мебели, которые у нас сейчас есть в наличии, выберите желаемый", null,
+
+                Button.DefaultBackButton,
+                Button.DefaultExitButton
+            );
+
+            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = DateTime.Now; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Data.Locations.Business)?.Id ?? -1, (int)x.Key); }, true)));
 
             new Dialogue("seller_clothes_greeting_0", "Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!", null,
 
@@ -44,29 +55,11 @@ namespace BCRPClient.Data.NPCDialogues
 
             new Dialogue("seller_shop_greeting_0", "Здравствуйте, хорошо, что вы заглянули к нам сегодня, как раз привезли свежайшие продукты!\n", null,
 
-                new Button("[Смотреть товары]", () => { }, true),
+                Button.DefaultShopEnterButton,
 
                 new Button("Есть ли работа для меня?", () => { }, true),
 
-                new Button("[Выйти]", CloseCurrentDialogue, false)
-
-            );
-
-            new Dialogue("seller_gas_greeting_0", "Здравствуйте, хотите что-то приобрести?", null,
-
-                new Button("[Смотреть товары]", () => { }, true),
-
-                new Button("Я хочу заправить транспорт", () => { }, true),
-
-                new Button("Нет, спасибо", () => { CEF.Interaction.CloseMenu(); }, false)
-
-            );
-
-            new Dialogue("seller_gas_info_0", "Не, это не ко мне, у меня можно купить разные приблуды для дороги, например, ремонтный набор или канистру с топливом, а заправиться вы можете самостоятельно, поставив транспорт возле бензоколонки.", null,
-
-                new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_gas_greeting_0"); }, true),
-
-                new Button("[Выйти]", CloseCurrentDialogue, false)
+                Button.DefaultExitButton
 
             );
 

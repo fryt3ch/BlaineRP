@@ -73,7 +73,7 @@ namespace BCRPClient.Sync
             if (Toggled)
                 return;
 
-            if (LastSwitchTime.IsSpam(1000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+            if (LastSwitchTime.IsSpam(1000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(false, ActionsToCheck))
                 return;
 
             LastSentEntity = null;

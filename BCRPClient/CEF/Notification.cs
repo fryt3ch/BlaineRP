@@ -83,6 +83,8 @@ namespace BCRPClient.CEF
 
         private static Dictionary<string, Instance> Prepared = new Dictionary<string, Instance>()
         {
+            { "ASP::ARN", new Instance(Types.Error, Locale.Notifications.AntiSpam.ActionRestrictedNow, Locale.Notifications.ErrorHeader) },
+
             { "Auth::MailNotFree", new Instance(Types.Error, Locale.Notifications.Auth.MailNotFree, Locale.Notifications.ErrorHeader, -1) },
             { "Auth::LoginNotFree", new Instance(Types.Error, Locale.Notifications.Auth.LoginNotFree, Locale.Notifications.ErrorHeader, -1) },
 

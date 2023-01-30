@@ -16,27 +16,6 @@ namespace BCRPClient.CEF
 
         private static Types CurrentType = Types.None;
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
-
-            //Utils.Actions.Animation,
-            //Utils.Actions.CustomAnimation,
-            //Utils.Actions.Scenario,
-
-            //Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, //Utils.Actions.OnFoot,
-        };
-
         private static List<int> TempBinds { get; set; }
 
         #region Enums
@@ -511,7 +490,7 @@ namespace BCRPClient.CEF
 
             Entity entity = BCRPClient.Interaction.CurrentEntity;
 
-            if (Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+            if (Utils.IsAnyCefActive())
                 return false;
 
             BCRPClient.Interaction.Enabled = false;

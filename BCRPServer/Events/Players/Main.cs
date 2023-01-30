@@ -207,7 +207,7 @@ namespace BCRPServer.Events.Players
                     }
                 }
 
-                pData.ActiveWeapon?.WeaponItem.Unequip(pData, true, false);
+                pData.ActiveWeapon?.WeaponItem.Unequip(pData, false);
 
                 if (pData.CurrentItemInUse?.Item is Game.Items.IUsable ciiu)
                     ciiu.InUse = false;
@@ -275,15 +275,7 @@ namespace BCRPServer.Events.Players
 
             if (pData.IsKnocked)
             {
-                player.Teleport(null, false, null, null, false);
-
-                player.SetHealth(10);
-
-                pData.IsKnocked = false;
-            }
-            else
-            {
-                pData.StopAnim();
+                pData.StopAllAnims();
 
                 player.DetachAllObjectsInHand();
 
@@ -291,11 +283,23 @@ namespace BCRPServer.Events.Players
 
                 player.Teleport(null, false, null, null, false);
 
-                var arm = player.Armor;
-
                 NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 
-                player.Armor = arm;
+                player.SetHealth(10);
+
+                pData.IsKnocked = false;
+            }
+            else
+            {
+                pData.StopAllAnims();
+
+                player.DetachAllObjectsInHand();
+
+                pData.StopUseCurrentItem();
+
+                player.Teleport(null, false, null, null, false);
+
+                NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 
                 pData.IsKnocked = true;
                 pData.IsWounded = false;
@@ -463,6 +467,12 @@ namespace BCRPServer.Events.Players
             if (pData.CrawlOn == state)
                 return;
 
+            if (state)
+            {
+                if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                    return;
+            }
+
             pData.CrawlOn = state;
         }
         #endregion
@@ -477,6 +487,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                return;
 
             var vehData = veh.GetMainData();
 
@@ -617,22 +630,14 @@ namespace BCRPServer.Events.Players
 
             if (state)
             {
-                if (pData.UnequipActiveWeapon())
-                {
-                    pData.PhoneOn = true;
+                if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject)
+                    return;
 
-                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
+                pData.PhoneOn = true;
 
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
-                }
-                else
-                {
-                    pData.PhoneOn = true;
+                player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
 
-                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
-
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
-                }
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
             }
             else
             {
@@ -697,6 +702,9 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Sync.Animations.FastTypes), anim))
                 return;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAnyAnimOn())
+                return;
+
             pData.PlayAnim((Sync.Animations.FastTypes)anim);
         }
 
@@ -710,10 +718,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.FastAnim == Animations.FastTypes.None)
-                return;
-
-            pData.StopAnim();
+            pData.StopFastAnim();
         }
 
         [RemoteEvent("Players::SetWalkstyle")]
@@ -761,6 +766,14 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Sync.Animations.OtherTypes), anim))
                 return;
 
+            var aType = (Animations.OtherTypes)anim;
+
+            if (pData.OtherAnim == aType)
+                return;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None)
+                return;
+
             pData.PlayAnim((Animations.OtherTypes)anim);
         }
 
@@ -806,9 +819,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var attachData = pData.IsAttachedToEntity;
-
-            if (attachData != null)
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn())
                 return;
 
             var vData = vehicle.GetMainData();
@@ -837,6 +848,7 @@ namespace BCRPServer.Events.Players
             var atData = atVeh.GetAttachmentData(player);
 
             if (atData == null || atData.Type != AttachSystem.Types.VehicleTrunk)
+                return;
 
             atVeh.DetachEntity(player);
         }
@@ -857,7 +869,7 @@ namespace BCRPServer.Events.Players
                 {
                     player.DetachObject(x.Type);
 
-                    pData.StopAnim();
+                    pData.StopFastAnim();
 
                     break;
                 }
@@ -924,6 +936,23 @@ namespace BCRPServer.Events.Players
                 if (player.DetachObject(attachData.Type, false))
                     player.AttachObject(attachData.Model, oppositeType, -1, null);
             }, 500);
+        }
+
+        [RemoteEvent("atsdme")]
+        private static void AttachSystemDetachMe(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsAttachedToEntity is Entity entity)
+            {
+                if (!entity.Exists || !entity.AreEntitiesNearby(player, 150f))
+                    entity.DetachEntity(player);
+            }
         }
     }
 }

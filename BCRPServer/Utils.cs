@@ -999,20 +999,20 @@ namespace BCRPServer
         /// <inheritdoc cref="Sync.Animations.Play(Player, Sync.Animations.OtherTypes)"/>
         public static void PlayAnim(this PlayerData pData, Sync.Animations.OtherTypes type) => Sync.Animations.Play(pData, type);
 
-        /// <inheritdoc cref="Sync.Animations.Stop(Player)"/>
-        public static void StopAnim(this PlayerData pData) => Sync.Animations.Stop(pData);
+        /// <inheritdoc cref="Sync.Animations.StopAll(pData)"/>
+        public static void StopAllAnims(this PlayerData pData) => Sync.Animations.StopAll(pData);
+
+        public static bool StopFastAnim(this PlayerData pData) => Sync.Animations.StopFastAnim(pData);
+
+        public static bool StopGeneralAnim(this PlayerData pData) => Sync.Animations.StopGeneralAnim(pData);
+
+        public static bool StopOtherAnim(this PlayerData pData) => Sync.Animations.StopOtherAnim(pData);
 
         /// <inheritdoc cref="Sync.Animations.Set(PlayerData, Sync.Animations.EmotionTypes, bool)"/>
-        public static void SetCustomEmotion(this PlayerData pData, Sync.Animations.EmotionTypes type) => Sync.Animations.Set(pData, type, true);
-        /// <inheritdoc cref="Sync.Animations.Set(PlayerData, Sync.Animations.EmotionTypes, bool)"/>
-        public static void SetEmotion(this PlayerData pData, Sync.Animations.EmotionTypes type) => Sync.Animations.Set(pData, type, false);
+        public static void SetEmotion(this PlayerData pData, Sync.Animations.EmotionTypes type) => Sync.Animations.Set(pData, type);
 
         /// <inheritdoc cref="Sync.Animations.Set(PlayerData, Sync.Animations.WalkstyleTypes, bool)"/>
-        public static void SetCustomWalkstyle(this PlayerData pData, Sync.Animations.WalkstyleTypes type) => Sync.Animations.Set(pData, type, true);
-        /// <inheritdoc cref="Sync.Animations.Set(PlayerData, Sync.Animations.WalkstyleTypes, bool)"/>
-        public static void SetWalkstyle(this PlayerData pData, Sync.Animations.WalkstyleTypes type) => Sync.Animations.Set(pData, type, false);
-
-        public static bool IsAnyAnimActive(this PlayerData pData) => pData.CrawlOn || pData.PhoneOn || pData.IsAttachedToEntity != null || pData.FastAnim != Sync.Animations.FastTypes.None || pData.GeneralAnim != Sync.Animations.GeneralTypes.None || pData.OtherAnim != Sync.Animations.OtherTypes.None;
+        public static void SetWalkstyle(this PlayerData pData, Sync.Animations.WalkstyleTypes type) => Sync.Animations.Set(pData, type);
 
         /// <inheritdoc cref="Additional.SkyCamera.Move(Player, Additional.SkyCamera.SwitchTypes, bool, string, object[])"></inheritdoc>
         public static void SkyCameraMove(this Player player, Additional.SkyCamera.SwitchTypes switchType, bool fade, string eventOnFinish = null, params object[] args) => Additional.SkyCamera.Move(player, switchType, fade, eventOnFinish, args);
@@ -1269,18 +1269,9 @@ namespace BCRPServer
 
         public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh, seatId, timeout);
 
-        public static bool IsArrested(this PlayerData pData)
-        {
-            return false;
-        }
+        public static bool IsAnyAnimOn(this PlayerData pData) => pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None || pData.OtherAnim != Animations.OtherTypes.None;
 
-        public static bool IsAnyMainAnimOn(this PlayerData pData)
-        {
-            if (pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None)
-                return true;
-
-            return false;
-        }
+        public static bool CanPlayAnimNow(this PlayerData pData) => !IsAnyAnimOn(pData) && !pData.CrawlOn && !pData.PhoneOn;
 
         public static bool StopUseCurrentItem(this PlayerData pData)
         {
@@ -1292,74 +1283,6 @@ namespace BCRPServer
             curItem.Value.Item.StopUse(pData, Groups.Items, curItem.Value.Slot, true);
 
             return true;
-        }
-
-        public static void StopExtraAnimsIfEnabled(this PlayerData pData)
-        {
-            if (pData.OtherAnim != Animations.OtherTypes.None)
-                pData.OtherAnim = Animations.OtherTypes.None;
-            else if (pData.CrawlOn)
-                pData.CrawlOn = false;
-        }
-
-        public static bool IsAnyObjectInHands(this PlayerData pData, bool notify = true)
-        {
-            if (pData.HasAnyHandAttachedObject)
-            {
-                if (notify)
-                {
-                    pData.Player.Notify("A::OIH");
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool IsAttachedToEntity(this PlayerData pData, bool notify = true)
-        {
-            if (pData.Player.GetEntityIsAttachedTo() != null)
-            {
-                if (notify)
-                {
-                    pData.Player.Notify("Inventory::ActionRestricted");
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool IsFrozen(this PlayerData pData, bool notify = true)
-        {
-            if (pData.IsFrozen)
-            {
-                if (notify)
-                {
-
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool IsCuffed(this PlayerData pData, bool notify = true)
-        {
-            if (pData.IsCuffed)
-            {
-                if (notify)
-                {
-
-                }
-
-                return true;
-            }
-
-            return false;
         }
 
         public static void CloneDirectory(DirectoryInfo source, DirectoryInfo dest)

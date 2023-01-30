@@ -18,6 +18,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var curItem = pData.CurrentItemInUse;
 
             var fRod = curItem?.Item as Game.Items.FishingRod;
@@ -40,6 +43,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var curItem = pData.CurrentItemInUse;
 
@@ -73,6 +79,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             var curItem = pData.CurrentItemInUse;
 

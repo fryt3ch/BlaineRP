@@ -59,6 +59,8 @@ namespace BCRPServer.Game.Businesses
             BoatShop,
             AeroShop,
 
+            FurnitureShop,
+
             Market,
 
             GasStation,

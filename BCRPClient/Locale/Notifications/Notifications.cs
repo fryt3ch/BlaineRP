@@ -36,6 +36,8 @@ namespace BCRPClient
                 public static string CooldownText3 = "Подождите еще {0}, прежде чем сделать это!";
 
                 public static string CooldownText4 = "Сейчас вы не можете сделать это, приходите завтра!";
+
+                public static string ActionRestrictedNow = "Сейчас вы не можете сделать это!";
             }
 
             public static class General

@@ -100,9 +100,10 @@ namespace BCRPServer.Game.Items.Craft
 
         public enum WorkbenchTypes
         {
-            None = -1,
-
             Grill,
+
+            GasStove,
+            KitchenSet,
 
             CraftTable,
         }
@@ -110,6 +111,9 @@ namespace BCRPServer.Game.Items.Craft
         private static Dictionary<WorkbenchTypes, WorkbenchData> AllWorkbenchData { get; set; } = new Dictionary<WorkbenchTypes, WorkbenchData>()
         {
             { WorkbenchTypes.Grill, new WorkbenchData(new WorkbenchTool[] { Craft.FireStaticItem, null, null, null, null }, new Item[] { null, null, null, null, Craft.FireStaticItem }) },
+
+            { WorkbenchTypes.GasStove, new WorkbenchData(new WorkbenchTool[] { Craft.FireStaticItem, Craft.WaterStaticItem, Craft.KnifeStaticItem, null, null }, null) },
+            { WorkbenchTypes.KitchenSet, new WorkbenchData(new WorkbenchTool[] { Craft.FireStaticItem, Craft.WaterStaticItem, Craft.KnifeStaticItem, Craft.WhishStaticItem, Craft.RollingPinStaticItem }, null) },
         };
 
         public enum Types : byte
@@ -213,7 +217,7 @@ namespace BCRPServer.Game.Items.Craft
 
             this.WorkbenchType = WorkbenchType;
 
-            this.Items = StaticData.DefaultCraftItems.ToArray();
+            this.Items = StaticData.DefaultCraftItems?.ToArray() ?? new Item[5];
 
             AllWorkbenches[Type].Add(Uid, this);
         }
@@ -392,8 +396,10 @@ namespace BCRPServer.Game.Items.Craft
         }
     }
 
-/*    public class FurnitureWorkbench : Workbench
+    public class FurnitureWorkbench : Workbench
     {
+        public static FurnitureWorkbench Get(uint uid) => Workbench.Get(Types.FurnitureWorkbench, uid) as FurnitureWorkbench;
+
         public Estates.HouseBase HouseBase { get; private set; }
 
         public override bool IsNear(PlayerData pData)
@@ -423,9 +429,9 @@ namespace BCRPServer.Game.Items.Craft
             return false;
         }
 
-        public FurnitureWorkbench(uint Uid, WorkbenchTypes Workbenchtype) : base(Uid, Types.FurnitureWorkbench, Workbenchtype)
+        public FurnitureWorkbench(uint Uid, Estates.HouseBase HouseBase, WorkbenchTypes Workbenchtype) : base(Uid, Types.FurnitureWorkbench, Workbenchtype)
         {
-
+            this.HouseBase = HouseBase;
         }
     }
 
@@ -457,5 +463,5 @@ namespace BCRPServer.Game.Items.Craft
         {
 
         }
-    }*/
+    }
 }

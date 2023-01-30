@@ -22,6 +22,9 @@ namespace BCRPServer.Events.Players
             if (pData.BankAccount == null)
                 return false;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
             if (!IsPlayerNearBank(player, bankId))
                 return false;
 
@@ -44,6 +47,9 @@ namespace BCRPServer.Events.Players
             var pData = sRes.Data;
 
             if (pData.BankAccount == null || amount <= 0)
+                return false;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
 
             // if mobile
@@ -112,6 +118,9 @@ namespace BCRPServer.Events.Players
             if (pData.BankAccount == null || amount <= 0)
                 return;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             if (isAtm)
             {
                 if (!IsPlayerNearAtm(player, bankId))
@@ -155,6 +164,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (!IsPlayerNearBank(player, bankId))
                 return;
@@ -209,6 +221,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (isAtm)
             {
@@ -342,6 +357,9 @@ namespace BCRPServer.Events.Players
                 return -1;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return -1;
 
             if (amount <= 0)
                 return -1;

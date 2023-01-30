@@ -469,6 +469,13 @@ namespace BCRPServer.Game.Items
                         {
                             var player = pData.Player;
 
+                            if (pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                            {
+                                player.Notify("ASP::ARN");
+
+                                return Results.Error;
+                            }
+
                             if (group == Groups.Items || group == Groups.Bag)
                             {
                                 ((Game.Items.StatusChanger)item).Apply(pData);
@@ -681,6 +688,8 @@ namespace BCRPServer.Game.Items
 
                         (pData, item, group, slot, args) =>
                         {
+                            var player = pData.Player;
+
                             if (group != Groups.Items)
                                 return Results.ActionRestricted;
 
@@ -693,8 +702,12 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (pData.CurrentItemInUse != null)
-                                    return Results.ActionRestricted;
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                {
+                                    player.Notify("ASP::ARN");
+
+                                    return Results.Error;
+                                }
 
                                 if (!itemU.StartUse(pData, group, slot, true, Game.Items.FishingRod.ItemData.BaitId))
                                     return Results.Error;
@@ -709,6 +722,8 @@ namespace BCRPServer.Game.Items
 
                         (pData, item, group, slot, args) =>
                         {
+                            var player = pData.Player;
+
                             if (group != Groups.Items)
                                 return Results.ActionRestricted;
 
@@ -721,8 +736,12 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (pData.CurrentItemInUse != null)
-                                    return Results.ActionRestricted;
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                {
+                                    player.Notify("ASP::ARN");
+
+                                    return Results.Error;
+                                }
 
                                 if (!itemU.StartUse(pData, group, slot, true, Game.Items.FishingRod.ItemData.WormId))
                                     return Results.Error;
@@ -786,6 +805,8 @@ namespace BCRPServer.Game.Items
 
                         (pData, item, group, slot, args) =>
                         {
+                            var player = pData.Player;
+
                             if (group != Groups.Items)
                                 return Results.ActionRestricted;
 
@@ -798,8 +819,53 @@ namespace BCRPServer.Game.Items
                             }
                             else
                             {
-                                if (pData.CurrentItemInUse != null)
-                                    return Results.ActionRestricted;
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                {
+                                    player.Notify("ASP::ARN");
+
+                                    return Results.Error;
+                                }
+
+                                if (!itemU.StartUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+
+                            return Results.Success;
+                        }
+                    }
+                }
+            },
+
+            {
+                typeof(Game.Items.MetalDetector),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var player = pData.Player;
+
+                            if (group != Groups.Items)
+                                return Results.ActionRestricted;
+
+                            var itemU = (Game.Items.MetalDetector)item;
+
+                            if (itemU.InUse)
+                            {
+                                if (!itemU.StopUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+                            else
+                            {
+                                if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                {
+                                    player.Notify("ASP::ARN");
+
+                                    return Results.Error;
+                                }
 
                                 if (!itemU.StartUse(pData, group, slot, true))
                                     return Results.Error;

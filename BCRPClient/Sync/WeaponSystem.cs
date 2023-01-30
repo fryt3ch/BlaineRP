@@ -661,7 +661,11 @@ namespace BCRPClient.Sync
                 LastWeaponShot = DateTime.Now;
 
                 if (Additional.AntiCheat.LastAllowedAmmo > 0)
+                {
                     Additional.AntiCheat.LastAllowedAmmo--;
+
+                    Events.CallRemote("opws");
+                }
             };
 
             #region Events
@@ -754,43 +758,21 @@ namespace BCRPClient.Sync
             // AutoReload
             if (curAmmo == 0 && RAGE.Game.Player.IsPlayerFreeAiming() && (RAGE.Game.Pad.IsControlPressed(32, 24) || RAGE.Game.Pad.IsDisabledControlPressed(32, 24)) && Settings.Interface.AutoReload)
             {
-                if (Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheckReload))
+                if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Crawl, Utils.Actions.Finger, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.Scenario, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.IsAttachedTo))
                     return;
 
                 if (!LastSentReload.IsSpam(2000, false, false))
                 {
-                    Events.CallRemote("Weapon::Reload", curAmmo);
+                    Events.CallRemote("Weapon::Reload");
 
                     LastSentReload = DateTime.Now;
                 }
             }
         }
 
-        private static Utils.Actions[] ActionsToCheckReload = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
-
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, //Utils.Actions.OnFoot,
-        };
-
         public static void ReloadWeapon()
         {
-            if (Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheckReload))
-                return;
-
-            if (LastSentReload.IsSpam(2000, false, false) || CEF.Inventory.LastSent.IsSpam(250, false, false) || LastWeaponShot.IsSpam(250, false, false))
+            if (Additional.AntiCheat.LastAllowedAmmo < 0)
                 return;
 
             var curWeapon = Player.LocalPlayer.GetSelectedWeapon();
@@ -799,12 +781,18 @@ namespace BCRPClient.Sync
             if (weapProp == null || !weapProp.HasAmmo)
                 return;
 
-            if (Additional.AntiCheat.LastAllowedAmmo < 0)
+            if (Utils.IsAnyCefActive())
+                return;
+
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Crawl, Utils.Actions.Finger, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.Scenario, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.IsAttachedTo))
+                return;
+
+            if (LastSentReload.IsSpam(2000, false, false) || CEF.Inventory.LastSent.IsSpam(250, false, false) || LastWeaponShot.IsSpam(250, false, false))
                 return;
 
             // add an check if weapon is full of ammo
 
-            Events.CallRemote("Weapon::Reload", Player.LocalPlayer.GetAmmoInWeapon(curWeapon));
+            Events.CallRemote("Weapon::Reload");
 
             LastSentReload = DateTime.Now;
         }
@@ -846,7 +834,7 @@ namespace BCRPClient.Sync
 
         public static void ArmourCheck(int healthLoss, int armourLoss)
         {
-            if (armourLoss > 0 && Player.LocalPlayer.GetArmour() == 0)
+            if (armourLoss > 0 && Player.LocalPlayer.GetArmour() <= 0)
                 Events.CallRemote("Players::ArmourBroken");
         }
 

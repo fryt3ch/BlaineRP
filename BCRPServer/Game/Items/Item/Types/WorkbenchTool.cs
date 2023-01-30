@@ -20,6 +20,10 @@ namespace BCRPServer.Game.Items
         {
             { "wbi_0", new ItemData("Огонь") },
             { "wbi_1", new ItemData("Вода") },
+
+            { "wbi_2", new ItemData("Нож") },
+            { "wbi_3", new ItemData("Венчик") },
+            { "wbi_4", new ItemData("Скалка") },
         };
 
         public WorkbenchTool(string ID) : base(ID, IDList[ID], typeof(WorkbenchTool))

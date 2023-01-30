@@ -321,7 +321,7 @@ namespace BCRPClient.CEF
 
         public static void Show(SectionTypes sType = SectionTypes.Last)
         {
-            if (IsActive || Utils.IsAnyCefActive() || !Utils.CanDoSomething(Utils.Actions.Knocked, Utils.Actions.Shooting))
+            if (IsActive || Utils.IsAnyCefActive())
                 return;
 
             if (LastSwitched.IsSpam(1000, false, false))

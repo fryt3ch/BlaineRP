@@ -44,6 +44,8 @@ namespace BCRPClient
                 public static string FishingNotAllowedHere = "Вы не можете здесь рыбачить! Найдите достаточно глубокий водоем, встаньте поближе к воде и смотрите в ее сторону";
                 public static string FishingNotCatched = "Вы не смогли выловить добычу!";
 
+                public static string DiggingNotAllowedHere = "Вы не можете здесь копать! Найдите подходящую поверхность";
+
                 public static string WorkbenchResultItemExists = "Перед тем, как начать создание нового предмета, заберите уже созданный!";
 
                 public static string PlacedItemOnGroundNotAllowed = "Этот предмет принадлежит другому игроку!";

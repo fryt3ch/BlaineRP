@@ -16,24 +16,6 @@ namespace BCRPClient.Sync
 
         public static bool Toggled { get; private set; }
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            Utils.Actions.Finger,
-
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
-        };
-
         public Crouch()
         {
             LastSwitchTime = DateTime.Now;
@@ -41,11 +23,14 @@ namespace BCRPClient.Sync
 
         public static void Toggle()
         {
-            if (LastSwitchTime.IsSpam(1000, false, false) || !Utils.CanDoSomething(ActionsToCheck))
+            if (LastSwitchTime.IsSpam(1000, false, false))
                 return;
 
             if (!Toggled)
             {
+                if (!Utils.CanDoSomething(false, Utils.Actions.InVehicle, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot))
+                    return;
+
                 On();
             }
             else
@@ -123,7 +108,7 @@ namespace BCRPClient.Sync
 
         private static void OnTick()
         {
-            if (!Utils.CanDoSomething(ActionsToCheck))
+            if (!Utils.CanDoSomething(false, Utils.Actions.InVehicle, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot))
                 Off();
 
             if (Utils.IsFirstPersonActive())

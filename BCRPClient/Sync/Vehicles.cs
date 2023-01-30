@@ -1374,6 +1374,9 @@ namespace BCRPClient.Sync
             if (Player.LocalPlayer.IsInAnyVehicle(false) || LastVehicleExitedTime.IsSpam(1000, false, false))
                 return;
 
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.IsAttachedTo))
+                return;
+
             if (Player.LocalPlayer.GetScriptTaskStatus(2500551826) != 7)
             {
                 Player.LocalPlayer.ClearTasks();

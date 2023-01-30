@@ -575,6 +575,19 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
+        public class MetalDetector : Item, IUsable
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public ItemData(string Name, float Weight) : base(Name, Weight)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public class WorkbenchTool : Item
         {
             new public class ItemData : Item.ItemData
@@ -791,7 +804,7 @@ namespace BCRPClient.Data
         {
             new KeyValuePair<System.Type, Func<List<string>>>(typeof(FishingRod), () =>
             {
-                var res = Utils.CanDoSomething(Utils.Actions.IsSwimming);
+                var res = Utils.CanDoSomething(true, Utils.Actions.IsSwimming, Utils.Actions.Animation);
 
                 if (!res)
                 {
@@ -810,6 +823,33 @@ namespace BCRPClient.Data
                 }
 
                 Player.LocalPlayer.SetData("MG::F::T::WZ", waterPos.Z);
+
+                var eData = new List<string>() { };
+
+                return eData;
+            }),
+
+            new KeyValuePair<System.Type, Func<List<string>>>(typeof(Shovel), () =>
+            {
+                var res = Utils.CanDoSomething(true, Utils.Actions.IsSwimming);
+
+                if (!res)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.ActionRestricted);
+
+                    return null;
+                }
+
+                var material = Utils.GetMaterialByRaycast(Player.LocalPlayer.Position + new Vector3(0f, 0f, 1f), Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 1f) + new Vector3(0f, 0f, -1.5f), Player.LocalPlayer.Handle, 31);
+
+                if (!Utils.DiggableMaterials.Contains(material))
+                {
+                    Utils.ConsoleOutput(material);
+
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.DiggingNotAllowedHere);
+
+                    return null;
+                }
 
                 var eData = new List<string>() { };
 

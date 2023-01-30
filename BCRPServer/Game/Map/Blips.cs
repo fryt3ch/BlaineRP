@@ -69,7 +69,7 @@ namespace BCRPServer.Game.Map
             #endregion
 
             #region Unique Shops
-            BlipList.Add(NAPI.Blip.CreateBlip(779, new Vector3(2717.83f, 3488.86f, 20f), 1, 19, name: "Магазин мебели", shortRange: true));
+            //BlipList.Add(NAPI.Blip.CreateBlip(779, new Vector3(2717.83f, 3488.86f, 20f), 1, 19, name: "Магазин мебели", shortRange: true));
             #endregion
 
             #region Grapeseed

@@ -59,6 +59,23 @@ namespace BCRPClient
 
                 { Data.Locations.Business.Types.BagShop, "Торговец сумок и рюкзаков" },
                 { Data.Locations.Business.Types.MaskShop, "Торговец масок" },
+
+                { Data.Locations.Business.Types.FurnitureShop, "Мебельный магазин" },
+            };
+
+            public static Dictionary<CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } = new Dictionary<CEF.Shop.FurnitureSubTypes, string>()
+            {
+                { CEF.Shop.FurnitureSubTypes.Chairs, "Кресла и стулья" },
+                { CEF.Shop.FurnitureSubTypes.Tables, "Столы" },
+                { CEF.Shop.FurnitureSubTypes.Beds, "Кровати и диваны" },
+                { CEF.Shop.FurnitureSubTypes.Closets, "Шкафы и тумбы" },
+                { CEF.Shop.FurnitureSubTypes.Plants, "Растения" },
+                { CEF.Shop.FurnitureSubTypes.Lamps, "Светильники" },
+                { CEF.Shop.FurnitureSubTypes.Electronics, "Электроника" },
+                { CEF.Shop.FurnitureSubTypes.Kitchen, "Все для кухни" },
+                { CEF.Shop.FurnitureSubTypes.Bath, "Все для ванной" },
+                { CEF.Shop.FurnitureSubTypes.Pictures, "Картины" },
+                { CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
             };
 
             public static Dictionary<Data.Locations.ApartmentsRoot.Types, string> ApartmentsRootNames = new Dictionary<Data.Locations.ApartmentsRoot.Types, string>()

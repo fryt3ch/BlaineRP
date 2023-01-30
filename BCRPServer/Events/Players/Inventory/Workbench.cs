@@ -26,7 +26,7 @@ namespace BCRPServer.Events.Players
 
             var wType = (Game.Items.Craft.Workbench.Types)wTypeNum;
 
-            if (!pData.CanUseInventory())
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             if (pData.CurrentContainer != null || pData.CurrentWorkbench != null)
@@ -79,6 +79,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
 
             if (pData.CurrentWorkbench is Game.Items.Craft.Workbench curBench)
             {
@@ -134,7 +137,7 @@ namespace BCRPServer.Events.Players
             if (wb == null)
                 return;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             if (!Enum.IsDefined(typeof(Game.Items.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), fromStr))
@@ -180,6 +183,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
 
             if (amount < 1 || slot < 0)
                 return;
@@ -262,7 +268,7 @@ namespace BCRPServer.Events.Players
             if (players.Length > 0)
                 Utils.InventoryUpdate(group, slot, upd, players);
 
-            if (!pData.IsAnyAnimActive())
+            if (pData.CanPlayAnimNow())
                 pData.PlayAnim(Sync.Animations.FastTypes.Putdown);
 
             Sync.World.AddItemOnGround(pData, item, player.GetFrontOf(0.6f), player.Rotation, player.Dimension);

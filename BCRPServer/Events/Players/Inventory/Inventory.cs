@@ -22,7 +22,7 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
                 return;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             Replace(pData, (Groups)to, slotTo, (Groups)from, slotFrom, amount);
@@ -44,10 +44,7 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Groups), group) || slot < 0 || action < 5)
                 return;
 
-            if (pData.CurrentBusiness != null)
-                return;
-
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             Action(pData, (Groups)group, slot, action, data.Split('&'));
@@ -66,7 +63,7 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
                 return;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             Drop(pData, (Groups)slotStr, slot, amount);
@@ -82,7 +79,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             var item = Sync.World.GetItemOnGround(UID);
@@ -151,7 +148,7 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            if (!pData.IsAnyAnimActive())
+            if (pData.CanPlayAnimNow())
                 pData.PlayAnim(Sync.Animations.FastTypes.Pickup);
 
             if (amount == curAmount)
@@ -211,6 +208,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
             var iog = Sync.World.GetItemOnGround(uid);
 
             if (iog == null || iog.Type != Sync.World.ItemOnGround.Types.PlacedItem)
@@ -225,8 +225,46 @@ namespace BCRPServer.Events.Players
             iog.IsLocked = state;
         }
 
+        [RemoteEvent("opws")]
+        public static void OnPlayerWeaponShot(Player player)
+        {
+            if (player?.Exists != true)
+                return;
+
+            var pData = PlayerData.Get(player);
+
+            if (pData == null)
+                return;
+
+            if (pData.Weapons[0]?.Equiped == true)
+            {
+                if (pData.Weapons[0].Ammo <= 0)
+                    return;
+
+                pData.Weapons[0].Ammo--;
+
+                return;
+            }
+            else if (pData.Weapons[1]?.Equiped == true)
+            {
+                if (pData.Weapons[1].Ammo <= 0)
+                    return;
+
+                pData.Weapons[1].Ammo--;
+
+                return;
+            }
+
+            var hWeapon = pData.Holster?.Weapon;
+
+            if (hWeapon?.Equiped == true)
+            {
+                hWeapon.Ammo--;
+            }
+        }
+
         [RemoteEvent("Weapon::Reload")]
-        public static void WeaponReload(Player player, int currentAmmo)
+        public static void WeaponReload(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -235,21 +273,13 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
             var weapon = pData.ActiveWeapon;
 
             if (weapon == null)
                 return;
-
-            if (!pData.CanUseInventory(true))
-                return;
-
-            if (currentAmmo > weapon.Value.WeaponItem.Ammo || currentAmmo < 0)
-                currentAmmo = 0;
-
-            if (currentAmmo == weapon.Value.WeaponItem.Data.MaxAmmo)
-                return;
-
-            weapon.Value.WeaponItem.Ammo = currentAmmo;
 
             pData.InventoryAction(weapon.Value.Group, weapon.Value.Slot, 6);
         }
@@ -264,7 +294,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!pData.CanUseInventory(true))
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
             var gift = pData.Gifts.Where(x => x.ID == id).FirstOrDefault();
@@ -296,6 +326,9 @@ namespace BCRPServer.Events.Players
             var wSkinType = (Game.Items.WeaponSkin.ItemData.Types)wSkinTypeNum;
 
             var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
 
             var ws = pData.Info.WeaponSkins.GetValueOrDefault(wSkinType);
 

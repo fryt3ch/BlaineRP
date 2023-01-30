@@ -169,6 +169,7 @@ namespace BCRPServer.Game.Items
         public Sync.AttachSystem.Types? AttachType { get; set; }
 
         [JsonProperty(PropertyName = "A")]
+
         /// <summary>Кол-во патронов в обойме</summary>
         public int Ammo { get; set; }
 
@@ -184,8 +185,6 @@ namespace BCRPServer.Game.Items
 
             var player = pData.Player;
 
-            Sync.Players.StopUsePhone(pData);
-
             Unwear(pData);
 
             Equiped = true;
@@ -199,29 +198,14 @@ namespace BCRPServer.Game.Items
         /// <param name="pData">Сущность игрока</param>
         /// <param name="updateLastAmmoFirst">Обновить ли кол-во патронов в обойме?</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public void Unequip(PlayerData pData, bool updateLastAmmoFirst = true, bool wearAfter = true)
+        public void Unequip(PlayerData pData, bool wearAfter = true)
         {
             var player = pData.Player;
 
             if (!Equiped)
                 return;
 
-            var data = Data;
-
-            if (updateLastAmmoFirst)
-            {
-                var amount = NAPI.Player.GetPlayerWeaponAmmo(player, data.Hash);
-
-                if (amount < 0)
-                    amount = 0;
-
-                if (amount < Ammo)
-                {
-                    Ammo = amount;
-
-                    Update();
-                }
-            }
+            Update();
 
             player.SetWeapon((uint)WeaponHash.Unarmed);
 

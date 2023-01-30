@@ -14,23 +14,7 @@ namespace BCRPClient.Sync
 
         public static bool Toggled { get; private set; }
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, //Utils.Actions.OnFoot,
-        };
+        //public static bool LocalPhoneExists { get; private set; }
 
         #region Anims
         private static string AnimDict = "cellphone@";
@@ -41,6 +25,7 @@ namespace BCRPClient.Sync
         private static string AnimCallToText = "cellphone_call_to_text";
         private static string AnimCallOut = "cellphone_call_out";
         private static string AnimTextOut = "cellphone_text_out";
+
         private static string AnimSwipeScreen = "cellphone_swipe_screen";
         private static string AnimRight = "cellphone_right";
         private static string AnimLeft = "cellphone_left";
@@ -57,7 +42,7 @@ namespace BCRPClient.Sync
 
         public static void Toggle()
         {
-            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.IsAnyCefActive())
                 return;
 
             LastSwitchTime = DateTime.Now;
@@ -87,9 +72,12 @@ namespace BCRPClient.Sync
             {
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    RAGE.Game.Mobile.CreateMobilePhone(0); // default phone (iphone)
-                    RAGE.Game.Mobile.SetMobilePhoneScale(0f);
-                    RAGE.Game.Mobile.ScriptIsMovingMobilePhoneOffscreen(false);
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData.ActualAnimation == null && pData.FastAnim == Animations.FastTypes.None && !Player.LocalPlayer.HasWeapon() && !Sync.Crawl.Toggled)
+                    {
+                        CreateLocalPhone();
+                    }
 
                     RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
 
@@ -118,7 +106,7 @@ namespace BCRPClient.Sync
             {
                 if (player.Handle == Player.LocalPlayer.Handle)
                 {
-                    RAGE.Game.Mobile.DestroyMobilePhone();
+                    DestroyLocalPhone();
 
                     RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
 
@@ -134,6 +122,32 @@ namespace BCRPClient.Sync
                 player.StopAnimTask(AnimDictVehicle, AnimTextToCall, 2f);
             }
         }
+
+        public static void CreateLocalPhone()
+        {
+/*            if (LocalPhoneExists)
+                return;*/
+
+            RAGE.Game.Mobile.CreateMobilePhone(0); // default phone (iphone)
+            RAGE.Game.Mobile.SetMobilePhoneScale(0f);
+            RAGE.Game.Mobile.ScriptIsMovingMobilePhoneOffscreen(false);
+
+            //LocalPhoneExists = true;
+
+            //RAGE.Game.Mobile.CellCamActivate(false, false);
+        }
+
+        public static void DestroyLocalPhone()
+        {
+/*            if (!LocalPhoneExists)
+                return;*/
+
+            RAGE.Game.Mobile.DestroyMobilePhone();
+
+            //LocalPhoneExists = false;
+        }
+
+        public static bool IsLocalPhoneActive => Player.LocalPlayer.GetSelectedWeapon() == Sync.WeaponSystem.MobileHash;
 
         public static void TurnVehiclePhone(Player player)
         {

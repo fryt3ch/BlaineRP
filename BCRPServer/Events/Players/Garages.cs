@@ -27,6 +27,9 @@ namespace BCRPServer.Events.Players
             if (garage.Owner != pData.Info)
                 return false;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
             if (!garage.Root.IsEntityNearEnter(player))
                 return false;
 
@@ -69,6 +72,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
@@ -91,6 +97,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
@@ -112,6 +121,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (player.Vehicle != null)
                 return;
@@ -142,6 +154,9 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
             var garage = pData.CurrentGarage;
 
             if (garage == null)
@@ -161,6 +176,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (!Enum.IsDefined(typeof(Game.Estates.Garage.GarageRoot.Types), gRootTypeNum))
                 return;
@@ -220,6 +238,9 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
 
             if (!Enum.IsDefined(typeof(Game.Estates.Garage.GarageRoot.Types), gRootTypeNum))
                 return;

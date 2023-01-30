@@ -112,6 +112,8 @@ namespace BCRPClient.Sync
 
             ShovelProcess0,
 
+            MetalDetectorProcess0,
+
             CuffedStatic,
         }
 
@@ -356,7 +358,7 @@ namespace BCRPClient.Sync
 
         }
 
-        private static Dictionary<FastTypes, Animation> FastAnimsList = new Dictionary<FastTypes, Animation>()
+        public static Dictionary<FastTypes, Animation> FastAnimsList { get; private set; } = new Dictionary<FastTypes, Animation>()
         {
             { FastTypes.VehLocking, new Animation("anim@mp_player_intmenu@key_fob@", "fob_click", 8f, 1f, 1500, 50, 0f, false, false, false) { NameFP = "fob_click_fp" } },
             { FastTypes.Pickup, new Animation("pickup_object", "pickup_low", 8f, 1f, 750, 48, 0f, false, false, false) },
@@ -379,15 +381,15 @@ namespace BCRPClient.Sync
             { FastTypes.ItemMedKit, new Animation("anim@amb@office@boardroom@crew@female@var_b@base@", "idle_a", 8f, 1f, 7000, 49, 0f, false, false, false) },
         };
 
-        private static Dictionary<GeneralTypes, Animation> GeneralAnimsList = new Dictionary<GeneralTypes, Animation>()
+        public static Dictionary<GeneralTypes, Animation> GeneralAnimsList { get; private set; } = new Dictionary<GeneralTypes, Animation>()
         {
-            { GeneralTypes.Knocked, new Animation("random@dealgonewrong", "idle_a", 1f, 1f, -1, 1, 0, false, false, false) },
-            { GeneralTypes.PushingVehicle, new Animation("missfinale_c2ig_11", "pushcar_offcliff_m", 2f, -8f, -1, 35, 0, false, false, false) },
+            { GeneralTypes.Knocked, new Animation("random@dealgonewrong", "idle_a", 2f, 2f, -1, 1, 0, false, false, false) },
+            { GeneralTypes.PushingVehicle, new Animation("missfinale_c2ig_11", "pushcar_offcliff_m", 2f, 2f, -1, 35, 0, false, false, false) },
 
-            { GeneralTypes.RagdollElectrocute, new Animation("ragdoll@human", "electrocute", 8f, 0f, -1, 39, 0, false, false, false) },
+            { GeneralTypes.RagdollElectrocute, new Animation("ragdoll@human", "electrocute", 8f, 8f, -1, 39, 0, false, false, false) },
 
             { GeneralTypes.CarryA, new Animation("missfinale_c2mcs_1", "fin_c2_mcs_1_camman", 8f, -8f, -1, 48, 0, false, false, false) },
-            { GeneralTypes.CarryB, new Animation("nm", "firemans_carry", 1f, 0f, -1, 1, 0, false, false, false) },
+            { GeneralTypes.CarryB, new Animation("nm", "firemans_carry", 2f, 2f, -1, 1, 0, false, false, false) },
 
             { GeneralTypes.PiggyBackA, new Animation("anim@arena@celeb@flat@paired@no_props@", "piggyback_c_player_a", 8f, -8f, -1, 33, 0, false, false, false) },
             { GeneralTypes.PiggyBackB, new Animation("anim@arena@celeb@flat@paired@no_props@", "piggyback_c_player_b", 8f, -8f, -1, 49, 0, false, false, false) },
@@ -397,11 +399,13 @@ namespace BCRPClient.Sync
 
             { GeneralTypes.LieInTrunk, new Animation("timetable@floyd@cryingonbed@base", "base", 8f, -8f, -1, 1, 0, false, false, false) },
 
-            { GeneralTypes.FishingIdle0, new Animation("amb@world_human_stand_fishing@base", "base", 1f, 0f, -1, 1, 1, false, false, false) },
+            { GeneralTypes.FishingIdle0, new Animation("amb@world_human_stand_fishing@base", "base", 2f, 2f, -1, 1, 0, false, false, false) },
 
-            { GeneralTypes.FishingProcess0, new Animation("amb@world_human_stand_fishing@idle_a", "idle_b", 1f, 0f, -1, 1, 1, false, false, false) },
+            { GeneralTypes.FishingProcess0, new Animation("amb@world_human_stand_fishing@idle_a", "idle_b", 2f, 2f, -1, 1, 0, false, false, false) },
 
-            { GeneralTypes.ShovelProcess0, new Animation("random@burial", "a_burial", 1f, 0f, -1, 1, 1, false, false, false) },
+            { GeneralTypes.ShovelProcess0, new Animation("random@burial", "a_burial", 2f, 2f, -1, 1, 0, false, false, false) },
+
+            { GeneralTypes.MetalDetectorProcess0, new Animation("mini@golfai", "wood_idle_a", 2f, 2f, -1, 49, 0f, false, false, false) },
 
             { GeneralTypes.CuffedStatic, new Animation("mp_arresting", "idle", 1f, 0f, -1, 1, 1, false, false, false) },
         };
@@ -942,27 +946,6 @@ namespace BCRPClient.Sync
             #endregion
         }
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            Utils.Actions.Crawl,
-            Utils.Actions.Finger,
-            Utils.Actions.PushingVehicle,
-
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
-        };
-
         public static void Set(Player player, EmotionTypes emotion)
         {
             if (player == null)
@@ -1033,6 +1016,8 @@ namespace BCRPClient.Sync
             if (ped.Handle == Player.LocalPlayer.Handle)
             {
                 Utils.CancelPendingTask("LPFATT");
+
+                Sync.Phone.DestroyLocalPhone();
             }
 
             await Utils.RequestAnimDict(anim.Dict);
@@ -1055,15 +1040,15 @@ namespace BCRPClient.Sync
                 Utils.CancelPendingTask("LPFATT");
             }
 
-            ped.ClearTasksImmediately();
+            ped.ClearTasks();
         }
 
         public static void PlayFastSync(FastTypes fastType, int delay = 1000)
         {
-            if (!Utils.CanDoSomething(ActionsToCheck))
+            if (LastSent.IsSpam(delay, false, false))
                 return;
 
-            if (LastSent.IsSpam(delay, false, false))
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
                 return;
 
             Events.CallRemote("Players::PFA", (int)fastType);

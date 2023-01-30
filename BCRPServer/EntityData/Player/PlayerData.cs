@@ -389,7 +389,7 @@ namespace BCRPServer
         {
             get
             {
-                return PhoneOn || CurrentContainer != null || IsAttachedToEntity != null || CurrentBusiness != null;
+                return PhoneOn || CurrentWorkbench != null || CurrentContainer != null || IsAttachedToEntity != null || CurrentBusiness != null || IsFrozen;
             }
         }
 

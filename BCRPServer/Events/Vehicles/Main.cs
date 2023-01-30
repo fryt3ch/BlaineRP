@@ -26,6 +26,16 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
+            if (seatId == 0)
+            {
+                if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
+                {
+                    player.WarpOutOfVehicle();
+
+                    return;
+                }
+            }
+
             if (seatId < 0 || seatId >= veh.MaxOccupants || (pData.VehicleSeat < 0 && vData.Locked) || veh.GetEntityInVehicleSeat(seatId) != null)
             {
                 player.WarpOutOfVehicle();
@@ -149,6 +159,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             Vehicle veh = player.Vehicle;
 
             var vData = veh.GetMainData();
@@ -253,6 +266,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             var vData = veh.GetMainData();
 
             if (vData == null)
@@ -266,7 +282,7 @@ namespace BCRPServer.Events.Vehicles
 
             bool newState = !vData.Locked;
 
-            if (player.Vehicle == null && !pData.IsAnyAnimActive() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
                 player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
@@ -298,6 +314,9 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
 
             var veh = player.Vehicle;
 
@@ -356,6 +375,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
@@ -381,6 +403,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
@@ -403,6 +428,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             var vData = veh.GetMainData();
 
             if (vData == null)
@@ -419,7 +447,7 @@ namespace BCRPServer.Events.Vehicles
 
             var newState = !vData.TrunkLocked;
 
-            if (player.Vehicle == null && !pData.IsAnyAnimActive() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
                 player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
@@ -465,6 +493,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             var vData = veh.GetMainData();
 
             if (vData == null)
@@ -478,7 +509,7 @@ namespace BCRPServer.Events.Vehicles
 
             var newState = !vData.HoodLocked;
 
-            if (player.Vehicle == null && !pData.IsAnyAnimActive() && pData.ActiveWeapon == null)
+            if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
                 player.AttachObject(AttachSystem.Models.VehicleRemoteFob, AttachSystem.Types.VehKey, 1250, null);
 
@@ -569,6 +600,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
+
             var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
@@ -603,6 +637,9 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return;
 
             if (player.VehicleSeat != 0)
                 return;
@@ -639,6 +676,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
             var vData = veh.GetMainData();
 
             if (vData == null)
@@ -656,9 +696,6 @@ namespace BCRPServer.Events.Vehicles
 
                 return;
             }
-
-            if (!pData.CanUseInventory(true))
-                return;
 
             if (!pData.TryGiveExistingItem(vData.Numberplate, 1, true, true))
                 return;
@@ -679,6 +716,9 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
 
             var vData = veh.GetMainData();
 
@@ -771,6 +811,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
             var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
@@ -797,6 +840,9 @@ namespace BCRPServer.Events.Vehicles
 
             var pData = sRes.Data;
 
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
             if (veh?.Exists != true)
                 return;
 
@@ -817,6 +863,9 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
 
             if (veh?.Exists != true)
                 return;
@@ -916,6 +965,9 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
 
             if (veh?.Exists != true)
                 return;

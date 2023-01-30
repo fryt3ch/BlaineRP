@@ -19,6 +19,11 @@ namespace BCRPServer.Game.Estates
                 MySQL.LoadHouse(x);
 
                 lines.Add($"new House({x.Id}, {x.PositionParams.Position.ToCSharpStr()}, Sync.House.Style.RoomTypes.{x.RoomType}, {(x.GarageData == null ? "null" : $"Garage.Types.{x.GarageData.Type}")}, {(x.GarageOutside == null ? "null" : x.GarageOutside.Position.ToCSharpStr())}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+
+                x.Furniture.ForEach(y =>
+                {
+                    y.Setup(x);
+                });
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "HOUSES_TO_REPLACE", lines);

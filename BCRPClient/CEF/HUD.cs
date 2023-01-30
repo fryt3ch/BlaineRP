@@ -56,27 +56,6 @@ namespace BCRPClient.CEF
 
             public static List<Types> CurrentTypes { get; private set; }
 
-            private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-            {
-            Utils.Actions.Knocked,
-            //Utils.Actions.Frozen,
-            //Utils.Actions.Cuffed,
-
-            //Utils.Actions.Crouch,
-            //Utils.Actions.Crawl,
-            //Utils.Actions.Finger,
-            //Utils.Actions.PushingVehicle,
-
-            //Utils.Actions.Animation,
-            //Utils.Actions.CustomAnimation,
-            //Utils.Actions.Scenario,
-
-            //Utils.Actions.InVehicle,
-            //Utils.Actions.InWater,
-            Utils.Actions.Shooting, //Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
-                                                             //Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.OnFoot,
-            };
-
             private static List<int> TempBinds { get; set; }
 
             public Menu()
@@ -129,7 +108,7 @@ namespace BCRPClient.CEF
             {
                 if (state)
                 {
-                    if (IsActive || Utils.IsAnyCefActive() || !Utils.CanDoSomething(ActionsToCheck))
+                    if (IsActive || Utils.IsAnyCefActive())
                         return;
 
                     if (types == null)

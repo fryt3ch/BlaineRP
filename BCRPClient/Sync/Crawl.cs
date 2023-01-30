@@ -17,24 +17,6 @@ namespace BCRPClient.Sync
 
         public static bool Toggled { get; private set; }
 
-        private static Utils.Actions[] ActionsToCheck = new Utils.Actions[]
-        {
-            Utils.Actions.Knocked,
-            Utils.Actions.Frozen,
-            Utils.Actions.Cuffed,
-
-            Utils.Actions.Finger,
-
-            Utils.Actions.Animation,
-            Utils.Actions.FastAnimation,
-            Utils.Actions.Scenario,
-
-            Utils.Actions.InVehicle,
-            Utils.Actions.InWater,
-            Utils.Actions.Shooting, Utils.Actions.Reloading,
-            Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot,
-        };
-
         public Crawl()
         {
             LastSwitchTime = DateTime.Now;
@@ -42,11 +24,14 @@ namespace BCRPClient.Sync
 
         public static void Toggle()
         {
-            if (LastSwitchTime.IsSpam(1000, false, false) || !Utils.CanDoSomething(ActionsToCheck))
+            if (LastSwitchTime.IsSpam(1000, false, false))
                 return;
 
             if (!Toggled)
             {
+                if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                    return;
+
                 On();
             }
             else
@@ -73,6 +58,10 @@ namespace BCRPClient.Sync
             {
                 await Utils.RequestAnimDict(AnimDict);
                 await Utils.RequestAnimDict(MoveAnimDict);
+
+                Sync.Phone.DestroyLocalPhone();
+
+                CurrentMoveAnim = null;
 
                 GameEvents.Render -= OnTick;
                 GameEvents.Render += OnTick;
@@ -105,7 +94,7 @@ namespace BCRPClient.Sync
 
         private static void OnTick()
         {
-            if (!Utils.CanDoSomething(ActionsToCheck))
+            if (!Utils.CanDoSomething(false, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
                 Off();
 
             RAGE.Game.Pad.DisableControlAction(0, 32, true);
@@ -125,10 +114,10 @@ namespace BCRPClient.Sync
 
                     Player.LocalPlayer.TaskPlayAnim(MoveAnimDict, CurrentMoveAnim, 8.0f, 1000, -1, 2, 0, false, false, false);
 
-                    new AsyncTask(() =>
+                    AsyncTask.RunSlim(() =>
                     {
                         CurrentMoveAnim = null;
-                    }, (int)((duration - 0.1f) * 1000f), false).Run();
+                    }, (int)((duration - 0.1f) * 1000f));
                 }
             }
             
@@ -142,10 +131,10 @@ namespace BCRPClient.Sync
 
                     Player.LocalPlayer.TaskPlayAnim(MoveAnimDict, CurrentMoveAnim, 8.0f, 1000, -1, 2, 0, false, false, false);
 
-                    new AsyncTask(() =>
+                    AsyncTask.RunSlim(() =>
                     {
                         CurrentMoveAnim = null;
-                    }, (int)((duration - 0.1f) * 1000f), false).Run();
+                    }, (int)((duration - 0.1f) * 1000f));
                 }
             }
             

@@ -22,7 +22,7 @@ namespace BCRPServer.Sync
 
         public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
 
-        public static bool IsTypeObjectInHand(Types type) => type >= Types.Phone && type <= Types.ItemMedKit;
+        public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type <= Types.ItemMedKit;
 
         #region Types
         public enum Types
@@ -39,16 +39,19 @@ namespace BCRPServer.Sync
             WeaponRightBack,
             WeaponLeftBack,
 
+            Phone,
+
             #endregion
 
             #region Object In Hand Types | Типы, наличие у игрока которых запрещает определенные действия (ведь предмет находится в руках)
 
-            Phone,
             VehKey,
 
             ItemFishingRodG, ItemFishG,
 
             ItemShovel,
+
+            ItemMetalDetector,
 
             ItemCigHand,
             ItemCig1Hand,
@@ -209,7 +212,7 @@ namespace BCRPServer.Sync
 
                                 if (pData != null)
                                 {
-                                    pData.StopAnim();
+                                    pData.StopGeneralAnim();
                                 }
                             }
 
@@ -273,7 +276,7 @@ namespace BCRPServer.Sync
 
                                 if (pData != null)
                                 {
-                                    pData.StopAnim();
+                                    pData.StopGeneralAnim();
                                 }
                             }
 
@@ -325,7 +328,7 @@ namespace BCRPServer.Sync
                                 if (pData == null)
                                     return;
 
-                                pData.StopAnim();
+                                pData.StopGeneralAnim();
                             }
                         }
                     }
@@ -375,7 +378,7 @@ namespace BCRPServer.Sync
 
                                 if (tData != null)
                                 {
-                                    tData.StopAnim();
+                                    tData.StopGeneralAnim();
                                 }
                             }
 
@@ -385,7 +388,7 @@ namespace BCRPServer.Sync
 
                                 if (pData != null)
                                 {
-                                    pData.StopAnim();
+                                    pData.StopGeneralAnim();
                                 }
                             }
                         }
@@ -788,7 +791,7 @@ namespace BCRPServer.Sync
 
             var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
-            list.ForEach(x =>
+            foreach (var x in list)
             {
                 if (cancels.GetValueOrDefault(x.Type) is CancellationTokenSource cts)
                 {
@@ -802,7 +805,9 @@ namespace BCRPServer.Sync
                 GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
 
                 list.Remove(x);
-            });
+            }
+
+            list.Clear();
 
             entity.SetSharedData(AttachedObjectsKey, list);
 
@@ -821,7 +826,7 @@ namespace BCRPServer.Sync
 
             var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
 
-            list.ForEach(x =>
+            list.ToList().ForEach(x =>
             {
                 if (!IsTypeObjectInHand(x.Type))
                     return;

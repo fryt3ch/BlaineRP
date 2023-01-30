@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace BCRPClient.CEF
 {
-    class Shop : Events.Script
+    public class Shop : Events.Script
     {
         //        Стало : //items[i] = [id, 'name', cash, variants || maxspeed, chageable(t|f) || [slots, weight] || maxtank, cruise, autopilot, maxtrunk, maxweight] 
         //(если магаз не транспортный последние 4 параметра можно либо не передавать вообще, либо передавать как null)
@@ -81,6 +81,8 @@ namespace BCRPClient.CEF
             BoatShop,
             AeroShop,
 
+            FurnitureShop,
+
             Market,
 
             GasStation,
@@ -88,12 +90,6 @@ namespace BCRPClient.CEF
             TuningShop,
 
             WeaponShop,
-
-            FishingShop,
-
-            Bar,
-
-            FurnitureShop,
         }
 
         public enum SectionTypes
@@ -113,18 +109,32 @@ namespace BCRPClient.CEF
             Shotguns,
             Ammo,
             Components,
+        }
 
-            // Furniture
-            Chairs,
+        public enum FurnitureSubTypes
+        {
+            /// <summary>Кресла, стулья</summary>
+            Chairs = 0,
+            /// <summary>Столы</summary>
+            Tables,
+            /// <summary>Кровати</summary>
             Beds,
+            /// <summary>Шкафы</summary>
             Closets,
+            /// <summary>Растения</summary>
             Plants,
+            /// <summary>Лампы</summary>
             Lamps,
-            Electrics,
-            Kitchens,
-            Baths,
-            Pics,
-            Decors,
+            /// <summary>Электроника</summary>
+            Electronics,
+            /// <summary>Все для кухни</summary>
+            Kitchen,
+            /// <summary>Все для ванной</summary>
+            Bath,
+            /// <summary>Картины</summary>
+            Pictures,
+            /// <summary>Прочий декор</summary>
+            Decores,
         }
 
         private static List<int> TempBinds;
@@ -148,9 +158,9 @@ namespace BCRPClient.CEF
 
             { Types.WeaponShop, "weapon" },
 
-            { Types.FishingShop, "fish" },
+/*            { Types.FishingShop, "fish" },
 
-            { Types.Bar, "bar" },
+            { Types.Bar, "bar" },*/
 
             { Types.FurnitureShop, "furniture" },
         };
@@ -179,6 +189,21 @@ namespace BCRPClient.CEF
         };
 
         private static Dictionary<Types, Dictionary<string, int>> Prices = new Dictionary<Types, Dictionary<string, int>>();
+
+        private static Dictionary<FurnitureSubTypes, Data.Furniture.Types[]> FurnitureSections = new Dictionary<FurnitureSubTypes, Data.Furniture.Types[]>()
+        {
+            { FurnitureSubTypes.Chairs, new Data.Furniture.Types[] { Data.Furniture.Types.Chair, } },
+            { FurnitureSubTypes.Tables, new Data.Furniture.Types[] { Data.Furniture.Types.Table, } },
+            { FurnitureSubTypes.Beds, new Data.Furniture.Types[] { Data.Furniture.Types.Bed, } },
+            { FurnitureSubTypes.Closets, new Data.Furniture.Types[] { Data.Furniture.Types.Locker, Data.Furniture.Types.Wardrobe, } },
+            { FurnitureSubTypes.Plants, new Data.Furniture.Types[] { Data.Furniture.Types.Plant, } },
+            { FurnitureSubTypes.Lamps, new Data.Furniture.Types[] { Data.Furniture.Types.Lamp, } },
+            { FurnitureSubTypes.Electronics, new Data.Furniture.Types[] { Data.Furniture.Types.Washer, Data.Furniture.Types.TV, Data.Furniture.Types.Electronics, } },
+            { FurnitureSubTypes.Kitchen, new Data.Furniture.Types[] { Data.Furniture.Types.Fridge, Data.Furniture.Types.KitchenSet, Data.Furniture.Types.KitchenStuff } },
+            { FurnitureSubTypes.Bath, new Data.Furniture.Types[] { Data.Furniture.Types.Bath, Data.Furniture.Types.Toilet, Data.Furniture.Types.BathStuff } },
+            { FurnitureSubTypes.Pictures, new Data.Furniture.Types[] { Data.Furniture.Types.Painting } },
+            { FurnitureSubTypes.Decores, new Data.Furniture.Types[] { Data.Furniture.Types.Decor } },
+        };
 
         private static Dictionary<Types, Dictionary<SectionTypes, string[]>> RetailSections = new Dictionary<Types, Dictionary<SectionTypes, string[]>>()
         {
@@ -380,7 +405,7 @@ namespace BCRPClient.CEF
 
                 float? heading = args.Length > 2 ? (float?)args[2] : null;
 
-                await Show(type, margin, heading, args.Skip(heading == null ? 2 : 3).ToArray());
+                await Show(type, margin, heading, args.Skip(args.Length > 2 ? 3 : 2).ToArray());
             });
 
             Events.Add("Shop::Close::Server", (object[] args) => Close(true, false));
@@ -1407,9 +1432,19 @@ namespace BCRPClient.CEF
                     if (itemId == null)
                         return;
 
-                    if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{itemId}&{variation}&{amount}", useCash))
+                    if (CurrentType == Types.FurnitureShop)
                     {
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{itemId}", useCash))
+                        {
 
+                        }
+                    }
+                    else
+                    {
+                        if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{itemId}&{variation}&{amount}", useCash))
+                        {
+
+                        }
                     }
                 }
             });
@@ -1545,9 +1580,9 @@ namespace BCRPClient.CEF
 
                         shopData.Add(subData);
 
-                        Browser.Window.ExecuteJs("Salon.draw", new object[] { shopData });
-
                         Browser.Switch(Browser.IntTypes.Salon, true);
+
+                        Browser.Window.ExecuteJs("Salon.draw", new object[] { shopData });
 
                         Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
                     }
@@ -1591,9 +1626,9 @@ namespace BCRPClient.CEF
 
                         Data.Clothes.UndressAll();
 
-                        Browser.Window.ExecuteJs("Tattoo.draw", new object[] { allTattoos.OrderBy(x => x.Key).Select(x => new object[] { Data.Customization.TattooData.GetZoneTypeId(x.Key), Data.Customization.TattooData.GetZoneTypeName(x.Key), x.Value, tattoos.Where(y => y.Value?.ZoneType == x.Key).Select(y => $"tat_{y.Key}").FirstOrDefault() ?? "none" }) });
-
                         Browser.Switch(Browser.IntTypes.TattooSalon, true);
+
+                        Browser.Window.ExecuteJs("Tattoo.draw", allTattoos.OrderBy(x => x.Key).Select(x => new object[] { Data.Customization.TattooData.GetZoneTypeId(x.Key), Data.Customization.TattooData.GetZoneTypeName(x.Key), x.Value, tattoos.Where(y => y.Value?.ZoneType == x.Key).Select(y => $"tat_{y.Key}").FirstOrDefault() ?? "none" }));
                     }
                     else if (type >= Types.ClothesShop1 && type <= Types.ClothesShop3)
                     {
@@ -1728,9 +1763,9 @@ namespace BCRPClient.CEF
                             bags.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, new object[] { data.MaxSlots, data.MaxWeight } });
                         }
 
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, bags);
-
                         Browser.Switch(Browser.IntTypes.Shop, true);
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, bags);
                     }
                     else if (type == Types.JewelleryShop)
                     {
@@ -1783,11 +1818,11 @@ namespace BCRPClient.CEF
                                 rings.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, true });
                         }
 
+                        Browser.Switch(Browser.IntTypes.Shop, true);
+
                         Browser.Window.ExecuteJs("Shop.fillContainer", 0, necklaces);
                         Browser.Window.ExecuteJs("Shop.fillContainer", 1, earrings);
                         Browser.Window.ExecuteJs("Shop.fillContainer", 2, rings);
-
-                        Browser.Switch(Browser.IntTypes.Shop, true);
                     }
                     else if (type == Types.MaskShop)
                     {
@@ -1821,9 +1856,9 @@ namespace BCRPClient.CEF
                             masks.Add(new object[] { x.Key, data.Name, x.Value, data.Textures.Length, false });
                         }
 
-                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, masks);
-
                         Browser.Switch(Browser.IntTypes.Shop, true);
+
+                        Browser.Window.ExecuteJs("Shop.fillContainer", 0, masks);
                     }
                     else if (type >= Types.CarShop1 && type <= Types.AeroShop)
                     {
@@ -1847,14 +1882,14 @@ namespace BCRPClient.CEF
 
                         AllowedCameraStates = new Additional.Camera.StateTypes[] { Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.WholeVehicleOpen, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.FrontVehicleOpenHood, Additional.Camera.StateTypes.RightVehicle, Additional.Camera.StateTypes.BackVehicle, Additional.Camera.StateTypes.BackVehicleOpenTrunk, Additional.Camera.StateTypes.TopVehicle };
 
+                        Browser.Switch(Browser.IntTypes.Shop, true);
+
                         Browser.Window.ExecuteJs("Shop.fillContainer", 0, prices.Select(x =>
                         {
                             var data = Data.Vehicles.GetById(x.Key);
 
                             return new object[] { x.Key, data.Name, x.Value, Math.Floor(3.6f * RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(data.Model)), data.Tank, data.HasCruiseControl, data.HasAutoPilot, data.TrunkData?.Slots ?? 0, data.TrunkData?.MaxWeight ?? 0f };
                         }));
-
-                        Browser.Switch(Browser.IntTypes.Shop, true);
                     }
                     else if (type == Types.TuningShop)
                     {
@@ -1879,6 +1914,8 @@ namespace BCRPClient.CEF
 
                         GameEvents.Render -= RenderTuning;
                         GameEvents.Render += RenderTuning;
+
+                        await Browser.Render(Browser.IntTypes.Tuning, true, false);
 
                         // tech
                         var subData = new List<object>();
@@ -2027,11 +2064,9 @@ namespace BCRPClient.CEF
 
                         tData.Add(subData);
 
-                        await Browser.Render(Browser.IntTypes.Tuning, true, false);
+                        Browser.Switch(Browser.IntTypes.Tuning, true);
 
                         Browser.Window.ExecuteJs("Tuning.draw", new object[] { tData });
-
-                        Browser.Switch(Browser.IntTypes.Tuning, true);
 
                         Player.LocalPlayer.SetVisible(false, false);
 
@@ -2056,18 +2091,35 @@ namespace BCRPClient.CEF
                 if (prices == null)
                     return;
 
-                var sections = GetSections(type);
+                if (type == Types.FurnitureShop)
+                {
+                    var subTypeNum = (int)args[0];
 
-                if (sections == null)
-                    return;
+                    var subType = (FurnitureSubTypes)subTypeNum;
 
-                await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
+                    await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
-                CEF.Cursor.Show(true, true);
+                    CEF.Cursor.Show(true, true);
 
-                CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => new object[] { y, Data.Items.GetName(y), prices[y], (Data.Items.GetData(y) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y).Weight, false })), null, false);
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, false }) }, null, false);
 
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
+                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
+                }
+                else
+                {
+                    var sections = GetSections(type);
+
+                    if (sections == null)
+                        return;
+
+                    await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
+
+                    CEF.Cursor.Show(true, true);
+
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => new object[] { y, Data.Items.GetName(y), prices[y], (Data.Items.GetData(y) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y).Weight, false })), null, false);
+
+                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
+                }
             }
         }
 
