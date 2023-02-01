@@ -35,7 +35,7 @@ namespace BCRPClient.Sync
 
             public string Id => Object.GetSharedData<string>("I", null);
 
-            public uint Uid => Object.GetSharedData<int>("U", 0).ToUInt32();
+            public uint Uid => Object.GetSharedData<object>("U", 0).ToUInt32();
 
             public bool IsLocked => Object.GetSharedData<bool>("L", false);
 

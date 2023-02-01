@@ -70,15 +70,15 @@ namespace BCRPServer.Events.Players
                     }
                     else if (oType == Types.Cash)
                     {
-                        var cash = Convert.ToInt32(dataObj);
+                        var cash = Convert.ToUInt32(dataObj);
 
                         dataObj = cash;
 
-                        if (cash < 0 || cash == 0)
+                        if (cash == 0)
                             return ReturnTypes.Error;
 
-                        if (pData.Cash < cash)
-                            return ReturnTypes.NotEnoughMoneySource;
+                        if (!pData.TryRemoveCash(cash, out _, true))
+                            return ReturnTypes.Error;
 
                         target.TriggerEvent("Offer::Show", player.Handle, type, cash);
                     }
@@ -115,7 +115,7 @@ namespace BCRPServer.Events.Players
                         if (vInfo == null)
                             return ReturnTypes.Error;
 
-                        dataObj = new Offer.PropertySellData(vInfo, price);
+                        dataObj = new Offer.PropertySellData(vInfo, (ulong)price);
                     }
                     else if (oType == Types.SellBusiness)
                     {
@@ -133,7 +133,7 @@ namespace BCRPServer.Events.Players
                         if (bInfo == null)
                             return ReturnTypes.Error;
 
-                        dataObj = new Offer.PropertySellData(bInfo, price);
+                        dataObj = new Offer.PropertySellData(bInfo, (ulong)price);
                     }
                     else if (oType == Types.SellEstate)
                     {
@@ -155,7 +155,7 @@ namespace BCRPServer.Events.Players
                             if (house == null)
                                 return ReturnTypes.Error;
 
-                            dataObj = new Offer.PropertySellData(house, price);
+                            dataObj = new Offer.PropertySellData(house, (ulong)price);
                         }
                         else if (estType == PlayerData.PropertyTypes.Apartments)
                         {
@@ -164,7 +164,7 @@ namespace BCRPServer.Events.Players
                             if (aps == null)
                                 return ReturnTypes.Error;
 
-                            dataObj = new Offer.PropertySellData(aps, price);
+                            dataObj = new Offer.PropertySellData(aps, (ulong)price);
                         }
                         else if (estType == PlayerData.PropertyTypes.Garage)
                         {
@@ -173,7 +173,7 @@ namespace BCRPServer.Events.Players
                             if (garage == null)
                                 return ReturnTypes.Error;
 
-                            dataObj = new Offer.PropertySellData(garage, price);
+                            dataObj = new Offer.PropertySellData(garage, (ulong)price);
                         }
                         else
                             return ReturnTypes.Error;
@@ -218,11 +218,6 @@ namespace BCRPServer.Events.Players
 
                 case ReturnTypes.Error:
                     player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    break;
-
-                case ReturnTypes.NotEnoughMoneySource:
-                    player.TriggerEvent("Offer::Reply::Server", false, false, true);
-                    player.Notify("Trade::NotEnoughMoney");
                     break;
             }
         }
@@ -408,7 +403,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Trade::UpdateMoney")]
-        private static void UpdateMoney(Player player, int amount)
+        private static void UpdateMoney(Player player, int amountI)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -416,6 +411,11 @@ namespace BCRPServer.Events.Players
                 return;
 
             var pData = sRes.Data;
+
+            if (amountI < 0)
+                return;
+
+            var amount = (ulong)amountI;
 
             var offer = pData.ActiveOffer;
 

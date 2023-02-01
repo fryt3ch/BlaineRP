@@ -529,7 +529,7 @@ namespace BCRPServer
 
                                 var orgId = (int)reader["OrgID"];
 
-                                var cash = (int)reader["Cash"];
+                                var cash = Convert.ToUInt64(reader["Cash"]);
 
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<PlayerData.LastPlayerData>();
 

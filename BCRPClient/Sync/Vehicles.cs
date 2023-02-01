@@ -168,9 +168,9 @@ namespace BCRPClient.Sync
 
             public float Mileage { get => Vehicle.GetData<float?>("Mileage") ?? 0f; set => Vehicle.SetData("Mileage", value); }
 
-            public uint VID => (uint)Vehicle.GetSharedData<int>("VID", 0);
+            public uint VID => Vehicle.GetSharedData<object>("VID", 0).ToUInt32();
 
-            public uint? TID => Vehicle.GetSharedData<int?>("TID", null).ToUInt32();
+            public uint? TID => Vehicle.GetSharedData<object>("TID", null)?.ToUInt32() ?? null;
 
             public bool HasNeonMod => Vehicle.GetSharedData<bool>("Mods::Neon", false);
 

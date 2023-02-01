@@ -46,16 +46,16 @@ namespace BCRPClient.Data.NPCDialogues
                         }, true));
 
                         if (pData.OwnedHouses.FirstOrDefault() is Data.Locations.House house)
-                            btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", true, new object[] { house }); }, true));
+                            btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }, true));
 
                         if (pData.OwnedApartments.FirstOrDefault() is Data.Locations.Apartments aps)
-                            btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", true, new object[] { aps }); }, true));
+                            btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }, true));
 
                         if (pData.OwnedGarages.FirstOrDefault() is Data.Locations.Garage garage)
-                            btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", true, new object[] { garage }); }, true));
+                            btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }, true));
 
                         if (pData.OwnedBusinesses.FirstOrDefault() is Data.Locations.Business biz)
-                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_biz", true, new object[] { biz }); }, true));
+                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_biz", false, new object[] { biz }); }, true));
                     }
                     else
                     {
@@ -93,11 +93,11 @@ namespace BCRPClient.Data.NPCDialogues
                 if (data == null)
                     CloseCurrentDialogue();
 
-                var balance = int.Parse(data[0]);
-                var maxPaidDays = int.Parse(data[1]);
-                var minPaidDays = int.Parse(data[2]);
+                var balance = ulong.Parse(data[0]);
+                var maxPaidDays = uint.Parse(data[1]);
+                var minPaidDays = uint.Parse(data[2]);
 
-                var maxBalance = maxPaidDays <= 0 ? int.MaxValue : maxPaidDays * houseData.Tax;
+                var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * houseData.Tax;
                 var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * houseData.Tax;
 
                 var hoursLeft = balance / houseData.Tax;
@@ -188,11 +188,11 @@ namespace BCRPClient.Data.NPCDialogues
                     if (data == null)
                         CloseCurrentDialogue();
 
-                    var balance = int.Parse(data[0]);
-                    var maxPaidDays = int.Parse(data[1]);
-                    var minPaidDays = int.Parse(data[2]);
+                    var balance = ulong.Parse(data[0]);
+                    var maxPaidDays = uint.Parse(data[1]);
+                    var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays <= 0 ? int.MaxValue : maxPaidDays * apsData.Tax;
+                    var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * apsData.Tax;
                     var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * apsData.Tax;
 
                     var hoursLeft = balance / apsData.Tax;
@@ -283,11 +283,11 @@ namespace BCRPClient.Data.NPCDialogues
                     if (data == null)
                         CloseCurrentDialogue();
 
-                    var balance = int.Parse(data[0]);
-                    var maxPaidDays = int.Parse(data[1]);
-                    var minPaidDays = int.Parse(data[2]);
+                    var balance = ulong.Parse(data[0]);
+                    var maxPaidDays = uint.Parse(data[1]);
+                    var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays <= 0 ? int.MaxValue : maxPaidDays * garageData.Tax;
+                    var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * garageData.Tax;
                     var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * garageData.Tax;
 
                     var hoursLeft = balance / garageData.Tax;
@@ -378,11 +378,11 @@ namespace BCRPClient.Data.NPCDialogues
                     if (data == null)
                         CloseCurrentDialogue();
 
-                    var balance = int.Parse(data[0]);
-                    var maxPaidDays = int.Parse(data[1]);
-                    var minPaidDays = int.Parse(data[2]);
+                    var balance = ulong.Parse(data[0]);
+                    var maxPaidDays = uint.Parse(data[1]);
+                    var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays <= 0 ? int.MaxValue : maxPaidDays * businessData.Rent;
+                    var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * businessData.Rent;
                     var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * businessData.Rent;
 
                     var hoursLeft = balance / businessData.Rent;

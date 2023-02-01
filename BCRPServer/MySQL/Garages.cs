@@ -68,7 +68,7 @@ namespace BCRPServer
                             garage.UpdateOwner(pInfo);
                         }
 
-                        garage.Balance = (int)reader["Balance"];
+                        garage.Balance = Convert.ToUInt64(reader["Balance"]);
                     }
                 }
             }

@@ -420,7 +420,7 @@ namespace BCRPClient.CEF
                         break;
 
                     case PlayerActions.Money:
-                        if (pData.Cash <= 0)
+                        if (pData.Cash == 0)
                         {
                             CEF.Notification.Show("Trade::NotEnoughMoney");
 

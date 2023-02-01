@@ -29,7 +29,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "top_m_0", 100 },
                 { "top_m_1", 100 },
@@ -703,7 +703,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "top_m_134", 100},
                 { "top_m_135", 100},
@@ -1136,7 +1136,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
 
             }
@@ -1154,7 +1154,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "bag_m_0", 10 },
 
@@ -1174,7 +1174,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "mask_m_0", 10 },
                 { "mask_m_1", 10 },
@@ -1196,7 +1196,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "ring_m_0", 10 },
                 { "ring_m_1", 10 },

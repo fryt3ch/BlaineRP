@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using static BCRPClient.Locale.Notifications.Money;
 
 namespace BCRPClient.Sync
 {
@@ -173,11 +174,11 @@ namespace BCRPClient.Sync
             public PlayerData(Player Player) => this.Player = Player;
 
             #region Player Data
-            public uint CID => (uint)Player.GetSharedData<int>("CID", 0);
+            public uint CID => Player.GetSharedData<object>("CID", 0).ToUInt32();
 
-            public int Cash => Player.GetSharedData<int>("Cash", 0);
+            public ulong Cash => Player.GetSharedData<object>("Cash", 0).ToUInt64();
 
-            public int BankBalance => Player.GetSharedData<int>("BankBalance", 0);
+            public ulong BankBalance => Player.GetSharedData<object>("BankBalance", 0).ToUInt64();
 
             public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
@@ -1170,20 +1171,24 @@ namespace BCRPClient.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var cash = (int)value;
+                var cash = Convert.ToDecimal(value).ToUInt64();
 
                 CEF.HUD.SetCash(cash);
                 CEF.Menu.SetCash(cash);
 
-                var diff = cash - (oldValue == null ? cash : (int)oldValue);
+                var oldCash = oldValue == null ? cash : Convert.ToDecimal(oldValue).ToUInt64();
 
-                if (diff == 0)
+                if (cash == oldCash)
                     return;
 
-                string header = string.Format(diff <= 0 ? Locale.Notifications.Money.Cash.LossHeader : Locale.Notifications.Money.Cash.AddHeader, Math.Abs(diff));
-                string content = string.Format(Locale.Notifications.Money.Cash.Balance, cash);
-
-                CEF.Notification.Show(CEF.Notification.Types.Cash, header, content);
+                if (cash > oldCash)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Cash, string.Format(Locale.Notifications.Money.Cash.AddHeader, cash - oldCash), string.Format(Locale.Notifications.Money.Cash.Balance, cash));
+                }
+                else
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Cash, string.Format(Locale.Notifications.Money.Cash.LossHeader, oldCash - cash), string.Format(Locale.Notifications.Money.Cash.Balance, cash));
+                }
             });
 
             AddDataHandler("BankBalance", (pData, value, oldValue) =>
@@ -1191,7 +1196,7 @@ namespace BCRPClient.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var bank = (int)value;
+                var bank = Convert.ToDecimal(value).ToUInt64();
 
                 CEF.HUD.SetBank(bank);
                 CEF.Menu.SetBank(bank);
@@ -1199,15 +1204,19 @@ namespace BCRPClient.Sync
                 CEF.ATM.UpdateMoney(bank);
                 CEF.Bank.UpdateMoney(bank);
 
-                var diff = bank - (oldValue == null ? bank : (int)oldValue);
+                var oldCash = oldValue == null ? bank : Convert.ToDecimal(oldValue).ToUInt64();
 
-                if (diff == 0)
+                if (bank == oldCash)
                     return;
 
-                string header = string.Format(diff <= 0 ? Locale.Notifications.Money.Bank.LossHeader : Locale.Notifications.Money.Bank.AddHeader, Math.Abs(diff));
-                string content = string.Format(Locale.Notifications.Money.Bank.Balance, bank);
-
-                CEF.Notification.Show(CEF.Notification.Types.Bank, header, content);
+                if (bank > oldCash)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Bank, string.Format(Locale.Notifications.Money.Bank.AddHeader, bank - oldCash), string.Format(Locale.Notifications.Money.Bank.Balance, bank));
+                }
+                else
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Bank, string.Format(Locale.Notifications.Money.Bank.LossHeader, oldCash - bank), string.Format(Locale.Notifications.Money.Bank.Balance, bank));
+                }
             });
 
             AddDataHandler("IsWounded", (pData, value, oldValue) =>

@@ -171,7 +171,7 @@ namespace BCRPServer.Game.Estates
 
         public int Tax => GetTax(ClassType);
 
-        public int Balance { get; set; }
+        public ulong Balance { get; set; }
 
         public bool IsLocked { get; set; }
 

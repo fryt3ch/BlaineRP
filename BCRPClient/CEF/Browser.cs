@@ -242,10 +242,15 @@ namespace BCRPClient.CEF
         public static void HideAll(bool state)
         {
             foreach (var x in ActiveInterfaces)
-                Window.ExecuteCachedJs("switchTemplate", !state, IntNames[x]);
+                SwitchTemp(x, !state);
 
             if (CEF.Cursor.IsActive)
                 CEF.Cursor.IsVisible = !state;
+        }
+
+        public static void SwitchTemp(IntTypes type, bool state)
+        {
+            Window.ExecuteCachedJs("switchTemplate", state, IntNames[type]);
         }
         #endregion
     }

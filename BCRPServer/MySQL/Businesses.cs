@@ -35,22 +35,22 @@ namespace BCRPServer
                             business.UpdateOwner(PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"])));
                         }
 
-                        business.Cash = (int)reader["Cash"];
-                        business.Bank = (int)reader["Bank"];
+                        business.Cash = Convert.ToUInt64(reader["Cash"]);
+                        business.Bank = Convert.ToUInt64(reader["Bank"]);
 
                         business.IncassationState = (bool)reader["IncassationState"];
 
-                        business.Materials = (int)reader["Materials"];
-                        business.OrderedMaterials = (int)reader["OrderedMaterials"];
+                        business.Materials = Convert.ToUInt32(reader["Materials"]);
+                        business.OrderedMaterials = Convert.ToUInt32(reader["OrderedMaterials"]);
 
-                        business.Margin = (float)reader["Margin"];
+                        business.Margin = (decimal)(float)reader["Margin"];
 
-                        business.Tax = (float)reader["Tax"];
-                        business.Rent = (int)reader["Rent"];
+                        business.Tax = (decimal)(float)reader["Tax"];
+                        business.Rent = Convert.ToUInt32(reader["Rent"]);
 
-                        business.GovPrice = (int)reader["GovPrice"];
+                        business.GovPrice = Convert.ToUInt32(reader["GovPrice"]);
 
-                        business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<int[]>();
+                        business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<ulong[]>();
 
                         /*                        if (business is Game.Businesses.Farm)
                                                 {

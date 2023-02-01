@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Game.Businesses
 {
@@ -11,7 +12,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "hair_m_0", 10 },
                 { "hair_m_1", 10 },
@@ -161,9 +162,9 @@ namespace BCRPServer.Game.Businesses
             { "chest", 10 },
         };
 
-        public override bool BuyItem(PlayerData pData, bool useCash, string itemId)
+        public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
-            Console.WriteLine(itemId);
+            //Console.WriteLine(itemId);
 
             var iData = itemId.Split('&');
 
@@ -210,9 +211,10 @@ namespace BCRPServer.Game.Businesses
                     realItemId = iData[0];
             }
 
-            var res = CanBuy(pData, useCash, realItemId, 1);
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
 
-            if (res == null)
+            if (!TryProceedPayment(pData, useCash, realItemId, 1, out newMats, out newBalance, out newPlayerBalance))
                 return false;
 
             if (itemIdData[0] == "hair")
@@ -263,7 +265,7 @@ namespace BCRPServer.Game.Businesses
                 MySQL.CharacterHeadOverlaysUpdate(pData.Info);
             }
 
-            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             return true;
         }

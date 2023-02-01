@@ -115,9 +115,9 @@ namespace BCRPClient.Data
 
             public ClassTypes ClassType { get; set; }
 
-            public int Tax { get; set; }
+            public uint Tax { get; set; }
 
-            public int Price { get; set; }
+            public uint Price { get; set; }
 
             public string OwnerName => Sync.World.GetSharedData<string>($"Garages::{Id}::OName");
 
@@ -129,7 +129,7 @@ namespace BCRPClient.Data
 
             public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"Garage::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OGCS"); else Player.LocalPlayer.SetData($"Garage::{Id}::OGCS", value); } }
 
-            public Garage(uint Id, GarageRoot.Types RootType, Types Type, byte Variation, ClassTypes ClassType, int Tax, int Price)
+            public Garage(uint Id, GarageRoot.Types RootType, Types Type, byte Variation, ClassTypes ClassType, uint Tax, uint Price)
             {
                 this.Id = Id;
                 this.Type = Type;

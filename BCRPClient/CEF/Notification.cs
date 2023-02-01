@@ -139,6 +139,9 @@ namespace BCRPClient.CEF
 
             { "Inventory::FGNC", new Instance(Types.Error, Locale.Notifications.Inventory.FishingNotCatched, Locale.Notifications.ErrorHeader) },
 
+            { "Inv::HMPF", new Instance(Types.Error, Locale.Notifications.Inventory.MaxAmountFurnitureHouse, Locale.Notifications.ErrorHeader) },
+            { "Inv::PMPF", new Instance(Types.Error, Locale.Notifications.Inventory.MaxAmountFurnitureOwned, Locale.Notifications.ErrorHeader) },
+
             { "IOG::PINA", new Instance(Types.Error, Locale.Notifications.Inventory.PlacedItemOnGroundNotAllowed, Locale.Notifications.ErrorHeader) },
 
             { "Kick", new Instance(Types.Information, Locale.Notifications.General.Kick, Locale.Notifications.DefHeader) },

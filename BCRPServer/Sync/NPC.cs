@@ -90,10 +90,12 @@ namespace BCRPServer.Sync
                     if (vInfo == null)
                         return false;
 
-                    if (!pData.HasEnoughCash(Settings.VEHICLEPOUND_PAY_PRICE, true))
+                    ulong newCash;
+
+                    if (!pData.TryRemoveCash(Settings.VEHICLEPOUND_PAY_PRICE, out newCash, true))
                         return false;
 
-                    pData.Cash -= Settings.VEHICLEPOUND_PAY_PRICE;
+                    pData.SetCash(newCash);
 
                     vInfo.LastData.GarageSlot = -1;
 
@@ -142,12 +144,12 @@ namespace BCRPServer.Sync
 
                     var vSpawnPos = vSpawnData.GetNextVehicleSpawnPosition();
 
-                    if (!pData.HasEnoughCash(Settings.VEHICLERENT_S_PAY_PRICE, true))
-                    {
-                        return false;
-                    }
+                    ulong newCash;
 
-                    pData.AddCash(-Settings.VEHICLERENT_S_PAY_PRICE);
+                    if (!pData.TryRemoveCash(Settings.VEHICLERENT_S_PAY_PRICE, out newCash, true))
+                        return false;
+
+                    pData.SetCash(newCash);
 
                     var vTypeData = Game.Data.Vehicles.GetData("faggio");
 

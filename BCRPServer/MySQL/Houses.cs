@@ -39,7 +39,7 @@ namespace BCRPServer
                             house.UpdateOwner(pInfo);
                         }
 
-                        house.Balance = (int)reader["Balance"];
+                        house.Balance = Convert.ToUInt64(reader["Balance"]);
 
                         house.StyleData = Game.Estates.HouseBase.Style.Get(house.Type, house.RoomType, (Game.Estates.HouseBase.Style.Types)(int)reader["StyleType"]);
 
@@ -142,7 +142,7 @@ namespace BCRPServer
                             apartments.UpdateOwner(pInfo);
                         }
 
-                        apartments.Balance = (int)reader["Balance"];
+                        apartments.Balance = Convert.ToUInt64(reader["Balance"]);
 
                         apartments.StyleData = Game.Estates.HouseBase.Style.Get(apartments.Type, apartments.RoomType, (Game.Estates.HouseBase.Style.Types)(int)reader["StyleType"]);
 

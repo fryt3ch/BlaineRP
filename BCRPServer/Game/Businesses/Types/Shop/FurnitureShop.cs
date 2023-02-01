@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Game.Businesses
 {
@@ -12,7 +13,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 // Chairs
                 { "furn_91", 10 },
@@ -81,30 +82,26 @@ namespace BCRPServer.Game.Businesses
             this.PositionsInteract = PositionsInteract;
         }
 
-        public override bool BuyItem(PlayerData pData, bool useCash, string itemId)
+        public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
-            var iData = itemId.Split('&');
-
-            if (iData.Length != 1)
-                return false;
-
-            var res = CanBuy(pData, useCash, iData[0], 1);
-
-            if (res == null)
-                return false;
-
             if (pData.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
             {
-
+                pData.Player.Notify("Inv::PMPF", Settings.HOUSE_MAX_FURNITURE);
 
                 return false;
             }
 
-            var furn = new Game.Estates.Furniture(iData[0]);
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
+
+            if (!TryProceedPayment(pData, useCash, itemId, 1, out newMats, out newBalance, out newPlayerBalance))
+                return false;
+
+            var furn = new Game.Estates.Furniture(itemId);
 
             pData.AddFurniture(furn);
 
-            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             return true;
         }

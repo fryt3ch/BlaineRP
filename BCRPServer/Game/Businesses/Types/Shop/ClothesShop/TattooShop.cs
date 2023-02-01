@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Game.Businesses
 {
@@ -12,7 +13,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "tat_-1_0", 100 },
                 { "tat_-1_1", 100 },
@@ -776,13 +777,14 @@ namespace BCRPServer.Game.Businesses
 
         }
 
-        public override bool BuyItem(PlayerData pData, bool useCash, string itemId)
+        public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
-            Console.WriteLine(itemId);
+            //Console.WriteLine(itemId);
 
-            var res = CanBuy(pData, useCash, itemId, 1);
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
 
-            if (res == null)
+            if (!TryProceedPayment(pData, useCash, itemId, 1, out newMats, out newBalance, out newPlayerBalance))
                 return false;
 
             var iData = itemId.Split('_');
@@ -824,9 +826,9 @@ namespace BCRPServer.Game.Businesses
                 return false;
             }
 
-            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
-
             MySQL.CharacterDecorationsUpdate(pData.Info);
+
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             return true;
         }

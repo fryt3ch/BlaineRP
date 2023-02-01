@@ -410,9 +410,9 @@ namespace BCRPClient.CEF
             return "null";
         }
 
-        public static void SetCash(int value) => Browser.Window.ExecuteJs("Menu.setCash", value);
+        public static void SetCash(ulong value) => Browser.Window.ExecuteJs("Menu.setCash", value);
 
-        public static void SetBank(int value) => Browser.Window.ExecuteJs("Menu.setBank", value);
+        public static void SetBank(ulong value) => Browser.Window.ExecuteJs("Menu.setBank", value);
 
         public static void SetSex(bool state) => Browser.Window.ExecuteJs("Menu.setSex", state);
 

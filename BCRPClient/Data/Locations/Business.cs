@@ -70,13 +70,13 @@ namespace BCRPClient.Data
 
             public string Name => Locale.Property.BusinessNames.GetValueOrDefault(Type) ?? "null";
 
-            public int Price { get; set; }
+            public uint Price { get; set; }
 
-            public int Rent { get; set; }
+            public uint Rent { get; set; }
 
             public float Tax { get; set; }
 
-            public Business(int Id, Vector3 PositionInfo, Types Type, int Price, int Rent, float Tax)
+            public Business(int Id, Vector3 PositionInfo, Types Type, uint Price, uint Rent, float Tax)
             {
                 this.Type = Type;
 
@@ -145,7 +145,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public ClothesShop1(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop1, Price, Rent, Tax)
+            public ClothesShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop1, Price, Rent, Tax)
             {
                 this.Blip = new Blip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -167,7 +167,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public ClothesShop2(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop2, Price, Rent, Tax)
+            public ClothesShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop2, Price, Rent, Tax)
             {
                 this.Blip = new Blip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -189,7 +189,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public ClothesShop3(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
+            public ClothesShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
             {
                 this.Blip = new Blip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -211,7 +211,7 @@ namespace BCRPClient.Data
                 ("a_m_o_ktown_01", "Чжан"),
             };
 
-            public BagShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BagShop, Price, Rent, Tax)
+            public BagShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BagShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(377, PositionInteract.Position, Name, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -233,7 +233,7 @@ namespace BCRPClient.Data
                 ("a_m_y_jetski_01", "Джулиан"),
             };
 
-            public MaskShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MaskShop, Price, Rent, Tax)
+            public MaskShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MaskShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(362, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -256,7 +256,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public JewelleryShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.JewelleryShop, Price, Rent, Tax)
+            public JewelleryShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.JewelleryShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -279,7 +279,7 @@ namespace BCRPClient.Data
                 ("u_m_y_tattoo_01", "Сантьяго"),
             };
 
-            public TattooShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TattooShop, Price, Rent, Tax)
+            public TattooShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TattooShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -301,7 +301,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public BarberShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BarberShop, Price, Rent, Tax)
+            public BarberShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BarberShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -323,7 +323,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public Market(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.Market, Price, Rent, Tax)
+            public Market(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.Market, Price, Rent, Tax)
             {
                 this.Blip = new Blip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -340,7 +340,7 @@ namespace BCRPClient.Data
 
         public class GasStation : Business
         {
-            public GasStation(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Vector3 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
+            public GasStation(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Vector3 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
             {
                 this.Blip = new Blip(361, PositionGas, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -362,7 +362,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public CarShop1(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop1, Price, Rent, Tax)
+            public CarShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop1, Price, Rent, Tax)
             {
                 this.Blip = new Blip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -384,7 +384,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public CarShop2(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop2, Price, Rent, Tax)
+            public CarShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop2, Price, Rent, Tax)
             {
                 this.Blip = new Blip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -406,7 +406,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public CarShop3(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop3, Price, Rent, Tax)
+            public CarShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop3, Price, Rent, Tax)
             {
                 this.Blip = new Blip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -428,7 +428,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public MotoShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MotoShop, Price, Rent, Tax)
+            public MotoShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MotoShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -450,7 +450,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public BoatShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BoatShop, Price, Rent, Tax)
+            public BoatShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BoatShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -472,7 +472,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public AeroShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.AeroShop, Price, Rent, Tax)
+            public AeroShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.AeroShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -491,7 +491,7 @@ namespace BCRPClient.Data
         {
             public Additional.ExtraColshape EnteranceColshape { get; set; }
 
-            public TuningShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
+            public TuningShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -516,9 +516,9 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public static int ShootingRangePrice => Sync.World.GetSharedData<int>("SRange::Price", 0);
+            public static uint ShootingRangePrice => (uint)Sync.World.GetSharedData<int>("SRange::Price", 0);
 
-            public WeaponShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
+            public WeaponShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
@@ -550,7 +550,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public FurnitureShop(int Id, Vector3 PositionInfo, int Price, int Rent, float Tax, Utils.Vector4 PositionInteract, List<Vector3> PositionsInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
+            public FurnitureShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, List<Vector3> PositionsInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 

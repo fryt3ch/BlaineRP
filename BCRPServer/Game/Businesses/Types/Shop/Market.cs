@@ -11,7 +11,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "f_burger", 100 },
 

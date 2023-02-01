@@ -273,7 +273,7 @@ namespace BCRPClient.Additional
                         }
                     }
 
-                    LastAllowedWeapon = ((int)args[1]).ToUInt32();
+                    LastAllowedWeapon = args[1].ToUInt32();
 
                     Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
                 }

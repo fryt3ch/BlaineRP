@@ -11,52 +11,89 @@ namespace BCRPServer.Game.Businesses
         /// <remarks>Цены - в материалах, не в долларах</remarks>
         public static Dictionary<Types, MaterialsData> AllPrices { get; private set; } = new Dictionary<Types, MaterialsData>();
 
-        public Dictionary<string, int> Prices => AllPrices[Type].Prices;
+        public Dictionary<string, uint> Prices => AllPrices[Type].Prices;
 
-        public (int MatPrice, int RealPrice)? CanBuy(PlayerData pData, bool useCash, string itemId, int amount)
+        public bool TryProceedPayment(PlayerData pData, bool useCash, string itemId, uint amount, out uint newMats, out ulong newBalance, out ulong newPlayerBalance)
         {
-            var priceData = MaterialsData;
-
-            if (priceData == null)
-                return null;
-
-            int matPrice;
-
-            if (!priceData.Prices.TryGetValue(itemId, out matPrice))
-                return null;
-
-            matPrice *= amount;
-
-            if (Owner != null)
+            try
             {
-                if (!HasEnoughMaterials(matPrice, pData))
-                    return null;
+                var matData = MaterialsData;
+
+                var matPrice = matData.Prices[itemId];
+
+                matPrice *= amount;
+
+                if (Owner != null)
+                {
+                    if (!TryRemoveMaterials(matPrice, out newMats, true, pData))
+                    {
+                        newBalance = 0;
+                        newPlayerBalance = 0;
+
+                        return false;
+                    }
+                }
+                else
+                {
+                    newMats = 0;
+                }
+
+                var realPrice = (ulong)Math.Floor((decimal)matPrice * matData.RealPrice * Margin);
+
+                if (useCash)
+                {
+                    if (!pData.TryRemoveCash(realPrice, out newPlayerBalance, true))
+                    {
+                        newBalance = 0;
+
+                        return false;
+                    }
+
+                    var bizPrice = GetBusinessPrice(matPrice, true);
+
+                    if (!TryAddMoneyCash(bizPrice, out newBalance, true, pData))
+                        return false;
+                }
+                else
+                {
+                    if (!pData.HasBankAccount(true))
+                    {
+                        newBalance = 0;
+                        newPlayerBalance = 0;
+
+                        return false;
+                    }
+
+                    ulong cb;
+
+                    if (!pData.BankAccount.TryRemoveMoneyDebitUseCashback(realPrice, out newPlayerBalance, out cb, true))
+                    {
+                        newBalance = 0;
+
+                        return false;
+                    }
+
+                    realPrice -= cb;
+
+                    var bizPrice = GetBusinessPrice(matPrice, false);
+
+                    if (!TryAddMoneyBank(bizPrice, out newBalance, true, pData))
+                        return false;
+                }
+
+                return true;
             }
-
-            var realPrice = (int)Math.Floor(matPrice * priceData.RealPrice * Margin);
-
-            if (useCash)
+            catch (Exception)
             {
-                if (!pData.HasEnoughCash(realPrice, true))
-                    return null;
+                newMats = 0;
+                newBalance = 0;
+                newPlayerBalance = 0;
+
+                return false;
             }
-            else
-            {
-                if (!pData.HasBankAccount(true))
-                    return null;
-
-                var cb = pData.BankAccount.HasEnoughMoneyDebit(realPrice, true, true);
-
-                if (cb < 0)
-                    return null;
-
-                realPrice -= cb;
-            }
-
-            return (matPrice, realPrice);
         }
 
-        public virtual bool BuyItem(PlayerData pData, bool useCash, string itemId)
+        public virtual bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
             var iData = itemId.Split('&');
 
@@ -71,15 +108,16 @@ namespace BCRPServer.Game.Businesses
             if (variation < 0 || amount <= 0)
                 return false;
 
-            var res = CanBuy(pData, useCash, iData[0], amount);
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
 
-            if (res == null)
+            if (!TryProceedPayment(pData, useCash, iData[0], (uint)amount, out newMats, out newBalance, out newPlayerBalance))
                 return false;
 
             if (!pData.GiveItem(iData[0], variation, amount, true, true))
                 return false;
 
-            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             return true;
         }

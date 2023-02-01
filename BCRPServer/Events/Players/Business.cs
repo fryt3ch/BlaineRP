@@ -92,7 +92,7 @@ namespace BCRPServer.Events.Players
             if (pData.HasCooldown(PlayerData.CooldownTypes.ShootingRange, 2))
                 return;
 
-            if (!ws.BuyShootingRange(pData))
+            if (!ws.TryBuyShootingRange(pData))
                 return;
 
             var pDim = Utils.GetPrivateDimension(player);
@@ -429,7 +429,7 @@ namespace BCRPServer.Events.Players
                     return false;
             }
 
-            var res = shop.BuyItem(pData, useCash, id);
+            var res = shop.TryBuyItem(pData, useCash, id);
 
             return res;
         }
@@ -510,7 +510,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            bool paid = ((Func<bool>)(() =>
+/*            bool paid = ((Func<bool>)(() =>
             {
                 if (gs.Owner != null)
                 {
@@ -540,7 +540,7 @@ namespace BCRPServer.Events.Players
             else
             {
                 return;
-            }
+            }*/
         }
     }
 }

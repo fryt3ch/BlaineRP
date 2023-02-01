@@ -11,7 +11,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "w_asrifle", 100 },
                 { "w_asrifle_mk2", 100 },
@@ -85,7 +85,7 @@ namespace BCRPServer.Game.Businesses
 
         public Utils.Vector4 PositionShootingRangeEnter { get; set; }
 
-        public static int ShootingRangePrice { get => Sync.World.GetSharedData<int>("SRange::Price"); set => Sync.World.SetSharedData("SRange::Price", value); }
+        public static uint ShootingRangePrice { get => (uint)Sync.World.GetSharedData<int>("SRange::Price"); set => Sync.World.SetSharedData("SRange::Price", value); }
 
         public static Utils.Vector4 ShootingRangePosition { get; private set; } = new Utils.Vector4(13.00517f, -1098.977f, 29.79701f, 337.5131f);
 
@@ -101,16 +101,32 @@ namespace BCRPServer.Game.Businesses
             return Vector3.Distance(pData.Player.Position, PositionShootingRangeEnter.Position) <= 10f;
         }
 
-        public bool BuyShootingRange(PlayerData pData)
+        public bool TryBuyShootingRange(PlayerData pData)
         {
-            var price = ShootingRangePrice;
+            var price = (ulong)ShootingRangePrice;
 
-            if (!pData.HasEnoughCash(price))
+            ulong newCash;
+
+            if (!pData.TryRemoveCash(price, out newCash, true))
                 return false;
 
-            PaymentProceed(pData, true, price);
+            try
+            {
+                var bizPrice = GetBusinessPriceFixed(price, true);
 
-            return true;
+                ulong newBalance;
+
+                if (!TryAddMoneyCash(bizPrice, out newBalance, false))
+                    return false;
+
+                ProceedPayment(pData, true, Materials, newBalance, newCash);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }

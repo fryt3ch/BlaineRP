@@ -186,14 +186,21 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            int cash = (offer.Data as int?) ?? 0;
+                            var cash = (offer.Data as uint?) ?? 0;
 
-                            if (cash <= 0)
+                            if (cash == 0)
                                 return;
 
-                            pData.AddCash(-cash, true);
+                            ulong pNewCash, tNewCash;
 
-                            tData.AddCash(cash, true);
+                            if (!pData.TryRemoveCash(cash, out pNewCash, true, tData))
+                                return;
+
+                            if (!tData.TryAddCash(cash, out tNewCash, true, pData))
+                                return;
+
+                            pData.SetCash(pNewCash);
+                            tData.SetCash(tNewCash);
                         }
                     }
                 }
@@ -705,9 +712,9 @@ namespace BCRPServer.Sync
             {
                 public object Data { get; set; }
 
-                public int Price { get; set; }
+                public ulong Price { get; set; }
 
-                public PropertySellData(object Data, int Price)
+                public PropertySellData(object Data, ulong Price)
                 {
                     this.Data = Data;
                     this.Price = Price;
@@ -745,8 +752,8 @@ namespace BCRPServer.Sync
                 public List<Game.Estates.Garage> SenderGarages { get; set; }
                 public List<Game.Estates.Garage> ReceiverGarages { get; set; }
 
-                public int SenderMoney { get; set; }
-                public int ReceiverMoney { get; set; }
+                public ulong SenderMoney { get; set; }
+                public ulong ReceiverMoney { get; set; }
 
                 public bool SenderReady { get; set; }
                 public bool ReceiverReady { get; set; }
@@ -975,14 +982,28 @@ namespace BCRPServer.Sync
 
                     if (ReceiverMoney > 0)
                     {
-                        pData.AddCash(ReceiverMoney, true);
-                        tData.AddCash(-ReceiverMoney, true);
+                        ulong pNewCash;
+
+                        if (tData.TryRemoveCash(ReceiverMoney, out pNewCash, true, pData))
+                        {
+                            tData.SetCash(pNewCash);
+
+                            if (pData.TryAddCash(ReceiverMoney, out pNewCash, true, tData))
+                                pData.SetCash(pNewCash);
+                        }
                     }
 
                     if (SenderMoney > 0)
                     {
-                        tData.AddCash(SenderMoney, true);
-                        pData.AddCash(-SenderMoney, true);
+                        ulong pNewCash;
+
+                        if (pData.TryRemoveCash(SenderMoney, out pNewCash, true, pData))
+                        {
+                            pData.SetCash(pNewCash);
+
+                            if (tData.TryAddCash(SenderMoney, out pNewCash, true, tData))
+                                tData.SetCash(pNewCash);
+                        }
                     }
 
                     var senderSlotsToUpdate = new List<(int, string)>();
@@ -990,12 +1011,12 @@ namespace BCRPServer.Sync
 
                     for (int i = 0; i < senderItems.Count; i++)
                     {
-                        if (senderItems[i].ItemRoot is Game.Items.IStackable && senderItems[i].Amount < (senderItems[i].ItemRoot as Game.Items.IStackable).Amount)
+                        if (senderItems[i].ItemRoot is Game.Items.IStackable senderItemS && senderItems[i].Amount < senderItemS.Amount)
                         {
                             for (int j = 0; j < pData.Items.Length; j++)
                                 if (pData.Items[j] == senderItems[i].ItemRoot)
                                 {
-                                    (pData.Items[j] as Game.Items.IStackable).Amount -= senderItems[i].Amount;
+                                    senderItemS.Amount -= senderItems[i].Amount;
 
                                     senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
 
@@ -1023,12 +1044,12 @@ namespace BCRPServer.Sync
 
                     for (int i = 0; i < receiverItems.Count; i++)
                     {
-                        if (receiverItems[i].ItemRoot is Game.Items.IStackable && receiverItems[i].Amount < (receiverItems[i].ItemRoot as Game.Items.IStackable).Amount)
+                        if (receiverItems[i].ItemRoot is Game.Items.IStackable receiverItemS && receiverItems[i].Amount < receiverItemS.Amount)
                         {
                             for (int j = 0; j < tData.Items.Length; j++)
                                 if (tData.Items[j] == receiverItems[i].ItemRoot)
                                 {
-                                    (tData.Items[j] as Game.Items.IStackable).Amount -= receiverItems[i].Amount;
+                                    receiverItemS.Amount -= receiverItems[i].Amount;
 
                                     receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
 

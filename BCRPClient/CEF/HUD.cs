@@ -260,12 +260,12 @@ namespace BCRPClient.CEF
 
         #region JS Stuff
         /// <summary>Установить кол-во наличных</summary>
-        public static void SetCash(int value)
+        public static void SetCash(ulong value)
         {
             Browser.Window.ExecuteJs("Hud.setCash", value);
         }
         /// <summary>Установить кол-во денег в банке</summary>
-        public static void SetBank(int value)
+        public static void SetBank(ulong value)
         {
             Browser.Window.ExecuteJs("Hud.setBank", value);
         }
@@ -369,6 +369,9 @@ namespace BCRPClient.CEF
 
                 InteractionBind = RAGE.Input.Bind(key, true, () =>
                 {
+                    if (KeyBinds.Get(KeyBinds.Types.Interaction)?.IsDisabled == true)
+                        return;
+
                     InteractionAction?.Invoke();
                 });
             }

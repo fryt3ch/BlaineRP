@@ -1,8 +1,10 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Text;
 using static BCRPServer.Game.Bank;
+using static BCRPServer.PlayerData;
 
 namespace BCRPServer.Events.Players
 {
@@ -37,7 +39,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Bank::Debit::Send")]
-        private static bool SendMoney(Player player, int bankId, uint cid, int amount, bool isRequest) // add check if player isn't near the bank, if by mobile (bankId < 0) - tax add
+        private static bool SendMoney(Player player, int bankId, uint cid, int amountI, bool isRequest) // add check if player isn't near the bank, if by mobile (bankId < 0) - tax add
         {
             var sRes = player.CheckSpamAttack();
 
@@ -46,11 +48,13 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.BankAccount == null || amount <= 0)
+            if (pData.BankAccount == null || amountI <= 0)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return false;
+
+            var amount = (ulong)amountI;
 
             // if mobile
             if (bankId < 0)
@@ -65,7 +69,7 @@ namespace BCRPServer.Events.Players
 
             var tInfo = PlayerData.PlayerInfo.Get(cid);
 
-            if (tInfo == null || tInfo.CID == pData.CID)
+            if (tInfo == null || tInfo == pData.Info)
             {
                 player.Notify("Bank::TargetNotFound");
 
@@ -79,19 +83,13 @@ namespace BCRPServer.Events.Players
                 return false;
             }
 
-            if (pData.BankAccount.Balance < amount)
-            {
-                player.Notify("Bank::NotEnough", pData.BankAccount.Balance);
+            ulong newBalanceP;
 
+            if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBalanceP, true))
                 return false;
-            }
 
-            if (pData.BankAccount.TotalDayTransactions + (uint)amount > pData.BankAccount.Tariff.TransactionDayLimit)
-            {
-                player.Notify("Bank::DayLimitExceed");
-
+            if (!pData.BankAccount.HasEnoughTransactionLimit(amount))
                 return false;
-            }
 
             if (isRequest)
             {
@@ -100,13 +98,21 @@ namespace BCRPServer.Events.Players
                 return true;
             }
 
-            pData.BankAccount.SendMoney(tInfo, amount);
+            ulong newBalanceT;
+
+            if (!tInfo.BankAccount.TryAddMoneyDebit(amount, out newBalanceT))
+                return false;
+
+            pData.BankAccount.TotalDayTransactions += amount;
+
+            pData.BankAccount.SetDebitBalance(newBalanceP, $"#{pData.CID} SENT ${amount} TO #{tInfo.CID}");
+            tInfo.BankAccount.SetDebitBalance(newBalanceT, $"#{tInfo.CID} GOT ${amount} FROM #{pData.CID}");
 
             return true;
         }
 
         [RemoteEvent("Bank::Debit::Operation")]
-        private static void Operation(Player player, bool isAtm, int bankId, bool add, int amount) // add check if player isn't near the bank / atm
+        private static void Operation(Player player, bool isAtm, int bankId, bool add, int amountI) // add check if player isn't near the bank / atm
         {
             var sRes = player.CheckSpamAttack();
 
@@ -115,11 +121,13 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.BankAccount == null || amount <= 0)
+            if (pData.BankAccount == null || amountI <= 0)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
+
+            var amount = (ulong)amountI;
 
             if (isAtm)
             {
@@ -134,24 +142,33 @@ namespace BCRPServer.Events.Players
 
             if (add)
             {
-                if (!pData.AddCash(-amount, true))
+                ulong newCash;
+
+                if (!pData.TryRemoveCash(amount, out newCash, true))
                     return;
 
-                pData.BankAccount.Deposit(amount);
+                ulong newBalance;
+
+                if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBalance, true))
+                    return;
+
+                pData.SetCash(newCash);
+                pData.BankAccount.SetDebitBalance(newBalance, null);
             }
             else
             {
-                if (pData.BankAccount.Balance < amount)
-                {
-                    player.Notify("Bank::NotEnough", pData.BankAccount.Balance);
+                ulong newBalance;
 
-                    return;
-                }
-
-                if (!pData.AddCash(amount, true))
+                if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBalance, true))
                     return;
 
-                pData.BankAccount.Withdraw(amount); // add atm tax
+                ulong newCash;
+
+                if (!pData.TryAddCash(amount, out newCash, true))
+                    return;
+
+                pData.BankAccount.SetDebitBalance(newBalance, null); // add atm tax
+                pData.SetCash(newCash);
             }
         }
 
@@ -180,8 +197,12 @@ namespace BCRPServer.Events.Players
 
             if (pData.BankAccount == null)
             {
-                if (!pData.AddCash(-tariff.Price, true))
+                ulong newCash;
+
+                if (!pData.TryRemoveCash(tariff.Price, out newCash, true))
                     return;
+
+                pData.SetCash(newCash);
 
                 pData.BankAccount = new Account(pData.Info, tariffType);
 
@@ -189,24 +210,16 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                if (pData.BankAccount.Balance < tariff.Price)
-                {
-                    player.Notify("Bank::NotEnough", pData.BankAccount.Balance);
+                ulong newBalance;
 
+                if (!pData.BankAccount.TryRemoveMoneyDebit(tariff.Price, out newBalance, true, null))
                     return;
-                }
 
-                pData.BankBalance -= tariff.Price;
+                pData.BankAccount.SetDebitBalance(newBalance, $"#{pData.CID} BUY Tariff.{tariffType}");
 
                 pData.BankAccount.Tariff = tariff;
 
-                if (pData.BankAccount.SavingsBalance > tariff.MaxSavingsBalance)
-                {
-                    var diff = pData.BankAccount.SavingsBalance - tariff.MaxSavingsBalance;
-
-                    pData.BankBalance += diff;
-                    pData.BankAccount.SavingsBalance = tariff.MaxSavingsBalance;
-                }
+                MySQL.BankAccountTariffUpdate(pData.BankAccount);
 
                 player.TriggerEvent("MenuBank::Show", bankId, tariffNum, pData.BankAccount.Balance, pData.BankAccount.TotalDayTransactions, pData.BankAccount.SavingsBalance, pData.BankAccount.SavingsToDebit);
             }
@@ -349,7 +362,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Bank::HBC")]
-        private static int HouseBalanceChange(Player player, uint houseId, int amount, bool useCash, bool add)
+        private static int HouseBalanceChange(Player player, uint houseId, int amountI, bool useCash, bool add)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -361,8 +374,10 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return -1;
 
-            if (amount <= 0)
+            if (amountI <= 0)
                 return -1;
+
+            var amount = (ulong)amountI;
 
             if (pData.BankAccount == null)
                 return -1;
@@ -374,55 +389,70 @@ namespace BCRPServer.Events.Players
 
             if (add)
             {
-                var newAmount = house.Balance + amount;
+                ulong newBalance;
 
-                if (house.Tax * Settings.MAX_PAID_HOURS_HOUSE < newAmount)
+                if (!house.TryAddMoneyBalance(amount, out newBalance, true))
+                    return -1;
+
+                if ((uint)(house.Tax * Settings.MAX_PAID_HOURS_HOUSE) < newBalance)
                     return -1;
 
                 if (useCash)
                 {
-                    if (!pData.HasEnoughCash(amount, true))
+                    ulong newCash;
+
+                    if (!pData.TryRemoveCash(amount, out newCash, true))
                         return -1;
 
-                    pData.AddCash(-amount, true);
+                    pData.SetCash(newCash);
                 }
                 else
                 {
-                    if (pData.BankAccount.HasEnoughMoneyDebit(amount, false, true) < 0)
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
                         return -1;
 
-                    pData.BankAccount.Withdraw(amount);
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
                 }
 
-                house.Balance = newAmount;
+                house.SetBalance(newBalance, null);
             }
             else
             {
-                var newAmount = house.Balance - amount;
+                ulong newBalance;
 
-                if (newAmount <= 0)
-                {
-                    return -1;
-                }
-
-                if (house.Tax * Settings.MIN_PAID_HOURS_HOUSE > newAmount)
+                if (!house.TryRemoveMoneyBalance(amount, out newBalance, true))
                     return -1;
 
-                house.Balance = newAmount;
+                if ((uint)(house.Tax * Settings.MIN_PAID_HOURS_HOUSE) > newBalance)
+                    return -1;
 
                 if (useCash)
                 {
-                    pData.AddCash(amount, true);
+                    ulong newCash;
+
+                    if (!pData.TryAddCash(amount, out newCash, true))
+                        return -1;
+
+                    pData.SetCash(newCash);
                 }
                 else
                 {
-                    pData.BankAccount.Deposit(amount);
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
+                        return -1;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
                 }
+
+                house.SetBalance(newBalance, null);
             }
 
             MySQL.HouseUpdateBalance(house);
 
-            return house.Balance;
+            return 0; // todo
         }
     }
 }

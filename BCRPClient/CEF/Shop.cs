@@ -18,15 +18,15 @@ namespace BCRPClient.CEF
 
         public static bool IsActive => Browser.IsActiveOr(Browser.IntTypes.Shop, Browser.IntTypes.Retail, Browser.IntTypes.Tuning, Browser.IntTypes.Salon, Browser.IntTypes.TattooSalon);
 
-        public static bool IsActiveShop => Browser.IsActive(Browser.IntTypes.Shop);
+        public static bool IsRenderedShop => Browser.IsRendered(Browser.IntTypes.Shop);
 
-        public static bool IsActiveSalon => Browser.IsActive(Browser.IntTypes.Salon);
+        public static bool IsRenderedSalon => Browser.IsRendered(Browser.IntTypes.Salon);
 
-        public static bool IsActiveTattooSalon => Browser.IsActive(Browser.IntTypes.TattooSalon);
+        public static bool IsRenderedTattooSalon => Browser.IsRendered(Browser.IntTypes.TattooSalon);
 
-        public static bool IsActiveRetail => Browser.IsActive(Browser.IntTypes.Retail);
+        public static bool IsRenderedRetail => Browser.IsRendered(Browser.IntTypes.Retail);
 
-        public static bool IsActiveTuning => Browser.IsActive(Browser.IntTypes.Tuning);
+        public static bool IsRenderedTuning => Browser.IsRendered(Browser.IntTypes.Tuning);
 
         private static Additional.Camera.StateTypes[] AllowedCameraStates;
 
@@ -51,7 +51,11 @@ namespace BCRPClient.CEF
 
         public static Vehicle TempVehicle { get; private set; }
 
+        private static GameEntity TempEntity { get; set; }
+
         private static bool TestDriveActive { get; set; }
+
+        private static bool RetailPreviewActive { get; set; }
 
         /// <summary>Тип текущего магазина</summary>
         private static Types CurrentType;
@@ -137,15 +141,15 @@ namespace BCRPClient.CEF
             Decores,
         }
 
-        private static List<int> TempBinds;
+        private static List<int> TempBinds { get; set; } = new List<int>();
 
-        private static float DefaultHeading;
-        private static Vector3 DefaultPosition;
+        private static float DefaultHeading { get; set; }
+        private static Vector3 DefaultPosition { get; set; }
 
-        private static RAGE.Ui.Cursor.Vector2 LastCursorPos;
-        private static AsyncTask CursorTask;
+        private static RAGE.Ui.Cursor.Vector2 LastCursorPos { get; set; }
+        private static AsyncTask CursorTask { get; set; }
 
-        private static int CurrentCameraStateNum;
+        private static int CurrentCameraStateNum { get; set; }
 
         private static Dictionary<int, (int, int)> RealClothes;
         private static Dictionary<int, (int, int)> RealAccessories;
@@ -188,7 +192,7 @@ namespace BCRPClient.CEF
             { Types.AeroShop, 11 },
         };
 
-        private static Dictionary<Types, Dictionary<string, int>> Prices = new Dictionary<Types, Dictionary<string, int>>();
+        private static Dictionary<Types, Dictionary<string, uint>> Prices = new Dictionary<Types, Dictionary<string, uint>>();
 
         private static Dictionary<FurnitureSubTypes, Data.Furniture.Types[]> FurnitureSections = new Dictionary<FurnitureSubTypes, Data.Furniture.Types[]>()
         {
@@ -388,8 +392,6 @@ namespace BCRPClient.CEF
 
         public Shop()
         {
-            TempBinds = new List<int>();
-
             LastSent = DateTime.Now;
 
             CurrentType = Types.None;
@@ -401,7 +403,7 @@ namespace BCRPClient.CEF
             Events.Add("Shop::Show", async (object[] args) =>
             {
                 Types type = (Types)(int)args[0];
-                float margin = (float)args[1];
+                var margin = Convert.ToDecimal(args[1]);
 
                 float? heading = args.Length > 2 ? (float?)args[2] : null;
 
@@ -411,6 +413,34 @@ namespace BCRPClient.CEF
             Events.Add("Shop::Close::Server", (object[] args) => Close(true, false));
 
             Events.Add("Shop::Close", (object[] args) => { Close(false, true); });
+
+            Events.Add("Retail::Action", async (args) =>
+            {
+                var itemId = (string)args[0];
+
+                //Utils.ConsoleOutput(itemId);
+
+                if (CurrentType == Types.FurnitureShop)
+                {
+                    if (RetailPreviewActive)
+                        return;
+
+                    var furnData = Data.Furniture.GetData(itemId);
+
+                    if (furnData == null)
+                        return;
+
+                    await Utils.RequestModel(furnData.Model);
+
+                    var mapObj = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(furnData.Model, 2770.449f, 3469.131f, 55.53225f, false, false, false));
+
+                    mapObj.FreezePosition(true);
+
+                    mapObj.PlaceOnGroundProperly();
+
+                    StartRetailPreview(mapObj, 250f, Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.TopVehicle);
+                }
+            });
 
             Events.Add("Shop::UpdateColor", (object[] args) =>
             {
@@ -518,7 +548,6 @@ namespace BCRPClient.CEF
                     GameEvents.Render -= TestDriveRender;
                     GameEvents.Render += TestDriveRender;
 
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => StopTestDrive()));
                     TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.F4, true, () => Additional.TuningMenu.Show()));
                 }
             });
@@ -1174,7 +1203,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                             {
                                 CurrentColor1 = rgb1;
                                 CurrentColor2 = rgb2;
@@ -1191,7 +1220,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                             {
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "neon", rgb.HEXNoAlpha);
                             }
@@ -1205,7 +1234,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                             {
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "tsmoke", rgb.HEXNoAlpha);
                             }
@@ -1222,7 +1251,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "pearl", p);
                         }
                     }
@@ -1237,7 +1266,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", true, "wcolour", p);
                         }
                     }
@@ -1247,7 +1276,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
@@ -1257,7 +1286,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
@@ -1267,7 +1296,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
@@ -1277,7 +1306,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
@@ -1300,7 +1329,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
@@ -1324,7 +1353,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
-                            if (IsActiveTuning)
+                            if (IsRenderedTuning)
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
@@ -1370,7 +1399,7 @@ namespace BCRPClient.CEF
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", serverItemId, useCash))
                         {
-                            if (IsActiveTattooSalon)
+                            if (IsRenderedTattooSalon)
                             {
                                 CEF.Browser.Window.ExecuteJs("Tattoo.buyVariant", mainId, boughtItemId);
                             }
@@ -1411,7 +1440,7 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Shop::Buy", itemMainId, useCash))
                     {
-                        if (IsActiveSalon)
+                        if (IsRenderedSalon)
                         {
                             CEF.Browser.Window.ExecuteJs("Salon.buyVariant", itemMainIdBase, boughtItemParams);
                         }
@@ -1450,7 +1479,7 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(Types type, float margin, float? heading, object[] args)
+        public static async System.Threading.Tasks.Task Show(Types type, decimal margin, float? heading, object[] args)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -1484,34 +1513,6 @@ namespace BCRPClient.CEF
                     GameEvents.DisableAllControls(true);
 
                     KeyBinds.DisableAll(KeyBinds.Types.Cursor);
-
-                    CurrentCameraStateNum = 0;
-
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
-                    {
-                        if (CursorTask != null)
-                            return;
-
-                        LastCursorPos = RAGE.Ui.Cursor.Position;
-
-                        CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
-                        CursorTask.Run();
-                    }));
-
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
-                    {
-                        if (CursorTask == null)
-                            return;
-
-                        CursorTask.Cancel();
-
-                        CursorTask = null;
-                    }));
-
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
-                    {
-                        ChangeView(++CurrentCameraStateNum);
-                    }));
 
                     if (type == Types.BarberShop)
                     {
@@ -2102,8 +2103,6 @@ namespace BCRPClient.CEF
                     CEF.Cursor.Show(true, true);
 
                     CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, false }) }, null, false);
-
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
                 }
                 else
                 {
@@ -2117,10 +2116,59 @@ namespace BCRPClient.CEF
                     CEF.Cursor.Show(true, true);
 
                     CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => new object[] { y, Data.Items.GetName(y), prices[y], (Data.Items.GetData(y) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y).Weight, false })), null, false);
-
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false, true)));
                 }
             }
+
+            CurrentCameraStateNum = 0;
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            {
+                if (CursorTask != null)
+                    return;
+
+                LastCursorPos = RAGE.Ui.Cursor.Position;
+
+                CursorTask = new AsyncTask(() => OnTickMouse(), 10, true);
+                CursorTask.Run();
+            }));
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            {
+                if (CursorTask == null)
+                    return;
+
+                CursorTask.Cancel();
+
+                CursorTask = null;
+            }));
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            {
+                ChangeView(CurrentCameraStateNum + 1);
+            }));
+
+            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            {
+                if (!IsActive)
+                    return;
+
+                if (CEF.ActionBox.IsActive)
+                {
+                    CEF.ActionBox.Close(false);
+                }
+                else if (TestDriveActive)
+                {
+                    StopTestDrive();
+                }
+                else if (RetailPreviewActive)
+                {
+                    StopRetailPreview();
+                }
+                else
+                {
+                    Close(false, true);
+                }
+            }));
         }
 
         public static async void Close(bool ignoreTimeout = false, bool request = true)
@@ -2152,6 +2200,13 @@ namespace BCRPClient.CEF
             else
             {
                 Utils.CancelPendingTask("Shop::Loading");
+
+                if (CursorTask != null)
+                {
+                    CursorTask.Cancel();
+
+                    CursorTask = null;
+                }
 
                 if (RealClothes != null)
                 {
@@ -2259,6 +2314,8 @@ namespace BCRPClient.CEF
                 else if (Browser.IsRendered(Browser.IntTypes.Retail))
                 {
                     Browser.Render(Browser.IntTypes.Retail, false);
+
+                    StopRetailPreview();
                 }
 
                 CurrentType = Types.None;
@@ -2275,17 +2332,17 @@ namespace BCRPClient.CEF
         /// <summary>Получить цены по типу магазина</summary>
         /// <typeparam name="T">Тип выходных данных (Dictionary(string, int) or Dictionary(SectionTypes, Dictionary(string, int))></typeparam>
         /// <param name="type">Тип магазина</param>
-        private static Dictionary<string, int> GetPrices(Types type) => Prices.GetValueOrDefault(type);
+        private static Dictionary<string, uint> GetPrices(Types type) => Prices.GetValueOrDefault(type);
 
         private static Dictionary<SectionTypes, string[]> GetSections(Types type) => RetailSections.GetValueOrDefault(type);
 
-        private static void SetPricesCoef(float newCoef)
+        private static void SetPricesCoef(decimal newCoef)
         {
-            if (IsActiveShop)
+            if (IsRenderedShop)
             {
                 CEF.Browser.Window.ExecuteJs("Shop.priceCoef", newCoef);
             }
-            else if (IsActiveRetail)
+            else if (IsRenderedRetail)
             {
                 CEF.Browser.Window.ExecuteJs("Retail.priceCoef", newCoef);
             }
@@ -2297,9 +2354,6 @@ namespace BCRPClient.CEF
                 return;
 
             Additional.TuningMenu.Close();
-
-            RAGE.Input.Unbind(TempBinds[TempBinds.Count - 1]);
-            TempBinds.RemoveAt(TempBinds.Count - 1);
 
             RAGE.Input.Unbind(TempBinds[TempBinds.Count - 1]);
             TempBinds.RemoveAt(TempBinds.Count - 1);
@@ -2398,6 +2452,9 @@ namespace BCRPClient.CEF
 
         private static void OnTickMouse()
         {
+            if (AllowedCameraStates == null)
+                return;
+
             if (CurrentType >= Types.CarShop1 && CurrentType <= Types.AeroShop)
             {
                 if (TempVehicle == null || TestDriveActive)
@@ -2429,7 +2486,9 @@ namespace BCRPClient.CEF
                 Additional.Camera.Fov += 1;
             }
 
-            if (TempVehicle != null)
+            if (TempEntity != null)
+                RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, newHeading);
+            else if (TempVehicle != null)
                 TempVehicle.SetHeading(newHeading);
             else
                 Player.LocalPlayer.SetHeading(newHeading);
@@ -2463,26 +2522,99 @@ namespace BCRPClient.CEF
 
             CurrentCameraStateNum = camStateNum;
 
-            if (TempVehicle != null)
+            if (IsRenderedRetail)
             {
-                TempVehicle.SetHeading(DefaultHeading);
+                if (TempEntity != null)
+                {
+                    RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, DefaultHeading);
 
-                //var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
-                var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, 5f };
+                    Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempEntity, TempEntity, -1);
+                }
+                else
+                {
+                    Player.LocalPlayer.SetHeading(DefaultHeading);
 
-                var pDef = Additional.Camera.States[AllowedCameraStates[camStateNum]].Position;
-
-                //var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
-                var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * 1.5f);
-
-                Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
+                    Additional.Camera.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                }
             }
             else
             {
-                Player.LocalPlayer.SetHeading(DefaultHeading);
+                if (TempVehicle != null)
+                {
+                    TempVehicle.SetHeading(DefaultHeading);
 
-                Additional.Camera.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                    //var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, TempVehicle.GetModelRange() };
+                    var t = new float[] { (Additional.Camera.States[AllowedCameraStates[camStateNum]].SourceParams as float[])?[0] ?? 0f, 5f };
+
+                    var pDef = Additional.Camera.States[AllowedCameraStates[camStateNum]].Position;
+
+                    //var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * TempVehicle.GetModelSize().Z);
+                    var pOff = new Vector3(pDef.X, pDef.Y, pDef.Z * 1.5f);
+
+                    Additional.Camera.FromState(AllowedCameraStates[camStateNum], TempVehicle, TempVehicle, -1, t, null, pOff);
+                }
+                else
+                {
+                    Player.LocalPlayer.SetHeading(DefaultHeading);
+
+                    Additional.Camera.FromState(AllowedCameraStates[camStateNum], Player.LocalPlayer, Player.LocalPlayer, -1);
+                }
             }
+        }
+
+        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, params Additional.Camera.StateTypes[] cameraStates)
+        {
+            if (RetailPreviewActive)
+                return;
+
+            RetailPreviewActive = true;
+
+            CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, false);
+
+            GameEvents.DisableAllControls(true);
+
+            KeyBinds.DisableAll();
+
+            DefaultHeading = defaultHeading;
+
+            RAGE.Game.Entity.SetEntityHeading(gEntity.Handle, defaultHeading);
+
+            if (gEntity.Handle != Player.LocalPlayer.Handle)
+            {
+                TempEntity = gEntity;
+            }
+
+            AllowedCameraStates = cameraStates;
+
+            ChangeView(0);
+        }
+
+        private static void StopRetailPreview()
+        {
+            if (!RetailPreviewActive)
+                return;
+
+            RetailPreviewActive = false;
+
+            if (IsRenderedRetail)
+            {
+                CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, true);
+            }
+
+            if (TempEntity != null)
+            {
+                TempEntity.Destroy();
+
+                TempEntity = null;
+            }
+
+            AllowedCameraStates = null;
+
+            Additional.Camera.Disable(750);
+
+            GameEvents.DisableAllControls(false);
+
+            KeyBinds.EnableAll();
         }
     }
 }

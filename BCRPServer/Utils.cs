@@ -1300,5 +1300,45 @@ namespace BCRPServer
                 source_file.CopyTo(target_file.FullName, true);
             }
         }
+
+        public static bool TryAdd(this ulong source, ulong value, out ulong result)
+        {
+            unchecked
+            {
+                result = source + value;
+
+                return result >= source;
+            }
+        }
+
+        public static bool TrySubtract(this ulong source, ulong value, out ulong result)
+        {
+            unchecked
+            {
+                result = source - value;
+
+                return result <= source;
+            }
+        }
+
+        public static bool TryAdd(this uint source, uint value, out uint result)
+        {
+            unchecked
+            {
+                result = source + value;
+
+                return result >= source;
+            }
+        }
+
+        public static bool TrySubtract(this uint source, uint value, out uint result)
+        {
+            unchecked
+            {
+                result = source - value;
+
+                return result <= source;
+            }
+        }
     }
 }

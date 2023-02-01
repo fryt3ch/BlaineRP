@@ -212,19 +212,19 @@ namespace BCRPServer.Game
             public PlayerData.PlayerInfo PlayerInfo { get; set; }
 
             /// <summary>Баланс</summary>
-            public int Balance { get; set; }
+            public ulong Balance { get; set; }
 
             /// <summary>Баланс сбер. счета/summary>
-            public int SavingsBalance { get; set; }
+            public ulong SavingsBalance { get; set; }
 
             /// <summary>Включено ли начисление процента со сбер.счета на дебебтовый счет?</summary>
             public bool SavingsToDebit { get; set; }
 
             /// <summary>Минимальный остаток на сбер. счете сегодня</summary>
-            public int MinSavingsBalance { get; set; }
+            public ulong MinSavingsBalance { get; set; }
 
             /// <summary>Общая сумма переводов сегодня</summary>
-            public uint TotalDayTransactions { get; set; }
+            public ulong TotalDayTransactions { get; set; }
 
             /// <summary>Тариф</summary>
             public Tariff Tariff { get; set; }
@@ -240,154 +240,149 @@ namespace BCRPServer.Game
                 MySQL.BankAccountAdd(this);
             }
 
-            /// <summary>Метод для проверки того, достаточно ли на балансе средств</summary>
-            /// <param name="value">Сумма снятия</param>
-            /// <param name="useCashback">Вычесть ли кэшбек?</param>
-            /// <param name="notifyOnFault"></param>
-            /// <returns>-1 если недостаточно средств, сумма кэшбека - в противном случае (если кэшбека нет - 0)</returns>
-            public int HasEnoughMoneyDebit(int value, bool useCashback = false, bool notifyOnFault = true)
+            public bool TryAddMoneyDebit(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
             {
-                if (useCashback)
+                if (!Balance.TryAdd(amount, out newBalance))
                 {
-                    var cb = Tariff.GetCashback(value);
+                    if (notifyOnFault)
+                    {
 
-                    if (Balance >= value - cb)
-                        return cb;
-                }
-                else
-                {
-                    if (Balance >= value)
-                        return 0;
+                    }
+
+                    return false;
                 }
 
-                if (notifyOnFault)
-                    PlayerInfo.PlayerData?.Player.Notify("Bank::NotEnough", Balance);
-
-                return -1;
+                return true;
             }
 
-            public void SendMoney(PlayerData.PlayerInfo pInfo, int amount)
+            public bool TryRemoveMoneyDebit(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
             {
-                if (PlayerInfo.PlayerData == null)
+                if (!Balance.TrySubtract(amount, out newBalance))
                 {
-                    PlayerInfo.BankAccount.Balance -= amount;
-                }
-                else
-                {
-                    PlayerInfo.PlayerData.BankBalance -= amount;
-                }
+                    if (notifyOnFault)
+                    {
+                        if (PlayerInfo.PlayerData != null)
+                        {
+                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                        }
+                    }
 
-                if (pInfo.PlayerData == null)
-                {
-                    pInfo.BankAccount.Balance += amount;
-                }
-                else
-                {
-                    pInfo.PlayerData.BankBalance += amount;
+                    return false;
                 }
 
-                TotalDayTransactions += (uint)amount;
-
-                MySQL.BankAccountUpdate(this);
-
-                MySQL.BankAccountUpdate(pInfo.BankAccount);
+                return true;
             }
 
-            public void Deposit(int amount)
+            public bool TryRemoveMoneyDebitUseCashback(ulong value, out ulong newBalance, out ulong totalCashback, bool notifyOnFault = true, PlayerData tData = null)
             {
-                if (PlayerInfo.PlayerData == null)
-                {
-                    Balance += amount;
-                }
-                else
-                {
-                    PlayerInfo.PlayerData.BankBalance += amount;
-                }
+                totalCashback = Tariff.GetCashback(value);
 
-                MySQL.BankAccountUpdate(this);
+                return TryRemoveMoneyDebit(value - totalCashback, out newBalance, notifyOnFault, tData);
             }
 
-            public void Withdraw(int amount)
+            public void SetDebitBalance(ulong value, string reason)
             {
-                if (PlayerInfo.PlayerData == null)
+                if (PlayerInfo.PlayerData != null)
                 {
-                    Balance -= amount;
+                    PlayerInfo.PlayerData.BankBalance = value;
                 }
                 else
                 {
-                    PlayerInfo.PlayerData.BankBalance -= amount;
+                    Balance = value;
                 }
 
-                MySQL.BankAccountUpdate(this);
+                MySQL.BankAccountBalancesUpdate(this);
             }
 
-            public void DepositSavings(int amount)
+            public bool TryAddMoneySavings(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
             {
-                if (PlayerInfo.PlayerData == null)
+                if (!SavingsBalance.TryAdd(amount, out newBalance))
                 {
-                    PlayerInfo.BankAccount.Balance -= amount;
-                }
-                else
-                {
-                    PlayerInfo.PlayerData.BankBalance -= amount;
+                    if (notifyOnFault)
+                    {
+
+                    }
+
+                    return false;
                 }
 
-                SavingsBalance += amount;
-
-                MySQL.BankAccountUpdate(this);
+                return true;
             }
 
-            public void WithdrawSavings(int amount)
+            public bool TryRemoveMoneySavings(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
             {
-                SavingsBalance -= amount;
-
-                if (PlayerInfo.PlayerData == null)
+                if (!SavingsBalance.TrySubtract(amount, out newBalance))
                 {
-                    PlayerInfo.BankAccount.Balance += amount;
+                    if (notifyOnFault)
+                    {
+
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            public void SetSavingsBalance(ulong value, string reason)
+            {
+                SavingsBalance = value;
+
+                MySQL.BankAccountBalancesUpdate(this);
+            }
+
+            public bool HasEnoughTransactionLimit(ulong amount, bool notifyOnFault = true)
+            {
+                if (Tariff.TransactionDayLimit == 0)
+                    return true;
+
+                ulong newLimitSum;
+
+                if (!TotalDayTransactions.TryAdd(amount, out newLimitSum))
+                {
+                    return false;
+                }
+
+                if (newLimitSum > Tariff.TransactionDayLimit)
+                {
+                    if (notifyOnFault)
+                        PlayerInfo.PlayerData?.Player.Notify("Bank::DayLimitExceed");
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            public void GiveSavingsBenefit()
+            {
+                var totalMoney = MinSavingsBalance > Tariff.MaxSavingsBalance ? Tariff.MaxSavingsBalance : MinSavingsBalance;
+
+                var toGive = (ulong)Math.Round(totalMoney * Tariff.SavingsPercentage);
+
+                if (toGive == 0)
+                    return;
+
+                if (SavingsToDebit)
+                {
+                    ulong newBalance;
+
+                    if (!TryAddMoneyDebit(toGive, out newBalance, true))
+                        return;
+
+                    SetDebitBalance(newBalance, null);
                 }
                 else
                 {
-                    PlayerInfo.PlayerData.BankBalance += amount;
+                    ulong newSavingsBalance;
+
+                    if (!TryAddMoneySavings(toGive, out newSavingsBalance, true))
+                        return;
+
+                    SetSavingsBalance(newSavingsBalance, null);
                 }
 
                 MinSavingsBalance = SavingsBalance;
-
-                MySQL.BankAccountUpdate(this);
-            }
-
-            public int GiveSavingsBenefit(int amount)
-            {
-                if (Tariff.SavingsPercentage > 0f)
-                {
-                    var toGive = (int)Math.Round(MinSavingsBalance * Tariff.SavingsPercentage);
-
-                    if (toGive == 0)
-                    {
-                        return 0;
-                    }
-
-                    if (SavingsToDebit || SavingsBalance + toGive > Tariff.MaxSavingsBalance)
-                    {
-                        if (PlayerInfo.PlayerData == null)
-                        {
-                            PlayerInfo.BankAccount.Balance += amount;
-                        }
-                        else
-                        {
-                            PlayerInfo.PlayerData.BankBalance += amount;
-                        }
-                    }
-                    else
-                    {
-                        SavingsBalance += toGive;
-                    }
-
-                    MinSavingsBalance = SavingsBalance;
-
-                    MySQL.BankAccountUpdate(this);
-                }
-
-                return 0;
             }
         }
 
@@ -395,11 +390,11 @@ namespace BCRPServer.Game
         {
             public static Dictionary<Types, Tariff> All { get; private set; } = new Dictionary<Types, Tariff>()
             {
-                { Types.Standart, new Tariff(Types.Standart, 25_000, 1_000_000, 0.7f, 10000, 0.05f, 5000) },
+                { Types.Standart, new Tariff(Types.Standart, 25_000, 1_000_000, 0.7m, 10000, 0.05m, 5000) },
 
-                { Types.StandartPlus, new Tariff(Types.StandartPlus, 50_000, 2_400_000, 1.5f, 100_000, 0.1f, 10_000) },
+                { Types.StandartPlus, new Tariff(Types.StandartPlus, 50_000, 2_400_000, 1.5m, 100_000, 0.1m, 10_000) },
 
-                { Types.Supreme, new Tariff(Types.Supreme, 125_000, 500_000, 3.2f, 700_000, 0.15f, 15_000) },
+                { Types.Supreme, new Tariff(Types.Supreme, 125_000, 500_000, 3.2m, 700_000, 0.15m, 15_000) },
             };
 
             public enum Types
@@ -415,24 +410,24 @@ namespace BCRPServer.Game
             public Types Type { get; set; }
 
             /// <summary>Стоимость тарифа</summary>
-            public int Price { get; set; }
+            public uint Price { get; set; }
 
             /// <summary>Максимальный баланс сбер. счета</summary>
-            public int MaxSavingsBalance { get; set; }
+            public uint MaxSavingsBalance { get; set; }
 
             /// <summary>Лимит переводов в сутки</summary>
-            public int TransactionDayLimit { get; set; }
+            public uint TransactionDayLimit { get; set; }
 
             /// <summary>Процент кэшбека</summary>
-            public float Cashback { get; set; }
+            public decimal Cashback { get; set; }
 
             /// <summary>Максимальный кэшбек за покупку</summary>
-            public int MaxCashback { get; set; }
+            public uint MaxCashback { get; set; }
 
             /// <summary>Процент сбер. счета/summary>
-            public float SavingsPercentage { get; set; }
+            public decimal SavingsPercentage { get; set; }
 
-            public Tariff(Types Type, int Price, int MaxSavingsBalance, float SavingsPercentage, int TransactionDayLimit, float Cashback, int MaxCashback)
+            public Tariff(Types Type, uint Price, uint MaxSavingsBalance, decimal SavingsPercentage, uint TransactionDayLimit, decimal Cashback, uint MaxCashback)
             {
                 this.Type = Type;
 
@@ -447,12 +442,18 @@ namespace BCRPServer.Game
                 this.MaxCashback = MaxCashback;
             }
 
-            public int GetCashback(int value)
+            public ulong GetCashback(ulong value)
             {
-                int cb = (int)Math.Floor(value * Cashback);
+                if (Cashback <= 0)
+                    return 0;
+
+                var cb = (ulong)Math.Floor(value * Cashback);
+
+                if (cb >= value)
+                    return 0;
 
                 if (cb > MaxCashback)
-                    cb = MaxCashback;
+                    return MaxCashback;
 
                 return cb;
             }

@@ -49,6 +49,9 @@ namespace BCRPClient
                 public static string WorkbenchResultItemExists = "Перед тем, как начать создание нового предмета, заберите уже созданный!";
 
                 public static string PlacedItemOnGroundNotAllowed = "Этот предмет принадлежит другому игроку!";
+
+                public static string MaxAmountFurnitureOwned = "Вы уже владеете максимальным кол-вом мебели ({0})!";
+                public static string MaxAmountFurnitureHouse = "Вы разместили максимально возможное кол-во мебели ({0})!";
             }
 
             public static class Container

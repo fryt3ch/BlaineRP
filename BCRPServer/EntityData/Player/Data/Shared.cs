@@ -18,12 +18,12 @@ namespace BCRPServer
         /// <value>От 0 до 100</value>
         public int Mood { get => Info.LastData.Mood; set { Player.SetOwnSharedData("Mood", value); Info.LastData.Mood = value; } }
 
-        public int BankBalance { get => Info.BankAccount?.Balance ?? 0; set { Player.SetOwnSharedData("BankBalance", value); if (Info.BankAccount != null) Info.BankAccount.Balance = value; } }
+        public ulong BankBalance { get => Info.BankAccount?.Balance ?? 0; set { Player.SetOwnSharedData("BankBalance", value); if (Info.BankAccount != null) Info.BankAccount.Balance = value; } }
 
         /// <summary>Наличные игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Кол-во наличных средств</value>
-        public int Cash { get => Info.Cash; set { Player.SetOwnSharedData("Cash", value); Info.Cash = value; } }
+        public ulong Cash { get => Info.Cash; set { Player.SetOwnSharedData("Cash", value); Info.Cash = value; } }
 
         /// <summary>Организация игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

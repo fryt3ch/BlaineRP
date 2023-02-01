@@ -5,20 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static BCRPServer.PlayerData;
 
 namespace BCRPServer.Game.Businesses
 {
     public class MaterialsData
     {
-        public int BuyPrice { get; set; }
+        public uint BuyPrice { get; set; }
 
-        public int SellPrice { get; set; }
+        public uint SellPrice { get; set; }
 
-        public int RealPrice { get; set; }
+        public uint RealPrice { get; set; }
 
-        public Dictionary<string, int> Prices { get; set; }
+        public Dictionary<string, uint> Prices { get; set; }
 
-        public MaterialsData(int BuyPrice, int SellPrice, int RealPrice)
+        public MaterialsData(uint BuyPrice, uint SellPrice, uint RealPrice)
         {
             this.BuyPrice = BuyPrice;
             this.SellPrice = SellPrice;
@@ -34,7 +35,7 @@ namespace BCRPServer.Game.Businesses
 
         public static int PreviousStatisticsDayIdx { get; set; }
 
-        public const float INCASSATION_TAX = 0.05f;
+        public const decimal INCASSATION_TAX = 0.05m;
 
         public enum Types
         {
@@ -84,28 +85,28 @@ namespace BCRPServer.Game.Businesses
         public PlayerData.PlayerInfo Owner { get; set; }
 
         /// <summary>Наличных в кассе</summary>
-        public int Cash { get; set; }
+        public ulong Cash { get; set; }
 
         /// <summary>Денег в банке</summary>
-        public int Bank { get; set; }
+        public ulong Bank { get; set; }
 
         /// <summary>Кол-во материалов</summary>
-        public int Materials { get; set; }
+        public uint Materials { get; set; }
 
         /// <summary>Кол-во заказанных материалов</summary>
-        public int OrderedMaterials { get; set; }
+        public uint OrderedMaterials { get; set; }
 
         public bool IncassationState { get; set; }
 
         /// <summary>Гос. цена</summary>
-        public int GovPrice { get; set; }
+        public uint GovPrice { get; set; }
 
         /// <summary>Наценка на товары</summary>
-        public float Margin { get; set; }
+        public decimal Margin { get; set; }
 
-        public float Tax { get; set; }
+        public decimal Tax { get; set; }
 
-        public int Rent { get; set; }
+        public uint Rent { get; set; }
 
         /// <summary>Позиция бизнеса</summary>
         public Vector3 PositionInfo { get; set; }
@@ -113,7 +114,7 @@ namespace BCRPServer.Game.Businesses
         public Utils.Vector4 PositionInteract { get; set; }
 
         /// <summary>Статистика прибыли</summary>
-        public int[] Statistics { get; set; }
+        public ulong[] Statistics { get; set; }
 
         public MaterialsData MaterialsData => Shop.AllPrices.GetValueOrDefault(Type);
 
@@ -166,96 +167,174 @@ namespace BCRPServer.Game.Businesses
             Sync.World.SetSharedData($"Business::{ID}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
-        public bool HasEnoughMaterials(int value, PlayerData pData = null)
+        public bool TryAddMoneyCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
         {
-            if (Materials >= value)
-                return true;
+            if (!Cash.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
 
-            if (pData != null)
-                pData.Player.Notify("Business:NoMats");
+                }
 
-            return false;
+                return false;
+            }
+
+            return true;
         }
 
-        public void UpdateStatistics(int value) => Statistics[CurrentStatisticsDayIdx] += value;
+        public bool TryRemoveMoneyCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Cash.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+/*                    if (PlayerInfo.PlayerData != null)
+                    {
+                        PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                    }*/
+                }
 
-        public void PaymentProceed(PlayerData pData, bool cash, int mats, int realPrice)
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetCash(ulong amount)
+        {
+            Cash = amount;
+        }
+
+        public bool TryAddMoneyBank(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Bank.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveMoneyBank(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Bank.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+                    /*                    if (PlayerInfo.PlayerData != null)
+                                        {
+                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                                        }*/
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetBank(ulong amount)
+        {
+            Bank = amount;
+        }
+
+        public bool TryAddMaterials(uint amount, out uint newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Materials.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveMaterials(uint amount, out uint newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Materials.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Business:NoMats");
+                    }
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetMaterials(uint amount)
+        {
+            Materials = amount;
+        }
+
+        public void UpdateStatistics(ulong value)
+        {
+            ulong newStatDaySum;
+
+            if (!Statistics[CurrentStatisticsDayIdx].TryAdd(value, out newStatDaySum))
+            {
+                if (Statistics[CurrentStatisticsDayIdx] == ulong.MaxValue)
+                    return;
+
+                newStatDaySum = ulong.MaxValue;
+            }
+
+            Statistics[CurrentStatisticsDayIdx] = newStatDaySum;
+        }
+
+        public ulong GetBusinessPrice(uint mats, bool useCash) => useCash ? (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax)) : (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax - INCASSATION_TAX));
+
+        public ulong GetBusinessPriceFixed(ulong fixedPrice, bool useCash) => useCash ? (ulong)Math.Floor(fixedPrice * (1m - Tax)) : (ulong)Math.Floor(fixedPrice * (1m - Tax - INCASSATION_TAX));
+
+        public void ProceedPayment(PlayerData pData, bool cash, uint newMats, ulong newBalance, ulong newPlayerBalance)
         {
             if (cash)
             {
                 if (Owner != null)
                 {
-                    Materials -= mats;
+                    if (newMats != Materials)
+                        SetMaterials(newMats);
 
-                    var moneyGet = (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax));
+                    if (newBalance > Cash)
+                        UpdateStatistics(newBalance - Cash);
 
-                    Cash += moneyGet;
-
-                    UpdateStatistics(moneyGet);
+                    SetCash(newBalance);
 
                     MySQL.BusinessUpdateBalances(this);
                 }
 
-                pData.Cash -= realPrice;
-
-                MySQL.CharacterCashUpdate(pData.Info);
+                pData.SetCash(newPlayerBalance);
             }
             else
             {
                 if (Owner != null)
                 {
-                    Materials -= mats;
+                    if (newMats != Materials)
+                        SetMaterials(newMats);
 
-                    var moneyGet = (int)Math.Floor(mats * MaterialsData.SellPrice * Margin * (1f - Tax - INCASSATION_TAX));
+                    if (newBalance > Bank)
+                        UpdateStatistics(newBalance - Bank);
 
-                    Bank += moneyGet;
-
-                    UpdateStatistics(moneyGet);
-
-                    MySQL.BusinessUpdateBalances(this);
-                }
-
-                pData.BankBalance -= realPrice;
-
-                MySQL.BankAccountUpdate(pData.BankAccount);
-            }
-        }
-
-        public void PaymentProceed(PlayerData pData, bool cash, int fixedPrice)
-        {
-            if (cash)
-            {
-                if (Owner != null)
-                {
-                    var moneyGet = (int)Math.Floor(fixedPrice * (1f - Tax));
-
-                    Cash += moneyGet;
-
-                    UpdateStatistics(moneyGet);
+                    SetBank(newBalance);
 
                     MySQL.BusinessUpdateBalances(this);
                 }
 
-                pData.Cash -= fixedPrice;
-
-                MySQL.CharacterCashUpdate(pData.Info);
-            }
-            else
-            {
-                if (Owner != null)
-                {
-                    var moneyGet = (int)Math.Floor(fixedPrice * (1f - Tax - INCASSATION_TAX));
-
-                    Bank += moneyGet;
-
-                    UpdateStatistics(moneyGet);
-
-                    MySQL.BusinessUpdateBalances(this);
-                }
-
-                pData.BankBalance -= fixedPrice;
-
-                MySQL.BankAccountUpdate(pData.BankAccount);
+                pData.BankAccount.SetDebitBalance(newPlayerBalance, null);
             }
         }
 
@@ -264,53 +343,36 @@ namespace BCRPServer.Game.Businesses
             if (Owner == null)
                 return;
 
-            if (Owner.PlayerData == null)
+            ulong newBalance;
+
+            if (Cash > 0)
             {
-                if (moneyBack)
+                if (Owner.TryAddCash(Cash, out newBalance, true))
                 {
-                    if (Owner.BankAccount != null)
-                    {
-                        Owner.Cash += Cash;
-
-                        Owner.BankAccount.Balance += Bank + GovPrice / 2;
-
-                        MySQL.BankAccountUpdate(Owner.PlayerData.BankAccount);
-                    }
-                    else
-                    {
-                        Owner.Cash += Cash + Bank + GovPrice / 2;
-                    }
-
-                    MySQL.CharacterCashUpdate(Owner);
+                    Owner.SetCash(newBalance);
                 }
             }
-            else
+
+            if (Bank > 0)
             {
-                if (moneyBack)
+                if (Owner.BankAccount != null)
                 {
-                    if (Owner.PlayerData.BankAccount != null)
+                    if (Owner.BankAccount.TryAddMoneyDebit(Bank, out newBalance, true))
                     {
-                        Owner.PlayerData.Cash += Cash;
-
-                        Owner.PlayerData.BankBalance += Bank + GovPrice / 2;
-
-                        MySQL.BankAccountUpdate(Owner.PlayerData.BankAccount);
+                        Owner.BankAccount.SetDebitBalance(newBalance, null);
                     }
-                    else
-                    {
-                        Owner.PlayerData.Cash += Cash + Bank + GovPrice / 2;
-                    }
-
-                    MySQL.CharacterCashUpdate(Owner);
                 }
+            }
 
+            if (Owner.PlayerData != null)
+            {
                 Owner.PlayerData.RemoveBusinessProperty(this);
             }
 
             Cash = 0;
             Bank = 0;
             Materials = 0;
-            Margin = 1f;
+            Margin = 1m;
 
             UpdateOwner(null);
 
@@ -319,7 +381,16 @@ namespace BCRPServer.Game.Businesses
 
         public bool BuyFromGov(PlayerData pData)
         {
-            if (!pData.HasEnoughCash(GovPrice, true))
+            if (Settings.NEED_BUSINESS_LICENSE && !pData.Licenses.Contains(PlayerData.LicenseTypes.Business))
+            {
+                pData.Player.Notify("License::NTB");
+
+                return false;
+            }
+
+            ulong newCash;
+
+            if (!pData.TryRemoveCash(GovPrice, out newCash, true))
                 return false;
 
             if (pData.OwnedBusinesses.Count >= pData.BusinessesSlots)
@@ -329,14 +400,7 @@ namespace BCRPServer.Game.Businesses
                 return false;
             }
 
-            if (Settings.NEED_BUSINESS_LICENSE && !pData.Licenses.Contains(PlayerData.LicenseTypes.Business))
-            {
-                pData.Player.Notify("License::NTB");
-
-                return false;
-            }
-
-            pData.Cash -= GovPrice;
+            pData.SetCash(newCash);
 
             ChangeOwner(pData.Info);
 

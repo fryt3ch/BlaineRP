@@ -307,7 +307,7 @@ namespace BCRPClient
             if (result != 2 || materialHash == 0)
                 return 0;
 
-            return materialHash.ToUInt32();
+            return (Convert.ToDecimal(materialHash)).ToUInt32();
         }
 
         public static Entity GetEntityByRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle = 0, int flags = 31)
@@ -1143,9 +1143,9 @@ namespace BCRPClient
 
         public static bool IsTaskStillPending(string key, AsyncTask aTask) => Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}") == aTask && aTask?.IsCancelled == false;
 
-        public static int GetGovSellPrice(int price) => (int)Math.Floor(price / 2f);
+        public static decimal GetGovSellPrice(decimal price) => Math.Floor(price / 2m);
 
-        public static string GetPriceString(int price) => $"${price}";
+        public static string GetPriceString(decimal price) => $"${price}";
 
         public static void ToggleInteriorEntitySet(int intId, string entitySetName, bool state)
         {
@@ -1398,22 +1398,33 @@ namespace BCRPClient
 
         public static bool GetSex(this Player player) => player.Model == Utils.MP_MALE_MODEL;
 
-        public static uint ToUInt32(this int value)
+        public static uint ToUInt32(this object obj)
         {
+            var value = Convert.ToDecimal(obj);
+
             unchecked
             {
+                if (value < 0)
+                {
+                    return (uint)(int)value;
+                }
+
                 return (uint)value;
             }
         }
 
-        public static uint? ToUInt32(this int? value)
+        public static ulong ToUInt64(this object obj)
         {
-            if (value == null)
-                return null;
+            var value = Convert.ToDecimal(obj);
 
             unchecked
             {
-                return (uint)value.Value;
+                if (value < 0)
+                {
+                    return (ulong)(long)value;
+                }
+
+                return (ulong)value;
             }
         }
 
@@ -1625,6 +1636,32 @@ namespace BCRPClient
             var radians = -rotationZ * Math.PI / 180;
 
             return new Vector3(pos.X + (float)(coeffXY * Math.Sin(radians)), pos.Y + (float)(coeffXY * Math.Cos(radians)), pos.Z);
+        }
+
+        public static bool IsNumberValid<T>(this decimal number, decimal min, decimal max, out T converted, bool notify = true)
+        {
+            if (number < min)
+            {
+                converted = default(T);
+
+                if (notify)
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.LessThanMinValue, min));
+
+                return false;
+            }
+            else if (number > max)
+            {
+                converted = converted = default(T);
+
+                if (notify)
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.BiggerThanMaxValue, max));
+
+                return false;
+            }
+
+            converted = (T)Convert.ChangeType(number, typeof(T));
+
+            return true;
         }
     }
 }

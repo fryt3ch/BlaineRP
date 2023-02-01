@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static BCRPServer.PlayerData;
 
 namespace BCRPServer.Game.Estates
 {
@@ -196,7 +197,7 @@ namespace BCRPServer.Game.Estates
         public Dictionary<PlayerData.PlayerInfo, bool[]> Settlers { get; set; }
 
         /// <summary>Баланс дома</summary>
-        public int Balance { get; set; }
+        public ulong Balance { get; set; }
 
         /// <summary>Заблокированы ли двери?</summary>
         public bool IsLocked { get; set; }
@@ -291,6 +292,44 @@ namespace BCRPServer.Game.Estates
         public abstract bool IsEntityNearEnter(Entity entity);
 
         public abstract void ChangeOwner(PlayerData.PlayerInfo pInfo);
+
+        public bool TryAddMoneyBalance(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Balance.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveMoneyBalance(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Balance.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+/*                    if (PlayerInfo.PlayerData != null)
+                    {
+                        PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                    }*/
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetBalance(ulong value, string reason)
+        {
+            Balance = value;
+        }
 
         public void SettlePlayer(PlayerData.PlayerInfo pInfo, bool state, PlayerData pDataInit = null)
         {

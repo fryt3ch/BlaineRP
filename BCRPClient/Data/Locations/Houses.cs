@@ -28,9 +28,9 @@ namespace BCRPClient.Data
 
             public uint Id { get; set; }
 
-            public int Price { get; set; }
+            public uint Price { get; set; }
 
-            public int Tax { get; set; }
+            public uint Tax { get; set; }
 
             public ClassTypes Class { get; set; }
 
@@ -46,7 +46,7 @@ namespace BCRPClient.Data
 
             public abstract Blip OwnerBlip { get; set; }
 
-            public HouseBase(Sync.House.HouseTypes Type, uint Id, int Price, Vector3 Position, Sync.House.Style.RoomTypes RoomType, ClassTypes Class, int Tax)
+            public HouseBase(Sync.House.HouseTypes Type, uint Id, uint Price, Vector3 Position, Sync.House.Style.RoomTypes RoomType, ClassTypes Class, uint Tax)
             {
                 this.Type = Type;
 
@@ -77,7 +77,7 @@ namespace BCRPClient.Data
 
             public int NumberInRoot => Apartments.All.Values.Where(x => x.RootType == RootType).ToList().FindIndex(x => x == this);
 
-            public Apartments(uint Id, Vector3 Position, ApartmentsRoot.Types RootType, Sync.House.Style.RoomTypes RoomType, int Price, ClassTypes Class, int Tax) : base(Sync.House.HouseTypes.Apartments, Id, Price, Position, RoomType, Class, Tax)
+            public Apartments(uint Id, Vector3 Position, ApartmentsRoot.Types RootType, Sync.House.Style.RoomTypes RoomType, uint Price, ClassTypes Class, uint Tax) : base(Sync.House.HouseTypes.Apartments, Id, Price, Position, RoomType, Class, Tax)
             {
                 this.RootType = RootType;
 
@@ -146,7 +146,7 @@ namespace BCRPClient.Data
 
             public Blip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
 
-            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, int Price, ClassTypes Class, int Tax) : base(Sync.House.HouseTypes.House, Id, Price, Position, RoomType, Class, Tax)
+            public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, uint Price, ClassTypes Class, uint Tax) : base(Sync.House.HouseTypes.House, Id, Price, Position, RoomType, Class, Tax)
             {
                 this.GarageType = GarageType;
 

@@ -191,7 +191,17 @@ namespace BCRPServer.Game.Items
             }
             else if (Type == Types.Money)
             {
-                return pData.AddCash(Amount);
+                if (Amount < 0)
+                    return false;
+
+                ulong newCash;
+
+                if (!pData.TryAddCash((ulong)Amount, out newCash, true))
+                    return false;
+
+                pData.SetCash(newCash);
+
+                return true;
             }
 
             return false;

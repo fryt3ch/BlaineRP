@@ -98,7 +98,7 @@ namespace BCRPServer
 
             public int OrganisationID { get; set; }
 
-            public int Cash { get; set; }
+            public ulong Cash { get; set; }
 
             public Game.Bank.Account BankAccount { get; set; }
 
@@ -208,6 +208,56 @@ namespace BCRPServer
             }
 
             public bool RemoveCooldown(CooldownTypes cdType) => Cooldowns.Remove(cdType);
+
+            public bool TryAddCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+            {
+                if (!Cash.TryAdd(amount, out newBalance))
+                {
+                    if (notifyOnFault)
+                    {
+                        if (PlayerData != null)
+                        {
+
+                        }
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            public bool TryRemoveCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+            {
+                if (!Cash.TrySubtract(amount, out newBalance))
+                {
+                    if (notifyOnFault)
+                    {
+                        if (PlayerData != null)
+                        {
+                            PlayerData.Player.Notify("Cash::NotEnough", Cash);
+                        }
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            public void SetCash(ulong value)
+            {
+                if (PlayerData != null)
+                {
+                    PlayerData.Cash = value;
+                }
+                else
+                {
+                    Cash = value;
+                }
+
+                MySQL.CharacterCashUpdate(this);
+            }
 
             public PlayerInfo()
             {

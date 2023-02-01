@@ -336,37 +336,11 @@ namespace BCRPServer
 
         #region Own Shared Data
 
-        /// <summary>Метод для изменения кол-ва наличных у игрока</summary>
-        /// <param name="value">Кол-во (- или +)</param>
-        /// <param name="notify">Уведомить ли игрока?</param>
-        /// <returns>true, если операция успешна, false - в противном случае</returns>
-        public bool AddCash(int value, bool notify = true)
-        {
-            if (Cash + value < 0)
-            {
-                if (notify)
-                    Player.Notify("Cash::NotEnough", Cash);
+        public bool TryAddCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null) => Info.TryAddCash(amount, out newBalance, notifyOnFault, tData);
 
-                return false;
-            }
+        public bool TryRemoveCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null) => Info.TryRemoveCash(amount, out newBalance, notifyOnFault, tData);
 
-            Cash += value;
-
-            MySQL.CharacterCashUpdate(this.Info);
-
-            return true;
-        }
-
-        public bool HasEnoughCash(int value, bool notifyOnFault = true)
-        {
-            if (Cash >= value)
-                return true;
-
-            if (notifyOnFault)
-                Player.Notify("Cash::NotEnough", Cash);
-
-            return false;
-        }
+        public void SetCash(ulong value) => Info.SetCash(value);
 
         public bool HasBankAccount(bool notifyOnFault = true)
         {

@@ -47,8 +47,8 @@ namespace BCRPClient
 
                 public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";
 
-                public static string LessThanMinValue = "Введенное значение меньше минимально допустимого!";
-                public static string BiggerThanMaxValue = "Введенное значение больше максимально допустимого!";
+                public static string LessThanMinValue = "Введенное значение меньше минимально допустимого ({0})!";
+                public static string BiggerThanMaxValue = "Введенное значение больше максимально допустимого ({0})!";
 
                 public static class PayDay
                 {

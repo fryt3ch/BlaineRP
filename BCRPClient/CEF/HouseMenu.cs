@@ -26,7 +26,7 @@ namespace BCRPClient.CEF
             {
                 var data = RAGE.Util.Json.Deserialize<Dictionary<string, bool[]>>((string)args[0]);
 
-                var balance = (int)args[1];
+                var balance = args[1].ToUInt64();
                 var dState = (bool)args[2];
                 var cState = (bool)args[3];
 
@@ -257,7 +257,7 @@ namespace BCRPClient.CEF
             Events.Add("MenuHome::Close", (args) => Close(false));
         }
 
-        public static async System.Threading.Tasks.Task Show(object[] settlers, int balance, bool doorState, bool contState)
+        public static async System.Threading.Tasks.Task Show(object[] settlers, ulong balance, bool doorState, bool contState)
         {
             if (IsActive)
                 return;

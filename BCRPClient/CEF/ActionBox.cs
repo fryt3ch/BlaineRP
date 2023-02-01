@@ -112,9 +112,14 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)(args[1]);
 
                                     if (Sync.World.ItemOnGround.LastSent.IsSpam(500, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     var iog = Player.LocalPlayer.GetData<Sync.World.ItemOnGround>("AB::Temp::IOGTR");
@@ -151,7 +156,12 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                        return;
 
                                     if (rType == ReplyTypes.OK)
                                     {
@@ -191,7 +201,12 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                        return;
 
                                     if (rType == ReplyTypes.OK)
                                     {
@@ -229,7 +244,7 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, async (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
 
                                     var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("AB::Temp::HBD::H");
 
@@ -237,6 +252,11 @@ namespace BCRPClient.CEF
                                         return;
 
                                     if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
@@ -283,7 +303,7 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, async (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
 
                                     var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("AB::Temp::HBD::H");
 
@@ -291,6 +311,11 @@ namespace BCRPClient.CEF
                                         return;
 
                                     if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
@@ -337,7 +362,7 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, async (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
 
                                     var garage = Player.LocalPlayer.GetData<Data.Locations.Garage>("AB::Temp::GBD::H");
 
@@ -345,6 +370,11 @@ namespace BCRPClient.CEF
                                         return;
 
                                     if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
@@ -391,7 +421,7 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, async (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
 
                                     var garage = Player.LocalPlayer.GetData<Data.Locations.Garage>("AB::Temp::GBD::H");
 
@@ -399,6 +429,11 @@ namespace BCRPClient.CEF
                                         return;
 
                                     if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
@@ -445,7 +480,7 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, async (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
 
                                     var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("AB::Temp::BBD::H");
 
@@ -453,6 +488,11 @@ namespace BCRPClient.CEF
                                         return;
 
                                     if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
@@ -499,7 +539,7 @@ namespace BCRPClient.CEF
                                 ActionTypes.Choose, async (args) =>
                                 {
                                     var rType = (ReplyTypes)args[0];
-                                    var amount = (int)args[1];
+                                    var amountD = (decimal)args[1];
 
                                     var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("AB::Temp::BBD::H");
 
@@ -507,6 +547,11 @@ namespace BCRPClient.CEF
                                         return;
 
                                     if (LastSent.IsSpam(1000, false, false))
+                                        return;
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
@@ -985,8 +1030,6 @@ namespace BCRPClient.CEF
                                     string modToDelete = (string)args[0];
 
                                     Player.LocalPlayer.SetData("ActionBox::Temp::MTD", modToDelete);
-
-                                    Bind();
                                 }
                             },
 
@@ -1010,7 +1053,7 @@ namespace BCRPClient.CEF
                                         {
                                             var idData = id.Split('_');
 
-                                            if (CEF.Shop.IsActiveTuning)
+                                            if (CEF.Shop.IsRenderedTuning)
                                             {
                                                 CEF.Browser.Window.ExecuteJs("Tuning.switchColor", false, idData[0]);
 
@@ -1046,9 +1089,6 @@ namespace BCRPClient.CEF
                                 ActionTypes.Close, (args) =>
                                 {
                                     Player.LocalPlayer.ResetData("ActionBox::Temp::MTD");
-
-                                    if (CEF.Shop.IsActiveTuning)
-                                        CEF.Cursor.Show(true, true);
                                 }
                             }
                         }
@@ -1077,17 +1117,17 @@ namespace BCRPClient.CEF
 
                 if (CurrentType == Types.Range)
                 {
-                    int amount = int.Parse((string)args[1]);
+                    var amount = decimal.Parse((string)args[1]);
 
-                    if (amount < Player.LocalPlayer.GetData<int>("ActionBox::Temp::MinValue"))
+                    if (amount < Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue"))
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.LessThanMinValue);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.LessThanMinValue, Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue")));
 
                         return;
                     }
-                    else if (amount > Player.LocalPlayer.GetData<int>("ActionBox::Temp::MaxValue"))
+                    else if (amount > Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MaxValue"))
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.BiggerThanMaxValue);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.BiggerThanMaxValue, Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MaxValue")));
 
                         return;
                     }
@@ -1132,7 +1172,7 @@ namespace BCRPClient.CEF
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowRange(Contexts context, string name, int minValue, int maxValue, int curValue = -1, int step = -1, RangeSubTypes rsType = RangeSubTypes.Default, params object[] args)
+        public static async System.Threading.Tasks.Task ShowRange(Contexts context, string name, decimal minValue, decimal maxValue, decimal curValue = -1, decimal step = -1, RangeSubTypes rsType = RangeSubTypes.Default, params object[] args)
         {
             if (IsActive)
                 return;

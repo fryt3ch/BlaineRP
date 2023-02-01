@@ -20,14 +20,12 @@ namespace BCRPServer
 
                     using (var reader = cmd.ExecuteReader())
                     {
-                        var result = new List<PlayerData.Punishment>();
-
                         if (reader.HasRows)
                         {
                             reader.Read();
 
-                            var balance = (int)reader["Balance"];
-                            var savings = (int)reader["Savings"];
+                            var balance = Convert.ToUInt64(reader["Balance"]);
+                            var savings = Convert.ToUInt64(reader["Savings"]);
                             var tariff = (Game.Bank.Tariff.Types)(int)reader["Tariff"];
                             var std = (bool)reader["STD"];
 
@@ -70,14 +68,38 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE bank_accounts SET Balance=@Balance, Savings=@Savings, Tariff=@Tariff, STD=@STD WHERE CID=@CID;";
+            cmd.CommandText = "UPDATE bank_accounts SET STD=@STD WHERE CID=@CID;";
+
+            cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
+
+            cmd.Parameters.AddWithValue("STD", account.SavingsToDebit);
+
+            PushQuery(cmd);
+        }
+
+        public static void BankAccountBalancesUpdate(Game.Bank.Account account)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE bank_accounts SET Balance=@Balance, Savings=@Savings WHERE CID=@CID;";
 
             cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
 
             cmd.Parameters.AddWithValue("Balance", account.Balance);
             cmd.Parameters.AddWithValue("Savings", account.SavingsBalance);
+
+            PushQuery(cmd);
+        }
+
+        public static void BankAccountTariffUpdate(Game.Bank.Account account)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE bank_accounts SET Tariff=@Tariff WHERE CID=@CID;";
+
+            cmd.Parameters.AddWithValue("CID", account.PlayerInfo.CID);
+
             cmd.Parameters.AddWithValue("Tariff", (int)account.Tariff.Type);
-            cmd.Parameters.AddWithValue("STD", account.SavingsToDebit);
 
             PushQuery(cmd);
         }

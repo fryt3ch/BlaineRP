@@ -131,7 +131,7 @@ namespace BCRPServer.Game.Data
 
             public Types Type { get; set; }
 
-            public int GovPrice { get; set; }
+            public uint GovPrice { get; set; }
 
             public bool CanTrail => CanTrailVehicles.Contains(ID);
 

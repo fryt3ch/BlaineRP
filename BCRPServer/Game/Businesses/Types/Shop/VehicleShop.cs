@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Game.Businesses
 {
@@ -29,7 +30,7 @@ namespace BCRPServer.Game.Businesses
             this.ExitProperties = new Utils.Vector4[] { new Utils.Vector4(PositionInteract.Position.GetFrontOf(PositionInteract.RotationZ, 1.5f), Utils.GetOppositeAngle(PositionInteract.RotationZ)) };
         }
 
-        public override bool BuyItem(PlayerData pData, bool useCash, string itemId)
+        public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
             var iData = itemId.Split('_');
 
@@ -41,21 +42,22 @@ namespace BCRPServer.Game.Businesses
             if (!byte.TryParse(iData[1], out r1) || !byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
                 return false;
 
-            var res = CanBuy(pData, useCash, iData[0], 1);
-
-            if (res == null)
-                return false;
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
 
             var vType = Data.Vehicles.GetData(iData[0]);
 
             if (vType == null)
                 return false;
 
+            if (!TryProceedPayment(pData, useCash, iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
+                return false;
+
             var vPos = AfterBuyPositions[AfterBuyPositions.Length == 1 ? 0 : AfterBuyPositions.Length < LastExitUsed + 1 ? ++LastExitUsed : LastExitUsed = 0];
 
             var vData = VehicleData.New(pData, vType, new Utils.Colour(r1, g1, b1), new Utils.Colour(r2, g2, b2), vPos.Position, vPos.RotationZ, Utils.Dimensions.Main, true);
 
-            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             Sync.Players.ExitFromBuiness(pData, false);
 
@@ -71,7 +73,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "adder", 100 },
                 { "airbus", 100 },
@@ -656,7 +658,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
 
             }
@@ -674,7 +676,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
 
             }
@@ -692,7 +694,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "akuma", 100 },
                 { "avarus", 100 },
@@ -771,7 +773,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "avisa", 100 },
                 { "dinghy", 100 },
@@ -814,7 +816,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "akula", 100 },
                 { "annihilator", 100 },

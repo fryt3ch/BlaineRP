@@ -93,7 +93,7 @@ namespace BCRPClient.CEF
             Player.LocalPlayer.ResetData("CurrentATM::Id");
         }
 
-        public static void UpdateMoney(int value)
+        public static void UpdateMoney(ulong value)
         {
             if (!IsActive)
                 return;

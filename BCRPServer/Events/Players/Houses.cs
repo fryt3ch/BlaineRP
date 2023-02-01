@@ -551,6 +551,13 @@ namespace BCRPServer.Events.Players
 
             if (pData.Furniture.Contains(furniture))
             {
+                if (houseBase.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
+                {
+                    player.Notify("Inv::HMPF", Settings.HOUSE_MAX_FURNITURE);
+
+                    return false;
+                }
+
                 return true;
             }
             else
@@ -603,6 +610,13 @@ namespace BCRPServer.Events.Players
 
             if (pData.Furniture.Contains(furniture))
             {
+                if (houseBase.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
+                {
+                    player.Notify("Inv::HMPF", Settings.HOUSE_MAX_FURNITURE);
+
+                    return;
+                }
+
                 pData.RemoveFurniture(furniture);
 
                 houseBase.Furniture.Add(furniture);

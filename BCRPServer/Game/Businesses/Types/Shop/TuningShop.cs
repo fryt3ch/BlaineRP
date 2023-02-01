@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Game.Businesses
 {
@@ -11,7 +12,7 @@ namespace BCRPServer.Game.Businesses
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
-            Prices = new Dictionary<string, int>()
+            Prices = new Dictionary<string, uint>()
             {
                 { "fix_0", 100 },
                 { "fix_1", 100 },
@@ -189,7 +190,7 @@ namespace BCRPServer.Game.Businesses
             return mod;
         }
 
-        public override bool BuyItem(PlayerData pData, bool useCash, string item)
+        public override bool TryBuyItem(PlayerData pData, bool useCash, string item)
         {
             var vData = pData.CurrentTuningVehicle;
 
@@ -208,21 +209,22 @@ namespace BCRPServer.Game.Businesses
 
             var slot = GetModSlot(iData[0]);
 
-            (int MatPrice, int RealPrice)? res = null;
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
 
             if (slot is byte bSlot)
             {
                 if (iData[0] == "engine" || iData[0] == "brakes" || iData[0] == "trm" || iData[0] == "susp")
                 {
-                    res = CanBuy(pData, useCash, item, 1);
+                    if (!TryProceedPayment(pData, useCash, item, 1, out newMats, out newBalance, out newPlayerBalance))
+                        return false;
                 }
                 else
                 {
-                    res = CanBuy(pData, useCash, iData[0], 1);
+                    if (!TryProceedPayment(pData, useCash, iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
+                        return false;
                 }
 
-                if (res == null)
-                    return false;
 
                 if (p == 0)
                     p = 255;
@@ -237,9 +239,7 @@ namespace BCRPServer.Game.Businesses
             {
                 if (iData[0] == "fix")
                 {
-                    res = CanBuy(pData, useCash, item, 1);
-
-                    if (res == null)
+                    if (!TryProceedPayment(pData, useCash, item, 1, out newMats, out newBalance, out newPlayerBalance))
                         return false;
 
                     if (p == 0)
@@ -253,7 +253,7 @@ namespace BCRPServer.Game.Businesses
                 }
                 else if (iData[0] == "keys")
                 {
-
+                    return false; // todo
                 }
                 else if (iData[0] == "wheel" || iData[0] == "rwheel")
                 {
@@ -265,9 +265,7 @@ namespace BCRPServer.Game.Businesses
                     if (!byte.TryParse(iData[2], out n))
                         return false;
 
-                    res = CanBuy(pData, useCash, $"{iData[0]}_{iData[1]}", 1);
-
-                    if (res == null)
+                    if (!TryProceedPayment(pData, useCash, $"{iData[0]}_{iData[1]}", 1, out newMats, out newBalance, out newPlayerBalance))
                         return false;
 
                     if (vData.Data.Type == Game.Data.Vehicles.Vehicle.Types.Motorcycle)
@@ -293,9 +291,7 @@ namespace BCRPServer.Game.Businesses
                 {
                     if (iData.Length == 2)
                     {
-                        res = CanBuy(pData, useCash, item, 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, item, 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         vData.Tuning.NeonColour = null;
@@ -307,9 +303,7 @@ namespace BCRPServer.Game.Businesses
                         if (!byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
                             return false;
 
-                        res = CanBuy(pData, useCash, iData[0], 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         if (vData.Tuning.NeonColour == null)
@@ -332,9 +326,7 @@ namespace BCRPServer.Game.Businesses
                 {
                     if (iData.Length == 2)
                     {
-                        res = CanBuy(pData, useCash, item, 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, item, 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         vData.Tuning.TyresSmokeColour = null;
@@ -346,9 +338,7 @@ namespace BCRPServer.Game.Businesses
                         if (!byte.TryParse(iData[2], out g) || !byte.TryParse(iData[3], out b))
                             return false;
 
-                        res = CanBuy(pData, useCash, iData[0], 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         if (vData.Tuning.TyresSmokeColour == null)
@@ -377,9 +367,7 @@ namespace BCRPServer.Game.Businesses
                     if (!byte.TryParse(iData[2], out g1) || !byte.TryParse(iData[3], out b1) || !byte.TryParse(iData[4], out r2) || !byte.TryParse(iData[5], out g2) || !byte.TryParse(iData[6], out b2))
                         return false;
 
-                    res = CanBuy(pData, useCash, iData[0], 1);
-
-                    if (res == null)
+                    if (!TryProceedPayment(pData, useCash, iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
                         return false;
 
                     vData.Tuning.Colour1.Red = p;
@@ -396,9 +384,7 @@ namespace BCRPServer.Game.Businesses
                 {
                     if (iData[0] == "pearl")
                     {
-                        res = CanBuy(pData, useCash, p == 0 ? item : iData[0], 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, p == 0 ? item : iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         vData.Tuning.PearlescentColour = p;
@@ -407,9 +393,7 @@ namespace BCRPServer.Game.Businesses
                     }
                     else if (iData[0] == "wcolour")
                     {
-                        res = CanBuy(pData, useCash, p == 0 ? item : iData[0], 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, p == 0 ? item : iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         vData.Tuning.WheelsColour = p;
@@ -418,9 +402,7 @@ namespace BCRPServer.Game.Businesses
                     }
                     else
                     {
-                        res = CanBuy(pData, useCash, item, 1);
-
-                        if (res == null)
+                        if (!TryProceedPayment(pData, useCash, item, 1, out newMats, out newBalance, out newPlayerBalance))
                             return false;
 
                         if (iData[0] == "colourt")
@@ -447,10 +429,7 @@ namespace BCRPServer.Game.Businesses
                 }
             }
 
-            if (res == null)
-                return false;
-
-            PaymentProceed(pData, useCash, res.Value.MatPrice, res.Value.RealPrice);
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             return true;
         }

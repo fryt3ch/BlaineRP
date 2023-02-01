@@ -146,9 +146,9 @@ namespace BCRPClient.CEF
                 }
                 else
                 {
-                    var balance = (int)args[2];
-                    var sendLimitCur = (uint)(int)args[3];
-                    var savingsBalance = (int)args[4];
+                    var balance = args[2].ToUInt64();
+                    var sendLimitCur = args[3].ToUInt64();
+                    var savingsBalance = args[4].ToUInt64();
                     var benefitsToDebit = (bool)args[5];
 
                     var param = new object[] { tariffNum, balance, sendLimitCur, savingsBalance, benefitsToDebit };
@@ -218,7 +218,7 @@ namespace BCRPClient.CEF
             Player.LocalPlayer.ResetData("Bank::LastAmount");
         }
 
-        public static void UpdateMoney(int value)
+        public static void UpdateMoney(ulong value)
         {
             if (!IsActive)
                 return;
