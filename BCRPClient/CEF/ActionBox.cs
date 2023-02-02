@@ -59,14 +59,11 @@ namespace BCRPClient.CEF
 
             VehicleTuningVehicleSelect,
 
-            HouseBalanceDeposit,
-            HouseBalanceWithdraw,
+            HouseBalanceChange,
 
-            GarageBalanceDeposit,
-            GarageBalanceWithdraw,
+            GarageBalanceChange,
 
-            BusinessBalanceDeposit,
-            BusinessBalanceWithdraw,
+            BusinessBalanceChange,
 
             PlacedItemOnGroundSelect,
             ItemOnGroundTakeRange,
@@ -205,7 +202,7 @@ namespace BCRPClient.CEF
 
                                     int amount;
 
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                    if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
                                     if (rType == ReplyTypes.OK)
@@ -227,7 +224,7 @@ namespace BCRPClient.CEF
                     },
 
                     {
-                        Contexts.HouseBalanceDeposit,
+                        Contexts.HouseBalanceChange,
 
                         new Dictionary<ActionTypes, Action<object[]>>()
                         {
@@ -237,6 +234,8 @@ namespace BCRPClient.CEF
                                     Bind();
 
                                     Player.LocalPlayer.SetData("AB::Temp::HBD::H", (Data.Locations.HouseBase)args[0]);
+                                    Player.LocalPlayer.SetData("AB::Temp::HBD::B", (Data.Locations.Bank)args[1]);
+                                    Player.LocalPlayer.SetData("AB::Temp::HBD::A", (bool)args[2]);
                                 }
                             },
 
@@ -248,64 +247,9 @@ namespace BCRPClient.CEF
 
                                     var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("AB::Temp::HBD::H");
 
-                                    if (house == null)
-                                        return;
+                                    var bank = Player.LocalPlayer.GetData<Data.Locations.Bank>("AB::Temp::HBD::B");
 
-                                    if (LastSent.IsSpam(1000, false, false))
-                                        return;
-
-                                    int amount;
-
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
-                                        return;
-
-                                    LastSent = DateTime.Now;
-
-                                    var useCash = rType == ReplyTypes.OK;
-
-                                    var resultBalance = (int)await Events.CallRemoteProc(house.Type == Sync.House.HouseTypes.House ? "Bank::HBC" : "Bank::ABC", house.Id, amount, useCash, true);
-
-                                    if (resultBalance < 0)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        Close(true);
-                                    }
-                                }
-                            },
-
-                            {
-                                ActionTypes.Close, (args) =>
-                                {
-                                    Player.LocalPlayer.ResetData("AB::Temp::HBD::H");
-                                }
-                            }
-                        }
-                    },
-
-                    {
-                        Contexts.HouseBalanceWithdraw,
-
-                        new Dictionary<ActionTypes, Action<object[]>>()
-                        {
-                            {
-                                ActionTypes.Show, (args) =>
-                                {
-                                    Bind();
-
-                                    Player.LocalPlayer.SetData("AB::Temp::HBD::H", (Data.Locations.HouseBase)args[0]);
-                                }
-                            },
-
-                            {
-                                ActionTypes.Choose, async (args) =>
-                                {
-                                    var rType = (ReplyTypes)args[0];
-                                    var amountD = (decimal)args[1];
-
-                                    var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("AB::Temp::HBD::H");
+                                    var add = Player.LocalPlayer.GetData<bool>("AB::Temp::HBD::A");
 
                                     if (house == null)
                                         return;
@@ -315,23 +259,19 @@ namespace BCRPClient.CEF
 
                                     int amount;
 
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                    if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
 
                                     var useCash = rType == ReplyTypes.OK;
 
-                                    var resultBalance = (int)await Events.CallRemoteProc(house.Type == Sync.House.HouseTypes.House ? "Bank::HBC" : "Bank::ABC", house.Id, amount, useCash, false);
+                                    var resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == Sync.House.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
 
-                                    if (resultBalance < 0)
-                                    {
+                                    if (resObj == null)
+                                        return;
 
-                                    }
-                                    else
-                                    {
-                                        Close(true);
-                                    }
+                                    Close(true);
                                 }
                             },
 
@@ -339,13 +279,15 @@ namespace BCRPClient.CEF
                                 ActionTypes.Close, (args) =>
                                 {
                                     Player.LocalPlayer.ResetData("AB::Temp::HBD::H");
+                                    Player.LocalPlayer.ResetData("AB::Temp::HBD::B");
+                                    Player.LocalPlayer.ResetData("AB::Temp::HBD::A");
                                 }
                             }
                         }
                     },
 
                     {
-                        Contexts.GarageBalanceDeposit,
+                        Contexts.GarageBalanceChange,
 
                         new Dictionary<ActionTypes, Action<object[]>>()
                         {
@@ -355,6 +297,8 @@ namespace BCRPClient.CEF
                                     Bind();
 
                                     Player.LocalPlayer.SetData("AB::Temp::GBD::H", (Data.Locations.Garage)args[0]);
+                                    Player.LocalPlayer.SetData("AB::Temp::GBD::B", (Data.Locations.Bank)args[1]);
+                                    Player.LocalPlayer.SetData("AB::Temp::GBD::A", (Data.Locations.Bank)args[2]);
                                 }
                             },
 
@@ -366,64 +310,9 @@ namespace BCRPClient.CEF
 
                                     var garage = Player.LocalPlayer.GetData<Data.Locations.Garage>("AB::Temp::GBD::H");
 
-                                    if (garage == null)
-                                        return;
+                                    var bank = Player.LocalPlayer.GetData<Data.Locations.Bank>("AB::Temp::GBD::B");
 
-                                    if (LastSent.IsSpam(1000, false, false))
-                                        return;
-
-                                    int amount;
-
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
-                                        return;
-
-                                    LastSent = DateTime.Now;
-
-                                    var useCash = rType == ReplyTypes.OK;
-
-                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::GBC", garage.Id, amount, useCash, true);
-
-                                    if (resultBalance < 0)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        Close(true);
-                                    }
-                                }
-                            },
-
-                            {
-                                ActionTypes.Close, (args) =>
-                                {
-                                    Player.LocalPlayer.ResetData("AB::Temp::GBD::H");
-                                }
-                            }
-                        }
-                    },
-
-                    {
-                        Contexts.GarageBalanceWithdraw,
-
-                        new Dictionary<ActionTypes, Action<object[]>>()
-                        {
-                            {
-                                ActionTypes.Show, (args) =>
-                                {
-                                    Bind();
-
-                                    Player.LocalPlayer.SetData("AB::Temp::GBD::H", (Data.Locations.Garage)args[0]);
-                                }
-                            },
-
-                            {
-                                ActionTypes.Choose, async (args) =>
-                                {
-                                    var rType = (ReplyTypes)args[0];
-                                    var amountD = (decimal)args[1];
-
-                                    var garage = Player.LocalPlayer.GetData<Data.Locations.Garage>("AB::Temp::GBD::H");
+                                    var add = Player.LocalPlayer.GetData<bool>("AB::Temp::GBD::A");
 
                                     if (garage == null)
                                         return;
@@ -433,23 +322,19 @@ namespace BCRPClient.CEF
 
                                     int amount;
 
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                    if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
 
                                     var useCash = rType == ReplyTypes.OK;
 
-                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::GBC", garage.Id, amount, useCash, false);
+                                    var resObj = await Events.CallRemoteProc("Bank::GBC", garage.Id, bank.Id, amount, useCash, add);
 
-                                    if (resultBalance < 0)
-                                    {
+                                    if (resObj == null)
+                                        return;
 
-                                    }
-                                    else
-                                    {
-                                        Close(true);
-                                    }
+                                    Close(true);
                                 }
                             },
 
@@ -457,13 +342,15 @@ namespace BCRPClient.CEF
                                 ActionTypes.Close, (args) =>
                                 {
                                     Player.LocalPlayer.ResetData("AB::Temp::GBD::H");
+                                    Player.LocalPlayer.ResetData("AB::Temp::GBD::B");
+                                    Player.LocalPlayer.ResetData("AB::Temp::GBD::A");
                                 }
                             }
                         }
                     },
 
                     {
-                        Contexts.BusinessBalanceDeposit,
+                        Contexts.BusinessBalanceChange,
 
                         new Dictionary<ActionTypes, Action<object[]>>()
                         {
@@ -473,6 +360,8 @@ namespace BCRPClient.CEF
                                     Bind();
 
                                     Player.LocalPlayer.SetData("AB::Temp::BBD::H", (Data.Locations.Business)args[0]);
+                                    Player.LocalPlayer.SetData("AB::Temp::BBD::B", (Data.Locations.Bank)args[1]);
+                                    Player.LocalPlayer.SetData("AB::Temp::BBD::A", (bool)args[2]);
                                 }
                             },
 
@@ -484,64 +373,9 @@ namespace BCRPClient.CEF
 
                                     var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("AB::Temp::BBD::H");
 
-                                    if (biz == null)
-                                        return;
+                                    var bank = Player.LocalPlayer.GetData<Data.Locations.Bank>("AB::Temp::BBD::B");
 
-                                    if (LastSent.IsSpam(1000, false, false))
-                                        return;
-
-                                    int amount;
-
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
-                                        return;
-
-                                    LastSent = DateTime.Now;
-
-                                    var useCash = rType == ReplyTypes.OK;
-
-                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::BBC", biz.Id, amount, useCash, true);
-
-                                    if (resultBalance < 0)
-                                    {
-
-                                    }
-                                    else
-                                    {
-                                        Close(true);
-                                    }
-                                }
-                            },
-
-                            {
-                                ActionTypes.Close, (args) =>
-                                {
-                                    Player.LocalPlayer.ResetData("AB::Temp::BBD::H");
-                                }
-                            }
-                        }
-                    },
-
-                    {
-                        Contexts.BusinessBalanceWithdraw,
-
-                        new Dictionary<ActionTypes, Action<object[]>>()
-                        {
-                            {
-                                ActionTypes.Show, (args) =>
-                                {
-                                    Bind();
-
-                                    Player.LocalPlayer.SetData("AB::Temp::BBD::H", (Data.Locations.Business)args[0]);
-                                }
-                            },
-
-                            {
-                                ActionTypes.Choose, async (args) =>
-                                {
-                                    var rType = (ReplyTypes)args[0];
-                                    var amountD = (decimal)args[1];
-
-                                    var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("AB::Temp::BBD::H");
+                                    var add = Player.LocalPlayer.GetData<bool>("AB::Temp::BBD::A");
 
                                     if (biz == null)
                                         return;
@@ -551,23 +385,19 @@ namespace BCRPClient.CEF
 
                                     int amount;
 
-                                    if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                    if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
                                     LastSent = DateTime.Now;
 
                                     var useCash = rType == ReplyTypes.OK;
 
-                                    var resultBalance = (int)await Events.CallRemoteProc("Bank::BBC", biz.Id, amount, useCash, false);
+                                    var resObj = await Events.CallRemoteProc("Bank::BBC", biz.Id, bank.Id, amount, useCash, add);
 
-                                    if (resultBalance < 0)
-                                    {
+                                    if (resObj == null)
+                                        return;
 
-                                    }
-                                    else
-                                    {
-                                        Close(true);
-                                    }
+                                    Close(true);
                                 }
                             },
 
@@ -575,6 +405,8 @@ namespace BCRPClient.CEF
                                 ActionTypes.Close, (args) =>
                                 {
                                     Player.LocalPlayer.ResetData("AB::Temp::BBD::H");
+                                    Player.LocalPlayer.ResetData("AB::Temp::BBD::B");
+                                    Player.LocalPlayer.ResetData("AB::Temp::BBD::A");
                                 }
                             }
                         }

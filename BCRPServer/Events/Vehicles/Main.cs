@@ -581,7 +581,12 @@ namespace BCRPServer.Events.Vehicles
 
             if (mileageDiff > 0 && mileageDiff < 1000f)
             {
-                vData.Mileage += mileageDiff;
+                var newMileage = vData.Mileage + mileageDiff;
+
+                if (newMileage > float.MaxValue)
+                    vData.Mileage = float.MaxValue;
+                else
+                    vData.Mileage = newMileage;
             }
         }
         #endregion

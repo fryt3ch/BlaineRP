@@ -16,11 +16,11 @@ namespace BCRPClient.CEF
 
         private static Vehicle TargetVehicle { get; set; }
 
-        private static Dictionary<Data.Vehicles.Vehicle.FuelTypes, int> Prices { get; set; } = new Dictionary<Data.Vehicles.Vehicle.FuelTypes, int>()
+        public static Dictionary<Data.Vehicles.Vehicle.FuelTypes, string> GasIds { get; private set; } = new Dictionary<Data.Vehicles.Vehicle.FuelTypes, string>()
         {
-            { Data.Vehicles.Vehicle.FuelTypes.Petrol, 10 },
+            { Data.Vehicles.Vehicle.FuelTypes.Petrol, "gas_g_0" },
 
-            { Data.Vehicles.Vehicle.FuelTypes.Electricity, 5 },
+            { Data.Vehicles.Vehicle.FuelTypes.Electricity, "gas_e_0" },
         };
 
         private static List<int> TempBinds { get; set; }
@@ -57,7 +57,7 @@ namespace BCRPClient.CEF
 
             Events.Add("GasStation::Show", async (object[] args) =>
             {
-                float margin = (float)args[0];
+                var margin = args[0].ToDecimal();
 
                 await Show(margin);
             });
@@ -121,7 +121,7 @@ namespace BCRPClient.CEF
             LastSent = DateTime.Now;
         }
 
-        public static async System.Threading.Tasks.Task Show(float margin)
+        public static async System.Threading.Tasks.Task Show(decimal margin)
         {
             if (IsActive || TargetVehicle == null)
                 return;
@@ -135,7 +135,9 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol, new object[] { maxFuel, Prices[vData.Data.FuelType] * margin } });
+            var prices = CEF.Shop.GetPrices(Shop.Types.GasStation);
+
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol, new object[] { maxFuel, prices[GasIds[vData.Data.FuelType]] * margin } });
 
             CEF.Cursor.Show(true, true);
 

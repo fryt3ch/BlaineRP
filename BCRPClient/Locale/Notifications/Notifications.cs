@@ -50,6 +50,10 @@ namespace BCRPClient
                 public static string LessThanMinValue = "Введенное значение меньше минимально допустимого ({0})!";
                 public static string BiggerThanMaxValue = "Введенное значение больше максимально допустимого ({0})!";
 
+                public static string BusinessNewMarginOwner0 = "Теперь наценка на продукцию Вашего бизнеса составляет {0}%";
+                public static string BusinessIncassationNowOn = "Теперь наличные из кассы Вашего бизнеса будут доставляться в банк!";
+                public static string BusinessIncassationNowOff = "Теперь наличные из кассы Вашего бизнеса не будут доставляться в банк!";
+
                 public static class PayDay
                 {
                     public static string Header = "Зарплата";
@@ -223,10 +227,12 @@ namespace BCRPClient
             {
                 public static string Header = "Деньги";
 
+                public static string NotEnough = "У Вас нет денег!";
+
                 public static class Cash
                 {
                     public static string AddHeader = "+${0}";
-                    public static string LossHeader = "-${0}$";
+                    public static string LossHeader = "-${0}";
 
                     public static string Balance = "Всего наличных: ${0}";
 

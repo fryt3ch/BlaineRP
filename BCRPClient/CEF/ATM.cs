@@ -47,11 +47,11 @@ namespace BCRPClient.CEF
 
                 Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
 
-                Show(Convert.ToSingle(args[1]));
+                Show(args[1].ToDecimal());
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(float fee)
+        public static async System.Threading.Tasks.Task Show(decimal fee)
         {
             if (IsActive)
                 return;
@@ -66,7 +66,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.ATM, true, true);
 
-            CEF.Browser.Window.ExecuteJs("ATM.draw", new object[] { new object[] { data.BankBalance, fee } });
+            CEF.Browser.Window.ExecuteJs("ATM.draw", new object[] { new object[] { data.BankBalance, fee * 100 } });
 
             CEF.Cursor.Show(true, true);
 

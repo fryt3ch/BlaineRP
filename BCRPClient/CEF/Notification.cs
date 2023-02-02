@@ -115,6 +115,9 @@ namespace BCRPClient.CEF
 
             { "Vehicle::AHRV", new Instance(Types.Error, Locale.Notifications.Vehicles.AlreadyHaveRentedVehicle, Locale.Notifications.ErrorHeader) },
 
+            { "Vehicle::FOFP", new Instance(Types.Error, Locale.Notifications.Vehicles.FullOfGasDef, Locale.Notifications.ErrorHeader) },
+            { "Vehicle::FOFE", new Instance(Types.Error, Locale.Notifications.Vehicles.FullOfGasElectrical, Locale.Notifications.ErrorHeader) },
+
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
             { "Container::Wait", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },

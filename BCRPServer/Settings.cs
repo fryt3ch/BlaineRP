@@ -149,17 +149,14 @@ namespace BCRPServer
 
         public const int VEHICLERENT_S_PAY_PRICE = 100;
 
-        public const int MIN_PAID_HOURS_HOUSE = 3;
-        public const int MAX_PAID_HOURS_HOUSE = 7 * 24;
+        public const uint MIN_PAID_HOURS_HOUSE_APS = 3;
+        public const uint MAX_PAID_HOURS_HOUSE_APS = 7 * 24;
 
-        public const int MIN_PAID_HOURS_APARTMENTS = 3;
-        public const int MAX_PAID_HOURS_APARTMENTS = 7 * 24;
+        public const uint MIN_PAID_HOURS_GARAGE = 3;
+        public const uint MAX_PAID_HOURS_GARAGE = 7 * 24;
 
-        public const int MIN_PAID_HOURS_GARAGE = 3;
-        public const int MAX_PAID_HOURS_GARAGE = 7 * 24;
-
-        public const int MIN_PAID_HOURS_BUSINESS = 3;
-        public const int MAX_PAID_HOURS_BUSINESS = 7 * 24;
+        public const uint MIN_PAID_HOURS_BUSINESS = 3;
+        public const uint MAX_PAID_HOURS_BUSINESS = 0;
 
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 

@@ -40,7 +40,7 @@ namespace BCRPServer.Game.Businesses
 
                 var realPrice = (ulong)Math.Floor((decimal)matPrice * matData.RealPrice * Margin);
 
-                if (useCash)
+                if (useCash && !IncassationState)
                 {
                     if (!pData.TryRemoveCash(realPrice, out newPlayerBalance, true))
                     {
@@ -49,36 +49,51 @@ namespace BCRPServer.Game.Businesses
                         return false;
                     }
 
-                    var bizPrice = GetBusinessPrice(matPrice, true);
+                    var bizPrice = GetBusinessPrice(matPrice, false);
 
                     if (!TryAddMoneyCash(bizPrice, out newBalance, true, pData))
                         return false;
                 }
                 else
                 {
-                    if (!pData.HasBankAccount(true))
+                    if (useCash)
                     {
-                        newBalance = 0;
-                        newPlayerBalance = 0;
+                        if (!pData.TryRemoveCash(realPrice, out newPlayerBalance, true))
+                        {
+                            newBalance = 0;
 
-                        return false;
+                            return false;
+                        }
+
+                        var bizPrice = GetBusinessPrice(matPrice, true);
+
+                        if (!TryAddMoneyBank(bizPrice, out newBalance, true, pData))
+                            return false;
                     }
-
-                    ulong cb;
-
-                    if (!pData.BankAccount.TryRemoveMoneyDebitUseCashback(realPrice, out newPlayerBalance, out cb, true))
+                    else
                     {
-                        newBalance = 0;
+                        if (!pData.HasBankAccount(true))
+                        {
+                            newBalance = 0;
+                            newPlayerBalance = 0;
 
-                        return false;
+                            return false;
+                        }
+
+                        ulong cb;
+
+                        if (!pData.BankAccount.TryRemoveMoneyDebitUseCashback(realPrice, out newPlayerBalance, out cb, true))
+                        {
+                            newBalance = 0;
+
+                            return false;
+                        }
+
+                        var bizPrice = GetBusinessPrice(matPrice, false);
+
+                        if (!TryAddMoneyBank(bizPrice, out newBalance, true, pData))
+                            return false;
                     }
-
-                    realPrice -= cb;
-
-                    var bizPrice = GetBusinessPrice(matPrice, false);
-
-                    if (!TryAddMoneyBank(bizPrice, out newBalance, true, pData))
-                        return false;
                 }
 
                 return true;

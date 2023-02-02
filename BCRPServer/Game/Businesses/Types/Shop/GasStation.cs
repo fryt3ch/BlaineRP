@@ -9,37 +9,27 @@ namespace BCRPServer.Game.Businesses
     {
         public static Types DefaultType => Types.GasStation;
 
-        public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
+        public static MaterialsData InitMaterialsData => new MaterialsData(1, 2, 5)
         {
             Prices = new Dictionary<string, uint>()
             {
-
+                { "gas_g_0", 1 },
+                { "gas_e_0", 0 },
             }
         };
 
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {GasolinesPosition.ToCSharpStr()}, {PositionInteract.ToCSharpStr()}";
 
-        private static Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int> GasPrices = new Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, int>()
+        public static Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, string> GasIds { get; private set; } = new Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, string>()
         {
-            { Game.Data.Vehicles.Vehicle.FuelTypes.Petrol, 10 },
+            { Game.Data.Vehicles.Vehicle.FuelTypes.Petrol, "gas_g_0" },
 
-            { Game.Data.Vehicles.Vehicle.FuelTypes.Electricity, 5 },
+            { Game.Data.Vehicles.Vehicle.FuelTypes.Electricity, "gas_e_0" },
         };
 
+        public bool IsGas(string itemId) => GasIds.ContainsValue(itemId);
+
         public Vector3 GasolinesPosition { get; set; }
-
-        public int GetGasPrice(Game.Data.Vehicles.Vehicle.FuelTypes fType, bool addMargin)
-        {
-            int price;
-
-            if (!GasPrices.TryGetValue(fType, out price))
-                return -1;
-
-            if (addMargin)
-                return (int)Math.Floor(price * Margin);
-            else
-                return price;
-        }
 
         public GasStation(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Vector3 GasolinesPosition) : base(ID, PositionInfo, PositionInteract, DefaultType)
         {

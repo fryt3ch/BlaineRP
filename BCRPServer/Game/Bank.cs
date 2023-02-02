@@ -8,9 +8,9 @@ namespace BCRPServer.Game
 {
     public class Bank
     {
-        public const float ATM_TAX = 1.2f;
+        public const decimal ATM_TAX = 0.02m;
 
-        public const float MOBILE_SEND_TAX = 1.25f;
+        public const decimal MOBILE_SEND_TAX = 0.05m;
 
         private static Dictionary<int, Utils.Vector4[]> Banks = new Dictionary<int, Utils.Vector4[]>()
         {

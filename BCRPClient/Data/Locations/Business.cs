@@ -344,10 +344,14 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Blip(361, PositionGas, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var cs = new Additional.Sphere(PositionGas, 5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null);
+                var cs = new Additional.Sphere(PositionGas, 5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                {
+                    Data = this.Id,
 
-                cs.ActionType = Additional.ExtraColshape.ActionTypes.GasStation;
-                cs.Data = this.Id;
+                    ActionType = Additional.ExtraColshape.ActionTypes.GasStation,
+
+                    ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+                };
 
                 //this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 

@@ -1145,7 +1145,29 @@ namespace BCRPClient
 
         public static decimal GetGovSellPrice(decimal price) => Math.Floor(price / 2m);
 
-        public static string GetPriceString(decimal price) => $"${price}";
+        public static string GetPriceString(decimal price) => $"${ToStringWithWhitespace(price.ToString())}";
+
+        public static string ToStringWithWhitespace(string str)
+        {
+            var len = str.Length;
+
+            for (var i = 0; i < len; i++)
+            {
+                if (!char.IsDigit(str[i]))
+                    return str;
+            }
+
+            var result = new StringBuilder();
+
+            for (var i = 0; i < len; i++)
+            {
+                if (i > 0 && i % 3 == 0)
+                    result.Insert(0, " ");
+
+                result.Insert(0, str[len - 1 - i]);
+            }
+            return result.ToString();
+        }
 
         public static void ToggleInteriorEntitySet(int intId, string entitySetName, bool state)
         {
@@ -1428,6 +1450,8 @@ namespace BCRPClient
             }
         }
 
+        public static decimal ToDecimal(this object obj) => Convert.ToDecimal(obj);
+
         public static void SetLightColour(this MapObject mObj, Utils.Colour rgb) => RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, mObj.Handle, true, rgb.Red, rgb.Green, rgb.Blue);
 
         public static Utils.Colour GetNeonColour(this Vehicle veh)
@@ -1570,6 +1594,16 @@ namespace BCRPClient
 
         public static string GetBeautyString(this TimeSpan ts)
         {
+            if (ts.Days > 365)
+            {
+                var years = ts.Days / 365;
+
+                if (years >= 3)
+                    return "долгие годы";
+
+                return $"{years} год(а)";
+            }
+
             var days = ts.Days;
 
             if (days >= 1)

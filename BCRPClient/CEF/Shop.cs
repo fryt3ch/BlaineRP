@@ -57,6 +57,8 @@ namespace BCRPClient.CEF
 
         private static bool RetailPreviewActive { get; set; }
 
+        private static decimal CurrentMargin { get; set; }
+
         /// <summary>Тип текущего магазина</summary>
         private static Types CurrentType;
 
@@ -403,11 +405,23 @@ namespace BCRPClient.CEF
             Events.Add("Shop::Show", async (object[] args) =>
             {
                 Types type = (Types)(int)args[0];
-                var margin = Convert.ToDecimal(args[1]);
+                var margin = args[1].ToDecimal();
+
+                CurrentMargin = margin;
 
                 float? heading = args.Length > 2 ? (float?)args[2] : null;
 
-                await Show(type, margin, heading, args.Skip(args.Length > 2 ? 3 : 2).ToArray());
+                await Show(type, heading, args.Skip(args.Length > 2 ? 3 : 2).ToArray());
+            });
+
+            Events.Add("Shop::UM", (args) =>
+            {
+                CurrentMargin = args[0].ToDecimal();
+
+                if (CurrentType == Types.None)
+                    return;
+
+                UpdateMargin();
             });
 
             Events.Add("Shop::Close::Server", (object[] args) => Close(true, false));
@@ -1479,7 +1493,7 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(Types type, decimal margin, float? heading, object[] args)
+        public static async System.Threading.Tasks.Task Show(Types type, float? heading, object[] args)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -1695,7 +1709,7 @@ namespace BCRPClient.CEF
                             if (data == null || data.Sex != pData.Sex)
                                 continue;
 
-                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value * margin, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
+                            var obj = new object[] { x.Key, Data.Items.GetName(x.Key), x.Value, data.Textures.Length, (data as Data.Items.Clothes.ItemData.IToggleable)?.ExtraData != null };
 
                             if (data is Data.Items.Hat.ItemData)
                                 hats.Add(obj);
@@ -2076,9 +2090,7 @@ namespace BCRPClient.CEF
                         ChangeView(0);
                     }
 
-                    SetPricesCoef(margin);
-
-                    Cursor.Show(true, true);
+                    OnShowFinish();
                 }, 0, false, 0);
 
                 Utils.SetTaskAsPending("Shop::Loading", task);
@@ -2100,8 +2112,6 @@ namespace BCRPClient.CEF
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
-                    CEF.Cursor.Show(true, true);
-
                     CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, false }) }, null, false);
                 }
                 else
@@ -2113,11 +2123,18 @@ namespace BCRPClient.CEF
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
-                    CEF.Cursor.Show(true, true);
-
                     CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => new object[] { y, Data.Items.GetName(y), prices[y], (Data.Items.GetData(y) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y).Weight, false })), null, false);
                 }
+
+                OnShowFinish();
             }
+        }
+
+        private static void OnShowFinish()
+        {
+            UpdateMargin();
+
+            CEF.Cursor.Show(true, true);
 
             CurrentCameraStateNum = 0;
 
@@ -2149,9 +2166,6 @@ namespace BCRPClient.CEF
 
             TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
-                if (!IsActive)
-                    return;
-
                 if (CEF.ActionBox.IsActive)
                 {
                     CEF.ActionBox.Close(false);
@@ -2166,6 +2180,9 @@ namespace BCRPClient.CEF
                 }
                 else
                 {
+                    if (!IsActive)
+                        return;
+
                     Close(false, true);
                 }
             }));
@@ -2332,19 +2349,19 @@ namespace BCRPClient.CEF
         /// <summary>Получить цены по типу магазина</summary>
         /// <typeparam name="T">Тип выходных данных (Dictionary(string, int) or Dictionary(SectionTypes, Dictionary(string, int))></typeparam>
         /// <param name="type">Тип магазина</param>
-        private static Dictionary<string, uint> GetPrices(Types type) => Prices.GetValueOrDefault(type);
+        public static Dictionary<string, uint> GetPrices(Types type) => Prices.GetValueOrDefault(type);
 
         private static Dictionary<SectionTypes, string[]> GetSections(Types type) => RetailSections.GetValueOrDefault(type);
 
-        private static void SetPricesCoef(decimal newCoef)
+        private static void UpdateMargin()
         {
             if (IsRenderedShop)
             {
-                CEF.Browser.Window.ExecuteJs("Shop.priceCoef", newCoef);
+                CEF.Browser.Window.ExecuteJs("Shop.priceCoef", CurrentMargin);
             }
             else if (IsRenderedRetail)
             {
-                CEF.Browser.Window.ExecuteJs("Retail.priceCoef", newCoef);
+                CEF.Browser.Window.ExecuteJs("Retail.priceCoef", CurrentMargin);
             }
         }
 

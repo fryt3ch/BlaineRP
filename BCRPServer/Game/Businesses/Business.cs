@@ -37,6 +37,11 @@ namespace BCRPServer.Game.Businesses
 
         public const decimal INCASSATION_TAX = 0.05m;
 
+        public const uint MATS_DELIVERY_PRICE = 2000;
+
+        public const decimal MAX_MARGIN = 2.5m;
+        public const ushort MAX_MARGIN_CLIENT = 150;
+
         public enum Types
         {
             ClothesShop1 = 0,
@@ -281,6 +286,20 @@ namespace BCRPServer.Game.Businesses
             Materials = amount;
         }
 
+        public void SetMargin(decimal value)
+        {
+            Margin = value;
+
+            MySQL.BusinessUpdateMargin(this);
+
+            var players = PlayersInteracting.Select(x => x.Player).ToArray();
+
+            if (players.Length == 0)
+                return;
+
+            NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Shop::UM", (float)value);
+        }
+
         public void UpdateStatistics(ulong value)
         {
             ulong newStatDaySum;
@@ -296,13 +315,13 @@ namespace BCRPServer.Game.Businesses
             Statistics[CurrentStatisticsDayIdx] = newStatDaySum;
         }
 
-        public ulong GetBusinessPrice(uint mats, bool useCash) => useCash ? (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax)) : (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax - INCASSATION_TAX));
+        public ulong GetBusinessPrice(uint mats, bool incassation) => incassation ? (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax - INCASSATION_TAX)) : (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax));
 
-        public ulong GetBusinessPriceFixed(ulong fixedPrice, bool useCash) => useCash ? (ulong)Math.Floor(fixedPrice * (1m - Tax)) : (ulong)Math.Floor(fixedPrice * (1m - Tax - INCASSATION_TAX));
+        public ulong GetBusinessPriceFixed(ulong fixedPrice, bool incassation) => incassation ? (ulong)Math.Floor(fixedPrice * (1m - Tax - INCASSATION_TAX)) : (ulong)Math.Floor(fixedPrice * (1m - Tax));
 
-        public void ProceedPayment(PlayerData pData, bool cash, uint newMats, ulong newBalance, ulong newPlayerBalance)
+        public void ProceedPayment(PlayerData pData, bool useCash, uint newMats, ulong newBalance, ulong newPlayerBalance)
         {
-            if (cash)
+            if (useCash && !IncassationState)
             {
                 if (Owner != null)
                 {
@@ -334,33 +353,47 @@ namespace BCRPServer.Game.Businesses
                     MySQL.BusinessUpdateBalances(this);
                 }
 
-                pData.BankAccount.SetDebitBalance(newPlayerBalance, null);
+                if (useCash)
+                    pData.SetCash(newPlayerBalance);
+                else
+                    pData.BankAccount.SetDebitBalance(newPlayerBalance, null);
             }
         }
 
-        public void SellToGov(bool moneyBack = true)
+        public void SellToGov(bool balancesBack = true, bool govHalfPriceBack = true)
         {
             if (Owner == null)
                 return;
 
             ulong newBalance;
 
-            if (Cash > 0)
+            if (balancesBack)
             {
-                if (Owner.TryAddCash(Cash, out newBalance, true))
+                if (Cash > 0)
                 {
-                    Owner.SetCash(newBalance);
+                    if (Owner.TryAddCash(Cash, out newBalance, true))
+                    {
+                        Owner.SetCash(newBalance);
+                    }
+                }
+
+                if (Bank > 0)
+                {
+                    if (Owner.BankAccount != null)
+                    {
+                        if (Owner.BankAccount.TryAddMoneyDebit(Bank, out newBalance, true))
+                        {
+                            Owner.BankAccount.SetDebitBalance(newBalance, null);
+                        }
+                    }
                 }
             }
 
-            if (Bank > 0)
+            if (govHalfPriceBack)
             {
-                if (Owner.BankAccount != null)
+                if (Owner.TryAddCash(GovPrice / 2, out newBalance, true))
                 {
-                    if (Owner.BankAccount.TryAddMoneyDebit(Bank, out newBalance, true))
-                    {
-                        Owner.BankAccount.SetDebitBalance(newBalance, null);
-                    }
+                    Owner.SetCash(newBalance);
                 }
             }
 
@@ -437,7 +470,7 @@ namespace BCRPServer.Game.Businesses
                 { "DS", 0 },
                 { "MB", MaterialsData.BuyPrice },
                 { "MS", MaterialsData.SellPrice },
-                { "DP", 2000 },
+                { "DP", MATS_DELIVERY_PRICE },
                 { "S", Statistics.SerializeToJson() }
             };
 

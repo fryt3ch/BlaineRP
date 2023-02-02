@@ -45,6 +45,15 @@ namespace BCRPServer.Additional
             },
             #endregion
 
+            { "kill", () =>
+                {
+                    NAPI.Task.Run(() =>
+                    {
+                        NAPI.Pools.GetAllPlayers().FirstOrDefault()?.SetHealth(0);
+                    });
+                }
+            },
+
             #region Close / Open Access To Server
             { "closejoining", () =>
                 {

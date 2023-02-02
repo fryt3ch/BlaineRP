@@ -55,7 +55,7 @@ namespace BCRPClient.Data.NPCDialogues
                             btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }, true));
 
                         if (pData.OwnedBusinesses.FirstOrDefault() is Data.Locations.Business biz)
-                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_biz", false, new object[] { biz }); }, true));
+                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }, true));
                     }
                     else
                     {
@@ -97,8 +97,8 @@ namespace BCRPClient.Data.NPCDialogues
                 var maxPaidDays = uint.Parse(data[1]);
                 var minPaidDays = uint.Parse(data[2]);
 
-                var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * houseData.Tax;
-                var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * houseData.Tax;
+                var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * houseData.Tax;
+                var minBalance = minPaidDays * houseData.Tax;
 
                 var hoursLeft = balance / houseData.Tax;
 
@@ -106,7 +106,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                 var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                var targetDate = currentDateZeros.AddHours(hoursLeft);
+                var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
                 var timeLeft = targetDate.Subtract(currentDate);
 
@@ -119,39 +119,56 @@ namespace BCRPClient.Data.NPCDialogues
                     if (NPC.CurrentNPC == null)
                         return;
 
-                    var nBalance = maxBalance - balance;
-
-                    if (nBalance <= 0)
+                    if (balance >= maxBalance)
                     {
                         CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
 
                         return;
                     }
 
+                    var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+
+                    if (nBalance == 0)
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+
+                        return;
+                    }
+
+                    var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                    if (bank == null)
+                        return;
+
                     NPC.CurrentNPC.SwitchDialogue(false);
 
-                    await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceDeposit, Locale.Actions.HouseBalanceDeposit, 0, nBalance, nBalance / 2, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData);
+                    await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.HouseBalanceDeposit, 0, nBalance, nBalance / 2, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData, bank, true);
                 }, true));
 
-                if (enoughBalance)
+                if (balance > 0)
                 {
                     btns.Add(new Button("[Снять со счета]", async () =>
                     {
                         if (NPC.CurrentNPC == null)
                             return;
 
-                        var nBalance = balance - minBalance;
-
-                        if (nBalance <= 0)
+                        if (minBalance >= balance)
                         {
                             CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Utils.GetPriceString(minBalance)));
 
                             return;
                         }
 
+                        var nBalance = balance - minBalance;
+
+                        var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                        if (bank == null)
+                            return;
+
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceWithdraw, Locale.Actions.HouseBalanceWithdraw, 0, nBalance, nBalance, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData);
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.HouseBalanceWithdraw, 0, nBalance, nBalance, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData, bank, false);
                     }, false));
                 }
 
@@ -192,8 +209,8 @@ namespace BCRPClient.Data.NPCDialogues
                     var maxPaidDays = uint.Parse(data[1]);
                     var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * apsData.Tax;
-                    var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * apsData.Tax;
+                    var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * apsData.Tax;
+                    var minBalance = minPaidDays * apsData.Tax;
 
                     var hoursLeft = balance / apsData.Tax;
 
@@ -201,7 +218,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                    var targetDate = currentDateZeros.AddHours(hoursLeft);
+                    var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
                     var timeLeft = targetDate.Subtract(currentDate);
 
@@ -214,39 +231,56 @@ namespace BCRPClient.Data.NPCDialogues
                         if (NPC.CurrentNPC == null)
                             return;
 
-                        var nBalance = maxBalance - balance;
-
-                        if (nBalance <= 0)
+                        if (balance >= maxBalance)
                         {
                             CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
 
                             return;
                         }
 
+                        var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+
+                        if (nBalance == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+
+                            return;
+                        }
+
+                        var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                        if (bank == null)
+                            return;
+
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceDeposit, Locale.Actions.ApartmentsBalanceDeposit, 0, nBalance, nBalance / 2, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData);
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.ApartmentsBalanceDeposit, 0, nBalance, nBalance / 2, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData, bank, true);
                     }, true));
 
-                    if (enoughBalance)
+                    if (balance > 0)
                     {
                         btns.Add(new Button("[Снять со счета]", async () =>
                         {
                             if (NPC.CurrentNPC == null)
                                 return;
 
-                            var nBalance = balance - minBalance;
-
-                            if (nBalance <= 0)
+                            if (minBalance >= balance)
                             {
                                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MinimalBalanceHouse);
 
                                 return;
                             }
 
+                            var nBalance = balance - minBalance;
+
+                            var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                            if (bank == null)
+                                return;
+
                             NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceWithdraw, Locale.Actions.ApartmentsBalanceWithdraw, 0, nBalance, nBalance, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData);
+                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.ApartmentsBalanceWithdraw, 0, nBalance, nBalance, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData, bank, false);
                         }, false));
                     }
 
@@ -287,8 +321,8 @@ namespace BCRPClient.Data.NPCDialogues
                     var maxPaidDays = uint.Parse(data[1]);
                     var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * garageData.Tax;
-                    var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * garageData.Tax;
+                    var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * garageData.Tax;
+                    var minBalance = minPaidDays * garageData.Tax;
 
                     var hoursLeft = balance / garageData.Tax;
 
@@ -296,7 +330,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                    var targetDate = currentDateZeros.AddHours(hoursLeft);
+                    var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
                     var timeLeft = targetDate.Subtract(currentDate);
 
@@ -309,39 +343,56 @@ namespace BCRPClient.Data.NPCDialogues
                         if (NPC.CurrentNPC == null)
                             return;
 
-                        var nBalance = maxBalance - balance;
-
-                        if (nBalance <= 0)
+                        if (balance >= maxBalance)
                         {
                             CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
 
                             return;
                         }
 
+                        var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+
+                        if (nBalance == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+
+                            return;
+                        }
+
+                        var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                        if (bank == null)
+                            return;
+
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceDeposit, Locale.Actions.GarageBalanceDeposit, 0, nBalance, nBalance / 2, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData);
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceChange, Locale.Actions.GarageBalanceDeposit, 0, nBalance, nBalance / 2, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData, bank, true);
                     }, true));
 
-                    if (enoughBalance)
+                    if (balance > 0)
                     {
                         btns.Add(new Button("[Снять со счета]", async () =>
                         {
                             if (NPC.CurrentNPC == null)
                                 return;
 
-                            var nBalance = balance - minBalance;
-
-                            if (nBalance <= 0)
+                            if (minBalance >= balance)
                             {
                                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MinimalBalanceHouse);
 
                                 return;
                             }
 
+                            var nBalance = balance - minBalance;
+
+                            var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                            if (bank == null)
+                                return;
+
                             NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceWithdraw, Locale.Actions.GarageBalanceWithdraw, 0, nBalance, nBalance, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData);
+                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceChange, Locale.Actions.GarageBalanceWithdraw, 0, nBalance, nBalance, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData, bank, false);
                         }, false));
                     }
 
@@ -382,8 +433,8 @@ namespace BCRPClient.Data.NPCDialogues
                     var maxPaidDays = uint.Parse(data[1]);
                     var minPaidDays = uint.Parse(data[2]);
 
-                    var maxBalance = maxPaidDays <= 0 ? ulong.MaxValue : maxPaidDays * businessData.Rent;
-                    var minBalance = maxPaidDays <= 0 ? 0 : minPaidDays * businessData.Rent;
+                    var maxBalance = maxPaidDays == 0 ? ulong.MaxValue : maxPaidDays * businessData.Rent;
+                    var minBalance = minPaidDays * businessData.Rent;
 
                     var hoursLeft = balance / businessData.Rent;
 
@@ -391,7 +442,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
-                    var targetDate = currentDateZeros.AddHours(hoursLeft);
+                    var targetDate = currentDateZeros.AddHours(hoursLeft > 30_000 ? 30_000 : hoursLeft);
 
                     var timeLeft = targetDate.Subtract(currentDate);
 
@@ -404,39 +455,56 @@ namespace BCRPClient.Data.NPCDialogues
                         if (NPC.CurrentNPC == null)
                             return;
 
-                        var nBalance = maxBalance - balance;
-
-                        if (nBalance <= 0)
+                        if (balance >= maxBalance)
                         {
                             CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
 
                             return;
                         }
 
+                        var nBalance = maxBalance == ulong.MaxValue ? (pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance) : maxBalance - balance;
+
+                        if (nBalance == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+
+                            return;
+                        }
+
+                        var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                        if (bank == null)
+                            return;
+
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceDeposit, Locale.Actions.BusinessBalanceDeposit, 0, nBalance, nBalance / 2, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData);
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceChange, Locale.Actions.BusinessBalanceDeposit, 0, nBalance, nBalance / 2, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData, bank, true);
                     }, true));
 
-                    if (enoughBalance)
+                    if (balance > 0)
                     {
                         btns.Add(new Button("[Снять со счета]", async () =>
                         {
                             if (NPC.CurrentNPC == null)
                                 return;
 
-                            var nBalance = balance - minBalance;
-
-                            if (nBalance <= 0)
+                            if (minBalance >= balance)
                             {
                                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MinimalBalanceHouse);
 
                                 return;
                             }
 
+                            var nBalance = balance - minBalance;
+
+                            var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                            if (bank == null)
+                                return;
+
                             NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceWithdraw, Locale.Actions.BusinessBalanceWithdraw, 0, nBalance, nBalance, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData);
+                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceChange, Locale.Actions.BusinessBalanceWithdraw, 0, nBalance, nBalance, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData, bank, false);
                         }, false));
                     }
 

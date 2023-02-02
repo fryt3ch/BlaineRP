@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Text;
+using Ubiety.Dns.Core.Records;
 using static BCRPServer.Game.Bank;
 using static BCRPServer.PlayerData;
 
@@ -112,7 +113,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Bank::Debit::Operation")]
-        private static void Operation(Player player, bool isAtm, int bankId, bool add, int amountI) // add check if player isn't near the bank / atm
+        private static void Operation(Player player, bool isAtm, int bankId, bool add, int amountI)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -164,16 +165,16 @@ namespace BCRPServer.Events.Players
 
                 ulong newCash;
 
-                if (!pData.TryAddCash(amount, out newCash, true))
+                if (!pData.TryAddCash(isAtm ? (ulong)Math.Floor(amount * (1 - Game.Bank.ATM_TAX)) : amount, out newCash, true))
                     return;
 
-                pData.BankAccount.SetDebitBalance(newBalance, null); // add atm tax
+                pData.BankAccount.SetDebitBalance(newBalance, null);
                 pData.SetCash(newCash);
             }
         }
 
         [RemoteEvent("Bank::Tariff::Buy")]
-        private static void BuyTariff(Player player, int bankId, int tariffNum) // add check if player isn't near the bank / atm
+        private static void BuyTariff(Player player, int bankId, int tariffNum)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -226,7 +227,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Bank::Show")]
-        private static void Show(Player player, bool isAtm, int bankId) // add check if player isn't near the bank / atm
+        private static void Show(Player player, bool isAtm, int bankId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -251,7 +252,7 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
-                    player.TriggerEvent("ATM::Show", bankId, ATM_TAX);
+                    player.TriggerEvent("ATM::Show", bankId, (float)ATM_TAX);
 
                     return;
                 }
@@ -304,7 +305,7 @@ namespace BCRPServer.Events.Players
             if (house == null || house.Owner != pData.Info)
                 return null;
 
-            return $"{house.Balance}_{Settings.MAX_PAID_HOURS_HOUSE}_{Settings.MIN_PAID_HOURS_HOUSE}";
+            return $"{house.Balance}_{Settings.MAX_PAID_HOURS_HOUSE_APS}_{Settings.MIN_PAID_HOURS_HOUSE_APS}";
         }
 
         [RemoteProc("Bank::GAA")]
@@ -322,7 +323,7 @@ namespace BCRPServer.Events.Players
             if (aps == null || aps.Owner != pData.Info)
                 return null;
 
-            return $"{aps.Balance}_{Settings.MAX_PAID_HOURS_APARTMENTS}_{Settings.MIN_PAID_HOURS_APARTMENTS}";
+            return $"{aps.Balance}_{Settings.MAX_PAID_HOURS_HOUSE_APS}_{Settings.MIN_PAID_HOURS_HOUSE_APS}";
         }
 
         [RemoteProc("Bank::GGA")]
@@ -361,48 +362,61 @@ namespace BCRPServer.Events.Players
             return $"{business.Bank}_{Settings.MAX_PAID_HOURS_BUSINESS}_{Settings.MIN_PAID_HOURS_BUSINESS}";
         }
 
-        [RemoteProc("Bank::HBC")]
-        private static int HouseBalanceChange(Player player, uint houseId, int amountI, bool useCash, bool add)
+        [RemoteProc("Bank::BBC")]
+        private static ulong? BusinessBalanceChange(Player player, int businessId, int bankId, int amountI, bool useCash, bool add)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return -1;
+                return null;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                return -1;
+                return null;
 
             if (amountI <= 0)
-                return -1;
+                return null;
 
             var amount = (ulong)amountI;
 
             if (pData.BankAccount == null)
-                return -1;
+                return null;
 
-            var house = Game.Estates.House.Get(houseId);
+            var business = Game.Businesses.Business.Get(businessId);
 
-            if (house == null || house.Owner != pData.Info)
-                return -1;
+            if (business == null || business.Owner != pData.Info)
+                return null;
+
+            if (bankId >= 0)
+            {
+                if (!IsPlayerNearBank(player, bankId))
+                    return null;
+            }
+            else
+            {
+                if (add || useCash)
+                    return null;
+            }
 
             if (add)
             {
                 ulong newBalance;
 
-                if (!house.TryAddMoneyBalance(amount, out newBalance, true))
-                    return -1;
+                if (!business.TryAddMoneyBank(amount, out newBalance, true))
+                    return null;
 
-                if ((uint)(house.Tax * Settings.MAX_PAID_HOURS_HOUSE) < newBalance)
-                    return -1;
+                var maxHours = Settings.MAX_PAID_HOURS_BUSINESS;
+
+                if (maxHours > 0 && (business.Rent * maxHours < newBalance))
+                    return null;
 
                 if (useCash)
                 {
                     ulong newCash;
 
                     if (!pData.TryRemoveCash(amount, out newCash, true))
-                        return -1;
+                        return null;
 
                     pData.SetCash(newCash);
                 }
@@ -411,7 +425,114 @@ namespace BCRPServer.Events.Players
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
-                        return -1;
+                        return null;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
+                }
+
+                business.SetBank(newBalance);
+            }
+            else
+            {
+                ulong newBalance;
+
+                if (!business.TryRemoveMoneyBank(amount, out newBalance, true))
+                    return null;
+
+                if (business.Rent * Settings.MIN_PAID_HOURS_BUSINESS > newBalance)
+                    return null;
+
+                if (useCash)
+                {
+                    ulong newCash;
+
+                    if (!pData.TryAddCash(amount, out newCash, true))
+                        return null;
+
+                    pData.SetCash(newCash);
+                }
+                else
+                {
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
+                        return null;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
+                }
+
+                business.SetBank(newBalance);
+            }
+
+            MySQL.BusinessUpdateBalances(business);
+
+            return business.Bank;
+        }
+
+        [RemoteProc("Bank::HBC")]
+        private static ulong? HouseBalanceChange(Player player, bool isHouse, uint houseId, int bankId, int amountI, bool useCash, bool add)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
+            if (amountI <= 0)
+                return null;
+
+            var amount = (ulong)amountI;
+
+            if (pData.BankAccount == null)
+                return null;
+
+            var house = isHouse ? (Game.Estates.HouseBase)Game.Estates.House.Get(houseId) : (Game.Estates.HouseBase)Game.Estates.Apartments.Get(houseId);
+
+            if (house == null || house.Owner != pData.Info)
+                return null;
+
+            if (bankId >= 0)
+            {
+                if (!IsPlayerNearBank(player, bankId))
+                    return null;
+            }
+            else
+            {
+                if (add || useCash)
+                    return null;
+            }
+
+            if (add)
+            {
+                ulong newBalance;
+
+                if (!house.TryAddMoneyBalance(amount, out newBalance, true))
+                    return null;
+
+                var maxHours = Settings.MAX_PAID_HOURS_HOUSE_APS;
+
+                if (maxHours > 0 && ((uint)(house.Tax * Settings.MAX_PAID_HOURS_HOUSE_APS) < newBalance))
+                    return null;
+
+                if (useCash)
+                {
+                    ulong newCash;
+
+                    if (!pData.TryRemoveCash(amount, out newCash, true))
+                        return null;
+
+                    pData.SetCash(newCash);
+                }
+                else
+                {
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
+                        return null;
 
                     pData.BankAccount.SetDebitBalance(newBankBalance, null);
                 }
@@ -423,17 +544,17 @@ namespace BCRPServer.Events.Players
                 ulong newBalance;
 
                 if (!house.TryRemoveMoneyBalance(amount, out newBalance, true))
-                    return -1;
+                    return null;
 
-                if ((uint)(house.Tax * Settings.MIN_PAID_HOURS_HOUSE) > newBalance)
-                    return -1;
+                if ((uint)(house.Tax * Settings.MIN_PAID_HOURS_HOUSE_APS) > newBalance)
+                    return null;
 
                 if (useCash)
                 {
                     ulong newCash;
 
                     if (!pData.TryAddCash(amount, out newCash, true))
-                        return -1;
+                        return null;
 
                     pData.SetCash(newCash);
                 }
@@ -442,7 +563,7 @@ namespace BCRPServer.Events.Players
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
-                        return -1;
+                        return null;
 
                     pData.BankAccount.SetDebitBalance(newBankBalance, null);
                 }
@@ -452,7 +573,7 @@ namespace BCRPServer.Events.Players
 
             MySQL.HouseUpdateBalance(house);
 
-            return 0; // todo
+            return house.Balance;
         }
     }
 }

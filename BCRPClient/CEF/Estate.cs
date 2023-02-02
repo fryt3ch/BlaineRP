@@ -299,7 +299,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, business.Price, business.Rent, Math.Round(business.Tax * 100, 1) }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, business.Price, business.Rent, Math.Round(business.Tax * 100, 0).ToString() }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);

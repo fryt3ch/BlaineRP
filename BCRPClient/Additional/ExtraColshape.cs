@@ -867,7 +867,7 @@ namespace BCRPClient.Additional
                         {
                             Player.LocalPlayer.ResetData("CurrentGasStation");
 
-                            CEF.Gas.Close();
+                            CEF.Gas.Close(true);
                         }
                     },
                 }

@@ -284,9 +284,9 @@ namespace BCRPClient.Sync
                 
                 new Dictionary<Types, AttachmentData>()
                 {
-                    { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(70f, 85f, -5f), false, false, false, 5, true) },
+                    { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(70f, 85f, -5f), false, false, false, 2, true) },
 
-                    { Types.PedRingRight3, new AttachmentData(58869, new Vector3(0.033f, 0.0007f, 0.0029f), new Vector3(105f, -85f, 15f), false, false, false, 5, true) },
+                    { Types.PedRingRight3, new AttachmentData(58869, new Vector3(0.033f, 0.0007f, 0.0029f), new Vector3(105f, -85f, 15f), false, false, false, 2, true) },
                 }
             },
 
@@ -295,9 +295,9 @@ namespace BCRPClient.Sync
 
                 new Dictionary<Types, AttachmentData>()
                 {
-                    { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(80f, 95f, -5f), false, false, false, 5, true) },
+                    { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(80f, 95f, -5f), false, false, false, 2, true) },
 
-                    { Types.PedRingRight3, new AttachmentData(58869, new Vector3(0.033f, 0.0013f, 0.0029f), new Vector3(115f, -105f, 15f), false, false, false, 5, true) },
+                    { Types.PedRingRight3, new AttachmentData(58869, new Vector3(0.033f, 0.0013f, 0.0029f), new Vector3(115f, -105f, 15f), false, false, false, 2, true) },
                 }
             },
         }.ToDictionary(x => RAGE.Util.Joaat.Hash(x.Key), x => x.Value);
@@ -1130,7 +1130,7 @@ namespace BCRPClient.Sync
                             var lastSent = Player.LocalPlayer.GetData<DateTime>("Temp::Smoke::LastSent");
 
                             // lmb - do puff
-                            if (!CEF.Cursor.IsVisible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24))
+                            if (!CEF.Cursor.IsVisible && RAGE.Game.Pad.IsDisabledControlJustPressed(0, 24) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -1140,7 +1140,7 @@ namespace BCRPClient.Sync
                                 }
                             }
                             // alt - to mouth
-                            else if ((!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null)
+                            else if (((!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -1191,7 +1191,7 @@ namespace BCRPClient.Sync
                                 // alt - to hand
                                 if (!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
                                 {
-                                    if (!lastSent.IsSpam(1000, false, false))
+                                    if (!lastSent.IsSpam(1000, false, false) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                                     {
                                         Events.CallRemote("Players::Smoke::State");
 
