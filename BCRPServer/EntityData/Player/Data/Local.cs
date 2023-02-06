@@ -77,7 +77,7 @@ namespace BCRPServer
 
         public Game.Estates.HouseBase SettledHouseBase { get; set; }
 
-        public VehicleData RentedVehicle => VehicleData.All.Values.Where(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRent && x.OwnerID == CID).FirstOrDefault();
+        public VehicleData RentedVehicle => VehicleData.All.Values.FirstOrDefault(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRent && x.OwnerID == CID);
 
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
@@ -184,7 +184,10 @@ namespace BCRPServer
         public List<Game.Items.Gift> Gifts { get => Info.Gifts; set => Info.Gifts = value; }
 
         /// <summary>Активное предложение игрока</summary>
-        public Sync.Offers.Offer ActiveOffer { get; set; }
+        public Sync.Offers.Offer ActiveOffer => Sync.Offers.Offer.GetByPlayer(this);
+
+        /// <summary>Активный звонок игрока</summary>
+        public Sync.Phone.Call ActiveCall => Sync.Phone.Call.GetByPlayer(this);
 
         /// <summary>Список игроков, которые являются слушателями (микрофон)</summary>
         public List<Player> Listeners { get; set; }

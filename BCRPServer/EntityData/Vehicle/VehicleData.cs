@@ -64,16 +64,6 @@ namespace BCRPServer
             VehicleInfo.Remove(vData.Info);
         }
 
-        public enum OwningTypes
-        {
-            /// <summary>Основной владелец</summary>
-            Owner = 0,
-            /// <summary>Имеет действительный ключ</summary>
-            HasKey,
-            /// <summary>Арендует</summary>
-            Renter,
-        }
-
         public enum OwnerTypes
         {
             /// <summary>Доступна всем</summary>
@@ -435,6 +425,45 @@ namespace BCRPServer
             return vData;
         }
 
+        public static VehicleData NewJob(int jobId, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
+        {
+            var job = Game.Jobs.Job.Get(jobId);
+
+            var vInfo = new VehicleInfo()
+            {
+                VID = 0,
+
+                Data = vType,
+                AllKeys = new List<uint>(),
+                OwnerType = OwnerTypes.PlayerRentJob,
+                OwnerID = 0,
+                ID = vType.ID,
+                Numberplate = null,
+                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                LastData = new LastVehicleData() { Position = position.Position, Dimension = dimension, Heading = position.RotationZ, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
+                RegistrationDate = Utils.GetCurrentTime(),
+            };
+
+            var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
+
+            var veh = vData.Vehicle;
+
+            if (job is Game.Jobs.IVehicles vehJob)
+            {
+                veh.NumberPlate = $"{vehJob.NumberplateText}{vehJob.Vehicles.Count + 1}";
+            }
+
+            NAPI.Task.Run(() =>
+            {
+                if (veh?.Exists != true)
+                    return;
+
+                veh.Dimension = dimension;
+            }, 1500);
+
+            return vData;
+        }
+
         public void StartDeletionTask()
         {
             if (CTSDelete != null)
@@ -486,32 +515,57 @@ namespace BCRPServer
             }
         }
 
-        public OwningTypes? IsOwner(PlayerData pData)
+        public bool IsFullOwner(PlayerData pData, bool notify = true)
+        {
+            if (OwnerType == OwnerTypes.Player && OwnerID == pData.CID)
+            {
+                return true;
+            }
+
+            if (notify)
+            {
+                pData.Player.Notify("Vehicle::NFO");
+            }
+
+            return false;
+        }
+
+        public bool CanManipulate(PlayerData pData, bool notify = true)
         {
             if (OwnerType == OwnerTypes.AlwaysFree)
-                return OwningTypes.Renter;
+                return true;
 
             if (OwnerType == OwnerTypes.Player)
             {
                 if (OwnerID == pData.CID)
-                    return OwningTypes.Owner;
+                    return true;
 
                 for (int i = 0; i < pData.Items.Length; i++)
                 {
                     if (pData.Items[i] is Game.Items.VehicleKey vKey)
                     {
                         if (vKey.IsKeyValid(Info))
-                            return OwningTypes.HasKey;
+                            return true;
                     }
                 }
             }
-            else if (OwnerType == OwnerTypes.PlayerRent)
+            else if (OwnerType == OwnerTypes.PlayerTemp || OwnerType == OwnerTypes.PlayerRent)
             {
                 if (OwnerID == pData.CID)
-                    return OwningTypes.Owner;
+                    return true;
+            }
+            else if (OwnerType == OwnerTypes.PlayerRentJob)
+            {
+                if (Vehicle.GetData<PlayerData>(Game.Jobs.Job.RentedVehicleOwnerKey) == pData)
+                    return true;
             }
 
-            return null;
+            if (notify)
+            {
+                pData.Player.Notify("Vehicle::NotAllowed");
+            }
+
+            return false;
         }
 
         #endregion

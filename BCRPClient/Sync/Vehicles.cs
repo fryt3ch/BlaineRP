@@ -78,7 +78,7 @@ namespace BCRPClient.Sync
 
             public void ShowTimeLeftNotification()
             {
-                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.SubName}\"", DateTime.Now.AddMilliseconds(TimeLeftToDelete).Subtract(DateTime.Now).GetBeautyString()), 5000);
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.SubName}\"", DateTime.Now.AddMilliseconds(TimeLeftToDelete).Subtract(DateTime.Now).GetBeautyString()));
             }
 
             public static void Check()
@@ -1129,7 +1129,7 @@ namespace BCRPClient.Sync
             if (veh?.Exists != true)
                 return;
 
-            if (ignoreIf)
+            if (!ignoreIf)
             {
                 if (LastEngineToggled.IsSpam(1000, false, false))
                     return;

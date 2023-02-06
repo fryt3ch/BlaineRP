@@ -707,6 +707,8 @@ namespace BCRPServer.Sync
 
         public class Offer
         {
+            private static List<Offer> AllOffers { get; set; } = new List<Offer>();
+
             #region Trade Subclass
             public class PropertySellData
             {
@@ -1218,22 +1220,25 @@ namespace BCRPServer.Sync
                     }
                 });
 
-                Sender.ActiveOffer = this;
-                Receiver.ActiveOffer = this;
+                AllOffers.Add(this);
             }
 
             /// <summary>Метод для отмены предложения и удаления его из списка активных предложения</summary>
             public void Cancel(bool success = false, bool isSender = false, ReplyTypes rType = ReplyTypes.AutoCancel, bool justCancelCts = false)
             {
-                bool ctsNull = CTS == null;
+                var ctsNull = CTS == null;
 
                 if (ctsNull)
                 {               
                     OfferActions[Type].GetValueOrDefault(false)?.Invoke(Sender, Receiver, this);
                 }
+                else
+                {
+                    CTS.Cancel();
+                    CTS.Dispose();
 
-                CTS?.Cancel();
-                CTS = null;
+                    CTS = null;
+                }
 
                 var sender = Sender?.Player;
                 var receiver = Receiver?.Player;
@@ -1269,8 +1274,7 @@ namespace BCRPServer.Sync
                 if (justCancelCts)
                     return;
 
-                Sender.ActiveOffer = null;
-                Receiver.ActiveOffer = null;
+                AllOffers.Remove(this);
             }
 
             public void Execute()
@@ -1287,6 +1291,12 @@ namespace BCRPServer.Sync
 
                 return offer;
             }
+
+            public static Offer GetByPlayer(PlayerData pData) => AllOffers.FirstOrDefault(x => x.Sender == pData || x.Receiver == pData);
+
+            public static Offer GetBySender(PlayerData pData) => AllOffers.FirstOrDefault(x => x.Sender == pData);
+
+            public static Offer GetByReceiver(PlayerData pData) => AllOffers.FirstOrDefault(x => x.Receiver == pData);
         }
     }
 }

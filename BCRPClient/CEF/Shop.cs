@@ -2363,6 +2363,18 @@ namespace BCRPClient.CEF
             {
                 CEF.Browser.Window.ExecuteJs("Retail.priceCoef", CurrentMargin);
             }
+            else if (IsRenderedTuning)
+            {
+                CEF.Browser.Window.ExecuteJs("Tuning.priceCoef", CurrentMargin);
+            }
+            else if (IsRenderedTattooSalon)
+            {
+                CEF.Browser.Window.ExecuteJs("Tattoo.priceCoef", CurrentMargin);
+            }
+            else if (IsRenderedSalon)
+            {
+                CEF.Browser.Window.ExecuteJs("Salon.priceCoef", CurrentMargin);
+            }
         }
 
         private static async void StopTestDrive()

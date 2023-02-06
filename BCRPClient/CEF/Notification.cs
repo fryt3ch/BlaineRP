@@ -108,6 +108,7 @@ namespace BCRPClient.CEF
             { "NP::Set", new Instance(Types.Success, Locale.Notifications.Vehicles.PlateInstalled, Locale.Notifications.Vehicles.Header) },
 
             { "Vehicle::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.NotAllowed, Locale.Notifications.Vehicles.Header) },
+            { "Vehicle::NFO", new Instance(Types.Error, Locale.Notifications.Vehicles.NotFullOwner, Locale.Notifications.ErrorHeader) },
             { "Vehicle::OVP", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleOnPound, Locale.Notifications.ErrorHeader) },
             { "Vehicle::KE", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyError, Locale.Notifications.ErrorHeader) },
             { "Vehicle::KENS", new Instance(Types.Error, Locale.Notifications.Vehicles.VehicleKeyNoSignalError, Locale.Notifications.ErrorHeader) },
@@ -172,6 +173,8 @@ namespace BCRPClient.CEF
             { "Bank::DayLimitExceed", new Instance(Types.Error, Locale.Notifications.Money.Bank.DayLimitExceed, Locale.Notifications.ErrorHeader) },
             { "Bank::MaxSavings", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Notifications.ErrorHeader) },
             { "Bank::SendApprove", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApprove, Locale.Notifications.ApproveHeader) },
+
+            { "Phone::MBA", new Instance(Types.Error, Locale.Notifications.Money.PhoneBalanceMax, Locale.Notifications.ErrorHeader) },
 
             { "Business:NoMats", new Instance(Types.Error, Locale.Notifications.Money.NoMaterialsShop, Locale.Notifications.ErrorHeader) },
 

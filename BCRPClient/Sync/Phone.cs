@@ -42,13 +42,16 @@ namespace BCRPClient.Sync
 
         public static void Toggle()
         {
-            if (LastSwitchTime.IsSpam(2000, false, false) || Utils.IsAnyCefActive())
+            if (LastSwitchTime.IsSpam(2000, false, false))
                 return;
 
             LastSwitchTime = DateTime.Now;
 
             if (!Toggled)
             {
+                if (Utils.IsAnyCefActive())
+                    return;
+
                 On();
             }
             else
@@ -83,6 +86,8 @@ namespace BCRPClient.Sync
 
                     Toggled = true;
 
+                    CEF.Phone.Show();
+
                     return;
                 }
 
@@ -111,6 +116,8 @@ namespace BCRPClient.Sync
                     RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
 
                     Toggled = false;
+
+                    CEF.Phone.Close();
 
                     return;
                 }

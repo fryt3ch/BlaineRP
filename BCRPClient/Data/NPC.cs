@@ -412,6 +412,7 @@ namespace BCRPClient.Data
         public Dialogue()
         {
             NPCDialogues.Bank.Load();
+            NPCDialogues.Job.Load();
             NPCDialogues.Shop.Load();
             NPCDialogues.VehiclePound.Load();
             NPCDialogues.Misc.Load();
@@ -502,6 +503,11 @@ namespace BCRPClient.Data
 
             for (int i = 0; i < buttons.Count; i++)
                 btnsData.Add(new object[] { buttons[i].IsRed, i, buttons[i].Text });
+
+            if (!buttons.Where(x => x.IsRed).Any())
+            {
+                ((object[])btnsData[0])[0] = true;
+            }
 
             CEF.NPC.Draw(npcHolder.Name, text, btnsData.ToArray());
         }

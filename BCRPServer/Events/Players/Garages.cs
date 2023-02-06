@@ -193,7 +193,7 @@ namespace BCRPServer.Events.Players
 
             var gRootType = (Game.Estates.Garage.GarageRoot.Types)gRootTypeNum;
 
-            if (player.Dimension != Utils.Dimensions.Main || vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+            if (player.Dimension != Utils.Dimensions.Main || !vData.IsFullOwner(pData))
                 return;
 
             if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
@@ -253,7 +253,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+            if (!vData.IsFullOwner(pData))
                 return;
 
             var gRootType = (Game.Estates.Garage.GarageRoot.Types)gRootTypeNum;

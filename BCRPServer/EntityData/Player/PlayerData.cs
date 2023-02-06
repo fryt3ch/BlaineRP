@@ -474,6 +474,12 @@ namespace BCRPServer
             Holster = null;
             Armour = null;
 
+            Info.PhoneNumber = Sync.Players.GenerateNewPhoneNumber();
+            Info.PhoneBalance = 0;
+
+            Info.Contacts = new Dictionary<uint, string>();
+            Info.PhoneBlacklist = new List<uint>();
+
             Furniture = new List<Game.Estates.Furniture>();
 
             Info.WeaponSkins = new Dictionary<WeaponSkin.ItemData.Types, WeaponSkin>();

@@ -531,6 +531,16 @@ namespace BCRPServer
 
                                 var cash = Convert.ToUInt64(reader["Cash"]);
 
+                                var phoneNumber = Convert.ToUInt32(reader["PhoneNumber"]);
+
+                                Sync.Players.UsedPhoneNumbers.Add(phoneNumber);
+
+                                var phoneBalance = Convert.ToUInt32(reader["PhoneBalance"]);
+
+                                var contacts = ((string)reader["Contacts"]).DeserializeFromJson<Dictionary<uint, string>>();
+
+                                var phoneBlacklist = ((string)reader["PhoneBL"]).DeserializeFromJson<List<uint>>();
+
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<PlayerData.LastPlayerData>();
 
                                 var familiars = ((string)reader["Familiars"]).DeserializeFromJson<List<uint>>();
@@ -587,6 +597,14 @@ namespace BCRPServer
                                     OrganisationID = orgId,
 
                                     Cash = cash,
+
+                                    PhoneNumber = phoneNumber,
+
+                                    PhoneBalance = phoneBalance,
+
+                                    Contacts = contacts,
+
+                                    PhoneBlacklist = phoneBlacklist,
 
                                     BankAccount = GetBankAccountByCID(cid),
 
@@ -857,11 +875,7 @@ namespace BCRPServer
                 {
                     if (x is Game.Items.Numberplate np)
                     {
-                        Game.Items.Numberplate.UsedTags.Add(np.Tag);
-                    }
-                    else if (x is Game.Items.Weapon weapon)
-                    {
-                        Game.Items.Weapon.UsedTags.Add(weapon.Tag);
+                        np.AddTagToUsed();
                     }
                 }
             }

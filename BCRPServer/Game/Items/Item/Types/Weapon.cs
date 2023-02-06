@@ -7,8 +7,6 @@ namespace BCRPServer.Game.Items
 {
     public class Weapon : Item, ITagged, IWearable, IContainer
     {
-        public static List<string> UsedTags { get; private set; } = new List<string>();
-
         new public class ItemData : Item.ItemData
         {
             public enum TopTypes
@@ -231,10 +229,7 @@ namespace BCRPServer.Game.Items
             player.TriggerEvent("Weapon::TaskReload");
         }
 
-        public string GenerateTag()
-        {
-            return null;
-        }
+        public string GenerateTag(string prefix) => $"{prefix}-{NAPI.Util.GetHashSha256(UID.ToString()).ToUpper()}";
 
         public void Wear(PlayerData pData)
         {

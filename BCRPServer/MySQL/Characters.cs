@@ -14,10 +14,10 @@ namespace BCRPServer
             MySqlCommand cmd = new MySqlCommand();
 
             cmd.CommandText = @"INSERT INTO characters (ID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, 
-                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, LastData, 
+                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, PhoneNumber, PhoneBalance, LastData, 
                     Satiety, Mood, Familiars, Skills) 
                     VALUES (@CID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, 
-                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @LastData, 
+                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @PhoneNumber, @PhoneBalance, @LastData, 
                     @Satiety, @Mood, @Familiars, @Skills); 
 
                     INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@CID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
@@ -45,6 +45,9 @@ namespace BCRPServer
             cmd.Parameters.AddWithValue("@Surname", pInfo.Surname);
             cmd.Parameters.AddWithValue("@Sex", pInfo.Sex);
             cmd.Parameters.AddWithValue("@BirthDate", pInfo.BirthDate);
+
+            cmd.Parameters.AddWithValue("@PhoneNumber", pInfo.PhoneNumber);
+            cmd.Parameters.AddWithValue("@PhoneBalance", pInfo.PhoneBalance);
 
             cmd.Parameters.AddWithValue("@Licenses", JsonConvert.SerializeObject(pInfo.Licenses));
 
@@ -163,6 +166,30 @@ namespace BCRPServer
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
             cmd.Parameters.AddWithValue("@Cash", pInfo.Cash);
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterPhoneBalanceUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE characters SET PhoneBalance=@PB WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@PB", pInfo.PhoneBalance);
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterPhoneNumberUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE characters SET PhoneNumber=@PN WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@PN", pInfo.PhoneNumber);
 
             PushQuery(cmd);
         }
@@ -338,6 +365,32 @@ namespace BCRPServer
                 cmd.Parameters.AddWithValue("@MedCard", DBNull.Value);
             else
                 cmd.Parameters.AddWithValue("@MedCard", pInfo.MedicalCard.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterContactsUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE characters SET Contacts=@Cont WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@Cont", pInfo.Contacts.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterPhoneBlacklistUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE characters SET PhoneBL=@PBL WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@PBL", pInfo.PhoneBlacklist.SerializeToJson());
 
             PushQuery(cmd);
         }

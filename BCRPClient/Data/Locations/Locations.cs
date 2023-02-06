@@ -18,6 +18,10 @@ namespace BCRPClient.Data
 
             #endregion
 
+            #region JOBS_TO_REPLACE
+
+            #endregion
+
             #region ATM_TO_REPLACE
 
             #endregion

@@ -172,6 +172,11 @@ namespace BCRPServer.Events.Vehicles
             if (player.VehicleSeat != 0)
                 return;
 
+            if (!vData.CanManipulate(pData, true))
+            {
+                return;
+            }
+
             if (vData.Info != null && vData.Info.LastData.GarageSlot >= 0)
             {
                 if (pData.CurrentHouse is Game.Estates.House house)
@@ -277,7 +282,7 @@ namespace BCRPServer.Events.Vehicles
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (vData.IsOwner(pData) == null)
+            if (!vData.CanManipulate(pData, true))
                 return;
 
             bool newState = !vData.Locked;
@@ -442,7 +447,7 @@ namespace BCRPServer.Events.Vehicles
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (vData.IsOwner(pData) == null)
+            if (!vData.CanManipulate(pData, true))
                 return;
 
             var newState = !vData.TrunkLocked;
@@ -504,7 +509,7 @@ namespace BCRPServer.Events.Vehicles
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            if (vData.IsOwner(pData) == null)
+            if (!vData.CanManipulate(pData, true))
                 return;
 
             var newState = !vData.HoodLocked;
@@ -695,12 +700,8 @@ namespace BCRPServer.Events.Vehicles
             if (vData.Numberplate == null)
                 return;
 
-            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
-            {
-                player.Notify("Vehicle::NotAllowed");
-
+            if (!vData.IsFullOwner(pData))
                 return;
-            }
 
             if (!pData.TryGiveExistingItem(vData.Numberplate, 1, true, true))
                 return;
@@ -736,12 +737,8 @@ namespace BCRPServer.Events.Vehicles
             if (vData.Numberplate != null)
                 return;
 
-            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
-            {
-                player.Notify("Vehicle::NotAllowed");
-
+            if (!vData.IsFullOwner(pData))
                 return;
-            }
 
             if (npUid == 0)
             {

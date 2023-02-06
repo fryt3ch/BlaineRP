@@ -36,14 +36,6 @@ namespace BCRPServer
             public static Random Chat { get; private set; } = new Random(DateTime.Now.Ticks.GetHashCode());
         }
 
-        public enum RespawnTypes
-        {
-            /// <summary>Смерть</summary>
-            Death = 0,
-            /// <summary>Телепортация</summary>
-            Teleport,
-        }
-
         public enum WeatherTypes : byte
         {
             BLIZZARD = 0,
@@ -181,6 +173,21 @@ namespace BCRPServer
 
         public class Colour
         {
+            [JsonIgnore]
+            public static Colour DefBlack => new Colour(0, 0, 0, 255);
+
+            [JsonIgnore]
+            public static Colour DefWhite => new Colour(255, 255, 255, 255);
+
+            [JsonIgnore]
+            public static Colour DefRed => new Colour(255, 0, 0, 255);
+
+            [JsonIgnore]
+            public static Colour DefGreen => new Colour(0, 255, 0, 255);
+
+            [JsonIgnore]
+            public static Colour DefBlue => new Colour(0, 0, 255, 255);
+
             [JsonIgnore]
             /// <summary>Красный</summary>
             public byte Red { get; set; }
@@ -1339,6 +1346,12 @@ namespace BCRPServer
 
                 return result <= source;
             }
+        }
+
+        public static IEnumerable<uint> GetUInt32Range(uint start, uint stop)
+        {
+            for (uint i = start; i < stop; i++)
+                yield return i;
         }
     }
 }

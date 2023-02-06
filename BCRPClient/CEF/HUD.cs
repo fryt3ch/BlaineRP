@@ -161,8 +161,8 @@ namespace BCRPClient.CEF
 
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.HUD_Top, Browser.IntTypes.HUD_Left); }
 
-        private static bool SpeedometerEnabled { get => Browser.IsActive(Browser.IntTypes.HUD_Speedometer); }
-        private static bool SpeedometerMustBeEnabled { get; set; }
+        public static bool SpeedometerEnabled => Browser.IsActive(Browser.IntTypes.HUD_Speedometer);
+        public static bool SpeedometerMustBeEnabled { get; private set; }
 
         private static bool BeltOffSoundOn = false;
 
@@ -242,7 +242,7 @@ namespace BCRPClient.CEF
                     EnableQuest(true);
                 }
 
-                if (SpeedometerMustBeEnabled)
+                if (SpeedometerMustBeEnabled && !CEF.Phone.IsActive)
                     Browser.Switch(Browser.IntTypes.HUD_Speedometer, true);
             }
             else
@@ -502,7 +502,9 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Hud.updateSpeedometer", Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
             Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
             
-            Browser.Switch(Browser.IntTypes.HUD_Speedometer, CEF.Browser.IsActive(Browser.IntTypes.HUD_Left));
+
+            if (!CEF.Phone.IsActive)
+                Browser.Switch(Browser.IntTypes.HUD_Speedometer, CEF.Browser.IsActive(Browser.IntTypes.HUD_Left));
 
             StartUpdateSpeedometerSpeed();
         }

@@ -111,6 +111,8 @@ namespace BCRPClient
 
                 public static string NotAllowed = "У вас нет ключей от этого транспорта!";
 
+                public static string NotFullOwner = "Вы не являетесь владельцем этого транспорта!";
+
                 public static string NoPlate = "На этом транспорте не установлен номерной знак!";
                 public static string PlateExists = "На этом транспорте уже установлен номерной знак!\nДля начала нужно его снять";
                 public static string PlateInstalled = "Номерной знак [{0}] установлен!";

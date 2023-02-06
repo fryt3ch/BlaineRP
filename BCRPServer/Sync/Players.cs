@@ -7,6 +7,23 @@ namespace BCRPServer.Sync
 {
     public class Players
     {
+        public static HashSet<uint> UsedPhoneNumbers { get; private set; } = new HashSet<uint>();
+
+        public static uint GenerateNewPhoneNumber()
+        {
+            while (true)
+            {
+                var num = (uint)Utils.Randoms.Chat.Next(100_000, 999_999_999);
+
+                if (!UsedPhoneNumbers.Contains(num))
+                {
+                    UsedPhoneNumbers.Add(num);
+
+                    return num;
+                }
+            }
+        }
+
         public static void DisableMicrophone(PlayerData pData)
         {
             if (pData.VoiceRange == 0f)

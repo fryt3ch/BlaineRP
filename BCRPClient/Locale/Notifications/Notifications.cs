@@ -266,6 +266,8 @@ namespace BCRPClient
                 public static string AdmitToSellGov1 = "Вы уверены? Вы получите {0}\nНажмите еще раз для подтверждения";
 
                 public static string NoMaterialsShop = "В этом магазине недостаточно материалов!";
+
+                public static string PhoneBalanceMax = "На балансе вашего телефона не может быть больше, чем ${0}";
             }
 
             public static class Hints
@@ -374,6 +376,11 @@ namespace BCRPClient
                     public static string LowMood = "У вас плохое настроение!\nПоднимите его чем-нибудь приятным :)";
                     public static string LowSatiety = "Вы проголодались!\nЕсли вы не поедите в ближайшее время,\nто начнёте терять здоровье";
                 }
+
+                public static string PhoneNumberWrong0 = "Неправильно набран номер!";
+                public static string PhoneNumberWrong1 = "Абонент вне зоны доступа!\nПопробуйте позвонить позднее";
+                public static string PhoneIncomingCall0 = "Вам звонит {0}";
+                public static string PhoneOpenHelp = "Откройте телефон ({0}) и примите/отклоните вызов";
             }
         }
     }

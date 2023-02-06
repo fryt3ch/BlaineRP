@@ -230,7 +230,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+            if (!vData.IsFullOwner(pData))
                 return;
 
             if (slot >= 0)
@@ -287,7 +287,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || vData.IsOwner(pData) != VehicleData.OwningTypes.Owner)
+            if (player.Dimension != Utils.Dimensions.Main || !vData.IsFullOwner(pData))
                 return;
 
             if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))

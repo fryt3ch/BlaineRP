@@ -143,6 +143,6 @@ namespace BCRPServer
         /// <summary>Прикрепленные объекты к игроку, которые находятся в руках</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>Список объектов класса Sync.AttachSystem.AttachmentNet</value>
-        public bool HasAnyHandAttachedObject => AttachedObjects.Where(x => Sync.AttachSystem.IsTypeObjectInHand(x.Type)).Any();
+        public bool HasAnyHandAttachedObject => AttachedObjects.FirstOrDefault(x => Sync.AttachSystem.IsTypeObjectInHand(x.Type)) != null;
     }
 }

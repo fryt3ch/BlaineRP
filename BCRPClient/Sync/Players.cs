@@ -431,6 +431,8 @@ namespace BCRPClient.Sync
 
                 await CEF.Browser.Render(CEF.Browser.IntTypes.NPC, true, false);
 
+                await CEF.Browser.Render(CEF.Browser.IntTypes.Phone, true, false);
+
                 CEF.Browser.Window.ExecuteJs("Hud.createSpeedometer", 500);
 
                 var player = Player.LocalPlayer;
@@ -599,6 +601,8 @@ namespace BCRPClient.Sync
 
                 Settings.Load();
                 KeyBinds.LoadAll();
+
+                CEF.Phone.Preload();
 
                 await CEF.Animations.Load();
 

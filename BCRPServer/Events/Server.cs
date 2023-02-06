@@ -91,6 +91,9 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
+
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all jobs [DATA]");
+            Utils.ConsoleOutput($" | ~Red~[{Game.Jobs.Job.InitializeAll()}]~/~", false);
             #endregion
 
             Game.Estates.HouseBase.Style.LoadAll();
@@ -139,11 +142,11 @@ namespace BCRPServer.Events
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
             Utils.ConsoleOutput();
 
-            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
+/*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
             var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);
 
-            boat.AttachBoatToTrailer();
+            boat.AttachBoatToTrailer();*/
 
             Additional.ConsoleCommands.Activate();
 

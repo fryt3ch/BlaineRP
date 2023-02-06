@@ -7,7 +7,10 @@ namespace BCRPServer.Game.Items
 {
     public class Numberplate : Item, ITagged
     {
-        public static List<string> UsedTags { get; private set; } = new List<string>();
+        public static HashSet<string>[] UsedTags { get; private set; } = new HashSet<string>[]
+        {
+            new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(), new HashSet<string>(),
+        };
 
         new public class ItemData : Item.ItemData
         {
@@ -62,29 +65,46 @@ namespace BCRPServer.Game.Items
         /// <param name="length">Длина номера (от 1 до 8)</param>
         public string GenerateTag(int length)
         {
-            if (UsedTags.Count == int.MaxValue)
-                return null;
-
             if (length < 1 || length > 8)
                 length = 8;
 
-            Random rand = new Random();
-            StringBuilder str = new StringBuilder();
+            var strBuilder = new StringBuilder();
 
-            do
+            var hashSet = UsedTags[length - 1];
+
+            if (hashSet.Count >= Math.Pow(Chars.Length, length))
+                return null;
+
+            while (true)
             {
-                str.Clear();
-
                 for (int i = 0; i < length + 1; i++)
-                    str.Append(Chars[rand.Next(0, Chars.Length - 1)]);
+                    strBuilder.Append(Chars[Utils.Randoms.Chat.Next(0, Chars.Length)]);
+
+                var retStr = strBuilder.ToString();
+
+                if (!hashSet.Contains(retStr))
+                {
+                    return retStr;
+                }
+
+                strBuilder.Clear();
             }
-            while (UsedTags.Contains(str.ToString()));
+        }
 
-            var retStr = str.ToString();
+        public void RemoveTagFromUsed()
+        {
+            if (Tag == null || Tag.Length < 1 || Tag.Length > 8)
+                return;
 
-            UsedTags.Add(retStr);
+            UsedTags[Tag.Length - 1].Remove(Tag);
+        }
 
-            return retStr;
+        public void AddTagToUsed()
+        {
+            if (Tag == null || Tag.Length < 1 || Tag.Length > 8)
+                return;
+
+            UsedTags[Tag.Length - 1].Add(Tag);
         }
 
         public Numberplate(string ID) : base(ID, IDList[ID], typeof(Numberplate))

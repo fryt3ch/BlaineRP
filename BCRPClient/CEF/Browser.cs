@@ -22,14 +22,17 @@ namespace BCRPClient.CEF
 
         private static HashSet<IntTypes> RenderedInterfaces { get; set; }
 
+        public static bool IsAnyDomElementFocused { get; private set; }
+
         private static bool _IsAnyCEFActive;
 
-        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive; private set { _IsAnyCEFActive = value; CEF.Cursor.SwitchEscMenuAccess(!value); } }
+        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive || CEF.Phone.IsActive; private set { _IsAnyCEFActive = value; CEF.Cursor.SwitchEscMenuAccess(!value); } }
 
         private static List<IntTypes> NormalInterfaces { get; set; } = new List<IntTypes>()
         {
             IntTypes.HUD_Top, IntTypes.HUD_Quest, IntTypes.HUD_Help, IntTypes.HUD_Speedometer, IntTypes.HUD_Interact, IntTypes.HUD_Left,
             IntTypes.Chat, IntTypes.Notifications,
+            IntTypes.Phone,
         };
 
         public enum IntTypes
@@ -48,6 +51,7 @@ namespace BCRPClient.CEF
             Death,
             Chat,
             Menu,
+            Phone,
             MenuBusiness, MenuGarage, MenuBank, MenuHome,
             Estate, EstateAgency,
             Elevator,
@@ -83,6 +87,8 @@ namespace BCRPClient.CEF
             { IntTypes.Death, "death" },
             
             { IntTypes.Chat, "chat" },
+
+            { IntTypes.Phone, "phone" },
             
             { IntTypes.Menu, "menu" },
             
@@ -156,6 +162,27 @@ namespace BCRPClient.CEF
                 RenderedInterfaces.Add(IntNames.Where(x => x.Value == (string)args[0]).First().Key);
 
                 //Utils.ConsoleOutput($"v-if: Ready, {IntNames.Where(x => x.Value == (string)args[0]).First().Key}");
+            });
+
+            Events.Add("Browser::OnFocusElem", (args) =>
+            {
+                var elemTypeStr = args[0] is string str ? str : null;
+
+                if (elemTypeStr == null)
+                {
+                    IsAnyDomElementFocused = false;
+                }
+                else
+                {
+                    if (elemTypeStr == "text")
+                    {
+                        IsAnyDomElementFocused = true;
+                    }
+                    else
+                    {
+                        IsAnyDomElementFocused = false;
+                    }
+                }
             });
         }
 

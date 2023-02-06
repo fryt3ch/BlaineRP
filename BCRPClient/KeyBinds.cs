@@ -14,6 +14,8 @@ namespace BCRPClient
 {
     class KeyBinds : Events.Script
     {
+        public static bool CursorNotFreezeInput { get; set; }
+
         private static Dictionary<Types, int> HelpBinds = new Dictionary<Types, int>()
         {
             { Types.ChatInput, 0 },
@@ -628,7 +630,16 @@ namespace BCRPClient
             Add(new Bind(Types.Cursor, () =>
             {
                 if (!RAGE.Game.Ui.IsPauseMenuActive())
-                    CEF.Cursor.Show(!CEF.Cursor.IsVisible, !CEF.Cursor.IsVisible);
+                {
+                    if (CEF.Cursor.IsVisible)
+                    {
+                        CEF.Cursor.Show(false, false);
+                    }
+                    else
+                    {
+                        CEF.Cursor.Show(!CursorNotFreezeInput, true);
+                    }
+                }
             }, true, true)
             { Description = "Скрыть / показать курсор" }, true);
         }
@@ -689,8 +700,15 @@ namespace BCRPClient
             // Phone
             Add(new Bind(Types.Phone, () =>
             {
-                if (Utils.CanShowCEF(true, true))
+                if (!Sync.Phone.Toggled)
+                {
+                    if (Utils.CanShowCEF(true, true))
+                        Sync.Phone.Toggle();
+                }
+                else
+                {
                     Sync.Phone.Toggle();
+                }
             }, true, true)
             { Description = "Телефон" });
 

@@ -419,7 +419,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            if (value && Utils.IsAnyCefActive(true) && !CEF.Death.IsActive)
+            if (value && Utils.IsAnyCefActive(true) && !CEF.Death.IsActive && !CEF.Phone.IsActive)
                 return;
 
             Browser.Window.ExecuteJs("Chat.switchInput", value);

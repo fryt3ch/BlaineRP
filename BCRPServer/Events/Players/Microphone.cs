@@ -28,6 +28,18 @@ namespace BCRPServer.Events.Players
                     return;
 
                 pData.VoiceRange = vRange;
+
+                if (pData.ActiveCall is Sync.Phone.Call activeCall && activeCall.StatusType == Sync.Phone.Call.StatusTypes.Process)
+                {
+                    var callTarget = activeCall.Caller == pData ? activeCall.Receiver : activeCall.Caller;
+
+                    if (callTarget.Player?.Exists == true)
+                    {
+                        player.EnableVoiceTo(callTarget.Player);
+
+                        pData.Listeners.Add(callTarget.Player);
+                    }
+                }
             }
             else
             {
@@ -40,7 +52,12 @@ namespace BCRPServer.Events.Players
         {
             var pData = PlayerData.Get(player);
 
-            if (pData == null || pData.VoiceRange == 0f || target?.Exists != true)
+            if (pData == null || target?.Exists != true)
+                return;
+
+            var voiceRange = pData.VoiceRange;
+
+            if (voiceRange == 0f)
                 return;
 
             if (!player.AreEntitiesNearby(target, pData.VoiceRange) || pData.Listeners.Contains(target))
@@ -56,12 +73,10 @@ namespace BCRPServer.Events.Players
         {
             var pData = PlayerData.Get(player);
 
-            if (pData == null || target?.Exists != true)
+            if (pData == null || target?.Exists != true || !pData.Listeners.Remove(target))
                 return;
 
             player.DisableVoiceTo(target);
-
-            pData.Listeners.Remove(target);
         }
     }
 }

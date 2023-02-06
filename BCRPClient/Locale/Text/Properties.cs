@@ -31,6 +31,11 @@ namespace BCRPClient
             public static string GarageTradeInfoStr = "{0}, #{1}";
             public static string BusinessTradeInfoStr = "{0} #{1}";
 
+            public static Dictionary<Data.Locations.Job.Types, string> JobNames = new Dictionary<Data.Locations.Job.Types, string>()
+            {
+                { Data.Locations.Job.Types.Trucker, "Доставка грузов" },
+            };
+
             public static Dictionary<Data.Locations.Business.Types, string> BusinessNames = new Dictionary<Data.Locations.Business.Types, string>()
             {
                 { Data.Locations.Business.Types.ClothesShop1, "Магазин спортивной одежды" },

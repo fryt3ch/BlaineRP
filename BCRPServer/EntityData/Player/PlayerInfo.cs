@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Org.BouncyCastle.Asn1.X509;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -100,6 +101,10 @@ namespace BCRPServer
 
             public ulong Cash { get; set; }
 
+            public uint PhoneNumber { get; set; }
+
+            public uint PhoneBalance { get; set; }
+
             public Game.Bank.Account BankAccount { get; set; }
 
             public LastPlayerData LastData { get; set; }
@@ -112,6 +117,9 @@ namespace BCRPServer
 
             public List<Game.Items.Gift> Gifts { get; set; }
 
+            public Dictionary<uint, string> Contacts { get; set; }
+
+            public List<uint> PhoneBlacklist { get; set; }
 
             public Game.Data.Customization.HeadBlend HeadBlend { get; set; }
 
@@ -172,6 +180,8 @@ namespace BCRPServer
             public Dictionary<Game.Items.WeaponSkin.ItemData.Types, Game.Items.WeaponSkin> WeaponSkins { get; set; }
 
             public Dictionary<CooldownTypes, DateTime> Cooldowns { get; set; }
+
+            public List<string> AllSMS { get; set; }
 
             public Dictionary<Achievement.Types, Achievement> Achievements { get; set; }
 
@@ -259,9 +269,54 @@ namespace BCRPServer
                 MySQL.CharacterCashUpdate(this);
             }
 
+            public bool TryAddPhoneBalance(uint amount, out uint newBalance, bool notifyOnFault = true)
+            {
+                if (!PhoneBalance.TryAdd(amount, out newBalance))
+                {
+                    if (notifyOnFault)
+                    {
+                        if (PlayerData != null)
+                        {
+
+                        }
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            public bool TryRemovePhoneBalance(uint amount, out uint newBalance, bool notifyOnFault = true)
+            {
+                if (!PhoneBalance.TrySubtract(amount, out newBalance))
+                {
+                    if (notifyOnFault)
+                    {
+                        if (PlayerData != null)
+                        {
+
+                        }
+                    }
+
+                    return false;
+                }
+
+                return true;
+            }
+
+            public void SetPhoneBalance(uint value)
+            {
+                PhoneBalance = value;
+
+                MySQL.CharacterPhoneBalanceUpdate(this);
+            }
+
             public PlayerInfo()
             {
                 this.Cooldowns = new Dictionary<CooldownTypes, DateTime>();
+
+                this.AllSMS = new List<string>();
             }
         }
     }

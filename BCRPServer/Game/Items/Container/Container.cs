@@ -164,7 +164,7 @@ namespace BCRPServer.Game.Items
                     if (vData == null)
                         return false;
 
-                    if (vData.IsOwner(pData) != null)
+                    if (vData.IsFullOwner(pData) != null)
                         return true;
 
                     return !vData.TrunkLocked;

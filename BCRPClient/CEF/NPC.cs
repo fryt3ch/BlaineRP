@@ -49,6 +49,8 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
+            Utils.ConsoleOutput(RAGE.Util.Json.Serialize(new object[] { npcName, Utils.ReplaceNewLineHtml(text), buttons }));
+
             CEF.Browser.Window.ExecuteJs("NPC.fill", npcName, Utils.ReplaceNewLineHtml(text), buttons);
         }
 

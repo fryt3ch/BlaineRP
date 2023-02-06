@@ -69,11 +69,7 @@ namespace BCRPServer.Game.Items
             {
                 if (item is Game.Items.Numberplate np)
                 {
-                    Numberplate.UsedTags.Remove(np.Tag);
-                }
-                else if (item is Game.Items.Weapon weapon)
-                {
-                    Weapon.UsedTags.Remove(weapon.Tag);
+                    np.RemoveTagFromUsed();
                 }
 
                 AddFreeId(item.UID);
@@ -91,11 +87,7 @@ namespace BCRPServer.Game.Items
 
             if (item is Game.Items.Numberplate np)
             {
-                Numberplate.UsedTags.Remove(np.Tag);
-            }
-            else if (item is Game.Items.Weapon weapon)
-            {
-                Weapon.UsedTags.Remove(weapon.Tag);
+                np.RemoveTagFromUsed();
             }
 
             AddFreeId(item.UID);

@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using Google.Protobuf;
+using GTANetworkAPI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -93,17 +94,22 @@ namespace BCRPServer
         /// <summary>Шанс получения тяжелого ранения (от 0 до 1)</summary>
         public const float WOUND_CHANCE = 0.25f;
 
-        public const int OFFER_DEFAULT_DURATION = 30000;
+        /// <summary>Время действия предложения между игроками</summary>
+        /// <remarks>Если предложение не было принято/отклонено в течение данного времени, то оно будет автоматечески отменено сервером</remarks>
+        public const int OFFER_DEFAULT_DURATION = 30_000;
 
         /// <summary>Максимальное кол-во игроков, которые могут одновременно просматривать контейнер</summary>
         public const int CONTAINER_MAX_PLAYERS = 5;
 
+        /// <summary>Максимально возможное кол-во мебели, которой игрок может владеть</summary>
+        /// <remarks>Считается только та мебель, что не установлена, а находится у игрока</remarks>
         public const int FURNITURE_MAX_OWNED = 50;
 
+        /// <summary>Максимально возможное кол-во мебели, которую игрок может разместить в доме/квартире</summary>
         public const int HOUSE_MAX_FURNITURE = 50;
 
         /// <summary>Время для удаления выброшенных предметов в мс.</summary>
-        public const int IOG_TIME_TO_AUTODELETE = 300000;
+        public const int IOG_TIME_TO_AUTODELETE = 300_000;
 
         /// <summary>Дистанция поиска аналогичных предметов для стака</summary>
         public const float IOG_MAX_DISTANCE_TO_STACK = 5f;
@@ -133,33 +139,85 @@ namespace BCRPServer
         /// <summary>Стандартное настроение игрока (от 0 до 100)</summary>
         public const int CHARACTER_DEFAULT_MOOD = 100;
 
+        /// <summary>Изначальное кол-во доступного для владения игроком транспорта</summary>
         public const int MIN_VEHICLE_SLOTS = 1;
 
+        /// <summary>Максимальное кол-во домов, которыми может владеть игрок</summary>
+        /// <remarks>Сервер в целом допускает большее значение, чем 1, но клиент к такому не готов!</remarks>
         public const int MAX_HOUSES = 1;
 
+        /// <summary>Максимальное кол-во квартир, которыми может владеть игрок</summary>
+        /// <remarks>Сервер в целом допускает большее значение, чем 1, но клиент к такому не готов!</remarks>
         public const int MAX_APARTMENTS = 1;
 
+        /// <summary>Максимальное кол-во гаражей, которыми может владеть игрок</summary>
+        /// <remarks>Сервер в целом допускает большее значение, чем 1, но клиент к такому не готов!</remarks>
         public const int MAX_GARAGES = 1;
 
+        /// <summary>Максимальное кол-во бизнесов, которыми может владеть игрок</summary>
+        /// <remarks>Сервер в целом допускает большее значение, чем 1, но клиент к такому не готов!</remarks>
         public const int MAX_BUSINESSES = 1;
 
+        /// <summary>Нужна ли лицензия игрокам для приобретения бизнеса?</summary>
         public const bool NEED_BUSINESS_LICENSE = false;
 
-        public const int VEHICLEPOUND_PAY_PRICE = 525;
+        /// <summary>Стоимость выдачи транспорта на штрафстоянке (в долларах)</summary>
+        public const uint VEHICLEPOUND_PAY_PRICE = 525;
 
-        public const int VEHICLERENT_S_PAY_PRICE = 100;
+        /// <summary>Стоимость аренды мопеда (в долларах)</summary>
+        public const uint VEHICLERENT_S_PAY_PRICE = 100;
 
+        /// <summary>Минимальное кол-во часов, сумма оплаты за которые должна быть на счету дома/квартиры</summary>
+        /// <remarks>Игрок не сможет продать/обменять дом/квартиру, если баланс его счета меньше либо равен необходимому. Также, игрок не сможет снять деньги со счета, если итоговый баланс будет меньше либо равен необходимому</remarks>
         public const uint MIN_PAID_HOURS_HOUSE_APS = 3;
+
+        /// <summary>Максимальное кол-во часов, сумму оплаты за которые игрок может держать на счете дома/квартиры</summary>
+        /// <remarks>Игрок не сможет пополнить баланс счета дома/квартиры, если итоговый баланс будет больше, чем максимально возможный</remarks>
         public const uint MAX_PAID_HOURS_HOUSE_APS = 7 * 24;
 
+        /// <summary>Минимальное кол-во часов, сумма оплаты за которые должна быть на счету гаража</summary>
+        /// <remarks>Игрок не сможет продать/обменять гараж, если баланс его счета меньше либо равен необходимому. Также, игрок не сможет снять деньги со счета, если итоговый баланс будет меньше либо равен необходимому</remarks>
         public const uint MIN_PAID_HOURS_GARAGE = 3;
+
+        /// <summary>Максимальное кол-во часов, сумму оплаты за которые игрок может держать на счете гаража</summary>
+        /// <remarks>Игрок не сможет пополнить баланс счета гаража, если итоговый баланс будет больше, чем максимально возможный</remarks>
         public const uint MAX_PAID_HOURS_GARAGE = 7 * 24;
 
+        /// <summary>Минимальное кол-во часов, сумма оплаты за которые должна быть на счету бизнеса</summary>
+        /// <remarks>Игрок не сможет продать/обменять бизнес, если баланс его счета меньше либо равен необходимому. Также, игрок не сможет снять деньги со счета (или использовать на оплату материалов), если итоговый баланс будет меньше либо равен необходимому</remarks>
         public const uint MIN_PAID_HOURS_BUSINESS = 3;
+
+        /// <summary>Максимальное кол-во часов, сумму оплаты за которые игрок может держать на счете бизнеса</summary>
+        /// <remarks>Игрок не сможет пополнить баланс счета бизнеса, если итоговый баланс будет больше, чем максимально возможный. Так как это бизнес, ограничений на пополнение быть не должно (ведь нужно покупать материалы)</remarks>
         public const uint MAX_PAID_HOURS_BUSINESS = 0;
 
+        /// <summary>Стоимость за X мсек. исходящего вызова (в долларах)</summary>
+        /// <remarks>Параметр X - ниже, например, если X = 4000, а COST_X = 1, то стоимость за 1 мин. исходящего вызова = 60000/4000 * 1 = $15</remarks>
+        public const uint PHONE_CALL_COST_X = 1;
+
+        /// <summary>Параметр X для рассчета стоимости исходящего вызова (мсек.)</summary>
+        /// <remarks>Результат деления 60000 на это число должен быть целым, иначе деньги за исходящий звонок спишутся некорректно</remarks>
+        public const uint PHONE_CALL_X = 4_000;
+
+        /// <summary>Стоимость 1 символа сообщения (телефон)</summary>
+        public const uint PHONE_SMS_COST_PER_CHAR = 1;
+
+        /// <summary>Максимальное кол-во SMS, которое может быть у игрока</summary>
+        /// <remarks>При превышении данного значения, самое первое сообщение в списке сообщений игрока будет удалено</remarks>
+        public const byte PHONE_SMS_MAX_COUNT = 50;
+
+        /// <summary>Максимальный баланс телефона</summary>
+        /// <remarks>Игрок не сможет пополнить баланс телефона, если итоговый баланс будет больше, чем это значение. (MAX_BALANCE / COST_X) * CALL_X меньше либо равно int.MaxValue, ОБЯЗАТЕЛЬНО!</remarks>
+        public const uint PHONE_MAX_BALANCE = 20_000;
+
+        /// <summary>Максимальное время исходящего вызова (до момента принятия/отклонения такового любым из собеседников)</summary>
+        /// <remarks>Если вызов не был принят/отклонен в течение этого кол-ва времени, то последует автоматическое отклонение вызова со стороны сервера</remarks>
+        public const int PHONE_MAX_CALL_OUT_TIME = 25_000;
+
+        /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 
+        /// <summary>Стандартный набор лицензий у созданных персонажей</summary>
         public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES { get => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M }; }
 
         /// <summary>Список доступных для сервера типов погоды</summary>
