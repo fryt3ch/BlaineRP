@@ -235,7 +235,9 @@ namespace BCRPClient.CEF
 
                 Browser.Switch(Browser.IntTypes.HUD_Top, true);
                 Browser.Switch(Browser.IntTypes.HUD_Left, true);
-                Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.Interface.HideHints);
+
+                if (!CEF.Phone.IsActive)
+                    Browser.Switch(Browser.IntTypes.HUD_Help, !Settings.Interface.HideHints);
 
                 if (!Settings.Interface.HideQuest && Sync.Quest.ActualQuest != null)
                 {

@@ -78,12 +78,10 @@ namespace BCRPClient.Sync
                 if (pData.VoiceRange > 0f)
                     SetTalkingAnim(Player.LocalPlayer, true);
 
-                for (int i = 0; i < Talkers.Count; i++)
+                Talkers.ForEach(x =>
                 {
-                    var player = Talkers[i];
-
-                    SetTalkingAnim(player, true);
-                }
+                    SetTalkingAnim(x, true);
+                });
             }, 5000, true, 0).Run();
         }
 

@@ -17,17 +17,19 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.IsMuted)
+            var vRange = pData.VoiceRange;
+
+            if (vRange < 0f)
                 return;
 
             if (state)
             {
-                var vRange = Settings.MICROPHONE_MAX_RANGE_DEFAULT;
-
-                if (pData.VoiceRange == vRange)
+                if (vRange > 0f)
                     return;
 
-                pData.VoiceRange = vRange;
+                var nvRange = Settings.MICROPHONE_MAX_RANGE_DEFAULT;
+
+                pData.VoiceRange = nvRange;
 
                 if (pData.ActiveCall is Sync.Phone.Call activeCall && activeCall.StatusType == Sync.Phone.Call.StatusTypes.Process)
                 {
@@ -57,10 +59,10 @@ namespace BCRPServer.Events.Players
 
             var voiceRange = pData.VoiceRange;
 
-            if (voiceRange == 0f)
+            if (voiceRange <= 0f)
                 return;
 
-            if (!player.AreEntitiesNearby(target, pData.VoiceRange) || pData.Listeners.Contains(target))
+            if (pData.Listeners.Contains(target) || !player.AreEntitiesNearby(target, voiceRange + 5f))
                 return;
 
             player.EnableVoiceTo(target);
@@ -73,7 +75,7 @@ namespace BCRPServer.Events.Players
         {
             var pData = PlayerData.Get(player);
 
-            if (pData == null || target?.Exists != true || !pData.Listeners.Remove(target))
+            if (pData == null || target == null || !pData.Listeners.Remove(target))
                 return;
 
             player.DisableVoiceTo(target);

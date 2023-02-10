@@ -36,6 +36,19 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void GarageUpdateBalance(Game.Estates.Garage garage)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE garages SET Balance=@Bal WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", garage.Id);
+
+            cmd.Parameters.AddWithValue("@Bal", garage.Balance);
+
+            PushQuery(cmd);
+        }
+
         public static void LoadGarage(Game.Estates.Garage garage)
         {
             using (var conn = new MySqlConnection(LocalConnectionCredentials))

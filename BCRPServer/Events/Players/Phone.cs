@@ -20,7 +20,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            return $"{pData.Info.PhoneNumber}_{pData.Info.PhoneBalance}_{VisualClientPhoneCallPrice}_{Settings.PHONE_SMS_COST_PER_CHAR}";
+            return $"{pData.Info.PhoneBalance}_{VisualClientPhoneCallPrice}_{Settings.PHONE_SMS_COST_PER_CHAR}";
         }
 
         [RemoteProc("Phone::AB")]
@@ -108,8 +108,8 @@ namespace BCRPServer.Events.Players
             return true;
         }
 
-        [RemoteEvent("Phone::CC")]
-        private static void CancelCall(Player player)
+        [RemoteEvent("Phone::CA")]
+        private static void CallAns(Player player, bool ans)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -118,16 +118,31 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            var activeCall = pData.ActiveCall;
+            if (ans)
+            {
+                var activeCall = Sync.Phone.Call.GetByReceiver(pData);
 
-            if (activeCall == null)
-                return;
+                if (activeCall == null || activeCall.StatusType == Sync.Phone.Call.StatusTypes.Process)
+                    return;
 
-            activeCall.Cancel(activeCall.Caller == pData ? Sync.Phone.Call.CancelTypes.Caller : Sync.Phone.Call.CancelTypes.Receiver);
+                if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                    return;
+
+                activeCall.SetAsProcess();
+            }
+            else
+            {
+                var activeCall = pData.ActiveCall;
+
+                if (activeCall == null)
+                    return;
+
+                activeCall.Cancel(activeCall.Caller == pData ? Sync.Phone.Call.CancelTypes.Caller : Sync.Phone.Call.CancelTypes.Receiver);
+            }
         }
 
-        [RemoteProc("Phone::AC")]
-        private static bool AddContact(Player player, uint phoneNumber, string name)
+        [RemoteProc("Phone::CC")]
+        private static bool ChangeContact(Player player, uint phoneNumber, string name)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -136,12 +151,27 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.Info.Contacts.ContainsKey(phoneNumber))
+            if (name == null)
                 return false;
 
-            // add name length check and max contacts check
+            if (pData.Info.Contacts.Count >= Settings.PHONE_CONTACTS_MAX_AMOUNT)
+            {
+                // todo notify
 
-            pData.Info.Contacts.Add(phoneNumber, name);
+                return false;
+            }
+
+            name = name.Trim();
+
+            if (name.Length > Settings.PHONE_CONTACT_NAME_MAX_LENGTH)
+                return false;
+
+            foreach (var x in name)
+                if (!char.IsLetterOrDigit(x) && !char.IsWhiteSpace(x))
+                    return false;
+
+            if (!pData.Info.Contacts.TryAdd(phoneNumber, name))
+                pData.Info.Contacts[phoneNumber] = name;
 
             MySQL.CharacterContactsUpdate(pData.Info);
 
@@ -181,7 +211,12 @@ namespace BCRPServer.Events.Players
                 if (pData.Info.PhoneBlacklist.Contains(phoneNumber))
                     return false;
 
-                // add size check
+                if (pData.Info.PhoneBlacklist.Count >= Settings.PHONE_BLACKLIST_MAX_AMOUNT)
+                {
+                    // todo notify
+
+                    return false;
+                }
 
                 pData.Info.PhoneBlacklist.Add(phoneNumber);
             }
@@ -197,7 +232,63 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Phone::SSMS")]
-        private static bool SendSms(Player player, uint phoneNumber, string text)
+        private static string SendSms(Player player, uint phoneNumber, string text, bool attachPos)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (text == null)
+                return null;
+
+            if (text.Length > Settings.PHONE_SMS_MAX_LENGTH)
+            {
+                return null;
+            }
+
+            uint newPhoneBalance;
+
+            var symbolsCount = (uint)text.Length;
+
+            if (!pData.Info.TryRemovePhoneBalance(symbolsCount * Settings.PHONE_SMS_COST_PER_CHAR, out newPhoneBalance, true))
+                return null;
+
+            if (Sync.Phone.Call.GetByCaller(pData) != null)
+                return null;
+
+            var tData = PlayerData.All.Values.FirstOrDefault(x => x.Info.PhoneNumber == phoneNumber);
+
+            if (tData == null || pData == tData)
+                return null;
+
+            if (tData.Info.PhoneBlacklist.Contains(pData.Info.PhoneNumber))
+                return null;
+
+            if (pData.Info.AllSMS.Count >= Settings.PHONE_SMS_MAX_COUNT)
+            {
+                pData.Info.AllSMS.RemoveAt(0);
+
+                Sync.Phone.SMS.TriggerRemove(player, 0);
+            }
+
+            if (attachPos)
+                text += $"<GEOL>{player.Position.X}_{player.Position.Y}</GEOL>";
+
+            var smsData = new Sync.Phone.SMS(pData.Info, tData.Info, text);
+
+            pData.Info.AllSMS.Add(smsData);
+            tData.Info.AllSMS.Add(smsData);
+
+            smsData.TriggerAdd(tData.Player);
+
+            return smsData.Data;
+        }
+
+        [RemoteProc("Phone::DSMS")]
+        private static bool DeleteSms(Player player, byte[] nums)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -206,12 +297,23 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!pData.Info.Contacts.ContainsKey(phoneNumber))
+            if (nums == null || nums.Length == 0 || nums.Length > pData.Info.AllSMS.Count)
                 return false;
 
-            pData.Info.Contacts.Remove(phoneNumber);
+            var toDelList = new List<Sync.Phone.SMS>();
 
-            MySQL.CharacterContactsUpdate(pData.Info);
+            for (int i = 0; i < nums.Length; i++)
+            {
+                if (nums[i] > pData.Info.AllSMS.Count)
+                    return false;
+
+                toDelList.Add(pData.Info.AllSMS[nums[i]]);
+            }
+
+            toDelList.ForEach(x =>
+            {
+                pData.Info.AllSMS.Remove(x);
+            });
 
             return true;
         }

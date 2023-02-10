@@ -77,6 +77,7 @@ namespace BCRPServer
 
         /// <summary>Максимальная скорость толкания транспорта, итоговая зависит от навыка силы персонажа</summary>
         public const float PUSHING_VEHICLE_STRENGTH_MAX = 1f;
+
         /// <summary>Минимальная скорость толкания транспорта, итоговая зависит от навыка силы персонажа</summary>
         public const float PUSHING_VEHICLE_STRENGTH_MIN = 0.25f;
 
@@ -206,6 +207,8 @@ namespace BCRPServer
         /// <remarks>При превышении данного значения, самое первое сообщение в списке сообщений игрока будет удалено</remarks>
         public const byte PHONE_SMS_MAX_COUNT = 50;
 
+        public const int PHONE_SMS_MAX_LENGTH = 120;
+
         /// <summary>Максимальный баланс телефона</summary>
         /// <remarks>Игрок не сможет пополнить баланс телефона, если итоговый баланс будет больше, чем это значение. (MAX_BALANCE / COST_X) * CALL_X меньше либо равно int.MaxValue, ОБЯЗАТЕЛЬНО!</remarks>
         public const uint PHONE_MAX_BALANCE = 20_000;
@@ -213,6 +216,12 @@ namespace BCRPServer
         /// <summary>Максимальное время исходящего вызова (до момента принятия/отклонения такового любым из собеседников)</summary>
         /// <remarks>Если вызов не был принят/отклонен в течение этого кол-ва времени, то последует автоматическое отклонение вызова со стороны сервера</remarks>
         public const int PHONE_MAX_CALL_OUT_TIME = 25_000;
+
+        public const int PHONE_BLACKLIST_MAX_AMOUNT = 50;
+
+        public const int PHONE_CONTACT_NAME_MAX_LENGTH = 24;
+
+        public const int PHONE_CONTACTS_MAX_AMOUNT = 50;
 
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }

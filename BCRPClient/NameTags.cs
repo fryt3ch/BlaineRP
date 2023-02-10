@@ -42,17 +42,15 @@ namespace BCRPClient
 
             float screenX = 0f, screenY = 0f;
 
-            for (int i = 0; i < nametags.Count; i++)
+            nametags.ForEach(nametag =>
             {
-                var nametag = nametags[i];
-
                 if (nametag.Distance > MaxDistance)
-                    continue;
+                    return;
 
                 var player = nametag.Player;
 
                 if (player?.Exists != true)
-                    continue;
+                    return;
 
                 player.SetResetFlag(200, true);
 
@@ -66,7 +64,7 @@ namespace BCRPClient
                         {
                             Utils.DrawText($"ID: {player.RemoteId} | ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
 
-                            continue;
+                            return;
                         }
 
                         Utils.DrawText($"ID: {player.RemoteId} | CID: {pData.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
@@ -80,7 +78,7 @@ namespace BCRPClient
                 }
 
                 if (pData == null || player.GetAlpha() != 255)
-                    continue;
+                    return;
 
                 float x = nametag.ScreenX;
                 float y = nametag.ScreenY;
@@ -138,7 +136,7 @@ namespace BCRPClient
                         RAGE.Game.Graphics.DrawRect((x - Width / 2 * (1 - armourScale)), y, (Width * armourScale), (Height), 48, 108, 135, 200, 0);
                     }
                 }
-            }
+            });
         }
         #endregion
         #endregion

@@ -66,9 +66,11 @@ namespace BCRPClient.CEF
 
                 var aId = (string)args[1];
 
-                var amount = (int)args[2];
+                var amountI = Convert.ToDecimal(args[2]);
 
-                if (amount <= 0)
+                int amount;
+
+                if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                     return;
 
                 if (LastSent.IsSpam(1000, false, false))
@@ -78,18 +80,18 @@ namespace BCRPClient.CEF
 
                 if (aId == "transfer")
                 {
-                    var cid = (uint)(int)args[3];
+                    var cid = args[3].ToUInt32();
 
                     if (Player.LocalPlayer.HasData("Bank::LastCID") && Player.LocalPlayer.GetData<uint>("Bank::LastCID") == cid && Player.LocalPlayer.GetData<int>("Bank::LastAmount") == amount)
                     {
-                        await Events.CallRemoteProc("Bank::Debit::Send", false, Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, false);
+                        await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, false);
 
                         Player.LocalPlayer.ResetData("Bank::LastCID");
                         Player.LocalPlayer.ResetData("Bank::LastAmount");
                     }
                     else
                     {
-                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", false, Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true));
+                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true));
                         {
                             Player.LocalPlayer.SetData("Bank::LastCID", cid);
                             Player.LocalPlayer.SetData("Bank::LastAmount", amount);

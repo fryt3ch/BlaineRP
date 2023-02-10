@@ -341,7 +341,7 @@ namespace BCRPClient.Data
 
         public class Button
         {
-            public static Button DefaultExitButton { get; private set; } = new Button("[Выйти]", CloseCurrentDialogue, false);
+            public static Button DefaultExitButton { get; private set; } = new Button("[Выйти]", CloseCurrentDialogue);
 
             public static Button DefaultBackButton { get; private set; } = new Button("[Назад]", () =>
             {
@@ -356,12 +356,9 @@ namespace BCRPClient.Data
                         NPC.CurrentNPC?.ShowDialogue(targetDialogueInfo.Dialogue.Id, targetDialogueInfo.SaveAsLast, targetDialogueInfo.Args, targetDialogueInfo.TextArgs);
                     }
                 }
-            }, false);
+            });
 
-            public static Button DefaultShopEnterButton { get; private set; } = new Button("[Перейти к товарам]", () => NPC.CurrentNPC?.SellerNpcRequestEnterBusiness(), true);
-
-            /// <summary>Красная ли кнопка?</summary>
-            public bool IsRed { get; set; }
+            public static Button DefaultShopEnterButton { get; private set; } = new Button("[Перейти к товарам]", () => NPC.CurrentNPC?.SellerNpcRequestEnterBusiness());
 
             /// <summary>Текст</summary>
             public string Text { get; set; }
@@ -371,13 +368,11 @@ namespace BCRPClient.Data
             /// <summary>Конструктор кнопки диалога</summary>
             /// <param name="Text"><inheritdoc cref="Text" path="/summary"/></param>
             /// <param name="IsRed"><inheritdoc cref="IsRed" path="/summary"/></param>
-            public Button(string Text, Action Action, bool IsRed = true)
+            public Button(string Text, Action Action)
             {
                 this.Action = Action;
 
                 this.Text = Text;
-
-                this.IsRed = IsRed;
             }
 
             public void Execute()
@@ -502,12 +497,7 @@ namespace BCRPClient.Data
             var btnsData = new List<object>();
 
             for (int i = 0; i < buttons.Count; i++)
-                btnsData.Add(new object[] { buttons[i].IsRed, i, buttons[i].Text });
-
-            if (!buttons.Where(x => x.IsRed).Any())
-            {
-                ((object[])btnsData[0])[0] = true;
-            }
+                btnsData.Add(new object[] { i, buttons[i].Text });
 
             CEF.NPC.Draw(npcHolder.Name, text, btnsData.ToArray());
         }

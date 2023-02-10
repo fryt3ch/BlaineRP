@@ -5,7 +5,9 @@ using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -120,6 +122,20 @@ namespace BCRPServer
         public enum CooldownTypes
         {
             ShootingRange = 0,
+        }
+
+        public enum PhoneStateTypes : byte
+        {
+            /// <summary>Телефон используется без анимаций</summary>
+            JustOn = 0,
+            /// <summary>Телефон используется c обчной анимацией</summary>
+            Idle0,
+            /// <summary>Телефон используется в транспорте</summary>
+            Vehicle,
+            /// <summary>Телефон используется с анимацией камеры 0</summary>
+            Camera0,
+            /// <summary>Телефон используется с анимацией камеры 1</summary>
+            Camera1,
         }
         #endregion
 
@@ -518,20 +534,62 @@ namespace BCRPServer
             foreach (var vInfo in OwnedVehicles)
                 vInfo.Spawn();
 
-            JArray inventory = new JArray()
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывфывфыв"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(Info, 123, "Привет бля=в фывфы вфы <div>TEST</div> вфы фывфыв фывфasdadasdasвфыв"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1234"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1235"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1236"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1237"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1238"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1239<GEOL>1234.3_312.43</GEOL>"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 12399"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 123999"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1239999"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 12399999"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 123999999"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 1239999999"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 12399999999"));
+            Info.AllSMS.Add(new Sync.Phone.SMS(123, Info, "Привет бля=в фывфы вфы вфы фывфыв фывasd a ad a ds asdasdasd asasda asdasd  asd asas asd asd asdasdasdadasdasdasdasdasdasdфasdadasdasвфa 123999999999"));
+
+            var data = new JObject
             {
-                Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Weapons)).SerializeToJson(),
-                Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.Groups.Armour),
-                Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Items)).SerializeToJson(),
-                Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Clothes)).SerializeToJson(),
-                Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Accessories)).SerializeToJson(),
-                Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.Groups.BagItem),
-                Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.Groups.HolsterItem),
+                {
+                    "Inventory",
+
+                    new JArray()
+                    {
+                        Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Weapons)).SerializeToJson(),
+                        Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.Groups.Armour),
+                        Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Items)).SerializeToJson(),
+                        Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Clothes)).SerializeToJson(),
+                        Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Accessories)).SerializeToJson(),
+                        Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.Groups.BagItem),
+                        Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.Groups.HolsterItem),
+                    }
+                },
+
+                { "PN", Info.PhoneNumber },
+
+                { "Licenses", Licenses.SerializeToJson() },
+
+                { "Skills", Skills.SerializeToJson() },
+
+                { "TimePlayed", TimePlayed },
+                { "CreationDate", CreationDate },
+                { "BirthDate", BirthDate },
+                { "Org", OrganisationID == -1 ? null : "todo" },
+                { "Familiars", Familiars.SerializeToJson() },
+
+                { "Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson() }, // to change!
+
+                { "Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson() },
             };
 
-            JObject data = new JObject();
+            if (Info.Contacts.Count > 0)
+                data.Add("Conts", JObject.FromObject(Info.Contacts));
 
-            data.Add("Inventory", inventory);
+            if (Info.PhoneBlacklist.Count > 0)
+                data.Add("PBL", JArray.FromObject(Info.PhoneBlacklist));
 
             if (Furniture.Count > 0)
                 data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
@@ -539,19 +597,11 @@ namespace BCRPServer
             if (Info.WeaponSkins.Count > 0)
                 data.Add("WSkins", Info.WeaponSkins.Select(x => x.Value.ID).SerializeToJson());
 
-            data.Add("Licenses", Licenses.SerializeToJson());
-            data.Add("Skills", Skills.SerializeToJson());
+            if (Info.AllSMS.Count > 0)
+                data.Add("SMS", Info.AllSMS.Select(x => x.Data).SerializeToJson());
 
             if (Info.MedicalCard != null)
                 data.Add("MedCard", Info.MedicalCard.SerializeToJson());
-
-            data.Add("TimePlayed", TimePlayed);
-            data.Add("CreationDate", CreationDate);
-            data.Add("BirthDate", CreationDate);
-
-            data.Add("Org", OrganisationID == -1 ? null : "todo");
-
-            data.Add("Familiars", Familiars.SerializeToJson());
 
             if (OwnedVehicles.Count > 0)
                 data.Add("Vehicles", OwnedVehicles.Select(x => $"{x.VID}_{x.ID}").SerializeToJson());
@@ -571,10 +621,6 @@ namespace BCRPServer
             if (SettledHouseBase != null)
                 data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.Id}");
 
-            data.Add("Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson()); // to change!
-
-            data.Add("Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson());
-
             if (Info.Quests.Count > 0)
                 data.Add("Quests", Info.Quests.Where(x => !x.Value.IsCompleted).Select(x => $"{(int)x.Key}_{x.Value.Step}_{x.Value.StepProgress}").SerializeToJson());
 
@@ -583,7 +629,7 @@ namespace BCRPServer
                 if (Player?.Exists != true)
                     return;
 
-                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data.SerializeToJson());
+                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
 
                 Player.SetAlpha(255);
 

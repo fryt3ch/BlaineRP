@@ -63,7 +63,7 @@ namespace BCRPClient.Data.NPCDialogues
 
             new Dialogue("vpound_no_vehicles_0", "Так-с, не вижу ни одного вашего транспорта в нашей системе.\nВот когда он у нас окажется - тогда и приходите!", null,
 
-                new Button("[Выйти]", CloseCurrentDialogue, true)
+                Button.DefaultExitButton
 
                 )
             {
@@ -90,9 +90,9 @@ namespace BCRPClient.Data.NPCDialogues
                         if ((bool?)await NPC.CurrentNPC.CallRemoteProc("vpound_p", vid) == true)
                             NPC.CurrentNPC?.SwitchDialogue(false);
                     }
-                }, true),
+                }),
 
-                new Button("[Выйти]", CloseCurrentDialogue, false)
+                Button.DefaultExitButton
 
                 );
 
@@ -121,9 +121,9 @@ namespace BCRPClient.Data.NPCDialogues
                     var counter = 0;
 
                     CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePoundSelect, Locale.Actions.VehiclePoundSelectHeader, vids.Select(x => (counter++, pData.OwnedVehicles.Where(y => y.VID == x).Select(x => $"{x.Data.Name} [#{x.VID}]").FirstOrDefault() ?? "null")).ToArray(), null, null, vids, npcId);
-                }, true),
+                }),
 
-                new Button("[Выйти]", CloseCurrentDialogue, false)
+                Button.DefaultExitButton
 
                 );
         }

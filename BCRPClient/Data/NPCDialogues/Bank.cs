@@ -43,23 +43,23 @@ namespace BCRPClient.Data.NPCDialogues
 
                                 Events.CallRemote("Bank::Show", false, bankData.Id);
                             }
-                        }, true));
+                        }));
 
                         if (pData.OwnedHouses.FirstOrDefault() is Data.Locations.House house)
-                            btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }, true));
+                            btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }));
 
                         if (pData.OwnedApartments.FirstOrDefault() is Data.Locations.Apartments aps)
-                            btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }, true));
+                            btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }));
 
                         if (pData.OwnedGarages.FirstOrDefault() is Data.Locations.Garage garage)
-                            btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }, true));
+                            btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }));
 
                         if (pData.OwnedBusinesses.FirstOrDefault() is Data.Locations.Business biz)
-                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }, true));
+                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }));
                     }
                     else
                     {
-                        btns.Add(new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }, true));
+                        btns.Add(new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }));
                     }
 
                     btns.Add(Button.DefaultExitButton);
@@ -143,7 +143,7 @@ namespace BCRPClient.Data.NPCDialogues
                     NPC.CurrentNPC.SwitchDialogue(false);
 
                     await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.HouseBalanceDeposit, 0, nBalance, nBalance / 2, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData, bank, true);
-                }, true));
+                }));
 
                 if (balance > 0)
                 {
@@ -169,7 +169,7 @@ namespace BCRPClient.Data.NPCDialogues
                         NPC.CurrentNPC.SwitchDialogue(false);
 
                         await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.HouseBalanceWithdraw, 0, nBalance, nBalance, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData, bank, false);
-                    }, false));
+                    }));
                 }
 
                 btns.Add(Button.DefaultBackButton);
@@ -255,7 +255,7 @@ namespace BCRPClient.Data.NPCDialogues
                         NPC.CurrentNPC.SwitchDialogue(false);
 
                         await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.ApartmentsBalanceDeposit, 0, nBalance, nBalance / 2, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData, bank, true);
-                    }, true));
+                    }));
 
                     if (balance > 0)
                     {
@@ -281,7 +281,7 @@ namespace BCRPClient.Data.NPCDialogues
                             NPC.CurrentNPC.SwitchDialogue(false);
 
                             await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.ApartmentsBalanceWithdraw, 0, nBalance, nBalance, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData, bank, false);
-                        }, false));
+                        }));
                     }
 
                     btns.Add(Button.DefaultBackButton);
@@ -367,7 +367,7 @@ namespace BCRPClient.Data.NPCDialogues
                         NPC.CurrentNPC.SwitchDialogue(false);
 
                         await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceChange, Locale.Actions.GarageBalanceDeposit, 0, nBalance, nBalance / 2, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData, bank, true);
-                    }, true));
+                    }));
 
                     if (balance > 0)
                     {
@@ -393,7 +393,7 @@ namespace BCRPClient.Data.NPCDialogues
                             NPC.CurrentNPC.SwitchDialogue(false);
 
                             await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceChange, Locale.Actions.GarageBalanceWithdraw, 0, nBalance, nBalance, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData, bank, false);
-                        }, false));
+                        }));
                     }
 
                     btns.Add(Button.DefaultBackButton);
@@ -479,7 +479,7 @@ namespace BCRPClient.Data.NPCDialogues
                         NPC.CurrentNPC.SwitchDialogue(false);
 
                         await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceChange, Locale.Actions.BusinessBalanceDeposit, 0, nBalance, nBalance / 2, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData, bank, true);
-                    }, true));
+                    }));
 
                     if (balance > 0)
                     {
@@ -505,7 +505,7 @@ namespace BCRPClient.Data.NPCDialogues
                             NPC.CurrentNPC.SwitchDialogue(false);
 
                             await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceChange, Locale.Actions.BusinessBalanceWithdraw, 0, nBalance, nBalance, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData, bank, false);
-                        }, false));
+                        }));
                     }
 
                     btns.Add(Button.DefaultBackButton);
@@ -534,7 +534,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                         Events.CallRemote("Bank::Show", false, bankData.Id);
                     }
-                }, true),
+                }),
 
                 Button.DefaultBackButton,
 

@@ -12,6 +12,8 @@ namespace BCRPServer.Game
 
         public const decimal MOBILE_SEND_TAX = 0.05m;
 
+        public static float MobileSendTaxClientVisual = (float)Math.Ceiling(MOBILE_SEND_TAX * 100);
+
         private static Dictionary<int, Utils.Vector4[]> Banks = new Dictionary<int, Utils.Vector4[]>()
         {
             { 0, new Utils.Vector4[] { new Utils.Vector4(-111.2246f, 6469.992f, 31.62671f, 133.712f) } },

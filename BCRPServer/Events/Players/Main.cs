@@ -133,6 +133,8 @@ namespace BCRPServer.Events.Players
 
                 pData.ActiveOffer?.Cancel(false, true, Sync.Offers.ReplyTypes.AutoCancel, false);
 
+                pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
+
                 player.DetachAllEntities();
 
                 pData.IsAttachedToEntity?.DetachEntity(player);
@@ -298,6 +300,8 @@ namespace BCRPServer.Events.Players
                 pData.StopUseCurrentItem();
 
                 player.Teleport(null, false, null, null, false);
+
+                pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
 
                 NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 

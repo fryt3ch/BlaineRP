@@ -246,6 +246,46 @@ namespace BCRPServer.Game.Estates
 
         public static Garage Get(uint id) => All.GetValueOrDefault(id);
 
+        public bool TryAddMoneyBalance(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Balance.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveMoneyBalance(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Balance.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+                    /*                    if (PlayerInfo.PlayerData != null)
+                                        {
+                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                                        }*/
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public void SetBalance(ulong value, string reason)
+        {
+            Balance = value;
+
+            MySQL.GarageUpdateBalance(this);
+        }
+
         public void UpdateOwner(PlayerData.PlayerInfo pInfo)
         {
             Owner = pInfo;

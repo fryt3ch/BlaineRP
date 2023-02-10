@@ -41,13 +41,13 @@ namespace BCRPClient.Data.NPCDialogues
                 Button.DefaultExitButton
             );
 
-            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = DateTime.Now; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Data.Locations.Business)?.Id ?? -1, (int)x.Key); }, true)));
+            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = DateTime.Now; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Data.Locations.Business)?.Id ?? -1, (int)x.Key); })));
 
             new Dialogue("seller_clothes_greeting_0", "Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!", null,
 
                 Button.DefaultShopEnterButton,
 
-                new Button("Есть ли работа для меня?", () => { }, true),
+                new Button("Есть ли работа для меня?", () => { }),
 
                 Button.DefaultExitButton
 
@@ -57,7 +57,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                 Button.DefaultShopEnterButton,
 
-                new Button("Есть ли работа для меня?", () => { }, true),
+                new Button("Есть ли работа для меня?", () => { }),
 
                 Button.DefaultExitButton
 
@@ -65,9 +65,9 @@ namespace BCRPClient.Data.NPCDialogues
 
             new Dialogue("seller_no_job_0", "К сожалению, пока что ваша помощь ни в чем не требуется, магазин с работой справляется.", null,
 
-                new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0"); }, true),
+                new Button("[Назад]", () => { NPC.CurrentNPC?.ShowDialogue("seller_greeting_0"); }),
 
-                new Button("[Выйти]", CloseCurrentDialogue, false)
+                new Button("[Выйти]", CloseCurrentDialogue)
 
             );
         }

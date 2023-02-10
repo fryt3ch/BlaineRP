@@ -2271,7 +2271,7 @@ namespace BCRPClient.CEF
                 {
                     var inUse = int.Parse(Items[i][4]) == 1;
 
-                    ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2]), Items[i][3], inUse, false, false, false);
+                    ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2], Settings.CultureInfo), Items[i][3], inUse, false, false, false);
 
                     ItemsParams[i] = new ItemParams(Items[i][0]) { InUse = inUse };
                 }
@@ -2301,9 +2301,9 @@ namespace BCRPClient.CEF
 
                 for (int i = 0; i < BagData.Length; i++)
                     if (items[i] != null)
-                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
+                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2], Settings.CultureInfo), items[i][3], false, true, false, false);
 
-                BagWeight = float.Parse(Bag[1]);
+                BagWeight = float.Parse(Bag[1], Settings.CultureInfo);
             }
 
             if (Holster != null)

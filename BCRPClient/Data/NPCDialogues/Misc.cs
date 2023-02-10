@@ -52,9 +52,9 @@ namespace BCRPClient.Data.NPCDialogues
 
                     if ((bool?)await NPC.CurrentNPC.CallRemoteProc("vrent_s_p") ?? false)
                         NPC.CurrentNPC?.SwitchDialogue(false);
-                }, true),
+                }),
 
-                new Button("[Выйти]", CloseCurrentDialogue, false)
+                Button.DefaultExitButton
 
                 );
         }

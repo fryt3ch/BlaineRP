@@ -15,6 +15,26 @@ namespace BCRPClient
             public static string PropertyGarageString = "Гараж";
             public static string PropertyBusinessClass = "Business";
 
+            public static string FiveNotificationDefSubj = "Новое сообщение";
+            public static string FiveNotificationIncCallSubj = "Входящий вызов";
+            public static string FiveNotificationEndCallSubj0 = "Звонок завершен";
+            public static string FiveNotificationEndCallSubj1 = "Звонок завершен вами";
+            public static string FiveNotificationEndCallSubj2 = "Звонок завершен собеседником";
+            public static string FiveNotificationEndCallSubj10 = "Звонок завершен (у Вас закончились средства)";
+            public static string FiveNotificationEndCallSubj20 = "Звонок завершен (у собеседника закончились средства)";
+
+            public static string FiveNotificationIncCallText = "Откройте телефон ({0}) и примите/отклоните вызов";
+
+            public static string FiveNotificationEndedCallTextT = "Продолжительность звонка: {0}";
+
+            public static string PhoneOutgoingCall = "Исходящий вызов";
+            public static string PhoneIncomingCall = "Входящий вызов";
+
+            public static Dictionary<uint, string> DefaultNumbersNames = new Dictionary<uint, string>()
+            {
+                { 900, "Банк" },
+            };
+
             public static class Blip
             {
                 public static Dictionary<Additional.ExtraBlip.Types, string> TypesNames = new Dictionary<Additional.ExtraBlip.Types, string>()

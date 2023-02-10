@@ -173,6 +173,7 @@ namespace BCRPClient.CEF
             { "Bank::DayLimitExceed", new Instance(Types.Error, Locale.Notifications.Money.Bank.DayLimitExceed, Locale.Notifications.ErrorHeader) },
             { "Bank::MaxSavings", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Notifications.ErrorHeader) },
             { "Bank::SendApprove", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApprove, Locale.Notifications.ApproveHeader) },
+            { "Bank::SendApproveP", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApproveP, Locale.Notifications.ApproveHeader) },
 
             { "Phone::MBA", new Instance(Types.Error, Locale.Notifications.Money.PhoneBalanceMax, Locale.Notifications.ErrorHeader) },
 
@@ -328,6 +329,62 @@ namespace BCRPClient.CEF
             var optimalTime = text.Where(x => char.IsLetterOrDigit(x)).Count() * 50;
 
             return optimalTime < DefTimeout ? DefTimeout : optimalTime;
+        }
+
+        public enum FiveNotificImgTypes
+        {
+            Default = 0,
+            Bank,
+            Taxi,
+            C911,
+            IncomingCall,
+        }
+
+        private static Dictionary<FiveNotificImgTypes, string> FiveNotificImgNames { get; set; } = new Dictionary<FiveNotificImgTypes, string>()
+        {
+            { FiveNotificImgTypes.Default, "CHAR_MULTIPLAYER" },
+            { FiveNotificImgTypes.Bank, "CHAR_BANK_MAZE" },
+            { FiveNotificImgTypes.Taxi, "CHAR_TAXI" },
+            { FiveNotificImgTypes.C911, "CHAR_CALL911" },
+            { FiveNotificImgTypes.IncomingCall, "CHAR_CHAT_CALL" },
+        };
+
+        public static void ShowSmsFive(FiveNotificImgTypes smsType, string senderName, string content)
+        {
+            var tName = FiveNotificImgNames.GetValueOrDefault(smsType);
+
+            if (tName == null)
+                return;
+
+            ShowFiveNotification(tName, tName, 2, senderName, Locale.General.FiveNotificationDefSubj, content, 140, 0.5f);
+        }
+
+        public static void ShowFiveCallNotification(string phoneNumber, string subject, string content)
+        {
+            var tName = FiveNotificImgNames.GetValueOrDefault(FiveNotificImgTypes.IncomingCall);
+
+            if (tName == null)
+                return;
+
+            ShowFiveNotification(tName, tName, 0, phoneNumber, subject, content, 140, 0.5f);
+        }
+
+        public static void ShowFiveNotification(string imageDict, string imageName, int iconType, string label, string subject, string content, int backgroundColour, float durationCoef)
+        {
+            var curNotific = RAGE.Game.Ui.GetCurrentNotification();
+
+            if (curNotific > 0)
+                RAGE.Game.Ui.RemoveNotification(curNotific);
+
+            RAGE.Game.Ui.SetNotificationTextEntry("STRING");
+
+            RAGE.Game.Ui.AddTextComponentSubstringPlayerName(content);
+
+            RAGE.Game.Ui.SetNotificationBackgroundColor(backgroundColour);
+
+            RAGE.Game.Ui.SetNotificationMessage4(imageDict, imageName, false, iconType, label, subject, durationCoef);
+
+            RAGE.Game.Ui.DrawNotification(false, false);
         }
     }
 }

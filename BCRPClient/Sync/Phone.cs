@@ -154,6 +154,11 @@ namespace BCRPClient.Sync
             //LocalPhoneExists = false;
         }
 
+        public static void LocalPhoneMoveFingerRandom()
+        {
+            RAGE.Game.Mobile.MoveFinger(Utils.Random.Next(1, 6));
+        }
+
         public static bool IsLocalPhoneActive => Player.LocalPlayer.GetSelectedWeapon() == Sync.WeaponSystem.MobileHash;
 
         public static void TurnVehiclePhone(Player player)

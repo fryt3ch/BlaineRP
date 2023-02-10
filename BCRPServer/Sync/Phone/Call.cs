@@ -83,7 +83,7 @@ namespace BCRPServer.Sync.Phone
                 }
             });
 
-            Receiver.Player.TriggerEvent("Phone::S::ICP", (byte)StatusType, Caller.Info.PhoneNumber);
+            Receiver.Player.TriggerEvent("Phone::ACS", false, Caller.Info.PhoneNumber);
         }
 
         public void SetAsProcess()
@@ -118,8 +118,8 @@ namespace BCRPServer.Sync.Phone
                 }
             });
 
-            Caller.Player.TriggerEvent("Phone::S::ICP", (byte)StatusType, Receiver.Player.Id);
-            Receiver.Player.TriggerEvent("Phone::S::ICP", (byte)StatusType, Caller.Player.Id);
+            Caller.Player.TriggerEvent("Phone::ACS", true, Receiver.Player.Id);
+            Receiver.Player.TriggerEvent("Phone::ACS", true, Caller.Player.Id);
         }
 
         public void Cancel(CancelTypes cancelType)
@@ -134,8 +134,8 @@ namespace BCRPServer.Sync.Phone
 
             AllCalls.Remove(this);
 
-            Caller.Player.TriggerEvent("Phone::S::ICP", (byte)cancelType);
-            Receiver.Player.TriggerEvent("Phone::S::ICP", (byte)cancelType);
+            Caller.Player.TriggerEvent("Phone::ACS", (byte)cancelType);
+            Receiver.Player.TriggerEvent("Phone::ACS", (byte)cancelType);
         }
     }
 }

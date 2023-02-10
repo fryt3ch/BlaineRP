@@ -278,7 +278,7 @@ namespace BCRPServer
                 RegistrationDate = Utils.GetCurrentTime(),
             };
 
-            Game.Items.Container cont = vType.TrunkData == null ? null : Game.Items.Container.Create(vType.ID, null);
+            Game.Items.Container cont = vType.TrunkData == null ? null : Game.Items.Container.Create($"vt_{vType.ID}", null);
 
             if (cont != null)
             {

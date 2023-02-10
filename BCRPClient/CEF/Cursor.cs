@@ -3,6 +3,7 @@ using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Transactions;
 
 namespace BCRPClient.CEF
 {
@@ -34,9 +35,15 @@ namespace BCRPClient.CEF
             {
                 SwitchEscMenuAccess(false);
 
+                Sync.WeaponSystem.DisabledFiring = true;
             }
-            else if (!Utils.IsAnyCefActive(true))
-                SwitchEscMenuAccess(true);
+            else
+            {
+                Sync.WeaponSystem.DisabledFiring = false;
+
+                if (!Utils.IsAnyCefActive(true))
+                    SwitchEscMenuAccess(true);
+            }
         }
 
         /// <summary>Блокировать клавишу ESC в игре</summary>

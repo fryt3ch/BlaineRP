@@ -283,6 +283,10 @@ namespace BCRPServer
         /// <summary>Получить текущее время (по МСК.)</summary>
         public static DateTime GetCurrentTime() => DateTime.UtcNow.AddHours(3);
 
+        public static long GetUnixTimestamp(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
+
+        public static DateTime GetUnixTimestamp(long timestampSecs) => DateTimeOffset.FromUnixTimeSeconds(timestampSecs).DateTime;
+
 
         /// <summary>Тихий кик игрока (со стороны сервера)</summary>
         /// <param name="player">Сущность игрока</param>

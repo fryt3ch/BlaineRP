@@ -551,8 +551,8 @@ namespace BCRPClient.Additional
                 }
             }
 
-            RAGE.Game.Player.RestorePlayerStamina(100);
-            RAGE.Game.Player.SetPlayerHealthRechargeMultiplier(0);
+            RAGE.Game.Player.RestorePlayerStamina(1000f);
+            RAGE.Game.Player.SetPlayerHealthRechargeMultiplier(0f);
         }
 
         private static void InvincibleRender() => RAGE.Game.Player.SetPlayerInvincible(true);

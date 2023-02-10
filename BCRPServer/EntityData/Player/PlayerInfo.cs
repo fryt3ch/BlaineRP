@@ -181,7 +181,7 @@ namespace BCRPServer
 
             public Dictionary<CooldownTypes, DateTime> Cooldowns { get; set; }
 
-            public List<string> AllSMS { get; set; }
+            public List<Sync.Phone.SMS> AllSMS { get; set; }
 
             public Dictionary<Achievement.Types, Achievement> Achievements { get; set; }
 
@@ -316,7 +316,7 @@ namespace BCRPServer
             {
                 this.Cooldowns = new Dictionary<CooldownTypes, DateTime>();
 
-                this.AllSMS = new List<string>();
+                this.AllSMS = new List<Sync.Phone.SMS>() { };
             }
         }
     }

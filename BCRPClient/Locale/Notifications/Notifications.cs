@@ -47,12 +47,27 @@ namespace BCRPClient
 
                 public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";
 
-                public static string LessThanMinValue = "Введенное значение меньше минимально допустимого ({0})!";
-                public static string BiggerThanMaxValue = "Введенное значение больше максимально допустимого ({0})!";
+                public static string LessThanMinValue = "Введенное значение должно быть больше, чем {0}!";
+                public static string BiggerThanMaxValue = "Введенное значение должно быть меньше либо равно ({0})!";
 
                 public static string BusinessNewMarginOwner0 = "Теперь наценка на продукцию Вашего бизнеса составляет {0}%";
                 public static string BusinessIncassationNowOn = "Теперь наличные из кассы Вашего бизнеса будут доставляться в банк!";
                 public static string BusinessIncassationNowOff = "Теперь наличные из кассы Вашего бизнеса не будут доставляться в банк!";
+
+                public static string MinimalCharactersCount = "Минимальная длина текста должна составлять {0} символов!";
+                public static string MaximalCharactersCount = "Максимальная длина текста должна составлять {0} символов!";
+
+                public static string SmsDeleteConfirmText = "Данное действие удалит весь чат с данным абонентом!\nЕсли вы уверены, что хотите это сделать, нажмите еще раз";
+
+                public static string StringOnlyLettersNumbersW = "Строка должна содержать только буквы, цифры или пробел!";
+                public static string StringOnlyLettersNumbers = "Строка должна содержать только буквы или цифры!";
+
+                public static string SmsSendAttachPosOn = "Вы прикрепили свою геолокацию к сообщению!";
+                public static string SmsSendAttachPosOff = "Вы открепили свою геолокацию от сообщения!";
+
+                public static string AlreadyInPhoneBlacklist = "Этот номер уже находится в Вашем черном списке!";
+
+                public static string ScreenshotSaved = "Фото сохранено в папку RAGEMP/screenshots/server_ip под именем {0}";
 
                 public static class PayDay
                 {
@@ -100,6 +115,9 @@ namespace BCRPClient
                 public static string NoMedicalCard = "У вас нет мед. карты!";
 
                 public static string NoOwnedBusiness = "Вы не владеете ни одним бизнесом!";
+                public static string NoOwnedHouse = "Вы не владеете ни одним домом!";
+                public static string NoOwnedApartments = "Вы не владеете ни одной квартирой!";
+                public static string NoOwnedGarage = "Вы не владеете ни одним гаражом!";
                 public static string NoOwnedEstate = "Вы не владеете ни одним видом недвижимости!";
 
                 public static string ElevatorCurrentFloor = "Вы и так находитесь на этом этаже!";
@@ -255,9 +273,12 @@ namespace BCRPClient
                     public static string SavingsDepositMaxExceed = "Превышение максимально возможного баланса сберегательного счёта по тарифу!";
 
                     public static string SendApprove = "Вы собираетесь отправить ${0} {1} {2}.\nНажмите еще раз для подтверждения";
+                    public static string SendApproveP = "Вы собираетесь отправить ${0} {1} {2}. Комиссия за операцию составит {3}%\nНажмите еще раз для подтверждения";
                 }
 
-                public static string MaximalBalanceAlready = "У вас на счете уже максимальное кол-во средств!";
+                public static string MaximalBalanceAlready = "У Вас на счете уже максимальное кол-во средств!";
+
+                public static string MaximalBalanceNear = "На этот счет еще можно положить не более {0}!";
 
                 public static string MinimalBalanceHouse = "На этом счете должно оставаться минимум {0}, Вы не можете снять этот остаток средств частично или целиком!";
 
@@ -268,6 +289,8 @@ namespace BCRPClient
                 public static string NoMaterialsShop = "В этом магазине недостаточно материалов!";
 
                 public static string PhoneBalanceMax = "На балансе вашего телефона не может быть больше, чем ${0}";
+
+                public static string PhoneBalanceInfo = "Ваш номер: {0}\nБаланс: {1}\nСтоимость 1 мин. исходящего вызова: {2}\nСтоимость 1 символа SMS: {3}";
             }
 
             public static class Hints

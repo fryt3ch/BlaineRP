@@ -3,15 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Text;
-using Ubiety.Dns.Core.Records;
 using static BCRPServer.Game.Bank;
-using static BCRPServer.PlayerData;
 
 namespace BCRPServer.Events.Players
 {
     class Bank : Script
     {
-
         [RemoteProc("Bank::Savings::ToDebitSett")]
         private static bool SavingsToDebitSetting(Player player, int bankId, bool state)
         {
@@ -94,14 +91,17 @@ namespace BCRPServer.Events.Players
 
             if (isRequest)
             {
-                player.Notify("Bank::SendApprove", amount, tInfo.Name, tInfo.Surname);
+                if (bankId < 0)
+                    player.Notify("Bank::SendApproveP", amount, tInfo.Name, tInfo.Surname, MobileSendTaxClientVisual);
+                else
+                    player.Notify("Bank::SendApprove", amount, tInfo.Name, tInfo.Surname);
 
                 return true;
             }
 
             ulong newBalanceT;
 
-            if (!tInfo.BankAccount.TryAddMoneyDebit(amount, out newBalanceT))
+            if (!tInfo.BankAccount.TryAddMoneyDebit(bankId < 0 ? (ulong)Math.Floor(amount * (1 - Game.Bank.MOBILE_SEND_TAX)) : amount, out newBalanceT))
                 return false;
 
             pData.BankAccount.TotalDayTransactions += amount;
@@ -395,7 +395,7 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                if (add || useCash)
+                if (!add || useCash)
                     return null;
             }
 
@@ -502,7 +502,7 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                if (add || useCash)
+                if (!add || useCash)
                     return null;
             }
 
@@ -574,6 +574,127 @@ namespace BCRPServer.Events.Players
             MySQL.HouseUpdateBalance(house);
 
             return house.Balance;
+        }
+
+        [RemoteProc("Bank::GBC")]
+        private static ulong? GarageBalanceChange(Player player, uint garageId, int bankId, int amountI, bool useCash, bool add)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
+            if (amountI <= 0)
+                return null;
+
+            var amount = (ulong)amountI;
+
+            if (pData.BankAccount == null)
+                return null;
+
+            var garage = Game.Estates.Garage.Get(garageId);
+
+            if (garage == null || garage.Owner != pData.Info)
+                return null;
+
+            if (bankId >= 0)
+            {
+                if (!IsPlayerNearBank(player, bankId))
+                    return null;
+            }
+            else
+            {
+                if (!add || useCash)
+                    return null;
+            }
+
+            if (add)
+            {
+                ulong newBalance;
+
+                if (!garage.TryAddMoneyBalance(amount, out newBalance, true))
+                    return null;
+
+                var maxHours = Settings.MAX_PAID_HOURS_GARAGE;
+
+                if (maxHours > 0 && ((uint)(garage.Tax * Settings.MAX_PAID_HOURS_GARAGE) < newBalance))
+                    return null;
+
+                if (useCash)
+                {
+                    ulong newCash;
+
+                    if (!pData.TryRemoveCash(amount, out newCash, true))
+                        return null;
+
+                    pData.SetCash(newCash);
+                }
+                else
+                {
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
+                        return null;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
+                }
+
+                garage.SetBalance(newBalance, null);
+            }
+            else
+            {
+                ulong newBalance;
+
+                if (!garage.TryRemoveMoneyBalance(amount, out newBalance, true))
+                    return null;
+
+                if ((uint)(garage.Tax * Settings.MIN_PAID_HOURS_GARAGE) > newBalance)
+                    return null;
+
+                if (useCash)
+                {
+                    ulong newCash;
+
+                    if (!pData.TryAddCash(amount, out newCash, true))
+                        return null;
+
+                    pData.SetCash(newCash);
+                }
+                else
+                {
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
+                        return null;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
+                }
+
+                garage.SetBalance(newBalance, null);
+            }
+
+            return garage.Balance;
+        }
+
+        [RemoteProc("Bank::PAGD")]
+        private static string PhoneAppGetData(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (!pData.HasBankAccount(true))
+                return null;
+
+            return $"{(int)pData.BankAccount.Tariff.Type}_{pData.BankAccount.SavingsBalance}";
         }
     }
 }

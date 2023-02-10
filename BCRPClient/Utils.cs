@@ -24,7 +24,9 @@ namespace BCRPClient
             ChaletLondon = 0, HouseScript = 1, Monospace = 2, CharletComprimeColonge = 4, Pricedown = 7
         }
 
-        public static bool IsGameWindowFocused { get => RAGE.Ui.Windows.Focused; }
+        public static bool IsGameWindowFocused => RAGE.Ui.Windows.Focused;
+
+        public static Random Random { get; private set; } = new Random();
 
         #region Colours
         public class Colour

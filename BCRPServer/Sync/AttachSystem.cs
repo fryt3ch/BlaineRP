@@ -597,7 +597,7 @@ namespace BCRPServer.Sync
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <param name="entity">Сущность-владелец</param>
         /// <param name="target">Прикрепленная сущность</param>
-        public static AttachmentEntityNet GetEntityAttachmentData(Entity entity, Entity target) => entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>().Where(x => x.Id == target.Id && x.EntityType == target.Type).FirstOrDefault();
+        public static AttachmentEntityNet GetEntityAttachmentData(Entity entity, Entity target) => entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>().FirstOrDefault(x => x.Id == target.Id && x.EntityType == target.Type);
 
         /// <summary>Прикрепить сущность к сущности</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -611,7 +611,7 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            if (list.Where(x => x.Id == target.Id).FirstOrDefault() != null)
+            if (list.FirstOrDefault(x => x.Id == target.Id) != null)
                 DetachEntity(entity, target);
 
             var newAttachment = new AttachmentEntityNet(target.Id, target.Type, type);
@@ -636,7 +636,7 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            var item = list.Where(x => x.EntityType == target.Type && x.Id == target.Id).FirstOrDefault();
+            var item = list.FirstOrDefault(x => x.EntityType == target.Type && x.Id == target.Id);
 
             if (item == null)
                 return false;
@@ -698,7 +698,7 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            if (list.Where(x => x.Type == type).Any())
+            if (list.Any(x => x.Type == type))
                 return false;
 
             var newAttachment = new AttachmentObjectNet(model, type, syncData);
@@ -753,7 +753,7 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            var item = list.Where(x => x.Type == type).FirstOrDefault();
+            var item = list.FirstOrDefault(x => x.Type == type);
 
             if (item == null)
                 return false;

@@ -11,8 +11,9 @@ namespace BCRPClient.CEF.PhoneApps
             if (Phone.CurrentApp == Phone.AppTypes.None)
                 Phone.SwitchMenu(false);
 
-            if (Phone.CurrentApp != Phone.AppTypes.BSim)
-                Phone.CurrentApp = Phone.AppTypes.BSim;
+            Phone.CurrentApp = Phone.AppTypes.BSim;
+
+            Phone.CurrentAppTab = -1;
 
             CEF.Browser.Window.ExecuteJs("Phone.drawBSimApp", new object[] { new object[] { number, balance, costMinCall, costCharSms } });
         }

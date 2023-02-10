@@ -6,10 +6,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using static BCRPClient.Locale.Notifications.Money;
 
 namespace BCRPClient.Sync
 {
@@ -281,6 +277,16 @@ namespace BCRPClient.Sync
             public Sync.AttachSystem.AttachmentObject WearedRing => AttachedObjects.Where(x => x.Type >= Sync.AttachSystem.Types.PedRingLeft3 && x.Type <= Sync.AttachSystem.Types.PedRingRight3).FirstOrDefault();
 
             public Sync.Animations.Animation ActualAnimation { get => Player.GetData<Sync.Animations.Animation>("ActualAnim"); set { if (value == null) Player.ResetData("ActualAnim"); Player.SetData("ActualAnim", value); } }
+
+            public List<CEF.PhoneApps.SMSApp.SMS> AllSMS { get => Player.GetData<List<CEF.PhoneApps.SMSApp.SMS>>("AllSMS"); set => Player.SetData("AllSMS", value); }
+
+            public Dictionary<uint, string> Contacts { get => Player.GetData<Dictionary<uint, string>>("Contacts"); set => Player.SetData("Contacts", value); }
+
+            public List<uint> PhoneBlacklist { get => Player.GetData<List<uint>>("PBL"); set => Player.SetData("PBL", value); }
+
+            public uint PhoneNumber { get => Player.GetData<uint>("PhoneNumber"); set => Player.SetData("PhoneNumber", value); }
+
+            public CEF.PhoneApps.PhoneApp.CallInfo ActiveCall { get => Player.GetData<CEF.PhoneApps.PhoneApp.CallInfo>("ActiveCall"); set { if (value == null) Player.ResetData("ActiveCall"); Player.SetData("ActiveCall", value); } }
             #endregion
 
             public void Reset()
@@ -450,13 +456,30 @@ namespace BCRPClient.Sync
                 BCRPClient.Settings.MAX_CRUISE_CONTROL_SPEED = settings.Item5;
                 BCRPClient.Settings.MAX_INVENTORY_WEIGHT = settings.Item6;
 
-                var sData = RAGE.Util.Json.Deserialize<JObject>((string)args[1]);
+                var sData = (JObject)args[1];
 
                 data.Familiars = RAGE.Util.Json.Deserialize<List<uint>>((string)sData["Familiars"]);
 
                 data.Licenses = RAGE.Util.Json.Deserialize<List<LicenseTypes>>((string)sData["Licenses"]);
 
                 data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)sData["Skills"]);
+
+                data.PhoneNumber = (uint)sData["PN"];
+
+                if (sData.ContainsKey("Conts"))
+                    data.Contacts = ((JObject)sData["Conts"]).ToObject<Dictionary<uint, string>>();
+                else
+                    data.Contacts = new Dictionary<uint, string>();
+
+                if (sData.ContainsKey("PBL"))
+                    data.PhoneBlacklist = ((JArray)sData["PBL"]).ToObject<List<uint>>();
+                else
+                    data.PhoneBlacklist = new List<uint>();
+
+                if (sData.ContainsKey("SMS"))
+                    data.AllSMS = RAGE.Util.Json.Deserialize<List<string>>((string)sData["SMS"]).Select(x => new CEF.PhoneApps.SMSApp.SMS(x)).ToList();
+                else
+                    data.AllSMS = new List<CEF.PhoneApps.SMSApp.SMS>();
 
                 if (sData.ContainsKey("Vehicles"))
                     data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
@@ -1207,6 +1230,7 @@ namespace BCRPClient.Sync
 
                 CEF.ATM.UpdateMoney(bank);
                 CEF.Bank.UpdateMoney(bank);
+                CEF.PhoneApps.BankApp.UpdateBalance(bank);
 
                 var oldCash = oldValue == null ? bank : Convert.ToDecimal(oldValue).ToUInt64();
 
