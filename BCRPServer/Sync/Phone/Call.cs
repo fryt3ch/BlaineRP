@@ -12,11 +12,11 @@ namespace BCRPServer.Sync.Phone
     {
         private static List<Call> AllCalls { get; set; } = new List<Call>();
 
-        public static Call GetByPlayer(PlayerData pData) => AllCalls.FirstOrDefault(x => x.Caller == pData || x.Receiver == pData);
+        public static Call GetByPlayer(PlayerData pData) => AllCalls.Where(x => x.Caller == pData || x.Receiver == pData).FirstOrDefault();
 
-        public static Call GetByCaller(PlayerData pData) => AllCalls.FirstOrDefault(x => x.Caller == pData);
+        public static Call GetByCaller(PlayerData pData) => AllCalls.Where(x => x.Caller == pData).FirstOrDefault();
 
-        public static Call GetByReceiver(PlayerData pData) => AllCalls.FirstOrDefault(x => x.Receiver == pData);
+        public static Call GetByReceiver(PlayerData pData) => AllCalls.Where(x => x.Receiver == pData).FirstOrDefault();
 
         public enum StatusTypes : byte
         {

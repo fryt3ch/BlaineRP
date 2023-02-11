@@ -348,7 +348,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
 
             var playerBlip = RAGE.Game.Ui.GetMainPlayerBlipId();
             var waypointBlip = Utils.GetWaypointBlip();
@@ -382,7 +382,7 @@ namespace BCRPClient.CEF
             CEF.Cursor.Show(false, false);
 
             foreach (var x in TempBinds)
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             TempBinds.Clear();
 

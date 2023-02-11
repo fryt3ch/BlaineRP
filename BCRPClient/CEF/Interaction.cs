@@ -573,7 +573,7 @@ namespace BCRPClient.CEF
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Cursor.Show(true, true);
         }
@@ -591,7 +591,7 @@ namespace BCRPClient.CEF
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Cursor.Show(true, true);
         }
@@ -609,7 +609,7 @@ namespace BCRPClient.CEF
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Cursor.Show(true, true);
         }
@@ -663,7 +663,7 @@ namespace BCRPClient.CEF
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Browser.Window.ExecuteJs($"Passengers.fill", new object[] { players });
             Browser.Switch(Browser.IntTypes.Interaction_Passengers, true);
@@ -744,7 +744,7 @@ namespace BCRPClient.CEF
             KeyBinds.Get(KeyBinds.Types.Interaction).Enable();
 
             foreach (var x in TempBinds)
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             TempBinds.Clear();
 

@@ -388,11 +388,11 @@ namespace BCRPClient
         };
         #endregion
 
-        public static Dictionary<Types, Bind> Binds { get; set; }
+        public static Dictionary<Types, ExtraBind> Binds { get; set; }
 
         #region Bind Class
 
-        public class Bind
+        public class ExtraBind
         {
             /// <summary>Тип бинда</summary>
             public Types Type { get; private set; }
@@ -436,7 +436,7 @@ namespace BCRPClient
                     if (IsDown)
                     {
                         for (int i = 0; i < Keys.Length; i++)
-                            if (!RAGE.Input.IsDown(Keys[i]))
+                            if (!KeyBinds.IsDown(Keys[i]))
                                 return false;
 
                         return true;
@@ -444,7 +444,7 @@ namespace BCRPClient
                     else
                     {
                         for (int i = 0; i < Keys.Length; i++)
-                            if (!RAGE.Input.IsUp(Keys[i]))
+                            if (!KeyBinds.IsUp(Keys[i]))
                                 return false;
 
                         return true;
@@ -452,7 +452,7 @@ namespace BCRPClient
                 }
             }
 
-            public Bind(Types Type, Action Action, bool IsDown, bool Changeable, Types Familiar = Types.None, bool InvOnly = false)
+            public ExtraBind(Types Type, Action Action, bool IsDown, bool Changeable, Types Familiar = Types.None, bool InvOnly = false)
             {
                 this.BindIndex = -1;
 
@@ -502,19 +502,19 @@ namespace BCRPClient
 
                 if (Keys.Length == 1)
                 {
-                    BindIndex = RAGE.Input.Bind(Keys[0], IsDown, async () =>
+                    BindIndex = KeyBinds.Bind(Keys[0], IsDown, async () =>
                     {
                         Action.Invoke();
                     });
                 }
                 else
                 {
-                    BindIndex = RAGE.Input.Bind(Keys[Keys.Length - 1], IsDown, async () =>
+                    BindIndex = KeyBinds.Bind(Keys[Keys.Length - 1], IsDown, async () =>
                     {
-                        Func<RAGE.Ui.VirtualKeys, bool> checkFunc = RAGE.Input.IsDown;
+                        Func<RAGE.Ui.VirtualKeys, bool> checkFunc = KeyBinds.IsDown;
 
                         if (!IsDown)
-                            checkFunc = RAGE.Input.IsUp;
+                            checkFunc = KeyBinds.IsUp;
 
                         for (int i = 0; i < Keys.Length - 1; i++)
                             if (!checkFunc.Invoke(Keys[i]))
@@ -532,7 +532,7 @@ namespace BCRPClient
                 if (BindIndex == -1)
                     return;
 
-                RAGE.Input.Unbind(BindIndex);
+                KeyBinds.Unbind(BindIndex);
 
                 BindIndex = -1;
             }
@@ -581,7 +581,7 @@ namespace BCRPClient
             public static string GetKeyString(params RAGE.Ui.VirtualKeys[] keys) => keys.Length == 0 ? "???" : string.Join(" + ", keys.Select(x => KeyNames[(int)x]));
         }
 
-        public static void Add(Bind bind, bool enable = true)
+        public static void Add(ExtraBind bind, bool enable = true)
         {
             if (HelpBinds.ContainsKey(bind.Type))
             {
@@ -614,7 +614,7 @@ namespace BCRPClient
             Binds.Remove(type);
         }
 
-        public static Bind Get(Types type)
+        public static ExtraBind Get(Types type)
         {
             if (!Binds.ContainsKey(type))
                 return null;
@@ -629,7 +629,7 @@ namespace BCRPClient
         public static void LoadMain()
         {
             // ~ - Toggle Cursor
-            Add(new Bind(Types.Cursor, () =>
+            Add(new ExtraBind(Types.Cursor, () =>
             {
                 if (!RAGE.Game.Ui.IsPauseMenuActive())
                 {
@@ -651,7 +651,7 @@ namespace BCRPClient
         public static void LoadAll()
         {
             // Toggle Chat Input
-            Add(new Bind(Types.ChatInput, () =>
+            Add(new ExtraBind(Types.ChatInput, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                 {
@@ -661,7 +661,7 @@ namespace BCRPClient
             { Description = "Открыть чат" });
 
             // Open Menu
-            Add(new Bind(Types.Menu, () =>
+            Add(new ExtraBind(Types.Menu, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.HUD.Menu.Switch(true, null);
@@ -669,7 +669,7 @@ namespace BCRPClient
             { Description = "Меню" });
 
             // Toggle Radar Size
-            Add(new Bind(Types.RadarSize, () =>
+            Add(new ExtraBind(Types.RadarSize, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Minimap.Toggle();
@@ -678,7 +678,7 @@ namespace BCRPClient
             { Description = "Масштаб миникарты" });
 
             // Use Micro Start
-            Add(new Bind(Types.MicrophoneOn, () =>
+            Add(new ExtraBind(Types.MicrophoneOn, () =>
             {
                 if (Utils.CanShowCEF(false, true))
                     Sync.Microphone.Start();
@@ -686,13 +686,13 @@ namespace BCRPClient
             { Description = "Голосовой чат" });
 
             // Use Micro Stop
-            Add(new Bind(Types.MicrophoneOff, () =>
+            Add(new ExtraBind(Types.MicrophoneOff, () =>
             {
                 Sync.Microphone.Stop();
             }, false, false, Types.MicrophoneOn));
 
             // Interaction
-            Add(new Bind(Types.Interaction, () =>
+            Add(new ExtraBind(Types.Interaction, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Interaction.TryShowMenu();
@@ -700,7 +700,7 @@ namespace BCRPClient
             { Description = "Меню взаимодействия" });
 
             // Phone
-            Add(new Bind(Types.Phone, () =>
+            Add(new ExtraBind(Types.Phone, () =>
             {
                 if (!Sync.Phone.Toggled)
                 {
@@ -715,7 +715,7 @@ namespace BCRPClient
             { Description = "Телефон" });
 
             // Finger Point Start
-            Add(new Bind(Types.FingerPointStart, () =>
+            Add(new ExtraBind(Types.FingerPointStart, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Finger.Start();
@@ -723,13 +723,13 @@ namespace BCRPClient
             { Description = "Показать пальцем" });
 
             // Finger Point Stop
-            Add(new Bind(Types.FingerPointStop, () =>
+            Add(new ExtraBind(Types.FingerPointStop, () =>
             {
                 Sync.Finger.Stop();
             }, false, false, Types.FingerPointStart));
 
             // Crouch
-            Add(new Bind(Types.Crouch, () =>
+            Add(new ExtraBind(Types.Crouch, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Crouch.Toggle();
@@ -737,7 +737,7 @@ namespace BCRPClient
             { Description = "Присесть" });
 
             // Crawl
-            Add(new Bind(Types.Crawl, () =>
+            Add(new ExtraBind(Types.Crawl, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Crawl.Toggle();
@@ -745,7 +745,7 @@ namespace BCRPClient
             { Description = "Ползти" });
 
             // Engine Toggle
-            Add(new Bind(Types.Engine, () =>
+            Add(new ExtraBind(Types.Engine, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.Engine();
@@ -753,7 +753,7 @@ namespace BCRPClient
             { Description = "Двигатель Т/С" });
 
             // Cruise Control
-            Add(new Bind(Types.CruiseControl, () =>
+            Add(new ExtraBind(Types.CruiseControl, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleCruiseControl(false);
@@ -761,7 +761,7 @@ namespace BCRPClient
             { Description = "Круиз-контроль" });
 
             // Auto Pilot
-            Add(new Bind(Types.AutoPilot, () =>
+            Add(new ExtraBind(Types.AutoPilot, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleAutoPilot(null);
@@ -769,7 +769,7 @@ namespace BCRPClient
             { Description = "Автопилот" });
 
             // Vehicle Doors Lock Toggle
-            Add(new Bind(Types.DoorsLock, () =>
+            Add(new ExtraBind(Types.DoorsLock, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.Lock(null, Interaction.CurrentEntity as Vehicle);
@@ -777,7 +777,7 @@ namespace BCRPClient
             { Description = "Блокировка Т/С" });
 
             // Vehicle Look in Trunk
-            Add(new Bind(Types.TrunkLook, () =>
+            Add(new ExtraBind(Types.TrunkLook, () =>
             {
                 if (Utils.CanShowCEF(true, true) && Interaction.CurrentEntity is Vehicle veh)
                     Sync.Vehicles.ShowContainer(veh);
@@ -785,7 +785,7 @@ namespace BCRPClient
             { Description = "Смотреть багажник" });
 
             // Seat Belt Toggle
-            Add(new Bind(Types.Belt, () =>
+            Add(new ExtraBind(Types.Belt, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleBelt();
@@ -793,7 +793,7 @@ namespace BCRPClient
             { Description = "Пристегнуться" });
 
             // Left Arrow Veh
-            Add(new Bind(Types.LeftArrow, () =>
+            Add(new ExtraBind(Types.LeftArrow, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(1);
@@ -801,7 +801,7 @@ namespace BCRPClient
             { Description = "Левый поворотник" });
 
             // Right Arrow Veh
-            Add(new Bind(Types.RightArrow, () =>
+            Add(new ExtraBind(Types.RightArrow, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(0);
@@ -809,7 +809,7 @@ namespace BCRPClient
             { Description = "Правый поворотник" });
 
             // Both Arrows Veh
-            Add(new Bind(Types.BothArrows, () =>
+            Add(new ExtraBind(Types.BothArrows, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleIndicator(2);
@@ -817,7 +817,7 @@ namespace BCRPClient
             { Description = "Аварийка" });
 
             // Lights Veh
-            Add(new Bind(Types.Lights, () =>
+            Add(new ExtraBind(Types.Lights, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.ToggleLights();
@@ -825,7 +825,7 @@ namespace BCRPClient
             { Description = "Фары" });
 
             // Toggle HUD 
-            Add(new Bind(Types.HUD, () =>
+            Add(new ExtraBind(Types.HUD, () =>
             {
                 if (Utils.CanShowCEF(false, true))
                 {
@@ -835,7 +835,7 @@ namespace BCRPClient
             { Description = "HUD" });
 
             // Reload Voice Chat 
-            Add(new Bind(Types.MicrophoneReload, () =>
+            Add(new ExtraBind(Types.MicrophoneReload, () =>
             {
                 if (Utils.CanShowCEF(false, true))
                     Sync.Microphone.Reload();
@@ -843,7 +843,7 @@ namespace BCRPClient
             { Description = "Перезапустить голосовой чат" });
 
             // Inventory Open 
-            Add(new Bind(Types.Inventory, () =>
+            Add(new ExtraBind(Types.Inventory, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.Show(CEF.Inventory.Types.Inventory);
@@ -851,7 +851,7 @@ namespace BCRPClient
             { Description = "Инвентарь" });
 
             // Take Item on Ground
-            Add(new Bind(Types.TakeItem, () =>
+            Add(new ExtraBind(Types.TakeItem, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                 {
@@ -864,7 +864,7 @@ namespace BCRPClient
             { Description = "Подобрать предмет" });
 
             // ReloadWeapon
-            Add(new Bind(Types.ReloadWeapon, () =>
+            Add(new ExtraBind(Types.ReloadWeapon, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.WeaponSystem.ReloadWeapon();
@@ -872,7 +872,7 @@ namespace BCRPClient
             { Description = "Перезарядить оружие" });
 
             // Whistle
-            Add(new Bind(Types.Whistle, () =>
+            Add(new ExtraBind(Types.Whistle, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Animations.PlayFastSync(Sync.Animations.FastTypes.Whistle, 3000);
@@ -880,35 +880,35 @@ namespace BCRPClient
             { Description = "Свистеть" });
 
             // Whistle
-            Add(new Bind(Types.SendCoordsToDriver, () =>
+            Add(new ExtraBind(Types.SendCoordsToDriver, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.SendCoordsToDriver();
             }, true, true)
             { Description = "Передать метку водителю" });
 
-            Add(new Bind(Types.Animations, () =>
+            Add(new ExtraBind(Types.Animations, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Animations.Open();
             }, true, true)
             { Description = "Анимации" });
 
-            Add(new Bind(Types.CancelAnimation, () =>
+            Add(new ExtraBind(Types.CancelAnimation, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Animations.Cancel();
             }, true, true)
             { Description = "Отмена анимации" });
 
-            Add(new Bind(Types.Help, () =>
+            Add(new ExtraBind(Types.Help, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Menu.Show(CEF.Menu.SectionTypes.Help);
             }, true, true)
             { Description = "Помощь" });
 
-            Add(new Bind(Types.BlipsMenu, () =>
+            Add(new ExtraBind(Types.BlipsMenu, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                 {
@@ -917,7 +917,7 @@ namespace BCRPClient
             }, true, true)
             { Description = "Меню меток" });
 
-            Add(new Bind(Types.AnchorBoat, () =>
+            Add(new ExtraBind(Types.AnchorBoat, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                 {
@@ -926,7 +926,7 @@ namespace BCRPClient
             }, true, true)
             { Description = "Якорь (для лодок)" });
 
-            Add(new Bind(Types.FlashlightToggle, () =>
+            Add(new ExtraBind(Types.FlashlightToggle, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                 {
@@ -935,168 +935,168 @@ namespace BCRPClient
             }, true, true)
             { Description = "Фонарик (вкл/выкл)" });
 
-            Add(new Bind(Types.TakeScreenshot, () =>
+            Add(new ExtraBind(Types.TakeScreenshot, () =>
             {
                 CEF.PhoneApps.CameraApp.SavePicture(false, false, true);
             }, true, true)
             { Description = "Сделать скриншот" });
 
             // Inventory Binds
-            Add(new Bind(Types.weapon0, () =>
+            Add(new ExtraBind(Types.weapon0, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 0);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.weapon1, () =>
+            Add(new ExtraBind(Types.weapon1, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 1);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.weapon2, () =>
+            Add(new ExtraBind(Types.weapon2, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "weapon", 2);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets0, () =>
+            Add(new ExtraBind(Types.pockets0, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 0);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets1, () =>
+            Add(new ExtraBind(Types.pockets1, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 1);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets2, () =>
+            Add(new ExtraBind(Types.pockets2, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 2);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets3, () =>
+            Add(new ExtraBind(Types.pockets3, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 3);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets4, () =>
+            Add(new ExtraBind(Types.pockets4, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 4);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets5, () =>
+            Add(new ExtraBind(Types.pockets5, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 5);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets6, () =>
+            Add(new ExtraBind(Types.pockets6, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 6);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets7, () =>
+            Add(new ExtraBind(Types.pockets7, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 7);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets8, () =>
+            Add(new ExtraBind(Types.pockets8, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 8);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets9, () =>
+            Add(new ExtraBind(Types.pockets9, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 9);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets10, () =>
+            Add(new ExtraBind(Types.pockets10, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 10);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets11, () =>
+            Add(new ExtraBind(Types.pockets11, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 11);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets12, () =>
+            Add(new ExtraBind(Types.pockets12, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 12);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets13, () =>
+            Add(new ExtraBind(Types.pockets13, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 13);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets14, () =>
+            Add(new ExtraBind(Types.pockets14, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 14);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets15, () =>
+            Add(new ExtraBind(Types.pockets15, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 15);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets16, () =>
+            Add(new ExtraBind(Types.pockets16, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 16);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets17, () =>
+            Add(new ExtraBind(Types.pockets17, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 17);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets18, () =>
+            Add(new ExtraBind(Types.pockets18, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 18);
 
             }, true, true, Types.None, true));
 
-            Add(new Bind(Types.pockets19, () =>
+            Add(new ExtraBind(Types.pockets19, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     CEF.Inventory.BindedAction(5, "pockets", 19);
@@ -1116,7 +1116,7 @@ namespace BCRPClient
 
         public KeyBinds()
         {
-            Binds = new Dictionary<Types, Bind>();
+            Binds = new Dictionary<Types, ExtraBind>();
         }
 
         public static void DisableAll(params Types[] ignoreTypes)
@@ -1130,6 +1130,44 @@ namespace BCRPClient
         {
             foreach (var x in Binds)
                 x.Value.Enable();
+        }
+
+        public static int Bind(RAGE.Ui.VirtualKeys vk, bool down, Action action) => Bind((int)vk, down, action);
+
+        public static int Bind(int vk, bool down, Action action)
+        {
+            var bindHandler = RAGE.Input.Bind(vk, down, () =>
+            {
+                if (!Utils.IsGameWindowFocused)
+                    return;
+
+                action?.Invoke();
+            });
+
+            return bindHandler;
+        }
+
+        public static void Unbind(int bindHandle)
+        {
+            RAGE.Input.Unbind(bindHandle);
+        }
+
+        public static bool IsDown(RAGE.Ui.VirtualKeys vk) => IsDown((int)vk);
+
+        public static bool IsDown(int vk)
+        {
+            var res = RAGE.Input.IsDown(vk);
+
+            return res;
+        }
+
+        public static bool IsUp(RAGE.Ui.VirtualKeys vk) => IsUp((int)vk);
+
+        public static bool IsUp(int vk)
+        {
+            var res = RAGE.Input.IsUp(vk);
+
+            return res;
         }
     }
 }

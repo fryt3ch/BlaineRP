@@ -562,7 +562,7 @@ namespace BCRPClient.CEF
                     GameEvents.Render -= TestDriveRender;
                     GameEvents.Render += TestDriveRender;
 
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.F4, true, () => Additional.TuningMenu.Show()));
+                    TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.F4, true, () => Additional.TuningMenu.Show()));
                 }
             });
 
@@ -968,12 +968,12 @@ namespace BCRPClient.CEF
                     }
                     else if (data[0] != "fix" && data[0] != "keys")
                     {
-                        var t = Additional.TuningMenu.Slots.Where(x => x.Value.Id == data[0]).Select(x => x.Key);
+                        var t = Additional.TuningMenu.Slots.Where(x => x.Value.Id == data[0]).FirstOrDefault();
 
-                        if (t.Count() == 0)
+                        if (t.Value.Id == null)
                             return;
 
-                        TempVehicle.SetMod(t.FirstOrDefault(), p - 1, false);
+                        TempVehicle.SetMod(t.Key, p - 1, false);
 
                         if (data[0] == "horn")
                         {
@@ -1191,7 +1191,7 @@ namespace BCRPClient.CEF
 
                 bool useCash = (bool)args[0];
 
-                if (LastSent.IsSpam(1000, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 LastSent = DateTime.Now;
@@ -2138,7 +2138,7 @@ namespace BCRPClient.CEF
 
             CurrentCameraStateNum = 0;
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
             {
                 if (CursorTask != null)
                     return;
@@ -2149,7 +2149,7 @@ namespace BCRPClient.CEF
                 CursorTask.Run();
             }));
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
             {
                 if (CursorTask == null)
                     return;
@@ -2159,12 +2159,12 @@ namespace BCRPClient.CEF
                 CursorTask = null;
             }));
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
             {
                 ChangeView(CurrentCameraStateNum + 1);
             }));
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (CEF.ActionBox.IsActive)
                 {
@@ -2338,7 +2338,7 @@ namespace BCRPClient.CEF
                 CurrentType = Types.None;
 
                 foreach (var x in TempBinds)
-                    RAGE.Input.Unbind(x);
+                    KeyBinds.Unbind(x);
 
                 TempBinds.Clear();
 
@@ -2384,7 +2384,7 @@ namespace BCRPClient.CEF
 
             Additional.TuningMenu.Close();
 
-            RAGE.Input.Unbind(TempBinds[TempBinds.Count - 1]);
+            KeyBinds.Unbind(TempBinds[TempBinds.Count - 1]);
             TempBinds.RemoveAt(TempBinds.Count - 1);
 
             CEF.HUD.ShowHUD(false);
@@ -2492,7 +2492,7 @@ namespace BCRPClient.CEF
 
             var curPos = RAGE.Ui.Cursor.Position;
             var dist = curPos.Distance(LastCursorPos);
-            var newHeading = TempVehicle == null ? Player.LocalPlayer.GetHeading() : TempVehicle.GetHeading();
+            var newHeading = 0f;
 
             if (curPos.X > LastCursorPos.X)
                 newHeading += dist / 10;
@@ -2516,11 +2516,11 @@ namespace BCRPClient.CEF
             }
 
             if (TempEntity != null)
-                RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, newHeading);
+                RAGE.Game.Entity.SetEntityHeading(TempEntity.Handle, RAGE.Game.Entity.GetEntityHeading(TempEntity.Handle) + newHeading);
             else if (TempVehicle != null)
-                TempVehicle.SetHeading(newHeading);
+                TempVehicle.SetHeading(TempVehicle.GetHeading() + newHeading);
             else
-                Player.LocalPlayer.SetHeading(newHeading);
+                Player.LocalPlayer.SetHeading(Player.LocalPlayer.GetHeading() + newHeading);
 
             LastCursorPos = curPos;
         }

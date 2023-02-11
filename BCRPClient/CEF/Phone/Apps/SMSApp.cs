@@ -39,6 +39,43 @@ namespace BCRPClient.CEF.PhoneApps
 
         public SMSApp()
         {
+            Events.Add("Phone::SendCoords", (args) =>
+            {
+                if (LastSent.IsSpam(250, false, false))
+                    return;
+
+                if (args == null || args.Length < 1)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.WrongCoordsSms);
+
+                    return;
+                }
+
+                var coordsData = ((string)args[0])?.Split('_');
+
+                if (coordsData.Length < 2)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.WrongCoordsSms);
+
+                    return;
+                }
+
+                float x, y;
+
+                if (!float.TryParse(coordsData[0], out x) || !float.TryParse(coordsData[1], out y))
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.WrongCoordsSms);
+
+                    return;
+                }
+
+                LastSent = DateTime.Now;
+
+                var coords = new Vector3(x, y, 0f);
+
+                Additional.ExtraBlips.CreateGPS(coords, Player.LocalPlayer.Dimension, true);
+            });
+
             Events.Add("Phone::SmsSend", async (args) =>
             {
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -361,12 +398,9 @@ namespace BCRPClient.CEF.PhoneApps
 
         public static object GetChatList(List<SMS> list, uint tNumber, uint pNumber)
         {
-            var res = list.Where(x => x.SenderNumber == tNumber || x.ReceiverNumber == tNumber).OrderBy(x => x.Date).Select(x => new object[] { x.SenderNumber == pNumber, x.Text, x.Date.ToString("HH:mm") });
+            var res = list.Where(x => x.SenderNumber == tNumber || x.ReceiverNumber == tNumber).OrderBy(x => x.Date).Select(x => new object[] { x.SenderNumber == pNumber, x.Text, x.Date.ToString("HH:mm") }).ToList();
 
-            if (res.Any())
-                return res;
-
-            return null;
+            return res.Count > 0 ? res : null;
         }
     }
 }

@@ -1064,7 +1064,7 @@ namespace BCRPClient.CEF
                 return;
 
             for (int i = 0; i < TempBinds.Count; i++)
-                RAGE.Input.Unbind(TempBinds[i]);
+                KeyBinds.Unbind(TempBinds[i]);
 
             TempBinds.Clear();
 
@@ -1084,7 +1084,7 @@ namespace BCRPClient.CEF
 
         private static void Bind()
         {
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
     }
 }

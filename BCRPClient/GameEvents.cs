@@ -8,6 +8,7 @@ using System.Text;
 using System.Linq;
 using System.Net.NetworkInformation;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
 
 namespace BCRPClient
 {
@@ -48,8 +49,14 @@ namespace BCRPClient
         private static int DisableAllControlsCounter { get; set; }
         private static int DisableMoveCounter { get; set; }
 
+        public static DateTime? ExtraGameDate { get; set; }
+
         public GameEvents()
         {
+            CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
+            CultureInfo.CurrentCulture = Settings.CultureInfo;
+
             RAGE.Ui.Console.Clear();
             RAGE.Chat.Activate(false);
             RAGE.Chat.Show(false);
@@ -253,6 +260,11 @@ namespace BCRPClient
 
             (new AsyncTask(() =>
             {
+                var time = ExtraGameDate ?? Utils.GetServerTime();
+
+                RAGE.Game.Clock.SetClockDate(time.Day, time.Month, time.Year);
+                RAGE.Game.Clock.SetClockTime(time.Hour, time.Minute, time.Second);
+
                 var pos = Utils.GetWaypointPosition();
 
                 if (pos != null)
@@ -297,7 +309,7 @@ namespace BCRPClient
 
             /*            var dict = new Dictionary<int, bool>();
 
-                        RAGE.Input.Bind(RAGE.Ui.VirtualKeys.L, true, () =>
+                        KeyBinds.NewBind(RAGE.Ui.VirtualKeys.L, true, () =>
                         {
                             var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
 
@@ -320,7 +332,7 @@ namespace BCRPClient
                             RAGE.Game.Entity.SetEntityLights(ent, state);
                         });
 
-                        RAGE.Input.Bind(RAGE.Ui.VirtualKeys.B, true, () =>
+                        KeyBinds.NewBind(RAGE.Ui.VirtualKeys.B, true, () =>
                         {
                             var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
 

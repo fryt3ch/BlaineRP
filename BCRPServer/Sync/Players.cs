@@ -60,7 +60,7 @@ namespace BCRPServer.Sync
                 activeCall.Cancel(activeCall.Caller == pData ? Phone.Call.CancelTypes.Caller : Phone.Call.CancelTypes.Receiver);
             }
 
-            var attachedPhone = pData.AttachedObjects.FirstOrDefault(x => x.Type == AttachSystem.Types.Phone);
+            var attachedPhone = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.Phone).FirstOrDefault();
 
             if (attachedPhone != null)
                 player.DetachObject(attachedPhone.Type);

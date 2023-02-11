@@ -19,7 +19,7 @@ namespace BCRPClient.Data
 
         public static NPC GetData(string id) => AllNPCs.Where(x => x.Value.Id == id).Select(x => x.Value).FirstOrDefault();
 
-        public static NPC GetData(Ped ped) => ped == null ? null : (AllNPCs.ContainsKey(ped) ? AllNPCs[ped] : null);
+        public static NPC GetData(Ped ped) => ped == null ? null : AllNPCs.GetValueOrDefault(ped);
 
         public static DateTime LastSent;
 
@@ -246,7 +246,7 @@ namespace BCRPClient.Data
 
                 Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
 
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
+                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
             }
             else
             {
@@ -263,7 +263,7 @@ namespace BCRPClient.Data
                 Ped.TaskClearLookAt();
 
                 foreach (var x in TempBinds)
-                    RAGE.Input.Unbind(x);
+                    KeyBinds.Unbind(x);
 
                 TempBinds.Clear();
 

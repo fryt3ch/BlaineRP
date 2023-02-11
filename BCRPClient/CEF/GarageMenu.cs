@@ -131,7 +131,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
         public static void Close()
@@ -144,7 +144,7 @@ namespace BCRPClient.CEF
             CurrentGarageRoot = null;
 
             foreach (var x in TempBinds)
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             CEF.Cursor.Show(false, false);
 

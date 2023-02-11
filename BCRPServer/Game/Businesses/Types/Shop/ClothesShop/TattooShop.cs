@@ -798,9 +798,21 @@ namespace BCRPServer.Game.Businesses
 
                 var zType = (Data.Customization.TattooData.ZoneTypes)zTypeNum;
 
-                var tattooIdx = pData.Decorations.ToDictionary(x => x, x => Data.Customization.GetTattooData(x)).Where(x => x.Value?.ZoneType == zType).Select(x => x.Key).FirstOrDefault();
+                var tattooIdx = -1;
 
-                if (!pData.Decorations.Remove(tattooIdx))
+                foreach (var x in pData.Decorations)
+                {
+                    var data = Data.Customization.GetTattooData(x);
+
+                    if (data?.ZoneType == zType)
+                    {
+                        tattooIdx = x;
+
+                        break;
+                    }
+                }
+
+                if (tattooIdx < 0 || !pData.Decorations.Remove(tattooIdx))
                     return false;
             }
             else if (iData.Length == 2)
@@ -815,9 +827,22 @@ namespace BCRPServer.Game.Businesses
                 if (tattooData == null)
                     return false;
 
-                var tattooToDelete = pData.Decorations.ToDictionary(x => x, x => Data.Customization.GetTattooData(x)).Where(x => x.Value?.ZoneType == tattooData.ZoneType).Select(x => x.Key).FirstOrDefault();
+                var tattooToDelete = -1;
 
-                pData.Decorations.Remove(tattooToDelete);
+                foreach (var x in pData.Decorations)
+                {
+                    var data = Data.Customization.GetTattooData(x);
+
+                    if (data?.ZoneType == tattooData.ZoneType)
+                    {
+                        tattooToDelete = x;
+
+                        break;
+                    }
+                }
+
+                if (tattooToDelete >= 0)
+                    pData.Decorations.Remove(tattooToDelete);
 
                 pData.Decorations.Add(tattooIdx);
             }

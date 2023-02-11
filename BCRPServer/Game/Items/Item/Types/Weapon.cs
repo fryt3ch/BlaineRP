@@ -275,9 +275,9 @@ namespace BCRPServer.Game.Items
 
         public string GetWeaponComponentsString()
         {
-            var t = Items.Where(x => x is WeaponComponent).Select(x => (int)((WeaponComponent)x).Data.Type);
+            var t = Items.Where(x => x is WeaponComponent).Select(x => (int)((WeaponComponent)x).Data.Type).ToList();
 
-            return t.Any() ? string.Join('_', t) : "";
+            return t.Count > 0 ? string.Join('_', t) : "";
         }
 
         public int GetCurrentSkinVariation(PlayerData pData)

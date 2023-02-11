@@ -144,7 +144,7 @@ namespace BCRPClient.CEF
             GameEvents.Render -= Render;
             GameEvents.Render += Render;
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -168,7 +168,7 @@ namespace BCRPClient.CEF
             TargetVehicle = null;
 
             foreach (var x in TempBinds)
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             TempBinds.Clear();
         }

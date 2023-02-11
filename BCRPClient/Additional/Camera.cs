@@ -218,6 +218,8 @@ namespace BCRPClient.Additional
                 {
                     if (SourceEntity is Vehicle veh)
                     {
+                        RAGE.Game.Entity.SetEntityHeading(veh.Handle, RAGE.Game.Entity.GetEntityHeading(veh.Handle) - 180f);
+
                         if (veh.DoesHaveDoor(5) > 0)
                             veh.SetDoorOpen(5, false, false);
                     }
@@ -233,9 +235,27 @@ namespace BCRPClient.Additional
                 }
             } },
 
-            { StateTypes.BackVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.BackVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+            
+                OnAction = (args) =>
+                {
+                    if (SourceEntity is GameEntity gEntity)
+                    {
+                        RAGE.Game.Entity.SetEntityHeading(gEntity.Handle, RAGE.Game.Entity.GetEntityHeading(gEntity.Handle) - 180f);
+                    }
+                }
+            } },
 
-            { StateTypes.BackVehicleUpAngle, new State(new Vector3(0, 0, 1.35f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 210f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+            { StateTypes.BackVehicleUpAngle, new State(new Vector3(0, 0, 1.35f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 210f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
+            
+                OnAction = (args) =>
+                {
+                    if (SourceEntity is GameEntity gEntity)
+                    {
+                        RAGE.Game.Entity.SetEntityHeading(gEntity.Handle, RAGE.Game.Entity.GetEntityHeading(gEntity.Handle) + 210f);
+                    }
+                }
+            } },
 
             { StateTypes.RightVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
@@ -251,16 +271,16 @@ namespace BCRPClient.Additional
         private static float MaxFov { get; set; }
 
         /// <summary>ID текущей камеры</summary>
-        private static int ID { get; set; }
+        private static int Id { get; set; }
 
         /// <summary>Позиция текущей камеры</summary>
-        public static Vector3 Position { get => RAGE.Game.Cam.GetCamCoord(ID); set { RAGE.Game.Cam.SetCamCoord(ID, value.X, value.Y, value.Z); } }
+        public static Vector3 Position { get => RAGE.Game.Cam.GetCamCoord(Id); set { RAGE.Game.Cam.SetCamCoord(Id, value.X, value.Y, value.Z); } }
 
         /// <summary>Поворот текущей камеры</summary>
-        public static Vector3 Rotation { get => RAGE.Game.Cam.GetCamRot(ID, 5); set { RAGE.Game.Cam.SetCamRot(ID, value.X, value.Y, value.Z, 5); } }
+        public static Vector3 Rotation { get => RAGE.Game.Cam.GetCamRot(Id, 5); set { RAGE.Game.Cam.SetCamRot(Id, value.X, value.Y, value.Z, 5); } }
 
         /// <summary>Поле обзора</summary>
-        public static float Fov { get => RAGE.Game.Cam.GetCamFov(ID); set { if (value > MaxFov) return; if (value < MinFov) return; RAGE.Game.Cam.SetCamFov(ID, value); } }
+        public static float Fov { get => RAGE.Game.Cam.GetCamFov(Id); set { if (value > MaxFov) return; if (value < MinFov) return; RAGE.Game.Cam.SetCamFov(Id, value); } }
 
         /// <summary>Активна ли камера?</summary>
         public static bool IsActive { get; private set; }
@@ -269,7 +289,7 @@ namespace BCRPClient.Additional
         private static List<int> UsedCams { get; set; }
 
         /// <summary>Хэш стандартной камеры</summary>
-        private static uint DefaultScriptedCameraHash = RAGE.Game.Misc.GetHashKey("DEFAULT_SCRIPTED_CAMERA");
+        private static uint DefaultScriptedCameraHash { get; } = RAGE.Game.Misc.GetHashKey("DEFAULT_SCRIPTED_CAMERA");
 
         private static Entity SourceEntity { get; set; }
 
@@ -278,7 +298,7 @@ namespace BCRPClient.Additional
         private static AsyncTask ExecuteTasksSchedule { get; set; }
 
         /// <summary>Получить новую стандартную камеру</summary>
-        private static int DefaultCamera { get => RAGE.Game.Cam.CreateCameraWithParams(DefaultScriptedCameraHash, 0f, 0f, 0f, 0f, 0f, 0f, 0f, true, 2); }
+        private static int DefaultCamera => RAGE.Game.Cam.CreateCameraWithParams(DefaultScriptedCameraHash, 0f, 0f, 0f, 0f, 0f, 0f, 0f, true, 2);
 
         /// <summary>Текущий StateType</summary>
         private static StateTypes? CurrentState { get; set; }
@@ -287,7 +307,7 @@ namespace BCRPClient.Additional
         {
             UsedCams = new List<int>();
 
-            ID = -1;
+            Id = -1;
             IsActive = false;
         }
 
@@ -304,12 +324,11 @@ namespace BCRPClient.Additional
             SourceTask?.Cancel();
             TargetTask?.Cancel();
 
-            for (int i = 0; i < UsedCams.Count; i++)
-                RAGE.Game.Cam.DestroyCam(UsedCams[i], false);
+            UsedCams.ForEach(x => RAGE.Game.Cam.DestroyCam(x, false));
 
             UsedCams.Clear();
 
-            ID = DefaultCamera;
+            Id = DefaultCamera;
 
             CurrentState = startType;
 
@@ -320,7 +339,7 @@ namespace BCRPClient.Additional
 
             ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams, sourcePos);
 
-            RAGE.Game.Cam.SetCamActive(ID, true);
+            RAGE.Game.Cam.SetCamActive(Id, true);
 
             if (transitionTime <= 0)
             {
@@ -341,11 +360,11 @@ namespace BCRPClient.Additional
             SourceTask?.Cancel();
             TargetTask?.Cancel();
 
-            RAGE.Game.Cam.SetCamActive(ID, false);
+            RAGE.Game.Cam.SetCamActive(Id, false);
 
             RAGE.Game.Cam.RenderScriptCams(false, true, transitionTime, true, false, 0);
 
-            UsedCams.Add(ID);
+            UsedCams.Add(Id);
 
             IsActive = false;
 
@@ -376,7 +395,7 @@ namespace BCRPClient.Additional
             SourceTask?.Cancel();
             TargetTask?.Cancel();
 
-            RAGE.Game.Cam.SetCamActive(ID, true);
+            RAGE.Game.Cam.SetCamActive(Id, true);
 
             for (int i = 0; i < UsedCams.Count; i++)
                 RAGE.Game.Cam.DestroyCam(UsedCams[i], false);
@@ -390,20 +409,20 @@ namespace BCRPClient.Additional
 
             if (transitionTime > 0)
             {
-                var oldCam = ID;
-                ID = DefaultCamera;
+                var oldCam = Id;
+                Id = DefaultCamera;
 
                 UsedCams.Add(oldCam);
 
                 ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams, sourcePos);
 
-                RAGE.Game.Cam.SetCamActiveWithInterp(ID, oldCam, transitionTime, 4, 1);
+                RAGE.Game.Cam.SetCamActiveWithInterp(Id, oldCam, transitionTime, 4, 1);
             }
             else
             {
                 ApplyState(state, sourceEntity, targetEntity, transitionTime, sourceParams, targetParams, sourcePos);
 
-                RAGE.Game.Cam.SetCamActive(ID, true);
+                RAGE.Game.Cam.SetCamActive(Id, true);
             }
         }
 
@@ -437,7 +456,7 @@ namespace BCRPClient.Additional
                         ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
 
                     if (state.ShakeAmplitude > 0f)
-                        RAGE.Game.Cam.ShakeCam(ID, "HAND_SHAKE", state.ShakeAmplitude);
+                        RAGE.Game.Cam.ShakeCam(Id, "HAND_SHAKE", state.ShakeAmplitude);
                 }, transitionTime, false, 0);
 
                 ExecuteTasksSchedule.Run();
@@ -448,7 +467,7 @@ namespace BCRPClient.Additional
                 ExecuteTask(false, tEntity, state.TargetRenderType, state.TargetBehaviourType, targetParams ?? state.TargetParams, state.TargetPosition);
 
                 if (state.ShakeAmplitude > 0f)
-                    RAGE.Game.Cam.ShakeCam(ID, "HAND_SHAKE", state.ShakeAmplitude);
+                    RAGE.Game.Cam.ShakeCam(Id, "HAND_SHAKE", state.ShakeAmplitude);
             }
         }
 
@@ -558,7 +577,7 @@ namespace BCRPClient.Additional
 
         #region Stuff
 
-        public static void PointAtPos(Vector3 pos) => RAGE.Game.Cam.PointCamAtCoord(ID, pos.X, pos.Y, pos.Z);
+        public static void PointAtPos(Vector3 pos) => RAGE.Game.Cam.PointCamAtCoord(Id, pos.X, pos.Y, pos.Z);
 
         public static Vector3 GetFrontOf(Vector3 pos, float angle, float distance = 1.2f)
         {

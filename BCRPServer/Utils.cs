@@ -336,11 +336,6 @@ namespace BCRPServer
 
         #region Vehicle Stuff
 
-        /// <summary>Получить сущность транспорта по VID</summary>
-        /// <param name="vid">Vehicle ID</param>
-        /// <returns>Объект класса Vehicle, если транспорт найден на сервере, null - в противном случае</returns>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Vehicle GetVehicleByVID(int vid) => NAPI.Pools.GetAllVehicles().Where(x => x.GetMainData()?.VID == vid).FirstOrDefault();
         /// <summary>Получить сущность транспорта по ID</summary>
         /// <param name="id">Remote ID</param>
         /// <returns>Объект класса Vehicle, если транспорт найден на сервере, null - в противном случае</returns>
@@ -351,41 +346,7 @@ namespace BCRPServer
         /// <param name="vid">VID или RemoteID</param>
         /// <returns>Объект класса VehicleData, если транспорт найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static VehicleData FindVehicleOnline(uint vid) => vid >= FirstVID ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Where(x => x.Key.Id == vid).Select(x => x.Value).FirstOrDefault();
-
-        /// <summary>Является ли транспорт автомобилем?</summary>
-        /// <param name="vehicle">Сущность транспорта</param>
-        /// <returns>true - если транспорт является автомобилем, false - в противном случае</returns>
-        public static bool IsCar(this Vehicle vehicle)
-        {
-            if (vehicle == null)
-                return false;
-
-            int type = vehicle.Class;
-
-            if (type == 8 || type == 13 || type == 14 || type == 15 || type == 16)
-                return false;
-
-            return true;
-        }
-
-        /// <summary>Является ли транспорт мотоциклом?</summary>
-        /// <param name="vehicle">Сущность транспорта</param>
-        /// <returns>true - если транспорт является мотоциклом, false - в противном случае</returns>
-        public static bool IsBike(this Vehicle vehicle) => vehicle?.Class == 8;
-
-        /// <summary>Является ли транспорт лодкой?</summary>
-        /// <param name="vehicle">Сущность транспорта</param>
-        /// <returns>true - если транспорт является лодкой, false - в противном случае</returns>
-        public static bool IsBoat(this Vehicle vehicle) => vehicle?.Class == 14;
-        /// <summary>Является ли транспорт вертолетом?</summary>
-        /// <param name="vehicle">Сущность транспорта</param>
-        /// <returns>true - если транспорт является вертолетом, false - в противном случае</returns>
-        public static bool IsHelicopter(this Vehicle vehicle) => vehicle?.Class == 15;
-        /// <summary>Является ли транспорт самолетом?</summary>
-        /// <param name="vehicle">Сущность транспорта</param>
-        /// <returns>true - если транспорт является самолетом, false - в противном случае</returns>
-        public static bool IsPlane(this Vehicle vehicle) => vehicle?.Class == 16;
+        public static VehicleData FindVehicleOnline(uint vid) => vid >= FirstVID ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Values.Where(x => x.Vehicle.Id == vid).FirstOrDefault();
 
         #endregion
 
@@ -432,11 +393,19 @@ namespace BCRPServer
             task.Run(action, delay);
         }
 
-        public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args) => TriggerEventInDistance(entity, Settings.STREAM_DISTANCE, eventName, args);
+        public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, Settings.STREAM_DISTANCE, eventName, args);
 
-        public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args) => NAPI.ClientEvent.TriggerClientEventToPlayers(PlayerData.All.Keys.Where(x => AreEntitiesNearby(x, entity, distance)).ToArray(), eventName, args);
+        public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, distance, eventName, args);
 
-        public static void TriggerEventToStreamed(this Vector3 pos, uint dimension, string eventName, params object[] args) => NAPI.ClientEvent.TriggerClientEventToPlayers(PlayerData.All.Keys.Where(x => x.Dimension == dimension && x.Position.DistanceTo(pos) <= Settings.STREAM_DISTANCE).ToArray(), eventName, args);
+        public static void TriggerEventInDistance(this Vector3 pos, uint dimension, float distance, string eventName, params object[] args)
+        {
+            var pArr = PlayerData.All.Keys.Where(x => x.Dimension == dimension && x.Position.DistanceTo(pos) <= distance).ToArray();
+
+            if (pArr.Length == 0)
+                return;
+
+            NAPI.ClientEvent.TriggerClientEventToPlayers(pArr, eventName, args);
+        }
 
         public static bool AreEntitiesNearby(this Entity entity, Entity target, float radius) => (entity.Dimension == target.Dimension && Vector3.Distance(entity.Position, target.Position) <= radius);
         
@@ -693,13 +662,7 @@ namespace BCRPServer
         /// <param name="text">Текст</param>
         /// <param name="timeout">Время показа в мс.</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void Notify(this Player player, NotificationTypes type, string title, string text, int timeout = 2500)
-        {
-            if (player?.Exists != true)
-                return;
-
-            player.TriggerEvent("Notify::Custom", (int)type, title, text, timeout);
-        }
+        public static void Notify(this Player player, NotificationTypes type, string title, string text, int timeout = 2500) => player.TriggerEvent("Notify::Custom", (int)type, title, text, timeout);
 
         /// <summary>Выслать уведомление игроку (заготовленное)</summary>
         /// <param name="player">Сущность игрока</param>
@@ -759,13 +722,9 @@ namespace BCRPServer
             }
         }
 
-        /// <summary>Получить всех существующих игроков</summary>
-        /// <remarks>Существующий игрок - такой, у которого уже есть PlayerData</remarks>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static IEnumerable<Player> GetExistingPlayers() => NAPI.Pools.GetAllPlayers().Where(x => x.GetMainData() != null);
         /// <summary>Получить всех администраторов на сервере</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static IEnumerable<Player> GetAdmins(int minLvl = 1) => NAPI.Pools.GetAllPlayers().Where(x => (x.GetMainData()?.AdminLevel ?? -1) >= minLvl);
+        public static IEnumerable<PlayerData> GetAdmins(int minLvl = 1) => PlayerData.All.Values.Where(x => x.AdminLevel >= minLvl);
 
         /// <summary>Отправить сообщение всем администраторам</summary>
         /// <param name="tag">Тэг</param>
@@ -775,7 +734,7 @@ namespace BCRPServer
         public static void MsgToAdmins(string msg, int minLvl = 1)
         {
             foreach (var player in GetAdmins(minLvl))
-                Sync.Chat.SendServer(msg, player);
+                Sync.Chat.SendServer(msg, player.Player);
         }
 
         #endregion
@@ -901,22 +860,17 @@ namespace BCRPServer
         /// <param name="entity">Сущность</param>
         /// <returns>Объект класса Player, если игрок был найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player GetClosestPlayer(this Entity entity)
+        public static PlayerData GetClosestPlayer(this Entity entity)
         {
             if (entity?.Exists != true)
                 return null;
 
-            var dim = entity.Dimension;
-
-            var players = PlayerData.All.Keys.Where(x => x != null && x.Dimension == dim);
-            var pos = entity.Position;
-
             var minDist = Settings.STREAM_DISTANCE;
-            Player minPlayer = null;
+            PlayerData minPlayer = null;
 
-            foreach (var x in players)
+            foreach (var x in PlayerData.All.Values.Where(x => x.Player.Dimension == entity.Dimension))
             {
-                var dist = Vector3.Distance(pos, x.Position);
+                var dist = Vector3.Distance(x.Player.Position, entity.Position);
 
                 if (dist < minDist)
                 {
@@ -964,6 +918,7 @@ namespace BCRPServer
         public static float DistanceIgnoreZ(this Vector3 pos1, Vector3 pos2) => (float)Math.Sqrt((float)Math.Pow(pos1.X - pos2.X, 2) + (float)Math.Pow(pos1.Y - pos2.Y, 2));
 
         public static int GetTotalYears(this DateTime dateTime) => (DateTime.MinValue + Utils.GetCurrentTime().Subtract(dateTime)).Year - 1;
+
         public static bool YearPassed(this DateTime dateTime)
         {
             var currentTime = Utils.GetCurrentTime();
@@ -1128,17 +1083,11 @@ namespace BCRPServer
 
         public static bool TriggerEventOccupants(this Vehicle veh, string eventName, params object[] args)
         {
-            var occupants = new List<Player>();
+            var occupants = veh.Occupants.Select(x => x as Player).Where(x => x != null).ToArray();
 
-            foreach (var x in veh.Occupants)
+            if (occupants.Length > 0)
             {
-                if (x is Player player)
-                    occupants.Add(player);
-            }
-
-            if (occupants.Count > 0)
-            {
-                NAPI.ClientEvent.TriggerClientEventToPlayers(occupants.ToArray(), eventName, args);
+                NAPI.ClientEvent.TriggerClientEventToPlayers(occupants, eventName, args);
 
                 return true;
             }

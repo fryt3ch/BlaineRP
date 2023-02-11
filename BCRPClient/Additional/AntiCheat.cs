@@ -3,6 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -551,7 +552,7 @@ namespace BCRPClient.Additional
                 }
             }
 
-            RAGE.Game.Player.RestorePlayerStamina(1000f);
+            RAGE.Game.Player.RestorePlayerStamina(1f);
             RAGE.Game.Player.SetPlayerHealthRechargeMultiplier(0f);
         }
 

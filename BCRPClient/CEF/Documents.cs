@@ -106,7 +106,7 @@ namespace BCRPClient.CEF
         {
             await CEF.Browser.Render(Browser.IntTypes.Documents, true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
 
             Cursor.Show(true, true);
         }
@@ -197,7 +197,7 @@ namespace BCRPClient.CEF
             Cursor.Show(false, false);
 
             for (int i = 0; i < TempBinds.Count; i++)
-                RAGE.Input.Unbind(TempBinds[i]);
+                KeyBinds.Unbind(TempBinds[i]);
 
             TempBinds.Clear();
         }

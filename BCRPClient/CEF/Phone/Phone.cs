@@ -55,7 +55,7 @@ namespace BCRPClient.CEF
             { AppTypes.Taxi, "taxi" },
         };
 
-        public static AppTypes GetAppTypeByJsName(string jsName) => AppsJsNames.Where(x => x.Value == jsName).FirstOrDefault().Key;
+        public static AppTypes GetAppTypeByJsName(string jsName) => AppsJsNames.Where(x => x.Value == jsName).Select(x => x.Key).FirstOrDefault();
 
         public Phone()
         {
@@ -771,11 +771,11 @@ namespace BCRPClient.CEF
                 }
                 else if (appType == AppTypes.Vehicles)
                 {
-                    var ownedVehs = pData.OwnedVehicles.Select(x => new object[] { x.VID, $"{x.Data.BrandName}<br>{x.Data.SubName}<br>[#{x.VID}]", x.Data.Type.ToString() });
+                    var ownedVehs = pData.OwnedVehicles.Select(x => new object[] { x.VID, $"{x.Data.BrandName}<br>{x.Data.SubName}<br>[#{x.VID}]", x.Data.Type.ToString() }).ToList();
 
-                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{x.RemoteId}]", x.VehicleData.Type.ToString() });
+                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{x.RemoteId}]", x.VehicleData.Type.ToString() }).ToList();
 
-                    PhoneApps.VehiclesApp.Show(ownedVehs.Any() ? ownedVehs : null, rentedVehs.Any() ? rentedVehs : null);
+                    PhoneApps.VehiclesApp.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
                 }
                 else if (appType == AppTypes.Navigator)
                 {
@@ -842,7 +842,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(false, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (CEF.Chat.InputVisible)
                     return;
@@ -877,7 +877,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(false, false);
 
-            TempBinds.ForEach(x => RAGE.Input.Unbind(x));
+            TempBinds.ForEach(x => KeyBinds.Unbind(x));
 
             TempBinds.Clear();
 

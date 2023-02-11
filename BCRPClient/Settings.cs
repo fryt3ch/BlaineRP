@@ -24,7 +24,14 @@ namespace BCRPClient
 
         public static float MAX_INVENTORY_WEIGHT = 0f;
 
-        public static CultureInfo CultureInfo = CultureInfo.GetCultureInfo("en-US");
+        public static CultureInfo CultureInfo { get; private set; } = new CultureInfo("en-US", false)
+        {
+            NumberFormat = new NumberFormatInfo()
+            {
+                CurrencyDecimalSeparator = ".",
+                NumberDecimalSeparator = ".",
+            }
+        };
 
         public const uint MAIN_DIMENSION = 7;
         public const uint STUFF_DIMENSION = 1;

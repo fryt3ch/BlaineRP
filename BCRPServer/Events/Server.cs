@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,10 @@ namespace BCRPServer.Events
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
         {
+            CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
+            CultureInfo.CurrentCulture = Settings.CultureInfo;
+
             Sync.World.Initialize();
 
             var currentTime = Utils.GetCurrentTime();
@@ -33,8 +38,8 @@ namespace BCRPServer.Events
             {
                 Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_resources...");
 
-                DirectoryInfo ClientCSPackagesTarget = new DirectoryInfo(Settings.DIR_CLIENT_PACKAGES_CS_PATH);
-                DirectoryInfo ClientCSPackagesSource = new DirectoryInfo(Settings.DIR_CLIENT_SOURCES_PATH);
+                var ClientCSPackagesTarget = new DirectoryInfo(Settings.DIR_CLIENT_PACKAGES_CS_PATH);
+                var ClientCSPackagesSource = new DirectoryInfo(Settings.DIR_CLIENT_SOURCES_PATH);
 
                 ClientCSPackagesTarget.Delete(true);
                 ClientCSPackagesTarget.Create();
@@ -215,13 +220,13 @@ namespace BCRPServer.Events
         }
         #endregion
 
-        [ServerEvent(Event.Update)]
+/*        [ServerEvent(Event.Update)]
         public void OnUpdate()
         {
             var currentTime = Utils.GetCurrentTime();
 
             NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
-        }
+        }*/
 
         public static async Task OnServerShutdown()
         {

@@ -276,7 +276,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static async System.Threading.Tasks.Task ShowBusinessInfo(Data.Locations.Business business, bool showCursor = true)
@@ -304,7 +304,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static async System.Threading.Tasks.Task ShowSellEstate(Player targetPlayer, bool showCursor = true)
@@ -364,7 +364,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, int price, bool showCursor = true)
@@ -398,7 +398,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, int price, bool showCursor = true)
@@ -425,7 +425,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
 
         public static async System.Threading.Tasks.Task ShowSellVehicle(Player targetPlayer, bool showCursor = true)
@@ -464,7 +464,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferVehicle(Data.Vehicles.Vehicle vData, Player targetPlayer, int price, uint vid, string plate, bool showCursor = true)
@@ -491,7 +491,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
 
         public static async System.Threading.Tasks.Task ShowSellBusiness(Player targetPlayer, bool showCursor = true)
@@ -530,7 +530,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferBusiness(Data.Locations.Business business, Player targetPlayer, int price, bool showCursor = true)
@@ -557,7 +557,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -576,7 +576,7 @@ namespace BCRPClient.CEF
             CurrentPropertyType = null;
 
             foreach (var x in TempBinds)
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             TempBinds.Clear();
 
@@ -594,7 +594,7 @@ namespace BCRPClient.CEF
         {
             Events.Add("EstAgency::Close", (object[] args) => Close(false));
 
-/*            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+/*            KeyBinds.NewBind(RAGE.Ui.VirtualKeys.X, true, () =>
             {
                 Show();
             });*/

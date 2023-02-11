@@ -81,7 +81,7 @@ namespace BCRPServer.Events.Players
             if (pData.ActiveCall != null)
                 return false;
 
-            var tData = PlayerData.All.Values.FirstOrDefault(x => x.Info.PhoneNumber == phoneNumber);
+            var tData = PlayerData.All.Values.Where(x => x.Info.PhoneNumber == phoneNumber).FirstOrDefault();
 
             if (tData == null || tData == pData)
                 return false;
@@ -259,7 +259,7 @@ namespace BCRPServer.Events.Players
             if (Sync.Phone.Call.GetByCaller(pData) != null)
                 return null;
 
-            var tData = PlayerData.All.Values.FirstOrDefault(x => x.Info.PhoneNumber == phoneNumber);
+            var tData = PlayerData.All.Values.Where(x => x.Info.PhoneNumber == phoneNumber).FirstOrDefault();
 
             if (tData == null || pData == tData)
                 return null;

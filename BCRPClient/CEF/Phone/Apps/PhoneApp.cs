@@ -164,7 +164,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                         var pId = (int)args[1];
 
-                        var player = RAGE.Elements.Entities.Players.All.FirstOrDefault(x => x.RemoteId == pId);
+                        var player = RAGE.Elements.Entities.Players.All.Where(x => x.RemoteId == pId).FirstOrDefault();
 
                         if (player == null)
                             return;
@@ -186,7 +186,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                         if (Settings.Other.PhoneNotDisturb)
                         {
-                            // auto-cancel call
+                            Events.CallRemote("Phone::CA", false);
                         }
                         else
                         {
@@ -221,6 +221,8 @@ namespace BCRPClient.CEF.PhoneApps
 
                     if (callInfo.Player != null)
                     {
+                        callInfo.Player.VoiceVolume = 0f;
+
                         var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, Utils.GetServerTime().Subtract(callInfo.StartDate).GetBeautyString());
 
                         if (cancelType == CancelTypes.ServerAuto)
@@ -319,7 +321,7 @@ namespace BCRPClient.CEF.PhoneApps
             if (pData == null)
                 return;
 
-            var defAction = DefaultNumbersActions.FirstOrDefault(x => x.Key.Contains(number)).Value;
+            var defAction = DefaultNumbersActions.Where(x => x.Key.Contains(number)).Select(x => x.Value).FirstOrDefault();
 
             if (defAction != null)
             {
@@ -424,6 +426,18 @@ namespace BCRPClient.CEF.PhoneApps
 
             ActiveCallUpdateTask = new AsyncTask(() =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                var activeCallPlayer = pData.ActiveCall?.Player;
+
+                if (activeCallPlayer == null)
+                    return;
+
+                activeCallPlayer.VoiceVolume = 1f;
+
                 if (Phone.CurrentApp != Phone.AppTypes.Phone)
                     return;
 

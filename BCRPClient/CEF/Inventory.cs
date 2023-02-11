@@ -1445,10 +1445,10 @@ namespace BCRPClient.CEF
                 Browser.Switch(Browser.IntTypes.Trade, true);
             }
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", true)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () => Browser.Window.ExecuteCachedJs("Inventory.switchCtrl", false)));
 
-            TempBindEsc = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            TempBindEsc = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (CEF.ActionBox.CurrentContext == ActionBox.Contexts.Inventory)
                 {
@@ -1526,12 +1526,12 @@ namespace BCRPClient.CEF
             Browser.Window.ExecuteJs("Inventory.defaultSlot();");
 
             foreach (var bind in TempBinds.ToList())
-                RAGE.Input.Unbind(bind);
+                KeyBinds.Unbind(bind);
 
             TempBinds.Clear();
 
             if (TempBindEsc != -1)
-                RAGE.Input.Unbind(TempBindEsc);
+                KeyBinds.Unbind(TempBindEsc);
 
             TempBindEsc = -1;
 
@@ -2062,8 +2062,44 @@ namespace BCRPClient.CEF
                         }
                     }
                 }
+                else if (slotStr == "weapon" || slotStr == "holster")
+                {
+                    if (WeaponsData[slot] == null)
+                    {
+                        var activeIdx = -1;
 
-                if (LastSent.IsSpam(1000, false, false))
+                        for (int i = 0; i < WeaponsData.Length; i++)
+                        {
+                            if (slot == i)
+                                continue;
+
+                            if (WeaponsData[i] != null && (WeaponsData[i][4] as bool? == true))
+                            {
+                                activeIdx = i;
+
+                                break;
+                            }
+                        }
+
+                        if (activeIdx < 0)
+                            return;
+
+                        slot = activeIdx;
+
+                        if (slot == 2)
+                        {
+                            if (slotStr != "holster")
+                                slotStr = "holster";
+                        }
+                        else
+                        {
+                            if (slotStr != "weapon")
+                                slotStr = "weapon";
+                        }
+                    }
+                }
+
+                if (LastSent.IsSpam(500, false, false))
                     return;
 
                 Events.CallRemote("Inventory::Action", Groups[slotStr], slot, id, string.Join('&', eData));
@@ -2208,33 +2244,17 @@ namespace BCRPClient.CEF
             if (slotStr == "weapon")
             {
                 if (slot == 3)
-                {
                     slotStr = "armour";
-
-                    return;
-                }
                 else if (slot == 2)
                     slotStr = "holster";
-
-                return;
             }
             else if (slotStr == "accessories")
             {
                 if (slot == 8)
-                {
                     slotStr = "bagItem";
-
-                    return;
-                }
                 else if (slot == 9)
-                {
                     slotStr = "holsterItem";
-
-                    return;
-                }
             }
-
-            return;
         }
 
         public static void Load(Newtonsoft.Json.Linq.JArray args)
@@ -2271,7 +2291,7 @@ namespace BCRPClient.CEF
                 {
                     var inUse = int.Parse(Items[i][4]) == 1;
 
-                    ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2], Settings.CultureInfo), Items[i][3], inUse, false, false, false);
+                    ItemsData[i] = FillItem(Items[i][0], int.Parse(Items[i][1]), float.Parse(Items[i][2]), Items[i][3], inUse, false, false, false);
 
                     ItemsParams[i] = new ItemParams(Items[i][0]) { InUse = inUse };
                 }
@@ -2301,9 +2321,9 @@ namespace BCRPClient.CEF
 
                 for (int i = 0; i < BagData.Length; i++)
                     if (items[i] != null)
-                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2], Settings.CultureInfo), items[i][3], false, true, false, false);
+                        BagData[i] = FillItem(items[i][0], int.Parse(items[i][1]), float.Parse(items[i][2]), items[i][3], false, true, false, false);
 
-                BagWeight = float.Parse(Bag[1], Settings.CultureInfo);
+                BagWeight = float.Parse(Bag[1]);
             }
 
             if (Holster != null)

@@ -126,18 +126,18 @@ namespace BCRPClient.CEF
 
             IsActive = true;
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
 
             if (CurrentModeType == ModeTypes.FurnitureEdit)
             {
                 CEF.HouseMenu.FurnitureEditOnStart(gEntity as MapObject);
 
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) CEF.HouseMenu.FurntureEditFinish(Entity as MapObject, RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false), RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2)); }));
+                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) CEF.HouseMenu.FurntureEditFinish(Entity as MapObject, RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false), RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2)); }));
             }
             else if (CurrentModeType == ModeTypes.PlaceItem)
             {
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) Data.Items.OnPlaceItemFinish(Entity as MapObject); }));
+                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) Data.Items.OnPlaceItemFinish(Entity as MapObject); }));
             }
 
             Sync.WeaponSystem.DisabledFiring = true;
@@ -171,7 +171,7 @@ namespace BCRPClient.CEF
             LastPos = null;
 
             foreach (var x in TempBinds)
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             TempBinds.Clear();
 
@@ -251,44 +251,44 @@ namespace BCRPClient.CEF
 
             bool showRotZ = false;
 
-            float diffPos = RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            float diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
-            if (!RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
                 float xOff = 0f, yOff = 0f;
 
-                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
                     xOff -= diffPos;
-                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
                     xOff += diffPos;
 
-                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
                     yOff -= diffPos;
-                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
                 RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, ePos.X + xOff, ePos.Y + yOff, ePos.Z, false, false, false);
             }
             else
             {
-                float diffRot = RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                float diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
-                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Up))
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
                     RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, ePos.X, ePos.Y, ePos.Z + diffPos, false, false, false);
                 }
-                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Down))
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
                     RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, ePos.X, ePos.Y, ePos.Z - diffPos, false, false, false);
                 }
 
-                if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Left))
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
                     RAGE.Game.Entity.SetEntityRotation(Entity.Handle, eRot.X, eRot.Y, eRot.Z -= diffRot, 2, true);
                 }
-                else if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Right))
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
                 {
                     RAGE.Game.Entity.SetEntityRotation(Entity.Handle, eRot.X, eRot.Y, eRot.Z += diffRot, 2, true);
                 }

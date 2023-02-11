@@ -918,7 +918,7 @@ namespace BCRPClient.Sync
                 Utils.SetTaskAsPending("Vehicles::WTS", task);
             });
 
-            RAGE.Input.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
+            KeyBinds.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
             {
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.TryEnterVehicle(Interaction.CurrentEntity as Vehicle, -1);

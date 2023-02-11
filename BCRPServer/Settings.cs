@@ -3,13 +3,23 @@ using GTANetworkAPI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace BCRPServer
 {
     public static class Settings
     {
-        public const string VERSION = "Alpha 2.5";
+        public static CultureInfo CultureInfo { get; private set; } =  new CultureInfo("en-US", false)
+        {
+            NumberFormat = new NumberFormatInfo()
+            {
+                CurrencyDecimalSeparator = ".",
+                NumberDecimalSeparator = ".",
+            }
+        };
+
+        public const string VERSION = "Alpha 3.0";
 
         public const string DIR_BASE_PATH = @"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP";
 

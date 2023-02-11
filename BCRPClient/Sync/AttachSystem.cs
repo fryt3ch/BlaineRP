@@ -1140,7 +1140,7 @@ namespace BCRPClient.Sync
                                 }
                             }
                             // alt - to mouth
-                            else if (((!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
+                            else if (((!CEF.Cursor.IsVisible && KeyBinds.IsDown(RAGE.Ui.VirtualKeys.LeftMenu)) || Player.LocalPlayer.Vehicle != null) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                             {
                                 if (!lastSent.IsSpam(1000, false, false))
                                 {
@@ -1189,7 +1189,7 @@ namespace BCRPClient.Sync
                             if (Player.LocalPlayer.Vehicle == null)
                             {
                                 // alt - to hand
-                                if (!CEF.Cursor.IsVisible && RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
+                                if (!CEF.Cursor.IsVisible && KeyBinds.IsDown(RAGE.Ui.VirtualKeys.LeftMenu))
                                 {
                                     if (!lastSent.IsSpam(1000, false, false) && Utils.CanDoSomething(false, Utils.Actions.Animation, Utils.Actions.FastAnimation, Utils.Actions.OtherAnimation))
                                     {

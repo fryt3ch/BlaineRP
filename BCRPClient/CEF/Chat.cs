@@ -426,7 +426,7 @@ namespace BCRPClient.CEF
 
             if (value)
             {
-                TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => ShowInput(false)));
+                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => ShowInput(false)));
 
                 KeyBinds.Get(KeyBinds.Types.ChatInput).Disable();
             }
@@ -435,7 +435,7 @@ namespace BCRPClient.CEF
                 KeyBinds.Get(KeyBinds.Types.ChatInput).Enable();
 
                 foreach (var x in TempBinds.ToList())
-                    RAGE.Input.Unbind(x);
+                    KeyBinds.Unbind(x);
 
                 TempBinds.Clear();
 

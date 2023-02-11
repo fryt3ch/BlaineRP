@@ -77,7 +77,7 @@ namespace BCRPServer
 
         public Game.Estates.HouseBase SettledHouseBase { get; set; }
 
-        public VehicleData RentedVehicle => VehicleData.All.Values.FirstOrDefault(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRent && x.OwnerID == CID);
+        public VehicleData RentedVehicle => VehicleData.All.Values.Where(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRent && x.OwnerID == CID).FirstOrDefault();
 
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>

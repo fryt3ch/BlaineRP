@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -72,6 +73,29 @@ namespace BCRPClient.Data
         public static void JsEval(string cmd)
         {
             Utils.JsEval(cmd);
+        }
+
+        [Command("settime", true, "st")]
+        public static void SetTime(byte hour, byte minute = 0, byte second = 0)
+        {
+            var realDate = Utils.GetServerTime();
+
+            if (hour >= 24)
+                hour = 0;
+
+            if (minute >= 60)
+                minute = 0;
+
+            if (second >= 60)
+                second = 0;
+
+            GameEvents.ExtraGameDate = new DateTime(realDate.Year, realDate.Month, realDate.Day, hour, minute, second);
+        }
+
+        [Command("resettime", true, "rst")]
+        public static void ResetTime()
+        {
+            GameEvents.ExtraGameDate = null;
         }
 
         #region Vehicle
@@ -722,26 +746,26 @@ namespace BCRPClient.Data
 
             var binds = new List<int>()
             {
-                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+                KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
                 {
                     Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 0);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using X axis now!");
                 }),
-                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
                 {
                     Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 1);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Y axis now!");
                 }),
-                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
+                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
                 {
                     Player.LocalPlayer.SetData("Temp::ATTOOL::XYZ", 2);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Using Z axis now!");
                 }),
 
-                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
+                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Left, true, () =>
                 {
                     if (Utils.IsAnyCefActive(true))
                         return;
@@ -755,7 +779,7 @@ namespace BCRPClient.Data
 
                     var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
 
-                    if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                    if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
                     {
                         if (xyz == 0)
                             rot.X -= sens;
@@ -783,7 +807,7 @@ namespace BCRPClient.Data
                     Events.CallLocal("Chat::ShowServerMessage", $"[AttachTool] Pos: {pos.X}, {pos.Y}, {pos.Z} | Rot: {rot.X}, {rot.Y}, {rot.Z}");
                 }),
 
-                RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
+                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Right, true, () =>
                 {
                     if (Utils.IsAnyCefActive(true))
                         return;
@@ -797,7 +821,7 @@ namespace BCRPClient.Data
 
                     var fr = Player.LocalPlayer.GetData<bool>("Temp::ATTOOL::FR");
 
-                    if (RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.Menu))
+                    if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
                     {
                         if (xyz == 0)
                             rot.X += sens;
@@ -848,7 +872,7 @@ namespace BCRPClient.Data
 
             Player.LocalPlayer.GetData<GameEntity>("Temp::ATTOOL::GE")?.Destroy();
 
-            Player.LocalPlayer.GetData<List<int>>("Temp::ATTOOL::Binds").ForEach((x) => RAGE.Input.Unbind(x));
+            Player.LocalPlayer.GetData<List<int>>("Temp::ATTOOL::Binds").ForEach((x) => KeyBinds.Unbind(x));
 
             Player.LocalPlayer.ResetData("Temp::ATTOOL::Sens");
             Player.LocalPlayer.ResetData("Temp::ATTOOL::PosOff");
@@ -1017,7 +1041,9 @@ namespace BCRPClient.Data
         public static void Lock(uint? id = null, bool? state = null)
         {
             if (id == null)
+            {
                 Sync.Vehicles.Lock(state, null);
+            }
             else
             {
                 var veh = RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x?.RemoteId == id).FirstOrDefault();
@@ -1385,6 +1411,14 @@ namespace BCRPClient.Data
 
         #endregion
 
+        private static bool LastArgDeserializedSucces { get; set; }
+
+        private static JsonSerializerSettings SerializeSettingsExecute { get; set; } = new JsonSerializerSettings()
+        {
+            Error = (sender, args) => { LastArgDeserializedSucces = false; args.ErrorContext.Handled = true; },
+            MissingMemberHandling = MissingMemberHandling.Error
+        };
+
         #region Execute
         /// <summary>Метод для выполнения команды</summary>
         /// <param name="cmdName">Название команды (может быть основным либо одним из псевдонимов)</param>
@@ -1408,18 +1442,31 @@ namespace BCRPClient.Data
             {
                 if (i < args.Length)
                 {
-                    try
+                    if (inst.Parameters[i].ParameterType == typeof(string))
                     {
-                        if (inst.Parameters[i].ParameterType == typeof(bool) || inst.Parameters[i].ParameterType == typeof(bool?))
-                            args[i] = args[i].Replace(args[i][0], char.ToUpper(args[i][0]));
-
-                        newArgs[i] = Convert.ChangeType(args[i], Nullable.GetUnderlyingType(inst.Parameters[i].ParameterType) ?? inst.Parameters[i].ParameterType, Settings.CultureInfo);
+                        newArgs[i] = args[i];
                     }
-                    catch
+                    else
                     {
-                        correct = false;
+                        if (inst.Parameters[i].ParameterType == typeof(float) || inst.Parameters[i].ParameterType == typeof(float?))
+                        {
+                            args[i] = args[i].Replace("f", "");
+                        }
 
-                        break;
+                        LastArgDeserializedSucces = true;
+
+                        var newArg = JsonConvert.DeserializeObject(args[i], inst.Parameters[i].ParameterType, SerializeSettingsExecute);
+
+                        if (LastArgDeserializedSucces)
+                        {
+                            newArgs[i] = newArg;
+                        }
+                        else
+                        {
+                            correct = false;
+
+                            break;
+                        }
                     }
                 }
                 else if (inst.Parameters[i].HasDefaultValue)

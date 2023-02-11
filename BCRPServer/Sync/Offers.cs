@@ -1292,11 +1292,11 @@ namespace BCRPServer.Sync
                 return offer;
             }
 
-            public static Offer GetByPlayer(PlayerData pData) => AllOffers.FirstOrDefault(x => x.Sender == pData || x.Receiver == pData);
+            public static Offer GetByPlayer(PlayerData pData) => AllOffers.Where(x => x.Sender == pData || x.Receiver == pData).FirstOrDefault();
 
-            public static Offer GetBySender(PlayerData pData) => AllOffers.FirstOrDefault(x => x.Sender == pData);
+            public static Offer GetBySender(PlayerData pData) => AllOffers.Where(x => x.Sender == pData).FirstOrDefault();
 
-            public static Offer GetByReceiver(PlayerData pData) => AllOffers.FirstOrDefault(x => x.Receiver == pData);
+            public static Offer GetByReceiver(PlayerData pData) => AllOffers.Where(x => x.Receiver == pData).FirstOrDefault();
         }
     }
 }

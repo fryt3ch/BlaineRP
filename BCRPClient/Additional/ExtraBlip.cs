@@ -17,18 +17,31 @@ namespace BCRPClient.Additional
             Events.Add("Blip::CreateGPS", (args) =>
             {
                 var pos = (Vector3)args[0];
-                var dim = (uint)(int)args[1];
+                var dim = args[1].ToUInt32();
                 var drawRoute = (bool)args[2];
 
-                var blip = new ExtraBlip(162, pos, "", 1f, 3, 255, 0f, false, 0, 0f, dim, ExtraBlip.Types.GPS);
-
-                blip.SetAsReachable();
-
-                if (drawRoute)
-                    blip.ToggleRouting(true);
-
-                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.TypesText.GetValueOrDefault(ExtraBlip.Types.GPS) ?? "null");
+                CreateGPS(pos, dim, drawRoute);
             });
+        }
+
+        public static ExtraBlip CreateGPS(Vector3 pos, uint dim, bool drawRoute)
+        {
+            var blip = new ExtraBlip(162, pos, "", 1f, 3, 255, 0f, false, 0, 0f, dim, ExtraBlip.Types.GPS);
+
+            blip.SetAsReachable();
+
+            if (drawRoute)
+            {
+                blip.ToggleRouting(true);
+            }
+            else
+            {
+
+            }
+
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.TypesText.GetValueOrDefault(ExtraBlip.Types.GPS) ?? "null");
+
+            return blip;
         }
     }
 

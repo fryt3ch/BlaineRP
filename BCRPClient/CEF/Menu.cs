@@ -328,9 +328,9 @@ namespace BCRPClient.CEF
                 return;
 
             if (TempBindEsc != -1)
-                RAGE.Input.Unbind(TempBindEsc);
+                KeyBinds.Unbind(TempBindEsc);
 
-            TempBindEsc = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            TempBindEsc = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             if (sType != SectionTypes.Last)
                 Browser.Window.ExecuteJs("Menu.selectOption", Sections[sType]);
@@ -352,7 +352,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            RAGE.Input.Unbind(TempBindEsc);
+            KeyBinds.Unbind(TempBindEsc);
             TempBindEsc = -1;
 
             Cursor.Show(false, false);

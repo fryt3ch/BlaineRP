@@ -424,7 +424,7 @@ namespace BCRPClient.CEF
         public static async System.Threading.Tasks.Task Close()
         {
             foreach (var bind in TempBinds)
-                RAGE.Input.Unbind(bind);
+                KeyBinds.Unbind(bind);
 
             TempBinds = null;
 
@@ -509,7 +509,7 @@ namespace BCRPClient.CEF
 
             Additional.Camera.Enable(Additional.Camera.StateTypes.Head, Player.LocalPlayer, Player.LocalPlayer, 0);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () =>
             {
                 if (CursorTask != null)
                     return;
@@ -520,7 +520,7 @@ namespace BCRPClient.CEF
                 CursorTask.Run();
             }));
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, false, () =>
             {
                 if (CursorTask == null)
                     return;
@@ -530,7 +530,7 @@ namespace BCRPClient.CEF
                 CursorTask = null;
             }));
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.V, true, () =>
             {
                 ChangeView(++CurrentCameraStateNum);
             }));

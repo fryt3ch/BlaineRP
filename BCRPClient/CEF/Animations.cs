@@ -119,7 +119,7 @@ namespace BCRPClient.CEF
 
             CEF.Browser.Switch(Browser.IntTypes.Animations, true);
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
 
             GameEvents.Render -= CEF.Animations.Render;
 
@@ -147,7 +147,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Switch(Browser.IntTypes.Animations, false);
 
             foreach (var x in TempBinds.ToList())
-                RAGE.Input.Unbind(x);
+                KeyBinds.Unbind(x);
 
             TempBinds.Clear();
 

@@ -303,7 +303,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static void ShowRequest()
@@ -340,7 +340,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(false, false);
 
-            RAGE.Input.Unbind(EscBind);
+            KeyBinds.Unbind(EscBind);
 
             foreach (var x in Sync.House.Lights.Values)
             {
@@ -384,7 +384,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            RAGE.Input.Unbind(EscBind);
+            KeyBinds.Unbind(EscBind);
 
             SwitchMenu(false);
         }
@@ -394,7 +394,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            EscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             SwitchMenu(true);
 
@@ -485,7 +485,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempEscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+            TempEscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close()
@@ -498,7 +498,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Render(Browser.IntTypes.Elevator, false);
 
             if (TempEscBind != -1)
-                RAGE.Input.Unbind(TempEscBind);
+                KeyBinds.Unbind(TempEscBind);
 
             TempEscBind = -1;
 

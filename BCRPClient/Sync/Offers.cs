@@ -126,7 +126,7 @@ namespace BCRPClient.Sync
                         CEF.Notification.ClearAll();
 
                         foreach (var x in TempBinds)
-                            RAGE.Input.Unbind(x);
+                            KeyBinds.Unbind(x);
 
                         TempBinds.Clear();
                     }
@@ -173,17 +173,17 @@ namespace BCRPClient.Sync
             if (TempBinds.Count > 0)
             {
                 foreach (var x in TempBinds)
-                    RAGE.Input.Unbind(x);
+                    KeyBinds.Unbind(x);
 
                 TempBinds.Clear();
             }
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Y, true, () =>
             {
                 Reply(ReplyTypes.Accept);
             }));
 
-            TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.N, true, () =>
             {
                 Reply(ReplyTypes.Deny);
             }));

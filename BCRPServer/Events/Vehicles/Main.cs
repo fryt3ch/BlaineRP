@@ -330,7 +330,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (player.VehicleSeat != 0 || type < 0 || type > 2 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
+            if (player.VehicleSeat != 0 || type < 0 || type > 2 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
                 return;
 
             bool leftOn = vData.LeftIndicatorOn;
@@ -390,7 +390,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (player.VehicleSeat != 0 || (!Utils.IsCar(player.Vehicle) && !Utils.IsBike(player.Vehicle)))
+            if (player.VehicleSeat != 0 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
                 return;
 
             vData.LightsOn = !vData.LightsOn;
@@ -742,7 +742,7 @@ namespace BCRPServer.Events.Vehicles
 
             if (npUid == 0)
             {
-                Dictionary<uint, string> nps = new Dictionary<uint, string>();
+                var nps = new Dictionary<uint, string>();
 
                 for (int i = 0; i < pData.Items.Length; i++)
                 {

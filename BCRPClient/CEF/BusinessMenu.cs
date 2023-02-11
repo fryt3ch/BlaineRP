@@ -188,7 +188,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(true, true);
 
-            TempEscBind = RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            TempEscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
             Player.LocalPlayer.SetData("BusinessMenu::Business", biz);
         }
@@ -207,7 +207,7 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(false, false);
 
-            RAGE.Input.Unbind(TempEscBind);
+            KeyBinds.Unbind(TempEscBind);
 
             TempEscBind = -1;
 

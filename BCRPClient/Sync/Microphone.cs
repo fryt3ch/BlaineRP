@@ -40,11 +40,18 @@ namespace BCRPClient.Sync
             // Changing Volume Of Talkers
             new AsyncTask(() =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                var activeCall = pData.ActiveCall;
+
                 for (int i = 0; i < Talkers.Count; i++)
                 {
                     var player = Talkers[i];
 
-                    var tData = (Sync.Players.GetData(player));
+                    var tData = Sync.Players.GetData(player);
 
                     if (tData == null)
                         continue;
@@ -58,12 +65,15 @@ namespace BCRPClient.Sync
                         continue;
                     }
 
-                    float dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
+                    if (activeCall?.Player != player)
+                    {
+                        var dist = Vector3.Distance(Player.LocalPlayer.Position, player.Position);
 
-                    if (dist <= vRange)
-                        player.VoiceVolume = ((Settings.Audio.VoiceVolume / 100f) / vRange) * (vRange - dist);
-                    else
-                        player.VoiceVolume = 0f;
+                        if (dist <= vRange)
+                            player.VoiceVolume = ((Settings.Audio.VoiceVolume / 100f) / vRange) * (vRange - dist);
+                        else
+                            player.VoiceVolume = 0f;
+                    }
                 }
             }, 350, true, 0).Run();
 
@@ -163,6 +173,8 @@ namespace BCRPClient.Sync
 
             UpdateListenersTask = new AsyncTask(() =>
             {
+                var activeCall = pData.ActiveCall;
+
                 var vRange = pData.VoiceRange;
 
                 if (vRange <= 0f)
@@ -174,7 +186,7 @@ namespace BCRPClient.Sync
                 {
                     var player = streamed[i];
 
-                    if (player.Handle == Player.LocalPlayer.Handle)
+                    if (player.Handle == Player.LocalPlayer.Handle || activeCall?.Player == player)
                         continue;
 
                     var tData = Sync.Players.GetData(player);

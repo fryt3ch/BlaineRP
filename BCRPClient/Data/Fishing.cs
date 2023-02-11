@@ -163,8 +163,8 @@ namespace BCRPClient.Data
 
             if (timePassed > 500)
             {
-                var leftDown = RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.A);
-                var rightDown = RAGE.Input.IsDown(RAGE.Ui.VirtualKeys.D);
+                var leftDown = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.A);
+                var rightDown = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.D);
 
                 var deSpeed = 0.00001f;
 

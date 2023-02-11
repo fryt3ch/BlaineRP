@@ -119,7 +119,7 @@ namespace BCRPClient.CEF
                     if ((types?.Count ?? 0) == 0)
                         return;
 
-                    TempBinds.Add(RAGE.Input.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
+                    TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Switch(false)));
 
                     CEF.Browser.Switch(CEF.Browser.IntTypes.HUD_Menu, true);
 
@@ -145,7 +145,7 @@ namespace BCRPClient.CEF
                         return;
 
                     foreach (var x in TempBinds.ToList())
-                        RAGE.Input.Unbind(x);
+                        KeyBinds.Unbind(x);
 
                     TempBinds.Clear();
 
@@ -358,7 +358,7 @@ namespace BCRPClient.CEF
         public static void SwitchInteractionText(bool state, string text = null, RAGE.Ui.VirtualKeys key = RAGE.Ui.VirtualKeys.E)
         {
             if (text != null)
-                Browser.Window.ExecuteJs("Hud.drawInteract", text, KeyBinds.Bind.GetKeyString(key));
+                Browser.Window.ExecuteJs("Hud.drawInteract", text, KeyBinds.ExtraBind.GetKeyString(key));
 
             Browser.Switch(Browser.IntTypes.HUD_Interact, state);
 
@@ -367,9 +367,9 @@ namespace BCRPClient.CEF
                 //RAGE.Game.Audio.PlaySoundFrontend(-1, "Enter_Area", "DLC_Lowrider_Relay_Race_Sounds", true);
 
                 if (InteractionBind != -1)
-                    RAGE.Input.Unbind(InteractionBind);
+                    KeyBinds.Unbind(InteractionBind);
 
-                InteractionBind = RAGE.Input.Bind(key, true, () =>
+                InteractionBind = KeyBinds.Bind(key, true, () =>
                 {
                     if (KeyBinds.Get(KeyBinds.Types.Interaction)?.IsDisabled == true)
                         return;
@@ -381,7 +381,7 @@ namespace BCRPClient.CEF
             {
                 if (InteractionBind != -1)
                 {
-                    RAGE.Input.Unbind(InteractionBind);
+                    KeyBinds.Unbind(InteractionBind);
 
                     InteractionBind = -1;
                 }

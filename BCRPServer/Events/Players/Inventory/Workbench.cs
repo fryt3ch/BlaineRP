@@ -37,7 +37,7 @@ namespace BCRPServer.Events.Players
             if (bench == null)
                 return;
 
-            if (!(bench.IsNear(pData) && bench.IsAccessableFor(pData)))
+            if (!bench.IsNear(pData) || !bench.IsAccessableFor(pData))
                 return;
 
             if (!bench.AddPlayerObserving(pData))
@@ -85,8 +85,12 @@ namespace BCRPServer.Events.Players
 
             if (pData.CurrentWorkbench is Game.Items.Craft.Workbench curBench)
             {
-                if (!pData.CanUseInventory(true))
+                if (!curBench.IsNear(pData) || !curBench.IsAccessableFor(pData))
+                {
+                    curBench.RemovePlayerObserving(pData, true);
+
                     return;
+                }
 
                 if (receiptIdx < 0)
                 {
@@ -209,7 +213,7 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true))
                 return;
 
-            if (!(wb.IsNear(pData) && wb.IsAccessableFor(pData)))
+            if (!wb.IsNear(pData) || !wb.IsAccessableFor(pData))
             {
                 wb.RemovePlayerObserving(pData, true);
 

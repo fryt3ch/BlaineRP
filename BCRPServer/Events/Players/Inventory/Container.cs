@@ -29,7 +29,7 @@ namespace BCRPServer.Events.Players
             if (cont == null)
                 return;
 
-            if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
+            if (!cont.IsNear(pData) || !cont.IsAccessableFor(pData))
             {
                 if (cont.Entity?.Type == EntityType.Vehicle)
                     player.Notify("Vehicle::NotAllowed");
@@ -76,7 +76,7 @@ namespace BCRPServer.Events.Players
             var to = (Game.Items.Inventory.Groups)toStr;
             var from = (Game.Items.Inventory.Groups)fromStr;
 
-            if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
+            if (!cont.IsNear(pData) && !cont.IsAccessableFor(pData))
             {
                 cont.RemovePlayerObserving(pData, true);
 
@@ -124,7 +124,7 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            if (!(cont.IsNear(pData) && cont.IsAccessableFor(pData)))
+            if (!cont.IsNear(pData) && !cont.IsAccessableFor(pData))
             {
                 cont.RemovePlayerObserving(pData, true);
 

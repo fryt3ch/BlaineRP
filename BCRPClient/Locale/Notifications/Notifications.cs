@@ -69,6 +69,8 @@ namespace BCRPClient
 
                 public static string ScreenshotSaved = "Фото сохранено в папку RAGEMP/screenshots/server_ip под именем {0}";
 
+                public static string WrongCoordsSms = "Неверная информация о геолокации в сообщении!";
+
                 public static class PayDay
                 {
                     public static string Header = "Зарплата";

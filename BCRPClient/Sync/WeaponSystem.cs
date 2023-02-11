@@ -942,18 +942,19 @@ namespace BCRPClient.Sync
 
                     var pPos = veh.GetCoords(false);
 
-                    float distance = RAGE.Vector3.Distance(pPos, sPos);
+                    var distance = RAGE.Vector3.Distance(pPos, sPos);
 
                     if (distance > gun.MaxDistance)
                         return;
 
                     cancel.Cancel = false;
 
-                    PartTypes pType = PartTypes.Limb;
+                    PartTypes pType;
 
-                    VehicleParts.TryGetValue(boneIdx, out pType);
+                    if (!VehicleParts.TryGetValue(boneIdx, out pType))
+                        pType = PartTypes.Limb;
 
-                    float boneRatio = VehicleRatios[pType];
+                    var boneRatio = VehicleRatios[pType];
 
                     var customDamage = (float)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio) - 1;
 
@@ -982,7 +983,7 @@ namespace BCRPClient.Sync
 
             if (targetEntity is Vehicle veh)
             {
-                if (veh.GetCanBeDamaged() || veh.Controller?.Handle == Player.LocalPlayer.Handle)
+                if (!veh.GetCanBeDamaged() || veh.Controller?.Handle == Player.LocalPlayer.Handle)
                     return;
 
                 if (LastSentVehicleDamage.IsSpam(100, false, false))
