@@ -47,7 +47,12 @@ namespace BCRPClient.CEF
         }
 
         /// <summary>Блокировать клавишу ESC в игре</summary>
-        private static void OnTickCursor() => RAGE.Game.Pad.DisableControlAction(32, 200, true);
+        public static void OnTickCursor()
+        {
+            RAGE.Game.Pad.DisableControlAction(32, 156, true);
+            RAGE.Game.Pad.DisableControlAction(32, 199, true);
+            RAGE.Game.Pad.DisableControlAction(32, 200, true);
+        }
 
         private static async void OnCursorHidden()
         {

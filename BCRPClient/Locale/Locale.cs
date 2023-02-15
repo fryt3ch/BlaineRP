@@ -30,6 +30,24 @@ namespace BCRPClient
             public static string PhoneOutgoingCall = "Исходящий вызов";
             public static string PhoneIncomingCall = "Входящий вызов";
 
+            public static class PhoneCamera
+            {
+                public const string On = "вкл.";
+                public const string Off = "выкл.";
+
+                public const string Bokeh = "Боке";
+                public const string CamOffset = "Смещение камеры";
+                public const string HeadOffset = "Наклон головы";
+                public const string Animation = "Анимация";
+                public const string Emotion = "Эмоция";
+                public const string Zoom = "Зум";
+                public const string Filter = "Фильтр";
+                public const string FrontCam = "Передняя камера";
+                public const string BackCam = "Задняя камера";
+                public const string Exit = "Выход";
+                public const string Photo = "Фото";
+            }
+
             public static Dictionary<uint, string> DefaultNumbersNames = new Dictionary<uint, string>()
             {
                 { 900, "Банк" },
@@ -120,7 +138,7 @@ namespace BCRPClient
         #region Other
         public static class PauseMenu
         {
-            public static string Money = "Наличные: {0}$ | Банк: {1}$";
+            public static string Money = "Наличные: {0} | Банк: {1}";
         }
 
         public static class Scaleform
@@ -148,6 +166,7 @@ namespace BCRPClient
                 { CEF.HUD.Menu.Types.Documents, "Документы" },
                 { CEF.HUD.Menu.Types.Menu_House, "Меню дома" },
                 { CEF.HUD.Menu.Types.Menu_Apartments, "Меню квартиры" },
+                { CEF.HUD.Menu.Types.Job_Menu, "Меню работы" },
 
                 { CEF.HUD.Menu.Types.Inventory, "Инвентарь" },
                 { CEF.HUD.Menu.Types.Phone, "Телефон" },

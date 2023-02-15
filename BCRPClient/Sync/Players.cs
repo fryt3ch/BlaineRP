@@ -131,6 +131,18 @@ namespace BCRPClient.Sync
             SR1,
             SR2,
         }
+
+        public enum PhoneStateTypes : byte
+        {
+            /// <summary>Телефон используется без анимаций</summary>
+            JustOn = 0,
+            /// <summary>Телефон используется c обычной анимацией</summary>
+            Idle,
+            /// <summary>Телефон используется в транспорте</summary>
+            Vehicle,
+            /// <summary>Телефон используется с анимацией камеры 0</summary>
+            Camera,
+        }
         #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
@@ -184,7 +196,7 @@ namespace BCRPClient.Sync
 
             public int Mood => Player.GetSharedData<int>("Mood", 0);
 
-            public bool Masked => Player.GetDrawableVariation(1) > 0;
+            public bool IsMasked => Player.GetDrawableVariation(1) > 0;
 
             public bool IsKnocked => Player.GetSharedData<bool>("Knocked", false);
 
@@ -210,7 +222,7 @@ namespace BCRPClient.Sync
 
             public bool BeltOn => Player.GetSharedData<bool>("Belt::On", false);
 
-            public bool PhoneOn => Player.GetSharedData<bool>("Phone::On", false);
+            public Sync.Phone.PhoneStateTypes PhoneStateType => (Sync.Phone.PhoneStateTypes)Player.GetSharedData<int>("PST", 0);
 
             public int AdminLevel => Player.GetSharedData<int>("AdminLevel", -1);
 
@@ -287,6 +299,8 @@ namespace BCRPClient.Sync
             public uint PhoneNumber { get => Player.GetData<uint>("PhoneNumber"); set => Player.SetData("PhoneNumber", value); }
 
             public CEF.PhoneApps.PhoneApp.CallInfo ActiveCall { get => Player.GetData<CEF.PhoneApps.PhoneApp.CallInfo>("ActiveCall"); set { if (value == null) Player.ResetData("ActiveCall"); Player.SetData("ActiveCall", value); } }
+
+            public Data.Locations.Job CurrentJob { get => Player.GetData<Data.Locations.Job>("CJob"); set { if (value == null) Player.ResetData("CJob"); Player.SetData("CJob", value); } }
             #endregion
 
             public void Reset()
@@ -361,8 +375,10 @@ namespace BCRPClient.Sync
             if (data.CrouchOn)
                 Crouch.On(true, player);
 
-            if (data.PhoneOn)
-                Phone.On(true, player);
+            var phoneStateType = data.PhoneStateType;
+
+            if (phoneStateType != Phone.PhoneStateTypes.Off)
+                Phone.SetState(player, phoneStateType);
 
             if (data.GeneralAnim != Animations.GeneralTypes.None)
             {
@@ -671,14 +687,49 @@ namespace BCRPClient.Sync
                 {
                     x.Initialize();
                 }
-
-                var tattoo = Data.Customization.GetTattooData(740);
-
-                Player.LocalPlayer.SetDecoration(tattoo.CollectionHash, (uint)tattoo.HashMale);
             });
             #endregion
 
             #region Local Player Events
+
+            Events.Add("Player::SCJ", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (args == null || args.Length < 1)
+                {
+                    var lastJob = pData.CurrentJob;
+
+                    if (lastJob != null)
+                    {
+                        lastJob.OnEndJob();
+                    }
+
+                    pData.CurrentJob = null;
+
+                    CEF.HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Job_Menu);
+                }
+                else
+                {
+                    var job = Data.Locations.Job.Get((int)args[0]);
+
+                    var lastJob = pData.CurrentJob;
+
+                    if (lastJob != null)
+                    {
+                        lastJob.OnEndJob();
+                    }
+
+                    pData.CurrentJob = job;
+
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Job_Menu);
+
+                    job.OnStartJob(args.Skip(1).ToArray());
+                }
+            });
 
             Events.Add("Player::RVehs::U", (args) =>
             {
@@ -1499,20 +1550,13 @@ namespace BCRPClient.Sync
                 HUD.SwitchBeltIcon(state);
             });
 
-            AddDataHandler("Phone::On", (pData, value, oldValue) =>
+            AddDataHandler("PST", (pData, value, oldValue) =>
             {
                 var player = pData.Player;
 
-                var state = (bool?)value ?? false;
+                var state = (Sync.Phone.PhoneStateTypes)((int?)value ?? 0);
 
-                if (state)
-                {
-                    Phone.On(true, player);
-                }
-                else
-                {
-                    Phone.Off(true, player);
-                }
+                Sync.Phone.SetState(player, state);
             });
 
             AddDataHandler("Crawl::On", (pData, value, oldValue) =>
@@ -1611,7 +1655,7 @@ namespace BCRPClient.Sync
 
                         RAGE.Game.Graphics.StopScreenEffect("DeathFailMPIn");
 
-                        Additional.Scaleform.Close();
+                        Additional.Scaleform.Get("wasted")?.Destroy();
                     }
                 }
             });
@@ -1699,8 +1743,6 @@ namespace BCRPClient.Sync
                     AsyncTask.RunSlim(() =>
                     {
                         Sync.Players.UpdateHat(player);
-
-                        Phone.TurnVehiclePhone(player);
                     }, 250);
 
                     if (player.Handle == Player.LocalPlayer.Handle)
@@ -1742,8 +1784,6 @@ namespace BCRPClient.Sync
                 else
                 {
                     Sync.Players.UpdateHat(player);
-
-                    Phone.TurnVehiclePhone(player);
                 }
             });
 
@@ -1875,7 +1915,12 @@ namespace BCRPClient.Sync
 
         public static void CloseAll(bool onlyInterfaces = false)
         {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
             RAGE.Game.Ui.SetPauseMenuActive(false);
+
+            if (pData != null)
+                Sync.Phone.CallChangeState(pData, Phone.PhoneStateTypes.Off);
 
             CEF.HUD.Menu.Switch(false);
             CEF.Inventory.Close(true);
@@ -1901,8 +1946,6 @@ namespace BCRPClient.Sync
             CEF.BusinessMenu.Close(true);
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
-
-            Sync.Phone.Off();
 
             if (!onlyInterfaces)
             {

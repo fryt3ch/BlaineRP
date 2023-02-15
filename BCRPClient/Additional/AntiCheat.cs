@@ -283,9 +283,6 @@ namespace BCRPClient.Additional
 
                 AllowWeapon.Push(true);
 
-                if (Sync.WeaponSystem.UnarmedHash != LastAllowedWeapon)
-                    Sync.Phone.DestroyLocalPhone();
-
                 if (Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon && x.HasAmmo).FirstOrDefault() != null)
                 {
                     CEF.HUD.SetAmmo(LastAllowedAmmo);
@@ -552,7 +549,7 @@ namespace BCRPClient.Additional
                 }
             }
 
-            RAGE.Game.Player.RestorePlayerStamina(1f);
+            RAGE.Game.Player.ResetPlayerStamina();
             RAGE.Game.Player.SetPlayerHealthRechargeMultiplier(0f);
         }
 

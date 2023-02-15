@@ -225,11 +225,6 @@ namespace BCRPClient.Data
 
                 LastDialogues = new List<Dialogue.LastInfo>();
 
-                var playerHeadCoord = Utils.GetWorldCoordFromScreenCoord(0.5f, 0.5f, 100f);
-
-                if (playerHeadCoord != null)
-                    Ped.TaskLookAtCoord(playerHeadCoord.X, playerHeadCoord.Y, playerHeadCoord.Z, -1f, 2048, 3);
-
                 CEF.Notification.ClearAll();
 
                 CurrentNPC = this;
@@ -245,6 +240,12 @@ namespace BCRPClient.Data
                 Player.LocalPlayer.SetVisible(false, false);
 
                 Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
+
+                var playerHeadCoord = Additional.Camera.Position;
+
+                playerHeadCoord.Z -= 0.1f;
+
+                Ped.TaskLookAtCoord2(playerHeadCoord.X, playerHeadCoord.Y, playerHeadCoord.Z, -1, 2048, 3);
 
                 TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
             }

@@ -2,22 +2,18 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Runtime;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace BCRPClient.Additional
 {
-    class Scaleform : Events.Script
+    public class Scaleform
     {
-        private static int CurrentHandle;
+        private static Dictionary<string, Scaleform> AllScaleforms { get; set; } = new Dictionary<string, Scaleform>();
 
-        private static AsyncTask CurrentTask { get; set; }
-
-        public Scaleform()
-        {
-            CurrentHandle = -1;
-        }
+        public static Scaleform Get(string id) => AllScaleforms.GetValueOrDefault(id);
 
         public enum CounterSoundTypes
         {
@@ -27,51 +23,58 @@ namespace BCRPClient.Additional
             Deep,
         }
 
-        public static async void ShowShard(string title, string text, int duration = -1)
+        public string Id { get; private set; }
+
+        public int Handle { get; private set; }
+
+        public bool IsLoaded => RAGE.Game.Graphics.HasScaleformMovieLoaded(Handle);
+
+        public bool Exists => Handle > 0;
+
+        private Queue<(string FuncName, object[] Args)> FunctionsQueue { get; set; } = new Queue<(string, object[])>();
+
+        public AsyncTask CurrentTask { get; set; }
+
+        public GameEvents.UpdateHandler OnRender { get; set; }
+
+        public Scaleform(string Id, string ScaleformName)
         {
-            int handle = RAGE.Game.Graphics.RequestScaleformMovie("mp_big_message_freemode");
+            Handle = RAGE.Game.Graphics.RequestScaleformMovie(ScaleformName);
 
-            while (!RAGE.Game.Graphics.HasScaleformMovieLoaded(handle))
-                await RAGE.Game.Invoker.WaitAsync(25);
+            this.Id = Id;
 
-            CurrentHandle = handle;
-
-            RAGE.Game.Graphics.PushScaleformMovieFunction(handle, "SHOW_SHARD_CENTERED_MP_MESSAGE");
-
-            RAGE.Game.Graphics.PushScaleformMovieFunctionParameterString(title);
-            RAGE.Game.Graphics.PushScaleformMovieFunctionParameterString(text);
-
-/*            RAGE.Game.Graphics.PushScaleformMovieFunctionParameterInt(titleColor);
-            RAGE.Game.Graphics.PushScaleformMovieFunctionParameterInt(backgroundColor);*/
-
-            RAGE.Game.Graphics.PopScaleformMovieFunctionVoid();
-
-            GameEvents.Render -= Render;
-            GameEvents.Render += Render;
-
-            if (duration != -1)
+            if (!AllScaleforms.TryAdd(Id, this))
             {
-                CurrentTask = new AsyncTask(() => Close(), duration, false, 0);
+                AllScaleforms[Id].Destroy();
 
-                CurrentTask.Run();
+                AllScaleforms.Add(Id, this);
             }
+
+            GameEvents.Render -= OnRender;
+            GameEvents.Render += OnRender;
         }
 
-        public static void ShowWasted(uint reason, Player killer)
+        public static Scaleform CreateShard(string id, string title, string text, int duration = -1)
         {
-            Close();
+            var sc = new Scaleform(id, "mp_big_message_freemode");
 
-            if (killer.Handle == Player.LocalPlayer.Handle)
+            sc.CallFunction("SHOW_SHARD_CENTERED_MP_MESSAGE", title, text);
+
+            if (duration > 0)
             {
-                ShowShard("~r~" + Locale.Scaleform.Wasted.Header, Locale.Scaleform.Wasted.TextSelf, -1);
+                sc.CurrentTask = new AsyncTask(() => sc.Destroy(), duration, false, 0);
+
+                sc.CurrentTask.Run();
             }
-            else
-                ShowShard("~r~" + Locale.Scaleform.Wasted.Header, string.Format(Locale.Scaleform.Wasted.TextAttacker, killer.GetName(true, false, true), Sync.Players.GetData(killer)?.CID ?? 0), -1);
+
+            sc.AddOnRenderAction(sc.Render2D);
+
+            return sc;
         }
 
-        public static void ShowCounter(string title, string text, int durationSec = 5, CounterSoundTypes soundType = CounterSoundTypes.None)
+        public static Scaleform CreateCounter(string id, string title, string text, int durationSec = 5, CounterSoundTypes soundType = CounterSoundTypes.None)
         {
-            Close();
+            var sc = new Scaleform(id, "mp_big_message_freemode");
 
             AsyncTask task = null;
 
@@ -79,7 +82,7 @@ namespace BCRPClient.Additional
             {
                 for (int i = durationSec; i > 0; i--)
                 {
-                    ShowShard(title, string.Format(text, i), -1);
+                    sc.CallFunction("SHOW_SHARD_CENTERED_MP_MESSAGE", title, string.Format(text, i));
 
                     if (soundType != CounterSoundTypes.None)
                     {
@@ -109,32 +112,107 @@ namespace BCRPClient.Additional
                         return;
                 }
 
-                Close();
+                sc.Destroy();
             }, 0, false, 0);
 
-            CurrentTask = task;
+            sc.CurrentTask = task;
 
-            CurrentTask.Run();
+            sc.CurrentTask.Run();
+
+            sc.AddOnRenderAction(sc.Render2D);
+
+            return sc;
         }
 
-        public static void Close()
+        public void AddOnRenderAction(Action action)
         {
-            if (CurrentHandle == -1)
+            GameEvents.Render -= OnRender;
+
+            OnRender -= action.Invoke;
+            OnRender += action.Invoke;
+
+            GameEvents.Render += OnRender;
+        }
+
+        public void RemoveOnRenderAction(Action action)
+        {
+            GameEvents.Render -= OnRender;
+
+            OnRender -= action.Invoke;
+
+            GameEvents.Render += OnRender;
+        }
+
+        private void OnUpdate()
+        {
+            if (FunctionsQueue.Count > 0)
+            {
+                (string, object[]) nextFunc;
+
+                while (FunctionsQueue.TryDequeue(out nextFunc))
+                    CallFunction(nextFunc.Item1, nextFunc.Item2);
+            }
+        }
+
+        public void Destroy()
+        {
+            if (!Exists)
                 return;
 
-            CurrentTask?.Cancel();
+            GameEvents.Render -= OnRender;
 
-            CurrentTask = null;
+            OnRender = null;
 
-            GameEvents.Render -= Render;
+            if (CurrentTask != null)
+            {
+                CurrentTask.Cancel();
 
-            RAGE.Game.Graphics.SetScaleformMovieAsNoLongerNeeded(ref CurrentHandle);
+                CurrentTask = null;
+            }
+
+            var handle = Handle;
+
+            RAGE.Game.Graphics.SetScaleformMovieAsNoLongerNeeded(ref handle);
+
+            Handle = 0;
+
+            AllScaleforms.Remove(Id);
         }
 
-        private static void Render()
+        public void CallFunction(string funcName, params object[] args)
         {
-            if (CurrentHandle != -1)
-                RAGE.Game.Graphics.DrawScaleformMovieFullscreen(CurrentHandle, 255, 255, 255, 255, 0);
+            if (!IsLoaded || !Exists)
+            {
+                FunctionsQueue.Enqueue((funcName, args));
+
+                return;
+            }
+
+            RAGE.Game.Graphics.PushScaleformMovieFunction(Handle, funcName);
+
+            foreach (var x in args)
+            {
+                if (x is string str)
+                    RAGE.Game.Graphics.PushScaleformMovieFunctionParameterString(str);
+                else if (x is bool b)
+                    RAGE.Game.Graphics.PushScaleformMovieFunctionParameterBool(b);
+                else if (x is float f)
+                    RAGE.Game.Graphics.PushScaleformMovieFunctionParameterFloat(f);
+                else if (x is int i)
+                    RAGE.Game.Graphics.PushScaleformMovieFunctionParameterInt(i);
+            }
+
+            RAGE.Game.Graphics.PopScaleformMovieFunctionVoid();
+        }
+
+        public void Render2D()
+        {
+            if (!IsLoaded || !Exists)
+                return;
+
+            OnUpdate();
+
+            RAGE.Game.Graphics.DrawScaleformMovieFullscreen(Handle, 255, 255, 255, 255, 0);
         }
     }
 }

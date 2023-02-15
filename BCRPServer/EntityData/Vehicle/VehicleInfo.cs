@@ -200,14 +200,6 @@ namespace BCRPServer
                 else
                     player.TriggerEvent("Documents::Show", 2, Data.Name, owner.Name, owner.Surname, VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
             }
-
-            public static void UpdateLastDataOnWrongDimension(PlayerData.PlayerInfo pInfo)
-            {
-                foreach (var x in pInfo.OwnedHouses)
-                {
-
-                }
-            }
         }
     }
 }

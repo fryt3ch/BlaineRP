@@ -71,6 +71,12 @@ namespace BCRPClient
 
                 public static string WrongCoordsSms = "Неверная информация о геолокации в сообщении!";
 
+                public static string JobVehicleNotInVeh = "Вы должны быть за рулем рабочего транспорта!";
+
+                public static string JobNoOrders = "Пока что нет ни одного заказа!";
+
+                public static string AlreadyHaveJob = "Вы уже где-то работаете!";
+
                 public static class PayDay
                 {
                     public static string Header = "Зарплата";

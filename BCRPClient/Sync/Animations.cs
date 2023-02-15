@@ -333,24 +333,25 @@ namespace BCRPClient.Sync
         {
             None = -1,
 
-            Angry,
-            Drunk,
-            Dumb,
-            Electrocuted,
-            Grumpy, Grumpy2, Grumpy3,
             Happy,
-            Injured,
             Joyful,
-            Mouthbreather,
-            NeverBlink,
-            OneEye,
-            Shocked, Shocked2,
-            Sleeping, Sleeping2, Sleeping3,
             Smug,
             Speculative,
-            Stressed,
+            Mouthbreather,
             Sulking,
+            Grumpy, Grumpy2, Grumpy3,
+            Angry,
+            Stressed,
+            Shocked, Shocked2,
+            NeverBlink,
+            OneEye,
+            Sleeping, Sleeping2, Sleeping3,
             Weird, Weird2,
+            Electrocuted,
+
+/*            Drunk,
+            Dumb,
+            Injured,*/
         }
 
         public enum ScenarioTypes
@@ -771,14 +772,14 @@ namespace BCRPClient.Sync
         public static Dictionary<EmotionTypes, string> EmotionsList { get; private set; } = new Dictionary<EmotionTypes, string>()
         {
             { EmotionTypes.Angry, "mood_angry_1" },
-            { EmotionTypes.Drunk, "mood_drunk_1" },
-            { EmotionTypes.Dumb, "pose_injured_1" },
+            //{ EmotionTypes.Drunk, "mood_drunk_1" },
+            //{ EmotionTypes.Dumb, "pose_injured_1" },
             { EmotionTypes.Electrocuted, "electrocuted_1" },
             { EmotionTypes.Grumpy,"effort_1" },
             { EmotionTypes.Grumpy2, "mood_drivefast_1" },
             { EmotionTypes.Grumpy3, "pose_angry_1" },
             { EmotionTypes.Happy, "mood_happy_1" },
-            { EmotionTypes.Injured, "mood_injured_1" },
+            //{ EmotionTypes.Injured, "mood_injured_1" },
             { EmotionTypes.Joyful, "mood_dancing_low_1" },
             { EmotionTypes.Mouthbreather, "smoking_hold_1" },
             { EmotionTypes.NeverBlink, "pose_normal_1" },

@@ -34,6 +34,13 @@ namespace BCRPServer.Additional
 
                 if (vData.ForcedSpeed != 0f)
                     vData.ForcedSpeed = 0f;
+
+                if (vData.Info.LastData.GarageSlot >= 0)
+                {
+                    vData.IsInvincible = false;
+
+                    vData.Info.LastData.GarageSlot = -1;
+                }
             }
 
             var lastDim = veh.Dimension;
@@ -171,11 +178,11 @@ namespace BCRPServer.Additional
                         {
                             if (pDim >= Utils.HouseDimBase)
                             {
-                                if (dim < Utils.ApartmentsRootDimBase)
+                                if (pDim < Utils.ApartmentsRootDimBase)
                                 {
                                     Utils.GetHouseBaseByDimension(pDim)?.SetPlayersOutside(false, player);
                                 }
-                                else if (dim < Utils.GarageDimBase)
+                                else if (pDim < Utils.GarageDimBase)
                                 {
                                     Utils.GetApartmentsRootByDimension(pDim)?.SetPlayersOutside(false, player);
                                 }

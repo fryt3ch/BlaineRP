@@ -552,7 +552,7 @@ namespace BCRPClient.CEF
 
         public static void ClearTasksRender()
         {
-            RAGE.Elements.Player.LocalPlayer.ClearTasks();
+            Player.LocalPlayer.ClearTasks();
         }
 
         public static void OnTickMouse()

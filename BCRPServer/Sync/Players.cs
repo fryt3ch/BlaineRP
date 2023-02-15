@@ -7,6 +7,20 @@ namespace BCRPServer.Sync
 {
     public class Players
     {
+        public enum PhoneStateTypes : byte
+        {
+            /// <summary>Телефон не используется</summary>
+            Off = 0,
+            /// <summary>Телефон используется без анимаций</summary>
+            JustOn,
+            /// <summary>Телефон используется c обычной анимацией</summary>
+            Idle,
+            /// <summary>Телефон используется с анимацией разговора</summary>
+            Call,
+            /// <summary>Телефон используется с анимацией камеры 0</summary>
+            Camera,
+        }
+
         public static HashSet<uint> UsedPhoneNumbers { get; private set; } = new HashSet<uint>();
 
         public static uint GenerateNewPhoneNumber()
@@ -50,20 +64,14 @@ namespace BCRPServer.Sync
         {
             var player = pData.Player;
 
-            if (!pData.PhoneOn)
-                return;
-
-            pData.PhoneOn = false;
+            pData.PhoneStateType = PhoneStateTypes.Off;
 
             if (pData.ActiveCall is Sync.Phone.Call activeCall)
             {
                 activeCall.Cancel(activeCall.Caller == pData ? Phone.Call.CancelTypes.Caller : Phone.Call.CancelTypes.Receiver);
             }
 
-            var attachedPhone = pData.AttachedObjects.Where(x => x.Type == AttachSystem.Types.Phone).FirstOrDefault();
-
-            if (attachedPhone != null)
-                player.DetachObject(attachedPhone.Type);
+            player.DetachObject(AttachSystem.Types.Phone);
 
             Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOff);
         }

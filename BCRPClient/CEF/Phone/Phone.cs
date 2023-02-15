@@ -428,7 +428,7 @@ namespace BCRPClient.CEF
                 if (pData == null)
                     return;
 
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 LastSent = DateTime.Now;
@@ -751,7 +751,7 @@ namespace BCRPClient.CEF
                 }
                 else if (appType == AppTypes.Camera)
                 {
-                    if (PhoneApps.CameraApp.CanShow())
+                    if (Sync.Phone.CanUsePhoneAnim(true) && Utils.CanDoSomething(true, Utils.Actions.InVehicle))
                     {
                         PhoneApps.CameraApp.Show();
                     }
@@ -838,9 +838,7 @@ namespace BCRPClient.CEF
 
             CEF.Browser.Window.ExecuteCachedJs("Phone.showPhone", true);
 
-            KeyBinds.CursorNotFreezeInput = true;
-
-            CEF.Cursor.Show(false, true);
+            CEF.Cursor.Show(true, true);
 
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
@@ -872,8 +870,6 @@ namespace BCRPClient.CEF
 
             if (CEF.HUD.IsActive && !Settings.Interface.HideHints)
                 CEF.Browser.Switch(Browser.IntTypes.HUD_Help, true);
-
-            KeyBinds.CursorNotFreezeInput = false;
 
             CEF.Cursor.Show(false, false);
 

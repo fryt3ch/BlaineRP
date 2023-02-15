@@ -296,7 +296,7 @@ namespace BCRPClient.Data
                 if (!Utils.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
-                Additional.Scaleform.ShowCounter(Locale.Scaleform.ShootingRangeCountdownTitle, Locale.Scaleform.ShootingRangeCountdownText, 5, Additional.Scaleform.CounterSoundTypes.Deep);
+                var scaleformCounter = Additional.Scaleform.CreateCounter("srange_s_counter", Locale.Scaleform.ShootingRangeCountdownTitle, Locale.Scaleform.ShootingRangeCountdownText, 5, Additional.Scaleform.CounterSoundTypes.Deep);
 
                 await RAGE.Game.Invoker.WaitAsync(5000);
 
@@ -328,7 +328,7 @@ namespace BCRPClient.Data
 
             Utils.CancelPendingTask("SRange::Start::D");
 
-            Additional.Scaleform.Close();
+            Additional.Scaleform.Get("srange_s_counter")?.Destroy();
 
             CurrentType = null;
 

@@ -320,8 +320,6 @@ namespace BCRPClient.Sync
             LastSyncSent = DateTime.Now;
 
             RAGE.Game.Vehicle.DefaultEngineBehaviour = false;
-            Player.LocalPlayer.SetConfigFlag(429, true);
-            Player.LocalPlayer.SetConfigFlag(35, false);
             //Player.LocalPlayer.SetConfigFlag(184, true);
             #endregion
 
@@ -485,6 +483,8 @@ namespace BCRPClient.Sync
                         if (Player.LocalPlayer.Vehicle == null || Player.LocalPlayer.Vehicle.Handle != vehicle?.Handle)
                             return;
                     }
+
+                    InvokeHandler("Engine::On", data, data.EngineOn, null);
 
                     RadioUpdate -= RadioSync;
                     RadioUpdate += RadioSync;
@@ -916,6 +916,23 @@ namespace BCRPClient.Sync
                 }, 0, false, 0);
 
                 Utils.SetTaskAsPending("Vehicles::WTS", task);
+            });
+
+            Events.Add("Vehicles::JVRO", (args) =>
+            {
+                var rentPrice = (args[0]).ToDecimal();
+
+                var veh = Player.LocalPlayer.Vehicle;
+
+                if (veh?.Exists != true)
+                    return;
+
+                var vData = GetData(veh);
+
+                if (vData == null)
+                    return;
+
+                CEF.ActionBox.ShowMoney(ActionBox.Contexts.JobVehicleRentMoney, Locale.Actions.JobVehicleRentTitle, string.Format(Locale.Actions.JobVehicleRentText, $"{vData.Data.Name} [{(veh.GetNumberplateText() ?? "null")}]", Utils.GetPriceString(rentPrice)), veh);
             });
 
             KeyBinds.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
@@ -1372,6 +1389,9 @@ namespace BCRPClient.Sync
                 return;
 
             if (Player.LocalPlayer.IsInAnyVehicle(false) || LastVehicleExitedTime.IsSpam(1000, false, false))
+                return;
+
+            if (CEF.PhoneApps.CameraApp.IsActive)
                 return;
 
             if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.IsAttachedTo))

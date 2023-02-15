@@ -27,6 +27,8 @@ namespace BCRPClient.CEF
                 Inventory,
                 /// <summary>Телефон</summary>
                 Phone,
+                /// <summary>Меню работы</summary>
+                Job_Menu,
                 /// <summary>Меню дома</summary>
                 Menu_House,
                 /// <summary>Меню квартиры</summary>
@@ -52,17 +54,16 @@ namespace BCRPClient.CEF
                 { Types.Menu_Apartments, () => CEF.HouseMenu.ShowRequest() },
 
                 { Types.WeaponSkinsMenu, () => Sync.Players.TryShowWeaponSkinsMenu() },
+
+                { Types.Job_Menu, () => Data.Locations.Job.ShowJobMenu() },
             };
 
-            public static List<Types> CurrentTypes { get; private set; }
+            public static List<Types> CurrentTypes { get; private set; } = new List<Types>();
 
-            private static List<int> TempBinds { get; set; }
+            private static List<int> TempBinds { get; set; } = new List<int>();
 
             public Menu()
             {
-                CurrentTypes = new List<Types>();
-
-                TempBinds = new List<int>();
 
                 Events.Add("HUD::Menu::Action", (object[] args) =>
                 {

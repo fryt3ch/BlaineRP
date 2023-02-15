@@ -53,10 +53,18 @@ namespace BCRPClient
             public static string PlacedItemOnGroundSelectUnlock = "Открыть доступ к взаимодействию для всех";
             public static string PlacedItemOnGroundSelectInteract = "Взаимодействовать";
 
+            public static string JobVehicleRentTitle = "Аренда рабочего транспорта";
+            public static string JobVehicleRentText = "Вы хотите взять в аренду этот рабочий транспорт?\n\n{0}\n\nСтоимость аренды составит {1}";
+
+            public static string JobVehicleOrderSelectTitle = "Список доступных заказов";
+
+            public static string JobTruckerOrderText = "#{0} | -> {1} км. -> {2} км. | {3}";
+
             public static string SelectOkBtn0 = "Принять";
             public static string SelectCancelBtn0 = "Отменить";
 
             public static string SelectOkBtn1 = "Снять";
+            public static string SelectOkBtn2 = "Взять заказ";
             public static string SelectCancelBtn1 = "Закрыть";
 
             public static Dictionary<Data.Items.WeaponSkin.ItemData.Types, string> WeaponSkinTypeNames = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>()

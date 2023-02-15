@@ -122,7 +122,6 @@ namespace BCRPClient.CEF
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
             { "Container::Wait", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },
-            { "Container::ReadOnly", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },
 
             { "Weapon::InVehicleRestricted", new Instance(Types.Error, Locale.Notifications.Weapon.InVehicleRestricted, Locale.Notifications.Weapon.Header) },
 
@@ -147,6 +146,8 @@ namespace BCRPClient.CEF
             { "Inv::PMPF", new Instance(Types.Error, Locale.Notifications.Inventory.MaxAmountFurnitureOwned, Locale.Notifications.ErrorHeader) },
 
             { "IOG::PINA", new Instance(Types.Error, Locale.Notifications.Inventory.PlacedItemOnGroundNotAllowed, Locale.Notifications.ErrorHeader) },
+
+            { "Job::AHJ", new Instance(Types.Error, Locale.Notifications.General.AlreadyHaveJob, Locale.Notifications.ErrorHeader) },
 
             { "Kick", new Instance(Types.Information, Locale.Notifications.General.Kick, Locale.Notifications.DefHeader) },
             { "TeleportBy", new Instance(Types.Information, Locale.Notifications.General.TeleportBy, Locale.Notifications.DefHeader) },

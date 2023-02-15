@@ -92,9 +92,7 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool IsInvalid { get => Player.GetSharedData<bool?>("IsInvalid") ?? false; set { if (value) Player.SetSharedData("IsInvalid", value); else Player.ResetSharedData("IsInvalid"); } }
 
-        /// <summary>Использует ли игрок телефон?</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool PhoneOn { get => Player.GetSharedData<bool?>("Phone::On") ?? false; set { if (value) Player.SetSharedData("Phone::On", value); else Player.ResetSharedData("Phone::On"); } }
+        public Sync.Players.PhoneStateTypes PhoneStateType { get => (Sync.Players.PhoneStateTypes)(Player.GetSharedData<int?>("PST") ?? 0); set { if (value == Sync.Players.PhoneStateTypes.Off) Player.ResetSharedData("PST"); else Player.SetSharedData("PST", (byte)value); } }
 
         public string WeaponComponents { get => Player.GetSharedData<string>("WCD"); set { if (value != null) Player.SetSharedData("WCD", value); else Player.ResetSharedData("WCD"); } }
 

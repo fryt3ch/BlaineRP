@@ -10,6 +10,35 @@ namespace BCRPServer.Game.Businesses
 {
     public abstract partial class Business
     {
+        public static void LoadPrices()
+        {
+            var ns = typeof(Business).Namespace;
+
+            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass && !t.IsAbstract && typeof(Shop).IsAssignableFrom(t)))
+            {
+                var matData = (MaterialsData)x.GetProperty("InitMaterialsData")?.GetValue(null);
+
+                if (matData == null)
+                    continue;
+
+                var shopType = (Types?)x.GetProperty("DefaultType")?.GetValue(null);
+
+                if (shopType is Types shopTypeN)
+                {
+                    Shop.AllPrices.Add(shopTypeN, matData);
+                }
+            }
+
+            var lines = new List<string>();
+
+            foreach (var x in Shop.AllPrices)
+            {
+                lines.Add($"Prices.Add(Types.{x.Key}, new Dictionary<string, uint>() {{{string.Join(", ", x.Value.Prices.Select(y => $"{{\"{y.Key}\", {y.Value * x.Value.RealPrice}}}"))}}});");
+            }
+
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_SHOP_DATA_PATH, "TO_REPLACE", lines);
+        }
+
         public static int LoadAll()
         {
             #region Clothes (Cheap)
@@ -109,38 +138,17 @@ namespace BCRPServer.Game.Businesses
                             }
                         }
                     }
+
+                    if (x.OrderedMaterials > 0)
+                    {
+                        x.AddOrder(true, null);
+                    }
                 }
 
                 lines.Add($"new {x.GetType().Name}({x.ClientData});");
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "BIZS_TO_REPLACE", lines);
-
-            var ns = typeof(Business).Namespace;
-
-            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass && !t.IsAbstract && typeof(Shop).IsAssignableFrom(t)))
-            {
-                var matData = (MaterialsData)x.GetProperty("InitMaterialsData")?.GetValue(null);
-
-                if (matData == null)
-                    continue;
-
-                var shopType = (Types?)x.GetProperty("DefaultType")?.GetValue(null);
-
-                if (shopType is Types shopTypeN)
-                {
-                    Shop.AllPrices.Add(shopTypeN, matData);
-                }
-            }
-
-            lines = new List<string>();
-
-            foreach (var x in Shop.AllPrices)
-            {
-                lines.Add($"Prices.Add(Types.{x.Key}, new Dictionary<string, uint>() {{{string.Join(", ", x.Value.Prices.Select(y => $"{{\"{y.Key}\", {y.Value * x.Value.RealPrice}}}"))}}});");
-            }
-
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_SHOP_DATA_PATH, "TO_REPLACE", lines);
 
             WeaponShop.ShootingRangePrice = 150;
 

@@ -830,12 +830,15 @@ namespace BCRPServer
         /// <summary>Является ли имя верным (см. Utils.NamePattern)</summary>
         /// <param name="str">Имя</param>
         public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
+
         /// <summary>Является ли почта верной (см. Utils.MailPattern)</summary>
         /// <param name="str">Почта</param>
         public static bool IsMailValid(string str) => MailPattern.IsMatch(str);
+
         /// <summary>Является ли логин верным (см. Utils.LoginPattern)</summary>
         /// <param name="str">Логин</param>
         public static bool IsLoginValid(string str) => LoginPattern.IsMatch(str);
+
         /// <summary>Является ли пароль верным (см. Utils.PasswordPattern)</summary>
         /// <param name="str">Пароль</param>
         public static bool IsPasswordValid(string str) => PasswordPattern.IsMatch(str);
@@ -1231,7 +1234,7 @@ namespace BCRPServer
 
         public static bool IsAnyAnimOn(this PlayerData pData) => pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None || pData.OtherAnim != Animations.OtherTypes.None;
 
-        public static bool CanPlayAnimNow(this PlayerData pData) => !IsAnyAnimOn(pData) && !pData.CrawlOn && !pData.PhoneOn;
+        public static bool CanPlayAnimNow(this PlayerData pData) => !IsAnyAnimOn(pData) && !pData.CrawlOn;
 
         public static bool StopUseCurrentItem(this PlayerData pData)
         {

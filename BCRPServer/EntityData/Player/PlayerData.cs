@@ -123,20 +123,6 @@ namespace BCRPServer
         {
             ShootingRange = 0,
         }
-
-        public enum PhoneStateTypes : byte
-        {
-            /// <summary>Телефон используется без анимаций</summary>
-            JustOn = 0,
-            /// <summary>Телефон используется c обчной анимацией</summary>
-            Idle0,
-            /// <summary>Телефон используется в транспорте</summary>
-            Vehicle,
-            /// <summary>Телефон используется с анимацией камеры 0</summary>
-            Camera0,
-            /// <summary>Телефон используется с анимацией камеры 1</summary>
-            Camera1,
-        }
         #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
@@ -369,6 +355,17 @@ namespace BCRPServer
             return false;
         }
 
+        public bool HasJob(bool notifyOnFault = true)
+        {
+            if (CurrentJob == null)
+                return false;
+
+            if (notifyOnFault)
+                Player.Notify("Job::AHJ");
+
+            return true;
+        }
+
         public PlayerInfo Info { get; set; }
         #endregion
 
@@ -379,7 +376,7 @@ namespace BCRPServer
         {
             get
             {
-                return PhoneOn || CurrentWorkbench != null || CurrentContainer != null || IsAttachedToEntity != null || CurrentBusiness != null || IsFrozen;
+                return PhoneStateType != Sync.Players.PhoneStateTypes.Off || CurrentWorkbench != null || CurrentContainer != null || IsAttachedToEntity != null || CurrentBusiness != null || IsFrozen;
             }
         }
 
@@ -443,11 +440,13 @@ namespace BCRPServer
             Info.PlayerData = this;
         }
 
-        public PlayerData(Player Player, string name, string surname, int age, bool sex, Game.Data.Customization.HeadBlend hBlend, Dictionary<int, Game.Data.Customization.HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
+        public PlayerData(Player Player, uint aid, string name, string surname, int age, bool sex, Game.Data.Customization.HeadBlend hBlend, Dictionary<int, Game.Data.Customization.HeadOverlay> hOverlays, float[] faceFeatures, byte eyeColor, Game.Data.Customization.HairStyle hStyle, Game.Items.Clothes[] clothes) : this(Player)
         {
-            Info = new PlayerInfo();
+            Info = new PlayerInfo() { AID = aid };
 
             CID = PlayerInfo.MoveNextId();
+
+            LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
 
             Name = name;
             Surname = surname;
@@ -470,8 +469,6 @@ namespace BCRPServer
 
             Skills = Settings.CHARACTER_DEFAULT_SKILLS;
             Licenses = Settings.CHARACTER_DEFAULT_LICENSES;
-
-            LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100, SessionTime = 0, Mood = Mood, Satiety = Satiety };
 
             Gifts = new List<Game.Items.Gift>();
 

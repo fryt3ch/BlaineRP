@@ -32,7 +32,7 @@ namespace BCRPServer
 
         /// <summary>Токен отмены удаления транспорта с сервера</summary>
         /// <value>Объект класса CancellationTokenSource, null - если отсутствует</value>
-        public CancellationTokenSource CTSDelete { get; set; }
+        public CancellationTokenSource CTSDelete { get => Vehicle.GetData<CancellationTokenSource>("CTSD"); set { if (value == null) Vehicle.ResetData("CTSD"); else Vehicle.SetData("CTSD", value); } }
 
         /// <summary>CID владельца транспорта</summary>
         public uint OwnerID { get => Info.OwnerID; set => Info.OwnerID = value; }
@@ -40,5 +40,7 @@ namespace BCRPServer
         public VehicleInfo Info { get; set; }
 
         public LastVehicleData LastData { get => Info.LastData; set => Info.LastData = value; }
+
+        public Game.Jobs.Job Job => Game.Jobs.Job.Get(Vehicle.GetData<int>("JID"));
     }
 }

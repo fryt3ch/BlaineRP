@@ -59,8 +59,6 @@ namespace BCRPClient.Sync
                 await Utils.RequestAnimDict(AnimDict);
                 await Utils.RequestAnimDict(MoveAnimDict);
 
-                Sync.Phone.DestroyLocalPhone();
-
                 CurrentMoveAnim = null;
 
                 GameEvents.Render -= OnTick;

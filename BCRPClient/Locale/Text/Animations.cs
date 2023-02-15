@@ -495,7 +495,7 @@ namespace BCRPClient
 
                     { Sync.Animations.EmotionTypes.Sulking, "Грустный" },
 
-                    { Sync.Animations.EmotionTypes.Grumpy,"Сердитый" },
+                    { Sync.Animations.EmotionTypes.Grumpy, "Сердитый" },
                     { Sync.Animations.EmotionTypes.Grumpy2, "Сердитый #2" },
                     { Sync.Animations.EmotionTypes.Grumpy3, "Сердитый #3" },
 

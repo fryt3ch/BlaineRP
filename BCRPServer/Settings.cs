@@ -110,7 +110,10 @@ namespace BCRPServer
         public const int OFFER_DEFAULT_DURATION = 30_000;
 
         /// <summary>Максимальное кол-во игроков, которые могут одновременно просматривать контейнер</summary>
-        public const int CONTAINER_MAX_PLAYERS = 5;
+        public const byte CONTAINER_MAX_PLAYERS = 5;
+
+        /// <summary>Максимальное кол-во игроков, которые могут одновременно просматривать верстак</summary>
+        public const byte WORKBENCH_MAX_PLAYERS = 1;
 
         /// <summary>Максимально возможное кол-во мебели, которой игрок может владеть</summary>
         /// <remarks>Считается только та мебель, что не установлена, а находится у игрока</remarks>

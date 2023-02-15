@@ -190,6 +190,11 @@ namespace BCRPServer.Game.Items.Craft
 
         public bool AddPlayerObserving(PlayerData pData)
         {
+            ClearAllWrongObservers();
+
+            if (PlayersObserving.Count >= Settings.WORKBENCH_MAX_PLAYERS)
+                return false;
+
             pData.CurrentWorkbench = this;
 
             PlayersObserving.Add(pData);
@@ -205,6 +210,51 @@ namespace BCRPServer.Game.Items.Craft
 
             if (callRemoteClose)
                 pData.Player.TriggerEvent("Inventory::Close");
+        }
+
+        public void ClearAllWrongObservers()
+        {
+            if (PlayersObserving.Count == 0)
+                return;
+
+            var players = new List<Player>();
+
+            PlayersObserving.ToList().ForEach(x =>
+            {
+                var target = x.Player;
+
+                if (target?.Exists != true || !IsNear(x) || !IsAccessableFor(x))
+                {
+                    players.Add(target);
+
+                    x.CurrentWorkbench = null;
+
+                    PlayersObserving.Remove(x);
+                }
+            });
+
+            if (players.Count > 0)
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players.ToArray(), "Inventory::Close");
+        }
+
+        public void ClearAllObservers()
+        {
+            if (PlayersObserving.Count == 0)
+                return;
+
+            var players = new List<Player>();
+
+            PlayersObserving.ForEach(x =>
+            {
+                x.CurrentWorkbench = null;
+
+                players.Add(x.Player);
+            });
+
+            PlayersObserving.Clear();
+
+            if (players.Count > 0)
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players.ToArray(), "Inventory::Close");
         }
 
         public Workbench(uint Uid, Types Type, WorkbenchTypes WorkbenchType)

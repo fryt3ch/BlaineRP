@@ -42,7 +42,7 @@ namespace BCRPClient
 
         public static event ScreenResolutionChangeHandler ScreenResolutionChange;
 
-        public static Vector3 WaypointPosition = null;
+        public static Vector3 WaypointPosition { get; private set; }
 
         public static RAGE.Ui.Cursor.Vector2 ScreenResolution { get; private set; } = new RAGE.Ui.Cursor.Vector2(0f, 0f);
 
@@ -74,10 +74,15 @@ namespace BCRPClient
             RAGE.Game.Misc.SetFadeOutAfterDeath(false);
             RAGE.Game.Misc.SetFadeOutAfterArrest(false);
 
-            RAGE.Game.Misc.SetFadeInAfterDeathArrest(true);
-            RAGE.Game.Misc.SetFadeInAfterLoad(true);
+            RAGE.Game.Misc.SetFadeInAfterDeathArrest(false);
+            RAGE.Game.Misc.SetFadeInAfterLoad(false);
 
             RAGE.Game.Graphics.TransitionFromBlurred(0);
+
+            RAGE.Game.Misc.DisableAutomaticRespawn(true);
+            RAGE.Game.Misc.IgnoreNextRestart(true);
+
+            RAGE.Game.Invoker.Invoke(0xE6C0C80B8C867537, true); // SetEnableVehicleSlipstreaming
 
             LoadHUD();
 
@@ -136,8 +141,12 @@ namespace BCRPClient
 
                 Additional.SkyCamera.WrongFadeCheck();
 
-                // SetPedCanLosePropsOnDamage
-                RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0);
+                Player.LocalPlayer.SetInfiniteAmmoClip(true);
+
+                Player.LocalPlayer.SetConfigFlag(429, true);
+                Player.LocalPlayer.SetConfigFlag(35, false);
+
+                RAGE.Game.Invoker.Invoke(0xE861D0B05C7662B8, Player.LocalPlayer.Handle, false, 0); // SetPedCanLosePropsOnDamage
 
                 Sync.AttachSystem.ReattachObjects(Player.LocalPlayer);
 
@@ -471,29 +480,37 @@ namespace BCRPClient
             RAGE.Game.Ui.SetMinimapComponent(14, true, -1); // Beam Me Up 2 (Grand Senora Desert)
         }
 
+
         private static void PauseMenuWatcher()
         {
             if (!RAGE.Game.Ui.IsPauseMenuActive())
                 return;
 
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
+            //RAGE.Game.Invoker.Invoke(0x77F16B447824DA6C, 0); // open map instantly
 
-            if (pData == null)
-                return;
+            //RAGE.Game.Pad.DisableControlAction(32, 217, true);
 
-            // BeginScaleformMovieMethodOnFrontendHeader
-            RAGE.Game.Invoker.Invoke(0xB9449845F73F5E9C, "SET_HEADING_DETAILS");
+            RAGE.Game.Invoker.Invoke(0xB9449845F73F5E9C, "SET_HEADING_DETAILS"); // BeginScaleformMovieMethodOnFrontendHeader
 
             // ScaleformMovieMethodAddParamTextureNameString
             RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"{Player.LocalPlayer.Name} ({Player.LocalPlayer.RemoteId})");
-            RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"CID #{pData.CID}");
-            RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, string.Format(Locale.PauseMenu.Money, pData.Cash, pData.BankBalance));
 
-            // ScaleformMovieMethodAddParamBool
-            RAGE.Game.Invoker.Invoke(0xC58424BA936EB458, false);
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
 
-            // EndScaleformMovieMethod
-            RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53);
+            if (pData == null)
+            {
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, "NOT LOGGED IN");
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, "PLZ LOGIN :)");
+            }
+            else
+            {
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"CID #{pData.CID}");
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, string.Format(Locale.PauseMenu.Money, Utils.GetPriceString(pData.Cash), Utils.GetPriceString(pData.BankBalance)));
+            }
+
+            RAGE.Game.Invoker.Invoke(0xC58424BA936EB458, false); // ScaleformMovieMethodAddParamBool
+
+            RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53); // EndScaleformMovieMethod
         }
 
         private static async void FpsCounterStart()

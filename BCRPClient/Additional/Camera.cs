@@ -142,7 +142,7 @@ namespace BCRPClient.Additional
 
             { StateTypes.BodyBackUpper, new State(new Vector3(0f, 0f, 0.5f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 180f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 23553, MinFov = 10 } },
 
-            { StateTypes.Head, new State(new Vector3(0, 0, 1f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
+            { StateTypes.Head, new State(new Vector3(0, 0, 1f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.Position) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 31086, MinFov = 10 } },
 
             { StateTypes.LeftHand, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 30, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.Position, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 0f, 1.2f }, TargetBehaviourType = BehaviourTypes.PointBone, TargetParams = 36029, MinFov = 10 } },
 
@@ -504,10 +504,7 @@ namespace BCRPClient.Additional
             else
             {
                 Vector3 LastPosition = null;
-                float LastHeading = entity == null ? 0f : RAGE.Game.Entity.GetEntityHeading(entity.Handle);
-
-                if (args is float[] arr)
-                    LastHeading += arr[0];
+                float LastHeading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
 
                 var task = new AsyncTask(() =>
                 {
@@ -520,26 +517,26 @@ namespace BCRPClient.Additional
                         {
                             Vector3 pos = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false);
 
-                            float heading = 0f;
-                            float dist = 0f;
+                            var heading = LastHeading;
+                            var dist = 0f;
+                            var headingDiff = 0f;
 
                             if (args is float[] arr)
                             {
-                                heading = RAGE.Game.Entity.GetEntityHeading(entity.Handle) + arr[0];
+                                headingDiff = arr[0];
                                 dist = arr[1];
                             }
 
                             if (type == RenderTypes.Both)
                             {
+                                heading = RAGE.Game.Entity.GetEntityHeading(entity.Handle) + headingDiff;
+
                                 LastPosition = GetFrontOf(pos, heading, dist) + position;
                                 LastHeading = heading;
                             }
                             else if (type == RenderTypes.Position)
                             {
-                                if (LastHeading == heading)
-                                {
-                                    LastPosition = GetFrontOf(pos, heading, dist) + position;
-                                }
+                                LastPosition = GetFrontOf(pos, LastHeading + headingDiff, dist) + position;
                             }
                         }
                         else if (bType == BehaviourTypes.PointAt)
@@ -553,6 +550,7 @@ namespace BCRPClient.Additional
 
                         if (LastPosition != null)
                         {
+                            Utils.ConsoleOutputLimited(RAGE.Util.Json.Serialize(LastPosition) + $" - {isSource}");
                             if (isSource)
                             {
                                 Position = LastPosition;

@@ -1245,7 +1245,7 @@ namespace BCRPServer.Game.Businesses
                 { "accs_m_4", 10 },
                 { "accs_m_5", 10 },
                 { "accs_m_6", 10 },
-                { "accs_m_7", 00 },
+                { "accs_m_7", 10 },
                 { "accs_m_10", 10 },
 
                 { "ring_f_0", 10 },

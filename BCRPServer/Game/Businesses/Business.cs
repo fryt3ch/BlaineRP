@@ -76,6 +76,32 @@ namespace BCRPServer.Game.Businesses
             WeaponShop,
         }
 
+        public Game.Jobs.Trucker ClosestTruckerJob
+        {
+            get
+            {
+                var truckerJobs = Jobs.Trucker.AllTruckerJobs;
+
+                var minDist = PositionInfo.DistanceTo(truckerJobs[0].Position.Position);
+
+                var minJob = truckerJobs[0];
+
+                for (int i = 1; i < truckerJobs.Count; i++)
+                {
+                    var dist = PositionInfo.DistanceTo(truckerJobs[i].Position.Position);
+
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+
+                        minJob = truckerJobs[i];
+                    }
+                }
+
+                return minJob;
+            }
+        }
+
         public abstract string ClientData { get; }
 
         public static Dictionary<int, Business> All { get; private set; } = new Dictionary<int, Business>();
@@ -318,6 +344,21 @@ namespace BCRPServer.Game.Businesses
         public ulong GetBusinessPrice(uint mats, bool incassation) => incassation ? (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax - INCASSATION_TAX)) : (ulong)Math.Floor((decimal)mats * MaterialsData.SellPrice * Margin * (1m - Tax));
 
         public ulong GetBusinessPriceFixed(ulong fixedPrice, bool incassation) => incassation ? (ulong)Math.Floor(fixedPrice * (1m - Tax - INCASSATION_TAX)) : (ulong)Math.Floor(fixedPrice * (1m - Tax));
+
+        public void AddOrder(bool isCustom, Game.Jobs.Trucker truckerJob)
+        {
+            if (truckerJob == null)
+                truckerJob = ClosestTruckerJob;
+
+            if (isCustom)
+            {
+                truckerJob.AddCustomOrder(this);
+            }
+            else
+            {
+                truckerJob.AddDefaultOrder(this);
+            }
+        }
 
         public void ProceedPayment(PlayerData pData, bool useCash, uint newMats, ulong newBalance, ulong newPlayerBalance)
         {

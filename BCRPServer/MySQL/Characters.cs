@@ -14,17 +14,15 @@ namespace BCRPServer
             MySqlCommand cmd = new MySqlCommand();
 
             cmd.CommandText = @"INSERT INTO characters (ID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, 
-                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, PhoneNumber, PhoneBalance, LastData, 
-                    Satiety, Mood, Familiars, Skills) 
-                    VALUES (@CID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, 
-                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @PhoneNumber, @PhoneBalance, @LastData, 
-                    @Satiety, @Mood, @Familiars, @Skills); 
+                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, PhoneNumber, PhoneBalance, LastData, Familiars, Skills) 
+                    VALUES (@ID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, 
+                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @PhoneNumber, @PhoneBalance, @LastData, @Familiars, @Skills); 
 
-                    INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@CID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
+                    INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@ID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
 
-                    INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@CID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour);
+                    INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@ID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour);
                     
-                    INSERT INTO achievements (ID) VALUES (@CID); INSERT INTO quests (ID) VALUES (@CID);";
+                    INSERT INTO achievements (ID) VALUES (@ID); INSERT INTO quests (ID) VALUES (@ID);";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 

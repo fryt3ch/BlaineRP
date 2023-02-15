@@ -1,5 +1,4 @@
-﻿//#define DEBUGGING
-
+﻿using BCRPClient.CEF.PhoneApps;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -8,30 +7,37 @@ using System.Text;
 
 namespace BCRPClient.Sync
 {
-    class Phone : Events.Script
+    public class Phone : Events.Script
     {
+        public enum PhoneStateTypes : byte
+        {
+            /// <summary>Телефон не используется</summary>
+            Off = 0,
+            /// <summary>Телефон используется без анимаций</summary>
+            JustOn,
+            /// <summary>Телефон используется c обычной анимацией</summary>
+            Idle,
+            /// <summary>Телефон используется с анимацией разговора</summary>
+            Call,
+            /// <summary>Телефон используется с анимацией камеры 0</summary>
+            Camera,
+        }
+
         private static DateTime LastSwitchTime;
 
         public static bool Toggled { get; private set; }
 
-        //public static bool LocalPhoneExists { get; private set; }
-
         #region Anims
-        private static string AnimDict = "cellphone@";
-        private static string AnimDictVehicle = "cellphone@in_car@ds";
+        private static string AnimDict = "cellphone@str";
+        private static string AnimDictSelf = "cellphone@self";
 
-        private static string AnimTextReadBase = "cellphone_text_read_base";
-        private static string AnimTextToCall = "cellphone_text_to_call";
-        private static string AnimCallToText = "cellphone_call_to_text";
-        private static string AnimCallOut = "cellphone_call_out";
-        private static string AnimTextOut = "cellphone_text_out";
+        private static string AnimTextReadBase = "cellphone_text_press_a";
+        private static string AnimCallBase = "cellphone_call_listen_a";
+        private static string AnimCameraSelfieBase = "selfie";
 
-        private static string AnimSwipeScreen = "cellphone_swipe_screen";
-        private static string AnimRight = "cellphone_right";
-        private static string AnimLeft = "cellphone_left";
-        private static string AnimUp = "cellphone_up";
-        private static string AnimDown = "cellphone_down";
         #endregion
+
+        private static AsyncTask CurrentTask { get; set; }
 
         public Phone()
         {
@@ -40,118 +46,219 @@ namespace BCRPClient.Sync
             RAGE.Game.Mobile.DestroyMobilePhone();
         }
 
+        public static bool CanUsePhoneAnim(bool notify = false) => Utils.CanDoSomething(notify, Utils.Actions.Crawl, Utils.Actions.IsSwimming, Utils.Actions.Falling, Utils.Actions.Animation, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.FastAnimation, Utils.Actions.HasItemInHands, Utils.Actions.HasWeapon, Utils.Actions.IsAttachedTo, Utils.Actions.OtherAnimation);
+
         public static void Toggle()
         {
             if (LastSwitchTime.IsSpam(2000, false, false))
+                return;
+
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
                 return;
 
             LastSwitchTime = DateTime.Now;
 
             if (!Toggled)
             {
-                if (Utils.IsAnyCefActive())
+                if (Utils.IsAnyCefActive(true))
                     return;
 
-                On();
+                CallChangeState(pData, CanUsePhoneAnim() ? PhoneStateTypes.Idle : PhoneStateTypes.JustOn);
             }
             else
             {
-                Off();
+                CallChangeState(pData, PhoneStateTypes.Off);
             }
         }
 
-        public static async void On(bool ready = false, Player player = null)
+        public static void CallChangeState(Sync.Players.PlayerData pData, PhoneStateTypes stateType)
         {
-            if (!ready)
-            {
-                if (Toggled)
-                    return;
+            if (pData.PhoneStateType == stateType)
+                return;
 
-                PushVehicle.Off();
-
-                Events.CallRemote("Players::TogglePhone", true);
-            }
-            else
-            {
-                if (player.Handle == Player.LocalPlayer.Handle)
-                {
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                    if (pData.ActualAnimation == null && pData.FastAnim == Animations.FastTypes.None && !Player.LocalPlayer.HasWeapon() && !Sync.Crawl.Toggled)
-                    {
-                        CreateLocalPhone();
-                    }
-
-                    RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
-
-                    Toggled = true;
-
-                    CEF.Phone.Show();
-
-                    return;
-                }
-
-                await Utils.RequestAnimDict(AnimDict);
-                await Utils.RequestAnimDict(AnimDictVehicle);
-
-                player.TaskPlayAnim(player.IsInAnyVehicle(false) ? AnimDictVehicle : AnimDict, AnimTextReadBase, 8f, 1f, -1, 50, 0f, false, false, false);
-            }
+            Events.CallRemote("Players::SPST", stateType);
         }
 
-        public static void Off(bool ready = false, Player player = null)
+        public static async void SetState(Player player, PhoneStateTypes stateType)
         {
-            if (!ready)
+            if (player.Handle == Player.LocalPlayer.Handle)
             {
-                if (!Toggled)
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
                     return;
 
-                Events.CallRemote("Players::TogglePhone", false);
-            }
-            else
-            {
-                if (player.Handle == Player.LocalPlayer.Handle)
+                if (stateType == PhoneStateTypes.Off)
                 {
+                    player.TaskUseMobilePhone(0, 0);
+
                     DestroyLocalPhone();
 
-                    RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
+                    if (Toggled)
+                    {
+                        RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
 
-                    Toggled = false;
+                        Toggled = false;
 
-                    CEF.Phone.Close();
+                        CEF.Phone.Close();
 
-                    return;
+                        CEF.PhoneApps.CameraApp.Close();
+
+                        if (CurrentTask != null)
+                        {
+                            CurrentTask.Cancel();
+
+                            CurrentTask = null;
+                        }
+                    }
                 }
+                else
+                {
+                    if (stateType == PhoneStateTypes.JustOn)
+                    {
+                        player.TaskUseMobilePhone(0, 0);
 
-                player.StopAnimTask(AnimDict, AnimTextReadBase, 2f);
-                player.StopAnimTask(AnimDict, AnimTextToCall, 2f);
+                        DestroyLocalPhone();
+                    }
+                    else if (stateType == PhoneStateTypes.Idle)
+                    {
+                        player.TaskUseMobilePhone(0, 0);
 
-                player.StopAnimTask(AnimDictVehicle, AnimTextReadBase, 2f);
-                player.StopAnimTask(AnimDictVehicle, AnimTextToCall, 2f);
+                        CreateLocalPhone();
+                    }
+                    else if (stateType == PhoneStateTypes.Call)
+                    {
+                        CreateLocalPhone();
+
+                        player.TaskUseMobilePhone(1, 1);
+                    }
+                    else if (stateType == PhoneStateTypes.Camera)
+                    {
+
+                    }
+
+                    if (!Toggled)
+                    {
+                        RAGE.Game.Audio.PlaySound(-1, "Put_Away", "Phone_SoundSet_Michael", true, 0, true);
+
+                        Toggled = true;
+
+                        CEF.Phone.Show();
+
+                        CurrentTask?.Cancel();
+
+                        var lastSyncedType = stateType;
+
+                        CurrentTask = new AsyncTask(() =>
+                        {
+                            if (!Toggled)
+                                return;
+
+                            if (CanUsePhoneAnim())
+                            {
+                                if (pData.ActiveCall?.Player != null)
+                                {
+                                    if (lastSyncedType != PhoneStateTypes.Call)
+                                    {
+                                        Events.CallRemote("Players::SPST", PhoneStateTypes.Call);
+
+                                        lastSyncedType = PhoneStateTypes.Call;
+                                    }
+                                }
+                                else if (CEF.PhoneApps.CameraApp.IsActive)
+                                {
+                                    if (lastSyncedType != PhoneStateTypes.Camera)
+                                    {
+                                        Events.CallRemote("Players::SPST", PhoneStateTypes.Camera);
+
+                                        lastSyncedType = PhoneStateTypes.Camera;
+                                    }
+                                }
+                                else
+                                {
+
+                                    LocalPhoneMoveFingerRandom();
+
+                                    if (lastSyncedType != PhoneStateTypes.Idle)
+                                    {
+                                        Events.CallRemote("Players::SPST", PhoneStateTypes.Idle);
+
+                                        lastSyncedType = PhoneStateTypes.Idle;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                CEF.PhoneApps.CameraApp.Close();
+
+                                if (lastSyncedType != PhoneStateTypes.JustOn)
+                                {
+                                    Events.CallRemote("Players::SPST", PhoneStateTypes.JustOn);
+
+                                    lastSyncedType = PhoneStateTypes.JustOn;
+                                }
+
+                            }
+                        }, 100, true, 0);
+
+                        CurrentTask.Run();
+                    }
+                }
+            }
+            else
+            {
+                if (stateType == PhoneStateTypes.Off || stateType == PhoneStateTypes.JustOn)
+                {
+                    player.StopAnimTask(AnimDict, AnimTextReadBase, 3f);
+                    player.StopAnimTask(AnimDictSelf, AnimCameraSelfieBase, 3f);
+
+                    player.StopAnimTask(AnimDict, AnimCallBase, 3f);
+                }
+                else if (stateType == PhoneStateTypes.Idle)
+                {
+                    await Utils.RequestAnimDict(AnimDict);
+
+                    player.StopAnimTask(AnimDictSelf, AnimCameraSelfieBase, 3f);
+                    player.StopAnimTask(AnimDict, AnimCallBase, 3f);
+
+                    player.TaskPlayAnim(AnimDict, AnimTextReadBase, 8f, 0f, -1, 49, 0f, false, false, false);
+                }
+                else if (stateType == PhoneStateTypes.Call)
+                {
+                    player.StopAnimTask(AnimDict, AnimTextReadBase, 3f);
+                    player.StopAnimTask(AnimDict, AnimCameraSelfieBase, 3f);
+
+                    player.TaskPlayAnim(AnimDict, AnimCallBase, 8f, 0f, -1, 49, 0f, false, false, false);
+                }
+                else if (stateType == PhoneStateTypes.Camera)
+                {
+                    await Utils.RequestAnimDict(AnimDictSelf);
+
+                    player.StopAnimTask(AnimDict, AnimTextReadBase, 3f);
+                    player.StopAnimTask(AnimDict, AnimCallBase, 3f);
+
+                    player.TaskPlayAnim(AnimDictSelf, AnimCameraSelfieBase, 4f, 4f, -1, 49, 0f, false, false, false);
+                }
             }
         }
 
         public static void CreateLocalPhone()
         {
-/*            if (LocalPhoneExists)
-                return;*/
+            if (IsLocalPhoneActive)
+                return;
 
             RAGE.Game.Mobile.CreateMobilePhone(0); // default phone (iphone)
             RAGE.Game.Mobile.SetMobilePhoneScale(0f);
             RAGE.Game.Mobile.ScriptIsMovingMobilePhoneOffscreen(false);
-
-            //LocalPhoneExists = true;
 
             //RAGE.Game.Mobile.CellCamActivate(false, false);
         }
 
         public static void DestroyLocalPhone()
         {
-/*            if (!LocalPhoneExists)
-                return;*/
-
             RAGE.Game.Mobile.DestroyMobilePhone();
-
-            //LocalPhoneExists = false;
         }
 
         public static void LocalPhoneMoveFingerRandom()
@@ -160,19 +267,5 @@ namespace BCRPClient.Sync
         }
 
         public static bool IsLocalPhoneActive => Player.LocalPlayer.GetSelectedWeapon() == Sync.WeaponSystem.MobileHash;
-
-        public static void TurnVehiclePhone(Player player)
-        {
-            if (player == null || player.Handle == Player.LocalPlayer.Handle)
-                return;
-
-            var data = Sync.Players.GetData(player);
-
-            if (data == null || !data.PhoneOn)
-                return;
-
-            Off(true, player);
-            On(true, player);
-        }
     }
 }

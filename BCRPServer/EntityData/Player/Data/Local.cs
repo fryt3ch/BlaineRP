@@ -79,6 +79,10 @@ namespace BCRPServer
 
         public VehicleData RentedVehicle => VehicleData.All.Values.Where(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRent && x.OwnerID == CID).FirstOrDefault();
 
+        public VehicleData RentedJobVehicle => VehicleData.All.Values.Where(x => x.OwnerType == VehicleData.OwnerTypes.PlayerRentJob && x.OwnerID == CID).FirstOrDefault();
+
+        public Game.Jobs.Job CurrentJob { get => Game.Jobs.Job.Get(Player.GetData<int>("CJob")); set { if (value == null) Player.ResetData("CJob"); else Player.SetData("CJob", value.Id); } }
+
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
         public Game.Items.Container CurrentContainer { get => Player.GetData<Game.Items.Container>("CCont"); set { if (value == null) Player.ResetData("CCont"); else Player.SetData("CCont", value); } }

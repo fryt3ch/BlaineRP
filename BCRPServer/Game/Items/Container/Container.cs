@@ -164,7 +164,7 @@ namespace BCRPServer.Game.Items
                     if (vData == null)
                         return false;
 
-                    if (vData.IsFullOwner(pData) != null)
+                    if (vData.CanUseTrunk(pData, true))
                         return true;
 
                     return !vData.TrunkLocked;
@@ -221,13 +221,7 @@ namespace BCRPServer.Game.Items
         /// <returns>true - если игрок был успешно добавлен, false - в противном случае</returns>
         public bool AddPlayerObserving(PlayerData pData)
         {
-            PlayersObserving.ForEach(x =>
-            {
-                var target = x?.Player;
-
-                if (target?.Exists != true || !target.AreEntitiesNearby(Entity, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                    RemovePlayerObserving(x, true);
-            });
+            ClearAllWrongObservers();
 
             if (PlayersObserving.Count >= Settings.CONTAINER_MAX_PLAYERS)
                 return false;
@@ -252,20 +246,47 @@ namespace BCRPServer.Game.Items
                 player.TriggerEvent("Inventory::Close");
         }
 
+        public void ClearAllWrongObservers()
+        {
+            if (PlayersObserving.Count == 0)
+                return;
+
+            var players = new List<Player>();
+
+            PlayersObserving.ToList().ForEach(x =>
+            {
+                var target = x.Player;
+
+                if (target?.Exists != true || !IsNear(x) || !IsAccessableFor(x))
+                {
+                    players.Add(target);
+
+                    x.CurrentContainer = null;
+
+                    PlayersObserving.Remove(x);
+                }
+            });
+
+            if (players.Count > 0)
+                NAPI.ClientEvent.TriggerClientEventToPlayers(players.ToArray(), "Inventory::Close");
+        }
+
         /// <summary>Метод для очистки всех игроков, смотрящих контейнер</summary>
         public void ClearAllObservers()
         {
+            if (PlayersObserving.Count == 0)
+                return;
+
             var players = new List<Player>();
 
             PlayersObserving.ForEach(x =>
             {
-                x.CurrentWorkbench = null;
+                x.CurrentContainer = null;
 
-                if (x.Player?.Exists == true)
-                {
-                    players.Add(x.Player);
-                }
+                players.Add(x.Player);
             });
+
+            PlayersObserving.Clear();
 
             if (players.Count > 0)
                 NAPI.ClientEvent.TriggerClientEventToPlayers(players.ToArray(), "Inventory::Close");
@@ -335,7 +356,7 @@ namespace BCRPServer.Game.Items
             Entity = owner;
         }
 
-        public Player[] GetPlayersObservingArray() => PlayersObserving.Where(x => x.Player?.Exists == true).Select(x => x.Player).ToArray();
+        public Player[] GetPlayersObservingArray() => PlayersObserving.Select(x => x.Player).ToArray();
 
         public string ToClientJson() => $"{(int)ContainerType}&{MaxWeight}|{string.Join('|', Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Container)))}";
     }

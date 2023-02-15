@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -171,14 +172,20 @@ namespace BCRPServer
 
         public void Delete(bool completely)
         {
-            CancelDeletionTask();
+            if (CTSDelete is CancellationTokenSource ctsDelete)
+            {
+                ctsDelete.Cancel();
+                ctsDelete.Dispose();
+
+                CTSDelete = null;
+            }
 
             if (completely)
             {
                 this.Numberplate?.Delete();
 
-                if (TID != null)
-                    Game.Items.Container.Get((uint)TID)?.Delete();
+                if (TID is uint tid)
+                    Game.Items.Container.Get(tid)?.Delete();
 
                 if (OwnerType == OwnerTypes.Player)
                 {
@@ -186,7 +193,7 @@ namespace BCRPServer
 
                     if (pInfo != null)
                     {
-                        var pData = Utils.GetPlayerByCID(OwnerID);
+                        var pData = pInfo.PlayerData;
 
                         if (pData != null)
                         {
@@ -207,13 +214,15 @@ namespace BCRPServer
                     }
                     else
                     {
-                        LastData.Position = Vehicle.Position;
-                        LastData.Heading = Vehicle.Heading;
-                        LastData.Dimension = Vehicle.Dimension;
+                        if (LastData.GarageSlot < 0)
+                        {
+                            LastData.Position = Vehicle.Position;
+                            LastData.Heading = Vehicle.Heading;
+                            LastData.Dimension = Vehicle.Dimension;
+                        }
                     }
 
-                    if (Info != null)
-                        MySQL.VehicleDeletionUpdate(Info);
+                    MySQL.VehicleDeletionUpdate(Info);
                 }
                 else
                 {
@@ -278,7 +287,7 @@ namespace BCRPServer
                 RegistrationDate = Utils.GetCurrentTime(),
             };
 
-            Game.Items.Container cont = vType.TrunkData == null ? null : Game.Items.Container.Create($"vt_{vType.ID}", null);
+            var cont = vType.TrunkData == null ? null : Game.Items.Container.Create($"vt_{vType.ID}", null);
 
             if (cont != null)
             {
@@ -302,10 +311,10 @@ namespace BCRPServer
 
                 veh.Dimension = dimension;
 
-                if (player?.Exists != true || !setInto)
-                    return;
-
-                player.SetIntoVehicle(veh, 0);
+                if (setInto && player?.Exists == true)
+                {
+                    player.SetIntoVehicle(veh, 0);
+                }
             }, 1500);
 
             return vData;
@@ -446,6 +455,8 @@ namespace BCRPServer
 
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
+            vData.Vehicle.SetData("JID", jobId);
+
             var veh = vData.Vehicle;
 
             if (job is Game.Jobs.IVehicles vehJob)
@@ -464,55 +475,52 @@ namespace BCRPServer
             return vData;
         }
 
-        public void StartDeletionTask()
+        public bool StartDeletionTask()
         {
             if (CTSDelete != null)
-                return;
+                return false;
 
-            CTSDelete = new CancellationTokenSource();
+            var ctsDelete = new CancellationTokenSource();
 
             Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(Settings.OWNED_VEHICLE_TIME_TO_AUTODELETE, CTSDelete.Token);
-
-                    if (CTSDelete != null)
-                    {
-                        CTSDelete.Cancel();
-
-                        CTSDelete = null;
-                    }
+                    await Task.Delay(Settings.OWNED_VEHICLE_TIME_TO_AUTODELETE, ctsDelete.Token);
 
                     NAPI.Task.Run(() =>
                     {
+                        if (Vehicle?.Exists != true)
+                            return;
+
                         Delete(false);
                     });
                 }
-                catch (Exception ex)
-                {
-                    if (CTSDelete != null)
-                    {
-                        CTSDelete.Cancel();
-
-                        CTSDelete = null;
-                    }
-                }
+                catch (Exception ex) { }
             });
 
+            CTSDelete = ctsDelete;
+
             Console.WriteLine("[VehDeletion] Started deletion");
+
+            return true;
         }
 
-        public void CancelDeletionTask()
+        public bool CancelDeletionTask()
         {
-            if (CTSDelete != null)
+            if (CTSDelete is CancellationTokenSource ctsDelete)
             {
-                CTSDelete.Cancel();
+                ctsDelete.Cancel();
+                ctsDelete.Dispose();
 
                 CTSDelete = null;
 
                 Console.WriteLine("[VehDeletion] Cancelled deletion");
+
+                return true;
             }
+
+            return false;
         }
 
         public bool IsFullOwner(PlayerData pData, bool notify = true)
@@ -556,7 +564,7 @@ namespace BCRPServer
             }
             else if (OwnerType == OwnerTypes.PlayerRentJob)
             {
-                if (Vehicle.GetData<PlayerData>(Game.Jobs.Job.RentedVehicleOwnerKey) == pData)
+                if (OwnerID == pData.CID)
                     return true;
             }
 
@@ -566,6 +574,14 @@ namespace BCRPServer
             }
 
             return false;
+        }
+
+        public bool CanUseTrunk(PlayerData pData, bool notify = true)
+        {
+            if (!TrunkLocked)
+                return true;
+
+            return CanManipulate(pData, notify);
         }
 
         #endregion

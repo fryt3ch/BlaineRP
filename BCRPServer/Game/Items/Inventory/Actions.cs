@@ -99,7 +99,7 @@ namespace BCRPServer.Game.Items
                                         {
                                             wWeapon.Unequip(pData);
 
-                                            player.InventoryUpdate(Groups.Weapons, 0, Game.Items.Item.ToClientJson(wWeapon, Groups.Weapons));
+                                            player.InventoryUpdate(Groups.Weapons, i, Game.Items.Item.ToClientJson(wWeapon, Groups.Weapons));
                                         }
                                     }
 

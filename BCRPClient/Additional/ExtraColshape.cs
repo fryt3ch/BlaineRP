@@ -325,6 +325,8 @@ namespace BCRPClient.Additional
         /// <summary>Доступны ли в данный момент для взаимодействия соответствующие колшейпы?</summary>
         public static bool InteractionColshapesAllowed { get => _InteractionColshapesAllowed && !Utils.IsAnyCefActive(true) && !SkyCamera.IsFadedOut; set { _InteractionColshapesAllowed = value; } }
 
+        public static bool InteractionColshapesDisabledThisFrame { get; set; }
+
         /// <summary>Время последней отправки на сервер, используя колшейп</summary>
         public static DateTime LastSent;
 
@@ -1344,7 +1346,14 @@ namespace BCRPClient.Additional
 
         public static void UpdateInside()
         {
-            bool interactionAllowed = InteractionColshapesAllowed;
+            var interactionAllowed = InteractionColshapesAllowed;
+
+            if (InteractionColshapesDisabledThisFrame)
+            {
+                interactionAllowed = false;
+
+                InteractionColshapesDisabledThisFrame = false;
+            }
 
             var pos = Player.LocalPlayer.Vehicle is Vehicle veh ? veh.Position : Player.LocalPlayer.Position;
 

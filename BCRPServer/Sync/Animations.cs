@@ -286,24 +286,25 @@ namespace BCRPServer.Sync
         {
             None = -1,
 
-            Angry,
-            Drunk,
-            Dumb,
-            Electrocuted,
-            Grumpy, Grumpy2, Grumpy3,
             Happy,
-            Injured,
             Joyful,
-            Mouthbreather,
-            NeverBlink,
-            OneEye,
-            Shocked, Shocked2,
-            Sleeping, Sleeping2, Sleeping3,
             Smug,
             Speculative,
-            Stressed,
+            Mouthbreather,
             Sulking,
+            Grumpy, Grumpy2, Grumpy3,
+            Angry,
+            Stressed,
+            Shocked, Shocked2,
+            NeverBlink,
+            OneEye,
+            Sleeping, Sleeping2, Sleeping3,
             Weird, Weird2,
+            Electrocuted,
+
+            /*            Drunk,
+                        Dumb,
+                        Injured,*/
         }
 
         public static Dictionary<FastTypes, int> FastTimeouts = new Dictionary<FastTypes, int>()

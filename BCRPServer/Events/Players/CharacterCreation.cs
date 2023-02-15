@@ -125,10 +125,9 @@ namespace BCRPServer.Events.Players
                 if (clothes[3] != null)
                     newClothes[4] = (Game.Items.Clothes)Game.Items.Stuff.CreateItem(clothes[3], 0, 1);
 
-                var pData = new PlayerData(player, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
+                var pData = new PlayerData(player, tData.AccountData.ID, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
 
                 player.TriggerEvent("CharacterCreation::Close");
-                player.TriggerEvent("FadeScreen", true);
 
                 tData.Delete();
 

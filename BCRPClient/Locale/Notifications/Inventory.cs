@@ -59,7 +59,6 @@ namespace BCRPClient
                 public static string Header = "Контейнер";
 
                 public static string Wait = "Подождите, пока кто-то прекратит пользоваться этим (максимально - {0} человек одновременно)";
-                public static string ReadOnly = "Вы можете только просматривать данный контейнер!";
             }
         }
     }

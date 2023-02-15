@@ -67,6 +67,10 @@ namespace BCRPClient.CEF
 
             PlacedItemOnGroundSelect,
             ItemOnGroundTakeRange,
+
+            JobVehicleRentMoney,
+
+            JobTruckerOrderSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -298,7 +302,7 @@ namespace BCRPClient.CEF
 
                                     Player.LocalPlayer.SetData("AB::Temp::GBD::H", (Data.Locations.Garage)args[0]);
                                     Player.LocalPlayer.SetData("AB::Temp::GBD::B", (Data.Locations.Bank)args[1]);
-                                    Player.LocalPlayer.SetData("AB::Temp::GBD::A", (Data.Locations.Bank)args[2]);
+                                    Player.LocalPlayer.SetData("AB::Temp::GBD::A", (bool)args[2]);
                                 }
                             },
 
@@ -843,6 +847,51 @@ namespace BCRPClient.CEF
                             },
                         }
                     },
+
+                    {
+                        Contexts.JobTruckerOrderSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        if (id != 1 && id != 2)
+                                            return;
+
+                                        var vehicle = Player.LocalPlayer.GetData<Vehicle>($"ActionBox::Temp::VTVSV{id}");
+
+                                        Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<int>("ActionBox::Temp::VTVST"), vehicle);
+
+                                        Close(true);
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
+                        }
+                    },
                 }
             },
 
@@ -924,7 +973,95 @@ namespace BCRPClient.CEF
                                 }
                             }
                         }
-                    }
+                    },
+
+                    {
+                        Contexts.JobVehicleRentMoney,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    var vehicle = (Vehicle)args[0];
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVE", vehicle);
+
+                                    var checkAction = new Action(() =>
+                                    {
+                                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                            Close(true);
+                                    });
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                                    GameEvents.Update -= checkAction.Invoke;
+                                    GameEvents.Update += checkAction.Invoke;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    if (LastSent.IsSpam(500))
+                                        return;
+
+                                    var rType = (ReplyTypes)args[0];
+
+                                    var vehicle = Player.LocalPlayer.GetData<Vehicle>("ActionBox::Temp::JVRVE");
+
+                                    if (vehicle == null)
+                                    {
+                                        Close(true);
+
+                                        return;
+                                    }
+
+                                    if (rType == ReplyTypes.OK || rType == ReplyTypes.Cancel)
+                                    {
+                                        LastSent = DateTime.Now;
+
+                                        if ((bool)await Events.CallRemoteProc("Vehicles::JVRS", rType == ReplyTypes.OK))
+                                        {
+                                            Close(true, true);
+                                        }
+                                    }
+                                    else if (rType == ReplyTypes.Additional1)
+                                    {
+                                        Close(true);
+                                    }
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                                    if (checkAction != null)
+                                    {
+                                        GameEvents.Update -= checkAction.Invoke;
+
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                                    }
+
+                                    if (args == null || args.Length < 1)
+                                    {
+                                        var vehicle = Player.LocalPlayer.GetData<Vehicle>("ActionBox::Temp::JVRVE");
+
+                                        if (Player.LocalPlayer.Vehicle == vehicle)
+                                        {
+                                            Player.LocalPlayer.TaskLeaveAnyVehicle(0, 0);
+                                        }
+                                    }
+
+                                    Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVE");
+                                }
+                            }
+                        }
+                    },
                 }
             }
         };
@@ -1058,7 +1195,7 @@ namespace BCRPClient.CEF
             Cursor.Show(true, true);
         }
 
-        public static void Close(bool cursor = true)
+        public static void Close(bool cursor = true, params object[] args)
         {
             if (!IsActive)
                 return;
@@ -1073,7 +1210,7 @@ namespace BCRPClient.CEF
             if (cursor)
                 Cursor.Show(false, false);
 
-            TryInvokeAction(CurrentType, CurrentContext, ActionTypes.Close);
+            TryInvokeAction(CurrentType, CurrentContext, ActionTypes.Close, args);
 
             CurrentType = Types.None;
             CurrentContext = Contexts.None;

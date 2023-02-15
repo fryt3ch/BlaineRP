@@ -492,7 +492,7 @@ namespace BCRPClient
             if (pData == null)
                 return includeId ? Locale.General.Players.MaleNameDefault + string.Format(Locale.General.Players.Id, player.RemoteId) : Locale.General.Players.MaleNameDefault;
 
-            string name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.Masked) ? player.Name : pData.Sex ? Locale.General.Players.MaleNameDefault : Locale.General.Players.FemaleNameDefault) : player.Name;
+            string name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.IsMasked) ? player.Name : pData.Sex ? Locale.General.Players.MaleNameDefault : Locale.General.Players.FemaleNameDefault) : player.Name;
 
             if (includeId)
                 return name + " " + string.Format(Locale.General.Players.Id, player.RemoteId);
@@ -1181,6 +1181,8 @@ namespace BCRPClient
 
         public static bool IsInteriorEntitySetActive(int intId, string entitySetName) => RAGE.Game.Invoker.Invoke<bool>(0x35F7DD45E8C0A16D, intId, entitySetName);
         public static void SetInteriorEntitySetColour(int intId, string entitySetName, int colour) => RAGE.Game.Invoker.Invoke(0xC1F1920BAF281317, intId, entitySetName, colour);
+
+        public static float GetLimitedValue(float curValue, float minValue, float maxValue) => Math.Min(maxValue, Math.Max(minValue, curValue));
     }
 
     public static class Extensions
@@ -1699,5 +1701,7 @@ namespace BCRPClient
 
             return true;
         }
+
+        public static void TaskLookAtCoord2(this PedBase ped, float posX, float posY, float posZ, int duration, int flags = 2048, int p2 = 3) => RAGE.Game.Invoker.Invoke(0x6FA46612594F7973, ped.Handle, posX, posY, posZ, duration, flags, p2);
     }
 }

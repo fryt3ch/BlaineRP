@@ -649,8 +649,8 @@ namespace BCRPClient.Data
         [Command("health", true, "Установить здоровье (себе)", "hp")]
         public static void Health(uint value)
         {
-            if (value > 100)
-                value = 100;
+/*            if (value > 100)
+                value = 100;*/
 
             if (LastSent.IsSpam(1000, false, true))
                 return;

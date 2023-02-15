@@ -44,7 +44,7 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "arm_m_s", new ItemData("Обычный бронежилет", 0.5f, true, 28, new ItemData.Colours[] { ItemData.Colours.White }, 19, 100, null) },
+            { "arm_m_s", new ItemData("Обычный бронежилет", 0.5f, true, 28, new ItemData.Colours[] { ItemData.Colours.White }, 19, 100, "arm_m_s") },
         };
 
         [JsonIgnore]
@@ -68,6 +68,8 @@ namespace BCRPServer.Game.Items
 
             var variation = Var;
 
+            player.SetArmour(Strength);
+
             if (Data.Sex != pData.Sex)
             {
                 data = SexAlternativeData;
@@ -80,8 +82,6 @@ namespace BCRPServer.Game.Items
             }
 
             player.SetClothes(Slot, pData.Clothes[1] == null ? data.Drawable : data.DrawableTop, data.Textures[variation]);
-
-            player.SetArmour(Strength);
         }
 
         /// <summary>Метод для снятия брони с игрока</summary>

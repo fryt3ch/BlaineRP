@@ -619,6 +619,8 @@ namespace BCRPClient.Sync
 
         private static void HouseExit(params object[] args)
         {
+            Utils.ConsoleOutput("HE");
+
             Utils.CancelPendingTask("House::Enter");
 
             Player.LocalPlayer.ResetData("House::CurrentHouse");

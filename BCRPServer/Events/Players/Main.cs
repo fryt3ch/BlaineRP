@@ -619,8 +619,8 @@ namespace BCRPServer.Events.Players
         #endregion
 
         #region Phone
-        [RemoteEvent("Players::TogglePhone")]
-        public static void StartUsePhone(Player player, bool state)
+        [RemoteEvent("Players::SPST")]
+        public static void SetPhoneStateType(Player player, byte stateNum)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -629,19 +629,29 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.PhoneOn == state)
+            if (!Enum.IsDefined(typeof(Sync.Players.PhoneStateTypes), stateNum))
                 return;
 
-            if (state)
+            var stateType = (Sync.Players.PhoneStateTypes)stateNum;
+
+            var curStateType = pData.PhoneStateType;
+
+            if (curStateType == stateType)
+                return;
+
+            if (stateType != Sync.Players.PhoneStateTypes.Off)
             {
-                if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject)
+                if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                     return;
 
-                pData.PhoneOn = true;
+                pData.PhoneStateType = stateType;
 
-                player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
+                if (curStateType == Sync.Players.PhoneStateTypes.Off)
+                {
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
+                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
+                }
             }
             else
             {

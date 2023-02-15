@@ -1,4 +1,6 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,59 @@ namespace BCRPClient.Data
         public abstract class Job
         {
             private static Dictionary<int, Job> AllJobs { get; set; } = new Dictionary<int, Job>();
+
+            public static Job Get(int id) => AllJobs.GetValueOrDefault(id);
+
+            private static Dictionary<Types, Action<Sync.Players.PlayerData, Job>> ShowJobMenuActions { get; set; } = new Dictionary<Types, Action<Sync.Players.PlayerData, Job>>()
+            {
+                {
+                    Types.Trucker,
+
+                    (pData, job) =>
+                    {
+                        var truckerJob = job as Trucker;
+
+                        var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+
+                        if (jobVehicle == null)
+                            return;
+
+                        if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                            return;
+                        }
+
+                        var activeOrders = job.GetCurrentData<List<Trucker.OrderInfo>>("AOL");
+
+                        if (activeOrders == null)
+                            return;
+
+                        truckerJob.ShowOrderSelection(activeOrders);
+                    }
+                },
+            };
+
+            public static void ShowJobMenu()
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                var job = pData.CurrentJob;
+
+                if (job == null)
+                    return;
+
+                var showAction = ShowJobMenuActions.GetValueOrDefault(job.Type);
+
+                if (showAction == null)
+                    return;
+
+                showAction.Invoke(pData, job);
+            }
 
             public enum Types
             {
@@ -28,18 +83,71 @@ namespace BCRPClient.Data
 
             public NPC JobGiver { get; set; }
 
+            private Dictionary<string, object> CurrentData { get; set; }
+
             public Job(int Id, Types Type)
             {
                 this.Id = Id;
 
                 AllJobs.Add(Id, this);
             }
+
+            public void SetCurrentData(string key, object data)
+            {
+                if (CurrentData == null)
+                    return;
+
+                if (!CurrentData.TryAdd(key, data))
+                    CurrentData[key] = data;
+            }
+
+            public T GetCurrentData<T>(string key)
+            {
+                var data = CurrentData.GetValueOrDefault(key);
+
+                if (data is T dataT)
+                    return dataT;
+
+                return default(T);
+            }
+
+            public bool ResetCurrentData(string key) => CurrentData.Remove(key);
+
+            public virtual void OnStartJob(object[] data)
+            {
+                CurrentData = new Dictionary<string, object>();
+            }
+
+            public virtual void OnEndJob()
+            {
+                if (CurrentData != null)
+                {
+                    CurrentData.Clear();
+
+                    CurrentData = null;
+                }
+            }
         }
 
         public class Trucker : Job
         {
-            public Trucker(int Id, Utils.Vector4 Position) : base(Id, Types.Trucker) 
+            public class OrderInfo
             {
+                public int Id { get; set; }
+
+                public uint Reward { get; set; }
+
+                public int MPIdx { get; set; }
+
+                public Data.Locations.Business TargetBusiness { get; set; }
+            }
+
+            public List<Vector3> MaterialsPositions { get; set; }
+
+            public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, Types.Trucker) 
+            {
+                this.MaterialsPositions = MaterialsPositions;
+
                 var subId = SubId;
 
                 if (subId == 0)
@@ -50,6 +158,45 @@ namespace BCRPClient.Data
                 JobGiver.Data = this;
 
                 JobGiver.DefaultDialogueId = "job_trucker_g_0";
+            }
+
+            public override void OnStartJob(object[] data)
+            {
+                base.OnStartJob(data);
+
+                var activeOrders = ((JArray)data[1]).ToObject<List<string>>().Select(x =>
+                {
+                    var t = x.Split('_');
+
+                    var id = int.Parse(t[0]);
+
+                    var business = Data.Locations.Business.All[id < 0 ? -id : id];
+
+                    return new OrderInfo() { Id = id, TargetBusiness = business, MPIdx = int.Parse(t[1]), Reward = uint.Parse(t[2]) };
+                }).ToList();
+
+                SetCurrentData("AOL", activeOrders);
+
+                SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote((ushort)data[0].ToDecimal()));
+            }
+
+            public override void OnEndJob()
+            {
+                base.OnEndJob();
+            }
+
+            public void ShowOrderSelection(List<OrderInfo> activeOrders)
+            {
+                if (activeOrders.Count == 0)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.General.JobNoOrders);
+
+                    return;
+                }
+
+                var counter = 0;
+
+                CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray());
             }
         }
     }

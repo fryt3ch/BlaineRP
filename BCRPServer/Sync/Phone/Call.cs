@@ -118,6 +118,8 @@ namespace BCRPServer.Sync.Phone
                 }
             });
 
+            StatusType = StatusTypes.Process;
+
             Caller.Player.TriggerEvent("Phone::ACS", true, Receiver.Player.Id);
             Receiver.Player.TriggerEvent("Phone::ACS", true, Caller.Player.Id);
         }

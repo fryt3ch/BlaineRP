@@ -1,5 +1,6 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
+using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +55,27 @@ namespace BCRPServer.Events.Vehicles
             player.TriggerEvent("Vehicles::Enter", vData.FuelLevel, vData.Mileage);
 
             pData.VehicleSeat = seatId;
+
+            if (seatId == 0)
+            {
+                if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)
+                {
+                    if (vData.OwnerID == 0 && vData.OwnerID != pData.CID)
+                    {
+                        if (pData.RentedJobVehicle == null)
+                        {
+                            if (vData.Job is Game.Jobs.Job jobData && jobData is Game.Jobs.IVehicles jobDataVeh)
+                            {
+                                player.TriggerEvent("Vehicles::JVRO", jobDataVeh.VehicleRentPrice);
+                            }
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -173,38 +195,22 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             if (!vData.CanManipulate(pData, true))
-            {
                 return;
-            }
 
-            if (vData.Info != null && vData.Info.LastData.GarageSlot >= 0)
+            if (vData.Info.LastData.GarageSlot >= 0)
             {
                 if (pData.CurrentHouse is Game.Estates.House house)
                 {
                     if (house.GarageOutside == null)
                         return;
 
-                    vData.IsFrozen = false;
-                    vData.IsInvincible = false;
-
-                    vData.Info.LastData.GarageSlot = -1;
-
                     veh.Teleport(house.GarageOutside.Position, Utils.Dimensions.Main, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
-
-                    player.TriggerEvent("House::Exit");
                 }
                 else if (pData.CurrentGarage is Game.Estates.Garage garage)
                 {
-                    vData.IsFrozen = false;
-                    vData.IsInvincible = false;
-
-                    vData.Info.LastData.GarageSlot = -1;
-
                     var ePos = garage.Root.GetNextVehicleExit();
 
                     veh.Teleport(ePos.Position, Utils.Dimensions.Main, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
-
-                    player.TriggerEvent("Garage::Exit");
                 }
                 else
                 {
@@ -482,7 +488,7 @@ namespace BCRPServer.Events.Vehicles
                 if (cont == null)
                     return;
 
-                cont.ClearAllObservers();
+                cont.ClearAllWrongObservers();
             }
         }
         #endregion
@@ -995,6 +1001,73 @@ namespace BCRPServer.Events.Vehicles
 
                 vData.Vehicle.Teleport(waterPos, null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
             }
+        }
+
+        [RemoteProc("Vehicles::JVRS")]
+        private static bool JobVehicleRentStart(Player player, bool useCash)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
+
+            var vData = player.Vehicle?.GetMainData();
+
+            if (vData == null || vData.OwnerType != VehicleData.OwnerTypes.PlayerRentJob)
+                return false;
+
+            if (pData.VehicleSeat != 0)
+                return false;
+
+            if (pData.HasJob(true))
+                return false;
+
+            var jobData = vData.Job;
+            var jobDataV = jobData as Game.Jobs.IVehicles;
+
+            if (jobData == null || jobDataV == null)
+                return false;
+
+            if (vData.OwnerID != 0)
+            {
+                return false;
+            }
+
+            if (vData.OwnerID == pData.CID)
+                return false;
+
+            if (pData.RentedJobVehicle != null)
+            {
+                return false;
+            }
+
+            ulong newBalance;
+
+            if (useCash)
+            {
+                if (!pData.TryRemoveCash(jobDataV.VehicleRentPrice, out newBalance, true))
+                    return false;
+
+                pData.SetCash(newBalance);
+            }
+            else
+            {
+                if (!pData.HasBankAccount(true) || !pData.BankAccount.TryRemoveMoneyDebit(jobDataV.VehicleRentPrice, out newBalance, true))
+                    return false;
+
+                pData.BankAccount.SetDebitBalance(newBalance, null);
+            }
+
+            vData.OwnerID = pData.CID;
+
+            jobData.SetPlayerJob(pData, vData);
+
+            return true;
         }
     }
 }

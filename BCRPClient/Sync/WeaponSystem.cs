@@ -19,7 +19,7 @@ namespace BCRPClient.Sync
         public const uint UnarmedHash = 0xA2719263;
         public const uint MobileHash = 966099553;
 
-        public static bool Reloading;
+        public static bool Reloading { get; private set; }
 
         public static (Player Player, int Damage, int BoneIdx, DateTime Time) LastAttackerInfo { get; private set; }
 
@@ -499,8 +499,6 @@ namespace BCRPClient.Sync
                 mp.events.add('outgoingDamage', (sourceEntity, targetEntity, sourcePlayer, weapon, boneIndex, damage) => { mp.game.weapon.setCurrentDamageEventAmount(boneIndex); });"
             );
 
-            Player.LocalPlayer.SetInfiniteAmmoClip(true);
-
             LastAttackerInfo = (Player.LocalPlayer, 0, -1, DateTime.Now);
 
             Reloading = false;
@@ -524,9 +522,6 @@ namespace BCRPClient.Sync
 
             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
 
-            // disable headshot critical
-            RAGE.Elements.Player.LocalPlayer.SetSuffersCriticalHits(false);
-
             RAGE.Game.Player.DisablePlayerVehicleRewards();
 
             LastArmourLoss = DateTime.Now;
@@ -543,11 +538,19 @@ namespace BCRPClient.Sync
             #region Render
             GameEvents.Update += () =>
             {
+                Player.LocalPlayer.SetSuffersCriticalHits(false);
+
+                /*                RAGE.Game.Player.SetPlayerMeleeWeaponDamageModifier(0.15f, 1);
+                                RAGE.Game.Player.SetPlayerMeleeWeaponDefenseModifier(-9999999f);
+                                RAGE.Game.Player.SetPlayerWeaponDefenseModifier(-9999999f);
+                                RAGE.Game.Ped.SetAiWeaponDamageModifier(0f);
+                                RAGE.Game.Ped.SetAiMeleeWeaponDamageModifier(1f);*/
+
                 if (DisabledFiring)
                     RAGE.Game.Player.DisablePlayerFiring(true);
 
-                if (Player.LocalPlayer.IsPerformingStealthKill())
-                    Player.LocalPlayer.ClearTasksImmediately();
+/*                if (Player.LocalPlayer.IsPerformingStealthKill())
+                    Player.LocalPlayer.ClearTasksImmediately();*/
 
                 // Disable Weapon Wheel
                 RAGE.Game.Pad.DisableControlAction(24, 157, true);
@@ -575,10 +578,10 @@ namespace BCRPClient.Sync
                 // Disable Stealth Mode (ctrl)
                 RAGE.Game.Pad.DisableControlAction(32, 36, true);
 
-                // Disable Alternate Weapon Attack
+/*                // Disable Alternate Weapon Attack
 
-                if (RAGE.Game.Weapon.GetWeaponDamageType(RAGE.Elements.Player.LocalPlayer.GetSelectedWeapon()) != 2)
-                    RAGE.Game.Pad.DisableControlAction(2, 142, true);
+                if (!RAGE.Game.Weapon.IsPedArmed(Player.LocalPlayer.Handle, 1))
+                    RAGE.Game.Pad.DisableControlAction(2, 142, true);*/
 
                 if (Player.LocalPlayer.IsUsingActionMode())
                     Player.LocalPlayer.SetUsingActionMode(false, -1, "DEFAULT_ACTION");
@@ -586,7 +589,7 @@ namespace BCRPClient.Sync
 
             GameEvents.Update += () =>
             {
-                if (RAGE.Game.Cam.IsAimCamActive())
+                if (Player.LocalPlayer.HasWeapon() && RAGE.Game.Cam.IsAimCamActive())
                 {
                     if (Settings.Aim.Type == Settings.Aim.Types.Default)
                         return;
@@ -595,7 +598,7 @@ namespace BCRPClient.Sync
 
                     if (Settings.Aim.Type == Settings.Aim.Types.Cross)
                     {
-                        float scale = 3f * Settings.Aim.Scale;
+                        var scale = 3f * Settings.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
                             RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
@@ -604,7 +607,7 @@ namespace BCRPClient.Sync
                     }
                     else if (Settings.Aim.Type == Settings.Aim.Types.Dot)
                     {
-                        float scale = 1f * Settings.Aim.Scale;
+                        var scale = 1f * Settings.Aim.Scale;
 
                         if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
                             RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
@@ -634,7 +637,7 @@ namespace BCRPClient.Sync
                     if (Sync.Players.GetData(killer) == null)
                         killer = Player.LocalPlayer;
 
-                    Additional.Scaleform.ShowWasted(reason, killer);
+                    var scaleformWaster = Additional.Scaleform.CreateShard("wasted", "~r~" + Locale.Scaleform.Wasted.Header, killer.Handle == Player.LocalPlayer.Handle ? Locale.Scaleform.Wasted.TextSelf : string.Format(Locale.Scaleform.Wasted.TextAttacker, killer.GetName(true, false, true), Sync.Players.GetData(killer)?.CID ?? 0), -1);
 
                     Events.CallRemote("Players::OnDeath", killer);
                 }
@@ -818,6 +821,20 @@ namespace BCRPClient.Sync
             LastHealth = curHealth;
             LastArmour = curArmour;
 
+/*            if (Player.LocalPlayer.WasKilledByTakedown() || Player.LocalPlayer.GetConfigFlag(69, true) || Player.LocalPlayer.GetConfigFlag(70, true) || Player.LocalPlayer.GetConfigFlag(71, true))
+            {
+                //Player.LocalPlayer.SetProofs(false, false, false, false, true, false, false, false);
+
+                Player.LocalPlayer.SetConfigFlag(69, false);
+                Player.LocalPlayer.SetConfigFlag(70, false);
+                Player.LocalPlayer.SetConfigFlag(71, false);
+
+                Player.LocalPlayer.SetRealHealth(LastHealth);
+                Player.LocalPlayer.SetArmour(LastArmour);
+
+                return;
+            }*/
+
             if (curHealth <= 0 && !Player.LocalPlayer.IsDeadOrDying(true))
             {
                 Player.LocalPlayer.SetRealHealth(0);
@@ -880,7 +897,7 @@ namespace BCRPClient.Sync
 
                     var pPos = Player.LocalPlayer.GetCoords(false);
 
-                    float distance = RAGE.Vector3.Distance(pPos, sPos);
+                    var distance = RAGE.Vector3.Distance(pPos, sPos);
 
                     if (distance > gun.MaxDistance)
                         return;
@@ -888,11 +905,12 @@ namespace BCRPClient.Sync
                     if (!pData.IsKnocked)
                         cancel.Cancel = false;
 
-                    PartTypes pType = PartTypes.Limb;
+                    PartTypes pType;
 
-                    PedParts.TryGetValue(boneIdx, out pType);
+                    if (!PedParts.TryGetValue(boneIdx, out pType))
+                        pType = PartTypes.Limb;
 
-                    float boneRatio = gun.GetBodyRatio(pType);
+                    var boneRatio = gun.GetBodyRatio(pType);
 
                     var customDamage = (int)((gun.BaseDamage - (gun.DistanceRatio * distance)) * boneRatio * (sourcePlayer.IsSittingInAnyVehicle() ? IN_VEHICLE_DAMAGE_COEF : 1f)) - (pData.IsKnocked ? 0 : 1);
 
@@ -983,7 +1001,7 @@ namespace BCRPClient.Sync
 
             if (targetEntity is Vehicle veh)
             {
-                if (!veh.GetCanBeDamaged() || veh.Controller?.Handle == Player.LocalPlayer.Handle)
+                if (veh.Controller?.Handle == Player.LocalPlayer.Handle)
                     return;
 
                 if (LastSentVehicleDamage.IsSpam(100, false, false))

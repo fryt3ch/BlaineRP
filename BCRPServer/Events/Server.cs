@@ -88,6 +88,8 @@ namespace BCRPServer.Events
             #endregion
 
             #region Local Data Load Section
+            Game.Businesses.Business.LoadPrices();
+
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all items [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Items.Stuff.LoadAll()}]~/~", false);
 
@@ -146,6 +148,11 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
             Utils.ConsoleOutput();
+
+            foreach (var x in Game.Jobs.Job.AllJobs.Values)
+            {
+                x.PostInitialize();
+            }
 
 /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
