@@ -45,6 +45,34 @@ namespace BCRPClient.Data
                         truckerJob.ShowOrderSelection(activeOrders);
                     }
                 },
+
+                {
+                    Types.Cabbie,
+
+                    (pData, job) =>
+                    {
+                        var cabbieJob = job as Cabbie;
+
+                        var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+
+                        if (jobVehicle == null)
+                            return;
+
+                        if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                            return;
+                        }
+
+                        var activeOrders = job.GetCurrentData<List<Cabbie.OrderInfo>>("AOL");
+
+                        if (activeOrders == null)
+                            return;
+
+                        cabbieJob.ShowOrderSelection(activeOrders);
+                    }
+                },
             };
 
             public static void ShowJobMenu()
@@ -71,6 +99,8 @@ namespace BCRPClient.Data
             {
                 /// <summary>Работа дальнобойщика</summary>
                 Trucker = 0,
+
+                Cabbie,
             }
 
             public int Id { get; set; }
@@ -133,13 +163,18 @@ namespace BCRPClient.Data
         {
             public class OrderInfo
             {
-                public int Id { get; set; }
+                public uint Id { get; set; }
 
                 public uint Reward { get; set; }
 
                 public int MPIdx { get; set; }
 
                 public Data.Locations.Business TargetBusiness { get; set; }
+
+                public OrderInfo()
+                {
+
+                }
             }
 
             public List<Vector3> MaterialsPositions { get; set; }
@@ -168,12 +203,12 @@ namespace BCRPClient.Data
                 {
                     var t = x.Split('_');
 
-                    var id = int.Parse(t[0]);
+                    var id = uint.Parse(t[0]);
 
-                    var business = Data.Locations.Business.All[id < 0 ? -id : id];
+                    var business = Data.Locations.Business.All[int.Parse(t[1])];
 
-                    return new OrderInfo() { Id = id, TargetBusiness = business, MPIdx = int.Parse(t[1]), Reward = uint.Parse(t[2]) };
-                }).ToList();
+                    return new OrderInfo() { Id = id, TargetBusiness = business, MPIdx = int.Parse(t[2]), Reward = uint.Parse(t[3]) };
+                }).OrderByDescending(x => x.Reward).ToList();
 
                 SetCurrentData("AOL", activeOrders);
 
@@ -196,7 +231,42 @@ namespace BCRPClient.Data
 
                 var counter = 0;
 
-                CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray());
+                //CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+                CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].GetPathfindTravelDistance(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].GetPathfindTravelDistance(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+            }
+        }
+
+        public class Cabbie : Job
+        {
+            public class OrderInfo
+            {
+                public uint Id { get; set; }
+
+                public Vector3 Position { get; set; }
+
+                public OrderInfo()
+                {
+
+                }
+            }
+
+            public Cabbie(int Id, Utils.Vector4 Position) : base(Id, Types.Cabbie)
+            {
+            }
+
+            public void ShowOrderSelection(List<OrderInfo> activeOrders)
+            {
+                if (activeOrders.Count == 0)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.General.JobNoOrders);
+
+                    return;
+                }
+
+                var counter = 0;
+
+                //CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+                //CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobCabbieOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.GetStreetName(x.Position), Math.Round(Player.LocalPlayer.Position.GetPathfindTravelDistance(x.Position) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
             }
         }
     }

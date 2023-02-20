@@ -142,7 +142,9 @@ namespace BCRPServer
         public const int MIN_SESSION_TIME_FOR_PAYDAY = 600;
 
         /// <summary>Время, после которого транспорт удалится с сервера (если до этого не зайдет владелец/владелец ключа)</summary>
-        public const int OWNED_VEHICLE_TIME_TO_AUTODELETE = 300000;
+        public const int OWNED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
+
+        public const int RENTED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
 
         /// <summary>Стандартное кол-во наличных у нового игрока</summary>
         public const int CHARACTER_DEFAULT_MONEY_CASH = 500;
@@ -235,6 +237,8 @@ namespace BCRPServer
         public const int PHONE_CONTACT_NAME_MAX_LENGTH = 24;
 
         public const int PHONE_CONTACTS_MAX_AMOUNT = 50;
+
+        public const uint VEHICLE_EVACUATION_COST = 1_000;
 
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }

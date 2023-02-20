@@ -918,7 +918,20 @@ namespace BCRPClient.Sync
                     {
                         LastAttackerInfo = (sourcePlayer, customDamage + 1, boneIdx, DateTime.Now);
 
-                        bool isBullet = RAGE.Game.Weapon.GetWeaponDamageType(weaponHash) == 3;
+                        var isBullet = RAGE.Game.Weapon.GetWeaponDamageType(weaponHash) == 3;
+
+                        if (isBullet)
+                        {
+                            if (!pData.IsWounded && !pData.IsKnocked)
+                            {
+                                var randRes = Utils.Random.NextDouble();
+
+                                if (randRes <= Settings.DAMAGE_SYSTEM_WOUND_CHANCE) // wounded chance
+                                {
+                                    Events.CallRemote("dmswme");
+                                }
+                            }
+                        }
 
                         Player.LocalPlayer.ApplyDamageTo(customDamage, isBullet);
 

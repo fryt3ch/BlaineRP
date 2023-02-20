@@ -135,18 +135,24 @@ namespace BCRPServer.Events.Players
 
                 pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
 
+                var currentTaxiOrder = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();
+
+                if (currentTaxiOrder.Value != null)
+                    Game.Jobs.Cabbie.RemoveOrder(currentTaxiOrder.Key, currentTaxiOrder.Value);
+
                 player.DetachAllEntities();
 
                 pData.IsAttachedToEntity?.DetachEntity(player);
 
-                if (player.Vehicle != null)
+                if (player.Vehicle is Vehicle veh)
                 {
-                    player.WarpOutOfVehicle();
+                    var vData = VehicleData.GetData(veh);
+
+                    if (vData != null)
+                        Sync.Vehicles.OnPlayerLeaveVehicle(pData, vData);
                 }
 
                 #region Check&Start Deletion of Owned Vehicles
-
-                pData.RentedVehicle?.StartDeletionTask();
 
                 var vehsToStartDeletion = pData.OwnedVehicles.Where(x => x.VehicleData != null).ToList();
 
@@ -184,7 +190,7 @@ namespace BCRPServer.Events.Players
                     }
                 }
 
-                vehsToStartDeletion.ForEach(x => x.VehicleData.StartDeletionTask());
+                vehsToStartDeletion.ForEach(x => x.VehicleData.StartDeletionTask(Settings.OWNED_VEHICLE_TIME_TO_AUTODELETE));
                 #endregion
 
                 if (pData.Armour != null)
@@ -306,7 +312,9 @@ namespace BCRPServer.Events.Players
                 NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 
                 pData.IsKnocked = true;
-                pData.IsWounded = false;
+
+                if (pData.IsWounded)
+                    pData.IsWounded = false;
 
                 player.SetHealth(50);
 
@@ -967,6 +975,23 @@ namespace BCRPServer.Events.Players
                 if (!entity.Exists || !entity.AreEntitiesNearby(player, 150f))
                     entity.DetachEntity(player);
             }
+        }
+
+        [RemoteEvent("dmswme")]
+        private static void DamageSystemWoundMe(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+
+            if (pData.IsWounded || pData.IsKnocked)
+                return;
+
+            pData.IsWounded = true;
         }
     }
 }

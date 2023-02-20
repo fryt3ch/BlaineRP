@@ -209,6 +209,8 @@ namespace BCRPClient
                 {
                     await Sync.World.OnMapObjectStreamIn(obj);
                 }
+
+                CEF.Audio.OnEntityStreamIn(gEntity);
             };
 
             Events.OnEntityStreamOut += async (entity) =>
@@ -230,6 +232,11 @@ namespace BCRPClient
                 else if (entity is MapObject obj)
                 {
                     await Sync.World.OnMapObjectStreamOut(obj);
+                }
+
+                if (entity is GameEntity gEntity)
+                {
+                    CEF.Audio.OnEntityStreamOut(gEntity);
                 }
             };
 

@@ -377,7 +377,19 @@ namespace BCRPClient.Sync
                     continue;
 
                 if (temp.Object.GetData<float>("Dist") > Settings.ENTITY_INTERACTION_MAX_DISTANCE_RENDER)
+                {
+                    if (ClosestItemOnGround == temp)
+                    {
+                        ClosestItemOnGround = null;
+
+                        if (CEF.ActionBox.CurrentContext == CEF.ActionBox.Contexts.ItemOnGroundTakeRange)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    }
+
                     continue;
+                }
 
                 if (!Utils.GetScreenCoordFromWorldCoord(temp.Object.GetCoords(true), ref screenX, ref screenY))
                     continue;

@@ -23,6 +23,8 @@ namespace BCRPClient.CEF
 
                 Cursor.Show(false, false);
             }
+
+            CEF.Audio.StopAuthPlaylist();
         }
 
         public Auth()
@@ -41,6 +43,8 @@ namespace BCRPClient.CEF
             {
                 while (Browser.Window == null || !Browser.Window.Active)
                     await RAGE.Game.Invoker.WaitAsync(0);
+
+                CEF.Audio.StartAuthPlaylist();
 
                 await Browser.Render(Browser.IntTypes.Login, true);
 
@@ -62,6 +66,8 @@ namespace BCRPClient.CEF
             {
                 while (Browser.Window == null || !Browser.Window.Active)
                     await RAGE.Game.Invoker.WaitAsync(0);
+
+                CEF.Audio.StartAuthPlaylist();
 
                 await Browser.Render(Browser.IntTypes.Registration, true);
 
@@ -121,16 +127,6 @@ namespace BCRPClient.CEF
                 }
                 else
                     Browser.Switch(Browser.IntTypes.Registration, false);
-            });
-
-            Events.Add("Auth::CloseCharacterChoosePage", (object[] args) =>
-            {
-                if ((bool)args[0])
-                {
-                    Browser.Render(Browser.IntTypes.CharacterSelection, false);
-                }
-                else
-                    Browser.Switch(Browser.IntTypes.CharacterSelection, false);
             });
             #endregion
 

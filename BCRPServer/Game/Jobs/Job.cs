@@ -19,6 +19,8 @@ namespace BCRPServer.Game.Jobs
         {
             /// <summary>Работа дальнобойщика</summary>
             Trucker = 0,
+            /// <summary>Работа таксиста</summary>
+            Cabbie,
         }
 
         public Types Type { get; set; }
@@ -50,8 +52,13 @@ namespace BCRPServer.Game.Jobs
 
                 MaterialsPositions = new List<Vector3>()
                 {
-                    new Vector3(142.8727f, 6364.274f, 31.07695f),
+                    new Vector3(142.8727f, 6364.274f, 30.5f),
                 }
+            };
+
+            new Cabbie(new Utils.Vector4(-271.4561f, 6074.177f, 31.68299f, 183.1857f))
+            {
+                VehicleRentPrice = 750,
             };
 
             var lines = new List<string>();
@@ -70,11 +77,14 @@ namespace BCRPServer.Game.Jobs
             return AllJobs.Count;
         }
 
-        public static void SetPlayerNoJob(PlayerData pData)
+        public virtual void SetPlayerNoJob(PlayerData.PlayerInfo pInfo)
         {
-            pData.CurrentJob = null;
+            if (pInfo.PlayerData != null)
+            {
+                pInfo.PlayerData.CurrentJob = null;
 
-            pData.Player.TriggerEvent("Player::SCJ");
+                pInfo.PlayerData.Player.TriggerEvent("Player::SCJ");
+            }
         }
 
         public void TriggerEventToWorkers(string eventName, params object[] args)
@@ -86,6 +96,18 @@ namespace BCRPServer.Game.Jobs
 
             NAPI.ClientEvent.TriggerClientEventToPlayers(workers.Select(x => x.Player).ToArray(), eventName, args);
         }
+
+        public static void TriggerEventToWorkersByJobType(Types type, string eventName, params object[] args)
+        {
+            var workers = GetWorkersByJobType(type);
+
+            if (workers.Count == 0)
+                return;
+
+            NAPI.ClientEvent.TriggerClientEventToPlayers(workers.Select(x => x.Player).ToArray(), eventName, args);
+        }
+
+        public static List<PlayerData> GetWorkersByJobType(Types type) => PlayerData.All.Values.Where(x => x.CurrentJob?.Type == type).ToList();
 
         public abstract void Initialize();
 
@@ -104,5 +126,7 @@ namespace BCRPServer.Game.Jobs
         public string NumberplateText { get; set; }
 
         public uint VehicleRentPrice { get; set; }
+
+        public void OnVehicleRespawned(VehicleData vData);
     }
 }

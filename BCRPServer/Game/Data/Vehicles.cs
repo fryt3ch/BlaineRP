@@ -171,25 +171,6 @@ namespace BCRPServer.Game.Data
 
                 All.Add(ID, this);
             }
-
-            /// <summary>Метод для создания транспорта на сервере</summary>
-            /// <param name="ID">ID транспорта (см. Game.Data.Vehicles.All)</param>
-            /// <param name="pos">Позиция</param>
-            /// <param name="rot">Поворот</param>
-            /// <param name="dimension">Измерение</param>
-            /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-            /// <returns>Объект класса VehicleData, если транспорт был создан, null - в противном случае</returns>
-            public static VehicleData Create(string ID, Vector3 pos, float heading, uint dimension)
-            {
-                var vehParams = All.GetValueOrDefault(ID);
-
-                if (vehParams == null)
-                    return null;
-
-                var veh = NAPI.Vehicle.CreateVehicle(vehParams.Model, pos, heading, 0, 0, "", 255, true, false, Utils.Dimensions.Stuff);
-
-                return new VehicleData(veh) { ID = ID };
-            }
         }
 
         public class Tuning

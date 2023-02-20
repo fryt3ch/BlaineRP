@@ -80,5 +80,98 @@ namespace BCRPServer.Sync
                 controller.TriggerEvent("Vehicles::FixV", veh);
             }
         }
+
+        public static bool TryLocateOwnedVehicle(PlayerData pData, VehicleData.VehicleInfo vInfo)
+        {
+            if (vInfo.IsOnVehiclePound)
+            {
+                pData.Player.Notify("Vehicle::OVP");
+
+                return false;
+            }
+            else if (vInfo.VehicleData?.Vehicle?.Exists != true)
+            {
+                return false;
+            }
+            else if (vInfo.VehicleData.Vehicle.Dimension != pData.Player.Dimension)
+            {
+                if (pData.Player.Dimension != Utils.Dimensions.Main)
+                {
+                    pData.Player.Notify("Vehicle::KENS");
+
+                    return false;
+                }
+                else if (vInfo.LastData.GarageSlot >= 0)
+                {
+                    var hId = Utils.GetHouseIdByDimension(vInfo.LastData.Dimension);
+
+                    var house = hId == 0 ? null : Game.Estates.House.Get(hId);
+
+                    if (house == null)
+                    {
+                        hId = Utils.GetGarageIdByDimension(vInfo.LastData.Dimension);
+
+                        var garage = hId == 0 ? null : Game.Estates.Garage.Get(hId);
+
+                        if (garage == null)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            pData.Player.CreateGPSBlip(garage.Root.EnterPosition.Position, pData.Player.Dimension, true);
+                        }
+                    }
+                    else
+                    {
+                        pData.Player.CreateGPSBlip(house.PositionParams.Position, pData.Player.Dimension, true);
+                    }
+                }
+
+            }
+            else
+            {
+                pData.Player.CreateGPSBlip(vInfo.VehicleData.Vehicle.Position, pData.Player.Dimension, true);
+            }
+
+            return true;
+        }
+
+        public static bool TryLocateRentedVehicle(PlayerData pData, VehicleData vData)
+        {
+            if (vData.Vehicle.Dimension != pData.Player.Dimension)
+            {
+                if (pData.Player.Dimension != Utils.Dimensions.Main)
+                {
+                    pData.Player.Notify("Vehicle::KENS");
+
+                    return false;
+                }
+            }
+            else
+            {
+                pData.Player.CreateGPSBlip(vData.Vehicle.Position, pData.Player.Dimension, true);
+            }
+
+            return true;
+        }
+
+        public static void OnPlayerLeaveVehicle(PlayerData pData, VehicleData vData)
+        {
+            var curSeat = pData.VehicleSeat;
+
+            if (curSeat < 0)
+                return;
+
+            if (vData.ForcedSpeed != 0f && curSeat == 0)
+                vData.ForcedSpeed = 0f;
+
+            pData.VehicleSeat = -1;
+
+            if (vData.OwnerID == pData.CID && (vData.OwnerType == VehicleData.OwnerTypes.PlayerRent || vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob))
+            {
+                vData.StartDeletionTask(Settings.RENTED_VEHICLE_TIME_TO_AUTODELETE);
+            }
+        }
     }
 }

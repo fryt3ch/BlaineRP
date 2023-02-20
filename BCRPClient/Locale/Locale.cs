@@ -64,6 +64,8 @@ namespace BCRPClient
 
                 public static string ApartmentsOwnedBlip = "{0}, кв. {1}";
                 public static string GarageOwnedBlip = "{0}, #{1}";
+
+                public static string JobTruckerPointAText = "Склад материалов";
             }
 
             #region Players

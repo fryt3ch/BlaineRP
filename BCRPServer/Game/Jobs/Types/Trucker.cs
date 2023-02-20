@@ -17,8 +17,32 @@ namespace BCRPServer.Game.Jobs
 
         public static List<Trucker> AllTruckerJobs { get; set; }
 
+        private Queue<uint> FreeOrderIds = new Queue<uint>();
+
+        private uint LastMaxOrderId { get; set; }
+
+        private uint GetNextOrderId()
+        {
+            uint result;
+
+            if (FreeOrderIds.TryDequeue(out result))
+                return result;
+
+            return LastMaxOrderId += 1;
+        }
+
+        private void FreeOrderId(uint id)
+        {
+            if (LastMaxOrderId < id)
+                LastMaxOrderId = id;
+
+            FreeOrderIds.Enqueue(id);
+        }
+
         public class OrderInfo
         {
+            public bool IsCustom => Reward >= MinimalRewardX;
+
             public VehicleData CurrentVehicle { get; set; }
 
             public uint Reward { get; set; }
@@ -35,45 +59,51 @@ namespace BCRPServer.Game.Jobs
             }
         }
 
-        public Dictionary<int, OrderInfo> ActiveOrders { get; private set; } = new Dictionary<int, OrderInfo>();
+        public Dictionary<uint, OrderInfo> ActiveOrders { get; private set; } = new Dictionary<uint, OrderInfo>();
 
         public void AddCustomOrder(Game.Businesses.Business business)
         {
             var orderInfo = new OrderInfo(business);
 
-            ActiveOrders.Add(business.ID, orderInfo);
+            var id = GetNextOrderId();
+
+            ActiveOrders.Add(id, orderInfo);
 
             orderInfo.Reward = (uint)Utils.Randoms.Chat.Next(MinimalRewardX, MaximalRewardX);
 
             orderInfo.MPIdx = GetFarthestMaterialsPositionIdx(business.PositionInfo);
 
-            TriggerEventToWorkers("Job::TR::OC", $"{business.ID}_{orderInfo.MPIdx}_{orderInfo.Reward}");
+            TriggerEventToWorkers("Job::TR::OC", $"{id}_{business.ID}_{orderInfo.MPIdx}_{orderInfo.Reward}");
         }
 
         public void AddDefaultOrder(Game.Businesses.Business business)
         {
             var orderInfo = new OrderInfo(business);
 
-            ActiveOrders.Add(-business.ID, orderInfo);
+            var id = GetNextOrderId();
 
-            orderInfo.Reward = (uint)Utils.Randoms.Chat.Next(MinimalRewardX, MaximalRewardX);
+            ActiveOrders.Add(id, orderInfo);
+
+            orderInfo.Reward = (uint)Utils.Randoms.Chat.Next(MinimalRewardA, MaximalRewardA);
 
             orderInfo.MPIdx = GetFarthestMaterialsPositionIdx(business.PositionInfo);
 
-            TriggerEventToWorkers("Job::TR::OC", $"{-business.ID}_{orderInfo.MPIdx}_{orderInfo.Reward}");
+            TriggerEventToWorkers("Job::TR::OC", $"{id}_{business.ID}_{orderInfo.MPIdx}_{orderInfo.Reward}");
         }
 
-        public void RemoveOrder(int id)
+        public void RemoveOrder(uint id)
         {
             if (ActiveOrders.Remove(id))
             {
+                FreeOrderId(id);
+
                 TriggerEventToWorkers("Job::TR::OC", id);
             }
         }
 
         public bool TryAddRandomDefaultOrder()
         {
-            var businesses = Game.Businesses.Business.All.Values.Where(x => x.PositionInfo != null && x.ClosestTruckerJob == this && !ActiveOrders.ContainsKey(-x.ID)).ToList();
+            var businesses = Game.Businesses.Business.All.Values.Where(x => x.PositionInfo != null && x.ClosestTruckerJob == this).ToList();
 
             if (businesses.Count == 0)
                 return false;
@@ -100,18 +130,18 @@ namespace BCRPServer.Game.Jobs
 
         }
 
-        public void SetOrderAsTaken(int orderId, OrderInfo oInfo, VehicleData vData)
+        public void SetOrderAsTaken(uint orderId, OrderInfo oInfo, VehicleData vData)
         {
             oInfo.CurrentVehicle = vData;
 
             TriggerEventToWorkers("Job::TR::OC", orderId);
         }
 
-        public void SetOrderAsNotTaken(int orderId, OrderInfo oInfo)
+        public void SetOrderAsNotTaken(uint orderId, OrderInfo oInfo)
         {
             oInfo.CurrentVehicle = null;
 
-            TriggerEventToWorkers("Job::TR::OC", $"{orderId}_{oInfo.MPIdx}_{oInfo.Reward}");
+            TriggerEventToWorkers("Job::TR::OC", $"{orderId}_{oInfo.TargetBusiness.ID}_{oInfo.MPIdx}_{oInfo.Reward}");
         }
 
         public int GetFarthestMaterialsPositionIdx(Vector3 pos)
@@ -141,7 +171,16 @@ namespace BCRPServer.Game.Jobs
 
             var jobVehicleData = (VehicleData)args[0];
 
-            pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentVehicle == null).Select(x => $"{x.Key}_{x.Value.MPIdx}_{x.Value.Reward}").ToList());
+            pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentVehicle == null).Select(x => $"{x.Key}_{x.Value.TargetBusiness.ID}_{x.Value.MPIdx}_{x.Value.Reward}").ToList());
+
+            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JTR1, 0, 0);
+        }
+
+        public override void SetPlayerNoJob(PlayerData.PlayerInfo pInfo)
+        {
+            base.SetPlayerNoJob(pInfo);
+
+            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JTR1)?.Cancel(pInfo);
         }
 
         public override void Initialize()
@@ -160,11 +199,23 @@ namespace BCRPServer.Game.Jobs
 
         public override void PostInitialize()
         {
-            int counter = 5;
+            int counter = 3;
 
             while (counter > 0 && TryAddRandomDefaultOrder())
             {
                 counter--;
+            }
+        }
+
+        public void OnVehicleRespawned(VehicleData vData)
+        {
+            var order = ActiveOrders.Where(x => x.Value.CurrentVehicle == vData).Select(x => x.Value).FirstOrDefault();
+
+            if (order != null)
+            {
+                order.GotMaterials = false;
+
+                order.CurrentVehicle = null;
             }
         }
     }

@@ -409,6 +409,10 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task Show()
         {
+            CEF.Audio.StopAuthPlaylist();
+
+            Browser.Switch(Browser.IntTypes.CharacterSelection, false);
+
             if (IsActive)
             {
                 Browser.Render(Browser.IntTypes.CharacterCreation, false);

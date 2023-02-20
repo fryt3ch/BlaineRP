@@ -18,9 +18,9 @@ namespace BCRPClient.CEF
 
         public static RAGE.Ui.HtmlWindow Window { get; private set; }
 
-        private static HashSet<IntTypes> ActiveInterfaces { get; set; }
+        private static HashSet<IntTypes> ActiveInterfaces { get; set; } = new HashSet<IntTypes>();
 
-        private static HashSet<IntTypes> RenderedInterfaces { get; set; }
+        private static HashSet<IntTypes> RenderedInterfaces { get; set; } = new HashSet<IntTypes>();
 
         public static bool IsAnyDomElementFocused { get; private set; }
 
@@ -114,11 +114,12 @@ namespace BCRPClient.CEF
             { IntTypes.HUD_Top, IntTypes.HUD }, { IntTypes.HUD_Quest, IntTypes.HUD }, { IntTypes.HUD_Help, IntTypes.HUD }, { IntTypes.HUD_Speedometer, IntTypes.HUD }, { IntTypes.HUD_Interact, IntTypes.HUD }, { IntTypes.HUD_Menu, IntTypes.HUD }, { IntTypes.HUD_Left, IntTypes.HUD },
         };
 
+        private static HashSet<IntTypes> PendingRenders = new HashSet<IntTypes>();
+
+        private static HashSet<IntTypes> PendingOffRenders = new HashSet<IntTypes>();
+
         public Browser()
         {
-            ActiveInterfaces = new HashSet<IntTypes>();
-            RenderedInterfaces = new HashSet<IntTypes>();
-
             Window = new RAGE.Ui.HtmlWindow("package://cef/index.html");
 
             Events.OnBrowserDomReady += async (RAGE.Ui.HtmlWindow window) =>
@@ -157,7 +158,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Browser::OnRenderFinished", async (object[] args) =>
             {
-                await RAGE.Game.Invoker.WaitAsync(25);
+                //await RAGE.Game.Invoker.WaitAsync(25);
 
                 RenderedInterfaces.Add(IntNames.Where(x => x.Value == (string)args[0]).First().Key);
 
@@ -241,29 +242,81 @@ namespace BCRPClient.CEF
             Window.ExecuteCachedJs("switchTemplate", state, IntNames[type]);
         }
 
-        public static async System.Threading.Tasks.Task Render(IntTypes type, bool state, bool switchAfter = false)
+        public static async System.Threading.Tasks.Task<bool> Render(IntTypes type, bool state, bool switchAfter = false)
         {
-            Window.ExecuteCachedJs("renderTemplate", state, IntNames[type]);
-
             //Utils.ConsoleOutput($"v-if: {state}, {type}");
 
             if (state)
             {
-                while (!RenderedInterfaces.Contains(type))
-                    await RAGE.Game.Invoker.WaitAsync(25);
+                PendingOffRenders.Remove(type);
+
+                if (!IsRendered(type))
+                {
+                    if (PendingRenders.Add(type))
+                        Window.ExecuteCachedJs("renderTemplate", true, IntNames[type]);
+                    else
+                        return false;
+
+                    do
+                    {
+                        await RAGE.Game.Invoker.WaitAsync(0);
+                    }
+                    while (!IsRendered(type));
+
+                    PendingRenders.Remove(type);
+
+                    if (PendingOffRenders.Remove(type))
+                    {
+                        RenderedInterfaces.Remove(type);
+
+                        Window.ExecuteCachedJs("renderTemplate", false, IntNames[type]);
+
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
 
                 if (switchAfter)
                     Switch(type, true);
+
+                return true;
             }
             else
             {
-                RenderedInterfaces.Remove(type);
+                //Utils.ConsoleOutput(RAGE.Util.Json.Serialize(PendingRenders));
 
-                if (ActiveInterfaces.Remove(type))
+                if (PendingRenders.Contains(type))
                 {
-                    IsAnyCEFActive = ActiveInterfaces.Union(NormalInterfaces).Count() > NormalInterfaces.Count;
+                    PendingOffRenders.Add(type);
+
+                    return true;
+                }
+                else
+                {
+                    if (RenderedInterfaces.Remove(type))
+                    {
+                        Window.ExecuteCachedJs("renderTemplate", false, IntNames[type]);
+
+                        if (ActiveInterfaces.Remove(type))
+                        {
+                            IsAnyCEFActive = ActiveInterfaces.Union(NormalInterfaces).Count() > NormalInterfaces.Count;
+                        }
+
+                        return true;
+                    }
+
+                    return false;
                 }
             }
+        }
+
+        public static async System.Threading.Tasks.Task WaitAllPendingRenders()
+        {
+            while (PendingRenders.Count > 0)
+                await RAGE.Game.Invoker.WaitAsync(0);
         }
 
         public static void HideAll(bool state)

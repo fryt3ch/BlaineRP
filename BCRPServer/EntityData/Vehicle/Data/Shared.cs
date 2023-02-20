@@ -45,7 +45,7 @@ namespace BCRPServer
         /// <summary>Текущая радиостанция</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>255 - радио выключено</value>
-        public int Radio { get => Vehicle.GetSharedData<int>("Radio"); set { Vehicle.SetSharedData("Radio", value); } }
+        public StationTypes Radio { get => (StationTypes)Vehicle.GetSharedData<int>("Radio"); set { Vehicle.SetSharedData("Radio", (byte)value); } }
 
         /// <summary>Текущая скорость толкания транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -82,7 +82,7 @@ namespace BCRPServer
             }
         }
 
-        public bool IsDead { get => Vehicle.Health <= -4000 || (Vehicle.GetData<bool?>("IsDead") ?? false); set { if (value) Vehicle.SetData("IsDead", value); else Vehicle.ResetData("IsDead"); } }
+        public bool IsDead { get => Vehicle.GetData<bool?>("IVD") ?? false; set { if (value) Vehicle.SetData("IVD", value); else Vehicle.ResetData("IVD"); } }
 
         /// <summary>Уникальный ID транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

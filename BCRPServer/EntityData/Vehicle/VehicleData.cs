@@ -79,6 +79,75 @@ namespace BCRPServer
             PlayerRentJob,
         }
 
+        public enum StationTypes : byte
+        {
+            /// <summary>Радио выкл.</summary>
+            Off = 0,
+
+            /// <summary>Los Santos Rock Radio</summary>
+            LSRR,
+            /// <summary>Non-Stop-Pop FM</summary>
+            NSPFM,
+            /// <summary>Radio Los Santos</summary>
+            RLS,
+            /// <summary>Channel X</summary>
+            CHX,
+            /// <summary>West Coast Talk Radio</summary>
+            WCTR,
+            /// <summary>Rebel Radio</summary>
+            RR,
+            /// <summary>Soulwax FM</summary>
+            SWFM,
+            /// <summary>East Los FM</summary>
+            ELFM,
+            /// <summary>West Coast Classics</summary>
+            WCC,
+            /// <summary>Blaine County Talk Radio</summary>
+            BCTR,
+            /// <summary>Blue Ark</summary>
+            BA,
+            /// <summary>Worldwide FM</summary>
+            WWFM,
+            /// <summary>FlyLo FM</summary>
+            FLFM,
+            /// <summary>The Lowdown 91.1</summary>
+            TLD,
+            /// <summary>Radio Mirror Park</summary>
+            RMP,
+            /// <summary>Space 103.2</summary>
+            SPA,
+            /// <summary>Vinewood Boulevard Radio</summary>
+            VWBR,
+            /// <summary>Self Radio</summary>
+            SR,
+            /// <summary>The Lab</summary>
+            TL,
+            /// <summary>Blonded Los Santos 97.8 FM</summary>
+            BLS,
+            /// <summary>Los Santos Underground Radiok</summary>
+            LSUR,
+            /// <summary>iFruit Radio</summary>
+            IFR,
+            /// <summary>Still Slipping Los Santos</summary>
+            SSLS,
+            /// <summary>Kult FM</summary>
+            KFM,
+            /// <summary>The Music Locker</summary>
+            TML,
+            /// <summary>MOTOMAMI Los Santos</summary>
+            MMLS,
+
+            /// <summary>Media Player</summary>
+            /// <remarks>Фактически, радио Blaine RP</remarks>
+            MP_BRP,
+
+            BRP_0,
+            BRP_1,
+            BRP_2,
+            BRP_3,
+            BRP_4,
+        }
+
         /// <summary>Сущность транспорта</summary>
         /// <value>Объект класса Vehicle, если транспорт существует на сервере, null - в противном случае</value>
         public Vehicle Vehicle { get; set; }
@@ -99,7 +168,7 @@ namespace BCRPServer
             TrunkLocked = true;
             HoodLocked = true;
 
-            Radio = 255;
+            Radio = StationTypes.Off;
 
             DirtLevel = 0;
 
@@ -170,6 +239,69 @@ namespace BCRPServer
             }
         }
 
+        public void Respawn(bool useLastDataCoords)
+        {
+            if (Vehicle?.Exists != true)
+                return;
+
+            Vehicle.DetachAllEntities();
+
+            Vehicle.GetEntityIsAttachedTo()?.DetachEntity(Vehicle);
+
+            IsDead = false;
+
+            IsFrozen = false;
+
+            IsInvincible = false;
+
+            uint dimension;
+
+            var lastDim = Vehicle.Dimension;
+
+            Vehicle.Dimension = Utils.Dimensions.Stuff;
+
+            Vehicle.Occupants.ForEach(x =>
+            {
+                if (x is Entity entity)
+                {
+                    entity.Position = entity.Position;
+
+                    entity.Dimension = lastDim;
+                }
+            });
+
+            if (useLastDataCoords)
+            {
+                Vehicle.Spawn(LastData.Position, LastData.Heading);
+
+                dimension = LastData.Dimension;
+            }
+            else
+            {
+                Vehicle.Spawn(Vehicle.Position, Vehicle.Heading);
+
+                dimension = lastDim;
+            }
+
+            EngineOn = false;
+            Locked = false;
+
+            LightsOn = false;
+            LeftIndicatorOn = false;
+            RightIndicatorOn = false;
+
+            TrunkLocked = true;
+            HoodLocked = true;
+
+            NAPI.Task.Run(() =>
+            {
+                if (Vehicle?.Exists != true)
+                    return;
+
+                Vehicle.Dimension = dimension;
+            }, 1000);
+        }
+
         public void Delete(bool completely)
         {
             if (CTSDelete is CancellationTokenSource ctsDelete)
@@ -222,49 +354,72 @@ namespace BCRPServer
                         }
                     }
 
+                    Remove(this);
+
                     MySQL.VehicleDeletionUpdate(Info);
+
+                    Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
                 }
                 else
                 {
                     if (OwnerType == OwnerTypes.PlayerRent)
                     {
-                        var oPData = PlayerData.All.Values.Where(x => x.CID == OwnerID).FirstOrDefault();
+                        var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
 
-                        if (oPData != null)
+                        if (owner != null)
                         {
-                            oPData.RemoveRentedVehicle(this);
+                            if (owner.PlayerData != null)
+                            {
+                                owner.PlayerData.RemoveRentedVehicle(this);
+                            }
+                        }
+
+                        if (LastData.GarageSlot == int.MinValue)
+                        {
+                            Remove(this);
+                        }
+                        else
+                        {
+                            OwnerID = 0;
+
+                            Respawn(true);
+
+                            var data = Data;
+
+                            FuelLevel = data.Tank;
+                        }
+                    }
+                    else if (OwnerType == OwnerTypes.PlayerRentJob)
+                    {
+                        var jobData = Job;
+
+                        var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
+
+                        if (owner != null)
+                        {
+                            if (owner.PlayerData != null)
+                            {
+                                owner.PlayerData.RemoveRentedVehicle(this);
+                            }
+
+                            Job.SetPlayerNoJob(owner);
+                        }
+
+                        OwnerID = 0;
+
+                        Respawn(true);
+
+                        var data = Data;
+
+                        FuelLevel = data.Tank;
+
+                        if (jobData is Game.Jobs.IVehicles jobDataV)
+                        {
+                            jobDataV.OnVehicleRespawned(this);
                         }
                     }
                 }
-
-                Remove(this);
             }
-
-            Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
-        }
-
-        public VehicleData Respawn()
-        {
-            /*            var veh = Vehicle;
-
-                        var vid = NAPI.Task.RunAsync(() =>
-                        {
-                            if (veh?.Exists != true)
-                                return -1;
-
-                            return VID;
-                        }).GetAwaiter().GetResult();
-
-                        if (vid < 0)
-                            return null;
-
-                        Delete(false);
-
-                        //return MySQL.GetVehicle(vid);
-
-                        return null;*/
-
-            return null;
         }
 
         #region Create New
@@ -406,7 +561,7 @@ namespace BCRPServer
                 ID = vType.ID,
                 Numberplate = null,
                 Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
-                LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
+                LastData = new LastVehicleData() { Position = position, Dimension = dimension, Heading = heading, Fuel = vType.Tank, Mileage = 0f, GarageSlot = int.MinValue },
                 RegistrationDate = Utils.GetCurrentTime(),
             };
 
@@ -475,7 +630,7 @@ namespace BCRPServer
             return vData;
         }
 
-        public bool StartDeletionTask()
+        public bool StartDeletionTask(int time)
         {
             if (CTSDelete != null)
                 return false;
@@ -486,7 +641,7 @@ namespace BCRPServer
             {
                 try
                 {
-                    await Task.Delay(Settings.OWNED_VEHICLE_TIME_TO_AUTODELETE, ctsDelete.Token);
+                    await Task.Delay(time, ctsDelete.Token);
 
                     NAPI.Task.Run(() =>
                     {

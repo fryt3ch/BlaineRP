@@ -87,11 +87,12 @@ namespace BCRPClient.Data
 
                     var order = new Data.Locations.Trucker.OrderInfo();
 
-                    order.Id = int.Parse(oData[0]);
-                    order.MPIdx = int.Parse(oData[1]);
-                    order.Reward = uint.Parse(oData[2]);
+                    order.Id = uint.Parse(oData[0]);
+                    var businessId = int.Parse(oData[1]);
+                    order.MPIdx = int.Parse(oData[2]);
+                    order.Reward = uint.Parse(oData[3]);
 
-                    order.TargetBusiness = Data.Locations.Business.All[order.Id < 0 ? -order.Id : order.Id];
+                    order.TargetBusiness = Data.Locations.Business.All[businessId];
 
                     var existingOrder = activeOrders.Where(x => x.Id == order.Id).FirstOrDefault();
 
@@ -102,7 +103,7 @@ namespace BCRPClient.Data
                 }
                 else
                 {
-                    var id = (int)args[0];
+                    var id = args[0].ToUInt32();
 
                     var order = activeOrders.Where(x => x.Id == id).FirstOrDefault();
 
@@ -111,6 +112,10 @@ namespace BCRPClient.Data
 
                     activeOrders.Remove(order);
                 }
+
+                activeOrders = activeOrders.OrderByDescending(x => x.Reward).ToList();
+
+                job.SetCurrentData("AOL", activeOrders);
 
                 if (CEF.ActionBox.CurrentContext == CEF.ActionBox.Contexts.JobTruckerOrderSelect)
                 {

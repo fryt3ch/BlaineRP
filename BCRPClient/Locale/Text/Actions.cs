@@ -59,6 +59,7 @@ namespace BCRPClient
             public static string JobVehicleOrderSelectTitle = "Список доступных заказов";
 
             public static string JobTruckerOrderText = "#{0} | -> {1} км. -> {2} км. | {3}";
+            public static string JobCabbieOrderText = "#{0} | {1} | {2}";
 
             public static string SelectOkBtn0 = "Принять";
             public static string SelectCancelBtn0 = "Отменить";

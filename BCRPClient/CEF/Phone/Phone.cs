@@ -3,7 +3,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.CEF
 {
@@ -52,7 +51,7 @@ namespace BCRPClient.CEF
             { AppTypes.Contacts, "contacts" },
             { AppTypes.SMS, "sms" },
             { AppTypes.Browser, "browser" },
-            { AppTypes.Taxi, "taxi" },
+            { AppTypes.Taxi, "cab" },
         };
 
         public static AppTypes GetAppTypeByJsName(string jsName) => AppsJsNames.Where(x => x.Value == jsName).Select(x => x.Key).FirstOrDefault();
@@ -560,11 +559,18 @@ namespace BCRPClient.CEF
 
                         if (actId == 0) // locate
                         {
-
+                            Events.CallRemote("Vehicles::LOWNV", vid);
                         }
                         else if (actId == 1) // evacuate
                         {
+                            if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
 
+                                return;
+                            }
+
+                            Events.CallRemote("Vehicles::EVAOWNV", vid);
                         }
                     }
                     else if (vOType == "rented")
@@ -573,11 +579,18 @@ namespace BCRPClient.CEF
 
                         if (actId == 0) // locate
                         {
-
+                            Events.CallRemote("Vehicles::LRENV", rid);
                         }
                         else if (actId == 1) // stop rent
                         {
+                            if (Player.LocalPlayer.Vehicle?.RemoteId == rid)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
 
+                                return;
+                            }
+
+                            Events.CallRemote("VRent::Cancel", rid);
                         }
                     }
                 }
@@ -773,7 +786,7 @@ namespace BCRPClient.CEF
                 {
                     var ownedVehs = pData.OwnedVehicles.Select(x => new object[] { x.VID, $"{x.Data.BrandName}<br>{x.Data.SubName}<br>[#{x.VID}]", x.Data.Type.ToString() }).ToList();
 
-                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{x.RemoteId}]", x.VehicleData.Type.ToString() }).ToList();
+                    var rentedVehs = Sync.Vehicles.RentedVehicle.All.Select(x => new object[] { x.RemoteId, $"{x.VehicleData.BrandName}<br>{x.VehicleData.SubName}<br>[#{((uint)x.RemoteId) + 10_000}]", x.VehicleData.Type.ToString() }).ToList();
 
                     PhoneApps.VehiclesApp.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
                 }
@@ -811,7 +824,7 @@ namespace BCRPClient.CEF
                 }
                 else if (appType == AppTypes.Taxi)
                 {
-
+                    PhoneApps.TaxiApp.Show(pData);
                 }
             }
         }

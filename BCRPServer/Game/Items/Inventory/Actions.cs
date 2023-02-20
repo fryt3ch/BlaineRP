@@ -564,56 +564,8 @@ namespace BCRPServer.Game.Items
                                 return Results.Error;
                             }
 
-                            if (vInfo.IsOnVehiclePound)
-                            {
-                                pData.Player.Notify("Vehicle::OVP");
-
+                            if (Sync.Vehicles.TryLocateOwnedVehicle(pData, vInfo))
                                 return Results.Error;
-                            }
-                            else if (vInfo.VehicleData?.Vehicle?.Exists != true)
-                            {
-                                return Results.Error;
-                            }
-                            else if (vInfo.VehicleData.Vehicle.Dimension != pData.Player.Dimension)
-                            {
-                                if (pData.Player.Dimension != Utils.Dimensions.Main)
-                                {
-                                    pData.Player.Notify("Vehicle::KENS");
-
-                                    return Results.Error;
-                                }
-                                else if (vInfo.LastData.GarageSlot >= 0)
-                                {
-                                    var hId = Utils.GetHouseIdByDimension(vInfo.LastData.Dimension);
-
-                                    var house = hId == 0 ? null : Game.Estates.House.Get(hId);
-
-                                    if (house == null)
-                                    {
-                                        hId = Utils.GetGarageIdByDimension(vInfo.LastData.Dimension);
-
-                                        var garage = hId == 0 ? null : Game.Estates.Garage.Get(hId);
-
-                                        if (garage == null)
-                                        {
-                                            return Results.Error;
-                                        }
-                                        else
-                                        {
-                                            pData.Player.CreateGPSBlip(garage.Root.EnterPosition.Position, pData.Player.Dimension, true);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        pData.Player.CreateGPSBlip(house.PositionParams.Position, pData.Player.Dimension, true);
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                pData.Player.CreateGPSBlip(vInfo.VehicleData.Vehicle.Position, pData.Player.Dimension, true);
-                            }
 
                             return Results.Success;
                         }

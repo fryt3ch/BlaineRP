@@ -206,7 +206,7 @@ namespace BCRPClient.Data
                             Data = this,
                         };
 
-                        OwnerGarageBlip = new Blip(1, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 25f, Settings.MAIN_DIMENSION);
+                        OwnerGarageBlip = new Blip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
                     }
                 }
                 else

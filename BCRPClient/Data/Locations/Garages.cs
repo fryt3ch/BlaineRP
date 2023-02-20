@@ -167,7 +167,7 @@ namespace BCRPClient.Data
 
                     OwnerBlip = new Blip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootType].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
-                    OwnerGarageBlip = new Blip(1, gRoot.VehicleEnterPosition, "", 1f, 3, 125, 0f, true, 0, 25f, Settings.MAIN_DIMENSION);
+                    OwnerGarageBlip = new Blip(9, gRoot.VehicleEnterPosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
 
                     OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                     {

@@ -459,7 +459,7 @@ namespace BCRPClient.Sync
 
                 var player = Player.LocalPlayer;
 
-                PlayerData data = new PlayerData(Player.LocalPlayer);
+                var data = new PlayerData(Player.LocalPlayer);
 
                 data.FastAnim = Animations.FastTypes.None;
 
@@ -541,7 +541,7 @@ namespace BCRPClient.Sync
 
                 if (sData.ContainsKey("Quests"))
                 {
-                    data.Quests = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Quests"]).Select(y => { var data = y.Split('_'); return new Sync.Quest((Sync.Quest.QuestData.Types)Convert.ToInt32(data[0]), Convert.ToInt32(data[1]), Convert.ToInt32(data[2])); }).ToList();
+                    data.Quests = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Quests"]).Select(y => { var data = y.Split('&'); return new Sync.Quest((Sync.Quest.QuestData.Types)int.Parse(data[0]), byte.Parse(data[1]), int.Parse(data[2]), data[3].Length > 0 ? data[3] : null); }).ToList();
                 }
                 else
                 {
@@ -564,6 +564,20 @@ namespace BCRPClient.Sync
                 else
                 {
                     data.WeaponSkins = new Dictionary<Data.Items.WeaponSkin.ItemData.Types, string>();
+                }
+
+                if (sData.ContainsKey("RV"))
+                {
+                    var vehs = ((JArray)sData["RV"]).ToObject<List<string>>().Select(x => x.Split('&')).ToList();
+
+                    foreach (var x in vehs)
+                    {
+                        Sync.Vehicles.RentedVehicle.All.Add(new Vehicles.RentedVehicle(ushort.Parse(x[0]), Data.Vehicles.GetById(x[1])));
+                    }
+
+                    RentedVehiclesCheckTask = new AsyncTask(Sync.Vehicles.RentedVehicle.Check, 1000, true, 0);
+
+                    RentedVehiclesCheckTask.Run();
                 }
 
                 foreach (var x in data.Skills)
@@ -741,11 +755,9 @@ namespace BCRPClient.Sync
                 {
                     var vTypeId = (string)args[1];
 
-                    var timeToDelete = (int)args[2];
-
                     var vTypeData = Data.Vehicles.GetById(vTypeId);
 
-                    rentedVehs.Add(new Vehicles.RentedVehicle(rId, vTypeData, timeToDelete));
+                    rentedVehs.Add(new Vehicles.RentedVehicle(rId, vTypeData));
 
                     if (RentedVehiclesCheckTask == null)
                     {
@@ -770,6 +782,9 @@ namespace BCRPClient.Sync
                         RentedVehiclesCheckTask = null;
                     }
                 }
+
+                if (CEF.Phone.CurrentApp == CEF.Phone.AppTypes.Vehicles)
+                    CEF.Phone.ShowApp(null, CEF.Phone.AppTypes.Vehicles);
             });
 
             Events.Add("Player::Waypoint::Set", (args) =>
@@ -777,9 +792,7 @@ namespace BCRPClient.Sync
                 var x = (float)args[0];
                 var y = (float)args[1];
 
-                RAGE.Game.Ui.SetWaypointOff();
-
-                RAGE.Game.Ui.SetNewWaypoint(x, y);
+                Utils.SetWaypoint(x, y);
             });
 
             Events.Add("Player::Smoke::Start", (object[] args) =>
@@ -835,14 +848,15 @@ namespace BCRPClient.Sync
                     return;
 
                 var qType = (Sync.Quest.QuestData.Types)(int)args[0];
-                var step = (int)args[1];
 
                 var quests = data.Quests;
 
                 var quest = quests.Where(x => x.Type == qType).FirstOrDefault();
 
-                if (step < 0)
+                if (args.Length < 3)
                 {
+                    var success = (bool)args[1];
+
                     if (quest == null)
                         return;
 
@@ -850,31 +864,40 @@ namespace BCRPClient.Sync
 
                     quest.Destroy();
 
-                    data.Quests = quests;
-
                     CEF.Menu.UpdateQuests(data);
+
+                    CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, success ? Locale.Notifications.General.QuestFinishedText : Locale.Notifications.General.QuestCancelledText);
                 }
                 else
                 {
+                    var step = (byte)args[1].ToDecimal();
+
                     var sProgress = (int)args[2];
 
                     if (quest == null)
                     {
-                        quest = new Sync.Quest(qType, step, sProgress);
+                        quest = new Sync.Quest(qType, step, sProgress, args.Length > 3 ? (string)args[3] : null);
 
                         quest.Initialize();
 
                         quests.Add(quest);
+
+                        CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestStartedText, quest.GoalWithProgress));
                     }
                     else
                     {
+                        if (args.Length > 3)
+                            quest.CurrentData = (string)args[3];
+
                         if (quest.Step != step)
+                        {
                             quest.UpdateStep(step);
+
+                            CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, quest.GoalWithProgress));
+                        }
 
                         quest.UpdateProgress(sProgress);
                     }
-
-                    data.Quests = quests;
 
                     CEF.Menu.UpdateQuests(data);
                 }
@@ -1106,6 +1129,9 @@ namespace BCRPClient.Sync
 
                         data.OwnedVehicles.RemoveAt(idx);
                     }
+
+                    if (CEF.Phone.CurrentApp == CEF.Phone.AppTypes.Vehicles)
+                        CEF.Phone.ShowApp(null, CEF.Phone.AppTypes.Vehicles);
                 }
                 else if (pType == PropertyTypes.House)
                 {

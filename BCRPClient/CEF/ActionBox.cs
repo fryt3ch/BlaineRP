@@ -856,7 +856,20 @@ namespace BCRPClient.CEF
                             {
                                 ActionTypes.Show, (args) =>
                                 {
+                                    var vehicle = (Vehicle)args[0];
+
                                     Bind();
+
+                                    var checkAction = new Action(() =>
+                                    {
+                                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                            Close(true);
+                                    });
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                                    GameEvents.Update -= checkAction.Invoke;
+                                    GameEvents.Update += checkAction.Invoke;
                                 }
                             },
 
@@ -873,14 +886,24 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK)
                                     {
-                                        if (id != 1 && id != 2)
+                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Locations.Trucker.OrderInfo>>("AOL");
+
+                                        if (orders == null)
                                             return;
 
-                                        var vehicle = Player.LocalPlayer.GetData<Vehicle>($"ActionBox::Temp::VTVSV{id}");
+                                        if (id >= orders.Count)
+                                            return;
 
-                                        Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<int>("ActionBox::Temp::VTVST"), vehicle);
+                                        var res = (byte)(await Events.CallRemoteProc("Job::TR::TO", orders[id].Id)).ToDecimal();
 
-                                        Close(true);
+                                        if (res == byte.MaxValue)
+                                        {
+                                            Close(true);
+                                        }
+                                        else
+                                        {
+
+                                        }
                                     }
                                     else if (rType == ReplyTypes.Cancel)
                                     {
@@ -890,6 +913,20 @@ namespace BCRPClient.CEF
                                         return;
                                 }
                             },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                                    if (checkAction != null)
+                                    {
+                                        GameEvents.Update -= checkAction.Invoke;
+
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                                    }
+                                }
+                            }
                         }
                     },
                 }
@@ -1126,10 +1163,8 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task ShowSelect(Contexts context, string name, (int Id, string Text)[] variants, string btnTextOk = null, string btnTextCancel = null, params object[] args)
         {
-            if (IsActive)
+            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
-
-            await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true);
 
             CurrentType = Types.Select;
             CurrentContext = context;
@@ -1143,10 +1178,8 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task ShowRange(Contexts context, string name, decimal minValue, decimal maxValue, decimal curValue = -1, decimal step = -1, RangeSubTypes rsType = RangeSubTypes.Default, params object[] args)
         {
-            if (IsActive)
+            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
-
-            await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true);
 
             CurrentType = Types.Range;
             CurrentContext = context;
@@ -1163,10 +1196,8 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task ShowInput(Contexts context, string name, int maxChars = 100, params object[] args)
         {
-            if (IsActive)
+            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
-
-            await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true);
 
             CurrentType = Types.Input;
             CurrentContext = context;
@@ -1180,10 +1211,8 @@ namespace BCRPClient.CEF
 
         public static async System.Threading.Tasks.Task ShowMoney(Contexts context, string name, string text, params object[] args)
         {
-            if (IsActive)
+            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
-
-            await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true);
 
             CurrentType = Types.Money;
             CurrentContext = context;
@@ -1195,9 +1224,9 @@ namespace BCRPClient.CEF
             Cursor.Show(true, true);
         }
 
-        public static void Close(bool cursor = true, params object[] args)
+        public static async void Close(bool cursor = true, params object[] args)
         {
-            if (!IsActive)
+            if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, false, false))
                 return;
 
             for (int i = 0; i < TempBinds.Count; i++)

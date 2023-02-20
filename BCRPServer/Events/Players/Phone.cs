@@ -317,5 +317,49 @@ namespace BCRPServer.Events.Players
 
             return true;
         }
+
+        [RemoteProc("Taxi::NO")]
+        private static byte TaxiNewOrder(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return 0;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+            {
+                return 0;
+            }
+
+            if (pData.CurrentTaxiOrder != null)
+                return 0;
+
+            Game.Jobs.Cabbie.AddPlayerOrder(pData);
+
+            return byte.MaxValue;
+        }
+
+        [RemoteEvent("Taxi::CO")]
+        private static void TaxiCancelOrder(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var curOrderPair = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();
+
+            if (curOrderPair.Value == null)
+                return;
+
+            Game.Jobs.Cabbie.RemoveOrder(curOrderPair.Key, curOrderPair.Value);
+        }
     }
 }

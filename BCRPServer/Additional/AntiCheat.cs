@@ -53,11 +53,11 @@ namespace BCRPServer.Additional
 
                     veh.Occupants.ForEach(x =>
                     {
-                        if (x is Player player)
+                        if (x is Entity entity)
                         {
-                            player.WarpOutOfVehicle();
+                            entity.Position = entity.Position;
 
-                            player.Dimension = lastDim;
+                            entity.Dimension = lastDim;
                         }
                     });
                 }
@@ -83,19 +83,22 @@ namespace BCRPServer.Additional
                 {
                     if (x is Player player)
                     {
-                        if (player.VehicleSeat == 0)
+                        if (!wasDriver && player.VehicleSeat == 0)
                         {
                             TeleportPlayers(pos, false, dimension, heading, fade, true, lastDim, player);
 
                             wasDriver = true;
-                        }
-                        else
-                        {
-                            player.WarpOutOfVehicle();
 
-                            if (player.Dimension != lastDim)
-                                player.Dimension = lastDim;
+                            return;
                         }
+                    }
+
+                    if (x is Entity entity)
+                    {
+                        entity.Position = entity.Position;
+
+                        if (entity.Dimension != lastDim)
+                            entity.Dimension = lastDim;
                     }
                 });
 

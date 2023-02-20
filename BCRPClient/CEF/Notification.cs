@@ -40,6 +40,7 @@ namespace BCRPClient.CEF
             Achievement,
             /// <summary>NPC (синий)</summary>
             NPC,
+            Quest,
 
             /// <summary>Мут (красный)</summary>
             Mute,
@@ -327,7 +328,7 @@ namespace BCRPClient.CEF
 
         public static int GetTextReadingTime(string text)
         {
-            var optimalTime = text.Where(x => char.IsLetterOrDigit(x)).Count() * 50;
+            var optimalTime = text.Where(x => char.IsLetterOrDigit(x)).Count() * 100;
 
             return optimalTime < DefTimeout ? DefTimeout : optimalTime;
         }

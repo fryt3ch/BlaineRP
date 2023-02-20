@@ -2205,7 +2205,7 @@ namespace BCRPClient.CEF
 
             if (request)
             {
-                if (!ignoreTimeout && LastSent.IsSpam(1000, false, false))
+                if (!ignoreTimeout && LastSent.IsSpam(250, false, false))
                     return;
 
                 GameEvents.Render -= RenderTuning;

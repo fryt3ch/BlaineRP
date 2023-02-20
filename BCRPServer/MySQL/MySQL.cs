@@ -473,7 +473,7 @@ namespace BCRPServer
                     {
                         if (reader.HasRows)
                         {
-                            var types = Enum.GetValues(typeof(Sync.Quest.QuestData.Types)).Cast<Sync.Quest.QuestData.Types>();
+                            var types = Enum.GetValues(typeof(Sync.Quest.QuestData.Types)).Cast<Sync.Quest.QuestData.Types>().Where(x => !Sync.Quest.IsQuestTemp(x)).ToList();
 
                             while (reader.Read())
                             {
@@ -481,9 +481,14 @@ namespace BCRPServer
 
                                 foreach (var x in types)
                                 {
-                                    var data = ((string)reader[x.ToString()]).DeserializeFromJson<JObject>();
+                                    var obj = reader[x.ToString()];
 
-                                    var quest = new Sync.Quest(x, (bool)data["C"], (int)data["S"], (int)data["SP"]);
+                                    if (obj == DBNull.Value)
+                                        continue;
+
+                                    var data = ((string)obj).DeserializeFromJson<JObject>();
+
+                                    var quest = new Sync.Quest(x, (bool)data["C"], (byte)data["S"], (int)data["SP"]);
 
                                     allQuests.Add(quest, cid);
                                 }

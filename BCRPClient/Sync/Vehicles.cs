@@ -20,7 +20,7 @@ namespace BCRPClient.Sync
         private static DateTime LastCruiseControlToggled;
         private static DateTime LastSeatBeltShowed;
 
-        private static DateTime LastRadioSent;
+        public static DateTime LastRadioSent;
         private static DateTime LastSyncSent;
 
         private static DateTime LastVehicleExitedTime;
@@ -29,8 +29,6 @@ namespace BCRPClient.Sync
         private static AsyncTask CurrentDriverSyncTask { get; set; }
 
         public static List<Vehicle> ControlledVehicles;
-
-        private static GameEvents.UpdateHandler RadioUpdate;
 
         private static Dictionary<string, Action<VehicleData, object, object>> DataActions = new Dictionary<string, Action<VehicleData, object, object>>();
 
@@ -66,12 +64,12 @@ namespace BCRPClient.Sync
 
             public int TimeLeftToDelete { get; set; }
 
-            public RentedVehicle(ushort RemoteId, Data.Vehicles.Vehicle VehicleData, int TimeToDelete)
+            public RentedVehicle(ushort RemoteId, Data.Vehicles.Vehicle VehicleData)
             {
                 this.RemoteId = RemoteId;
                 this.VehicleData = VehicleData;
 
-                this.TimeToDelete = TimeToDelete;
+                this.TimeToDelete = Settings.RENTED_VEHICLE_TIME_TO_AUTODELETE;
 
                 this.TimeLeftToDelete = TimeToDelete;
             }
@@ -85,8 +83,10 @@ namespace BCRPClient.Sync
             {
                 var curVeh = Player.LocalPlayer.Vehicle;
 
-                All.ForEach(x =>
+                for (int i = 0; i < All.Count; i++)
                 {
+                    var x = All[i];
+
                     if (curVeh == null || curVeh.RemoteId != x.RemoteId)
                     {
                         if (x.TimeLeftToDelete > 0)
@@ -97,7 +97,7 @@ namespace BCRPClient.Sync
 
                         if (x.TimeLeftToDelete <= 0)
                         {
-                            Events.CallRemote("VRent::Cancel", x.RemoteId);
+                            //Events.CallRemote("VRent::Cancel", x.RemoteId);
                         }
                         else
                         {
@@ -110,7 +110,7 @@ namespace BCRPClient.Sync
                         if (x.TimeLeftToDelete != x.TimeToDelete)
                             x.TimeLeftToDelete = x.TimeToDelete;
                     }
-                });
+                }
             }
         }
 
@@ -160,7 +160,7 @@ namespace BCRPClient.Sync
 
             public bool RightIndicatorOn => Vehicle.GetSharedData<bool>("Indicators::RightOn", false);
 
-            public int Radio => Vehicle.GetSharedData<int>("Radio", 255);
+            public Sync.Radio.StationTypes Radio => (Sync.Radio.StationTypes)Vehicle.GetSharedData<int>("Radio", 0);
 
             public float ForcedSpeed => Vehicle.GetSharedData<float>("ForcedSpeed", 0f);
 
@@ -220,6 +220,19 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task OnVehicleStreamIn(Vehicle veh)
         {
+            #region Required Things For Normal Behaviour
+            RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+            RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+            veh.SetLoadCollisionFlag(true, 0);
+            veh.TrackVisibility();
+
+            veh.SetUndriveable(false);
+            #endregion
+
+            #region Default Settings
+            veh.SetDisablePetrolTankDamage(true);
+            #endregion
+
             if (veh.IsLocal)
             {
 /*                if (veh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle trVeh && GetData(trVeh)?.IsFrozen == true)
@@ -234,19 +247,6 @@ namespace BCRPClient.Sync
             {
                 data.Reset();
             }
-
-            #region Required Things For Normal Behaviour
-            RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-            RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-            veh.SetLoadCollisionFlag(true, 0);
-            veh.TrackVisibility();
-
-            veh.SetUndriveable(true);
-            #endregion
-
-            #region Default Settings
-            veh.SetDisablePetrolTankDamage(true);
-            #endregion
 
             data = new VehicleData(veh);
 
@@ -270,7 +270,7 @@ namespace BCRPClient.Sync
             InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
             InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
 
-            InvokeHandler("Radio", data, data.Radio, null);
+            InvokeHandler("Radio", data, (int)data.Radio, null);
 
             InvokeHandler("DirtLevel", data, data.DirtLevel, null);
 
@@ -322,8 +322,6 @@ namespace BCRPClient.Sync
             RAGE.Game.Vehicle.DefaultEngineBehaviour = false;
             //Player.LocalPlayer.SetConfigFlag(184, true);
             #endregion
-
-            (new AsyncTask(() => RadioUpdate?.Invoke(), 1000, true)).Run();
 
             ControlledVehicles = new List<Vehicle>();
 
@@ -410,7 +408,7 @@ namespace BCRPClient.Sync
                     InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
                     InvokeHandler("Indicators::RightOn", data, data.RightIndicatorOn, null);
 
-                    InvokeHandler("Radio", data, data.Radio, null);
+                    InvokeHandler("Radio", data, (int)data.Radio, null);
 
                     if (data.TrunkLocked)
                     {
@@ -436,8 +434,6 @@ namespace BCRPClient.Sync
             Events.OnPlayerLeaveVehicle += (Vehicle vehicle, int seatId) =>
             {
                 HUD.SwitchSpeedometer(false);
-
-                RadioUpdate -= RadioSync;
 
                 if (vehicle?.Exists != true)
                     return;
@@ -486,13 +482,7 @@ namespace BCRPClient.Sync
 
                     InvokeHandler("Engine::On", data, data.EngineOn, null);
 
-                    RadioUpdate -= RadioSync;
-                    RadioUpdate += RadioSync;
-
-                    if (data.Radio == 255)
-                        RAGE.Game.Audio.SetRadioToStationName("OFF");
-                    else
-                        RAGE.Game.Audio.SetRadioToStationIndex(data.Radio);
+                    Sync.Radio.SetCurrentRadioStationType(data.Radio);
                 }
                 else
                 {
@@ -531,46 +521,6 @@ namespace BCRPClient.Sync
                     }
                 }
             };
-            #endregion
-
-            #region Radio Sync
-            static void RadioSync()
-            {
-                var veh = Player.LocalPlayer.Vehicle;
-
-                if (veh?.Exists != true)
-                    return;
-
-                var data = GetData(veh);
-
-                if (data == null)
-                    return;
-
-                var actualStation = data.Radio;
-
-                if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle || veh.GetPedInSeat(0, 0) == Player.LocalPlayer.Handle)
-                {
-                    var currentStation = RAGE.Game.Audio.GetPlayerRadioStationIndex();
-
-                    if (currentStation != actualStation && !LastRadioSent.IsSpam(1000, false, false))
-                        RAGE.Events.CallRemote("Vehicles::SetRadio", currentStation);
-                }
-                else
-                {
-                    RAGE.Game.Audio.SetFrontendRadioActive(true);
-
-                    if (actualStation == 255)
-                    {
-                        RAGE.Game.Audio.SetRadioToStationName("OFF");
-                        veh.SetVehRadioStation("OFF");
-                    }
-                    else
-                    {
-                        RAGE.Game.Audio.SetRadioToStationIndex(actualStation);
-                        veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName(actualStation));
-                    }
-                }
-            }
             #endregion
 
             #region Events
@@ -670,12 +620,9 @@ namespace BCRPClient.Sync
             {
                 var veh = vData.Vehicle;
 
-                var idx = (int)value;
+                var statinTypeNum = value == null ? Sync.Radio.StationTypes.Off : (Sync.Radio.StationTypes)(int)value;
 
-                if (idx == 255)
-                    veh.SetVehRadioStation("OFF");
-                else
-                    veh.SetVehRadioStation(RAGE.Game.Audio.GetRadioStationName(idx));
+                Sync.Radio.SetVehicleRadioStation(veh, statinTypeNum);
             });
 
             AddDataHandler("Trunk::Locked", (vData, value, oldValue) =>
@@ -1157,7 +1104,7 @@ namespace BCRPClient.Sync
 
             LastEngineToggled = DateTime.Now;
 
-            Events.CallRemote("Vehicles::ToggleEngineSync");
+            Events.CallRemote("Vehicles::ToggleEngineSync", true);
         }
         #endregion
 
@@ -1412,6 +1359,9 @@ namespace BCRPClient.Sync
                     return;
             }
 
+            if (veh.IsDead(0))
+                return;
+
             if (seatId < 0)
             {
                 seatId = veh.GetFirstFreeSeatId(0);
@@ -1438,7 +1388,7 @@ namespace BCRPClient.Sync
             var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
             var timePassed = DateTime.Now.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
-            if (tStatus == 7 || veh?.Exists != true || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 5000 || (timePassed > 500 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
+            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 5000 || (timePassed > 500 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
             {
                 if (tStatus != 7)
                     Player.LocalPlayer.ClearTasks();
@@ -1594,6 +1544,11 @@ namespace BCRPClient.Sync
                     if (fuelDiff > 0 || dist > 0)
                     {
                         Events.CallRemote("Vehicles::Sync", fuelDiff, dist, dirtLevel);
+                    }
+
+                    if (!veh.GetIsEngineRunning())
+                    {
+                        Events.CallRemote("Vehicles::ToggleEngineSync", false);
                     }
 
                     //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Fuel: " + data.FuelLevel);

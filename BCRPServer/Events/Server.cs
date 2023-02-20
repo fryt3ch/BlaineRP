@@ -168,46 +168,15 @@ namespace BCRPServer.Events
             {
                 while (true)
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(800);
 
                     var currentTime = Utils.GetCurrentTime();
 
                     if (currentTime.Minute == 0 && currentTime.Second == 0)
                     {
-                        var minSessionTimeForPaydayMinutes = Settings.MIN_SESSION_TIME_FOR_PAYDAY / 60;
-
                         NAPI.Task.Run(() =>
                         {
-                            foreach (var pData in PlayerData.All.Values)
-                            {
-                                if (pData?.Player?.Exists != true)
-                                    continue;
-
-                                var player = pData.Player;
-
-                                Sync.Chat.SendServer("PayDay", player);
-
-                                if (pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
-                                {
-                                    player.Notify("PayDay::FailTime", minSessionTimeForPaydayMinutes, pData.LastData.SessionTime);
-
-                                    continue;
-                                }
-
-                                pData.LastData.SessionTime = 0;
-
-                                if (pData.BankAccount == null)
-                                {
-                                    player.Notify("PayDay::FailBank");
-
-                                    continue;
-                                }
-
-                                /*                                if (pData.Fraction == PlayerData.FractionTypes.None)
-                                                                {
-                                                                    pData.AddCash(JoblessBenefits);
-                                                                }*/
-                            }
+                            DoPayDay();
                         });
 
                         GC.Collect();
@@ -226,6 +195,34 @@ namespace BCRPServer.Events
             });
         }
         #endregion
+
+        public static void DoPayDay()
+        {
+            var minSessionTimeForPaydayMinutes = Settings.MIN_SESSION_TIME_FOR_PAYDAY / 60;
+
+            foreach (var pData in PlayerData.All.Values)
+            {
+                var player = pData.Player;
+
+                Sync.Chat.SendServer("PayDay", player);
+
+                if (pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
+                {
+                    player.Notify("PayDay::FailTime", pData.LastData.SessionTime, minSessionTimeForPaydayMinutes);
+
+                    continue;
+                }
+
+                pData.LastData.SessionTime = 0;
+
+                if (pData.BankAccount == null)
+                {
+                    player.Notify("PayDay::FailBank");
+
+                    continue;
+                }
+            }
+        }
 
 /*        [ServerEvent(Event.Update)]
         public void OnUpdate()

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BCRPClient.Additional;
+using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -18,6 +19,11 @@ namespace BCRPClient.Sync
             public enum Types
             {
                 TQ1 = 0,
+
+                /// <summary>Job Trucker 1</summary>
+                JTR1,
+
+                JCAB1,
             }
 
             public enum ColourTypes
@@ -31,7 +37,7 @@ namespace BCRPClient.Sync
                 {
                     Types.TQ1,
 
-                    new QuestData(Types.TQ1, "Пиздилово", "Snow Brawl", new Dictionary<int, StepData>()
+                    new QuestData(Types.TQ1, "Пиздилово", "Snow Brawl", new Dictionary<byte, StepData>()
                     {
                         {
                             0,
@@ -40,25 +46,207 @@ namespace BCRPClient.Sync
                             {
                                 StartAction = (pData, quest) =>
                                 {
-                                    var blips = quest.Blips;
-
-                                    if (blips == null)
-                                        blips = new List<Blip>();
-
                                     var mBlip = new Blip(304, new Vector3(0f, 0f, 0f), "asdas", 1f, 5, 255, 0, false, 0, 0, Settings.MAIN_DIMENSION);
 
-                                    mBlip.SetData("IsMain", true);
-
-                                    blips.Add(mBlip);
-
-                                    quest.Blips = blips;
+                                    quest.SetActualData("BP_M", mBlip);
                                 },
 
                                 EndAction = null,
                             }
                         }
                     })
-                }
+                },
+
+                {
+                    Types.JTR1,
+
+                    new QuestData(Types.JTR1, "Доставка груза", "Дальнобойщики", new Dictionary<byte, StepData>()
+                    {
+                        {
+                            0,
+
+                            new StepData("Возьмите новый заказ", 1)
+                            {
+                                StartAction = (pData, quest) =>
+                                {
+
+                                }
+                            }
+                        },
+
+                        {
+                            1,
+
+                            new StepData("Заберите груз со склада", 1)
+                            {
+                                StartAction = (pData, quest) =>
+                                {
+                                    var qData = quest.CurrentData?.Split('&');
+
+                                    if (qData == null || qData.Length != 4)
+                                        return;
+
+                                    var job = pData.CurrentJob as Data.Locations.Trucker;
+
+                                    if (job == null)
+                                        return;
+
+                                    var currentOrder = new Data.Locations.Trucker.OrderInfo() { Id = uint.Parse(qData[0]), MPIdx = int.Parse(qData[1]), TargetBusiness = BCRPClient.Data.Locations.Business.All[int.Parse(qData[2])], Reward = uint.Parse(qData[3]) };
+
+                                    job.SetCurrentData("CO", currentOrder);
+
+                                    var destPos = new Vector3(job.MaterialsPositions[currentOrder.MPIdx].X, job.MaterialsPositions[currentOrder.MPIdx].Y, job.MaterialsPositions[currentOrder.MPIdx].Z);
+
+                                    var colshape = new Additional.Sphere(destPos, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                    {
+                                        ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+
+                                        OnEnter = async (cancel) =>
+                                        {
+                                            var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+
+                                            if (jobVehicle == null)
+                                                return;
+
+                                            if (Player.LocalPlayer.Vehicle != jobVehicle)
+                                            {
+                                                return;
+                                            }
+/*
+                                            var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", "Загрузка материалов", "Подождите еще {0} сек.", 5, Scaleform.CounterSoundTypes.None);
+
+                                            var task = new AsyncTask(() =>
+                                            {
+                                                if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                                {
+                                                    return;
+                                                }
+                                            }, 25, true, 0);*/
+
+                                            var res = await quest.CallProgressUpdateProc(1, $"{currentOrder.Id}");
+                                        },
+
+                                        OnExit = (cancel) =>
+                                        {
+
+                                        }
+                                    };
+
+                                    quest.SetActualData("BP_M", new Blip(9, destPos, "", 1f, 3, 125, 0f, true, 0, 10f, Settings.MAIN_DIMENSION));
+                                    quest.SetActualData("CS_0", colshape);
+                                    quest.SetActualData("MKR_0", new Marker(1, destPos, 10f, Vector3.Zero, Vector3.Zero, new RGBA(255, 0, 0, 125), true, Settings.MAIN_DIMENSION));
+
+                                    destPos.Z += 1f;
+
+                                    quest.SetActualData("TXL_0", new TextLabel(destPos, Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.MAIN_DIMENSION) { Font = 4, LOS = false });
+                                },
+
+                                EndAction = (pData, quest) =>
+                                {
+                                    quest.ClearAllActualData();
+                                }
+                            }
+                        },
+
+                        {
+                            2,
+
+                            new StepData("Доставьте груз получателю", 1)
+                            {
+                                StartAction = (pData, quest) =>
+                                {
+                                    var qData = quest.CurrentData?.Split('&');
+
+                                    if (qData == null || qData.Length != 4)
+                                        return;
+
+                                    var job = pData.CurrentJob as Data.Locations.Trucker;
+
+                                    if (job == null)
+                                        return;
+
+                                    var currentOrder =  job.GetCurrentData<Data.Locations.Trucker.OrderInfo>("CO") ?? new Data.Locations.Trucker.OrderInfo() { Id = uint.Parse(qData[0]), MPIdx = int.Parse(qData[1]), TargetBusiness = BCRPClient.Data.Locations.Business.All[int.Parse(qData[2])], Reward = uint.Parse(qData[3]) };
+
+                                    job.SetCurrentData("CO", currentOrder);
+
+                                    var destPos = new Vector3(currentOrder.TargetBusiness.InfoColshape.Position.X, currentOrder.TargetBusiness.InfoColshape.Position.Y, currentOrder.TargetBusiness.InfoColshape.Position.Z);
+
+                                    var colshape = new Additional.Sphere(destPos, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                    {
+                                        ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+
+                                        OnEnter = async (cancel) =>
+                                        {
+                                            var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
+
+                                            if (jobVehicle == null)
+                                                return;
+
+                                            if (Player.LocalPlayer.Vehicle != jobVehicle)
+                                            {
+                                                return;
+                                            }
+
+                                            var res = await quest.CallProgressUpdateProc(1, $"{currentOrder.Id}");
+                                        }
+                                    };
+
+                                    quest.SetActualData("BP_M", new Blip(9, destPos, "", 1f, 3, 125, 0f, true, 0, 10f, Settings.MAIN_DIMENSION));
+                                    quest.SetActualData("CS_0", colshape);
+                                    quest.SetActualData("MKR_0", new Marker(1, destPos, 10f, Vector3.Zero, Vector3.Zero, new RGBA(255, 0, 0, 125), true, Settings.MAIN_DIMENSION));
+                                },
+
+                                EndAction = (pData, quest) =>
+                                {
+                                    quest.ClearAllActualData();
+                                }
+                            }
+                        }
+                    })
+                },
+
+                {
+                    Types.JCAB1,
+
+                    new QuestData(Types.JCAB1, "Доставка пассажира", "Такси", new Dictionary<byte, StepData>()
+                    {
+                        {
+                            0,
+
+                            new StepData("Возьмите новый заказ", 1)
+                            {
+                                StartAction = (pData, quest) =>
+                                {
+
+                                }
+                            }
+                        },
+
+                        {
+                            1,
+
+                            new StepData("Приедьте за клиентом", 1)
+                            {
+                                StartAction = (pData, quest) =>
+                                {
+
+                                }
+                            }
+                        },
+
+                        {
+                            2,
+
+                            new StepData("Отвезите клиента", 1)
+                            {
+                                StartAction = (pData, quest) =>
+                                {
+
+                                }
+                            }
+                        },
+                    })
+                },
             };
 
             public Types Type { get; set; }
@@ -69,9 +257,9 @@ namespace BCRPClient.Sync
 
             public string GiverName { get; set; }
 
-            public Dictionary<int, StepData> Steps { get; set; }
+            public Dictionary<byte, StepData> Steps { get; set; }
 
-            public QuestData(Types Type, string Name, string GiverName, Dictionary<int, StepData> Steps)
+            public QuestData(Types Type, string Name, string GiverName, Dictionary<byte, StepData> Steps)
             {
                 this.Type = Type;
 
@@ -106,13 +294,36 @@ namespace BCRPClient.Sync
 
         public QuestData Data => QuestData.All[Type];
 
-        public int Step { get; set; }
+        public byte Step { get; set; }
 
         public int StepProgress { get; set; }
 
+        public string CurrentData { get; set; }
+
         public QuestData.StepData CurrentStepData => Data.Steps.GetValueOrDefault(Step);
 
-        public List<Blip> Blips { get => Player.LocalPlayer.GetData<List<Blip>>($"Quests::{Type}::Temp::Blips"); set { if (value == null) Player.LocalPlayer.ResetData($"Quests::{Type}::Temp::Blips"); else Player.LocalPlayer.SetData($"Quests::{Type}::Temp::Blips", value); } }
+        private Dictionary<string, object> ActualData { get; set; } = new Dictionary<string, object>();
+
+        public void SetActualData(string key, object data)
+        {
+            if (ActualData == null)
+                return;
+
+            if (!ActualData.TryAdd(key, data))
+                ActualData[key] = data;
+        }
+
+        public T GetActualData<T>(string key)
+        {
+            var data = ActualData.GetValueOrDefault(key);
+
+            if (data is T dataT)
+                return dataT;
+
+            return default(T);
+        }
+
+        public bool ResetActualData(string key) => ActualData.Remove(key);
 
         public string GoalWithProgress
         {
@@ -130,33 +341,21 @@ namespace BCRPClient.Sync
             }
         }
 
-        public Quest(QuestData.Types Type, int Step, int StepProgress)
+        public Quest(QuestData.Types Type, byte Step, int StepProgress, string CurrentData)
         {
             this.Type = Type;
 
             this.Step = Step;
             this.StepProgress = StepProgress;
+
+            this.CurrentData = CurrentData;
         }
 
         public static Quest GetPlayerQuest(Sync.Players.PlayerData pData, QuestData.Types type) => pData.Quests.Where(x => x.Type == type).FirstOrDefault();
 
         public void MenuIconFunc()
         {
-            if (ActualQuest != this)
-            {
-                SetActive(true);
-            }
-
-            var mBlip = Blips?.Where(x => x?.GetData<bool>("IsMain") == true).FirstOrDefault();
-
-            if (mBlip != null)
-            {
-                var coords = mBlip.GetInfoIdCoord();
-
-                RAGE.Game.Ui.SetWaypointOff();
-
-                RAGE.Game.Ui.SetNewWaypoint(coords.X, coords.Y);
-            }
+            SetActive(true);
         }
 
         public void UpdateHudQuest()
@@ -176,7 +375,7 @@ namespace BCRPClient.Sync
             }
         }
 
-        public void UpdateStep(int newStep)
+        public void UpdateStep(byte newStep)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -199,10 +398,7 @@ namespace BCRPClient.Sync
 
             Step = newStep;
 
-            if (ActualQuest == this)
-            {
-                UpdateHudQuest();
-            }
+            SetActive(true);
         }
 
         public void SetActive(bool state)
@@ -224,6 +420,15 @@ namespace BCRPClient.Sync
                 if (!Settings.Interface.HideQuest)
                 {
                     CEF.HUD.EnableQuest(true);
+                }
+
+                var mBlip = GetActualData<Blip>("BP_M");
+
+                if (mBlip != null)
+                {
+                    var coords = mBlip.GetInfoIdCoord();
+
+                    Utils.SetWaypoint(coords.X, coords.Y);
                 }
             }
             else
@@ -278,17 +483,34 @@ namespace BCRPClient.Sync
                 sData.EndAction?.Invoke(pData, this);
             }
 
-            var blips = Blips;
-
-            if (blips != null)
-            {
-                foreach (var x in blips)
-                    x?.Destroy();
-
-                blips.Clear();
-
-                Blips = null;
-            }
+            ClearAllActualData();
         }
+
+        public void ClearAllActualData()
+        {
+            foreach (var x in ActualData)
+            {
+                if (x.Key.StartsWith("BP"))
+                {
+                    (x.Value as Blip)?.Destroy();
+                }
+                else if (x.Key.StartsWith("TXL"))
+                {
+                    (x.Value as TextLabel)?.Destroy();
+                }
+                else if (x.Key.StartsWith("MKR"))
+                {
+                    (x.Value as Marker)?.Destroy();
+                }
+                else if (x.Key.StartsWith("CS"))
+                {
+                    (x.Value as ExtraColshape)?.Delete();
+                }
+            }
+
+            ActualData.Clear();
+        }
+
+        public async System.Threading.Tasks.Task<byte> CallProgressUpdateProc(int newProgress, string data = null) => (byte)(int)await Events.CallRemoteProc("Quest::PU", (int)Type, newProgress, data ?? "");
     }
 }

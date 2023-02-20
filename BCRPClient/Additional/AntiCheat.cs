@@ -335,11 +335,11 @@ namespace BCRPClient.Additional
 
         private static void Check()
         {
-            if (Player.LocalPlayer.Vehicle != null && Player.LocalPlayer.Vehicle.IsLocal)
+            if (Player.LocalPlayer.Vehicle is Vehicle fakeVeh && fakeVeh.IsLocal)
             {
                 if (Player.LocalPlayer.Dimension == Settings.MAIN_DIMENSION)
                 {
-                    Player.LocalPlayer.Vehicle.Destroy();
+                    fakeVeh.Destroy();
                 }
             }
 

@@ -278,7 +278,7 @@ namespace BCRPClient
 
                 if (distance <= radius && minDistance >= distance)
                 {
-                    if (veh.IsDead(0) || veh.GetEngineHealth() < 0)
+                    if (veh.IsDead(0))
                         continue;
 
                     if (seatId < 0)
@@ -857,6 +857,13 @@ namespace BCRPClient
             return true;
         }
 
+        public static void SetWaypoint(float x, float y)
+        {
+            RAGE.Game.Ui.SetWaypointOff();
+
+            RAGE.Game.Ui.SetNewWaypoint(x, y);
+        }
+
         /// <summary>Метод для исполнения кода в JS версии RAGE</summary>
         /// <param name="code">Код</param>
         public static void JsEval(string code) => Events.CallLocal("RAGE::Eval", code);
@@ -1386,21 +1393,9 @@ namespace BCRPClient
 
         public static Vector3 GetRealPosition(this Entity entity)
         {
-            if (entity is Player player)
+            if (entity is GameEntity gEntity)
             {
-                return player.GetCoords(false);
-            }
-            else if (entity is Vehicle vehicle)
-            {
-                return vehicle.GetCoords(false);
-            }
-            else if (entity is Ped ped)
-            {
-                return ped.GetCoords(false);
-            }
-            else if (entity is MapObject obj)
-            {
-                return obj.GetCoords(false);
+                return RAGE.Game.Entity.GetEntityCoords(gEntity.Handle, false);
             }
 
             return entity.Position;
@@ -1703,5 +1698,7 @@ namespace BCRPClient
         }
 
         public static void TaskLookAtCoord2(this PedBase ped, float posX, float posY, float posZ, int duration, int flags = 2048, int p2 = 3) => RAGE.Game.Invoker.Invoke(0x6FA46612594F7973, ped.Handle, posX, posY, posZ, duration, flags, p2);
+
+        public static float GetPathfindTravelDistance(this Vector3 pos1, Vector3 pos2) => RAGE.Game.Pathfind.CalculateTravelDistanceBetweenPoints(pos1.X, pos1.Y, pos1.Z, pos2.X, pos2.Y, pos2.Z);
     }
 }

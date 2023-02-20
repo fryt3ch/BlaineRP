@@ -27,14 +27,11 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (seatId == 0)
+            if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
             {
-                if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
-                {
-                    player.WarpOutOfVehicle();
+                player.WarpOutOfVehicle();
 
-                    return;
-                }
+                return;
             }
 
             if (seatId < 0 || seatId >= veh.MaxOccupants || (pData.VehicleSeat < 0 && vData.Locked) || veh.GetEntityInVehicleSeat(seatId) != null)
@@ -60,7 +57,7 @@ namespace BCRPServer.Events.Vehicles
             {
                 if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)
                 {
-                    if (vData.OwnerID == 0 && vData.OwnerID != pData.CID)
+                    if (vData.OwnerID == 0)
                     {
                         if (pData.RentedJobVehicle == null)
                         {
@@ -75,6 +72,12 @@ namespace BCRPServer.Events.Vehicles
                         }
                     }
                 }
+            }
+
+            if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRent || vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)
+            {
+                if (vData.OwnerID == pData.CID)
+                    vData.CancelDeletionTask();
             }
         }
         #endregion
@@ -95,10 +98,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (vData.ForcedSpeed != 0f && veh.GetEntityInVehicleSeat(0) != null)
-                vData.ForcedSpeed = 0f;
-
-            pData.VehicleSeat = -1;
+            BCRPServer.Sync.Vehicles.OnPlayerLeaveVehicle(pData, vData);
         }
         #endregion
 
@@ -118,7 +118,12 @@ namespace BCRPServer.Events.Vehicles
             if (vData.EngineOn)
                 vData.EngineOn = false;
 
-            Console.WriteLine($"{vData.VID} died - {veh.Health}");
+            if (vData.OwnerType == VehicleData.OwnerTypes.PlayerRentJob || vData.OwnerType == VehicleData.OwnerTypes.PlayerRent)
+            {
+                vData.Delete(false);
+            }
+
+           //Console.WriteLine($"{vData.VID} died - {veh.Health}");
         }
 
         [RemoteEvent("votc")]
@@ -172,7 +177,7 @@ namespace BCRPServer.Events.Vehicles
 
         #region Engine
         [RemoteEvent("Vehicles::ToggleEngineSync")]
-        private static void ToggleEngineRemote(Player player)
+        private static void ToggleEngineRemote(Player player, bool selfToggled)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -218,7 +223,10 @@ namespace BCRPServer.Events.Vehicles
                 }
             }
 
-            ToggleEngine(pData, vData);
+            if (selfToggled)
+                ToggleEngine(pData, vData, null);
+            else
+                ToggleEngine(pData, vData, false);
         }
 
         public static void ToggleEngine(PlayerData pData, VehicleData vData, bool? forceStatus = null)
@@ -232,7 +240,7 @@ namespace BCRPServer.Events.Vehicles
 
                 if (forceStatus == true)
                 {
-                    if (vData.FuelLevel <= 0f)
+                    if (vData.FuelLevel <= 0f || vData.IsDead)
                         return;
                 }
                 else
@@ -242,16 +250,25 @@ namespace BCRPServer.Events.Vehicles
             {
                 if (!vData.EngineOn)
                 {
+                    if (vData.IsDead || vData.Vehicle.Health <= -4000f)
+                    {
+                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+
+                        return;
+                    }
+
                     if (vData.FuelLevel > 0f)
                     {
                         vData.EngineOn = true;
 
                         Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOn);
+
                         player.Notify("Engine::On");
                     }
                     else
                     {
                         Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+
                         player.Notify("Engine::OutOfFuel");
                     }
                 }
@@ -405,7 +422,7 @@ namespace BCRPServer.Events.Vehicles
 
         #region Radio
         [RemoteEvent("Vehicles::SetRadio")]
-        public static void SetRadio(Player player, int ind)
+        public static void SetRadio(Player player, byte stationNum)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -413,6 +430,9 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(VehicleData.StationTypes), stationNum))
+                return;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
                 return;
@@ -424,7 +444,9 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            vData.Radio = ind;
+            var stationType = (VehicleData.StationTypes)stationNum;
+
+            vData.Radio = stationType;
         }
         #endregion
 
@@ -958,7 +980,13 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (vData.OwnerType != VehicleData.OwnerTypes.PlayerRent || vData.OwnerID != pData.CID)
+            if (player.Vehicle == vData.Vehicle)
+                return;
+
+            if (vData.OwnerID != pData.CID)
+                return;
+
+            if (vData.OwnerType != VehicleData.OwnerTypes.PlayerRent && vData.OwnerType != VehicleData.OwnerTypes.PlayerRentJob)
                 return;
 
             vData.Delete(false);
@@ -1065,9 +1093,95 @@ namespace BCRPServer.Events.Vehicles
 
             vData.OwnerID = pData.CID;
 
+            pData.AddRentedVehicle(vData, 600_000);
+
             jobData.SetPlayerJob(pData, vData);
 
             return true;
+        }
+
+        [RemoteEvent("Vehicles::LOWNV")]
+        private static void LocateOwnedVehicle(Player player, uint vid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
+            var vInfo = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
+
+            if (vInfo == null)
+                return;
+
+            BCRPServer.Sync.Vehicles.TryLocateOwnedVehicle(pData, vInfo);
+        }
+
+        [RemoteEvent("Vehicles::LRENV")]
+        private static void LocateRentedVehicle(Player player, ushort rid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
+            var vData = VehicleData.All.Values.Where(x => x.Vehicle.Id == rid).FirstOrDefault();
+
+            if (vData == null)
+                return;
+
+            if (vData.OwnerID != pData.CID)
+                return;
+
+            BCRPServer.Sync.Vehicles.TryLocateRentedVehicle(pData, vData);
+        }
+
+        [RemoteEvent("Vehicles::EVAOWNV")]
+        private static void EvacuateOwnedVehicle(Player player, uint vid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
+            var vInfo = pData.OwnedVehicles.Where(x => x.VID == vid).FirstOrDefault();
+
+            if (vInfo == null)
+                return;
+
+            if (!pData.HasBankAccount(true))
+                return;
+
+            ulong newBalance;
+
+            if (!pData.BankAccount.TryRemoveMoneyDebit(Settings.VEHICLE_EVACUATION_COST, out newBalance, true))
+                return;
+
+            //pData.BankAccount.SetDebitBalance(newBalance, null);
+
+            if (vInfo.VehicleData == null)
+            {
+
+            }
+            else
+            {
+                if (player.Vehicle == vInfo.VehicleData.Vehicle)
+                    return;
+            }
         }
     }
 }

@@ -335,11 +335,11 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
-        public static void CharacterQuestUpdate(PlayerData.PlayerInfo pInfo, Sync.Quest quest)
+        public static void CharacterQuestUpdate(PlayerData.PlayerInfo pInfo, Sync.Quest.QuestData.Types type, Sync.Quest quest)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = $"UPDATE quests SET {quest.Type.ToString()}=@Data WHERE ID=@ID";
+            cmd.CommandText = $"UPDATE quests SET {type.ToString()}=@Data WHERE ID=@ID";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 

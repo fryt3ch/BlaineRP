@@ -254,8 +254,6 @@ namespace BCRPServer.Events.Players
 
                 tData.StepType = TempData.StepTypes.CharacterCreation;
 
-                player.TriggerEvent("Auth::CloseCharacterChoosePage", false);
-
                 CharacterCreation.StartNew(player);
             }
         }

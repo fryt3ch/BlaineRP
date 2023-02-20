@@ -77,6 +77,13 @@ namespace BCRPClient
 
                 public static string AlreadyHaveJob = "Вы уже где-то работаете!";
 
+                public static string QuestStartedText = "Задание начато, текущая цель - {0}";
+                public static string QuestUpdatedText = "Задание обновлено, текущая цель - {0}";
+                public static string QuestFinishedText = "Задание выполнено!";
+                public static string QuestCancelledText = "Задание отменено!";
+
+                public static string QuitThisVehicle = "Вы не должны находиться в этом транспорте, чтобы сделать это!";
+
                 public static class PayDay
                 {
                     public static string Header = "Зарплата";

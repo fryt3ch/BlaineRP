@@ -791,7 +791,7 @@ namespace BCRPServer.Events.Players
                         return;
                     }
 
-                    vData.Respawn();
+                    //vData.Respawn();
                 })
             },
 
