@@ -3,11 +3,8 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace BCRPClient.Data
 {
@@ -649,8 +646,8 @@ namespace BCRPClient.Data
         [Command("health", true, "Установить здоровье (себе)", "hp")]
         public static void Health(uint value)
         {
-/*            if (value > 100)
-                value = 100;*/
+            /*            if (value > 100)
+                            value = 100;*/
 
             if (LastSent.IsSpam(1000, false, true))
                 return;
@@ -669,7 +666,7 @@ namespace BCRPClient.Data
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_mood", Player.LocalPlayer.RemoteId,value);
+            CallRemote("p_mood", Player.LocalPlayer.RemoteId, value);
 
             LastSent = DateTime.Now;
         }
@@ -1014,7 +1011,7 @@ namespace BCRPClient.Data
             Settings.Chat.FontSize = value;
         }
 
-        [Command("chatheight", false, "Задать высоту чата" , "cheight")]
+        [Command("chatheight", false, "Задать высоту чата", "cheight")]
         public static void ChatHeight(int value)
         {
             if (value > 276 || value < 0)
@@ -1027,7 +1024,7 @@ namespace BCRPClient.Data
             Settings.Chat.Height = value;
         }
 
-        [Command("chathide", false, "Скрыть/показать чат" , "chide")]
+        [Command("chathide", false, "Скрыть/показать чат", "chide")]
         public static void ChatHide()
         {
             Settings.Chat.Height = Settings.Chat.Height == 0 ? Settings.Chat.Default.Height : 0;
@@ -1151,36 +1148,36 @@ namespace BCRPClient.Data
             (col as Additional.Polygon).SetHeading(angle);
         }
 
-/*        [Command("colshape_new_cuboid2d", true, "Создать КШ Прямоугольник", "cs_n_c2d")]
-        public static void ColshapeNewRectangle(float width = 0, float depth = 0)
-        {
-            if (width < 0 || depth < 0)
-                return;
+        /*        [Command("colshape_new_cuboid2d", true, "Создать КШ Прямоугольник", "cs_n_c2d")]
+                public static void ColshapeNewRectangle(float width = 0, float depth = 0)
+                {
+                    if (width < 0 || depth < 0)
+                        return;
 
-            var newVertice = Player.LocalPlayer.Position;
-            newVertice.Z -= 1f;
+                    var newVertice = Player.LocalPlayer.Position;
+                    newVertice.Z -= 1f;
 
-            if (width != 0 && depth != 0)
-            {
-                Additional.ExtraColshape.CreateRectangle(newVertice, width, depth, Player.LocalPlayer.GetHeading(), Player.LocalPlayer.Dimension, Utils.RedColor, 125, false);
+                    if (width != 0 && depth != 0)
+                    {
+                        Additional.ExtraColshape.CreateRectangle(newVertice, width, depth, Player.LocalPlayer.GetHeading(), Player.LocalPlayer.Dimension, Utils.RedColor, 125, false);
 
-                Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos: {newVertice} | Width: {width} | Depth: {depth}");
-            }
-            else if (Additional.ExtraColshape.TempPosition == null)
-            {
-                Additional.ExtraColshape.TempPosition = newVertice;
+                        Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos: {newVertice} | Width: {width} | Depth: {depth}");
+                    }
+                    else if (Additional.ExtraColshape.TempPosition == null)
+                    {
+                        Additional.ExtraColshape.TempPosition = newVertice;
 
-                Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos1: {newVertice}");
-            }
-            else
-            {
-                Additional.ExtraColshape.CreateRectangle(Additional.ExtraColshape.TempPosition, newVertice, 0, Player.LocalPlayer.Dimension, Utils.RedColor, 125, false);
+                        Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos1: {newVertice}");
+                    }
+                    else
+                    {
+                        Additional.ExtraColshape.CreateRectangle(Additional.ExtraColshape.TempPosition, newVertice, 0, Player.LocalPlayer.Dimension, Utils.RedColor, 125, false);
 
-                Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos2: {newVertice}");
+                        Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos2: {newVertice}");
 
-                Additional.ExtraColshape.TempPosition = null;
-            }
-        }*/
+                        Additional.ExtraColshape.TempPosition = null;
+                    }
+                }*/
 
         [Command("colshape_new_circle", true, "Создать КШ Круг", "cs_n_crl")]
         public static void ColshapeNewCircle(float radius)

@@ -2,7 +2,6 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BCRPClient.Sync
 {
@@ -346,9 +345,9 @@ namespace BCRPClient.Sync
             Weird, Weird2,
             Electrocuted,
 
-/*            Drunk,
-            Dumb,
-            Injured,*/
+            /*            Drunk,
+                        Dumb,
+                        Injured,*/
         }
 
         public enum ScenarioTypes

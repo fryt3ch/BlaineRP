@@ -1,16 +1,9 @@
-﻿using GTANetworkAPI;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
+﻿using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -74,28 +67,28 @@ namespace BCRPServer
             if (commands.Count == 0)
                 return;
 
-/*            for (int i = 0; i < commands.Count; i++)
-            {
-                cmd = commands[i];
+            /*            for (int i = 0; i < commands.Count; i++)
+                        {
+                            cmd = commands[i];
 
-                if (cmd.Parameters["ID"].Value is uint id)
-                {
-                    var text = cmd.CommandText;
+                            if (cmd.Parameters["ID"].Value is uint id)
+                            {
+                                var text = cmd.CommandText;
 
-                    var sameCommands = new List<MySqlCommand>();
+                                var sameCommands = new List<MySqlCommand>();
 
-                    for (int j = 0; j < commands.Count; j++)
-                    {
-                        var cmd1 = commands[j];
+                                for (int j = 0; j < commands.Count; j++)
+                                {
+                                    var cmd1 = commands[j];
 
-                        if (cmd1.Parameters["ID"].Value is uint && cmd1.CommandText == text)
-                            sameCommands.Add(cmd1);
-                    }
+                                    if (cmd1.Parameters["ID"].Value is uint && cmd1.CommandText == text)
+                                        sameCommands.Add(cmd1);
+                                }
 
-                    for (int j = 0; j < sameCommands.Count - 1; j++)
-                        commands.Remove(sameCommands[j]);
-                }
-            }*/
+                                for (int j = 0; j < sameCommands.Count - 1; j++)
+                                    commands.Remove(sameCommands[j]);
+                            }
+                        }*/
 
             try
             {

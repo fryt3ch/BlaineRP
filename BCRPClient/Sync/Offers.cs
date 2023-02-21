@@ -1,9 +1,7 @@
-﻿using BCRPClient.CEF;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BCRPClient.Sync
 {

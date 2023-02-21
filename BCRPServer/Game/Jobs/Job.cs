@@ -1,9 +1,6 @@
 ﻿using GTANetworkAPI;
-using GTANetworkMethods;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPServer.Game.Jobs
 {

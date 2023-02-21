@@ -1,9 +1,8 @@
 ﻿using RAGE;
 using RAGE.Elements;
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace BCRPClient.Sync
 {
@@ -82,7 +81,7 @@ namespace BCRPClient.Sync
                 }
             }
         }
-        
+
         public static bool Preloaded { get; private set; }
 
         public enum WeatherTypes : byte

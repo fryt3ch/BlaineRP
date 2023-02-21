@@ -1,5 +1,4 @@
 ﻿using BCRPClient.CEF;
-using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -402,7 +401,7 @@ namespace BCRPClient.Additional
             Interact,
 
             NpcDialogue,
-            
+
             ATM,
 
             TuningEnter,

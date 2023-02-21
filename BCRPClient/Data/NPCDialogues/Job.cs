@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using static BCRPClient.Data.Dialogue;
+﻿using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCDialogues
 {
@@ -18,9 +15,9 @@ namespace BCRPClient.Data.NPCDialogues
                 new Button("Так, а что по оплате?", () => NPC.CurrentNPC?.ShowDialogue("job_debitcard_g_0")),
                 Button.DefaultExitButton);
 
-/*            new Dialogue("job_trucker_g_2", "Да сколько себя помню, у меня и брат владеет частью нашего семейного бизнеса, но в Лос-Сантосе. Давно его не видел, мне нужно передать ему одну вещь. Можешь передать ему ее, если будешь там? Он тебя хорошо отблагодарит.", null,
-                Button.DefaultBackButton,
-                Button.DefaultExitButton);*/
+            /*            new Dialogue("job_trucker_g_2", "Да сколько себя помню, у меня и брат владеет частью нашего семейного бизнеса, но в Лос-Сантосе. Давно его не видел, мне нужно передать ему одну вещь. Можешь передать ему ее, если будешь там? Он тебя хорошо отблагодарит.", null,
+                            Button.DefaultBackButton,
+                            Button.DefaultExitButton);*/
 
             new Dialogue("job_debitcard_g_0", "С этим у нас все официально, поэтому никаких конвертов. Если у тебя нет карты, получи ее в любом банковском отделении, базовый тариф стоит копейки. Без нее работать у нас не сможешь. А так, начислим тебе все, что ты заработал, даже если тебя вдруг не будет в округе, кхе-кхе", null,
                 Button.DefaultBackButton,

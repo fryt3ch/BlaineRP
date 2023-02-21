@@ -1,10 +1,7 @@
-﻿using BCRPServer.Game.Items;
-using BCRPServer.Game.Items.Craft;
+﻿using BCRPServer.Game.Items.Craft;
 using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer.Events.Players

@@ -1,10 +1,6 @@
 ﻿using GTANetworkAPI;
-using Mysqlx.Crud;
-using Org.BouncyCastle.Crypto.Modes.Gcm;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPServer.Events.Players.Jobs
 {

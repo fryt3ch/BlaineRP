@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Transactions;
+﻿using RAGE;
 
 namespace BCRPClient.CEF
 {

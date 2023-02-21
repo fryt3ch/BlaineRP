@@ -152,7 +152,7 @@ namespace BCRPServer.Game.Items
 
             {
                 Game.Items.Inventory.Groups.HolsterItem,
-                
+
                 (item) =>
                 {
                     var holster = (Holster)item;
@@ -193,7 +193,7 @@ namespace BCRPServer.Game.Items
             public static uint DefaultModel => NAPI.Util.GetHashKey("prop_drug_package_02");
 
             /// <summary>Название предмета</summary>
-            public string Name{ get; set; }
+            public string Name { get; set; }
 
             /// <summary>Вес единицы предмета</summary>
             public float Weight { get; set; }
@@ -333,7 +333,7 @@ namespace BCRPServer.Game.Items
 
         public override bool CanWrite => false;
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {}
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) { }
     }
     #endregion
 }

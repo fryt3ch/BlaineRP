@@ -1,11 +1,8 @@
 ﻿using GTANetworkAPI;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using System;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static BCRPServer.PlayerData;
 
 namespace BCRPServer.Game.Estates
 {
@@ -314,10 +311,10 @@ namespace BCRPServer.Game.Estates
             {
                 if (notifyOnFault)
                 {
-/*                    if (PlayerInfo.PlayerData != null)
-                    {
-                        PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
-                    }*/
+                    /*                    if (PlayerInfo.PlayerData != null)
+                                        {
+                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                                        }*/
                 }
 
                 return false;

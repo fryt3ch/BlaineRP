@@ -1,10 +1,8 @@
 ﻿using GTANetworkAPI;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events
@@ -154,11 +152,11 @@ namespace BCRPServer.Events
                 x.PostInitialize();
             }
 
-/*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
+            /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
-            var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);
+                        var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);
 
-            boat.AttachBoatToTrailer();*/
+                        boat.AttachBoatToTrailer();*/
 
             Additional.ConsoleCommands.Activate();
 
@@ -224,13 +222,13 @@ namespace BCRPServer.Events
             }
         }
 
-/*        [ServerEvent(Event.Update)]
-        public void OnUpdate()
-        {
-            var currentTime = Utils.GetCurrentTime();
+        /*        [ServerEvent(Event.Update)]
+                public void OnUpdate()
+                {
+                    var currentTime = Utils.GetCurrentTime();
 
-            NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
-        }*/
+                    NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
+                }*/
 
         public static async Task OnServerShutdown()
         {
@@ -263,26 +261,26 @@ namespace BCRPServer.Events
             MySQL.DoAllQueries();
         }
 
-/*        private static List<string> VehicleDataLines = new List<string>();
+        /*        private static List<string> VehicleDataLines = new List<string>();
 
-        [RemoteEvent("vehicle_data_p")]
-        private static void VehicleDataProcess(Player player, string model, string data)
-        {
-            VehicleDataLines.Add($"\"{model}\":{data},");
-        }
+                [RemoteEvent("vehicle_data_p")]
+                private static void VehicleDataProcess(Player player, string model, string data)
+                {
+                    VehicleDataLines.Add($"\"{model}\":{data},");
+                }
 
-        [RemoteEvent("vehicle_data_f")]
-        private static async void VehicleDataFinish(Player player, int count)
-        {
-            while (VehicleDataLines.Count < count)
-                await Task.Delay(25);
+                [RemoteEvent("vehicle_data_f")]
+                private static async void VehicleDataFinish(Player player, int count)
+                {
+                    while (VehicleDataLines.Count < count)
+                        await Task.Delay(25);
 
-            VehicleDataLines[VehicleDataLines.Count - 1] = VehicleDataLines[VehicleDataLines.Count - 1].Substring(0, VehicleDataLines[VehicleDataLines.Count - 1].Length - 1);
+                    VehicleDataLines[VehicleDataLines.Count - 1] = VehicleDataLines[VehicleDataLines.Count - 1].Substring(0, VehicleDataLines[VehicleDataLines.Count - 1].Length - 1);
 
-            VehicleDataLines.Insert(0, "{");
-            VehicleDataLines.Add("}");
+                    VehicleDataLines.Insert(0, "{");
+                    VehicleDataLines.Add("}");
 
-            File.WriteAllLines("vehicleData.new.json", VehicleDataLines);
-        }*/
+                    File.WriteAllLines("vehicleData.new.json", VehicleDataLines);
+                }*/
     }
 }

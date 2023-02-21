@@ -1,12 +1,9 @@
 ﻿using BCRPClient.Additional;
-using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 
 namespace BCRPClient.Sync
 {
@@ -41,7 +38,7 @@ namespace BCRPClient.Sync
                     {
                         {
                             0,
-                            
+
                             new StepData("Попадите снежком в {1-0} игроков", 10)
                             {
                                 StartAction = (pData, quest) =>

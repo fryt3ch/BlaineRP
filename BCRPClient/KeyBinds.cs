@@ -3,12 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Windows.Forms;
 
 namespace BCRPClient
 {
@@ -401,7 +396,7 @@ namespace BCRPClient
             public Action Action { get; private set; }
 
             /// <summary>Клавиши</summary>
-            public RAGE.Ui.VirtualKeys[] Keys { get;  private set; }
+            public RAGE.Ui.VirtualKeys[] Keys { get; private set; }
 
             /// <summary>Срабатывает ли сразу при нажатии (без отпускания)?</summary>
             public bool IsDown { get; private set; }

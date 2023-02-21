@@ -1,12 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
-using System.Text;
-using System.Xml.Linq;
 
 namespace BCRPClient.CEF
 {
@@ -63,45 +58,45 @@ namespace BCRPClient.CEF
         private static Dictionary<IntTypes, string> IntNames = new Dictionary<IntTypes, string>()
         {
             { IntTypes.Login, "login" }, { IntTypes.Registration, "reg" }, { IntTypes.CharacterSelection, "char_selection" }, { IntTypes.StartPlace, "start_place" },
-            
+
             { IntTypes.CharacterCreation, "char_creation" },
-            
+
             { IntTypes.HUD, "hud" }, { IntTypes.HUD_Top, "hud_top" }, { IntTypes.HUD_Quest, "hud_quest" }, { IntTypes.HUD_Help, "hud_help" }, { IntTypes.HUD_Speedometer, "hud_spd" }, { IntTypes.HUD_Interact, "hud_interact" }, { IntTypes.HUD_Menu, "hud_menu" }, { IntTypes.HUD_Left, "hud_left" },
-            
+
             { IntTypes.Inventory, "inventory" }, { IntTypes.Inventory_Full, "full_inventory" }, { IntTypes.CratesInventory, "crates_inventory" }, { IntTypes.Trade, "trade" }, { IntTypes.Workbench, "workbench" },
 
             { IntTypes.ActionBox, "actionbox" },
-            
+
             { IntTypes.Animations, "anims" },
-            
+
             { IntTypes.Documents, "docs" },
-            
+
             { IntTypes.NPC, "npc" },
-            
+
             { IntTypes.Interaction, "interaction" }, { IntTypes.Interaction_Character, "char_interaction" }, { IntTypes.Interaction_Vehicle_In, "iv_interaction" }, { IntTypes.Interaction_Vehicle_Out, "ov_interaction" }, { IntTypes.Interaction_Passengers, "pass_interaction"},
-            
+
             { IntTypes.Shop, "shop" }, { IntTypes.Retail, "retail" }, { IntTypes.Tuning, "tuning" }, { IntTypes.Salon, "salon" }, { IntTypes.TattooSalon, "tattoo_salon" },
-            
+
             { IntTypes.VehicleMisc, "car_maint" },
-            
+
             { IntTypes.Death, "death" },
-            
+
             { IntTypes.Chat, "chat" },
 
             { IntTypes.Phone, "phone" },
-            
+
             { IntTypes.Menu, "menu" },
-            
+
             { IntTypes.MenuBusiness, "menu_biz" }, { IntTypes.MenuGarage, "menu_gar" }, { IntTypes.MenuBank, "menu_bank" }, { IntTypes.MenuHome, "menu_home" },
-            
+
             { IntTypes.Estate, "estate" }, { IntTypes.EstateAgency, "est_agency" },
-            
+
             { IntTypes.Elevator, "elevator" },
-            
+
             { IntTypes.ATM, "atm" },
-            
+
             { IntTypes.BlipsMenu, "blips" },
-            
+
             { IntTypes.Notifications, "notifications" },
         };
 
@@ -110,7 +105,7 @@ namespace BCRPClient.CEF
             { IntTypes.CratesInventory, IntTypes.Inventory_Full }, { IntTypes.Inventory, IntTypes.Inventory_Full }, { IntTypes.Trade, IntTypes.Inventory_Full }, { IntTypes.Workbench, IntTypes.Inventory_Full },
 
             { IntTypes.Interaction_Character, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_In, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_Out, IntTypes.Interaction }, { IntTypes.Interaction_Passengers, IntTypes.Interaction },
-            
+
             { IntTypes.HUD_Top, IntTypes.HUD }, { IntTypes.HUD_Quest, IntTypes.HUD }, { IntTypes.HUD_Help, IntTypes.HUD }, { IntTypes.HUD_Speedometer, IntTypes.HUD }, { IntTypes.HUD_Interact, IntTypes.HUD }, { IntTypes.HUD_Menu, IntTypes.HUD }, { IntTypes.HUD_Left, IntTypes.HUD },
         };
 

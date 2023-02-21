@@ -1,11 +1,5 @@
-﻿using RAGE;
-using RAGE.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Runtime;
-using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BCRPClient.Additional
 {

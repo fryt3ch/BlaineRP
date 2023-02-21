@@ -1,11 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.Additional
 {

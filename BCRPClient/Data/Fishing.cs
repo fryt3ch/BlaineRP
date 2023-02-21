@@ -1,9 +1,7 @@
 ﻿using RAGE;
 using RAGE.Elements;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.Data
 {
@@ -38,16 +36,16 @@ namespace BCRPClient.Data
                             if (!Utils.IsTaskStillPending("MG::F::S::D", task))
                                 break;
 
-/*                            var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.15f);
+                            /*                            var waterPos = Utils.FindEntityWaterIntersectionCoord(Player.LocalPlayer, new Vector3(0f, 0f, 1f), 7.5f, 7.5f, -3.5f, 360f, 0.15f);
 
-                            if (waterPos == null)
-                            {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.FishingNotAllowedHere);
+                                                        if (waterPos == null)
+                                                        {
+                                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.FishingNotAllowedHere);
 
-                                Events.CallRemote("Player::SUCI");
+                                                            Events.CallRemote("Player::SUCI");
 
-                                return;
-                            }*/
+                                                            return;
+                                                        }*/
 
                             if (DateTime.Now.Subtract(sTime).TotalMilliseconds >= waitTime)
                             {
@@ -77,7 +75,7 @@ namespace BCRPClient.Data
                         while (task?.IsCancelled == false && fakeFishObj?.Exists != true)
                         {
                             await RAGE.Game.Invoker.WaitAsync(25);
-                            
+
                             fakeFishObj = pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ItemFishG).Select(x => x.Object).FirstOrDefault();
                         }
 
@@ -133,7 +131,7 @@ namespace BCRPClient.Data
 
                 return;
             }
-            
+
             if (timeCatched == 0)
             {
                 CancelAllTasks();

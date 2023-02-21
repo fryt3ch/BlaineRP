@@ -3,8 +3,6 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace BCRPClient.CEF
 {
@@ -201,7 +199,7 @@ namespace BCRPClient.CEF
         }
 
         public static object[] GetPasportData(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed) => new object[] { name, surname, sex ? Locale.General.Documents.SexMale : Locale.General.Documents.SexFemale, birthDate.ToString("dd.MM.yyyy"), married ?? (sex ? Locale.General.Documents.NotMarriedMale : Locale.General.Documents.NotMarriedFemale), cid, dateOfIssue.ToString("dd.MM.yyyy"), boundToMilitaryService, losSantosAllowed };
-        public static object[] GetResumeData(string name, string surname, string[] data) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" }  }, new object[] { new object[] { "side2-a", "side2-b" } } } };
+        public static object[] GetResumeData(string name, string surname, string[] data) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" } }, new object[] { new object[] { "side2-a", "side2-b" } } } };
         public static object[] GetLicensesData(string name, string surname, List<Sync.Players.LicenseTypes> licenses)
         {
             return new object[] { name, surname, new object[] { new object[] { licenses.Contains(Sync.Players.LicenseTypes.M), licenses.Contains(Sync.Players.LicenseTypes.A), licenses.Contains(Sync.Players.LicenseTypes.B), licenses.Contains(Sync.Players.LicenseTypes.C), licenses.Contains(Sync.Players.LicenseTypes.D), licenses.Contains(Sync.Players.LicenseTypes.Fly), licenses.Contains(Sync.Players.LicenseTypes.Sea) },

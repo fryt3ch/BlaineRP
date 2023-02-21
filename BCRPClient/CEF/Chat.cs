@@ -1,6 +1,4 @@
-﻿using BCRPClient.Sync;
-using Newtonsoft.Json;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;

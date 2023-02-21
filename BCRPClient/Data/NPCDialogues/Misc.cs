@@ -1,7 +1,4 @@
 ﻿using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCDialogues

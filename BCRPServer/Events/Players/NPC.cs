@@ -1,8 +1,4 @@
-﻿using BCRPServer.Sync;
-using GTANetworkAPI;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using GTANetworkAPI;
 using static BCRPServer.Sync.NPC;
 
 namespace BCRPServer.Events.Players

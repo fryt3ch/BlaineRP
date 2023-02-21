@@ -1,7 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer.Events.Players

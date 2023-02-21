@@ -5,7 +5,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 
 namespace BCRPClient.Sync
 {
@@ -235,8 +234,8 @@ namespace BCRPClient.Sync
 
             if (veh.IsLocal)
             {
-/*                if (veh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle trVeh && GetData(trVeh)?.IsFrozen == true)
-                    veh.FreezePosition(true);*/
+                /*                if (veh.GetData<Vehicle>("TrailerSync::Owner") is Vehicle trVeh && GetData(trVeh)?.IsFrozen == true)
+                                    veh.FreezePosition(true);*/
 
                 return;
             }
@@ -1743,7 +1742,7 @@ namespace BCRPClient.Sync
 
                 return;
             }
-            
+
             if (Player.LocalPlayer.GetScriptTaskStatus(0x93A5526E) != 1)
             {
                 ToggleAutoPilot(false, true);
@@ -1860,14 +1859,14 @@ namespace BCRPClient.Sync
             }
         }
 
-/*        public static void ApplyTrailerSattings(Vehicle veh)
-        {
-            veh.SetCanBeVisiblyDamaged(false);
-            veh.SetCanBreak(false);
-            veh.SetDeformationFixed();
-            veh.SetDisablePetrolTankDamage(true);
-            veh.SetDisablePetrolTankFires(true);
-            veh.SetInvincible(true);
-        }*/
+        /*        public static void ApplyTrailerSattings(Vehicle veh)
+                {
+                    veh.SetCanBeVisiblyDamaged(false);
+                    veh.SetCanBreak(false);
+                    veh.SetDeformationFixed();
+                    veh.SetDisablePetrolTankDamage(true);
+                    veh.SetDisablePetrolTankFires(true);
+                    veh.SetInvincible(true);
+                }*/
     }
 }

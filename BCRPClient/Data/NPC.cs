@@ -1,13 +1,9 @@
-﻿using BCRPClient.CEF;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
 
 namespace BCRPClient.Data
 {

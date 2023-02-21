@@ -1,11 +1,10 @@
 ﻿using GTANetworkAPI;
-using System;
 using System.Collections.Generic;
 
 namespace BCRPServer.Sync.Phone
 {
-	public class SMS
-	{
+    public class SMS
+    {
         public enum DefaultTypes
         {
             DeliveryBusinessNewOrder = 0,

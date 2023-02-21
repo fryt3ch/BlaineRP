@@ -1,12 +1,9 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.CEF
 {
@@ -65,7 +62,7 @@ namespace BCRPClient.CEF
                 Blip?.Destroy();
 
                 if (state)
-                {    
+                {
                     Blip = new RAGE.Elements.Blip((uint)Sprite, Position, Name, Scale, Colour, (int)Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
                 }
                 else

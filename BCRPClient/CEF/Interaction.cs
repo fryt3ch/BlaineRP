@@ -2,9 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.CEF
 {
@@ -97,83 +95,83 @@ namespace BCRPClient.CEF
                 {
                     case OutVehicleActions.Doors:
                         Sync.Vehicles.Lock(null, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.DoorsOpen:
                         Sync.Vehicles.Lock(false, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.DoorsClose:
                         Sync.Vehicles.Lock(true, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.Push:
                         Sync.PushVehicle.Toggle(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.Trunk:
                         Sync.Vehicles.ShowContainer(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.TrunkOpen:
                         Sync.Vehicles.ToggleTrunkLock(false, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.TrunkLook:
                         Sync.Vehicles.ShowContainer(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.TrunkClose:
                         Sync.Vehicles.ToggleTrunkLock(true, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.HoodOpen:
                         Sync.Vehicles.ToggleHoodLock(false, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.HoodClose:
                         Sync.Vehicles.ToggleHoodLock(true, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.SeatOne:
                         Sync.Vehicles.SeatTo(0, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.SeatTwo:
                         Sync.Vehicles.SeatTo(1, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.SeatThree:
                         Sync.Vehicles.SeatTo(2, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.SeatFour:
                         Sync.Vehicles.SeatTo(3, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.SeatTrunk:
                         Sync.Vehicles.SeatTo(int.MaxValue, vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.Gas:
                         CEF.Gas.RequestShow(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.Park:
                         Sync.Vehicles.Park(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.RemoveNumberplate:
                         Sync.Vehicles.TakePlate(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.SetNumberplate:
                         Sync.Vehicles.SetupPlate(vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.VehDocuments:
                         Events.CallRemote("Vehicles::ShowPass", vehicle);
-                    break;
+                        break;
 
                     case OutVehicleActions.Fix:
                         if (!vehicle.IsDamaged() && vehicle.GetEngineHealth() >= 1000f && vehicle.GetBodyHealth() >= 1000f)
@@ -184,7 +182,7 @@ namespace BCRPClient.CEF
                         {
                             Events.CallRemote("Vehicles::Fix", vehicle);
                         }
-                    break;
+                        break;
                 }
             });
             #endregion
@@ -206,63 +204,63 @@ namespace BCRPClient.CEF
                 {
                     case InVehicleActions.VehDocuments:
                         Events.CallRemote("Vehicles::ShowPass", vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.Doors:
                         Sync.Vehicles.Lock(null, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.DoorsOpen:
                         Sync.Vehicles.Lock(false, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.DoorsClose:
                         Sync.Vehicles.Lock(true, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.TrunkOpen:
                         Sync.Vehicles.ToggleTrunkLock(false, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.TrunkClose:
                         Sync.Vehicles.ToggleTrunkLock(true, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.HoodOpen:
                         Sync.Vehicles.ToggleHoodLock(false, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.HoodClose:
                         Sync.Vehicles.ToggleHoodLock(true, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.SeatOne:
                         Sync.Vehicles.SeatTo(0, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.SeatTwo:
                         Sync.Vehicles.SeatTo(1, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.SeatThree:
                         Sync.Vehicles.SeatTo(2, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.SeatFour:
                         Sync.Vehicles.SeatTo(3, vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.Passengers:
                         ShowPassengers();
-                    break;
+                        break;
 
                     case InVehicleActions.Park:
                         Sync.Vehicles.Park(vehicle);
-                    break;
+                        break;
 
                     case InVehicleActions.Gas:
                         CEF.Gas.RequestShow(vehicle);
-                    break;
+                        break;
                 }
             });
             #endregion

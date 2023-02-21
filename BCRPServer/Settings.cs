@@ -1,16 +1,11 @@
-﻿using Google.Protobuf;
-using GTANetworkAPI;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace BCRPServer
 {
     public static class Settings
     {
-        public static CultureInfo CultureInfo { get; private set; } =  new CultureInfo("en-US", false)
+        public static CultureInfo CultureInfo { get; private set; } = new CultureInfo("en-US", false)
         {
             NumberFormat = new NumberFormatInfo()
             {

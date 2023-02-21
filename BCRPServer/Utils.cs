@@ -1,18 +1,15 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Tls;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer
@@ -408,7 +405,7 @@ namespace BCRPServer
         }
 
         public static bool AreEntitiesNearby(this Entity entity, Entity target, float radius) => (entity.Dimension == target.Dimension && Vector3.Distance(entity.Position, target.Position) <= radius);
-        
+
         public static bool AreEntitiesNearbyDiffDims(this Entity entity, Entity target, float radius) => (Vector3.Distance(entity.Position, target.Position) <= radius);
 
         public static Entity GetEntityById(EntityType eType, int id)
@@ -935,19 +932,19 @@ namespace BCRPServer
 
         /// <inheritdoc cref="Sync.AttachSystem.AttachObject(Entity, string, Sync.AttachSystem.Types, int)"/>
         public static bool AttachObject(this Entity entity, uint model, Sync.AttachSystem.Types type, int detachAfter, string syncData, params object[] args) => Sync.AttachSystem.AttachObject(entity, model, type, detachAfter, syncData, args);
-        
+
         /// <inheritdoc cref="Sync.AttachSystem.DetachObject(Entity, string)"/>
         public static bool DetachObject(this Entity entity, Sync.AttachSystem.Types type, params object[] args) => Sync.AttachSystem.DetachObject(entity, type, args);
-        
+
         /// <inheritdoc cref="Sync.AttachSystem.AttachEntity(Entity, int, Sync.AttachSystem.Types)"/>
         public static void AttachEntity(this Entity entity, Entity target, Sync.AttachSystem.Types type) => Sync.AttachSystem.AttachEntity(entity, target, type);
-        
+
         /// <inheritdoc cref="Sync.AttachSystem.DetachEntity(Entity, int)"/>
         public static void DetachEntity(this Entity entity, Entity target) => Sync.AttachSystem.DetachEntity(entity, target);
-        
+
         /// <inheritdoc cref="Sync.AttachSystem.DetachAllEntities(Entity)"/>
         public static bool DetachAllEntities(this Entity entity) => Sync.AttachSystem.DetachAllEntities(entity);
-        
+
         /// <inheritdoc cref="Sync.AttachSystem.DetachAllObjects(Entity)"/>
         public static bool DetachAllObjects(this Entity entity) => Sync.AttachSystem.DetachAllObjects(entity);
 

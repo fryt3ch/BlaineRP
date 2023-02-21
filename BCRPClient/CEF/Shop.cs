@@ -1,12 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Xml;
 
 namespace BCRPClient.CEF
 {
@@ -597,7 +594,7 @@ namespace BCRPClient.CEF
                     if (type == null)
                         return;
 
-                    var data = Data.Items.GetData(CurrentItem,  type);
+                    var data = Data.Items.GetData(CurrentItem, type);
 
                     if (data == null)
                         return;
@@ -613,9 +610,9 @@ namespace BCRPClient.CEF
                         }
                     }
 
-/*                    var variation = CurrentVariation < data.Textures.Length && CurrentVariation >= 0 ? data.Textures[CurrentVariation] : 0;
+                    /*                    var variation = CurrentVariation < data.Textures.Length && CurrentVariation >= 0 ? data.Textures[CurrentVariation] : 0;
 
-                    Utils.ConsoleOutput($"ID: {CurrentItem}, Var: {CurrentVariation}, Drawable: {data.Drawable}, Texture: {variation}");*/
+                                        Utils.ConsoleOutput($"ID: {CurrentItem}, Var: {CurrentVariation}, Drawable: {data.Drawable}, Texture: {variation}");*/
                 }
                 else if (CurrentType == Types.TattooShop)
                 {
@@ -2308,8 +2305,8 @@ namespace BCRPClient.CEF
                     Browser.Render(Browser.IntTypes.Salon, false);
                     Browser.Render(Browser.IntTypes.TattooSalon, false);
 
-/*                    while (Additional.SkyCamera.IsFadedOut)
-                        await RAGE.Game.Invoker.WaitAsync(250);*/
+                    /*                    while (Additional.SkyCamera.IsFadedOut)
+                                            await RAGE.Game.Invoker.WaitAsync(250);*/
 
                     Player.LocalPlayer.SetVisible(true, false);
 

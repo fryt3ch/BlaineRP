@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Text;
 
 namespace BCRPClient
 {
@@ -232,7 +231,7 @@ namespace BCRPClient
             public static bool AutoTeleportMarker { get => _AutoTeleportMarker; set { if (value != _AutoTeleportMarker) Additional.Storage.SetData("Settings::Other::AutoTeleportMarker", value); _AutoTeleportMarker = value; } }
             public static bool DebugLabels { get => _DebugLabels; set { if (value != _DebugLabels) Additional.Storage.SetData("Settings::Other::DebugLabels", value); _DebugLabels = value; } }
             public static bool HighPolygonsMode { get => _HighPolygonsMode; set { if (value != _HighPolygonsMode) Additional.Storage.SetData("Settings::Other::HighPolygonsMode", value); _HighPolygonsMode = value; } }
-            public static bool ColshapesVisible { get => _ColshapesVisible; set { if (value != _ColshapesVisible) Additional.Storage.SetData("Settings::Other::ColshapesVisible", value); _ColshapesVisible = value;  Additional.ExtraColshape.RenderActive = value; } }
+            public static bool ColshapesVisible { get => _ColshapesVisible; set { if (value != _ColshapesVisible) Additional.Storage.SetData("Settings::Other::ColshapesVisible", value); _ColshapesVisible = value; Additional.ExtraColshape.RenderActive = value; } }
             public static bool RaytraceEnabled { get => _RaytraceEnabled; set { if (value != _RaytraceEnabled) Additional.Storage.SetData("Settings::Other::RaytraceEnabled", value); _RaytraceEnabled = value; } }
 
             public static int PhoneWallpaperNum { get => _PhoneWallpaperNum; set { if (value != _PhoneWallpaperNum) Additional.Storage.SetData("Settings::Phone::WallpaperNum", value); _PhoneWallpaperNum = value; } }
@@ -344,10 +343,10 @@ namespace BCRPClient
 
             Special.DisabledPerson = Special.Default.DisabledPerson;
 
-/*            Other.AutoTeleportMarker = Other.Default.AutoTeleportMarker;
-            Other.DebugLabels = Other.Default.DebugLabels;
-            Other.HighPolygonsMode = Other.Default.HighPolygonsMode;
-            Other.ColshapesVisible = Other.Default.ColshapesVisible;*/
+            /*            Other.AutoTeleportMarker = Other.Default.AutoTeleportMarker;
+                        Other.DebugLabels = Other.Default.DebugLabels;
+                        Other.HighPolygonsMode = Other.Default.HighPolygonsMode;
+                        Other.ColshapesVisible = Other.Default.ColshapesVisible;*/
         }
         #endregion
     }

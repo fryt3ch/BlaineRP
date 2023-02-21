@@ -3,11 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Xml.Linq;
 
 namespace BCRPClient.CEF
 {
@@ -96,67 +92,67 @@ namespace BCRPClient.CEF
                 {
                     case "sett-time":
                         Settings.Interface.UseServerTime = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-help":
                         Settings.Interface.HideHints = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-names":
                         Settings.Interface.HideNames = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-cid":
                         Settings.Interface.HideCID = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-hud":
                         Settings.Interface.HideHUD = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-quest":
                         Settings.Interface.HideQuest = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-interact":
                         Settings.Interface.HideInteractionBtn = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-items":
                         Settings.Interface.HideIOGNames = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-reload":
                         Settings.Interface.AutoReload = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-finger":
                         Settings.Interface.FingerOn = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-filter":
                         Settings.Chat.UseFilter = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-timestamp":
                         Settings.Chat.ShowTime = (bool)args[1];
-                    break;
+                        break;
 
                     case "sett-chat":
                         Settings.Chat.Height = int.Parse((string)args[1]);
-                    break;
+                        break;
 
                     case "sett-font":
                         Settings.Chat.FontSize = int.Parse((string)args[1]);
-                    break;
+                        break;
 
                     case "sett-speak":
                         Settings.Audio.VoiceVolume = int.Parse((string)args[1]);
-                    break;
+                        break;
 
                     case "sett-3D":
                         Settings.Audio.SoundVolume = int.Parse((string)args[1]);
-                    break;
+                        break;
 
                     case "sett-special":
                         if (LastSent.IsSpam(1000, false, false))
@@ -165,15 +161,15 @@ namespace BCRPClient.CEF
                         Events.CallRemote("Players::SetIsInvalid", (bool)args[1]);
 
                         LastSent = DateTime.Now;
-                    break;
+                        break;
 
                     case "sett-aimType":
                         Settings.Aim.Type = (Settings.Aim.Types)int.Parse((string)args[1]);
-                    break;
+                        break;
 
                     case "sett-aimScale":
                         Settings.Aim.Scale = args[1] is float ? (float)args[1] : (int)args[1];
-                    break;
+                        break;
                 }
             });
 

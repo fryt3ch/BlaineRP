@@ -718,14 +718,14 @@ namespace BCRPClient.CEF
 
                         ToggleDoNotDisturb(state);
 
-/*                        if (state)
-                        {
+                        /*                        if (state)
+                                                {
 
-                        }
-                        else
-                        {
+                                                }
+                                                else
+                                                {
 
-                        }*/
+                                                }*/
                     }
                 }
             });

@@ -7,7 +7,7 @@ using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps
 {
-	public class SMSApp : Events.Script
+    public class SMSApp : Events.Script
     {
         public class SMS
         {
@@ -330,7 +330,7 @@ namespace BCRPClient.CEF.PhoneApps
 
         //messages[i] = [phone_number, 'contact' || null, 'date', 'message']
         public static void ShowPreviews(object messages)
-		{
+        {
             if (Phone.CurrentApp == Phone.AppTypes.None)
                 Phone.SwitchMenu(false);
 

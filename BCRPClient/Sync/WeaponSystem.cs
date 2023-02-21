@@ -2,13 +2,9 @@
 
 using RAGE;
 using RAGE.Elements;
-using RAGE.Util;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading;
 
 namespace BCRPClient.Sync
 {
@@ -513,9 +509,9 @@ namespace BCRPClient.Sync
                 CEF.Inventory.UpdateStates();
             });
 
-            #if DEBUGGING
+#if DEBUGGING
             OnDamage += (hpLoss, armLoss) => Utils.ConsoleOutput($"DAMAGE! HP_LOSS: {hpLoss} | ARM_LOSS: {armLoss}");
-            #endif
+#endif
 
             RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
 
@@ -546,8 +542,8 @@ namespace BCRPClient.Sync
                 if (DisabledFiring)
                     RAGE.Game.Player.DisablePlayerFiring(true);
 
-/*                if (Player.LocalPlayer.IsPerformingStealthKill())
-                    Player.LocalPlayer.ClearTasksImmediately();*/
+                /*                if (Player.LocalPlayer.IsPerformingStealthKill())
+                                    Player.LocalPlayer.ClearTasksImmediately();*/
 
                 // Disable Weapon Wheel
                 RAGE.Game.Pad.DisableControlAction(24, 157, true);
@@ -575,10 +571,10 @@ namespace BCRPClient.Sync
                 // Disable Stealth Mode (ctrl)
                 RAGE.Game.Pad.DisableControlAction(32, 36, true);
 
-/*                // Disable Alternate Weapon Attack
+                /*                // Disable Alternate Weapon Attack
 
-                if (!RAGE.Game.Weapon.IsPedArmed(Player.LocalPlayer.Handle, 1))
-                    RAGE.Game.Pad.DisableControlAction(2, 142, true);*/
+                                if (!RAGE.Game.Weapon.IsPedArmed(Player.LocalPlayer.Handle, 1))
+                                    RAGE.Game.Pad.DisableControlAction(2, 142, true);*/
 
                 if (Player.LocalPlayer.IsUsingActionMode())
                     Player.LocalPlayer.SetUsingActionMode(false, -1, "DEFAULT_ACTION");
@@ -818,19 +814,19 @@ namespace BCRPClient.Sync
             LastHealth = curHealth;
             LastArmour = curArmour;
 
-/*            if (Player.LocalPlayer.WasKilledByTakedown() || Player.LocalPlayer.GetConfigFlag(69, true) || Player.LocalPlayer.GetConfigFlag(70, true) || Player.LocalPlayer.GetConfigFlag(71, true))
-            {
-                //Player.LocalPlayer.SetProofs(false, false, false, false, true, false, false, false);
+            /*            if (Player.LocalPlayer.WasKilledByTakedown() || Player.LocalPlayer.GetConfigFlag(69, true) || Player.LocalPlayer.GetConfigFlag(70, true) || Player.LocalPlayer.GetConfigFlag(71, true))
+                        {
+                            //Player.LocalPlayer.SetProofs(false, false, false, false, true, false, false, false);
 
-                Player.LocalPlayer.SetConfigFlag(69, false);
-                Player.LocalPlayer.SetConfigFlag(70, false);
-                Player.LocalPlayer.SetConfigFlag(71, false);
+                            Player.LocalPlayer.SetConfigFlag(69, false);
+                            Player.LocalPlayer.SetConfigFlag(70, false);
+                            Player.LocalPlayer.SetConfigFlag(71, false);
 
-                Player.LocalPlayer.SetRealHealth(LastHealth);
-                Player.LocalPlayer.SetArmour(LastArmour);
+                            Player.LocalPlayer.SetRealHealth(LastHealth);
+                            Player.LocalPlayer.SetArmour(LastArmour);
 
-                return;
-            }*/
+                            return;
+                        }*/
 
             if (curHealth <= 0 && !Player.LocalPlayer.IsDeadOrDying(true))
             {
@@ -944,9 +940,9 @@ namespace BCRPClient.Sync
                             AsyncTask.RunSlim(() => Player.LocalPlayer.SetInvincible(false), 25);
                         }
 
-                        #if DEBUGGING
+#if DEBUGGING
                         Utils.ConsoleOutputLimited($"Игрок: #{sData.CID} | Урон: {customDamage + 1} | Дистанция: {distance} | Часть тела: {boneIdx}", true, 1000);
-                        #endif
+#endif
                     }
                     else
                     {
@@ -957,7 +953,7 @@ namespace BCRPClient.Sync
                 }
                 else if (targetEntity is Vehicle veh)
                 {
-                    if (!veh.Exists|| veh.Controller?.Handle != Player.LocalPlayer.Handle)
+                    if (!veh.Exists || veh.Controller?.Handle != Player.LocalPlayer.Handle)
                         return;
 
                     var vData = Sync.Vehicles.GetData(veh);

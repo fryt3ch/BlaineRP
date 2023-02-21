@@ -1,8 +1,6 @@
 ﻿using RAGE;
 using RAGE.Elements;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BCRPClient.Sync
 {
@@ -118,7 +116,7 @@ namespace BCRPClient.Sync
                     }, (int)((duration - 0.1f) * 1000f));
                 }
             }
-            
+
             if (RAGE.Game.Pad.IsDisabledControlPressed(0, 33)) // backward
             {
                 if (CurrentMoveAnim != "onfront_fwd" && CurrentMoveAnim != "onfront_bwd")
@@ -135,12 +133,12 @@ namespace BCRPClient.Sync
                     }, (int)((duration - 0.1f) * 1000f));
                 }
             }
-            
+
             if (RAGE.Game.Pad.IsDisabledControlPressed(0, 34)) // left
             {
                 Player.LocalPlayer.SetRotation(rotation.X, rotation.Y, rotation.Z + 0.2f, 2, true);
             }
-            
+
             if (RAGE.Game.Pad.IsDisabledControlPressed(0, 35)) // right
             {
                 Player.LocalPlayer.SetRotation(rotation.X, rotation.Y, rotation.Z - 0.2f, 2, true);

@@ -1,9 +1,7 @@
 ﻿using BCRPServer.Game.Items.Craft;
 using GTANetworkAPI;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BCRPServer.Game.Items
 {

@@ -2,8 +2,6 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using static BCRPClient.Settings;
 
 namespace BCRPClient.CEF.PhoneApps
 {
@@ -207,7 +205,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 return;
             }
-            
+
             if (PhotoStartCounter == 0)
             {
                 Scaleform?.Render2D();

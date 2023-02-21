@@ -2,7 +2,6 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BCRPClient.CEF
 {
@@ -90,7 +89,7 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true));
+                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true)) ;
                         {
                             Player.LocalPlayer.SetData("Bank::LastCID", cid);
                             Player.LocalPlayer.SetData("Bank::LastAmount", amount);

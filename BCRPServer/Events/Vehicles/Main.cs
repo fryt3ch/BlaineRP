@@ -1,15 +1,13 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
-using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer.Events.Vehicles
 {
-   class Main : Script
+    class Main : Script
     {
         #region Player Enter Vehicle
         [ServerEvent(Event.PlayerEnterVehicle)]
@@ -123,7 +121,7 @@ namespace BCRPServer.Events.Vehicles
                 vData.Delete(false);
             }
 
-           //Console.WriteLine($"{vData.VID} died - {veh.Health}");
+            //Console.WriteLine($"{vData.VID} died - {veh.Health}");
         }
 
         [RemoteEvent("votc")]

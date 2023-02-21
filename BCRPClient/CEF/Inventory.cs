@@ -4,7 +4,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.WebSockets;
 
 namespace BCRPClient.CEF
 {
@@ -158,7 +157,7 @@ namespace BCRPClient.CEF
 
                 foreach (var x in wcData.Select(x => (Sync.WeaponSystem.Weapon.ComponentTypes)int.Parse(x)))
                 {
-                    tooltips.Add(new object[] { 7 + (int)x,  Locale.General.Inventory.Actions.WeaponComponentsTakeOffStrings.GetValueOrDefault(x) ?? "null" });
+                    tooltips.Add(new object[] { 7 + (int)x, Locale.General.Inventory.Actions.WeaponComponentsTakeOffStrings.GetValueOrDefault(x) ?? "null" });
                 }
             }
 
@@ -169,7 +168,7 @@ namespace BCRPClient.CEF
 
             return new object[] { imgId, name, tooltips.ToArray(), ammo, inUse };
         }
-        
+
         private static object[] FillArmour(string type, int strength)
         {
             var iType = Data.Items.GetType(type);

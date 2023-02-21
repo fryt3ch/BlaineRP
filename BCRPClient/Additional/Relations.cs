@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.Additional
 {
@@ -10,7 +9,7 @@ namespace BCRPClient.Additional
     {
         public enum Types
         {
-            Companion = 0, 
+            Companion = 0,
             Respect = 1,
             Like = 2,
             Neutral = 3,

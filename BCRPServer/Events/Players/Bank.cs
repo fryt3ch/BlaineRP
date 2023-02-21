@@ -1,8 +1,5 @@
 ﻿using GTANetworkAPI;
 using System;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using System.Text;
 using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Events.Players

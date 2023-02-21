@@ -1,7 +1,5 @@
-﻿using RAGE;
-using RAGE.Elements;
+﻿using RAGE.Elements;
 using RAGE.NUI;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 

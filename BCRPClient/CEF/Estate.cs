@@ -3,7 +3,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.CEF
 {
@@ -592,10 +591,10 @@ namespace BCRPClient.CEF
         {
             Events.Add("EstAgency::Close", (object[] args) => Close(false));
 
-/*            KeyBinds.NewBind(RAGE.Ui.VirtualKeys.X, true, () =>
-            {
-                Show();
-            });*/
+            /*            KeyBinds.NewBind(RAGE.Ui.VirtualKeys.X, true, () =>
+                        {
+                            Show();
+                        });*/
         }
 
         public static async System.Threading.Tasks.Task Show()
@@ -623,7 +622,7 @@ namespace BCRPClient.CEF
                     counter++;
                 }
             }
-            
+
             // id, name, price, tax, garage capacity
             var garages = new object[] { };
 

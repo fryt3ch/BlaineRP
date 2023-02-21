@@ -6,11 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient
@@ -318,11 +315,11 @@ namespace BCRPClient
 
             int hit = -1, endEntity = -1;
 
-/*            int materialHash = -1;
-            RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref hit);
+            /*            int materialHash = -1;
+                        RAGE.Game.Shapetest.GetShapeTestResultEx(RAGE.Game.Shapetest.StartShapeTestRay(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 31, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref materialHash, ref hit);
 
-            if (materialHash > 0)
-                Utils.ConsoleOutputLimited(materialHash.ToUInt32());*/
+                        if (materialHash > 0)
+                            Utils.ConsoleOutputLimited(materialHash.ToUInt32());*/
 
             int result = RAGE.Game.Shapetest.GetShapeTestResult(RAGE.Game.Shapetest.StartShapeTestCapsule(startPos.X, startPos.Y, startPos.Z, endPos.X, endPos.Y, endPos.Z, 0.25f, flags, ignoreHandle, 4), ref hit, GarbageVector, GarbageVector, ref endEntity);
 

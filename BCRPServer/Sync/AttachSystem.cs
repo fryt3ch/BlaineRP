@@ -1,11 +1,8 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 
 namespace BCRPServer.Sync
@@ -18,7 +15,7 @@ namespace BCRPServer.Sync
 
         public const string AttachedObjectsCancelsKey = AttachedObjectsKey + "::Cancels";
 
-        private static object[] EmptyArgs { get; } =  new object[] { };
+        private static object[] EmptyArgs { get; } = new object[] { };
 
         public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
 
@@ -403,7 +400,7 @@ namespace BCRPServer.Sync
                 {
                     {
                         true,
-                        
+
                         (entity, entity2, type, args) =>
                         {
                             if (args.Length == 0)

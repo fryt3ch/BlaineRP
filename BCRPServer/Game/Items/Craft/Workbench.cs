@@ -1,10 +1,7 @@
 ﻿using GTANetworkAPI;
-using Org.BouncyCastle.Asn1.Cmp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 
 namespace BCRPServer.Game.Items.Craft
@@ -122,7 +119,7 @@ namespace BCRPServer.Game.Items.Craft
             FurnitureWorkbench,
             StaticWorkbench,
         }
-        
+
         public uint Uid { get; set; }
 
         public WorkbenchTypes WorkbenchType { get; set; }

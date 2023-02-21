@@ -1,11 +1,8 @@
-﻿using BCRPServer.Game.Items;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using static BCRPServer.PlayerData;
 
 namespace BCRPServer.Game.Businesses
 {
@@ -225,10 +222,10 @@ namespace BCRPServer.Game.Businesses
             {
                 if (notifyOnFault)
                 {
-/*                    if (PlayerInfo.PlayerData != null)
-                    {
-                        PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
-                    }*/
+                    /*                    if (PlayerInfo.PlayerData != null)
+                                        {
+                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
+                                        }*/
                 }
 
                 return false;

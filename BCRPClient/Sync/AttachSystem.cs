@@ -1,10 +1,9 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json;
+using RAGE;
 using RAGE.Elements;
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
+using System.Linq;
 
 namespace BCRPClient.Sync
 {
@@ -281,7 +280,7 @@ namespace BCRPClient.Sync
         {
             {
                 "brp_p_ring_0_0",
-                
+
                 new Dictionary<Types, AttachmentData>()
                 {
                     { Types.PedRingLeft3, new AttachmentData(26613, new Vector3(0.033f, -0.003f, 0.001f), new Vector3(70f, 85f, -5f), false, false, false, 2, true) },

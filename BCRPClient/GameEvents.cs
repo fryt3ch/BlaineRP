@@ -3,11 +3,6 @@
 using RAGE;
 using RAGE.Elements;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using System.Net.NetworkInformation;
-using Newtonsoft.Json.Linq;
 using System.Globalization;
 
 namespace BCRPClient
@@ -214,7 +209,7 @@ namespace BCRPClient
             };
 
             Events.OnEntityStreamOut += async (entity) =>
-            { 
+            {
                 await Sync.AttachSystem.OnEntityStreamOut(entity);
 
                 if (entity is Vehicle veh)

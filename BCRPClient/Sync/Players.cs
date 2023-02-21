@@ -589,7 +589,7 @@ namespace BCRPClient.Sync
 
                 CEF.Inventory.Load((JArray)sData["Inventory"]);
 
-                CEF.Menu.Load(data, (int)sData["TimePlayed"], (DateTime)sData["CreationDate"], (DateTime)sData["BirthDate"], RAGE.Util.Json.Deserialize<Dictionary<uint, (int, string, int , int)>>((string)sData["Gifts"]));
+                CEF.Menu.Load(data, (int)sData["TimePlayed"], (DateTime)sData["CreationDate"], (DateTime)sData["BirthDate"], RAGE.Util.Json.Deserialize<Dictionary<uint, (int, string, int, int)>>((string)sData["Gifts"]));
 
                 CEF.Menu.SetOrganisation((string)sData["Org"]);
 

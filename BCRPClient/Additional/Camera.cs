@@ -1,10 +1,7 @@
-﻿using BCRPClient.Sync;
-using Newtonsoft.Json.Linq;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using static BCRPClient.Additional.Camera.State;
 
 namespace BCRPClient.Additional
@@ -236,7 +233,7 @@ namespace BCRPClient.Additional
             } },
 
             { StateTypes.BackVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -180, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
-            
+
                 OnAction = (args) =>
                 {
                     if (SourceEntity is GameEntity gEntity)
@@ -247,7 +244,7 @@ namespace BCRPClient.Additional
             } },
 
             { StateTypes.BackVehicleUpAngle, new State(new Vector3(0, 0, 1.35f), new Vector3(0f, 0f, 0f), 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 210f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10,
-            
+
                 OnAction = (args) =>
                 {
                     if (SourceEntity is GameEntity gEntity)

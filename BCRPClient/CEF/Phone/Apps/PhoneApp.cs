@@ -3,7 +3,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps
@@ -37,7 +36,7 @@ namespace BCRPClient.CEF.PhoneApps
         public class CallInfo
         {
             public bool IsMeCaller { get; set; }
-            
+
             public Player Player { get; set; }
 
             public uint Number { get; set; }
@@ -375,7 +374,7 @@ namespace BCRPClient.CEF.PhoneApps
             Phone.CurrentAppTab = -1;
 
             if (number == null)
-                CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] {  } });
+                CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { } });
             else
                 CEF.Browser.Window.ExecuteJs("Phone.drawPhoneApp", new object[] { new object[] { number } });
         }

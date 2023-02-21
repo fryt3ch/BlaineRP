@@ -2,9 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.CEF
 {
@@ -504,7 +502,7 @@ namespace BCRPClient.CEF
 
             Browser.Window.ExecuteJs("Hud.updateSpeedometer", Math.Floor(RAGE.Game.Vehicle.GetVehicleModelMaxSpeed(veh.Model) * 3.6f) + 25);
             Browser.Window.ExecuteJs("Hud.updateSpeed", 0);
-            
+
 
             if (!CEF.Phone.IsActive)
                 Browser.Switch(Browser.IntTypes.HUD_Speedometer, CEF.Browser.IsActive(Browser.IntTypes.HUD_Left));

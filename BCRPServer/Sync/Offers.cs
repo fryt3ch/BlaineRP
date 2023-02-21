@@ -3,11 +3,8 @@ using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Markup;
 
 namespace BCRPServer.Sync
 {
@@ -1180,7 +1177,7 @@ namespace BCRPServer.Sync
             private CancellationTokenSource CTS { get; set; }
 
             public object Data { get; set; }
-            
+
             /// <summary>Новое предложение</summary>
             /// <param name="Sender">Сущность игрока, который отправил предложение</param>
             /// <param name="Receiver">Сущность игрока, которому отправлено предложение</param>
@@ -1229,7 +1226,7 @@ namespace BCRPServer.Sync
                 var ctsNull = CTS == null;
 
                 if (ctsNull)
-                {               
+                {
                     OfferActions[Type].GetValueOrDefault(false)?.Invoke(Sender, Receiver, this);
                 }
                 else

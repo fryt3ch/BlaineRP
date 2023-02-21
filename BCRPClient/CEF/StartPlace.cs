@@ -1,10 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using RAGE;
+﻿using RAGE;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.CEF
 {

@@ -4,7 +4,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.Data
 {
@@ -179,7 +178,7 @@ namespace BCRPClient.Data
 
             public List<Vector3> MaterialsPositions { get; set; }
 
-            public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, Types.Trucker) 
+            public Trucker(int Id, Utils.Vector4 Position, List<Vector3> MaterialsPositions) : base(Id, Types.Trucker)
             {
                 this.MaterialsPositions = MaterialsPositions;
 

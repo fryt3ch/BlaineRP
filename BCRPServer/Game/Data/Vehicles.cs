@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using GTANetworkAPI;
+﻿using GTANetworkAPI;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Bcpg.OpenPgp;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPServer.Game.Data
 {
@@ -136,7 +132,7 @@ namespace BCRPServer.Game.Data
             public bool CanTrail => CanTrailVehicles.Contains(ID);
 
             public ClassTypes Class => GetClass(this);
-            
+
             /// <summary>Конструктор для создания нового транспорта (его прототипа)</summary>
             /// <param name="ID">Уникальный ID</param>
             /// <param name="Model">ID модели</param>
