@@ -1,11 +1,8 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using GTANetworkAPI;
-using Org.BouncyCastle.Asn1.X509;
+﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace BCRPServer.Events.Players

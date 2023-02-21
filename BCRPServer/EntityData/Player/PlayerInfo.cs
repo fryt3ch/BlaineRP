@@ -295,7 +295,7 @@ namespace BCRPServer
                     {
                         if (PlayerData != null)
                         {
-
+                            PlayerData.Player.Notify("Phone::BNE", PhoneBalance);
                         }
                     }
 

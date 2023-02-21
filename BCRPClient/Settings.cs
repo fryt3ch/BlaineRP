@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace BCRPClient
@@ -56,6 +55,9 @@ namespace BCRPClient
         public const int DISCORD_STATUS_UPDATE_TIME = 5000;
 
         public const int RENTED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
+
+        public const int PHONE_SMS_MAX_LENGTH = 120;
+        public const int PHONE_SMS_MIN_LENGTH = 5;
 
         public const double DAMAGE_SYSTEM_WOUND_CHANCE = 0.15d;
 

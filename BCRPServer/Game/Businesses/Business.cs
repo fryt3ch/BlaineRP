@@ -17,15 +17,21 @@ namespace BCRPServer.Game.Businesses
 
         public uint RealPrice { get; set; }
 
+        public uint MaxMaterialsBalance { get; set; }
+
+        public uint MaxMaterialsPerOrder { get; set; }
+
         public Dictionary<string, uint> Prices { get; set; }
 
-        public MaterialsData(uint BuyPrice, uint SellPrice, uint RealPrice)
+        public MaterialsData(uint BuyPrice, uint SellPrice, uint RealPrice, uint MaxMaterialsBalance = 500_000, uint maxMaterialsPerOrder = 100_000) // todo maxMatBalance&maxMatPerOrder - individual
         {
             this.BuyPrice = BuyPrice;
             this.SellPrice = SellPrice;
             this.RealPrice = RealPrice;
 
             this.Prices = Prices;
+            this.MaxMaterialsBalance = MaxMaterialsBalance;
+            this.MaxMaterialsPerOrder = maxMaterialsPerOrder;
         }
     }
 
@@ -374,7 +380,7 @@ namespace BCRPServer.Game.Businesses
 
                     SetCash(newBalance);
 
-                    MySQL.BusinessUpdateBalances(this);
+                    MySQL.BusinessUpdateBalances(this, false);
                 }
 
                 pData.SetCash(newPlayerBalance);
@@ -391,7 +397,7 @@ namespace BCRPServer.Game.Businesses
 
                     SetBank(newBalance);
 
-                    MySQL.BusinessUpdateBalances(this);
+                    MySQL.BusinessUpdateBalances(this, false);
                 }
 
                 if (useCash)
@@ -508,7 +514,7 @@ namespace BCRPServer.Game.Businesses
                 { "MA", Margin },
                 { "IS", false },
                 { "IT", INCASSATION_TAX },
-                { "DS", 0 },
+                { "DS", (OrderedMaterials > 0 && ClosestTruckerJob.ActiveOrders.Values.Where(x => x.TargetBusiness == this && x.IsCustom && x.CurrentVehicle != null).FirstOrDefault() != null) ? $"{OrderedMaterials}_0" : $"{OrderedMaterials}" },
                 { "MB", MaterialsData.BuyPrice },
                 { "MS", MaterialsData.SellPrice },
                 { "DP", MATS_DELIVERY_PRICE },

@@ -61,7 +61,7 @@ namespace BCRPServer.Game.Jobs
 
         public Dictionary<uint, OrderInfo> ActiveOrders { get; private set; } = new Dictionary<uint, OrderInfo>();
 
-        public void AddCustomOrder(Game.Businesses.Business business)
+        public uint AddCustomOrder(Game.Businesses.Business business)
         {
             var orderInfo = new OrderInfo(business);
 
@@ -74,6 +74,8 @@ namespace BCRPServer.Game.Jobs
             orderInfo.MPIdx = GetFarthestMaterialsPositionIdx(business.PositionInfo);
 
             TriggerEventToWorkers("Job::TR::OC", $"{id}_{business.ID}_{orderInfo.MPIdx}_{orderInfo.Reward}");
+
+            return id;
         }
 
         public void AddDefaultOrder(Game.Businesses.Business business)
@@ -135,13 +137,28 @@ namespace BCRPServer.Game.Jobs
             oInfo.CurrentVehicle = vData;
 
             TriggerEventToWorkers("Job::TR::OC", orderId);
+
+            if (oInfo.IsCustom && oInfo.TargetBusiness.Owner is PlayerData.PlayerInfo pInfo)
+            {
+                var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, pInfo, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessTakenOrder), orderId));
+
+                Sync.Phone.SMS.Add(pInfo, sms, true);
+            }
         }
 
         public void SetOrderAsNotTaken(uint orderId, OrderInfo oInfo)
         {
+            oInfo.GotMaterials = false;
             oInfo.CurrentVehicle = null;
 
             TriggerEventToWorkers("Job::TR::OC", $"{orderId}_{oInfo.TargetBusiness.ID}_{oInfo.MPIdx}_{oInfo.Reward}");
+
+            if (oInfo.IsCustom && oInfo.TargetBusiness.Owner is PlayerData.PlayerInfo pInfo)
+            {
+                var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, pInfo, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessTakenCOrder), orderId));
+
+                Sync.Phone.SMS.Add(pInfo, sms, true);
+            }
         }
 
         public int GetFarthestMaterialsPositionIdx(Vector3 pos)
@@ -209,13 +226,11 @@ namespace BCRPServer.Game.Jobs
 
         public void OnVehicleRespawned(VehicleData vData)
         {
-            var order = ActiveOrders.Where(x => x.Value.CurrentVehicle == vData).Select(x => x.Value).FirstOrDefault();
+            var orderPair = ActiveOrders.Where(x => x.Value.CurrentVehicle == vData).FirstOrDefault();
 
-            if (order != null)
+            if (orderPair.Value != null)
             {
-                order.GotMaterials = false;
-
-                order.CurrentVehicle = null;
+                SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
             }
         }
     }

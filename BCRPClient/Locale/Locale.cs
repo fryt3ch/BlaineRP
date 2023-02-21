@@ -51,6 +51,7 @@ namespace BCRPClient
             public static Dictionary<uint, string> DefaultNumbersNames = new Dictionary<uint, string>()
             {
                 { 900, "Банк" },
+                { 874, "Сервис доставки" },
             };
 
             public static class Blip

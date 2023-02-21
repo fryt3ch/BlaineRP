@@ -197,16 +197,16 @@ namespace BCRPClient.CEF
             #region Parents
             Events.Add("CharacterCreation::Update::Parents", (object[] args) =>
             {
-                string parent = (string)args[0];
+                var parent = (string)args[1];
 
                 if (parent == "father")
-                    HeadBlend.SetFather((byte)(int)args[1]);
+                    HeadBlend.SetFather((byte)(int)args[0]);
                 else if (parent == "mother")
-                    HeadBlend.SetMother((byte)(int)args[1]);
+                    HeadBlend.SetMother((byte)(int)args[0]);
                 else if (parent == "mix-0")
-                    HeadBlend.ShapeMix = RAGE.Util.Json.Deserialize<float>((string)args[1]);
+                    HeadBlend.ShapeMix = RAGE.Util.Json.Deserialize<float>((string)args[0]);
                 else if (parent == "mix-1")
-                    HeadBlend.SkinMix = RAGE.Util.Json.Deserialize<float>((string)args[1]);
+                    HeadBlend.SkinMix = RAGE.Util.Json.Deserialize<float>((string)args[0]);
 
                 Player.LocalPlayer.SetHeadBlendData(HeadBlend.GetMother(), HeadBlend.GetFather(), 0, HeadBlend.GetMother(), HeadBlend.GetFather(), 0, HeadBlend.ShapeMix, HeadBlend.SkinMix, 0, true);
             });
@@ -215,8 +215,8 @@ namespace BCRPClient.CEF
             #region Face Feature
             Events.Add("CharacterCreation::Update::FaceFeature", (object[] args) =>
             {
-                int id = (int)args[0];
-                float value = RAGE.Util.Json.Deserialize<float>((string)args[1]);
+                var id = (int)args[1];
+                var value = RAGE.Util.Json.Deserialize<float>((string)args[0]);
 
                 if (id < 0 || id > FaceFeatures.Length)
                     return;
@@ -235,8 +235,8 @@ namespace BCRPClient.CEF
             #region Head Overlay
             Events.Add("CharacterCreation::Update::HeadOverlay", (object[] args) =>
             {
-                int id = (int)args[0];
-                byte value = (byte)(int)args[1];
+                var id = (int)args[1];
+                var value = (byte)(int)args[0];
 
                 if (id < 0 || id > 12)
                     return;
@@ -253,8 +253,8 @@ namespace BCRPClient.CEF
 
             Events.Add("CharacterCreation::Update::HeadOverlayOpacity", (object[] args) =>
             {
-                int id = (int)args[0];
-                float value = RAGE.Util.Json.Deserialize<float>((string)args[1]);
+                var id = (int)args[1];
+                var value = RAGE.Util.Json.Deserialize<float>((string)args[0]);
 
                 if (id < 0 || id > 12)
                     return;
@@ -271,8 +271,8 @@ namespace BCRPClient.CEF
 
             Events.Add("CharacterCreation::Update::HeadOverlayColor", (object[] args) =>
             {
-                int id = (int)args[0];
-                byte value = (byte)(int)args[1];
+                var id = (int)args[1];
+                var value = (byte)(int)args[0];
 
                 if (id < 0 || id > 12)
                     return;
@@ -308,7 +308,7 @@ namespace BCRPClient.CEF
 
             Events.Add("CharacterCreation::Update::HairOverlay", (object[] args) =>
             {
-                byte value = (byte)(int)args[0];
+                var value = (byte)(int)args[0];
 
                 if (value < 0)
                     value = 0;
@@ -325,8 +325,8 @@ namespace BCRPClient.CEF
 
             Events.Add("CharacterCreation::Update::HairColor", (object[] args) =>
             {
-                byte value = (byte)(int)args[0];
-                bool isFirst = (bool)args[1];
+                var value = (byte)(int)args[0];
+                var isFirst = (bool)args[1];
 
                 if (value < 0)
                     value = 0;
@@ -368,8 +368,8 @@ namespace BCRPClient.CEF
             #region Clothes
             Events.Add("CharacterCreation::Update::Clothes", (object[] args) =>
             {
-                int type = (int)args[0];
-                int value = (int)args[1];
+                var type = (int)args[1];
+                var value = (int)args[0];
 
                 if (value != -1)
                 {
@@ -419,6 +419,8 @@ namespace BCRPClient.CEF
             }
 
             await Browser.Render(Browser.IntTypes.CharacterCreation, true, true);
+
+            Browser.Window.ExecuteJs("ChCreate.draw", true);
 
             Browser.Window.ExecuteJs("ChCreate.sexApply", "boy");
 

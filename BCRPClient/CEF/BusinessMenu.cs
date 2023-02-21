@@ -16,13 +16,6 @@ namespace BCRPClient.CEF
 
         private static int TempEscBind { get; set; }
 
-        public enum DeliveryStates
-        {
-            NotOferred = 0,
-            Offered,
-            Incoming,
-        }
-
         private const decimal MAX_MARGIN = 150m;
 
         public BusinessMenu()
@@ -129,17 +122,61 @@ namespace BCRPClient.CEF
                 }
             });
 
-            Events.Add("MenuBiz::Delivery", (args) =>
+            Events.Add("MenuBiz::Delivery", async (args) =>
             {
+                if (LastSent.IsSpam(500, false, false))
+                    return;
+
+                var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
+
+                if (biz == null)
+                    return;
+
+                var bizData1 = Player.LocalPlayer.GetData<object[]>("BusinessMenu::Business::Data1");
+
+                if (bizData1 == null)
+                    return;
+
                 var id = (string)args[0];
 
                 if (id == "pay")
                 {
-                    var amount = args[0] is string str0 ? int.Parse(str0) : (int)args[0];
+                    var amountI = decimal.Parse(args[1].ToString());
+
+                    int amount;
+
+                    if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
+                        return;
+
+                    LastSent = DateTime.Now;
+
+                    var res = await Events.CallRemoteProc("Business::NDO", biz.Id, amount);
+
+                    if (res == null)
+                        return;
+
+                    if (IsActive)
+                    {
+                        CEF.Browser.Window.ExecuteJs("MenuBiz.setMoneyAccount", res);
+
+                        CEF.Browser.Window.ExecuteJs("MenuBiz.fillDelivery", true, amount, "Заказ принят");
+                    }
                 }
                 else if (id == "cancel")
                 {
+                    LastSent = DateTime.Now;
 
+                    var res = await Events.CallRemoteProc("Business::CAO", biz.Id);
+
+                    if (res == null)
+                        return;
+
+                    if (IsActive)
+                    {
+                        CEF.Browser.Window.ExecuteJs("MenuBiz.setMoneyAccount", res);
+
+                        CEF.Browser.Window.ExecuteJs("MenuBiz.fillDelivery", false, bizData1[0], bizData1[1]);
+                    }
                 }
             });
 
@@ -158,19 +195,26 @@ namespace BCRPClient.CEF
 
             Sync.Players.CloseAll(true);
 
-            var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, Math.Round(biz.Tax * 100, 0).ToString(), res["C"].ToUInt64(), res["B"].ToUInt64(), res["M"].ToUInt32(), res["MB"].ToUInt32(), res["MS"].ToUInt32() };
+            var materialsBuyPrice = res["MB"].ToUInt32();
+            var deliveryPrice = res["DP"].ToUInt32();
+
+            Player.LocalPlayer.SetData("BusinessMenu::Business::Data1", new object[] { materialsBuyPrice, deliveryPrice });
+
+            var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, Math.Round(biz.Tax * 100, 0).ToString(), res["C"].ToUInt64(), res["B"].ToUInt64(), res["M"].ToUInt32(), materialsBuyPrice, res["MS"].ToUInt32() };
 
             var manage = new List<object>() { new object[] { Math.Round((res["MA"].ToDecimal() - 1m) * 100, 0), MAX_MARGIN }, false, (bool)res["IS"], Math.Round(res["IT"].ToDecimal() * 100, 0), };
 
-            var delState = (DeliveryStates)(int)res["DS"];
+            var delState = ((string)res["DS"]).Split('_');
 
-            if (delState > DeliveryStates.NotOferred)
+            var delOrderAmount = uint.Parse(delState[0]);
+
+            if (delOrderAmount > 0)
             {
-                manage.AddRange(new object[] { true, (int)res["DO"], delState.ToString() });
+                manage.AddRange(new object[] { true, delOrderAmount, delState.Length > 1 ? "Заказ в пути" : "Заказ принят" });
             }
             else
             {
-                manage.AddRange(new object[] { false, res["MB"].ToUInt32(), (int)res["DP"] });
+                manage.AddRange(new object[] { false, materialsBuyPrice, deliveryPrice });
             }
 
             var currentDate = Utils.GetServerTime();
@@ -212,6 +256,7 @@ namespace BCRPClient.CEF
             TempEscBind = -1;
 
             Player.LocalPlayer.ResetData("BusinessMenu::Business");
+            Player.LocalPlayer.ResetData("BusinessMenu::Business::Data1");
         }
     }
 }

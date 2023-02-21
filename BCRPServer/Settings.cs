@@ -223,6 +223,7 @@ namespace BCRPServer
         public const byte PHONE_SMS_MAX_COUNT = 50;
 
         public const int PHONE_SMS_MAX_LENGTH = 120;
+        public const int PHONE_SMS_MIN_LENGTH = 5;
 
         /// <summary>Максимальный баланс телефона</summary>
         /// <remarks>Игрок не сможет пополнить баланс телефона, если итоговый баланс будет больше, чем это значение. (MAX_BALANCE / COST_X) * CALL_X меньше либо равно int.MaxValue, ОБЯЗАТЕЛЬНО!</remarks>

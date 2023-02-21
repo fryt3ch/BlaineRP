@@ -1,9 +1,7 @@
-﻿using BCRPClient.Sync;
-using RAGE;
+﻿using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace BCRPClient.CEF
 {
@@ -178,11 +176,17 @@ namespace BCRPClient.CEF
             { "Bank::SendApproveP", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApproveP, Locale.Notifications.ApproveHeader) },
 
             { "Phone::MBA", new Instance(Types.Error, Locale.Notifications.Money.PhoneBalanceMax, Locale.Notifications.ErrorHeader) },
+            { "Phone::BNE", new Instance(Types.Error, Locale.Notifications.Money.PhoneBalanceNotEnough, Locale.Notifications.ErrorHeader) },
+            { "Phone::CMA", new Instance(Types.Error, "У Вас уже сохранено максимальное кол-во контактов - {0}!", Locale.Notifications.ErrorHeader) },
+            { "Phone::BLMA", new Instance(Types.Error, "В Вашем чёрном списке уже находится максимальное кол-во номеров - {0}!", Locale.Notifications.ErrorHeader) },
 
             { "Business:NoMats", new Instance(Types.Error, Locale.Notifications.Money.NoMaterialsShop, Locale.Notifications.ErrorHeader) },
 
             { "Business::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfBusinesses, Locale.Notifications.ErrorHeader) },
             { "Business::AB", new Instance(Types.Error, Locale.Notifications.General.BusinessAlreadyBought, Locale.Notifications.ErrorHeader) },
+            { "Business::MMPO", new Instance(Types.Error, "Вы не можете заказать больше, чем {0} ед. материалов за один заказ!", Locale.Notifications.ErrorHeader) },
+            { "Business::MMB", new Instance(Types.Error, "На складе Вашего бизнеса не может находиться больше, чем {0} ед. материалов!\nСейчас там находится {1} ед. материалов", Locale.Notifications.ErrorHeader) },
+            { "Business::COIT", new Instance(Types.Error, "Вы не можете отменить этот заказ, так как он уже находится в процессе доставки!", Locale.Notifications.ErrorHeader) },
 
             { "Tuning::NA", new Instance(Types.Error, Locale.Notifications.General.TuningNotAllowed, Locale.Notifications.ErrorHeader) },
 
@@ -337,6 +341,7 @@ namespace BCRPClient.CEF
         {
             Default = 0,
             Bank,
+            DeliveryService,
             Taxi,
             C911,
             IncomingCall,
@@ -346,6 +351,7 @@ namespace BCRPClient.CEF
         {
             { FiveNotificImgTypes.Default, "CHAR_MULTIPLAYER" },
             { FiveNotificImgTypes.Bank, "CHAR_BANK_MAZE" },
+            { FiveNotificImgTypes.DeliveryService, "CHAR_PROPERTY_ARMS_TRAFFICKING" },
             { FiveNotificImgTypes.Taxi, "CHAR_TAXI" },
             { FiveNotificImgTypes.C911, "CHAR_CALL911" },
             { FiveNotificImgTypes.IncomingCall, "CHAR_CHAT_CALL" },

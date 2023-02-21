@@ -64,6 +64,7 @@ namespace BCRPClient
 
                 public static string SmsSendAttachPosOn = "Вы прикрепили свою геолокацию к сообщению!";
                 public static string SmsSendAttachPosOff = "Вы открепили свою геолокацию от сообщения!";
+                public static string SmsCantBeSentNow = "Сообщение не может быть отправлено на этот номер в данный момент!";
 
                 public static string AlreadyInPhoneBlacklist = "Этот номер уже находится в Вашем черном списке!";
 
@@ -306,6 +307,8 @@ namespace BCRPClient
                 public static string PhoneBalanceMax = "На балансе вашего телефона не может быть больше, чем ${0}";
 
                 public static string PhoneBalanceInfo = "Ваш номер: {0}\nБаланс: {1}\nСтоимость 1 мин. исходящего вызова: {2}\nСтоимость 1 символа SMS: {3}";
+
+                public static string PhoneBalanceNotEnough = "Недостаточно средств на счёте телефона!\nУ вас на счёте: ${0}";
             }
 
             public static class Hints
@@ -417,6 +420,7 @@ namespace BCRPClient
 
                 public static string PhoneNumberWrong0 = "Неправильно набран номер!";
                 public static string PhoneNumberWrong1 = "Абонент вне зоны доступа!\nПопробуйте позвонить позднее";
+                public static string PhoneNumberWrong2 = "Абонент в данный момент разговаривает!\nПопробуйте позвонить позднее";
                 public static string PhoneIncomingCall0 = "Вам звонит {0}";
                 public static string PhoneOpenHelp = "Откройте телефон ({0}) и примите/отклоните вызов";
             }

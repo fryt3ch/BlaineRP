@@ -99,11 +99,20 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
-        public static void BusinessUpdateBalances(Game.Businesses.Business business)
+        public static void BusinessUpdateBalances(Game.Businesses.Business business, bool orderedMaterials)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE businesses SET Cash=@Cash, Bank=@Bank, Materials=@Mats WHERE ID=@ID;";
+            if (orderedMaterials)
+            {
+                cmd.CommandText = "UPDATE businesses SET Cash=@Cash, Bank=@Bank, Materials=@Mats, OrderedMaterials=@OMats WHERE ID=@ID;";
+
+                cmd.Parameters.AddWithValue("@OMats", business.OrderedMaterials);
+            }
+            else
+            {
+                cmd.CommandText = "UPDATE businesses SET Cash=@Cash, Bank=@Bank, Materials=@Mats WHERE ID=@ID;";
+            }
 
             cmd.Parameters.AddWithValue("@ID", business.ID);
 
@@ -132,13 +141,12 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE businesses SET Statistics=@Stats, IncassationState=@IncState, OrderedMaterials=@OMats WHERE ID=@ID;";
+            cmd.CommandText = "UPDATE businesses SET Statistics=@Stats, IncassationState=@IncState WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", business.ID);
 
             cmd.Parameters.AddWithValue("@Stats", business.Statistics.SerializeToJson());
             cmd.Parameters.AddWithValue("@IncState", business.IncassationState);
-            cmd.Parameters.AddWithValue("@OMats", business.OrderedMaterials);
 
             PushQuery(cmd);
         }

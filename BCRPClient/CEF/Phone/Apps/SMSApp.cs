@@ -122,14 +122,17 @@ namespace BCRPClient.CEF.PhoneApps
                 if (!numberD.IsNumberValid(1, uint.MaxValue, out number, false))
                     return;
 
-                var text = ((string)args[1]).Trim();
+                var text = ((string)args[1])?.Trim();
 
-                if (text == null)
-                    return;
-
-                if (text.Length < 5)
+                if (text == null || text.Length < Settings.PHONE_SMS_MIN_LENGTH)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, 5));
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, Settings.PHONE_SMS_MIN_LENGTH));
+
+                    return;
+                }
+                else if (text.Length > Settings.PHONE_SMS_MAX_LENGTH)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, Settings.PHONE_SMS_MAX_LENGTH));
 
                     return;
                 }
@@ -139,7 +142,15 @@ namespace BCRPClient.CEF.PhoneApps
                 var smsStrData = (string)await Events.CallRemoteProc("Phone::SSMS", number, text, AttachPos);
 
                 if (smsStrData == null)
+                {
                     return;
+                }
+                else if (smsStrData.Length == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.SmsCantBeSentNow);
+
+                    return;
+                }
 
                 var smsObj = new PhoneApps.SMSApp.SMS(smsStrData);
 
@@ -264,6 +275,10 @@ namespace BCRPClient.CEF.PhoneApps
                         if (smsObj.SenderNumber == 900)
                         {
                             CEF.Notification.ShowSmsFive(Notification.FiveNotificImgTypes.Bank, contName, smsObj.Text);
+                        }
+                        else if (smsObj.SenderNumber == 874)
+                        {
+                            CEF.Notification.ShowSmsFive(Notification.FiveNotificImgTypes.DeliveryService, contName, smsObj.Text);
                         }
                         else
                         {

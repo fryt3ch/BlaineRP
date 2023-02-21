@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Events.Players
 {
@@ -86,9 +87,13 @@ namespace BCRPServer.Events.Players
                             {
                                 activeOrder.TargetBusiness.SetMaterials(newMaterialsBalance);
 
-                                MySQL.BusinessUpdateBalances(activeOrder.TargetBusiness);
+                                activeOrder.TargetBusiness.OrderedMaterials = 0;
 
-                                // set ordered materials to 0
+                                MySQL.BusinessUpdateBalances(activeOrder.TargetBusiness, true);
+
+                                var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, activeOrder.TargetBusiness.Owner, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessFinishOrder), orderId));
+
+                                Sync.Phone.SMS.Add(activeOrder.TargetBusiness.Owner, sms, true);
                             }
                         }
                         else

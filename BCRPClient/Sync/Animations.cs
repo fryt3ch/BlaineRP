@@ -2,9 +2,6 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.Intrinsics.X86;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace BCRPClient.Sync

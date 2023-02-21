@@ -1,9 +1,11 @@
 ﻿using GTANetworkAPI;
+using Mysqlx.Crud;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Events.Players
 {
@@ -292,6 +294,139 @@ namespace BCRPServer.Events.Players
             business.SetMargin(margin);
 
             return true;
+        }
+
+        [RemoteProc("Business::NDO")]
+        private static ulong? NewDeliveryOrder(Player player, int id, int amountI)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (amountI <= 0)
+                return null;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return null;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null || business.Owner != pData.Info)
+                return null;
+
+            if (!business.IsPlayerNearInfoPosition(pData))
+                return null;
+
+            if (business.OrderedMaterials > 0)
+                return null;
+
+            var amount = (ulong)amountI;
+
+            var matData = business.MaterialsData;
+
+            if (amount > matData.MaxMaterialsPerOrder)
+            {
+                player.Notify("Business::MMPO", matData.MaxMaterialsPerOrder);
+
+                return null;
+            }
+
+            if ((ulong)business.Materials + amount > matData.MaxMaterialsBalance)
+            {
+                player.Notify("Business::MMB", matData.MaxMaterialsBalance, business.Materials);
+
+                return null;
+            }
+
+            var totalPrice = amount * matData.BuyPrice + Game.Businesses.Business.MATS_DELIVERY_PRICE;
+
+            ulong newBalance;
+
+            if (!business.TryRemoveMoneyBank(totalPrice, out newBalance, true))
+                return null;
+
+            business.OrderedMaterials = (uint)amount;
+
+            business.SetBank(newBalance);
+
+            MySQL.BusinessUpdateBalances(business, true);
+
+            var orderId = business.ClosestTruckerJob.AddCustomOrder(business);
+
+            var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, pData.Info, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessNewOrder), orderId, amount, totalPrice));
+
+            Sync.Phone.SMS.Add(pData.Info, sms, true);
+
+            return business.Bank;
+        }
+
+        [RemoteProc("Business::CAO")]
+        private static ulong? CancelActiveOrder(Player player, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return null;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null || business.Owner != pData.Info)
+                return null;
+
+            if (!business.IsPlayerNearInfoPosition(pData))
+                return null;
+
+            if (business.OrderedMaterials <= 0)
+                return null;
+
+            var truckerJob = business.ClosestTruckerJob;
+
+            var currentOrderPair = truckerJob.ActiveOrders.Where(x => x.Value.TargetBusiness == business && x.Value.IsCustom).FirstOrDefault();
+
+            if (currentOrderPair.Value == null)
+                return null;
+
+            if (currentOrderPair.Value.CurrentVehicle != null)
+            {
+                player.Notify("Business::COIT");
+
+                return null;
+            }
+
+            var totalPrice = (ulong)business.OrderedMaterials * business.MaterialsData.BuyPrice + Game.Businesses.Business.MATS_DELIVERY_PRICE;
+
+            business.OrderedMaterials = 0;
+
+            truckerJob.RemoveOrder(currentOrderPair.Key);
+
+            ulong newBalance;
+
+            if (business.TryAddMoneyBank(totalPrice, out newBalance, true))
+            {
+                business.SetBank(newBalance);
+            }
+
+            MySQL.BusinessUpdateBalances(business, true);
+
+            var sms = new Sync.Phone.SMS((uint)Sync.Phone.SMS.DefaultNumbers.Delivery, pData.Info, string.Format(Sync.Phone.SMS.GetDefaultSmsMessage(Sync.Phone.SMS.DefaultTypes.DeliveryBusinessCancelOrder), currentOrderPair.Key, totalPrice));
+
+            Sync.Phone.SMS.Add(pData.Info, sms, true);
+
+            return business.Bank;
         }
 
         [RemoteProc("Business::ShowMenu")]

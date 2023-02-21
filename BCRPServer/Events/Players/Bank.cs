@@ -464,7 +464,7 @@ namespace BCRPServer.Events.Players
                 business.SetBank(newBalance);
             }
 
-            MySQL.BusinessUpdateBalances(business);
+            MySQL.BusinessUpdateBalances(business, false);
 
             return business.Bank;
         }

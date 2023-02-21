@@ -66,46 +66,38 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Phone::CP")]
-        private static bool CallPlayer(Player player, uint phoneNumber)
+        private static byte CallPlayer(Player player, uint phoneNumber)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return false;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
-                return false;
+                return 0;
 
             if (pData.ActiveCall != null)
-                return false;
+                return 0;
 
             var tData = PlayerData.All.Values.Where(x => x.Info.PhoneNumber == phoneNumber).FirstOrDefault();
 
             if (tData == null || tData == pData)
-                return false;
+                return 1;
 
-            if (pData.Info.PhoneBalance < Settings.PHONE_CALL_COST_X)
-            {
-                // todo notify
-
-                return false;
-            }
+            if (!pData.Info.TryRemovePhoneBalance(Settings.PHONE_CALL_COST_X, out _, true))
+                return 0;
 
             if (tData.Info.PhoneBlacklist.Contains(pData.Info.PhoneNumber) || tData.Player.Dimension == Utils.GetPrivateDimension(tData.Player) || pData.IsFrozen)
-                return false;
+                return 1;
 
             if (tData.ActiveCall != null)
-            {
-                // todo notify
-
-                return false;
-            }
+                return 2;
 
             var newCall = new Sync.Phone.Call(pData, tData);
 
-            return true;
+            return byte.MaxValue;
         }
 
         [RemoteEvent("Phone::CA")]
@@ -156,7 +148,7 @@ namespace BCRPServer.Events.Players
 
             if (pData.Info.Contacts.Count >= Settings.PHONE_CONTACTS_MAX_AMOUNT)
             {
-                // todo notify
+                player.Notify("Phone::CMA", Settings.PHONE_CONTACTS_MAX_AMOUNT);
 
                 return false;
             }
@@ -213,7 +205,7 @@ namespace BCRPServer.Events.Players
 
                 if (pData.Info.PhoneBlacklist.Count >= Settings.PHONE_BLACKLIST_MAX_AMOUNT)
                 {
-                    // todo notify
+                    player.Notify("Phone::BLMA", Settings.PHONE_BLACKLIST_MAX_AMOUNT);
 
                     return false;
                 }
@@ -244,14 +236,14 @@ namespace BCRPServer.Events.Players
             if (text == null)
                 return null;
 
-            if (text.Length > Settings.PHONE_SMS_MAX_LENGTH)
-            {
-                return null;
-            }
-
-            uint newPhoneBalance;
+            text = text.Trim();
 
             var symbolsCount = (uint)text.Length;
+
+            if (symbolsCount < Settings.PHONE_SMS_MIN_LENGTH || symbolsCount > Settings.PHONE_SMS_MAX_LENGTH)
+                return null;
+
+            uint newPhoneBalance;
 
             if (!pData.Info.TryRemovePhoneBalance(symbolsCount * Settings.PHONE_SMS_COST_PER_CHAR, out newPhoneBalance, true))
                 return null;
@@ -262,27 +254,17 @@ namespace BCRPServer.Events.Players
             var tData = PlayerData.All.Values.Where(x => x.Info.PhoneNumber == phoneNumber).FirstOrDefault();
 
             if (tData == null || pData == tData)
-                return null;
-
-            if (tData.Info.PhoneBlacklist.Contains(pData.Info.PhoneNumber))
-                return null;
-
-            if (pData.Info.AllSMS.Count >= Settings.PHONE_SMS_MAX_COUNT)
-            {
-                pData.Info.AllSMS.RemoveAt(0);
-
-                Sync.Phone.SMS.TriggerRemove(player, 0);
-            }
+                return string.Empty;
 
             if (attachPos)
                 text += $"<GEOL>{player.Position.X}_{player.Position.Y}</GEOL>";
 
             var smsData = new Sync.Phone.SMS(pData.Info, tData.Info, text);
 
-            pData.Info.AllSMS.Add(smsData);
-            tData.Info.AllSMS.Add(smsData);
+            Sync.Phone.SMS.Add(pData.Info, smsData, false);
 
-            smsData.TriggerAdd(tData.Player);
+            if (!tData.Info.PhoneBlacklist.Contains(pData.Info.PhoneNumber))
+                Sync.Phone.SMS.Add(tData.Info, smsData, true);
 
             return smsData.Data;
         }

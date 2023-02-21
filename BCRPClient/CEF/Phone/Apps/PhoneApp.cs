@@ -335,7 +335,9 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (uint.TryParse(number, out numNumber))
                 {
-                    if ((bool)await Events.CallRemoteProc("Phone::CP", numNumber))
+                    var res = (int)await Events.CallRemoteProc("Phone::CP", numNumber);
+
+                    if (res == byte.MaxValue)
                     {
                         ShowActiveCall(number, Locale.General.PhoneOutgoingCall);
 
@@ -343,11 +345,17 @@ namespace BCRPClient.CEF.PhoneApps
 
                         pData.ActiveCall = new CallInfo(true, numNumber);
                     }
-                    else
+                    else if (res == 1)
                     {
-                        //CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Players.PhoneNumberWrong1);
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Players.PhoneNumberWrong1);
 
-                        //CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
+                        CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
+                    }
+                    else if (res == 2)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Players.PhoneNumberWrong2);
+
+                        CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
                     }
 
                     return;

@@ -56,9 +56,6 @@ namespace BCRPServer.Game.Items
             /// <summary>Может ли использоваться в транспорте?</summary>
             public bool CanUseInVehicle { get; set; }
 
-            /// <summary>Подходящие типы для крепления оружия на игрока</summary>
-            public Sync.AttachSystem.Types[] AttachTypes { get; set; }
-
             public override string ClientData => $"\"{Name}\", {Weight}f, {(AmmoID == null ? "null" : $"\"{AmmoID}\"")}, {MaxAmmo}, {Hash}";
 
             /// <summary>Создать новое оружие</summary>
@@ -78,15 +75,24 @@ namespace BCRPServer.Game.Items
                 this.Hash = Hash;
 
                 this.MaxAmmo = MaxAmmo;
-
-                if (TopType == TopTypes.Shotgun || TopType == TopTypes.AssaultRifle || TopType == TopTypes.SniperRifle || TopType == TopTypes.HeavyWeapon)
-                    this.AttachTypes = new Sync.AttachSystem.Types[] { Sync.AttachSystem.Types.WeaponLeftBack, Sync.AttachSystem.Types.WeaponRightBack };
-                else if (TopType == TopTypes.SubMachine)
-                    this.AttachTypes = new Sync.AttachSystem.Types[] { Sync.AttachSystem.Types.WeaponLeftTight, Sync.AttachSystem.Types.WeaponRightTight };
             }
 
             /// <inheritdoc cref="ItemData.ItemData(Types, TopTypes, Types?, uint, int, bool)"/>
             public ItemData(string Name, float Weight, string Model, TopTypes TopType, string AmmoType, WeaponHash Hash, int MaxAmmo, bool CanUseInVehicle = false) : this(Name, Weight, Model, TopType, AmmoType, (uint)Hash, MaxAmmo, CanUseInVehicle) { }
+
+            public Sync.AttachSystem.Types? GetAttachType(PlayerData pData)
+            {
+                if (TopType == TopTypes.Shotgun || TopType == TopTypes.AssaultRifle || TopType == TopTypes.SniperRifle || TopType == TopTypes.HeavyWeapon)
+                {
+                    return pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.WeaponLeftBack).Any() ? Sync.AttachSystem.Types.WeaponRightBack : Sync.AttachSystem.Types.WeaponLeftBack;
+                }
+                else if (TopType == TopTypes.SubMachine)
+                {
+                    return pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.WeaponLeftTight).Any() ? Sync.AttachSystem.Types.WeaponRightTight : Sync.AttachSystem.Types.WeaponLeftTight;
+                }
+
+                return null;
+            }
         }
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
@@ -247,15 +253,11 @@ namespace BCRPServer.Game.Items
 
             var data = Data;
 
-            var attachTypes = data.AttachTypes;
-
-            if (attachTypes == null)
-                return;
-
-            var atId = pData.AttachedObjects.Where(x => x.Type == attachTypes[0]).Any() ? 1 : 0;
-
-            if (player.AttachObject(data.Hash, attachTypes[atId], -1, $"{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}"))
-                AttachType = attachTypes[atId];
+            if (data.GetAttachType(pData) is Sync.AttachSystem.Types attachType)
+            {
+                if (player.AttachObject(data.Hash, attachType, -1, $"{GetCurrentSkinVariation(pData)}_{GetWeaponComponentsString()}"))
+                    AttachType = attachType;
+            }
         }
 
         public void Unwear(PlayerData pData)
