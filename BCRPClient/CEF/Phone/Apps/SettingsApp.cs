@@ -24,7 +24,7 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     if (CurrentAppTab == "wallpaper".GetHashCode())
                     {
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
 
                         Settings.Other.PhoneWallpaperNum = wpNum;
 

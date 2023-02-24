@@ -134,7 +134,7 @@ namespace BCRPServer
                             {
                                 var gId = Utils.GetGarageIdByDimension(LastData.Dimension);
 
-                                var garage = hId == 0 ? null : Game.Estates.Garage.Get(hId);
+                                var garage = gId == 0 ? null : Game.Estates.Garage.Get(gId);
 
                                 if (garage == null || garage.Owner != owner)
                                 {
@@ -156,7 +156,7 @@ namespace BCRPServer
                         }
                         else
                         {
-                            if (freeGarageSlots <= 0)
+                            if (freeGarageSlots <= 0 && LastData.GarageSlot != int.MinValue)
                             {
                                 IsOnVehiclePound = true;
                             }
@@ -165,14 +165,15 @@ namespace BCRPServer
                                 if (LastData.Dimension != Utils.Dimensions.Main)
                                     LastData.Dimension = Utils.Dimensions.Main;
 
+                                if (LastData.GarageSlot != -1)
+                                    LastData.GarageSlot = -1;
+
                                 VehicleData = new VehicleData(CreateVehicle(), this);
                             }
                         }
 
                         if (VehicleData != null)
                         {
-                            VehicleData.AttachBoatToTrailer();
-
                             NAPI.Task.Run(() =>
                             {
                                 if (VehicleData?.Vehicle?.Exists != true)
@@ -181,15 +182,6 @@ namespace BCRPServer
                                 VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
                             }, 1500);
                         }
-                    }
-                    else if (OwnerType == OwnerTypes.PlayerRentJob)
-                    {
-                        var data = Data;
-
-                        OwnerID = 0;
-                        LastData.Fuel = data.Tank;
-
-                        VehicleData = new VehicleData(CreateVehicle(), this);
                     }
 
                     return VehicleData;
@@ -210,6 +202,23 @@ namespace BCRPServer
                     player.TriggerEvent("Documents::Show", 2, Data.Name, "null", "null", VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
                 else
                     player.TriggerEvent("Documents::Show", 2, Data.Name, owner.Name, owner.Surname, VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
+            }
+
+            public void SetToVehiclePound()
+            {
+                if (IsOnVehiclePound)
+                    return;
+
+                IsOnVehiclePound = true;
+
+                if (VehicleData != null)
+                {
+                    VehicleData.Delete(false);
+                }
+                else
+                {
+                    MySQL.VehicleDeletionUpdate(this);
+                }
             }
         }
     }

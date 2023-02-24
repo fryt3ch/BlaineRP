@@ -118,6 +118,10 @@ namespace BCRPClient.CEF
             { "Vehicle::FOFP", new Instance(Types.Error, Locale.Notifications.Vehicles.FullOfGasDef, Locale.Notifications.ErrorHeader) },
             { "Vehicle::FOFE", new Instance(Types.Error, Locale.Notifications.Vehicles.FullOfGasElectrical, Locale.Notifications.ErrorHeader) },
 
+            { "Vehicle::OIG", new Instance(Types.Error, "Этот транспорт уже находится в гараже!", Locale.Notifications.ErrorHeader) },
+
+            { "Vehicle::RVAH", new Instance(Types.Error, Locale.Notifications.General.JobRentVehicleAlreadyRented1, Locale.Notifications.ErrorHeader) },
+
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
             { "Container::Wait", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },
@@ -214,12 +218,30 @@ namespace BCRPClient.CEF
             { "Trade::NotEnoughMoneyOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughMoneyOther, Locale.Notifications.ErrorHeader) },
             { "Trade::NotEnoughSpaceOther", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughSpaceOther, Locale.Notifications.ErrorHeader) },
             { "Trade::NPSO", new Instance(Types.Error, Locale.Notifications.Offers.TradeNotEnoughPropertySpaceOther, Locale.Notifications.ErrorHeader) },
+            { "Trade::EOP", new Instance(Types.Error, "Другой игрок не может что-то передать Вам сейчас или получить от Вас, спросите его об этом", Locale.Notifications.ErrorHeader) },
+            { "Trade::MVIT", new Instance(Types.Error, "Вы не можете выбрать больше, чем {0} транспорта для обмена", Locale.Notifications.ErrorHeader) },
+            { "Trade::MHBIT", new Instance(Types.Error, "Вы не можете выбрать больше, чем {0} дома/квартиры для обмена", Locale.Notifications.ErrorHeader) },
+            { "Trade::MGIT", new Instance(Types.Error, "Вы не можете выбрать больше, чем {0} гаражей для обмена", Locale.Notifications.ErrorHeader) },
+            { "Trade::MBIT", new Instance(Types.Error, "Вы не можете выбрать больше, чем {0} бизнеса для обмена", Locale.Notifications.ErrorHeader) },
+            { "Trade::MGPH", new Instance(Types.Error, "Чтобы продать/обменять гараж #{0}, на его счете должно быть как минимум столько средств, чтобы было достаточно для оплаты {1} часов налога", Locale.Notifications.ErrorHeader) },
+            { "Trade::MBPH", new Instance(Types.Error, "Чтобы продать/обменять бизнес #{0}, на его счете должно быть как минимум столько средств, чтобы было достаточно для оплаты {1} часов аренды", Locale.Notifications.ErrorHeader) },
+            { "Trade::MHPH", new Instance(Types.Error, "Чтобы продать/обменять дом #{0}, на его счете должно быть как минимум столько средств, чтобы было достаточно для оплаты {1} часов налога", Locale.Notifications.ErrorHeader) },
+            { "Trade::MAPH", new Instance(Types.Error, "Чтобы продать/обменять квартиру #{0}, на ее счете должно быть как минимум столько средств, чтобы было достаточно для оплаты {1} часов налога", Locale.Notifications.ErrorHeader) },
+
+            { "Trade::MVOW", new Instance(Types.Error, "Вы уже владеете максимальным кол-вом транспорта - {0}\nЧтобы увеличить это кол-во, купите дом или гараж с нужным кол-вом гаражных мест", Locale.Notifications.ErrorHeader) },
+            { "Trade::MHOW", new Instance(Types.Error, "Вы уже владеете максимальным кол-вом домов - {0}", Locale.Notifications.ErrorHeader) },
+            { "Trade::MAOW", new Instance(Types.Error, "Вы уже владеете максимальным кол-вом квартир - {0}", Locale.Notifications.ErrorHeader) },
+            { "Trade::MGOW", new Instance(Types.Error, "Вы уже владеете максимальным кол-вом гаражей - {0}", Locale.Notifications.ErrorHeader) },
+            { "Trade::MBOW", new Instance(Types.Error, "Вы уже владеете максимальным кол-вом бизнесов - {0}", Locale.Notifications.ErrorHeader) },
+            { "Trade::ASH", new Instance(Types.Error, "Вы уже прописаны в каком-то доме, чтобы владеть своим домом, вы не должны быть прописаны в другом!", Locale.Notifications.ErrorHeader) },
+            { "Trade::ASA", new Instance(Types.Error, "Вы уже прописаны в какой-то квартире, чтобы владеть своей квартирой, вы не должны быть прописаны в другой!", Locale.Notifications.ErrorHeader) },
 
             { "House::NotAllowed", new Instance(Types.Error, Locale.Notifications.House.NotAllowed, Locale.Notifications.ErrorHeader) },
             { "House::HL", new Instance(Types.Error, Locale.Notifications.House.IsLocked, Locale.Notifications.ErrorHeader) },
             { "House::CL", new Instance(Types.Error, Locale.Notifications.House.ContainersLocked, Locale.Notifications.ErrorHeader) },
             { "House::LCC", new Instance(Types.Success, Locale.Notifications.House.LightColourChanged, Locale.Notifications.DefHeader) },
             { "House::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfHouses, Locale.Notifications.ErrorHeader) },
+            { "House::AB", new Instance(Types.Error, "Эта недвижимость уже кем-то приобретена!", Locale.Notifications.ErrorHeader) },
 
             { "House::ASH", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledHere, Locale.Notifications.ErrorHeader) },
             { "House::ASOH", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledOtherHouse, Locale.Notifications.ErrorHeader) },
@@ -231,6 +253,17 @@ namespace BCRPClient.CEF
 
             { "License::NTB", new Instance(Types.Error, Locale.Notifications.General.NoLicenseToBuy, Locale.Notifications.ErrorHeader) },
 
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Business}", new Instance(Types.Error, "У Вас отсутствует лицензия на право владения бизнесом!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Weapons}", new Instance(Types.Error, "У Вас отсутствует лицензия на право владения оружием!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.A}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории A (мотоциклы)!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.B}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории B (легковой транспорт)!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.C}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории C (грузовой транспорт)!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.D}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории D (маршрутный транспорт)!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Sea}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории Sea (водный транспорт)!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Fly}", new Instance(Types.Error, "У Вас отсутствует водительская лицензия категории Air (воздушный транспорт)!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Lawyer}", new Instance(Types.Error, "У Вас отсутствует лицензия на работу адвокатом!", Locale.Notifications.ErrorHeader) },
+            { $"Lic::N_{(int)Sync.Players.LicenseTypes.Hunting}", new Instance(Types.Error, "У Вас отсутствует лицензия на охоту!", Locale.Notifications.ErrorHeader) },
+
             { "CDown::1", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText1, Locale.Notifications.ErrorHeader) },
             { "CDown::2", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText2, Locale.Notifications.ErrorHeader) },
             { "CDown::3", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText3, Locale.Notifications.ErrorHeader) },
@@ -238,7 +271,7 @@ namespace BCRPClient.CEF
 
         public Notification()
         {
-            LastAntiSpamShowed = DateTime.Now;
+            LastAntiSpamShowed = Sync.World.ServerTime;
 
             // 0 - type, 1 - title, 2 - text, 3 - timeout
             Events.Add("Notify::Custom", (object[] args) => Show((Types)((int)args[0]), (string)args[1], (string)args[2], args.Length > 3 ? (int)args[3] : -1));
@@ -314,17 +347,17 @@ namespace BCRPClient.CEF
         #region Spam Check
         public static bool SpamCheck(ref DateTime dateTime, int timeout = 500, bool updateTime = false, bool notify = false)
         {
-            var spam = DateTime.Now.Subtract(dateTime).TotalMilliseconds < timeout;
+            var spam = Sync.World.ServerTime.Subtract(dateTime).TotalMilliseconds < timeout;
 
-            if (spam && notify && DateTime.Now.Subtract(LastAntiSpamShowed).TotalMilliseconds > 500)
+            if (spam && notify && Sync.World.ServerTime.Subtract(LastAntiSpamShowed).TotalMilliseconds > 500)
             {
                 Notification.Show(Notification.Types.Error, Locale.Notifications.AntiSpam.Header, Locale.Notifications.AntiSpam.DontFlood, 2000);
 
-                LastAntiSpamShowed = DateTime.Now;
+                LastAntiSpamShowed = Sync.World.ServerTime;
             }
 
             if (updateTime)
-                dateTime = DateTime.Now;
+                dateTime = Sync.World.ServerTime;
 
             return spam;
         }

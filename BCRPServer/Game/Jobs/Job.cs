@@ -114,6 +114,8 @@ namespace BCRPServer.Game.Jobs
         {
             pData.CurrentJob = this;
         }
+
+        public abstract void OnWorkerExit(PlayerData pData);
     }
 
     public interface IVehicles

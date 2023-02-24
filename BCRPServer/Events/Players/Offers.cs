@@ -316,10 +316,10 @@ namespace BCRPServer.Events.Players
                 offer.Cancel(true, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
                 pData.Player.Notify("Trade::Success");
-                pData.Player.CloseAll();
+                pData.Player.CloseAll(true);
 
                 tData.Player.Notify("Trade::Success");
-                tData.Player.CloseAll();
+                tData.Player.CloseAll(true);
             }
             else
             {
@@ -328,10 +328,10 @@ namespace BCRPServer.Events.Players
                     offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
                     pData.Player.Notify("Trade::Error");
-                    pData.Player.CloseAll();
+                    pData.Player.CloseAll(true);
 
                     tData.Player.Notify("Trade::Error");
-                    tData.Player.CloseAll();
+                    tData.Player.CloseAll(true);
                 }
                 else if (result.Result == Game.Items.Inventory.Results.NotEnoughMoney)
                 {
@@ -423,7 +423,7 @@ namespace BCRPServer.Events.Players
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
                 return;
 
-            bool isSender = offer.Sender == pData;
+            var isSender = offer.Sender == pData;
 
             var tData = isSender ? offer.Receiver : offer.Sender;
 
@@ -467,7 +467,7 @@ namespace BCRPServer.Events.Players
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
                 return false;
 
-            bool isSender = offer.Sender == pData;
+            var isSender = offer.Sender == pData;
 
             var tData = isSender ? offer.Receiver : offer.Sender;
 
@@ -489,6 +489,8 @@ namespace BCRPServer.Events.Players
                 {
                     if (tradeVehs.Count >= Settings.MAX_VEHICLES_IN_TRADE)
                     {
+                        player.Notify("Trade::MVIT", Settings.MAX_VEHICLES_IN_TRADE);
+
                         return false;
                     }
 
@@ -518,6 +520,15 @@ namespace BCRPServer.Events.Players
                 {
                     if (tradeHouses.Count >= Settings.MAX_HOUSEBASES_IN_TRADE)
                     {
+                        player.Notify("Trade::MHBIT", Settings.MAX_HOUSEBASES_IN_TRADE);
+
+                        return false;
+                    }
+
+                    if (house.Balance < (ulong)(Settings.MIN_PAID_HOURS_HOUSE_APS * house.Tax))
+                    {
+                        player.Notify(house.Type == Game.Estates.HouseBase.Types.House ? "Trade::MHPH" : "Trade::MAPH", pId, Settings.MIN_PAID_HOURS_HOUSE_APS);
+
                         return false;
                     }
 
@@ -547,6 +558,15 @@ namespace BCRPServer.Events.Players
                 {
                     if (tradeGarages.Count >= Settings.MAX_GARAGES_IN_TRADE)
                     {
+                        player.Notify("Trade::MGIT", Settings.MAX_GARAGES_IN_TRADE);
+
+                        return false;
+                    }
+
+                    if (garage.Balance < (ulong)(Settings.MIN_PAID_HOURS_GARAGE * garage.Tax))
+                    {
+                        player.Notify("Trade::MGPH", pId, Settings.MIN_PAID_HOURS_GARAGE);
+
                         return false;
                     }
 
@@ -576,6 +596,15 @@ namespace BCRPServer.Events.Players
                 {
                     if (tradeBusinesses.Count >= Settings.MAX_BUSINESS_IN_TRADE)
                     {
+                        player.Notify("Trade::MBIT", Settings.MAX_BUSINESS_IN_TRADE);
+
+                        return false;
+                    }
+
+                    if (biz.Bank < (ulong)(Settings.MIN_PAID_HOURS_BUSINESS * biz.Rent))
+                    {
+                        player.Notify("Trade::MBPH", pId, Settings.MIN_PAID_HOURS_BUSINESS);
+
                         return false;
                     }
 
@@ -613,7 +642,7 @@ namespace BCRPServer.Events.Players
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
                 return;
 
-            bool isSender = offer.Sender == pData;
+            var isSender = offer.Sender == pData;
 
             var tData = isSender ? offer.Receiver : offer.Sender;
 

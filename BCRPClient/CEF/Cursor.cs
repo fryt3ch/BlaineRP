@@ -29,13 +29,9 @@ namespace BCRPClient.CEF
             if (value)
             {
                 SwitchEscMenuAccess(false);
-
-                Sync.WeaponSystem.DisabledFiring = true;
             }
             else
             {
-                Sync.WeaponSystem.DisabledFiring = false;
-
                 if (!Utils.IsAnyCefActive(true))
                     SwitchEscMenuAccess(true);
             }

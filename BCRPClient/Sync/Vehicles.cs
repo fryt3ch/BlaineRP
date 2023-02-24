@@ -75,7 +75,7 @@ namespace BCRPClient.Sync
 
             public void ShowTimeLeftNotification()
             {
-                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.SubName}\"", DateTime.Now.AddMilliseconds(TimeLeftToDelete).Subtract(DateTime.Now).GetBeautyString()));
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.Name}\"", Sync.World.ServerTime.AddMilliseconds(TimeLeftToDelete).Subtract(Sync.World.ServerTime).GetBeautyString()));
             }
 
             public static void Check()
@@ -100,7 +100,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            if ((x.TimeLeftToDelete <= 30_000 && x.TimeToDelete % 10_000 == 0) || x.TimeLeftToDelete % 60_000 == 0)
+                            if (x.TimeLeftToDelete % 60_000 == 0 || x.TimeLeftToDelete <= 5_000 || (x.TimeLeftToDelete <= 30_000 && x.TimeLeftToDelete % 10_000 == 0))
                                 x.ShowTimeLeftNotification();
                         }
                     }
@@ -307,16 +307,16 @@ namespace BCRPClient.Sync
         public Vehicles()
         {
             #region Default Settings
-            LastBeltToggled = DateTime.Now;
-            LastDoorsLockToggled = DateTime.Now;
-            LastEngineToggled = DateTime.Now;
-            LastIndicatorToggled = DateTime.Now;
-            LastLightsToggled = DateTime.Now;
-            LastCruiseControlToggled = DateTime.Now;
-            LastSeatBeltShowed = DateTime.Now;
+            LastBeltToggled = Sync.World.ServerTime;
+            LastDoorsLockToggled = Sync.World.ServerTime;
+            LastEngineToggled = Sync.World.ServerTime;
+            LastIndicatorToggled = Sync.World.ServerTime;
+            LastLightsToggled = Sync.World.ServerTime;
+            LastCruiseControlToggled = Sync.World.ServerTime;
+            LastSeatBeltShowed = Sync.World.ServerTime;
 
-            LastRadioSent = DateTime.Now;
-            LastSyncSent = DateTime.Now;
+            LastRadioSent = Sync.World.ServerTime;
+            LastSyncSent = Sync.World.ServerTime;
 
             RAGE.Game.Vehicle.DefaultEngineBehaviour = false;
             //Player.LocalPlayer.SetConfigFlag(184, true);
@@ -836,9 +836,9 @@ namespace BCRPClient.Sync
 
                 task = new AsyncTask(async () =>
                 {
-                    var time = DateTime.Now;
+                    var time = Sync.World.ServerTime;
 
-                    while (Utils.IsTaskStillPending("Vehicles::WTS", task) && DateTime.Now.Subtract(time).TotalMilliseconds <= timeout)
+                    while (Utils.IsTaskStillPending("Vehicles::WTS", task) && Sync.World.ServerTime.Subtract(time).TotalMilliseconds <= timeout)
                     {
                         await RAGE.Game.Invoker.WaitAsync(50);
 
@@ -947,7 +947,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("Players::ToggleCruiseControl", vehicle?.GetSpeed() ?? 0f);
 
-            LastCruiseControlToggled = DateTime.Now;
+            LastCruiseControlToggled = Sync.World.ServerTime;
         }
 
         public static void CruiseControlTick()
@@ -1012,7 +1012,7 @@ namespace BCRPClient.Sync
                     return;
             }
 
-            LastBeltToggled = DateTime.Now;
+            LastBeltToggled = Sync.World.ServerTime;
 
             Events.CallRemote("Players::ToggleBelt");
         }
@@ -1022,11 +1022,11 @@ namespace BCRPClient.Sync
             RAGE.Game.Pad.DisableControlAction(32, 75, true);
 
             if (RAGE.Game.Pad.IsDisabledControlJustPressed(32, 75))
-                if (DateTime.Now.Subtract(LastSeatBeltShowed).TotalMilliseconds > 500)
+                if (Sync.World.ServerTime.Subtract(LastSeatBeltShowed).TotalMilliseconds > 500)
                 {
                     Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.SeatBelt.Header, Locale.Notifications.Vehicles.SeatBelt.TakeOffToLeave);
 
-                    LastSeatBeltShowed = DateTime.Now;
+                    LastSeatBeltShowed = Sync.World.ServerTime;
                 }
 
             if (Player.LocalPlayer.Vehicle?.Exists != true)
@@ -1044,7 +1044,7 @@ namespace BCRPClient.Sync
             if (LastDoorsLockToggled.IsSpam(1000, false, false))
                 return;
 
-            LastDoorsLockToggled = DateTime.Now;
+            LastDoorsLockToggled = Sync.World.ServerTime;
 
             if (vehicle == null)
             {
@@ -1101,7 +1101,7 @@ namespace BCRPClient.Sync
             if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                 return;
 
-            LastEngineToggled = DateTime.Now;
+            LastEngineToggled = Sync.World.ServerTime;
 
             Events.CallRemote("Vehicles::ToggleEngineSync", true);
         }
@@ -1127,7 +1127,7 @@ namespace BCRPClient.Sync
             if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                 return;
 
-            LastIndicatorToggled = DateTime.Now;
+            LastIndicatorToggled = Sync.World.ServerTime;
 
             Events.CallRemote("Vehicles::ToggleIndicator", type);
         }
@@ -1153,7 +1153,7 @@ namespace BCRPClient.Sync
             if (veh.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                 return;
 
-            LastLightsToggled = DateTime.Now;
+            LastLightsToggled = Sync.World.ServerTime;
 
             Events.CallRemote("Vehicles::ToggleLights");
         }
@@ -1165,7 +1165,7 @@ namespace BCRPClient.Sync
             if (LastDoorsLockToggled.IsSpam(1000, false, false))
                 return;
 
-            LastDoorsLockToggled = DateTime.Now;
+            LastDoorsLockToggled = Sync.World.ServerTime;
 
             if (vehicle == null)
             {
@@ -1211,7 +1211,7 @@ namespace BCRPClient.Sync
             if (LastDoorsLockToggled.IsSpam(1000, false, false))
                 return;
 
-            LastDoorsLockToggled = DateTime.Now;
+            LastDoorsLockToggled = Sync.World.ServerTime;
 
             if (vehicle == null)
             {
@@ -1371,7 +1371,7 @@ namespace BCRPClient.Sync
 
             Player.LocalPlayer.SetData("TEV::V", veh);
             Player.LocalPlayer.SetData("TEV::S", seatId);
-            Player.LocalPlayer.SetData("TEV::T", DateTime.Now);
+            Player.LocalPlayer.SetData("TEV::T", Sync.World.ServerTime);
 
             Utils.JsEval("mp.players.local.taskEnterVehicle", veh.Handle, -1, seatId - 1, 1.5f, 1, 0);
 
@@ -1385,7 +1385,7 @@ namespace BCRPClient.Sync
 
             var seatId = Player.LocalPlayer.GetData<int>("TEV::S");
             var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
-            var timePassed = DateTime.Now.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
+            var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
             if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 5000 || (timePassed > 500 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
             {
@@ -1411,7 +1411,7 @@ namespace BCRPClient.Sync
         {
             if (!Player.LocalPlayer.IsInAnyVehicle(false))
             {
-                LastVehicleExitedTime = DateTime.Now;
+                LastVehicleExitedTime = Sync.World.ServerTime;
 
                 GameEvents.Render -= InVehicleRender;
             }
@@ -1780,7 +1780,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("Vehicles::Anchor", !vData.IsAnchored);
 
-            LastCruiseControlToggled = DateTime.Now;
+            LastCruiseControlToggled = Sync.World.ServerTime;
         }
 
         public static void SendCoordsToDriver()

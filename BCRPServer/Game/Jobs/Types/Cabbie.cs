@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPServer.Game.Jobs
 {
@@ -8,11 +9,15 @@ namespace BCRPServer.Game.Jobs
     {
         public class OrderInfo
         {
+            public bool Exists => ActiveOrders.ContainsValue(this);
+
             public Entity Entity { get; set; }
 
             public Vector3 Position { get; set; }
 
-            public VehicleData CurrentVehicle { get; set; }
+            public PlayerData.PlayerInfo CurrentWorker { get; set; }
+
+            public CancellationTokenSource GPSTrackerCTS { get; set; }
 
             public OrderInfo(Entity Entity, Vector3 Position)
             {
@@ -56,38 +61,96 @@ namespace BCRPServer.Game.Jobs
             TriggerEventToWorkersByJobType(Types.Cabbie, "Job::CAB::OC", $"{id}_{orderInfo.Position.X}_{orderInfo.Position.Y}_{orderInfo.Position.Z}");
         }
 
-        public static void RemoveOrder(uint id, OrderInfo oInfo)
+        public static void RemoveOrder(uint id, OrderInfo oInfo, bool success)
         {
             if (ActiveOrders.Remove(id))
             {
+                if (oInfo.GPSTrackerCTS != null)
+                {
+                    oInfo.GPSTrackerCTS.Cancel();
+                    oInfo.GPSTrackerCTS.Dispose();
+                }
+
                 FreeOrderId(id);
 
-                TriggerEventToWorkersByJobType(Types.Cabbie, "Job::CAB::OC", id);
+                if (oInfo.CurrentWorker == null)
+                {
+                    TriggerEventToWorkersByJobType(Types.Cabbie, "Job::CAB::OC", id);
+                }
+                else
+                {
+                    oInfo.CurrentWorker.PlayerData.Player.TriggerEvent("Job::CAB::OC", id, success);
+                }
 
                 if (oInfo.Entity is Player player)
                 {
-                    player.TriggerEvent("Taxi::UO");
+                    if (success)
+                        player.TriggerEvent("Taxi::UO", true);
+                    else
+                        player.TriggerEvent("Taxi::UO");
                 }
             }
         }
 
-        public static void SetOrderAsTaken(uint orderId, OrderInfo oInfo, VehicleData vData, PlayerData pDataDriver)
+        public static void SetOrderAsTaken(uint orderId, OrderInfo oInfo, PlayerData pDataDriver)
         {
-            oInfo.CurrentVehicle = vData;
+            oInfo.CurrentWorker = pDataDriver.Info;
 
             TriggerEventToWorkersByJobType(Types.Cabbie, "Job::CAB::OC", orderId);
 
             if (oInfo.Entity is Player player)
             {
                 player.TriggerEvent("Taxi::UO", pDataDriver.Player.Id, pDataDriver.Info.PhoneNumber);
+
+                if (oInfo.GPSTrackerCTS != null)
+                {
+                    oInfo.GPSTrackerCTS.Cancel();
+                    oInfo.GPSTrackerCTS.Dispose();
+                }
+
+                oInfo.GPSTrackerCTS = new CancellationTokenSource();
+
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    try
+                    {
+                        var doAction = true;
+
+                        while (doAction)
+                        {
+                            await System.Threading.Tasks.Task.Delay(5000, oInfo.GPSTrackerCTS.Token);
+
+                            NAPI.Task.Run(() =>
+                            {
+                                if (!oInfo.Exists || oInfo.CurrentWorker == null)
+                                {
+                                    doAction = false;
+
+                                    return;
+                                }
+
+                                var pos = pDataDriver.Player.Position;
+
+                                player.SendGPSTracker(0, pos.X, pos.Y, pDataDriver.Player);
+                            });
+                        }
+                    }
+                    catch(System.Exception ex) { }
+                });
             }
         }
 
         public static void SetOrderAsNotTaken(uint orderId, OrderInfo oInfo)
         {
-            oInfo.CurrentVehicle = null;
+            oInfo.CurrentWorker = null;
 
-            TriggerEventToWorkersByJobType(Types.Cabbie, "Job::TR::OC", $"{orderId}_{oInfo.Position.X}_{oInfo.Position.Y}_{oInfo.Position.Z}");
+            if (oInfo.GPSTrackerCTS != null)
+            {
+                oInfo.GPSTrackerCTS.Cancel();
+                oInfo.GPSTrackerCTS.Dispose();
+            }
+
+            TriggerEventToWorkersByJobType(Types.Cabbie, "Job::CAB::OC", $"{orderId}_{oInfo.Position.X}_{oInfo.Position.Y}_{oInfo.Position.Z}");
 
             if (oInfo.Entity is Player player)
             {
@@ -112,18 +175,33 @@ namespace BCRPServer.Game.Jobs
         {
             base.SetPlayerJob(pData);
 
+            foreach (var x in ActiveOrders)
+            {
+                if (x.Value.Entity == pData.Player)
+                {
+                    RemoveOrder(x.Key, x.Value, false);
+
+                    break;
+                }
+            }
+
             var jobVehicleData = (VehicleData)args[0];
 
-            pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentVehicle == null).Select(x => $"{x.Key}_{x.Value.Position.X}_{x.Value.Position.Y}_{x.Value.Position.Z}").ToList());
-
-            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JCAB1, 0, 0);
+            pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentWorker == null).Select(x => $"{x.Key}_{x.Value.Position.X}_{x.Value.Position.Y}_{x.Value.Position.Z}").ToList());
         }
 
         public override void SetPlayerNoJob(PlayerData.PlayerInfo pInfo)
         {
             base.SetPlayerNoJob(pInfo);
 
-            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JCAB1)?.Cancel(pInfo);
+            var orderPair = ActiveOrders.Where(x => x.Value.CurrentWorker == pInfo).FirstOrDefault();
+
+            if (orderPair.Value != null)
+            {
+                SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
+            }
+
+            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.Delete(false);
         }
 
         public override void Initialize()
@@ -148,13 +226,16 @@ namespace BCRPServer.Game.Jobs
 
         public void OnVehicleRespawned(VehicleData vData)
         {
-            var order = ActiveOrders.Where(x => x.Value.CurrentVehicle == vData).Select(x => x.Value).FirstOrDefault();
 
-            if (order != null)
+        }
+
+        public override void OnWorkerExit(PlayerData pData)
+        {
+            var orderPair = ActiveOrders.Where(x => x.Value.CurrentWorker == pData.Info).FirstOrDefault();
+
+            if (orderPair.Value != null)
             {
-                order.CurrentVehicle = null;
-
-                // notify ordered player
+                SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
             }
         }
     }

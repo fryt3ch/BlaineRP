@@ -39,7 +39,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 var newAmountObj = await Events.CallRemoteProc("Business::TCash", biz.Id, amount);
 
@@ -64,7 +64,7 @@ namespace BCRPClient.CEF
                 if (biz == null)
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Business::SellGov", biz.Id))
                 {
@@ -87,7 +87,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(1000, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Business::SSMA", biz.Id, (ushort)margin))
                 {
@@ -107,7 +107,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Business::SSIS", biz.Id, state))
                 {
@@ -146,7 +146,7 @@ namespace BCRPClient.CEF
                     if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                         return;
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     var res = await Events.CallRemoteProc("Business::NDO", biz.Id, amount);
 
@@ -162,7 +162,7 @@ namespace BCRPClient.CEF
                 }
                 else if (id == "cancel")
                 {
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     var res = await Events.CallRemoteProc("Business::CAO", biz.Id);
 
@@ -215,7 +215,7 @@ namespace BCRPClient.CEF
                 manage.AddRange(new object[] { false, materialsBuyPrice, deliveryPrice });
             }
 
-            var currentDate = Utils.GetServerTime();
+            var currentDate = Sync.World.ServerTime;
 
             var dates = new List<object>();
 
@@ -243,7 +243,7 @@ namespace BCRPClient.CEF
             if (!ignoreTimeout && LastSent.IsSpam(500, false, false))
                 return;
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             CEF.Browser.Render(Browser.IntTypes.MenuBusiness, false);
 

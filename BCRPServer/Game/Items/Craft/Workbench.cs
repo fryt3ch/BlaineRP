@@ -406,7 +406,7 @@ namespace BCRPServer.Game.Items.Craft
 
         public Player[] GetPlayersObservingArray() => PlayersObserving.Where(x => x.Player?.Exists == true).Select(x => x.Player).ToArray();
 
-        public string ToClientJson() => $"{(int)WorkbenchType}^{string.Join('|', Items.Select(x => Item.ToClientJson(x, Inventory.Groups.CraftItems)))}^{string.Join('|', StaticData.Tools.Select(x => Item.ToClientJson(x, Inventory.Groups.CraftTools)))}^{Item.ToClientJson(ResultItem, Inventory.Groups.CraftResult)}^{(CurrentPendingCraftData != null ? CurrentPendingCraftData.CreationDate.ToString() : "")}";
+        public string ToClientJson() => $"{(int)WorkbenchType}^{string.Join('|', Items.Select(x => Item.ToClientJson(x, Inventory.Groups.CraftItems)))}^{string.Join('|', StaticData.Tools.Select(x => Item.ToClientJson(x, Inventory.Groups.CraftTools)))}^{Item.ToClientJson(ResultItem, Inventory.Groups.CraftResult)}^{(CurrentPendingCraftData != null ? CurrentPendingCraftData.CreationDate.GetUnixTimestamp().ToString() : "")}";
     }
 
     public class ItemWorkbench : Workbench

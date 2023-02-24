@@ -14,7 +14,7 @@ namespace BCRPClient
 {
     public class Utils
     {
-        private static DateTime LastConsoleMsg = DateTime.Now;
+        private static DateTime LastConsoleMsg = Sync.World.ServerTime;
 
         public enum ScreenTextFontTypes
         {
@@ -24,6 +24,8 @@ namespace BCRPClient
         public static bool IsGameWindowFocused => RAGE.Ui.Windows.Focused;
 
         public static Random Random { get; private set; } = new Random();
+
+        public static long ServerTimestamp { get; set; } = long.MinValue;
 
         #region Colours
         public class Colour
@@ -597,11 +599,6 @@ namespace BCRPClient
 
         public static bool CanShowCEF(bool checkCursor = true, bool checkPause = true) => (checkCursor ? !CEF.Cursor.IsVisible : true) && (checkPause ? !RAGE.Game.Ui.IsPauseMenuActive() : true);
 
-        /// <summary>Получить локальное время на ПК</summary>
-        public static DateTime GetLocalTime() => DateTime.Now;
-        /// <summary>Получить серверное время</summary>
-        public static DateTime GetServerTime() => DateTime.UtcNow.AddHours(3);
-
         public static void ConsoleOutput(object obj, bool line = true)
         {
             if (line)
@@ -612,10 +609,10 @@ namespace BCRPClient
 
         public static void ConsoleOutputLimited(object obj, bool line = true, int ms = 2000)
         {
-            if (DateTime.Now.Subtract(LastConsoleMsg).TotalMilliseconds < ms)
+            if (Sync.World.ServerTime.Subtract(LastConsoleMsg).TotalMilliseconds < ms)
                 return;
 
-            LastConsoleMsg = DateTime.Now;
+            LastConsoleMsg = Sync.World.ServerTime;
 
             if (line)
                 RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Info, obj.ToString());
@@ -1088,6 +1085,9 @@ namespace BCRPClient
 
         public static string GetStreetName(Vector3 pos)
         {
+            if (pos == null)
+                return "null";
+
             int streetNameHash = 0, crossingRoadNameHash = 0;
 
             RAGE.Game.Pathfind.GetStreetNameAtCoord(pos.X, pos.Y, pos.Z, ref streetNameHash, ref crossingRoadNameHash);

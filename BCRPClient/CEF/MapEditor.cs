@@ -236,7 +236,7 @@ namespace BCRPClient.CEF
 
             var eRot = RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2);
 
-            if (DateTime.Now.Subtract(LastUpdatedJs).TotalMilliseconds > 200)
+            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 200)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
@@ -244,7 +244,7 @@ namespace BCRPClient.CEF
 
                 CEF.Browser.Window.ExecuteJs("mapEditor_update", ePos.X, ePos.Y, ePos.Z, eRot.X, eRot.Y, eRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
-                LastUpdatedJs = DateTime.Now;
+                LastUpdatedJs = Sync.World.ServerTime;
             }
 
             bool showRotZ = false;

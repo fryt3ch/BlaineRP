@@ -26,6 +26,9 @@ namespace BCRPClient.Additional
             ExtraColshape.LastSent = DateTime.MinValue;
             ExtraColshape.InteractionColshapesAllowed = true;
 
+            GameEvents.Render -= ExtraColshape.Render;
+            GameEvents.Render += ExtraColshape.Render;
+
             Events.Add("ExtraColshape::New", (object[] args) =>
             {
                 var cs = (RAGE.Elements.Colshape)args[0];
@@ -95,7 +98,7 @@ namespace BCRPClient.Additional
                 if (data == null)
                     return;
 
-                data.Delete();
+                data.Destroy();
             });
 
             Events.AddDataHandler("Data", (Entity entity, object value, object oldValue) =>
@@ -328,8 +331,6 @@ namespace BCRPClient.Additional
 
         /// <summary>Время последней отправки на сервер, используя колшейп</summary>
         public static DateTime LastSent;
-
-        public static bool RenderActive { set { GameEvents.Render -= Render; if (value) GameEvents.Render += Render; } }
 
         /// <summary>Словарь всех колшэйпов</summary>
         private static Dictionary<Colshape, ExtraColshape> All = new Dictionary<Colshape, ExtraColshape>();
@@ -572,7 +573,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -589,7 +590,7 @@ namespace BCRPClient.Additional
 
                     CEF.Estate.ShowBusinessInfo( Player.LocalPlayer.GetData<BCRPClient.Data.Locations.Business>("CurrentBusiness"), true);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -606,7 +607,7 @@ namespace BCRPClient.Additional
 
                     CEF.Estate.ShowHouseBaseInfo(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.HouseBase>("CurrentHouse"), true);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -631,7 +632,7 @@ namespace BCRPClient.Additional
                     {
                         Events.CallRemote("House::Exit");
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
 
                     return true;
@@ -675,7 +676,7 @@ namespace BCRPClient.Additional
 
                     npc.ShowDialogue(npc.DefaultDialogueId);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -692,7 +693,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("Bank::Show", true, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ATM>("CurrentATM").Id);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -736,7 +737,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, baseVeh);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -753,7 +754,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("SRange::Enter::Shop", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.WeaponShop>("CurrentShootingRange").Id);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -770,7 +771,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("ARoot::Enter", (int)Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("CurrentApartmentsRoot").Type);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -787,7 +788,7 @@ namespace BCRPClient.Additional
 
                     Events.CallRemote("ARoot::Exit");
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -813,7 +814,7 @@ namespace BCRPClient.Additional
                     {
                         CEF.Elevator.Show(aRoot.StartFloor + aRoot.FloorsAmount - 1, floor, Elevator.ContextTypes.ApartmentsRoot);
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
 
                         return true;
                     }
@@ -833,7 +834,7 @@ namespace BCRPClient.Additional
 
                     CEF.GarageMenu.Show(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.GarageRoot>("CurrentGarageRoot"));
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     return true;
                 }
@@ -1192,6 +1193,8 @@ namespace BCRPClient.Additional
             },
         };
 
+        public bool Exists => All.ContainsValue(this);
+
         /// <summary>Сущность-держатель колшейпа, не имеет функциональности</summary>
         public Colshape Colshape { get; set; }
 
@@ -1251,7 +1254,7 @@ namespace BCRPClient.Additional
         public Colshape.ColshapeEventDelegate OnEnter { get => Colshape?.OnEnter; set { if (Colshape?.IsNull != false) return; Colshape.OnEnter = value; } }
         public Colshape.ColshapeEventDelegate OnExit { get => Colshape?.OnExit; set { if (Colshape?.IsNull != false) return; Colshape.OnExit = value; } }
 
-        public void Delete()
+        public void Destroy()
         {
             Streamed.Remove(this);
 
@@ -1287,18 +1290,13 @@ namespace BCRPClient.Additional
             All.Add(this.Colshape, this); // the same key problem???
         }
 
-        private static void Render()
+        public static void Render()
         {
-            var isAdmin = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer).AdminLevel >= 0;
-
             for (int i = 0; i < Streamed.Count; i++)
             {
                 var curColshape = Streamed[i];
 
-                if (curColshape?.Colshape?.IsNull != false)
-                    continue;
-
-                if (curColshape.IsVisible || isAdmin)
+                if (curColshape.IsVisible || Settings.Other.ColshapesVisible)
                     curColshape.Draw();
             }
         }
@@ -1406,15 +1404,15 @@ namespace BCRPClient.Additional
 
         public override void Draw()
         {
-            float screenX = 0f, screenY = 0f;
-
-            if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
-                return;
-
             Utils.DrawSphere(Position, Radius, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha / 255f);
 
             if (Settings.Other.DebugLabels)
             {
+                float screenX = 0f, screenY = 0f;
+
+                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                    return;
+
                 Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 Utils.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
@@ -1445,17 +1443,17 @@ namespace BCRPClient.Additional
 
         public override void Draw()
         {
-            float screenX = 0f, screenY = 0f;
-
-            if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
-                return;
-
             var diameter = Radius * 2;
 
-            RAGE.Game.Graphics.DrawMarker(23, Position.X, Position.Y, Position.Z, 0f, 0f, 0f, 1f, 1f, 1f, diameter, diameter, 1f, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha, false, false, 2, false, null, null, false);
+            RAGE.Game.Graphics.DrawMarker(1, Position.X, Position.Y, Position.Z, 0f, 0f, 0f, 1f, 1f, 1f, diameter, diameter, 10f, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha, false, false, 2, false, null, null, false);
 
             if (Settings.Other.DebugLabels)
             {
+                float screenX = 0f, screenY = 0f;
+
+                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                    return;
+
                 Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 Utils.DrawText($"Radius: {Radius}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
@@ -1488,17 +1486,17 @@ namespace BCRPClient.Additional
 
         public override void Draw()
         {
-            float screenX = 0f, screenY = 0f;
-
-            if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
-                return;
-
-            var diameter = Radius * 2;
+            var diameter = Radius * 2f;
 
             RAGE.Game.Graphics.DrawMarker(1, Position.X, Position.Y, Position.Z, 0f, 0f, 0f, 1f, 1f, 1f, diameter, diameter, Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha, false, false, 2, false, null, null, false);
 
             if (Settings.Other.DebugLabels)
             {
+                float screenX = 0f, screenY = 0f;
+
+                if (!Utils.GetScreenCoordFromWorldCoord(Position, ref screenX, ref screenY))
+                    return;
+
                 Utils.DrawText($"Name: {Name} | Type: {Type} | ID: {Colshape.Id} | IsLocal: {Colshape?.IsLocal == true}", screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 Utils.DrawText($"Radius: {Radius} | Height: {Height}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
                 Utils.DrawText($"ActionType: {ActionType} | InteractionType: {InteractionType} | Data: {Data}", screenX, screenY += NameTags.Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
@@ -1719,7 +1717,7 @@ namespace BCRPClient.Additional
 
             if (Vertices.Count == 0)
             {
-                Delete();
+                Destroy();
 
                 return;
             }
@@ -1744,6 +1742,7 @@ namespace BCRPClient.Additional
             if (Vertices.Count == 1)
             {
                 var vertice = Vertices[0];
+
                 RAGE.Game.Graphics.DrawLine(vertice.X, vertice.Y, vertice.Z, vertice.X, vertice.Y, vertice.Z + Height, Colour.Red, Colour.Green, Colour.Blue, Colour.Alpha);
             }
             else if (Settings.Other.HighPolygonsMode)

@@ -48,10 +48,10 @@ namespace BCRPClient.CEF
                 if (!Player.LocalPlayer.HasData("Estate::CurrentData"))
                     return;
 
-                if (LastSent.IsSpam(1000, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (CurrentType == Types.SellVehicle || CurrentType == Types.SellBusiness || CurrentType == Types.SellEstate)
                 {
@@ -156,11 +156,16 @@ namespace BCRPClient.CEF
                         }
                         else if (id == "mail")
                         {
-
+                            // todo
                         }
                         else if (id == "buy")
                         {
+                            if ((bool)await Events.CallRemoteProc("House::BuyGov", (int)houseBase.Type, houseBase.Id))
+                            {
+                                Close(true);
 
+                                return;
+                            }
                         }
 
                         return;

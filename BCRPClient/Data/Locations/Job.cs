@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -23,6 +24,13 @@ namespace BCRPClient.Data
                     (pData, job) =>
                     {
                         var truckerJob = job as Trucker;
+
+                        if (truckerJob.GetCurrentData<Trucker.OrderInfo>("CO") != null)
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderMenuHasOrder);
+
+                            return;
+                        }
 
                         var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
@@ -51,6 +59,13 @@ namespace BCRPClient.Data
                     (pData, job) =>
                     {
                         var cabbieJob = job as Cabbie;
+
+                        if (cabbieJob.GetCurrentData<Cabbie.OrderInfo>("CO") != null)
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderMenuHasOrder);
+
+                            return;
+                        }
 
                         var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
@@ -110,12 +125,15 @@ namespace BCRPClient.Data
 
             public string Name => Locale.Property.JobNames.GetValueOrDefault(Type) ?? "null";
 
+            public Blip Blip { get; set; }
+
             public NPC JobGiver { get; set; }
 
             private Dictionary<string, object> CurrentData { get; set; }
 
             public Job(int Id, Types Type)
             {
+                this.Type = Type;
                 this.Id = Id;
 
                 AllJobs.Add(Id, this);
@@ -192,6 +210,8 @@ namespace BCRPClient.Data
                 JobGiver.Data = this;
 
                 JobGiver.DefaultDialogueId = "job_trucker_g_0";
+
+                Blip = new Blip(477, Position.Position, "Грузоперевозки", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
 
             public override void OnStartJob(object[] data)
@@ -230,8 +250,7 @@ namespace BCRPClient.Data
 
                 var counter = 0;
 
-                //CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
-                CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].GetPathfindTravelDistance(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].GetPathfindTravelDistance(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+                CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
             }
         }
 
@@ -251,6 +270,7 @@ namespace BCRPClient.Data
 
             public Cabbie(int Id, Utils.Vector4 Position) : base(Id, Types.Cabbie)
             {
+                Blip = new Blip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
 
             public void ShowOrderSelection(List<OrderInfo> activeOrders)
@@ -264,8 +284,37 @@ namespace BCRPClient.Data
 
                 var counter = 0;
 
-                //CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobTruckerOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobTruckerOrderText, counter, Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(Player.LocalPlayer.Position) / 1000f, 2), Math.Round(MaterialsPositions[x.MPIdx].DistanceTo(x.TargetBusiness.InfoColshape.Position) / 1000f, 2), Utils.GetPriceString(x.Reward)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
-                //CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobCabbieOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.GetStreetName(x.Position), Math.Round(Player.LocalPlayer.Position.GetPathfindTravelDistance(x.Position) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+                var pPos = Player.LocalPlayer.Position;
+
+                activeOrders = activeOrders.OrderBy(x => pPos).ToList();
+
+                CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobCabbieOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.GetStreetName(x.Position), Math.Round(Player.LocalPlayer.Position.DistanceTo(x.Position) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+            }
+
+            public override void OnStartJob(object[] data)
+            {
+                base.OnStartJob(data);
+
+                var activeOrders = ((JArray)data[1]).ToObject<List<string>>().Select(x =>
+                {
+                    var t = x.Split('_');
+
+                    var id = uint.Parse(t[0]);
+
+                    return new OrderInfo() { Id = id, Position = new Vector3(float.Parse(t[1]), float.Parse(t[2]), float.Parse(t[3])) };
+                }).ToList();
+
+                SetCurrentData("AOL", activeOrders);
+
+                SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote((ushort)data[0].ToDecimal()));
+            }
+
+            public override void OnEndJob()
+            {
+                GetCurrentData<Blip>("Blip")?.Destroy();
+                GetCurrentData<Additional.ExtraColshape>("CS")?.Destroy();
+
+                base.OnEndJob();
             }
         }
     }

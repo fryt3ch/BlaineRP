@@ -391,7 +391,7 @@ namespace BCRPClient.CEF
 
         public Shop()
         {
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             CurrentType = Types.None;
 
@@ -1191,7 +1191,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (CurrentType == Types.TuningShop)
                 {
@@ -2209,7 +2209,7 @@ namespace BCRPClient.CEF
 
                 Events.CallRemote("Business::Exit");
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
             }
             else
             {

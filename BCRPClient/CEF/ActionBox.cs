@@ -70,6 +70,7 @@ namespace BCRPClient.CEF
             JobVehicleRentMoney,
 
             JobTruckerOrderSelect,
+            JobCabbieOrderSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -133,7 +134,7 @@ namespace BCRPClient.CEF
                                     {
                                         Events.CallRemote("Inventory::Take", iog.Uid, amount);
 
-                                        Sync.World.ItemOnGround.LastSent = DateTime.Now;
+                                        Sync.World.ItemOnGround.LastSent = Sync.World.ServerTime;
                                     }
                                 }
                             }
@@ -265,7 +266,7 @@ namespace BCRPClient.CEF
                                     if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
-                                    LastSent = DateTime.Now;
+                                    LastSent = Sync.World.ServerTime;
 
                                     var useCash = rType == ReplyTypes.OK;
 
@@ -328,7 +329,7 @@ namespace BCRPClient.CEF
                                     if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
-                                    LastSent = DateTime.Now;
+                                    LastSent = Sync.World.ServerTime;
 
                                     var useCash = rType == ReplyTypes.OK;
 
@@ -391,7 +392,7 @@ namespace BCRPClient.CEF
                                     if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
                                         return;
 
-                                    LastSent = DateTime.Now;
+                                    LastSent = Sync.World.ServerTime;
 
                                     var useCash = rType == ReplyTypes.OK;
 
@@ -901,7 +902,142 @@ namespace BCRPClient.CEF
                                         }
                                         else
                                         {
+                                            if (res == 2)
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderAlreadyTaken);
+                                            }
+                                            else
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderTakeError);
+                                            }
+                                        }
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
 
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                                    if (checkAction != null)
+                                    {
+                                        GameEvents.Update -= checkAction.Invoke;
+
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                                    }
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.JobCabbieOrderSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    var vehicle = (Vehicle)args[0];
+
+                                    Bind();
+
+                                    var checkAction = new Action(() =>
+                                    {
+                                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                            Close(true);
+                                    });
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                                    GameEvents.Update -= checkAction.Invoke;
+                                    GameEvents.Update += checkAction.Invoke;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Locations.Cabbie.OrderInfo>>("AOL");
+
+                                        if (orders == null)
+                                            return;
+
+                                        if (id >= orders.Count)
+                                            return;
+
+                                        var order = orders[id];
+
+                                        var res = (byte)(await Events.CallRemoteProc("Job::CAB::TO", order.Id)).ToDecimal();
+
+                                        if (res == byte.MaxValue)
+                                        {
+                                            if (pData.CurrentJob is Data.Locations.Cabbie cabbieJob)
+                                            {
+                                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi5);
+
+                                                cabbieJob.SetCurrentData("CO", order);
+
+                                                var pos = new Vector3(order.Position.X, order.Position.Y, order.Position.Z);
+
+                                                pos.Z -= 1f;
+
+                                                var blip = new Blip(280, pos, Locale.General.Blip.JobTaxiTargetPlayer, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+
+                                                blip.SetRoute(true);
+
+                                                var colshape = new Additional.Circle(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                                                {
+                                                    ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+
+                                                    OnEnter = (cancel) =>
+                                                    {
+                                                        var jobVehicle = cabbieJob.GetCurrentData<Vehicle>("JVEH");
+
+                                                        if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
+                                                        {
+                                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                                            return;
+                                                        }
+
+                                                        Events.CallRemote("Job::CAB::OS", order.Id);
+                                                    }
+                                                };
+
+                                                cabbieJob.SetCurrentData("Blip", blip);
+                                                cabbieJob.SetCurrentData("CS", colshape);
+                                            }
+
+                                            Close(true);
+                                        }
+                                        else
+                                        {
+                                            if (res == 2)
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderAlreadyTaken);
+                                            }
+                                            else
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderTakeError);
+                                            }
                                         }
                                     }
                                     else if (rType == ReplyTypes.Cancel)
@@ -1057,11 +1193,29 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK || rType == ReplyTypes.Cancel)
                                     {
-                                        LastSent = DateTime.Now;
+                                        LastSent = Sync.World.ServerTime;
 
-                                        if ((bool)await Events.CallRemoteProc("Vehicles::JVRS", rType == ReplyTypes.OK))
+                                        var res = (int)await Events.CallRemoteProc("Vehicles::JVRS", rType == ReplyTypes.OK);
+
+                                        if (res == byte.MaxValue)
                                         {
                                             Close(true, true);
+                                        }
+                                        else
+                                        {
+                                            if (res == 3)
+                                                return;
+
+                                            Close(true);
+
+                                            if (res == 1)
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobRentVehicleAlreadyRented0);
+                                            }
+                                            else if (res == 2)
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobRentVehicleAlreadyRented1);
+                                            }
                                         }
                                     }
                                     else if (rType == ReplyTypes.Additional1)

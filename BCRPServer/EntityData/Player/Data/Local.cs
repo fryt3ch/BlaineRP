@@ -82,8 +82,6 @@ namespace BCRPServer
 
         public Game.Jobs.Job CurrentJob { get => Game.Jobs.Job.Get(Player.GetData<int>("CJob")); set { if (value == null) Player.ResetData("CJob"); else Player.SetData("CJob", value.Id); } }
 
-        public Game.Jobs.Cabbie.OrderInfo CurrentTaxiOrder => Game.Jobs.Cabbie.ActiveOrders.Values.Where(x => x.Entity == Player).FirstOrDefault();
-
         /// <summary>Текущий контейнер, который смотрит игрок</summary>
         /// <value>UID контейнера, null - если отсутствует</value>
         public Game.Items.Container CurrentContainer { get => Player.GetData<Game.Items.Container>("CCont"); set { if (value == null) Player.ResetData("CCont"); else Player.SetData("CCont", value); } }

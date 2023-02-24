@@ -869,7 +869,7 @@ namespace BCRPClient.Sync
 
         public Animations()
         {
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             #region Events
             Events.Add("Players::PlayFastAnim", async (object[] args) =>
@@ -1050,7 +1050,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("Players::PFA", (int)fastType);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
     }
 }

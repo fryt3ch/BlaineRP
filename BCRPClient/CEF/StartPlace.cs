@@ -44,7 +44,7 @@ namespace BCRPClient.CEF
 
                 Events.CallRemoteProc("Auth::StartPlace", false, LastType);
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
             });
 
             Events.Add("Auth::StartPlace::Select", async (object[] args) =>
@@ -63,7 +63,7 @@ namespace BCRPClient.CEF
                         CEF.Browser.Switch(Browser.IntTypes.StartPlace, false);
                     }
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 
@@ -76,7 +76,7 @@ namespace BCRPClient.CEF
                 {
                     Events.CallRemoteProc("Auth::StartPlace", true, LastType);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 

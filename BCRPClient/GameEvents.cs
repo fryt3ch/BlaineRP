@@ -165,7 +165,7 @@ namespace BCRPClient
                 if (Player.LocalPlayer.Position.DistanceTo(pos) > 25f)
                     return;
 
-                var curTime = Utils.GetServerTime();
+                var curTime = Sync.World.ServerTime;
 
                 var text = new TextLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
 
@@ -271,7 +271,7 @@ namespace BCRPClient
 
             (new AsyncTask(() =>
             {
-                var time = ExtraGameDate ?? Utils.GetServerTime();
+                var time = ExtraGameDate ?? Sync.World.ServerTime;
 
                 RAGE.Game.Clock.SetClockDate(time.Day, time.Month, time.Year);
                 RAGE.Game.Clock.SetClockTime(time.Hour, time.Minute, time.Second);

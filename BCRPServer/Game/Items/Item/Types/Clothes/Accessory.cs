@@ -64,7 +64,7 @@ namespace BCRPServer.Game.Items
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; set => base.SexAlternativeData = value; }
+        new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
 
         public override void Wear(PlayerData pData)
         {

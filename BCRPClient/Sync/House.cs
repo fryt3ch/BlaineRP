@@ -231,7 +231,7 @@ namespace BCRPClient.Sync
             Events.Add("Garage::Exit", (args) =>
             {
                 foreach (var x in TempColshapes)
-                    x?.Delete();
+                    x?.Destroy();
 
                 TempColshapes.Clear();
 
@@ -406,7 +406,7 @@ namespace BCRPClient.Sync
 
                             Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
 
-                            LastSent = DateTime.Now;
+                            LastSent = Sync.World.ServerTime;
                         }));
 
                         t.SetData("CustomText", new Action<float, float>((x, y) =>
@@ -629,7 +629,7 @@ namespace BCRPClient.Sync
             TempBlips.Clear();
 
             foreach (var x in TempColshapes)
-                x?.Delete();
+                x?.Destroy();
 
             TempColshapes.Clear();
 

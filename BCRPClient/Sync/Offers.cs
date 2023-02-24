@@ -88,7 +88,7 @@ namespace BCRPClient.Sync
         {
             TempBinds = new List<int>();
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             Events.Add("Offer::Show", (object[] args) =>
             {
@@ -209,7 +209,7 @@ namespace BCRPClient.Sync
 
             CurrentTarget = player;
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         public static void Reply(ReplyTypes rType = ReplyTypes.AutoCancel)
@@ -221,7 +221,7 @@ namespace BCRPClient.Sync
             {
                 Events.CallRemote("Offers::Reply", (int)rType);
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (rType != ReplyTypes.Accept)
                     GameEvents.Update -= OfferTick;

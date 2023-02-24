@@ -18,6 +18,38 @@ namespace BCRPClient.Additional
 
                 CreateGPS(pos, dim, drawRoute);
             });
+
+            Events.Add("Blip::Tracker", (args) =>
+            {
+                var type = (int)args[0];
+
+                var x = (float)args[1]; var y = (float)args[2];
+
+                var entity = (Entity)args[3] as GameEntity;
+
+                Blip blip = null;
+
+                string key = null;
+
+                if (type == 0) // taxi
+                {
+                    blip = new Blip(198, new Vector3(x, y, 0), "Водитель такси", 1f, 5, 255, 0f, false, 0, 0f, uint.MaxValue);
+
+                    key = "Taxi";
+                }
+
+                if (key == null || blip == null)
+                    return;
+
+                Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy();
+                Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel();
+
+                var task = entity?.Exists == true ? new AsyncTask(() => { if (!entity.Exists) return; var coords = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false); blip.SetCoords(coords.X, coords.Y, coords.Z); }, 250, true, 0) : new AsyncTask(() => { Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy(); Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel(); Player.LocalPlayer.ResetData($"TrackerBlip::{key}"); Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}"); }, 5000, false, 0);
+
+                Player.LocalPlayer.SetData($"TrackerBlip::Task::{key}", task);
+
+                task.Run();
+            });
         }
 
         public static ExtraBlip CreateGPS(Vector3 pos, uint dim, bool drawRoute)
@@ -95,7 +127,7 @@ namespace BCRPClient.Additional
             if (Colshape != null)
             {
                 if (Colshape.ActionType == ExtraColshape.ActionTypes.ReachableBlip)
-                    Colshape.Delete();
+                    Colshape.Destroy();
                 else
                     return false;
             }
@@ -112,7 +144,7 @@ namespace BCRPClient.Additional
         {
             if (Colshape?.ActionType == ExtraColshape.ActionTypes.ReachableBlip)
             {
-                Colshape.Delete();
+                Colshape.Destroy();
 
                 Colshape = null;
             }
@@ -132,7 +164,7 @@ namespace BCRPClient.Additional
                 Blip.Destroy();
             }
 
-            Colshape?.Delete();
+            Colshape?.Destroy();
         }
 
         public static void DestroyAllByType(Types type) => All.Where(x => x.Value?.Type == type).ToList().ForEach(x => x.Value.Destroy());

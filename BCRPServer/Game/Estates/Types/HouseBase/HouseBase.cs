@@ -335,16 +335,16 @@ namespace BCRPServer.Game.Estates
                 if (Settlers.ContainsKey(pInfo))
                     return;
 
-                Settlers.Add(pInfo, new bool[5]);
-
                 TriggerEventForHouseOwners("HouseMenu::SettlerUpd", $"{pInfo.CID}_{pInfo.Name}_{pInfo.Surname}");
+
+                Settlers.Add(pInfo, new bool[5]);
 
                 if (pInfo.PlayerData != null)
                 {
                     pInfo.PlayerData.SettledHouseBase = this;
 
                     if (pDataInit != null)
-                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, true, pDataInit.Player);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, true, pDataInit.Player.Id);
                     else
                         pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, true);
                 }
@@ -365,13 +365,53 @@ namespace BCRPServer.Game.Estates
                     pInfo.PlayerData.SettledHouseBase = null;
 
                     if (pDataInit != null)
-                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, false, pDataInit.Player);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, false, pDataInit.Player.Id);
                     else
                         pInfo.PlayerData.Player.TriggerEvent("Player::SettledHB", (int)Type, Id, false);
                 }
             }
 
             MySQL.HouseUpdateSettlers(this);
+        }
+
+        public bool BuyFromGov(PlayerData pData)
+        {
+            ulong newCash;
+
+            if (!pData.TryRemoveCash((uint)Price, out newCash, true))
+                return false;
+
+            if (pData.SettledHouseBase?.Type == Type)
+            {
+                pData.Player.Notify(Type == Types.House ? "Trade::ASH" : "Trade::ASA");
+
+                return false;
+            }
+
+            if (Type == Types.House)
+            {
+                if (pData.HouseSlots <= 0)
+                {
+                    pData.Player.Notify("Trade::MHOW", pData.OwnedHouses.Count);
+
+                    return false;
+                }
+            }
+            else
+            {
+                if (pData.ApartmentsSlots <= 0)
+                {
+                    pData.Player.Notify("Trade::MAOW", pData.OwnedApartments.Count);
+
+                    return false;
+                }
+            }
+
+            pData.SetCash(newCash);
+
+            ChangeOwner(pData.Info);
+
+            return true;
         }
     }
 }

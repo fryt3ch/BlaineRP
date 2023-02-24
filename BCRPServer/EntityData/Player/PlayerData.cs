@@ -348,6 +348,17 @@ namespace BCRPServer
             return false;
         }
 
+        public bool HasLicense(LicenseTypes lType, bool notifyIfNot = true)
+        {
+            if (Licenses.Contains(lType))
+                return true;
+
+            if (notifyIfNot)
+                Player.Notify($"Lic::N_{(int)lType}");
+
+            return false;
+        }
+
         public bool HasJob(bool notifyOnFault = true)
         {
             if (CurrentJob == null)
@@ -600,7 +611,7 @@ namespace BCRPServer
                     data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.Id}");
 
                 if (Info.Quests.Count > 0)
-                    data.Add("Quests", Info.Quests.Where(x => !x.Value.IsCompleted).Select(x => $"{(int)x.Key}&{x.Value.Step}&{x.Value.StepProgress}&{(x.Value.CurrentData ?? "")}").SerializeToJson());
+                    data.Add("Quests", Info.Quests.Where(x => !x.Value.IsCompleted).Select(x => $"{(int)x.Key}~{x.Value.Step}~{x.Value.StepProgress}~{(x.Value.CurrentData ?? "")}").SerializeToJson());
 
                 var rentedVehs = VehicleData.All.Values.Where(x => x.OwnerID == CID && (x.OwnerType == VehicleData.OwnerTypes.PlayerRent || x.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)).ToList();
 

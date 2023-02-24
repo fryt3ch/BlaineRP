@@ -7,6 +7,44 @@ namespace BCRPServer.Events.Players
 {
     class Houses : Script
     {
+        [RemoteProc("House::BuyGov")]
+        private static bool BuyGov(Player player, int hTypeNum, uint id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
+            if (!Enum.IsDefined(typeof(Game.Estates.HouseBase.Types), hTypeNum))
+                return false;
+
+            var hType = (Game.Estates.HouseBase.Types)hTypeNum;
+
+            var house = hType == Game.Estates.HouseBase.Types.House ? (Game.Estates.HouseBase)Game.Estates.House.Get(id) : (Game.Estates.HouseBase)Game.Estates.Apartments.Get(id);
+
+            if (house == null)
+                return false;
+
+            if (!house.IsEntityNearEnter(player))
+                return false;
+
+            if (house.Owner != null)
+            {
+                player.Notify("House::AB");
+
+                return true;
+            }
+
+            var res = house.BuyFromGov(pData);
+
+            return res;
+        }
+
         [RemoteEvent("ARoot::Elevator")]
         public static void ApartmentsRootElevator(Player player, int curFloor, int destFloor)
         {
@@ -192,9 +230,6 @@ namespace BCRPServer.Events.Players
             if (house == null || house.GarageData == null)
                 return;
 
-            if (player.Dimension != house.Dimension)
-                return;
-
             player.CloseAll(true);
 
             if (to)
@@ -228,7 +263,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (!vData.IsFullOwner(pData))
+            if (!vData.IsFullOwner(pData, true))
                 return;
 
             if (slot >= 0)
@@ -257,10 +292,6 @@ namespace BCRPServer.Events.Players
                     return;
 
                 house.SetVehicleToGarage(vData, slot);
-            }
-            else
-            {
-
             }
         }
 

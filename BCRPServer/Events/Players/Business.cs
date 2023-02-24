@@ -396,18 +396,18 @@ namespace BCRPServer.Events.Players
             if (currentOrderPair.Value == null)
                 return null;
 
-            if (currentOrderPair.Value.CurrentVehicle != null)
+            if (currentOrderPair.Value.CurrentWorker != null)
             {
                 player.Notify("Business::COIT");
 
                 return null;
             }
 
-            var totalPrice = (ulong)business.OrderedMaterials * business.MaterialsData.BuyPrice + Game.Businesses.Business.MATS_DELIVERY_PRICE;
+            var totalPrice = (ulong)business.OrderedMaterials * business.MaterialsData.BuyPrice;
 
             business.OrderedMaterials = 0;
 
-            truckerJob.RemoveOrder(currentOrderPair.Key);
+            truckerJob.RemoveOrder(currentOrderPair.Key, currentOrderPair.Value);
 
             ulong newBalance;
 

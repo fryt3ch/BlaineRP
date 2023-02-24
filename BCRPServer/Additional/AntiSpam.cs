@@ -10,9 +10,9 @@ namespace BCRPServer.Additional
         /// <param name="decreaseDelay">Время в мс. для вычитания 1 из счётчика спама игрока (-1 - не вычитать)</param>
         /// <returns>true - игрок является спаммером и будет кикнут, false - все хорошо :)</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static (bool IsSpammer, PlayerData Data) CheckNormal(Player player, int decreaseDelay = 5000)
+        public static (bool IsSpammer, PlayerData Data) CheckNormal(Player player, int decreaseDelay = 5000, bool checkPlayerReady = true)
         {
-            PlayerData pData = player.GetMainData();
+            var pData = player.GetMainData();
 
             if (pData == null || !player.Exists)
             {
@@ -20,6 +20,9 @@ namespace BCRPServer.Additional
 
                 return (true, null);
             }
+
+            if (checkPlayerReady && player.HasData("CharacterNotReady"))
+                return (true, null);
 
             if (pData.BlockRemoteCalls)
                 return (true, null);

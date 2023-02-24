@@ -177,7 +177,7 @@ namespace BCRPClient.Data
 
                 var ogCs = OwnerGarageColshape;
 
-                ogCs?.Delete();
+                ogCs?.Destroy();
 
                 var ogBlip = OwnerGarageBlip;
 
@@ -390,7 +390,7 @@ namespace BCRPClient.Data
                 if (loadedColshapes != null)
                 {
                     foreach (var x in loadedColshapes)
-                        x?.Delete();
+                        x?.Destroy();
 
                     loadedColshapes.Clear();
 

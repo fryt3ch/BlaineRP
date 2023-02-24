@@ -125,6 +125,8 @@ namespace BCRPClient.CEF
 
             public void RequestTrackUpdate(TrackTypes trackType)
             {
+                Stop();
+
                 CurrentTrackType = trackType;
 
                 IsPlaying = false;
@@ -135,7 +137,7 @@ namespace BCRPClient.CEF
                 if (StartTime == DateTime.MinValue)
                     return float.MinValue;
 
-                return (float)Utils.GetServerTime().Subtract(StartTime).TotalSeconds;
+                return (float)Sync.World.ServerTime.Subtract(StartTime).TotalSeconds;
             }
         }
 
@@ -145,6 +147,9 @@ namespace BCRPClient.CEF
 
             Auth1, Auth2, Auth3,
 
+            Error0,
+            Success0,
+
             RadioRetroFM, RadioEuropaPlus, RadioClassicFM, RadioRecord, RadioSynthwave,
         }
 
@@ -153,6 +158,9 @@ namespace BCRPClient.CEF
             { TrackTypes.Auth1, "http://fishbotserver.ddns.net:1234/audio/auth_1.mp3" },
             { TrackTypes.Auth2, "http://fishbotserver.ddns.net:1234/audio/auth_2.mp3" },
             { TrackTypes.Auth3, "http://fishbotserver.ddns.net:1234/audio/auth_3.mp3" },
+
+            { TrackTypes.Error0, "http://fishbotserver.ddns.net:1234/audio/error_0.wav" },
+            { TrackTypes.Success0, "http://fishbotserver.ddns.net:1234/audio/success_0.mp3" },
 
             { TrackTypes.RadioRetroFM, "https://retro.hostingradio.ru:8014/retro320.mp3" }, // https://retro.hostingradio.ru:8043/retro256.mp3
             { TrackTypes.RadioEuropaPlus, "https://ep256.hostingradio.ru:8052/europaplus256.mp3" },
@@ -169,10 +177,19 @@ namespace BCRPClient.CEF
 
             Events.Add("Audio::Finished", async (args) =>
             {
-                var audioData = Data.GetById((string)args[0]);
+                var aId = (string)args[0];
+
+                var audioData = Data.GetById(aId);
 
                 if (audioData == null)
+                {
+                    if (aId.StartsWith("ONCE_"))
+                    {
+                        CEF.Browser.Window.ExecuteJs("stopAudio", aId);
+                    }
+
                     return;
+                }
 
                 if (audioData.Id == "AUTH_AUDIO_PL")
                 {
@@ -406,5 +423,18 @@ namespace BCRPClient.CEF
         }
 
         public static string GetEntityAudioId(GameEntity gEntity, string tag) => $"ENT_{tag}_{gEntity.Handle}";
+
+        public static void PlayOnce(string tag, TrackTypes trackType, float volume = 1f, int pos = 0)
+        {
+            if (IsTrackStream(trackType))
+                return;
+
+            var url = Urls.GetValueOrDefault(trackType);
+
+            if (url == null)
+                return;
+
+            Window.ExecuteJs("playAudio", $"ONCE_{tag}", url, volume, pos);
+        }
     }
 }

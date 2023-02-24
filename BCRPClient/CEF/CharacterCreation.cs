@@ -107,11 +107,11 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                if (DateTime.Now.Subtract(LastCreateRequested).TotalMilliseconds > 5000)
+                if (Sync.World.ServerTime.Subtract(LastCreateRequested).TotalMilliseconds > 5000)
                 {
                     CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.CharacterCreation.PressAgainToCreate, 5000);
 
-                    LastCreateRequested = DateTime.Now;
+                    LastCreateRequested = Sync.World.ServerTime;
 
                     return;
                 }
@@ -121,18 +121,18 @@ namespace BCRPClient.CEF
 
                 Events.CallRemote("CharacterCreation::Create", name, surname, age, Sex, EyeColor, RAGE.Util.Json.Serialize(HeadBlend), RAGE.Util.Json.Serialize(HeadOverlays), RAGE.Util.Json.Serialize(HairStyle), RAGE.Util.Json.Serialize(FaceFeatures), RAGE.Util.Json.Serialize(Clothes));
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
             });
             #endregion
 
             #region Exit
             Events.Add("CharacterCreation::OnExit", (object[] args) =>
             {
-                if (DateTime.Now.Subtract(LastExitRequested).TotalMilliseconds > 5000)
+                if (Sync.World.ServerTime.Subtract(LastExitRequested).TotalMilliseconds > 5000)
                 {
                     CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.CharacterCreation.PressAgainToExit, 5000);
 
-                    LastExitRequested = DateTime.Now;
+                    LastExitRequested = Sync.World.ServerTime;
                 }
                 else
                 {
@@ -141,7 +141,7 @@ namespace BCRPClient.CEF
 
                     Events.CallRemote("CharacterCreation::Exit");
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
             #endregion
@@ -164,7 +164,7 @@ namespace BCRPClient.CEF
 
                 Events.CallRemote("CharacterCreation::SetSex", Sex);
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 (new AsyncTask(() =>
                 {
@@ -465,7 +465,7 @@ namespace BCRPClient.CEF
         {
             CurrentCameraStateNum = 0;
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             TempBinds = new List<int>();
 

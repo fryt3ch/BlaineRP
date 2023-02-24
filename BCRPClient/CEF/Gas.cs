@@ -49,7 +49,7 @@ namespace BCRPClient.CEF
                 {
                     Events.CallRemote("GasStation::Buy", TargetVehicle, (int)vData.Data.FuelType, amount, byCash);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 
@@ -117,7 +117,7 @@ namespace BCRPClient.CEF
 
             Events.CallRemote("GasStation::Enter", vehicle, gasStationId);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         public static async System.Threading.Tasks.Task Show(decimal margin)

@@ -16,11 +16,8 @@ namespace BCRPClient.CEF.PhoneApps
 
             public uint DriverNumber { get; set; }
 
-            public Additional.ExtraColshape ExitColshape { get; set; }
-
-            public AsyncTask UpdateBlipTask { get; set; }
-
-            public Blip DriverBlip { get; set; }
+            public Additional.ExtraColshape ExitColshape1 { get; set; }
+            public Additional.ExtraColshape ExitColshape2 { get; set; }
         }
 
         public TaxiApp()
@@ -31,11 +28,12 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     if (CurrentOrderInfo != null)
                     {
-                        CurrentOrderInfo.ExitColshape?.Delete();
-
-                        CurrentOrderInfo.UpdateBlipTask?.Cancel();
+                        CurrentOrderInfo.ExitColshape1?.Destroy();
+                        CurrentOrderInfo.ExitColshape2?.Destroy();
 
                         CurrentOrderInfo = null;
+
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi3);
                     }
                 }
                 else if (args.Length == 2)
@@ -48,44 +46,31 @@ namespace BCRPClient.CEF.PhoneApps
                     if (CurrentOrderInfo.Driver == null)
                         return;
 
-                    CurrentOrderInfo.DriverNumber = args[0].ToUInt32();
+                    CurrentOrderInfo.DriverNumber = args[1].ToUInt32();
 
-                    CurrentOrderInfo.UpdateBlipTask?.Cancel();
-
-                    CurrentOrderInfo.DriverBlip = new Blip(198, CurrentOrderInfo.Driver.Position, "Водитель такси", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
-
-                    CurrentOrderInfo.UpdateBlipTask = new AsyncTask(() =>
-                    {
-                        if (CurrentOrderInfo.DriverBlip?.Exists != true)
-                            return;
-
-                        var pos = CurrentOrderInfo.Driver?.Position;
-
-                        if (pos == null)
-                            return;
-
-                        CurrentOrderInfo.DriverBlip.SetCoords(pos.X, pos.Y, pos.Z);
-                    }, 2500, true, 0);
+                    CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
                 }
                 else if (args.Length == 1)
                 {
                     if (args[0] is bool b)
                     {
+                        if (CurrentOrderInfo == null)
+                            return;
+
                         if (!b)
                         {
-                            if (CurrentOrderInfo == null)
-                                return;
-
-                            if (CurrentOrderInfo.UpdateBlipTask != null)
-                            {
-                                CurrentOrderInfo.UpdateBlipTask.Cancel();
-
-                                CurrentOrderInfo.UpdateBlipTask = null;
-                            }
-
                             CurrentOrderInfo.Driver = null;
 
-                            CurrentOrderInfo.DriverBlip?.Destroy();
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
+                        }
+                        else
+                        {
+                            CurrentOrderInfo.ExitColshape1?.Destroy();
+                            CurrentOrderInfo.ExitColshape2?.Destroy();
+
+                            CurrentOrderInfo = null;
+
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
                         }
                     }
                 }
@@ -105,20 +90,40 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     if (id == 0)
                     {
-                        CEF.Phone.LastSent = DateTime.Now;
+                        CEF.Phone.LastSent = Sync.World.ServerTime;
 
-                        var res = (byte)(int)await Events.CallRemoteProc("Taxi::NO");
+                        var res = (bool)await Events.CallRemoteProc("Taxi::NO");
 
-                        if (res == byte.MaxValue)
+                        if (res)
                         {
+                            var pos = Player.LocalPlayer.Position;
+
+                            CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.TaxiOrdered, Utils.GetStreetName(pos)));
+
+                            pos.Z -= 1f;
+
                             CurrentOrderInfo = new ClientOrderInfo()
                             {
-                                Date = Utils.GetServerTime(),
+                                Date = Sync.World.ServerTime,
 
-                                ExitColshape = new Additional.Circle(Player.LocalPlayer.Position, 20f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION)
+                                ExitColshape1 = new Additional.Cylinder(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION)
                                 {
                                     OnExit = (cancel) =>
                                     {
+                                        if (CurrentOrderInfo?.ExitColshape1?.Exists != true)
+                                            return;
+
+                                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.TaxiDistanceWarn, Settings.TAXI_ORDER_MAX_WAIT_RANGE / 2));
+                                    }
+                                },
+
+                                ExitColshape2 = new Additional.Cylinder(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, 10f, true, new Utils.Colour(0, 0, 255, 25), Settings.MAIN_DIMENSION)
+                                {
+                                    OnExit = (cancel) =>
+                                    {
+                                        if (CurrentOrderInfo?.ExitColshape2?.Exists != true)
+                                            return;
+
                                         Events.CallRemote("Taxi::CO");
                                     }
                                 }
@@ -129,7 +134,7 @@ namespace BCRPClient.CEF.PhoneApps
                         }
                         else
                         {
-
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TaxiError);
                         }
                     }
                 }
@@ -139,7 +144,7 @@ namespace BCRPClient.CEF.PhoneApps
                     {
                         if (id == 0)
                         {
-                            CEF.Phone.LastSent = DateTime.Now;
+                            CEF.Phone.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Taxi::CO");
                         }
@@ -180,7 +185,7 @@ namespace BCRPClient.CEF.PhoneApps
                 }
                 else
                 {
-                    CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 2, new object[] { "Водитель в пути", CurrentOrderInfo.Driver.GetSharedData<uint>("CID", 0).ToString() });
+                    CEF.Browser.Window.ExecuteJs("Phone.drawCabApp", 2, new object[] { "Водитель в пути", CurrentOrderInfo.Driver.GetSharedData<int>("CID", 0).ToString() });
                 }
             }
         }

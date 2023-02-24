@@ -17,7 +17,7 @@ namespace BCRPClient.CEF
         {
             TempBinds = new List<int>();
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             Events.Add("ATM::Action", (object[] args) =>
             {
@@ -36,7 +36,7 @@ namespace BCRPClient.CEF
 
                 Events.CallRemote("Bank::Debit::Operation", true, Player.LocalPlayer.GetData<int>("CurrentATM::Id"), id == "deposit", amount);
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
             });
 
             Events.Add("ATM::Show", (object[] args) =>

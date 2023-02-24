@@ -8,6 +8,12 @@ namespace BCRPClient.Sync
 {
     class World : Events.Script
     {
+        public static DateTime ServerTime { get; private set; } = DateTime.UtcNow.AddHours(Settings.SERVER_TIME_UTC_OFFSET);
+
+        public static DateTime LocalTime { get; private set; } = DateTime.Now;
+
+        public static long ServerTimestampMilliseconds => GetSharedData<long>("cst");
+
         public class ItemOnGround
         {
             public static DateTime LastShowed;
@@ -68,7 +74,7 @@ namespace BCRPClient.Sync
 
                     Events.CallRemote("Inventory::Take", Uid, 1);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
                 else
                 {
@@ -77,7 +83,7 @@ namespace BCRPClient.Sync
 
                     CEF.ActionBox.ShowRange(CEF.ActionBox.Contexts.ItemOnGroundTakeRange, string.Format(Locale.Actions.Take, Name), 1, Amount, Amount, 1, CEF.ActionBox.RangeSubTypes.Default, this);
 
-                    LastShowed = DateTime.Now;
+                    LastShowed = Sync.World.ServerTime;
                 }
             }
         }
@@ -150,6 +156,14 @@ namespace BCRPClient.Sync
         {
             if (Preloaded)
                 return;
+
+            AddDataHandler("cst", (value, oldValue) =>
+            {
+                var of = DateTimeOffset.FromUnixTimeMilliseconds((long)value);
+
+                ServerTime = of.DateTime;
+                LocalTime = of.AddHours(-Settings.SERVER_TIME_UTC_OFFSET).LocalDateTime;
+            });
 
             for (int i = 0; i < RAGE.Elements.Entities.Objects.All.Count; i++)
             {
@@ -311,8 +325,8 @@ namespace BCRPClient.Sync
 
         public World()
         {
-            ItemOnGround.LastShowed = DateTime.Now;
-            ItemOnGround.LastSent = DateTime.Now;
+            ItemOnGround.LastShowed = Sync.World.ServerTime;
+            ItemOnGround.LastSent = Sync.World.ServerTime;
 
             Preloaded = false;
 

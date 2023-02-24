@@ -286,8 +286,8 @@ namespace BCRPClient.CEF
             UpdateBag = false;
             UpdateBagCrate = false;
 
-            LastShowed = DateTime.Now;
-            LastSent = DateTime.Now;
+            LastShowed = Sync.World.ServerTime;
+            LastSent = Sync.World.ServerTime;
 
             CurrentType = Types.None;
             CurrentContainerType = ContainerTypes.None;
@@ -327,13 +327,13 @@ namespace BCRPClient.CEF
 
                     Events.CallRemote("Workbench::Craft", receipt.Index);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
                 else
                 {
                     Events.CallRemote("Workbench::Craft", -1);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 
@@ -596,7 +596,7 @@ namespace BCRPClient.CEF
                         ItemSlotsToUpdateWorkbench.Clear();
                     }
 
-                    var currentDate = Utils.GetServerTime();
+                    var currentDate = Sync.World.ServerTime;
 
                     var benchData = ((string)args[1]).Split('^');
 
@@ -604,7 +604,7 @@ namespace BCRPClient.CEF
                     var benchTools = benchData[2].Split('|').Select(x => x.Length == 0 ? null : x.Split('&')).ToArray();
                     var benchResultItem = benchData[3].Length == 0 ? null : benchData[3].Split('&');
 
-                    var benchCraftEndDate = benchData[4].Length == 0 ? currentDate : DateTime.Parse(benchData[4]);
+                    var benchCraftEndDate = benchData[4].Length == 0 ? currentDate : DateTimeOffset.FromUnixTimeSeconds(long.Parse(benchData[4])).DateTime;
 
                     var craftTimeLeft = benchData[4].Length == 0 ? 0 : benchCraftEndDate.Subtract(currentDate).TotalMilliseconds;
 
@@ -1267,7 +1267,7 @@ namespace BCRPClient.CEF
 
                         Events.CallRemote("Trade::UpdateMoney", CurrentGiveMoney);
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
                     else
                         Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
@@ -1308,7 +1308,7 @@ namespace BCRPClient.CEF
                     {
                         Events.CallRemote("Trade::Confirm", state);
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
                 }
                 // Accept
@@ -1318,7 +1318,7 @@ namespace BCRPClient.CEF
                     {
                         Events.CallRemote("Trade::Accept");
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
                 }
                 else
@@ -1396,7 +1396,7 @@ namespace BCRPClient.CEF
 
             CurrentEntity = BCRPClient.Interaction.CurrentEntity;
 
-            LastShowed = DateTime.Now;
+            LastShowed = Sync.World.ServerTime;
 
             if (type == Types.Inventory)
             {
@@ -1561,7 +1561,7 @@ namespace BCRPClient.CEF
             CurrentSlotTo = null;
             CurrentAction = null;
 
-            LastShowed = DateTime.Now;
+            LastShowed = Sync.World.ServerTime;
         }
         #endregion
 
@@ -1657,7 +1657,7 @@ namespace BCRPClient.CEF
                                 Events.CallRemote("Workbench::Drop", Groups[slotStrToThrow], slotToThrow, id); // id = amount
                         }
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
 
                     return;
@@ -2103,7 +2103,7 @@ namespace BCRPClient.CEF
 
                 Events.CallRemote("Inventory::Action", Groups[slotStr], slot, id, string.Join('&', eData));
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
             }
         }
 
@@ -2188,7 +2188,7 @@ namespace BCRPClient.CEF
 
             //Utils.ConsoleOutput($"{Groups[toStr]}, {toSlot}, {Groups[fromStr]}, {fromSlot}, {amount}");
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         public static void UpdateBinds()
@@ -2437,7 +2437,7 @@ namespace BCRPClient.CEF
                 if (CurrentType != Types.Workbench)
                     return true;
 
-                var currentDate = Utils.GetServerTime();
+                var currentDate = Sync.World.ServerTime;
 
                 var timeLeft = endDate.Subtract(currentDate).Add(timeOffset);
 

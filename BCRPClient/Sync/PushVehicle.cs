@@ -48,7 +48,7 @@ namespace BCRPClient.Sync
 
         public PushVehicle()
         {
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
 
             Toggled = false;
         }
@@ -67,7 +67,7 @@ namespace BCRPClient.Sync
                 Off();
             }
 
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
         }
 
         public static void On(bool ready = false, Vehicle vehicle = null)

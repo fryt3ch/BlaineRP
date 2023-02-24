@@ -360,6 +360,8 @@ namespace BCRPServer
                     {
                         var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
 
+                        OwnerID = 0;
+
                         if (owner != null)
                         {
                             if (owner.PlayerData != null)
@@ -374,8 +376,6 @@ namespace BCRPServer
                         }
                         else
                         {
-                            OwnerID = 0;
-
                             Respawn(true);
 
                             var data = Data;
@@ -389,6 +389,8 @@ namespace BCRPServer
 
                         var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
 
+                        OwnerID = 0;
+
                         if (owner != null)
                         {
                             if (owner.PlayerData != null)
@@ -398,8 +400,6 @@ namespace BCRPServer
 
                             Job.SetPlayerNoJob(owner);
                         }
-
-                        OwnerID = 0;
 
                         Respawn(true);
 

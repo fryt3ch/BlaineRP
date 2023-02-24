@@ -66,7 +66,7 @@ namespace BCRPServer.Events.Vehicles
                         }
                         else
                         {
-
+                            player.Notify("Vehicles::RVAH");
                         }
                     }
                 }
@@ -467,9 +467,6 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (vData.TID == null)
-                return;
-
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
@@ -498,12 +495,10 @@ namespace BCRPServer.Events.Vehicles
 
             vData.TrunkLocked = newState;
 
-            var tid = vData.TID;
-
             // Clear All Trunk Observers If Closed
-            if (newState && tid != null)
+            if (newState && vData.TID is uint tid)
             {
-                var cont = Game.Items.Container.Get((uint)tid);
+                var cont = Game.Items.Container.Get(tid);
 
                 if (cont == null)
                     return;
@@ -1030,61 +1025,57 @@ namespace BCRPServer.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::JVRS")]
-        private static bool JobVehicleRentStart(Player player, bool useCash)
+        private static byte JobVehicleRentStart(Player player, bool useCash)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return false;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
-                return false;
+                return 0;
 
             var vData = player.Vehicle?.GetMainData();
 
             if (vData == null || vData.OwnerType != VehicleData.OwnerTypes.PlayerRentJob)
-                return false;
+                return 0;
 
             if (pData.VehicleSeat != 0)
-                return false;
+                return 0;
 
             if (pData.HasJob(true))
-                return false;
+                return 0;
 
             var jobData = vData.Job;
             var jobDataV = jobData as Game.Jobs.IVehicles;
 
             if (jobData == null || jobDataV == null)
-                return false;
+                return 0;
 
             if (vData.OwnerID != 0)
-            {
-                return false;
-            }
+                return 1;
 
             if (vData.OwnerID == pData.CID)
-                return false;
+                return 0;
 
             if (pData.RentedJobVehicle != null)
-            {
-                return false;
-            }
+                return 2;
 
             ulong newBalance;
 
             if (useCash)
             {
                 if (!pData.TryRemoveCash(jobDataV.VehicleRentPrice, out newBalance, true))
-                    return false;
+                    return 3;
 
                 pData.SetCash(newBalance);
             }
             else
             {
                 if (!pData.HasBankAccount(true) || !pData.BankAccount.TryRemoveMoneyDebit(jobDataV.VehicleRentPrice, out newBalance, true))
-                    return false;
+                    return 3;
 
                 pData.BankAccount.SetDebitBalance(newBalance, null);
             }
@@ -1095,7 +1086,7 @@ namespace BCRPServer.Events.Vehicles
 
             jobData.SetPlayerJob(pData, vData);
 
-            return true;
+            return byte.MaxValue;
         }
 
         [RemoteEvent("Vehicles::LOWNV")]
@@ -1144,7 +1135,7 @@ namespace BCRPServer.Events.Vehicles
         }
 
         [RemoteEvent("Vehicles::EVAOWNV")]
-        private static void EvacuateOwnedVehicle(Player player, uint vid)
+        private static void EvacuateOwnedVehicle(Player player, uint vid, bool toHouse, uint pId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -1161,6 +1152,16 @@ namespace BCRPServer.Events.Vehicles
             if (vInfo == null)
                 return;
 
+            if (vInfo.VehicleData != null && player.Vehicle == vInfo.VehicleData.Vehicle)
+                return;
+
+            if (vInfo.LastData.GarageSlot >= 0)
+            {
+                player.Notify("Vehicle::OIG");
+
+                return;
+            }
+
             if (!pData.HasBankAccount(true))
                 return;
 
@@ -1169,16 +1170,84 @@ namespace BCRPServer.Events.Vehicles
             if (!pData.BankAccount.TryRemoveMoneyDebit(Settings.VEHICLE_EVACUATION_COST, out newBalance, true))
                 return;
 
-            //pData.BankAccount.SetDebitBalance(newBalance, null);
-
-            if (vInfo.VehicleData == null)
+            if (toHouse)
             {
+                var house = pData.OwnedHouses.Where(x => x.Id == pId).FirstOrDefault();
 
+                if (house == null)
+                    return;
+
+                var garageData = house.GarageData;
+
+                if (garageData == null)
+                    return;
+
+                var garageVehs = house.GetVehiclesInGarage()?.ToList();
+
+                if (garageVehs == null)
+                    return;
+
+                var freeSlots = Enumerable.Range(0, garageData.MaxVehicles).ToList();
+
+                if (garageVehs.Count == freeSlots.Count)
+                {
+                    player.Notify("Garage::NVP");
+
+                    return;
+                }
+
+                foreach (var x in garageVehs)
+                {
+                    freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
+                }
+
+                var garageSlot = freeSlots.First();
+
+                house.SetVehicleToGarageOnlyData(vInfo, garageSlot);
             }
             else
             {
-                if (player.Vehicle == vInfo.VehicleData.Vehicle)
+                var garage = pData.OwnedGarages.Where(x => x.Id == pId).FirstOrDefault();
+
+                if (garage == null)
                     return;
+
+                var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
+
+                var garageVehs = garage.GetVehiclesInGarage().ToList();
+
+                if (garageVehs.Count == freeSlots.Count)
+                {
+                    player.Notify("Garage::NVP");
+
+                    return;
+                }
+
+                foreach (var x in garageVehs)
+                {
+                    freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
+                }
+
+                var garageSlot = freeSlots.First();
+
+                garage.SetVehicleToGarageOnlyData(vInfo, garageSlot);
+            }
+
+            pData.BankAccount.SetDebitBalance(newBalance, null);
+
+            if (vInfo.VehicleData != null)
+            {
+                vInfo.VehicleData.AttachBoatToTrailer();
+
+                vInfo.VehicleData.Respawn(true);
+
+                vInfo.VehicleData.SetFreezePosition(vInfo.LastData.Position, vInfo.LastData.Heading);
+
+                vInfo.VehicleData.IsInvincible = true;
+            }
+            else
+            {
+                vInfo.Spawn();
             }
         }
     }

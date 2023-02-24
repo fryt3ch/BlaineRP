@@ -72,7 +72,7 @@ namespace BCRPClient.CEF
 
                 var appType = appIdStr == null ? AppTypes.None : GetAppTypeByJsName(appIdStr.Replace("_app", ""));
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 ShowApp(pData, appType);
             });
@@ -89,7 +89,7 @@ namespace BCRPClient.CEF
 
                 var appTab = args[0] is string str ? str.GetHashCode() : (int)args[0];
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (CurrentApp == AppTypes.Phone)
                 {
@@ -430,7 +430,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(250, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 var actId = int.Parse(args[1].ToString());
                 var elem = args[2];
@@ -561,8 +561,17 @@ namespace BCRPClient.CEF
                         {
                             Events.CallRemote("Vehicles::LOWNV", vid);
                         }
-                        else if (actId == 1) // evacuate
+                        else if (actId == 1) // evacuate to house
                         {
+                            var house = pData.OwnedHouses.Where(x => x.GarageType != null).FirstOrDefault();
+
+                            if (house == null)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedHouseWGarage);
+
+                                return;
+                            }
+
                             if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
                                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
@@ -570,7 +579,27 @@ namespace BCRPClient.CEF
                                 return;
                             }
 
-                            Events.CallRemote("Vehicles::EVAOWNV", vid);
+                            Events.CallRemote("Vehicles::EVAOWNV", vid, true, house.Id);
+                        }
+                        else if (actId == 2) // evacuate to garage
+                        {
+                            var garage = pData.OwnedGarages.FirstOrDefault();
+
+                            if (garage == null)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedGarage);
+
+                                return;
+                            }
+
+                            if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
+
+                                return;
+                            }
+
+                            Events.CallRemote("Vehicles::EVAOWNV", vid, false, garage.Id);
                         }
                     }
                     else if (vOType == "rented")
@@ -618,7 +647,7 @@ namespace BCRPClient.CEF
                     if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                         return;
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     var resObj = await Events.CallRemoteProc("Phone::AB", amount);
 

@@ -352,7 +352,7 @@ namespace BCRPServer.Game.Items.Craft
 
                             var toItem = wbData.Tools[slotTo];
 
-                            if (toItem == null || toItem.ID == fromItem.ID)
+                            if (toItem == null || toItem.ID == fromItem.ID || wb.Items.Where(x => x?.ID == toItem.ID).Any())
                                 wb.Items[slotFrom] = null;
                             else
                                 wb.Items[slotFrom] = toItem;

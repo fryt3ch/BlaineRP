@@ -438,9 +438,7 @@ namespace BCRPClient.Sync
                     return;
 
                 while (!World.Preloaded)
-                {
-                    await RAGE.Game.Invoker.WaitAsync(10);
-                }
+                    await RAGE.Game.Invoker.WaitAsync(0);
 
                 Player.LocalPlayer.AutoVolume = false;
                 Player.LocalPlayer.VoiceVolume = 0f;
@@ -541,7 +539,7 @@ namespace BCRPClient.Sync
 
                 if (sData.ContainsKey("Quests"))
                 {
-                    data.Quests = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Quests"]).Select(y => { var data = y.Split('&'); return new Sync.Quest((Sync.Quest.QuestData.Types)int.Parse(data[0]), byte.Parse(data[1]), int.Parse(data[2]), data[3].Length > 0 ? data[3] : null); }).ToList();
+                    data.Quests = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Quests"]).Select(y => { var data = y.Split('~'); return new Sync.Quest((Sync.Quest.QuestData.Types)int.Parse(data[0]), byte.Parse(data[1]), int.Parse(data[2]), data[3].Length > 0 ? data[3] : null); }).ToList();
                 }
                 else
                 {
@@ -597,9 +595,7 @@ namespace BCRPClient.Sync
                     CEF.Menu.UpdateSkill(x.Key, x.Value);
 
                 while (data.CID == 0)
-                {
-                    await RAGE.Game.Invoker.WaitAsync(10);
-                }
+                    await RAGE.Game.Invoker.WaitAsync(0);
 
                 SetData(Player.LocalPlayer, data);
 
@@ -631,7 +627,7 @@ namespace BCRPClient.Sync
                 if (CharacterLoaded)
                     return;
 
-                PlayerData data = GetData(Player.LocalPlayer);
+                var data = GetData(Player.LocalPlayer);
 
                 while (data == null)
                 {
@@ -645,7 +641,7 @@ namespace BCRPClient.Sync
                     Events.CallRemote("Player::UpdateTime");
 
                     CEF.Menu.TimePlayed += 1;
-                }, 60000, true, 60000)).Run();
+                }, 60_000, true, 60_000)).Run();
 
                 CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Menu, HUD.Menu.Types.Documents, HUD.Menu.Types.BlipsMenu);
 
@@ -659,7 +655,7 @@ namespace BCRPClient.Sync
 
                 await CEF.Animations.Load();
 
-                Events.CallRemote("Players::CharacterReady", data.IsInvalid, Settings.Other.CurrentEmotion, Settings.Other.CurrentWalkstyle);
+                await Events.CallRemoteProc("Players::CRI", data.IsInvalid, Settings.Other.CurrentEmotion, Settings.Other.CurrentWalkstyle);
 
                 CharacterLoaded = true;
 
@@ -1067,7 +1063,7 @@ namespace BCRPClient.Sync
 
                 if (args.Length > 3)
                 {
-                    var playerInit = (Player)args[3];
+                    var playerInit = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[3]);
 
                     if (state)
                     {

@@ -74,9 +74,6 @@ namespace BCRPClient.CEF
         {
             TempBindEsc = -1;
 
-            LastSwitched = DateTime.Now;
-            LastSent = DateTime.Now;
-
             _TimePlayed = 0;
 
             OwnedVehicles = new List<(uint, Data.Vehicles.Vehicle)>();
@@ -160,7 +157,7 @@ namespace BCRPClient.CEF
 
                         Events.CallRemote("Players::SetIsInvalid", (bool)args[1]);
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                         break;
 
                     case "sett-aimType":
@@ -338,7 +335,7 @@ namespace BCRPClient.CEF
 
             //Browser.Window.ExecuteJs("switchEsc", !Settings.Interface.HideHints);
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             Cursor.Show(true, true);
         }

@@ -42,7 +42,7 @@ namespace BCRPClient.CEF
                     if (LastSent.IsSpam(1000, false, false))
                         return;
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     Events.CallRemote("House::Lock", id == "entry", !state);
                 }
@@ -73,7 +73,7 @@ namespace BCRPClient.CEF
                         if (LastSent.IsSpam(1000, false, false))
                             return;
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
 
                         if ((bool)await Events.CallRemoteProc("House::Menu::Furn::Start", fUid))
                         {
@@ -115,7 +115,7 @@ namespace BCRPClient.CEF
 
                         Events.CallRemote("House::Menu::Furn::Remove", fUid);
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
                     else if (id == "sellfurn")
                     {
@@ -171,7 +171,7 @@ namespace BCRPClient.CEF
 
                     Events.CallRemote("House::Menu::Light::RGB", lIdx, rgb.Red, rgb.Green, rgb.Blue);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 
@@ -204,7 +204,7 @@ namespace BCRPClient.CEF
                     Events.CallRemote("House::Menu::Light::State", lIdx, state);
                 }
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
             });
 
             Events.Add("HomeMenu::UpdateLightColor", (args) =>
@@ -248,7 +248,7 @@ namespace BCRPClient.CEF
                 }
                 else
                 {
-                    RemoveSettler((uint)(int)args[0]);
+                    RemoveSettler(args[0].ToUInt32());
                 }
             });
 
@@ -324,7 +324,7 @@ namespace BCRPClient.CEF
 
             Events.CallRemote("House::Menu::Show");
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -413,7 +413,7 @@ namespace BCRPClient.CEF
 
             Events.CallRemote("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
     }
 
@@ -456,7 +456,7 @@ namespace BCRPClient.CEF
 
                         Events.CallRemote("ARoot::Elevator", CurrentFloor, floor);
 
-                        HouseMenu.LastSent = DateTime.Now;
+                        HouseMenu.LastSent = Sync.World.ServerTime;
 
                         Close();
                     }

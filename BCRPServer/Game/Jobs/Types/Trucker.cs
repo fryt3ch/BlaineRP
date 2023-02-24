@@ -40,7 +40,7 @@ namespace BCRPServer.Game.Jobs
         {
             public bool IsCustom => Reward >= MinimalRewardX;
 
-            public VehicleData CurrentVehicle { get; set; }
+            public PlayerData.PlayerInfo CurrentWorker { get; set; }
 
             public uint Reward { get; set; }
 
@@ -90,13 +90,14 @@ namespace BCRPServer.Game.Jobs
             TriggerEventToWorkers("Job::TR::OC", $"{id}_{business.ID}_{orderInfo.MPIdx}_{orderInfo.Reward}");
         }
 
-        public void RemoveOrder(uint id)
+        public void RemoveOrder(uint id, OrderInfo oInfo)
         {
             if (ActiveOrders.Remove(id))
             {
                 FreeOrderId(id);
 
-                TriggerEventToWorkers("Job::TR::OC", id);
+                if (oInfo.CurrentWorker == null)
+                    TriggerEventToWorkers("Job::TR::OC", id);
             }
         }
 
@@ -129,9 +130,9 @@ namespace BCRPServer.Game.Jobs
 
         }
 
-        public void SetOrderAsTaken(uint orderId, OrderInfo oInfo, VehicleData vData)
+        public void SetOrderAsTaken(uint orderId, OrderInfo oInfo, PlayerData pData)
         {
-            oInfo.CurrentVehicle = vData;
+            oInfo.CurrentWorker = pData.Info;
 
             TriggerEventToWorkers("Job::TR::OC", orderId);
 
@@ -146,7 +147,7 @@ namespace BCRPServer.Game.Jobs
         public void SetOrderAsNotTaken(uint orderId, OrderInfo oInfo)
         {
             oInfo.GotMaterials = false;
-            oInfo.CurrentVehicle = null;
+            oInfo.CurrentWorker = null;
 
             TriggerEventToWorkers("Job::TR::OC", $"{orderId}_{oInfo.TargetBusiness.ID}_{oInfo.MPIdx}_{oInfo.Reward}");
 
@@ -185,7 +186,7 @@ namespace BCRPServer.Game.Jobs
 
             var jobVehicleData = (VehicleData)args[0];
 
-            pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentVehicle == null).Select(x => $"{x.Key}_{x.Value.TargetBusiness.ID}_{x.Value.MPIdx}_{x.Value.Reward}").ToList());
+            pData.Player.TriggerEvent("Player::SCJ", Id, jobVehicleData.Vehicle.Id, ActiveOrders.Where(x => x.Value.CurrentWorker == null).Select(x => $"{x.Key}_{x.Value.TargetBusiness.ID}_{x.Value.MPIdx}_{x.Value.Reward}").ToList());
 
             Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JTR1, 0, 0);
         }
@@ -195,6 +196,15 @@ namespace BCRPServer.Game.Jobs
             base.SetPlayerNoJob(pInfo);
 
             pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JTR1)?.Cancel(pInfo);
+
+            var orderPair = ActiveOrders.Where(x => x.Value.CurrentWorker == pInfo).FirstOrDefault();
+
+            if (orderPair.Value != null)
+            {
+                SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
+            }
+
+            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.Delete(false);
         }
 
         public override void Initialize()
@@ -223,12 +233,12 @@ namespace BCRPServer.Game.Jobs
 
         public void OnVehicleRespawned(VehicleData vData)
         {
-            var orderPair = ActiveOrders.Where(x => x.Value.CurrentVehicle == vData).FirstOrDefault();
 
-            if (orderPair.Value != null)
-            {
-                SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
-            }
+        }
+
+        public override void OnWorkerExit(PlayerData pData)
+        {
+
         }
     }
 }

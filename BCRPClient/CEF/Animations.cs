@@ -24,7 +24,7 @@ namespace BCRPClient.CEF
 
         public Animations()
         {
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             TempBinds = new List<int>();
             Queue = new Queue<(string, object[])>();
@@ -60,7 +60,7 @@ namespace BCRPClient.CEF
 
                         Events.CallRemote("Players::SetAnim", (int)anim);
 
-                        LastSent = DateTime.Now;
+                        LastSent = Sync.World.ServerTime;
                     }
 
                 }

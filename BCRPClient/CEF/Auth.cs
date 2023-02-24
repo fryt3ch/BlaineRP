@@ -25,7 +25,7 @@ namespace BCRPClient.CEF
 
         public Auth()
         {
-            LastTime = DateTime.Now;
+            LastTime = Sync.World.ServerTime;
 
             #region Events
             #region Savers
@@ -132,7 +132,7 @@ namespace BCRPClient.CEF
                 if (LastTime.IsSpam(500, false, false))
                     return;
 
-                LastTime = DateTime.Now;
+                LastTime = Sync.World.ServerTime;
 
                 var login = (string)args[0];
                 var mail = ((string)args[1]).ToLower();
@@ -186,7 +186,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Auth::LoginAttempt", (object[] args) =>
             {
-                if (LastTime.IsSpam(1000, false, false))
+                if (LastTime.IsSpam(500, false, false))
                     return;
 
                 var login = (string)args[0];
@@ -195,17 +195,17 @@ namespace BCRPClient.CEF
                 if (login.Length < 1 || pass.Length < 1)
                     return;
 
-                LastTime = DateTime.Now;
+                LastTime = Sync.World.ServerTime;
 
                 RAGE.Events.CallRemote("Auth::OnLoginAttempt", login, pass);
             });
 
             Events.Add("Auth::CharacterChooseAttempt", (object[] args) =>
             {
-                if (LastTime.IsSpam(1000, false, false))
+                if (LastTime.IsSpam(500, false, false))
                     return;
 
-                LastTime = DateTime.Now;
+                LastTime = Sync.World.ServerTime;
 
                 RAGE.Events.CallRemote("Auth::OnCharacterChooseAttempt", args);
             });

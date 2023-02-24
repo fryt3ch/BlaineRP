@@ -30,7 +30,6 @@ namespace BCRPServer.Game.Map
             #endregion
 
             #region Jobs
-            BlipList.Add(NAPI.Blip.CreateBlip(477, new Vector3(115.41f, 6390.43f, 20f), 1f, 3, name: "Грузоперевозки", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(468, new Vector3(-525.37f, 5320f, 20f), 1.5f, 25, name: "Лесопилка", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(527, new Vector3(2826.65f, 2833.74f, 20f), 1, 25, name: "Карьер", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(755, new Vector3(1325.16f, 4336.48f, 20f), 1, 38, name: "Порт", shortRange: true));

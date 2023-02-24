@@ -58,6 +58,10 @@ namespace BCRPClient
         public const int PHONE_SMS_MAX_LENGTH = 120;
         public const int PHONE_SMS_MIN_LENGTH = 5;
 
+        public const byte SERVER_TIME_UTC_OFFSET = 3;
+
+        public const byte TAXI_ORDER_MAX_WAIT_RANGE = 10;
+
         public const double DAMAGE_SYSTEM_WOUND_CHANCE = 0.15d;
 
         public Settings()
@@ -231,7 +235,7 @@ namespace BCRPClient
             public static bool AutoTeleportMarker { get => _AutoTeleportMarker; set { if (value != _AutoTeleportMarker) Additional.Storage.SetData("Settings::Other::AutoTeleportMarker", value); _AutoTeleportMarker = value; } }
             public static bool DebugLabels { get => _DebugLabels; set { if (value != _DebugLabels) Additional.Storage.SetData("Settings::Other::DebugLabels", value); _DebugLabels = value; } }
             public static bool HighPolygonsMode { get => _HighPolygonsMode; set { if (value != _HighPolygonsMode) Additional.Storage.SetData("Settings::Other::HighPolygonsMode", value); _HighPolygonsMode = value; } }
-            public static bool ColshapesVisible { get => _ColshapesVisible; set { if (value != _ColshapesVisible) Additional.Storage.SetData("Settings::Other::ColshapesVisible", value); _ColshapesVisible = value; Additional.ExtraColshape.RenderActive = value; } }
+            public static bool ColshapesVisible { get => _ColshapesVisible; set { if (value != _ColshapesVisible) Additional.Storage.SetData("Settings::Other::ColshapesVisible", value); _ColshapesVisible = value; } }
             public static bool RaytraceEnabled { get => _RaytraceEnabled; set { if (value != _RaytraceEnabled) Additional.Storage.SetData("Settings::Other::RaytraceEnabled", value); _RaytraceEnabled = value; } }
 
             public static int PhoneWallpaperNum { get => _PhoneWallpaperNum; set { if (value != _PhoneWallpaperNum) Additional.Storage.SetData("Settings::Phone::WallpaperNum", value); _PhoneWallpaperNum = value; } }

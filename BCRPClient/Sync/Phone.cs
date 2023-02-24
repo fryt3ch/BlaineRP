@@ -38,7 +38,7 @@ namespace BCRPClient.Sync
 
         public Phone()
         {
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
 
             RAGE.Game.Mobile.DestroyMobilePhone();
         }
@@ -55,7 +55,7 @@ namespace BCRPClient.Sync
             if (pData == null)
                 return;
 
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
 
             if (!Toggled)
             {

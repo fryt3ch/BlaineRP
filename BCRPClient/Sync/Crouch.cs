@@ -16,7 +16,7 @@ namespace BCRPClient.Sync
 
         public Crouch()
         {
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
         }
 
         public static void Toggle()
@@ -36,7 +36,7 @@ namespace BCRPClient.Sync
                 Off();
             }
 
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
         }
 
         public static async void On(bool ready = false, Player player = null)

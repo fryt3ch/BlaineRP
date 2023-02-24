@@ -59,7 +59,7 @@ namespace BCRPClient.CEF.PhoneApps
                     }
                 }
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (!(bool)await Events.CallRemoteProc("Phone::CC", number, name))
                     return;

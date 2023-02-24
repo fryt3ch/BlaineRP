@@ -13,8 +13,6 @@ namespace BCRPServer.Sync
                 TQ1 = 0,
 
                 JTR1,
-
-                JCAB1,
             }
 
             public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>()
@@ -112,6 +110,8 @@ namespace BCRPServer.Sync
 
             if (pData.Info.Quests.TryAdd(type, new Quest(type, false, step, stepProgress)))
             {
+                quest.CurrentData = currentData;
+
                 pData.Player.TriggerEvent("Player::Quest::Upd", (int)type, step, stepProgress, currentData);
 
                 if (!quest.IsTemp)

@@ -38,7 +38,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(500, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (aId == "enter")
                 {
@@ -56,9 +56,9 @@ namespace BCRPClient.CEF
                 }
                 else if (aId == "sell")
                 {
-                    if (!Player.LocalPlayer.HasData("GarageMenu::SellGov::ApproveTime") || DateTime.Now.Subtract(Player.LocalPlayer.GetData<DateTime>("GarageMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
+                    if (!Player.LocalPlayer.HasData("GarageMenu::SellGov::ApproveTime") || Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("GarageMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
                     {
-                        Player.LocalPlayer.SetData("GarageMenu::SellGov::ApproveTime", DateTime.Now);
+                        Player.LocalPlayer.SetData("GarageMenu::SellGov::ApproveTime", Sync.World.ServerTime);
 
                         CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Notifications.ApproveHeader, string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(garage.Price))), 5000);
                     }
@@ -71,7 +71,12 @@ namespace BCRPClient.CEF
                 }
                 else if (aId == "buy")
                 {
-                    Events.CallRemote("Garage::Buy", garage.Id);
+                    if ((bool)await Events.CallRemoteProc("Garage::BuyGov", garage.Id))
+                    {
+                        Close();
+
+                        return;
+                    }
                 }
             });
         }

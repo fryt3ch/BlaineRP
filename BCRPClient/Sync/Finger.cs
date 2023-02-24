@@ -33,8 +33,8 @@ namespace BCRPClient.Sync
 
         public Finger()
         {
-            LastSwitchTime = DateTime.Now;
-            LastSentEntityTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
+            LastSentEntityTime = Sync.World.ServerTime;
 
             LastSentEntity = null;
 
@@ -58,7 +58,7 @@ namespace BCRPClient.Sync
                         Events.CallRemote("Players::FingerPoint::Ped");
 
                     LastSentEntity = entity;
-                    LastSentEntityTime = DateTime.Now;
+                    LastSentEntityTime = Sync.World.ServerTime;
                 }
 
                 if (entity != LastSentEntity)
@@ -81,7 +81,7 @@ namespace BCRPClient.Sync
             Events.CallLocal("fpoint_toggle", true);
 
             Toggled = true;
-            LastSwitchTime = DateTime.Now;
+            LastSwitchTime = Sync.World.ServerTime;
         }
 
         public static void Stop()

@@ -492,7 +492,7 @@ namespace BCRPClient.Sync
                 mp.events.add('outgoingDamage', (sourceEntity, targetEntity, sourcePlayer, weapon, boneIndex, damage) => { mp.game.weapon.setCurrentDamageEventAmount(boneIndex); });"
             );
 
-            LastAttackerInfo = (Player.LocalPlayer, 0, -1, DateTime.Now);
+            LastAttackerInfo = (Player.LocalPlayer, 0, -1, Sync.World.ServerTime);
 
             Reloading = false;
 
@@ -517,14 +517,14 @@ namespace BCRPClient.Sync
 
             RAGE.Game.Player.DisablePlayerVehicleRewards();
 
-            LastArmourLoss = DateTime.Now;
+            LastArmourLoss = Sync.World.ServerTime;
 
-            LastSentReload = DateTime.Now;
-            LastSentUpdate = DateTime.Now;
-            LastWeaponShot = DateTime.Now;
+            LastSentReload = Sync.World.ServerTime;
+            LastSentUpdate = Sync.World.ServerTime;
+            LastWeaponShot = Sync.World.ServerTime;
 
-            LastSentPedDamage = DateTime.Now;
-            LastSentVehicleDamage = DateTime.Now;
+            LastSentPedDamage = Sync.World.ServerTime;
+            LastSentVehicleDamage = Sync.World.ServerTime;
 
             _DisabledFiringCounter = 0;
 
@@ -539,7 +539,7 @@ namespace BCRPClient.Sync
                                 RAGE.Game.Ped.SetAiWeaponDamageModifier(0f);
                                 RAGE.Game.Ped.SetAiMeleeWeaponDamageModifier(1f);*/
 
-                if (DisabledFiring)
+                if (DisabledFiring || CEF.Cursor.IsActive)
                     RAGE.Game.Player.DisablePlayerFiring(true);
 
                 /*                if (Player.LocalPlayer.IsPerformingStealthKill())
@@ -624,7 +624,7 @@ namespace BCRPClient.Sync
                 {
                     Sync.Players.CloseAll(false);
 
-                    if ((killer?.Exists != true || killer.Handle == Player.LocalPlayer.Handle) && DateTime.Now.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
+                    if ((killer?.Exists != true || killer.Handle == Player.LocalPlayer.Handle) && Sync.World.ServerTime.Subtract(LastAttackerInfo.Time).TotalMilliseconds <= 1000)
                         killer = LastAttackerInfo.Player;
 
                     if (Sync.Players.GetData(killer) == null)
@@ -654,7 +654,7 @@ namespace BCRPClient.Sync
 
             Events.OnPlayerWeaponShot += (Vector3 targetPos, Player target, Events.CancelEventArgs cancel) =>
             {
-                LastWeaponShot = DateTime.Now;
+                LastWeaponShot = Sync.World.ServerTime;
 
                 if (Additional.AntiCheat.LastAllowedAmmo > 0)
                 {
@@ -761,7 +761,7 @@ namespace BCRPClient.Sync
                 {
                     Events.CallRemote("Weapon::Reload");
 
-                    LastSentReload = DateTime.Now;
+                    LastSentReload = Sync.World.ServerTime;
                 }
             }
         }
@@ -790,7 +790,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("Weapon::Reload");
 
-            LastSentReload = DateTime.Now;
+            LastSentReload = Sync.World.ServerTime;
         }
         #endregion
 
@@ -839,7 +839,7 @@ namespace BCRPClient.Sync
             OnDamage?.Invoke(healthLoss, armourLoss);
 
             if (armourLoss > 0)
-                LastArmourLoss = DateTime.Now;
+                LastArmourLoss = Sync.World.ServerTime;
         }
 
         public static void ArmourCheck(int healthLoss, int armourLoss)
@@ -909,7 +909,7 @@ namespace BCRPClient.Sync
 
                     if (customDamage >= 0)
                     {
-                        LastAttackerInfo = (sourcePlayer, customDamage + 1, boneIdx, DateTime.Now);
+                        LastAttackerInfo = (sourcePlayer, customDamage + 1, boneIdx, Sync.World.ServerTime);
 
                         var isBullet = RAGE.Game.Weapon.GetWeaponDamageType(weaponHash) == 3;
 
@@ -1018,7 +1018,7 @@ namespace BCRPClient.Sync
                 {
                     cancel.Cancel = false;
 
-                    LastSentVehicleDamage = DateTime.Now;
+                    LastSentVehicleDamage = Sync.World.ServerTime;
                 }
             }
             else
@@ -1031,7 +1031,7 @@ namespace BCRPClient.Sync
                 {
                     cancel.Cancel = false;
 
-                    LastSentPedDamage = DateTime.Now;
+                    LastSentPedDamage = Sync.World.ServerTime;
                 }
             }
         }

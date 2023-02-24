@@ -39,7 +39,7 @@ namespace BCRPClient.Data.NPCDialogues
                 Button.DefaultExitButton
             );
 
-            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = DateTime.Now; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Data.Locations.Business)?.Id ?? -1, (int)x.Key); })));
+            AllDialogues["seller_furn_c_0"].Buttons.InsertRange(0, Locale.Property.FurnitureSubTypeNames.Select(x => new Button($"[{x.Value}]", () => { if (NPC.CurrentNPC == null || NPC.LastSent.IsSpam(500, false, false)) return; NPC.LastSent = Sync.World.ServerTime; Events.CallRemote("Business::Furn::Enter", (NPC.CurrentNPC.Data as Data.Locations.Business)?.Id ?? -1, (int)x.Key); })));
 
             new Dialogue("seller_clothes_greeting_0", "Приветствуем в нашем магазине!\nЖелаете ознакомиться с ассортиментом? У нас есть новые поступления, уверена, вам понравится!", null,
 

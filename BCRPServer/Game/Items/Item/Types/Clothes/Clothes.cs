@@ -66,7 +66,7 @@ namespace BCRPServer.Game.Items
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
-        public ItemData SexAlternativeData { get; set; }
+        public ItemData SexAlternativeData => Data.SexAlternativeID is string str ? (ItemData)Stuff.GetData(str, Type) : null;
 
         [JsonProperty(PropertyName = "V")]
         /// <summary>Вариация одежды</summary>
@@ -75,11 +75,6 @@ namespace BCRPServer.Game.Items
         public Clothes(string ID, Item.ItemData Data, Type Type, int Var) : base(ID, Data, Type)
         {
             this.Var = Var >= this.Data.Textures.Length ? this.Data.Textures.Length - 1 : (Var < 0 ? 0 : Var);
-
-            var sexAltId = this.Data.SexAlternativeID;
-
-            if (sexAltId != null)
-                SexAlternativeData = (ItemData)Stuff.GetData(sexAltId, Type);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace BCRPClient
             public static Dictionary<uint, string> DefaultNumbersNames = new Dictionary<uint, string>()
             {
                 { 900, "Банк" },
-                { 874, "Сервис доставки" },
+                { 873, "Сервис доставки" },
             };
 
             public static class Blip
@@ -64,6 +64,8 @@ namespace BCRPClient
                 public static string GarageOwnedBlip = "{0}, #{1}";
 
                 public static string JobTruckerPointAText = "Склад материалов";
+
+                public static string JobTaxiTargetPlayer = "Заказчик такси";
             }
 
             #region Players
@@ -156,6 +158,10 @@ namespace BCRPClient
 
             public static string ShootingRangeScoreText = "Счёт: {0} / {1}";
             public static string ShootingRangeAccuracyText = "Точность: {0}%";
+
+            public const string JobTruckerLoadMaterialsTitle = "~g~Загрузка материалов";
+            public const string JobTruckerUnloadMaterialsTitle = "~g~Выгрузка материалов";
+            public const string JobTruckerLoadMaterialsText = "Подождите еще {0} сек.";
         }
 
         public static class HudMenu

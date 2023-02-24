@@ -83,7 +83,7 @@ namespace BCRPClient.Data
 
                 this.CurrentState = StateTypes.Opening;
 
-                CreationTime = DateTime.Now;
+                CreationTime = Sync.World.ServerTime;
                 RotationX = rData.TargetRotation.X;
             }
 
@@ -384,13 +384,13 @@ namespace BCRPClient.Data
                 Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 215, 0, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
             }
 
-            if (Targets.Count <= 5 && DateTime.Now.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)
+            if (Targets.Count <= 5 && Sync.World.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)
             {
                 var target = Target.TryCreateNew(srType);
 
                 if (target != null)
                 {
-                    LastTargetAdded = DateTime.Now;
+                    LastTargetAdded = Sync.World.ServerTime;
                 }
             }
 
@@ -449,7 +449,7 @@ namespace BCRPClient.Data
                 }
                 else if (x.CurrentState == Target.StateTypes.Idle)
                 {
-                    if (DateTime.Now.Subtract(x.CreationTime).TotalMilliseconds >= OldTargetDelay)
+                    if (Sync.World.ServerTime.Subtract(x.CreationTime).TotalMilliseconds >= OldTargetDelay)
                     {
                         RAGE.Game.Audio.PlaySoundFromEntity(-1, "Pin_Bad", obj.Handle, "DLC_HEIST_BIOLAB_PREP_HACKING_SOUNDS", false, 0);
 
@@ -461,14 +461,14 @@ namespace BCRPClient.Data
                     {
                         if (x.Object.HasBeenDamagedByAnyPed())
                         {
-                            if (DateTime.Now.Subtract(LastShotRegistered).TotalMilliseconds < 100)
+                            if (Sync.World.ServerTime.Subtract(LastShotRegistered).TotalMilliseconds < 100)
                             {
                                 x.Object.ClearLastDamageEntity();
 
                                 continue;
                             }
 
-                            LastShotRegistered = DateTime.Now;
+                            LastShotRegistered = Sync.World.ServerTime;
 
                             //RAGE.Game.Audio.PlaySoundFromEntity(-1, "Target_Hit_Head_Black", obj.Handle, "DLC_GR_Bunker_Shooting_Range_Sounds", false, 0);
 

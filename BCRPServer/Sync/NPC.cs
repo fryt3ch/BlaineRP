@@ -103,7 +103,11 @@ namespace BCRPServer.Sync
 
                     vInfo.LastData.Dimension = Utils.Dimensions.Main;
 
+                    vInfo.LastData.GarageSlot = int.MinValue;
+
                     vInfo.Spawn();
+
+                    MySQL.VehicleDeletionUpdate(vInfo);
 
                     pData.Player.CreateGPSBlip(newPos.Position, Utils.Dimensions.Main, true);
 

@@ -95,7 +95,7 @@ namespace BCRPClient.CEF.PhoneApps
                 if (number == null || number.Length == 0)
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 PhoneApps.PhoneApp.Call(number);
             });
@@ -107,7 +107,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 var ans = (bool)args[0];
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 Events.CallRemote("Phone::CA", ans);
             });
@@ -169,7 +169,7 @@ namespace BCRPClient.CEF.PhoneApps
                             return;
 
                         callInfo.Player = player;
-                        callInfo.StartDate = Utils.GetServerTime();
+                        callInfo.StartDate = Sync.World.ServerTime;
 
                         ShowActiveCall(GetContactNameByNumber(callInfo.Number), "");
 
@@ -222,7 +222,7 @@ namespace BCRPClient.CEF.PhoneApps
                     {
                         callInfo.Player.VoiceVolume = 0f;
 
-                        var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, Utils.GetServerTime().Subtract(callInfo.StartDate).GetBeautyString());
+                        var callDurationText = string.Format(Locale.General.FiveNotificationEndedCallTextT, Sync.World.ServerTime.Subtract(callInfo.StartDate).GetBeautyString());
 
                         if (cancelType == CancelTypes.ServerAuto)
                         {
@@ -293,7 +293,7 @@ namespace BCRPClient.CEF.PhoneApps
                 return;
             }
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             if ((bool)await Events.CallRemoteProc("Phone::BLC", number, add))
             {

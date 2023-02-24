@@ -59,29 +59,35 @@ namespace BCRPServer.Events.Players
             return garage.IsLocked;
         }
 
-        [RemoteEvent("Garage::Buy")]
-        public static void GarageBuy(Player player, uint id)
+        [RemoteProc("Garage::BuyGov")]
+        public static bool GarageBuyGov(Player player, uint id)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return false;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                return;
+                return false;
 
             var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
-                return;
+                return false;
 
             if (garage.Owner != null)
-                return;
+            {
+                player.Notify("House::AB");
+
+                return false;
+            }
 
             if (!garage.Root.IsEntityNearEnter(player))
-                return;
+                return false;
+
+            return garage.BuyFromGov(pData);
         }
 
         [RemoteEvent("Garage::SellGov")]
@@ -203,20 +209,21 @@ namespace BCRPServer.Events.Players
 
             var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
 
-            var garageVehs = garage.GetVehiclesInGarage();
+            var garageVehs = garage.GetVehiclesInGarage().ToList();
+
+            if (freeSlots.Count == garageVehs.Count)
+            {
+                player.Notify("Garage::NVP");
+
+                return;
+            }
 
             foreach (var x in garageVehs)
             {
                 freeSlots.Remove(x.VehicleData.LastData.GarageSlot);
             }
 
-            if (freeSlots.Count == 0)
-            {
-                player.Notify("Garage::NVP");
-
-                return;
-            }
-            else if (freeSlots.Count == 1)
+            if (freeSlots.Count == 1)
             {
                 garage.SetVehicleToGarage(vData, freeSlots[0]);
             }

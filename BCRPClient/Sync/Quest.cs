@@ -19,8 +19,6 @@ namespace BCRPClient.Sync
 
                 /// <summary>Job Trucker 1</summary>
                 JTR1,
-
-                JCAB1,
             }
 
             public enum ColourTypes
@@ -78,6 +76,8 @@ namespace BCRPClient.Sync
                             {
                                 StartAction = (pData, quest) =>
                                 {
+                                    Utils.ConsoleOutput(quest.CurrentData ?? "null");
+
                                     var qData = quest.CurrentData?.Split('&');
 
                                     if (qData == null || qData.Length != 4)
@@ -94,52 +94,77 @@ namespace BCRPClient.Sync
 
                                     var destPos = new Vector3(job.MaterialsPositions[currentOrder.MPIdx].X, job.MaterialsPositions[currentOrder.MPIdx].Y, job.MaterialsPositions[currentOrder.MPIdx].Z);
 
-                                    var colshape = new Additional.Sphere(destPos, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                    destPos.Z -= 1f;
+
+                                    var colshape = new Additional.Cylinder(destPos, 10f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
                                     {
                                         ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
-                                        OnEnter = async (cancel) =>
+                                        OnEnter = (cancel) =>
                                         {
                                             var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
-                                            if (jobVehicle == null)
-                                                return;
-
-                                            if (Player.LocalPlayer.Vehicle != jobVehicle)
+                                            if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
                                             {
+                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
                                                 return;
                                             }
-/*
-                                            var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", "Загрузка материалов", "Подождите еще {0} сек.", 5, Scaleform.CounterSoundTypes.None);
 
-                                            var task = new AsyncTask(() =>
+                                            var task = new AsyncTask(async () =>
                                             {
                                                 if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                                 {
+                                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
                                                     return;
                                                 }
-                                            }, 25, true, 0);*/
 
-                                            var res = await quest.CallProgressUpdateProc(1, $"{currentOrder.Id}");
+                                                var res = await quest.CallProgressUpdateProc(1, $"{currentOrder.Id}");
+                                            }, 5000, false, 0);
+
+                                            var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", Locale.Scaleform.JobTruckerLoadMaterialsTitle, Locale.Scaleform.JobTruckerLoadMaterialsText, 5, Scaleform.CounterSoundTypes.None);
+
+                                            scaleform.OnRender += () =>
+                                            {
+                                                if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                                {
+                                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                                    scaleform.Destroy();
+                                                    task.Cancel();
+
+                                                    return;
+                                                }
+                                            };
+
+                                            quest.SetActualData("Scaleform", scaleform);
+                                            quest.SetActualData("Task", task);
+
+                                            task.Run();
                                         },
 
                                         OnExit = (cancel) =>
                                         {
+                                            quest.GetActualData<Additional.Scaleform>("Scaleform")?.Destroy();
+                                            quest.GetActualData<AsyncTask>("Task")?.Cancel();
 
+                                            quest.ResetActualData("Scaleform");
+                                            quest.ResetActualData("Task");
                                         }
                                     };
 
                                     quest.SetActualData("BP_M", new Blip(9, destPos, "", 1f, 3, 125, 0f, true, 0, 10f, Settings.MAIN_DIMENSION));
                                     quest.SetActualData("CS_0", colshape);
-                                    quest.SetActualData("MKR_0", new Marker(1, destPos, 10f, Vector3.Zero, Vector3.Zero, new RGBA(255, 0, 0, 125), true, Settings.MAIN_DIMENSION));
 
-                                    destPos.Z += 1f;
-
-                                    quest.SetActualData("TXL_0", new TextLabel(destPos, Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.MAIN_DIMENSION) { Font = 4, LOS = false });
+                                    quest.SetActualData("TXL_0", new TextLabel(new Vector3(destPos.X, destPos.Y, destPos.Z + 2f), Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.MAIN_DIMENSION) { Font = 4, LOS = false });
                                 },
 
                                 EndAction = (pData, quest) =>
                                 {
+                                    quest.GetActualData<Additional.Scaleform>("Scaleform")?.Destroy();
+                                    quest.GetActualData<AsyncTask>("Task")?.Cancel();
+
                                     quest.ClearAllActualData();
                                 }
                             }
@@ -168,80 +193,77 @@ namespace BCRPClient.Sync
 
                                     var destPos = new Vector3(currentOrder.TargetBusiness.InfoColshape.Position.X, currentOrder.TargetBusiness.InfoColshape.Position.Y, currentOrder.TargetBusiness.InfoColshape.Position.Z);
 
-                                    var colshape = new Additional.Sphere(destPos, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                    var colshape = new Additional.Cylinder(destPos, 10f, 10f, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
                                     {
                                         ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
-                                        OnEnter = async (cancel) =>
+                                        OnEnter = (cancel) =>
                                         {
                                             var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
-                                            if (jobVehicle == null)
-                                                return;
-
-                                            if (Player.LocalPlayer.Vehicle != jobVehicle)
+                                            if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
                                             {
+                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
                                                 return;
                                             }
 
-                                            var res = await quest.CallProgressUpdateProc(1, $"{currentOrder.Id}");
+                                            var task = new AsyncTask(async () =>
+                                            {
+                                                if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                                {
+                                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                                    return;
+                                                }
+
+                                                var res = await quest.CallProgressUpdateProc(1, $"{currentOrder.Id}");
+                                            }, 5000, false, 0);
+
+                                            var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", Locale.Scaleform.JobTruckerUnloadMaterialsTitle, Locale.Scaleform.JobTruckerLoadMaterialsText, 5, Scaleform.CounterSoundTypes.None);
+
+                                            scaleform.OnRender += () =>
+                                            {
+                                                if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                                {
+                                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                                    scaleform.Destroy();
+                                                    task.Cancel();
+
+                                                    return;
+                                                }
+                                            };
+
+                                            quest.SetActualData("Scaleform", scaleform);
+                                            quest.SetActualData("Task", task);
+
+                                            task.Run();
+                                        },
+
+                                        OnExit = (cancel) =>
+                                        {
+                                            quest.GetActualData<Additional.Scaleform>("Scaleform")?.Destroy();
+                                            quest.GetActualData<AsyncTask>("Task")?.Cancel();
+
+                                            quest.ResetActualData("Scaleform");
+                                            quest.ResetActualData("Task");
                                         }
                                     };
 
                                     quest.SetActualData("BP_M", new Blip(9, destPos, "", 1f, 3, 125, 0f, true, 0, 10f, Settings.MAIN_DIMENSION));
                                     quest.SetActualData("CS_0", colshape);
-                                    quest.SetActualData("MKR_0", new Marker(1, destPos, 10f, Vector3.Zero, Vector3.Zero, new RGBA(255, 0, 0, 125), true, Settings.MAIN_DIMENSION));
                                 },
 
                                 EndAction = (pData, quest) =>
                                 {
+                                    quest.GetActualData<Additional.Scaleform>("Scaleform")?.Destroy();
+                                    quest.GetActualData<AsyncTask>("Task")?.Cancel();
+
                                     quest.ClearAllActualData();
                                 }
                             }
                         }
-                    })
-                },
-
-                {
-                    Types.JCAB1,
-
-                    new QuestData(Types.JCAB1, "Доставка пассажира", "Такси", new Dictionary<byte, StepData>()
-                    {
-                        {
-                            0,
-
-                            new StepData("Возьмите новый заказ", 1)
-                            {
-                                StartAction = (pData, quest) =>
-                                {
-
-                                }
-                            }
-                        },
-
-                        {
-                            1,
-
-                            new StepData("Приедьте за клиентом", 1)
-                            {
-                                StartAction = (pData, quest) =>
-                                {
-
-                                }
-                            }
-                        },
-
-                        {
-                            2,
-
-                            new StepData("Отвезите клиента", 1)
-                            {
-                                StartAction = (pData, quest) =>
-                                {
-
-                                }
-                            }
-                        },
                     })
                 },
             };
@@ -398,7 +420,7 @@ namespace BCRPClient.Sync
             SetActive(true);
         }
 
-        public void SetActive(bool state)
+        public void SetActive(bool state, bool route = true)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -419,13 +441,16 @@ namespace BCRPClient.Sync
                     CEF.HUD.EnableQuest(true);
                 }
 
-                var mBlip = GetActualData<Blip>("BP_M");
-
-                if (mBlip != null)
+                if (route)
                 {
-                    var coords = mBlip.GetInfoIdCoord();
+                    var mBlip = GetActualData<Blip>("BP_M");
 
-                    Utils.SetWaypoint(coords.X, coords.Y);
+                    if (mBlip != null)
+                    {
+                        var coords = mBlip.GetInfoIdCoord();
+
+                        Utils.SetWaypoint(coords.X, coords.Y);
+                    }
                 }
             }
             else
@@ -450,15 +475,15 @@ namespace BCRPClient.Sync
             if (pData == null)
                 return;
 
-            if (ActualQuest == null)
-                SetActive(true);
-
             var sData = CurrentStepData;
 
             if (sData != null)
             {
                 sData.StartAction?.Invoke(pData, this);
             }
+
+            if (ActualQuest == null)
+                SetActive(true, false);
         }
 
         public void Destroy()
@@ -485,23 +510,28 @@ namespace BCRPClient.Sync
 
         public void ClearAllActualData()
         {
-            foreach (var x in ActualData)
+            foreach (var x in ActualData.Keys.ToList())
             {
-                if (x.Key.StartsWith("BP"))
+                object value;
+
+                if (!ActualData.TryGetValue(x, out value))
+                    return;
+
+                if (x.StartsWith("BP"))
                 {
-                    (x.Value as Blip)?.Destroy();
+                    (value as Blip)?.Destroy();
                 }
-                else if (x.Key.StartsWith("TXL"))
+                else if (x.StartsWith("TXL"))
                 {
-                    (x.Value as TextLabel)?.Destroy();
+                    (value as TextLabel)?.Destroy();
                 }
-                else if (x.Key.StartsWith("MKR"))
+                else if (x.StartsWith("MKR"))
                 {
-                    (x.Value as Marker)?.Destroy();
+                    (value as Marker)?.Destroy();
                 }
-                else if (x.Key.StartsWith("CS"))
+                else if (x.StartsWith("CS"))
                 {
-                    (x.Value as ExtraColshape)?.Delete();
+                    (value as ExtraColshape)?.Destroy();
                 }
             }
 

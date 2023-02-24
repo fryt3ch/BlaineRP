@@ -27,7 +27,7 @@ namespace BCRPClient.Data
 
                     task = new AsyncTask(async () =>
                     {
-                        var sTime = DateTime.Now;
+                        var sTime = Sync.World.ServerTime;
 
                         while (true)
                         {
@@ -47,7 +47,7 @@ namespace BCRPClient.Data
                                                             return;
                                                         }*/
 
-                            if (DateTime.Now.Subtract(sTime).TotalMilliseconds >= waitTime)
+                            if (Sync.World.ServerTime.Subtract(sTime).TotalMilliseconds >= waitTime)
                             {
                                 Events.CallRemote("MG::F::P", Player.LocalPlayer.GetData<float>("MG::F::T::WZ"));
 
@@ -91,7 +91,7 @@ namespace BCRPClient.Data
                         Player.LocalPlayer.SetData("MG::F::Interp", 0.5f);
 
                         Player.LocalPlayer.SetData("MG::F::E", fakeFishObj);
-                        Player.LocalPlayer.SetData("MG::F::T", DateTime.Now);
+                        Player.LocalPlayer.SetData("MG::F::T", Sync.World.ServerTime);
                         Player.LocalPlayer.SetData("MG::F::SP", fSpeed);
                         Player.LocalPlayer.SetData("MG::F::MSP", fSpeed);
                         Player.LocalPlayer.SetData("MG::F::CT", timeToCatch);
@@ -120,7 +120,7 @@ namespace BCRPClient.Data
 
         private static void FishingProcessRender()
         {
-            var timePassed = DateTime.Now.Subtract(Player.LocalPlayer.GetData<DateTime>("MG::F::T")).TotalMilliseconds;
+            var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("MG::F::T")).TotalMilliseconds;
             var timeCatched = Player.LocalPlayer.GetData<int>("MG::F::CTC");
 
             if (timePassed > Player.LocalPlayer.GetData<int>("MG::F::CT"))

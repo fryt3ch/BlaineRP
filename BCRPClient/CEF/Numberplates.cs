@@ -74,7 +74,7 @@ namespace BCRPClient.CEF
                 {
                     Events.CallRemote("", $"np_{num}", signsAmount);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 

@@ -222,13 +222,13 @@ namespace BCRPServer.Events
             }
         }
 
-        /*        [ServerEvent(Event.Update)]
-                public void OnUpdate()
-                {
-                    var currentTime = Utils.GetCurrentTime();
+        [ServerEvent(Event.Update)]
+        public void OnUpdate()
+        {
+            var currentTime = Utils.GetCurrentTime();
 
-                    NAPI.World.SetTime(currentTime.Hour, currentTime.Minute, currentTime.Second);
-                }*/
+            Sync.World.SetSharedData("cst", currentTime.GetUnixTimestampMil());
+        }
 
         public static async Task OnServerShutdown()
         {

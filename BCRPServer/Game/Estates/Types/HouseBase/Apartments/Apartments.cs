@@ -176,6 +176,9 @@ namespace BCRPServer.Game.Estates
                 pInfo.PlayerData?.AddApartmentsProperty(this);
             }
 
+            foreach (var x in Settlers.Keys)
+                SettlePlayer(x, false, null);
+
             UpdateOwner(pInfo);
 
             MySQL.HouseUpdateOwner(this);

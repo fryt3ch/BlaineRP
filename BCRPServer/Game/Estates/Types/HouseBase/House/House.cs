@@ -80,6 +80,19 @@ namespace BCRPServer.Game.Estates
                 pInfo.PlayerData?.AddHouseProperty(this);
             }
 
+            var vehsInGarage = GetVehiclesInGarage()?.ToList();
+
+            if (vehsInGarage != null)
+            {
+                foreach (var x in vehsInGarage)
+                {
+                    x.SetToVehiclePound();
+                }
+            }
+
+            foreach (var x in Settlers.Keys)
+                SettlePlayer(x, false, null);
+
             UpdateOwner(pInfo);
 
             MySQL.HouseUpdateOwner(this);
@@ -91,12 +104,14 @@ namespace BCRPServer.Game.Estates
 
             var vPos = GarageData.VehiclePositions[slot];
 
+            vData.AttachBoatToTrailer();
+
             vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
 
             vData.SetFreezePosition(vPos.Position, vPos.RotationZ);
             vData.IsInvincible = true;
 
-            vData.Info.LastData.GarageSlot = slot;
+            SetVehicleToGarageOnlyData(vData.Info, slot);
         }
 
         public void SetVehicleToGarageOnSpawn(VehicleData vData)
@@ -108,6 +123,25 @@ namespace BCRPServer.Game.Estates
 
             vData.IsFrozen = true;
             vData.IsInvincible = true;
+
+            vData.AttachBoatToTrailer();
+        }
+
+        public void SetVehicleToGarageOnlyData(VehicleData.VehicleInfo vInfo, int slot)
+        {
+            var vPos = GarageData.VehiclePositions[slot];
+
+            vInfo.LastData.Position.X = vPos.X;
+            vInfo.LastData.Position.Y = vPos.Y;
+            vInfo.LastData.Position.Z = vPos.Z;
+
+            vInfo.LastData.Heading = vPos.RotationZ;
+
+            vInfo.LastData.Dimension = Dimension;
+
+            vInfo.LastData.GarageSlot = slot;
+
+            MySQL.VehicleDeletionUpdate(vInfo);
         }
 
         public IEnumerable<VehicleData.VehicleInfo> GetVehiclesInGarage()

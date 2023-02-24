@@ -34,15 +34,17 @@ namespace BCRPServer.Events.Players
                     if (job == null)
                         return 0;
 
+                    var vData = pData.Player.Vehicle.GetMainData();
+
+                    if (vData == null || pData.VehicleSeat != 0 || vData.OwnerID != pData.CID || vData.Job != job)
+                        return 0;
+
                     var activeOrder = job.ActiveOrders.GetValueOrDefault(orderId);
 
                     if (activeOrder == null)
                         return 0;
 
-                    if (pData.VehicleSeat != 0)
-                        return 0;
-
-                    if (activeOrder.CurrentVehicle != player.Vehicle.GetMainData())
+                    if (activeOrder.CurrentWorker != pData.Info)
                         return 0;
 
                     if (questData.Step == 1)
@@ -65,7 +67,7 @@ namespace BCRPServer.Events.Players
                         if (activeOrder.TargetBusiness.PositionInfo.DistanceTo(player.Position) > 15f)
                             return 0;
 
-                        job.RemoveOrder(orderId);
+                        job.RemoveOrder(orderId, activeOrder);
 
                         questData.UpdateStep(pData.Info, 0);
 

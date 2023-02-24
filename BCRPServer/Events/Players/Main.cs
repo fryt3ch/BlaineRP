@@ -134,7 +134,10 @@ namespace BCRPServer.Events.Players
                 var currentTaxiOrder = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();
 
                 if (currentTaxiOrder.Value != null)
-                    Game.Jobs.Cabbie.RemoveOrder(currentTaxiOrder.Key, currentTaxiOrder.Value);
+                    Game.Jobs.Cabbie.RemoveOrder(currentTaxiOrder.Key, currentTaxiOrder.Value, false);
+
+                if (pData.CurrentJob is Game.Jobs.Job curJob)
+                    curJob.OnWorkerExit(pData);
 
                 player.DetachAllEntities();
 
@@ -352,20 +355,18 @@ namespace BCRPServer.Events.Players
             }
         }
 
-        [RemoteEvent("Players::CharacterReady")]
-        public static void CharacterReady(Player player, bool isInvalid, int emotion, int walkstyle)
+        [RemoteProc("Players::CRI")]
+        public static bool CharacterReadyIndicate(Player player, bool isInvalid, int emotion, int walkstyle)
         {
-            var sRes = player.CheckSpamAttack();
+            var sRes = player.CheckSpamAttack(5000, false);
 
             if (sRes.IsSpammer)
-                return;
+                return false;
 
             var pData = sRes.Data;
 
-            if (!player.HasData("CharacterNotReady"))
-                return;
-
-            player.ResetData("CharacterNotReady");
+            if (!player.ResetData("CharacterNotReady"))
+                return false;
 
             if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
                 emotion = -1;
@@ -380,6 +381,13 @@ namespace BCRPServer.Events.Players
             //player.Dimension = Utils.Dimensions.Main;
 
             pData.UpdateWeapons();
+
+            if (pData.RentedJobVehicle is VehicleData jobVehicle)
+            {
+                jobVehicle.Job?.SetPlayerJob(pData, jobVehicle);
+            }
+
+            return true;
         }
 
         #region Finger

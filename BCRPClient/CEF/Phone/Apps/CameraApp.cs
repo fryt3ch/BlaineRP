@@ -99,7 +99,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             RenderTicks = 0;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn);
 
@@ -201,7 +201,7 @@ namespace BCRPClient.CEF.PhoneApps
             {
                 PhotoStartCounter = 1;
 
-                LastSwitched = DateTime.Now;
+                LastSwitched = Sync.World.ServerTime;
 
                 return;
             }
@@ -235,7 +235,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 UpdateInstructionButtons();
 
-                LastSwitched = DateTime.Now;
+                LastSwitched = Sync.World.ServerTime;
 
                 return;
             }
@@ -430,7 +430,7 @@ namespace BCRPClient.CEF.PhoneApps
 
         public static void SavePicture(bool isCam, bool sound, bool notify)
         {
-            var curDateStr = Utils.GetServerTime().ToString("dd_MM_yyyy_HH_mm_ss_ff");
+            var curDateStr = Sync.World.ServerTime.ToString("dd_MM_yyyy_HH_mm_ss_ff");
 
             var fileName = isCam ? $"CAM_{curDateStr}.png" : $"{curDateStr}.png";
 

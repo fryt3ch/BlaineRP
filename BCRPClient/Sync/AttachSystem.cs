@@ -1098,7 +1098,7 @@ namespace BCRPClient.Sync
                     {
                         Sync.WeaponSystem.DisabledFiring = true;
 
-                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", Sync.World.ServerTime);
                     }),
 
                     new Action(() =>
@@ -1135,7 +1135,7 @@ namespace BCRPClient.Sync
                                 {
                                     Events.CallRemote("Players::Smoke::Puff");
 
-                                    Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                                    Player.LocalPlayer.SetData("Temp::Smoke::LastSent", Sync.World.ServerTime);
                                 }
                             }
                             // alt - to mouth
@@ -1145,7 +1145,7 @@ namespace BCRPClient.Sync
                                 {
                                     Events.CallRemote("Players::Smoke::State");
 
-                                    Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                                    Player.LocalPlayer.SetData("Temp::Smoke::LastSent", Sync.World.ServerTime);
                                 }
                             }
 
@@ -1163,7 +1163,7 @@ namespace BCRPClient.Sync
                 (
                     new Action(() =>
                     {
-                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", Sync.World.ServerTime);
                     }),
 
                     new Action(() =>
@@ -1194,7 +1194,7 @@ namespace BCRPClient.Sync
                                     {
                                         Events.CallRemote("Players::Smoke::State");
 
-                                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", DateTime.Now);
+                                        Player.LocalPlayer.SetData("Temp::Smoke::LastSent", Sync.World.ServerTime);
                                     }
                                 }
 

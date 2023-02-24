@@ -43,23 +43,23 @@ namespace BCRPClient.Data.NPCDialogues
                                 Events.CallRemote("Bank::Show", false, bankData.Id);
                             }
                         }));
-
-                        if (pData.OwnedHouses.FirstOrDefault() is Data.Locations.House house)
-                            btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }));
-
-                        if (pData.OwnedApartments.FirstOrDefault() is Data.Locations.Apartments aps)
-                            btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }));
-
-                        if (pData.OwnedGarages.FirstOrDefault() is Data.Locations.Garage garage)
-                            btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }));
-
-                        if (pData.OwnedBusinesses.FirstOrDefault() is Data.Locations.Business biz)
-                            btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }));
                     }
                     else
                     {
                         btns.Add(new Button("Да, хочу стать клиентом вашего банка", () => { NPC.CurrentNPC?.ShowDialogue("bank_no_account_1"); }));
                     }
+
+                    if (pData.OwnedHouses.FirstOrDefault() is Data.Locations.House house)
+                        btns.Add(new Button("[Счет дома]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_house", false, new object[] { house }); }));
+
+                    if (pData.OwnedApartments.FirstOrDefault() is Data.Locations.Apartments aps)
+                        btns.Add(new Button("[Счет квартиры]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_aps", false, new object[] { aps }); }));
+
+                    if (pData.OwnedGarages.FirstOrDefault() is Data.Locations.Garage garage)
+                        btns.Add(new Button("[Счет гаража]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_garage", false, new object[] { garage }); }));
+
+                    if (pData.OwnedBusinesses.FirstOrDefault() is Data.Locations.Business biz)
+                        btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }));
 
                     btns.Add(Button.DefaultExitButton);
 
@@ -101,7 +101,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                 var hoursLeft = balance / houseData.Tax;
 
-                var currentDate = Utils.GetServerTime();
+                var currentDate = Sync.World.ServerTime;
 
                 var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -213,7 +213,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var hoursLeft = balance / apsData.Tax;
 
-                    var currentDate = Utils.GetServerTime();
+                    var currentDate = Sync.World.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -325,7 +325,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var hoursLeft = balance / garageData.Tax;
 
-                    var currentDate = Utils.GetServerTime();
+                    var currentDate = Sync.World.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 
@@ -437,7 +437,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var hoursLeft = balance / businessData.Rent;
 
-                    var currentDate = Utils.GetServerTime();
+                    var currentDate = Sync.World.ServerTime;
 
                     var currentDateZeros = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, currentDate.Hour, 0, 0, 0, currentDate.Kind);
 

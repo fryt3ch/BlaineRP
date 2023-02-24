@@ -282,6 +282,8 @@ namespace BCRPServer
 
         public static long GetUnixTimestamp(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
 
+        public static long GetUnixTimestampMil(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeMilliseconds();
+
         public static DateTime GetUnixTimestamp(long timestampSecs) => DateTimeOffset.FromUnixTimeSeconds(timestampSecs).DateTime;
 
 
@@ -491,7 +493,7 @@ namespace BCRPServer
         public static PlayerData.PlayerInfo FindPlayerOffline(uint cid) => PlayerData.PlayerInfo.Get(cid);
 
         /// <inheritdoc cref="Additional.AntiSpam.CheckNormal(Player, int)"/>
-        public static (bool IsSpammer, PlayerData Data) CheckSpamAttack(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckNormal(player, decreaseDelay);
+        public static (bool IsSpammer, PlayerData Data) CheckSpamAttack(this Player player, int decreaseDelay = 250, bool checkPlayerReady = true) => Additional.AntiSpam.CheckNormal(player, decreaseDelay, checkPlayerReady);
         /// <inheritdoc cref="Additional.AntiSpam.CheckTemp(Player, int)"/>
         public static (bool IsSpammer, TempData Data) CheckSpamAttackTemp(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckTemp(player, decreaseDelay);
 
@@ -1306,5 +1308,7 @@ namespace BCRPServer
             for (uint i = start; i < stop; i++)
                 yield return i;
         }
+
+        public static void SendGPSTracker(this Player player, int type, float x, float y, Entity entity) => player.TriggerEvent("Blip::Tracker", type, x, y, entity);
     }
 }

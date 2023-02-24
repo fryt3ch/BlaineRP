@@ -458,21 +458,17 @@ namespace BCRPServer.Game.Businesses
 
         public bool BuyFromGov(PlayerData pData)
         {
-            if (Settings.NEED_BUSINESS_LICENSE && !pData.Licenses.Contains(PlayerData.LicenseTypes.Business))
-            {
-                pData.Player.Notify("License::NTB");
-
+            if (Settings.NEED_BUSINESS_LICENSE && !pData.HasLicense(PlayerData.LicenseTypes.Business))
                 return false;
-            }
 
             ulong newCash;
 
             if (!pData.TryRemoveCash(GovPrice, out newCash, true))
                 return false;
 
-            if (pData.OwnedBusinesses.Count >= pData.BusinessesSlots)
+            if (pData.BusinessesSlots <= 0)
             {
-                pData.Player.Notify("Business::HMA");
+                pData.Player.Notify("Trade::MBOW", pData.OwnedBusinesses.Count);
 
                 return false;
             }
@@ -511,7 +507,7 @@ namespace BCRPServer.Game.Businesses
                 { "MA", Margin },
                 { "IS", false },
                 { "IT", INCASSATION_TAX },
-                { "DS", (OrderedMaterials > 0 && ClosestTruckerJob.ActiveOrders.Values.Where(x => x.TargetBusiness == this && x.IsCustom && x.CurrentVehicle != null).FirstOrDefault() != null) ? $"{OrderedMaterials}_0" : $"{OrderedMaterials}" },
+                { "DS", (OrderedMaterials > 0 && ClosestTruckerJob.ActiveOrders.Values.Where(x => x.TargetBusiness == this && x.IsCustom && x.CurrentWorker != null).FirstOrDefault() != null) ? $"{OrderedMaterials}_0" : $"{OrderedMaterials}" },
                 { "MB", MaterialsData.BuyPrice },
                 { "MS", MaterialsData.SellPrice },
                 { "DP", MATS_DELIVERY_PRICE },

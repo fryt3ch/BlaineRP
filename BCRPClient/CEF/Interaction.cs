@@ -76,7 +76,7 @@ namespace BCRPClient.CEF
 
             CurrentType = Types.None;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             #region Events
             #region OutVehicle Select
@@ -563,7 +563,7 @@ namespace BCRPClient.CEF
             if (CurrentType != Types.None)
                 return;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             CurrentType = Types.OutVehicle;
 
@@ -581,7 +581,7 @@ namespace BCRPClient.CEF
             if (CurrentType != Types.None)
                 return;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             CurrentType = Types.PlayerMenu;
 
@@ -599,7 +599,7 @@ namespace BCRPClient.CEF
             if (CurrentType != Types.None)
                 return;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             CurrentType = Types.InVehicle;
 
@@ -735,7 +735,7 @@ namespace BCRPClient.CEF
 
             GameEvents.Render -= CheckEntityDistance;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             CurrentType = Types.None;
 

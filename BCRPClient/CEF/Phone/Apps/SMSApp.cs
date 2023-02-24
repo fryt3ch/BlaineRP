@@ -69,7 +69,7 @@ namespace BCRPClient.CEF.PhoneApps
                     return;
                 }
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 var coords = new Vector3(x, y, 0f);
 
@@ -91,7 +91,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (args.Length > 2 && (bool)args[2])
                 {
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
 
                     AttachPos = !AttachPos;
 
@@ -137,7 +137,7 @@ namespace BCRPClient.CEF.PhoneApps
                     return;
                 }
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 var smsStrData = (string)await Events.CallRemoteProc("Phone::SSMS", number, text, AttachPos);
 
@@ -184,13 +184,13 @@ namespace BCRPClient.CEF.PhoneApps
 
                 var number = uint.Parse(args[0].ToString());
 
-                var timePassed = DateTime.Now.Subtract(PhoneApps.SMSApp.LastSMSDeleteApproveTime).TotalMilliseconds;
+                var timePassed = Sync.World.ServerTime.Subtract(PhoneApps.SMSApp.LastSMSDeleteApproveTime).TotalMilliseconds;
 
                 if (timePassed > 5000)
                 {
                     CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.General.SmsDeleteConfirmText, 5000);
 
-                    PhoneApps.SMSApp.LastSMSDeleteApproveTime = DateTime.Now;
+                    PhoneApps.SMSApp.LastSMSDeleteApproveTime = Sync.World.ServerTime;
 
                     return;
                 }
@@ -213,7 +213,7 @@ namespace BCRPClient.CEF.PhoneApps
                 if (numsToDel.Count == 0)
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (!(bool)await Events.CallRemoteProc("Phone::DSMS", numsToDel.Keys.ToArray()))
                     return;
@@ -276,7 +276,7 @@ namespace BCRPClient.CEF.PhoneApps
                         {
                             CEF.Notification.ShowSmsFive(Notification.FiveNotificImgTypes.Bank, contName, smsObj.Text);
                         }
-                        else if (smsObj.SenderNumber == 874)
+                        else if (smsObj.SenderNumber == 873)
                         {
                             CEF.Notification.ShowSmsFive(Notification.FiveNotificImgTypes.DeliveryService, contName, smsObj.Text);
                         }

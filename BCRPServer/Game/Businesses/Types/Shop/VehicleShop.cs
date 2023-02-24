@@ -50,11 +50,39 @@ namespace BCRPServer.Game.Businesses
             if (!TryProceedPayment(pData, useCash, iData[0], 1, out newMats, out newBalance, out newPlayerBalance))
                 return false;
 
+            if (Type >= Types.CarShop1 && Type <= Types.CarShop3)
+            {
+                if (!pData.HasLicense(PlayerData.LicenseTypes.B))
+                    return false;
+            }
+            else if (Type == Types.MotoShop)
+            {
+                if (!pData.HasLicense(PlayerData.LicenseTypes.A))
+                    return false;
+            }
+            else if (Type == Types.BoatShop)
+            {
+                if (!pData.HasLicense(PlayerData.LicenseTypes.Sea))
+                    return false;
+            }
+            else if (Type == Types.AeroShop)
+            {
+                if (!pData.HasLicense(PlayerData.LicenseTypes.Fly))
+                    return false;
+            }
+
+            if (pData.VehicleSlots <= 0)
+            {
+                pData.Player.Notify("Trade::MVOW", pData.OwnedVehicles.Count);
+
+                return false;
+            }
+
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
+
             var vPos = AfterBuyPositions[AfterBuyPositions.Length == 1 ? 0 : AfterBuyPositions.Length < LastExitUsed + 1 ? ++LastExitUsed : LastExitUsed = 0];
 
             var vData = VehicleData.New(pData, vType, new Utils.Colour(r1, g1, b1), new Utils.Colour(r2, g2, b2), vPos.Position, vPos.RotationZ, Utils.Dimensions.Main, true);
-
-            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 
             Sync.Players.ExitFromBuiness(pData, false);
 

@@ -158,7 +158,7 @@ namespace BCRPClient.Data
 
                 var ogCs = OwnerGarageColshape;
 
-                ogCs?.Delete();
+                ogCs?.Destroy();
 
                 if (state)
                 {

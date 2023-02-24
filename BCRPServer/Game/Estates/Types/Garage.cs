@@ -291,6 +291,27 @@ namespace BCRPServer.Game.Estates
             Sync.World.SetSharedData($"Garages::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
+        public bool BuyFromGov(PlayerData pData)
+        {
+            ulong newCash;
+
+            if (!pData.TryRemoveCash((uint)Price, out newCash, true))
+                return false;
+
+            if (pData.GaragesSlots <= 0)
+            {
+                pData.Player.Notify("Trade::MGOW", pData.OwnedGarages.Count);
+
+                return false;
+            }
+
+            pData.SetCash(newCash);
+
+            ChangeOwner(pData.Info);
+
+            return true;
+        }
+
         public void ChangeOwner(PlayerData.PlayerInfo pInfo)
         {
             if (Owner != null)
@@ -301,6 +322,16 @@ namespace BCRPServer.Game.Estates
             if (pInfo != null)
             {
                 pInfo.PlayerData?.AddGarageProperty(this);
+            }
+
+            var vehicles = GetVehiclesInGarage()?.ToList();
+
+            if (vehicles != null)
+            {
+                foreach (var x in vehicles)
+                {
+                    x.SetToVehiclePound();
+                }
             }
 
             UpdateOwner(pInfo);
@@ -314,12 +345,14 @@ namespace BCRPServer.Game.Estates
 
             var vPos = StyleData.VehiclePositions[slot];
 
+            vData.AttachBoatToTrailer();
+
             vData.Vehicle.Teleport(vPos.Position, Dimension, vPos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.All);
 
             vData.SetFreezePosition(vPos.Position, vPos.RotationZ);
             vData.IsInvincible = true;
 
-            vData.Info.LastData.GarageSlot = slot;
+            SetVehicleToGarageOnlyData(vData.Info, slot);
         }
 
         public void SetVehicleToGarageOnSpawn(VehicleData vData)
@@ -331,6 +364,25 @@ namespace BCRPServer.Game.Estates
 
             vData.IsFrozen = true;
             vData.IsInvincible = true;
+
+            vData.AttachBoatToTrailer();
+        }
+
+        public void SetVehicleToGarageOnlyData(VehicleData.VehicleInfo vInfo, int slot)
+        {
+            var vPos = StyleData.VehiclePositions[slot];
+
+            vInfo.LastData.Position.X = vPos.X;
+            vInfo.LastData.Position.Y = vPos.Y;
+            vInfo.LastData.Position.Z = vPos.Z;
+
+            vInfo.LastData.Heading = vPos.RotationZ;
+
+            vInfo.LastData.Dimension = Dimension;
+
+            vInfo.LastData.GarageSlot = slot;
+
+            MySQL.VehicleDeletionUpdate(vInfo);
         }
 
         public IEnumerable<VehicleData.VehicleInfo> GetVehiclesInGarage() => Owner?.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension) ?? new List<VehicleData.VehicleInfo>();

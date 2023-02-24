@@ -76,6 +76,9 @@ namespace BCRPServer.Events.Players
             if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return 0;
 
+            if (phoneNumber < 1_000)
+                return 1;
+
             if (pData.ActiveCall != null)
                 return 0;
 
@@ -234,6 +237,9 @@ namespace BCRPServer.Events.Players
             if (text == null)
                 return null;
 
+            if (phoneNumber < 1_000)
+                return string.Empty;
+
             text = text.Trim();
 
             var symbolsCount = (uint)text.Length;
@@ -299,29 +305,30 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Taxi::NO")]
-        private static byte TaxiNewOrder(Player player)
+        private static bool TaxiNewOrder(Player player)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return 0;
+                return false;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                return 0;
+                return false;
 
             if (player.Dimension != Utils.Dimensions.Main)
-            {
-                return 0;
-            }
+                return false;
 
             if (pData.CurrentTaxiOrder != null)
-                return 0;
+                return false;
+
+            if (pData.CurrentJob?.Type == Game.Jobs.Job.Types.Cabbie)
+                return false;
 
             Game.Jobs.Cabbie.AddPlayerOrder(pData);
 
-            return byte.MaxValue;
+            return true;
         }
 
         [RemoteEvent("Taxi::CO")]
@@ -339,7 +346,7 @@ namespace BCRPServer.Events.Players
             if (curOrderPair.Value == null)
                 return;
 
-            Game.Jobs.Cabbie.RemoveOrder(curOrderPair.Key, curOrderPair.Value);
+            Game.Jobs.Cabbie.RemoveOrder(curOrderPair.Key, curOrderPair.Value, false);
         }
     }
 }

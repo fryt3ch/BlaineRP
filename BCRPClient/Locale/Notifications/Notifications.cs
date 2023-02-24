@@ -74,14 +74,38 @@ namespace BCRPClient
 
                 public static string JobNoOrders = "Пока что нет ни одного заказа!";
 
-                public static string AlreadyHaveJob = "Вы уже где-то работаете!";
+                public const string AlreadyHaveJob = "Вы уже где-то работаете!";
 
-                public static string QuestStartedText = "Задание начато, текущая цель - {0}";
-                public static string QuestUpdatedText = "Задание обновлено, текущая цель - {0}";
-                public static string QuestFinishedText = "Задание выполнено!";
-                public static string QuestCancelledText = "Задание отменено!";
+                public const string QuestStartedText = "Задание начато, текущая цель - {0}";
+                public const string QuestUpdatedText = "Задание обновлено, текущая цель - {0}";
+                public const string QuestFinishedText = "Задание выполнено!";
+                public const string QuestCancelledText = "Задание отменено!";
 
-                public static string QuitThisVehicle = "Вы не должны находиться в этом транспорте, чтобы сделать это!";
+                public const string QuitThisVehicle = "Вы не должны находиться в этом транспорте, чтобы сделать это!";
+
+                public const string TaxiDistanceWarn = "Если вы удалитесь еще на {0} метров, то заказ такси будет автоматически отменен!";
+
+                public const string JobNewOrder = "Поступил новый заказ!\n{0} - {1}";
+
+                public const string JobOrderCancelByCaller = "Текущий заказ был отменен заказчиком!";
+
+                public const string JobOrderMenuHasOrder = "Вы не можете взять новый заказ, пока у Вас есть незавершенный!";
+                public const string JobOrderTakeError = "Вы не можете сейчас взять этот заказ!";
+                public const string JobOrderAlreadyTaken = "Этот заказ уже кто-то взял!";
+
+                public const string TaxiOrdered = "Вы заказали такси на адрес {0}!\nОжидайте водителя и не отходите слишком далеко, иначе заказ будет отменен!";
+                public const string TaxiError = "Сейчас вы не можете заказать такси!";
+
+                public const string Taxi0 = "Ваш заказ такси принял водитель {0}, для связи с ним воспользуйтесь приложением";
+                public const string Taxi1 = "Назначенный раннее водитель такси не сможет выполнить Ваш заказ, идет поиск нового водителя!";
+                public const string Taxi2 = "Водитель такси по вашему заказу прибыл, договоритесь с ним о точке назначения и цене!\nПодсказка: используйте {0}, чтобы передать координаты водителю";
+                public const string Taxi3 = "Ваш заказ такси был отменен!";
+
+                public const string Taxi4 = "Вы прибыли к местоположению заказчика! Теперь договоритесь с ним о точке назначения и цене";
+                public const string Taxi5 = "Вы приняли заказ, теперь едьте к заказчику!";
+
+                public const string JobRentVehicleAlreadyRented0 = "Этот транспорт уже кто-то арендует!";
+                public const string JobRentVehicleAlreadyRented1 = "Вы уже арендуете какой-то рабочий транспорт!";
 
                 public static class PayDay
                 {
@@ -133,6 +157,7 @@ namespace BCRPClient
                 public static string NoOwnedApartments = "Вы не владеете ни одной квартирой!";
                 public static string NoOwnedGarage = "Вы не владеете ни одним гаражом!";
                 public static string NoOwnedEstate = "Вы не владеете ни одним видом недвижимости!";
+                public static string NoOwnedHouseWGarage = "Вы не владеете ни одним домом, в котором есть гараж!";
 
                 public static string ElevatorCurrentFloor = "Вы и так находитесь на этом этаже!";
             }

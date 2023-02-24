@@ -377,9 +377,6 @@ namespace BCRPServer.Events.Players
 
             var amount = (ulong)amountI;
 
-            if (pData.BankAccount == null)
-                return null;
-
             var business = Game.Businesses.Business.Get(businessId);
 
             if (business == null || business.Owner != pData.Info)
@@ -419,6 +416,9 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
@@ -450,6 +450,9 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
@@ -483,9 +486,6 @@ namespace BCRPServer.Events.Players
                 return null;
 
             var amount = (ulong)amountI;
-
-            if (pData.BankAccount == null)
-                return null;
 
             var house = isHouse ? (Game.Estates.HouseBase)Game.Estates.House.Get(houseId) : (Game.Estates.HouseBase)Game.Estates.Apartments.Get(houseId);
 
@@ -526,6 +526,9 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
@@ -557,6 +560,9 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
@@ -590,9 +596,6 @@ namespace BCRPServer.Events.Players
                 return null;
 
             var amount = (ulong)amountI;
-
-            if (pData.BankAccount == null)
-                return null;
 
             var garage = Game.Estates.Garage.Get(garageId);
 
@@ -633,6 +636,9 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
@@ -664,6 +670,9 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
                     ulong newBankBalance;
 
                     if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))

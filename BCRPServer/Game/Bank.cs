@@ -180,22 +180,13 @@ namespace BCRPServer.Game
             if (bData == null || player.Dimension != Utils.Dimensions.Main)
                 return false;
 
-            bool distanceOk = false;
-
             foreach (var x in bData)
             {
                 if (player.Position.DistanceTo(x.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE)
-                {
-                    distanceOk = true;
-
-                    break;
-                }
+                    return true;
             }
 
-            if (!distanceOk)
-                return false;
-
-            return true;
+            return false;
         }
 
         public static bool IsPlayerNearAtm(Player player, int id)
@@ -205,7 +196,7 @@ namespace BCRPServer.Game
             if (atmData == null || player.Dimension != Utils.Dimensions.Main)
                 return false;
 
-            return player.Position.DistanceTo(atmData.Position) <= atmData.RotationZ;
+            return player.Position.DistanceTo(atmData.Position) <= (atmData.RotationZ + 5f);
         }
 
         public class Account

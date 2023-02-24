@@ -75,7 +75,7 @@ namespace BCRPClient.Data
         [Command("settime", true, "st")]
         public static void SetTime(byte hour, byte minute = 0, byte second = 0)
         {
-            var realDate = Utils.GetServerTime();
+            var realDate = Sync.World.ServerTime;
 
             if (hour >= 24)
                 hour = 0;
@@ -107,7 +107,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_temp", Player.LocalPlayer.RemoteId, id);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("give_tempvehicle", true, "Выдать себе транспорт (временный)", "give_tveh", "give_tvehile")]
@@ -121,7 +121,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_temp", pid, id);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("vehicle", true, "Выдать себе транспорт", "veh")]
@@ -135,7 +135,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_new", Player.LocalPlayer.RemoteId, id);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("give_vehicle", true, "Выдать транспорт игроку", "give_veh")]
@@ -149,7 +149,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_new", pid, id);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("respawnvehicle", true, "Респавн транспорта", "respawnveh")]
@@ -160,7 +160,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_rs", vid);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("deletevehicle", true, "Удалить транспорт (с сервера)", "delveh")]
@@ -171,7 +171,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_del", vid, false);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("deletevehicle_full", true, "Удалить транспорт (полностью!)", "delveh_full")]
@@ -182,7 +182,7 @@ namespace BCRPClient.Data
 
             CallRemote("veh_del", vid, true);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
         #endregion
 
@@ -199,7 +199,7 @@ namespace BCRPClient.Data
 
             CallRemote("w_iog_cl", delay);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("clearitems_cancel", true, "Отменить удаление выброшенных предметов", "cleariog_cancel", "ciog_cancel")]
@@ -210,7 +210,7 @@ namespace BCRPClient.Data
 
             CallRemote("w_iog_cl", -1);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         #region Weapon
@@ -225,7 +225,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_titem", Player.LocalPlayer.RemoteId, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("give_tempweapon", true, "Выдать оружие игроку (временное)", "give_tweapon", "give_tgun", "give_tempgun")]
@@ -239,7 +239,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_titem", pid, id.StartsWith("w_") ? id : "w_" + id, ammo, 0);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
         #endregion
 
@@ -254,7 +254,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_titem", Player.LocalPlayer.RemoteId, id, amount, variation);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("give_tempitem", true, "Выдать предмет игроку (временный)", "give_titem")]
@@ -268,7 +268,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_titem", pid, id, amount, variation);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("item", true, "Выдать себе предмет")]
@@ -282,7 +282,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_item", Player.LocalPlayer.RemoteId, id, amount, variation);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("give_item", true, "Выдать предмет игроку")]
@@ -296,7 +296,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_item", pid, id, amount, variation);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("iteminfo", true, "Запросить информацию о предмете", "iinfo", "itemi")]
@@ -339,7 +339,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tpp", Player.LocalPlayer.RemoteId, position.X, position.Y, position.Z, true);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("auto_tpm", true, "Автоматически телепортироваться по метке", "autotpm")]
@@ -363,7 +363,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tpp", Player.LocalPlayer.RemoteId, x, y, z, toGround);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
         #endregion
 
@@ -375,7 +375,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tppl", pid, false);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("tphere", true, "Телепорт игрока к себе", "gethere", "thp")]
@@ -386,7 +386,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tppl", pid, true);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("tptoveh", true, "Телепорт к транспорту", "gotoveh", "tpv")]
@@ -397,7 +397,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tpveh", vid, false);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("tphereveh", true, "Телепорт транспорта к себе", "gethereveh", "thv")]
@@ -408,7 +408,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tpveh", vid, true);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("setdim", true, "Смена измерения", "sdim")]
@@ -419,7 +419,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_sdim", pid, dimension);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("anim", true, "Смена измерения", "playanim")]
@@ -429,7 +429,7 @@ namespace BCRPClient.Data
 
             Player.LocalPlayer.TaskPlayAnim(dict, name, sp, spMult, dur, fg, pRate, p1, p2, p3);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("anim_stop", true, "Смена измерения", "stopanim")]
@@ -438,7 +438,7 @@ namespace BCRPClient.Data
             Player.LocalPlayer.ClearTasks();
             Player.LocalPlayer.ClearTasksImmediately();
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         #endregion
@@ -471,7 +471,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_kick", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("silentkick", true, "Кикнуть игрока (тихо)", "skick", "kicks", "kicksilent")]
@@ -482,7 +482,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_skick", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("mute", true, "Выдать мут игроку")]
@@ -493,7 +493,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_mute", pid, mins, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("unmute", true, "Снять мут с игрока")]
@@ -504,7 +504,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_mute", pid, -1, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("warn", true, "Выдать предупреждение игроку")]
@@ -515,7 +515,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_warn", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("unwarn", true, "Снять предупреждения с игрока")]
@@ -526,7 +526,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_uwarn", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("ban", true, "Выдать бан игроку")]
@@ -537,7 +537,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_ban", pid, days, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("unban", true, "Снять бан с игрока")]
@@ -548,7 +548,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_uban", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("hardban", true, "Выдать тяжёлый бан игроку")]
@@ -559,7 +559,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_hban", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("unhardban", true, "Снять тяжёлый бан с игрока")]
@@ -570,7 +570,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_uhban", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("jail", true, "Посадить игрока в NonRP-тюрьму")]
@@ -581,7 +581,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_jail", pid, mins, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("unjail", true, "Выпустить игрока из NonRP-тюрьмы")]
@@ -592,7 +592,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_ujail", pid, reason);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
         #endregion
 
@@ -604,7 +604,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, true);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("setaccs", true, "Надеть временный аксессуар", "sa", "saccs")]
@@ -615,7 +615,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, slot, drawable, texture, false);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("resetclothes", true, "Сбросить временную одежду (и аксессуары)", "rsc", "rsclothes")]
@@ -626,7 +626,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_tclothes", Player.LocalPlayer.RemoteId, -1, -1, -1, true);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("sethealth", true, "Установить здоровье (игроку)", "sethp", "shp")]
@@ -640,7 +640,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_hp", pid, value);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("health", true, "Установить здоровье (себе)", "hp")]
@@ -654,7 +654,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_hp", Player.LocalPlayer.RemoteId, value);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("mood", true, "Установить настроение (себе)")]
@@ -668,7 +668,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_mood", Player.LocalPlayer.RemoteId, value);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("satiety", true, "Установить сытость (себе)")]
@@ -682,7 +682,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_satiety", Player.LocalPlayer.RemoteId, value);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("setmood", true, "Установить настроение игроку")]
@@ -696,7 +696,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_mood", pid, value);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("setsatiety", true, "Установить сытость игроку")]
@@ -710,7 +710,7 @@ namespace BCRPClient.Data
 
             CallRemote("p_satiety", pid, value);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
         }
 
         [Command("btw", true, "Установить сытость игроку")]
@@ -1070,7 +1070,7 @@ namespace BCRPClient.Data
         {
             var cs = Additional.ExtraColshape.GetById((int)id);
 
-            cs?.Delete();
+            cs?.Destroy();
         }
 
         [Command("poly_stop", true, "Закончить создание полигона")]
@@ -1098,7 +1098,7 @@ namespace BCRPClient.Data
             {
                 Additional.ExtraColshapes.PolygonCreationTask.Cancel();
 
-                Additional.ExtraColshapes.TempPolygon?.Delete();
+                Additional.ExtraColshapes.TempPolygon?.Destroy();
             }
 
             Additional.ExtraColshapes.TempPolygon = new Additional.Polygon(new List<Vector3>() { newVertice }, height, 0f, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension, null);
@@ -1491,7 +1491,7 @@ namespace BCRPClient.Data
 
         public Commands()
         {
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             All = new List<Instance>();
 

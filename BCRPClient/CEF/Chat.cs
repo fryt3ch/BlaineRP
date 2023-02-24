@@ -14,7 +14,7 @@ namespace BCRPClient.CEF
 
         private DateTime LastSent;
 
-        private static string TimeStr { get => Settings.Chat.ShowTime ? (Settings.Interface.UseServerTime ? "[" + Utils.GetServerTime().ToLongTimeString() + "] " : "[" + Utils.GetLocalTime().ToLongTimeString() + "] ") : ""; }
+        private static string TimeStr { get => Settings.Chat.ShowTime ? (Settings.Interface.UseServerTime ? "[" + Sync.World.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Sync.World.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
 
         #region All Types
         public enum Type
@@ -71,7 +71,7 @@ namespace BCRPClient.CEF
 
         public Chat()
         {
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             TempBinds = new List<int>();
 

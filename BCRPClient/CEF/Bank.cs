@@ -44,7 +44,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(1000, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if ((bool)await Events.CallRemoteProc("Bank::Savings::ToDebitSett", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), state))
                 {
@@ -74,7 +74,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(1000, false, false))
                     return;
 
-                LastSent = DateTime.Now;
+                LastSent = Sync.World.ServerTime;
 
                 if (aId == "transfer")
                 {
@@ -128,7 +128,7 @@ namespace BCRPClient.CEF
                 {
                     Events.CallRemote("Bank::Tariff::Buy", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), (int)tarrif);
 
-                    LastSent = DateTime.Now;
+                    LastSent = Sync.World.ServerTime;
                 }
             });
 

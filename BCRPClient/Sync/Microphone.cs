@@ -100,7 +100,7 @@ namespace BCRPClient.Sync
 
             Stop();
 
-            LastReloaded = DateTime.Now;
+            LastReloaded = Sync.World.ServerTime;
 
             Utils.ReloadVoiceChat();
 
@@ -138,7 +138,7 @@ namespace BCRPClient.Sync
             if (LastSwitched.IsSpam(500, false, false) || pData.IsMuted)
                 return;
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
 
             Events.CallRemote("Microphone::Switch", true);
         }
@@ -154,7 +154,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("Microphone::Switch", false);
 
-            LastSwitched = DateTime.Now;
+            LastSwitched = Sync.World.ServerTime;
         }
 
         #region Updaters
@@ -245,7 +245,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("mal", player);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             return true;
         }
@@ -262,7 +262,7 @@ namespace BCRPClient.Sync
 
             Events.CallRemote("mrl", player);
 
-            LastSent = DateTime.Now;
+            LastSent = Sync.World.ServerTime;
 
             return true;
         }
