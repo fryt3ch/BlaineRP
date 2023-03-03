@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading;
 
 namespace BCRPServer.Sync
@@ -76,6 +77,8 @@ namespace BCRPServer.Sync
 
             ItemBandage,
             ItemMedKit,
+
+            FarmPlantSmallShovel,
             #endregion
 
             #endregion
@@ -548,6 +551,69 @@ namespace BCRPServer.Sync
                             if (entity is Player player)
                             {
                                 player.TriggerEvent("MG::SHOV::S");
+                            }
+                        }
+                    },
+                }
+            },
+
+            {
+                Types.FarmPlantSmallShovel,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                pData.PlayAnim(Sync.Animations.GeneralTypes.FarmPlantSmallShovelProcess0);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                var farmerJob = pData.CurrentJob as Game.Jobs.Farmer;
+
+                                if (farmerJob == null)
+                                    return;
+
+                                int cFieldIdx; byte cRow, cCol;
+
+                                if (Game.Jobs.Farmer.TryGetPlayerCurrentCropInfo(pData, out cFieldIdx, out cRow, out cCol))
+                                {
+                                    var info = farmerJob.FarmBusiness.CropFields[cFieldIdx].CropsData[cRow][cCol];
+
+                                    if (info.CTS != null)
+                                    {
+                                        info.CTS.Cancel();
+                                        info.CTS.Dispose();
+
+                                        info.CTS = null;
+                                    }
+
+                                    Game.Jobs.Farmer.ResetPlayerCurrentCropInfo(pData);
+                                }
+
+                                pData.StopGeneralAnim();
                             }
                         }
                     },

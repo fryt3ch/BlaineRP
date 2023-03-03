@@ -133,18 +133,12 @@ namespace BCRPClient.Sync
 
         private static void InvokeHandler(string dataKey, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(value, oldValue);
 
-        private static void AddDataHandler(string dataKey, Action<object, object> action)
+        public static void AddDataHandler(string dataKey, Action<object, object> action)
         {
             Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
             {
-                if (ServerDataColshape == null)
-                    return;
-
-                if (entity is Colshape colshape)
+                if (entity is Colshape colshape && colshape == ServerDataColshape)
                 {
-                    if (colshape.IsLocal || colshape.RemoteId != ServerDataColshape.RemoteId)
-                        return;
-
                     action.Invoke(value, oldValue);
                 }
             });
@@ -152,10 +146,23 @@ namespace BCRPClient.Sync
             DataActions.Add(dataKey, action);
         }
 
+        public static void AddDataHandler(string dataKey, Action<string, object, object> action)
+        {
+            Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
+            {
+                if (entity is Colshape colshape && colshape == ServerDataColshape)
+                {
+                    action.Invoke(dataKey, value, oldValue);
+                }
+            });
+        }
+
         public static void Preload()
         {
             if (Preloaded)
                 return;
+
+            Preloaded = true;
 
             AddDataHandler("cst", (value, oldValue) =>
             {
@@ -269,8 +276,6 @@ namespace BCRPClient.Sync
 
                 InvokeHandler($"Garages::{id}::OName", GetSharedData<string>($"Garages::{id}::OName"), null);
             }
-
-            Preloaded = true;
         }
 
         public static async System.Threading.Tasks.Task OnMapObjectStreamIn(MapObject obj)
@@ -293,6 +298,7 @@ namespace BCRPClient.Sync
                     obj.SetData("Interactive", true);
                 }
 
+                obj.SetDisableFragDamage(true);
                 obj.SetCanBeDamaged(false);
                 obj.SetInvincible(true);
 

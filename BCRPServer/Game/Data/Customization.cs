@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace BCRPServer.Game.Data
@@ -17,6 +18,7 @@ namespace BCRPServer.Game.Data
             Accessory = 7,
             Bag = 5,
             Armour = 9,
+            Decals = 10,
         }
 
         public enum AccessoryTypes
@@ -26,6 +28,118 @@ namespace BCRPServer.Game.Data
             Earrings = 2,
             Watches = 6,
             Bracelet = 7,
+        }
+
+        private static Dictionary<Type, int> ClothesTypesDict = new Dictionary<Type, int>()
+        {
+            { typeof(Items.Top), (int)ClothesTypes.Top },
+            { typeof(Items.Under), (int)ClothesTypes.Under },
+            { typeof(Items.Pants), (int)ClothesTypes.Pants },
+            { typeof(Items.Shoes), (int)ClothesTypes.Shoes },
+            { typeof(Items.Gloves), (int)ClothesTypes.Gloves },
+            { typeof(Items.Mask), (int)ClothesTypes.Mask },
+            { typeof(Items.Accessory), (int)ClothesTypes.Accessory },
+            { typeof(Items.Bag), (int)ClothesTypes.Bag },
+            { typeof(Items.Armour), (int)ClothesTypes.Armour },
+            { typeof(Items.Holster), (int)ClothesTypes.Decals },
+
+            { typeof(Items.Hat), (int)AccessoryTypes.Hat },
+            { typeof(Items.Glasses), (int)AccessoryTypes.Glasses },
+            { typeof(Items.Earrings), (int)AccessoryTypes.Earrings },
+            { typeof(Items.Watches), (int)AccessoryTypes.Watches },
+            { typeof(Items.Bracelet), (int)AccessoryTypes.Bracelet },
+        };
+
+        public static int GetClothesIdxByType(Type type) => ClothesTypesDict.GetValueOrDefault(type);
+
+        public enum UniformTypes
+        {
+            Farmer = 0,
+        }
+
+        // if >= 1000 -> prop
+        public static Dictionary<UniformTypes, Dictionary<int, Tuple<int, int>[]>> Uniforms = new Dictionary<UniformTypes, Dictionary<int, Tuple<int, int>[]>>()
+        {
+            {
+                UniformTypes.Farmer,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(43, 0), new Tuple<int, int>(86, 0) } },
+                    { 4, new Tuple<int, int>[] { new Tuple<int, int>(43, 0), new Tuple<int, int>(25, 0) } },
+                    { 8, new Tuple<int, int>[] { new Tuple<int, int>(15, 0), new Tuple<int, int>(14, 0) } },
+                    { 6, new Tuple<int, int>[] { new Tuple<int, int>(27, 0), new Tuple<int, int>(26, 0) } },
+                    { 3, new Tuple<int, int>[] { new Tuple<int, int>(70, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(0, 0), new Tuple<int, int>(0, 0) } },
+                }
+            }
+        };
+
+        public static void ApplyUniform(PlayerData pData, UniformTypes uType)
+        {
+            var data = Uniforms.GetValueOrDefault(uType);
+
+            if (data == null)
+                return;
+
+            var idx = pData.Sex ? 0 : 1;
+
+            foreach (var x in data)
+            {
+                if (x.Key >= 1000)
+                {
+                    pData.Player.SetAccessories(x.Key - 1000, x.Value[idx].Item1, x.Value[idx].Item2);
+                }
+                else
+                {
+                    pData.Player.SetClothes(x.Key, x.Value[idx].Item1, x.Value[idx].Item2);
+                }
+            }
+
+            pData.CurrentUniform = uType;
+        }
+
+        public static bool IsUniformElementActive(PlayerData pData, int elementIdx, bool notifyIf)
+        {
+            if (pData.CurrentUniform is UniformTypes uType)
+            {
+                var data = Uniforms.GetValueOrDefault(uType);
+
+                if (data == null)
+                    return false;
+
+                if (data.ContainsKey(elementIdx))
+                {
+                    if (notifyIf)
+                    {
+                        pData.Player.Notify("Inv::CCWUA");
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsInUniform(PlayerData pData, bool notifyIf)
+        {
+            if (pData.CurrentUniform == null)
+                return false;
+
+            if (notifyIf)
+            {
+                pData.Player.Notify("Inv::CDTWUA");
+            }
+
+            return true;
+        }
+
+        public static void SetNoUniform(PlayerData pData)
+        {
+            pData.CurrentUniform = null;
+
+            pData.UpdateClothes();
         }
 
         public class TattooData

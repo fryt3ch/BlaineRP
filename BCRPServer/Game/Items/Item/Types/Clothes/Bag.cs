@@ -41,8 +41,6 @@ namespace BCRPServer.Game.Items
             { "bag_f_0", new ItemData("Обычная сумка", false, 81, new int[] { 0, 1, 2, 3, 4, 5 }, 10, 5f, "bag_m_0") },
         };
 
-        public const int Slot = 5;
-
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 

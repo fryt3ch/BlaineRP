@@ -4,6 +4,20 @@ using System.Linq;
 
 namespace BCRPServer.Game.Jobs
 {
+    public enum Types
+    {
+        /// <summary>Работа дальнобойщика</summary>
+        Trucker = 0,
+        /// <summary>Работа таксиста</summary>
+        Cabbie,
+        /// <summary>Работа водителя автобуса</summary>
+        BusDriver,
+        /// <summary>Работа инкассатора</summary>
+        Collector,
+
+        Farmer,
+    }
+
     public abstract class Job
     {
         public static Dictionary<int, Job> AllJobs { get; private set; } = new Dictionary<int, Job>();
@@ -12,17 +26,11 @@ namespace BCRPServer.Game.Jobs
 
         private static void Add(Job job) => AllJobs.Add(job.Id, job);
 
-        public enum Types
-        {
-            /// <summary>Работа дальнобойщика</summary>
-            Trucker = 0,
-            /// <summary>Работа таксиста</summary>
-            Cabbie,
-        }
-
         public Types Type { get; set; }
 
         public int Id { get; set; }
+
+        public int SubId => AllJobs.Values.Where(x => x.Type == Type).ToList().IndexOf(this);
 
         public Utils.Vector4 Position { get; set; }
 
@@ -58,16 +66,53 @@ namespace BCRPServer.Game.Jobs
                 VehicleRentPrice = 750,
             };
 
+            new Cabbie(new Utils.Vector4(895.5431f, -178.9546f, 74.70026f, 254.4035f))
+            {
+                VehicleRentPrice = 750,
+            };
+
+            new BusDriver(new Utils.Vector4(-744.4896f, 5546.173f, 33.60594f, 121.2667f))
+            {
+                VehicleRentPrice = 1_000,
+
+                Routes = new List<BusDriver.RouteData>()
+                {
+                    new BusDriver.RouteData(2_500, new List<Vector3>()
+                    {
+                        new Vector3(-782.8536f, 5500.472f, 34.38135f),
+                        new Vector3(-945.3662f, 5418.015f, 38.22468f),
+                        new Vector3(-773.1383f, 5482.208f, 34.35715f),
+                        new Vector3(-785.9555f, 5536.9139f, 33.65596f),
+                    }),
+                }
+            };
+
+            new Collector(new Utils.Vector4(-90.54147f, 6471.977f, 31.29943f, 0f), 0)
+            {
+                VehicleRentPrice = 2_000,
+            };
+
+            new Collector(new Utils.Vector4(132.968f, -1056.943f, 29.19235f, 0f), 7)
+            {
+                VehicleRentPrice = 2_000,
+            };
+
+            new Farmer(Game.Businesses.Business.Get(38) as Game.Businesses.Farm)
+            {
+                VehicleRentPrice = 500,
+            };
+
             var lines = new List<string>();
 
             foreach (var x in AllJobs.Values)
             {
                 x.Initialize();
 
-                lines.Add($"new {x.GetType().Name}({x.ClientData});");
+                lines.Add($"new Jobs.{x.GetType().Name}({x.ClientData});");
             }
 
             Trucker.AllTruckerJobs = AllJobs.Values.Select(x => x as Trucker).Where(x => x != null).ToList();
+            Collector.AllCollectorJobs = AllJobs.Values.Select(x => x as Collector).Where(x => x != null).ToList();
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "JOBS_TO_REPLACE", lines);
 
@@ -115,14 +160,30 @@ namespace BCRPServer.Game.Jobs
             pData.CurrentJob = this;
         }
 
+        public abstract bool CanPlayerDoThisJob(PlayerData pData);
+
         public abstract void OnWorkerExit(PlayerData pData);
+
+        public static uint GetPlayerTotalCashSalary(PlayerData pData) => pData.Player.GetData<uint>("JCMC::TS");
+
+        public static void SetPlayerTotalCashSalary(PlayerData pData, uint value, bool notify)
+        {
+            if (notify)
+            {
+                var oldValue = GetPlayerTotalCashSalary(pData);
+
+                // todo
+            }
+
+            pData.Player.SetData("JCMC::TS", value);
+        }
+
+        public static void ResetPlayerTotalCashSalary(PlayerData pData) => pData.Player.ResetData("JCMC::TS");
     }
 
     public interface IVehicles
     {
         public List<VehicleData> Vehicles { get; set; }
-
-        public string NumberplateText { get; set; }
 
         public uint VehicleRentPrice { get; set; }
 

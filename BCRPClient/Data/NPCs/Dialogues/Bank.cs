@@ -6,11 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using static BCRPClient.Data.Dialogue;
 
-namespace BCRPClient.Data.NPCDialogues
+namespace BCRPClient.Data.NPCs.Dialogues
 {
-    public class Bank
+    public class Bank : Events.Script
     {
-        public static void Load()
+        public Bank()
         {
             new Dialogue("bank_preprocess", null,
 

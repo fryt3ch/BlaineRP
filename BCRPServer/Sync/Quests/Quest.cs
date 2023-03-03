@@ -13,6 +13,10 @@ namespace BCRPServer.Sync
                 TQ1 = 0,
 
                 JTR1,
+
+                JBD1,
+
+                JCL1,
             }
 
             public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>()
@@ -137,9 +141,11 @@ namespace BCRPServer.Sync
             }
         }
 
-        public void UpdateStep(PlayerData.PlayerInfo pInfo, byte step, string currentData = null)
+        public void UpdateStep(PlayerData.PlayerInfo pInfo, byte step, int progress, string currentData = null)
         {
             Step = step;
+
+            StepProgress = progress;
 
             CurrentData = currentData;
 
@@ -163,9 +169,11 @@ namespace BCRPServer.Sync
             }
         }
 
-        public void UpdateStepKeepOldData(PlayerData.PlayerInfo pInfo, byte step)
+        public void UpdateStepKeepOldData(PlayerData.PlayerInfo pInfo, byte step, int progress)
         {
             Step = step;
+
+            StepProgress = progress;
 
             var sData = CurrentStepData;
 

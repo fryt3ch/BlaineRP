@@ -133,6 +133,8 @@ namespace BCRPServer
         public int GaragesSlots => Settings.MAX_GARAGES - OwnedGarages.Count;
         public int BusinessesSlots => Settings.MAX_BUSINESSES - OwnedBusinesses.Count;
 
+        public Game.Data.Customization.UniformTypes? CurrentUniform { get => Player.GetData<Game.Data.Customization.UniformTypes?>("CUNIF"); set { if (value == null) Player.ResetData("CUNIF"); else Player.SetData("CUNIF", value); } }
+
         #region Customization
         public Game.Data.Customization.HeadBlend HeadBlend { get => Info.HeadBlend; set => Info.HeadBlend = value; }
 

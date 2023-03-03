@@ -884,7 +884,7 @@ namespace BCRPServer.Sync
                         {
                             tData.Player.Notify("Trade::EOP");
 
-                            return(Game.Items.Inventory.Results.NoBusinessLicense, pData);
+                            return (Game.Items.Inventory.Results.NoBusinessLicense, pData);
                         }
 
                         if ((pData.BusinessesSlots + SenderBusinesses.Count - ReceiverBusinesses.Count) < 0)

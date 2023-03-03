@@ -77,6 +77,8 @@ namespace BCRPServer.Game.Businesses
             TuningShop,
 
             WeaponShop,
+
+            Farm,
         }
 
         public Game.Jobs.Trucker ClosestTruckerJob
@@ -98,6 +100,32 @@ namespace BCRPServer.Game.Businesses
                         minDist = dist;
 
                         minJob = truckerJobs[i];
+                    }
+                }
+
+                return minJob;
+            }
+        }
+
+        public Game.Jobs.Collector ClosestCollectorJob
+        {
+            get
+            {
+                var collectorJobs = Jobs.Collector.AllCollectorJobs;
+
+                var minDist = PositionInfo.DistanceTo(collectorJobs[0].Position.Position);
+
+                var minJob = collectorJobs[0];
+
+                for (int i = 1; i < collectorJobs.Count; i++)
+                {
+                    var dist = PositionInfo.DistanceTo(collectorJobs[i].Position.Position);
+
+                    if (dist < minDist)
+                    {
+                        minDist = dist;
+
+                        minJob = collectorJobs[i];
                     }
                 }
 

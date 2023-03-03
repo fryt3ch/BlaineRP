@@ -89,7 +89,7 @@ namespace BCRPClient.CEF
                     var surname = (string)args[2];
 
                     var diagnose = (Sync.Players.MedicalCard.DiagnoseTypes)(int)args[3];
-                    var issueFraction = (Sync.Players.FractionTypes)(int)args[4];
+                    var issueFraction = (Data.Locations.Fraction.Types)(int)args[4];
                     var docName = (string)args[5];
                     var issueDate = RAGE.Util.Json.Deserialize<DateTime>((string)args[6]);
 
@@ -153,7 +153,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 1, new object[] { null, GetLicensesData(name, surname, licenses) });
         }
 
-        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Sync.Players.FractionTypes issueFraction, string docName, DateTime dateOfIssue)
+        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Locations.Fraction.Types issueFraction, string docName, DateTime dateOfIssue)
         {
             if (IsActive)
                 return;
@@ -208,6 +208,6 @@ namespace BCRPClient.CEF
 
         public static object[] GetVehiclePassportData(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue) => new object[] { vName, $"{oName} {oSurname}", $"#{vid}", oCount, plate ?? Locale.General.Documents.VehiclePassportNoPlate, dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Sync.Players.FractionTypes issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, diagnose.ToString(), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
+        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Locations.Fraction.Types issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, diagnose.ToString(), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
     }
 }

@@ -58,22 +58,6 @@ namespace BCRPClient.Sync
         }
 
         #region Enums
-        public enum FractionTypes
-        {
-            /// <summary>Отсутствует</summary>
-            None = -1,
-
-            PBMS = 0, // Paleto Bay Medical Service
-            SSMS = 1, // Sandy Shores Medical Service
-            PBSD = 2, // Paleto Bay Sheriff's Department
-            SSSD = 3, // Sandy Shores Sheriff's Department
-            NG = 4, // National Guard
-            GOV = 5, // Government
-            WeazelNews = 6, // Weazel News
-            MM = 7, // Mexican Mafia
-            IM = 8, // Italian Mafia
-        }
-
         public enum LicenseTypes
         {
             /// <summary>Мопеды</summary>
@@ -164,7 +148,7 @@ namespace BCRPClient.Sync
             public DateTime IssueDate { get; set; }
 
             [JsonProperty(PropertyName = "F")]
-            public FractionTypes IssueFraction { get; set; }
+            public Data.Locations.Fraction.Types IssueFraction { get; set; }
 
             [JsonProperty(PropertyName = "N")]
             public string DoctorName { get; set; }
@@ -190,7 +174,7 @@ namespace BCRPClient.Sync
 
             public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
-            public FractionTypes Fraction => (FractionTypes)Player.GetSharedData<int>("Fraction", -1);
+            public Data.Locations.Fraction.Types Fraction => (Data.Locations.Fraction.Types)Player.GetSharedData<int>("Fraction", 0);
 
             public int Satiety => Player.GetSharedData<int>("Satiety", 0);
 
@@ -300,7 +284,7 @@ namespace BCRPClient.Sync
 
             public CEF.PhoneApps.PhoneApp.CallInfo ActiveCall { get => Player.GetData<CEF.PhoneApps.PhoneApp.CallInfo>("ActiveCall"); set { if (value == null) Player.ResetData("ActiveCall"); Player.SetData("ActiveCall", value); } }
 
-            public Data.Locations.Job CurrentJob { get => Player.GetData<Data.Locations.Job>("CJob"); set { if (value == null) Player.ResetData("CJob"); Player.SetData("CJob", value); } }
+            public Data.Jobs.Job CurrentJob { get => Player.GetData<Data.Jobs.Job>("CJob"); set { if (value == null) Player.ResetData("CJob"); Player.SetData("CJob", value); } }
             #endregion
 
             public void Reset()
@@ -724,7 +708,7 @@ namespace BCRPClient.Sync
                 }
                 else
                 {
-                    var job = Data.Locations.Job.Get((int)args[0]);
+                    var job = Data.Jobs.Job.Get((int)args[0]);
 
                     var lastJob = pData.CurrentJob;
 
@@ -874,9 +858,9 @@ namespace BCRPClient.Sync
                     {
                         quest = new Sync.Quest(qType, step, sProgress, args.Length > 3 ? (string)args[3] : null);
 
-                        quest.Initialize();
-
                         quests.Add(quest);
+
+                        quest.Initialize();
 
                         CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestStartedText, quest.GoalWithProgress));
                     }
@@ -885,14 +869,13 @@ namespace BCRPClient.Sync
                         if (args.Length > 3)
                             quest.CurrentData = (string)args[3];
 
-                        if (quest.Step != step)
-                        {
-                            quest.UpdateStep(step);
+                        quest.StepProgress = sProgress;
 
-                            CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, quest.GoalWithProgress));
-                        }
+                        quest.UpdateStep(step);
 
                         quest.UpdateProgress(sProgress);
+
+                        CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, quest.GoalWithProgress));
                     }
 
                     CEF.Menu.UpdateQuests(data);
@@ -1684,10 +1667,12 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Fraction", (pData, value, oldValue) =>
             {
-                var fraction = (FractionTypes)(int)value;
+                if (pData.Player == Player.LocalPlayer)
+                {
+                    var fraction = value is int vint ? (Data.Locations.Fraction.Types)vint : Data.Locations.Fraction.Types.None;
 
-                if (pData.Player.Handle == Player.LocalPlayer.Handle)
                     CEF.Menu.SetFraction(fraction);
+                }
             });
 
             AddDataHandler("AdminLevel", (pData, value, oldValue) =>

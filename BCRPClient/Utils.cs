@@ -476,7 +476,7 @@ namespace BCRPClient
 
             if (fractionToo)
             {
-                return pData.Familiars.Contains(tData.CID) || pData.Fraction == tData.Fraction && pData.Fraction != Sync.Players.FractionTypes.None;
+                return pData.Familiars.Contains(tData.CID) || pData.Fraction == tData.Fraction && pData.Fraction != Data.Locations.Fraction.Types.None;
             }
             else
             {
@@ -657,7 +657,7 @@ namespace BCRPClient
             return RAGE.Game.Ui.GetBlipInfoIdCoord(blip);
         }
 
-        public static Vector3 RotatePoint(Vector3 point, Vector3 originPoint, float angle)
+        public static void RotatePoint(Vector3 point, Vector3 originPoint, float angle)
         {
             angle = (float)(angle * Math.PI / 180);
 
@@ -666,8 +666,6 @@ namespace BCRPClient
 
             point.X = cos * (x - originPoint.X) - sin * (y - originPoint.Y) + originPoint.X;
             point.Y = sin * (x - originPoint.X) + cos * (y - originPoint.Y) + originPoint.Y;
-
-            return point;
         }
 
         /// <summary>Метод для замены символа \n в строке на тег /br</summary>
@@ -1061,6 +1059,19 @@ namespace BCRPClient
         /// <param name="radians">Радианы</param>
         public static float RadiansToDegrees(float radians) => (float)(180f / Math.PI) * radians;
 
+        public static Vector3 GetRotationToFacePointTo(Vector3 position, Vector3 target)
+        {
+            var direction = target - position;
+
+            var pitch = Utils.RadiansToDegrees((float)Math.Atan2(direction.Z, Math.Sqrt(direction.X * direction.X + direction.Y * direction.Y)));
+            var roll = Utils.RadiansToDegrees((float)Math.Atan2(direction.Z, Math.Sqrt(direction.Y * direction.Y + direction.Z * direction.Z)));
+            var yaw = Utils.RadiansToDegrees((float)Math.Atan2(direction.Y, direction.X)) - 90f; // subtract 90f to fit game coord system
+
+            return new Vector3(pitch, roll, yaw);
+        }
+
+        public static float GetRotationZToFacePointTo(Vector3 position, Vector3 target) => Utils.RadiansToDegrees((float)Math.Atan2(target.Y - position.Y, target.X - position.X)) - 90f;
+
         /// <summary>Получить позицию на экране точки в игровом пространстве</summary>
         /// <remarks>Лучше не использовать для рендера, при каждом вызове создает объект класса Vector2</remarks>
         /// <param name="pos">Позиция</param>
@@ -1187,6 +1198,8 @@ namespace BCRPClient
         public static void SetInteriorEntitySetColour(int intId, string entitySetName, int colour) => RAGE.Game.Invoker.Invoke(0xC1F1920BAF281317, intId, entitySetName, colour);
 
         public static float GetLimitedValue(float curValue, float minValue, float maxValue) => Math.Min(maxValue, Math.Max(minValue, curValue));
+
+        public static void DebugServerSaveText(string text) => Events.CallRemote("debug_save", text);
     }
 
     public static class Extensions

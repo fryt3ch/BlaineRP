@@ -1,11 +1,12 @@
-﻿using RAGE.Elements;
+﻿using RAGE;
+using RAGE.Elements;
 using static BCRPClient.Data.Dialogue;
 
-namespace BCRPClient.Data.NPCDialogues
+namespace BCRPClient.Data.NPCs.Dialogues
 {
-    public class Misc
+    public class Misc : Events.Script
     {
-        public static void Load()
+        public Misc()
         {
             new Dialogue("vrent_s_preprocess", null,
 

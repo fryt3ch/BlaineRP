@@ -119,9 +119,6 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public const int Slot = (int)Customization.ClothesTypes.Gloves;
-
-        [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]
@@ -158,7 +155,7 @@ namespace BCRPServer.Game.Items
         {
             var player = pData.Player;
 
-            if (player.GetClothesDrawable(Top.Slot) == Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Top, pData.Sex))
+            if (player.GetClothesDrawable(11) == Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Top, pData.Sex))
                 player.SetClothes(Slot, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Gloves, pData.Sex), 0);
 
             if (pData.Clothes[1] != null)

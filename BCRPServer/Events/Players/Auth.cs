@@ -168,7 +168,7 @@ namespace BCRPServer.Events.Players
                             tData.Characters[i].Cash,
                             tData.Characters[i].Sex,
                             tData.Characters[i].BirthDate.GetTotalYears(),
-                            tData.Characters[i].Fraction == PlayerData.FractionTypes.None ? Locale.General.Auth.NoFraction : tData.Characters[i].Fraction.ToString(),
+                            tData.Characters[i].Fraction == Game.Fractions.Types.None ? Locale.General.Auth.NoFraction : tData.Characters[i].Fraction.ToString(),
                             (tData.Characters[i].TimePlayed / 60f).ToString("0.0"),
                             tData.Characters[i].CID,
                             lastBan != null,

@@ -71,6 +71,8 @@ namespace BCRPClient.Sync
 
             ItemBandage,
             ItemMedKit,
+
+            FarmPlantSmallShovel,
             #endregion
 
             #endregion
@@ -434,6 +436,8 @@ namespace BCRPClient.Sync
             { Types.ItemChocolate, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
+
+            { Types.FarmPlantSmallShovel, new AttachmentData(28422, new Vector3(0f, 0.01f, -0.03f), new Vector3(0f, -180f, 0f), false, false, false, 2, true) },
         };
 
         public static async System.Threading.Tasks.Task OnEntityStreamIn(Entity entity)
@@ -1202,6 +1206,32 @@ namespace BCRPClient.Sync
                             }
 
                             Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+
+            {
+                Types.FarmPlantSmallShovel,
+
+                (
+                    null,
+
+                    null,
+
+                    new Action(() =>
+                    {
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (bind.IsPressed)
+                        {
+                            GameEvents.Update -= GetRootActions(Types.FarmPlantSmallShovel).Value.Loop.Invoke;
+
+                            Events.CallRemote("Job::FARM::SCP");
+                        }
+                        else
+                        {
+                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
                         }
                     })
                 )

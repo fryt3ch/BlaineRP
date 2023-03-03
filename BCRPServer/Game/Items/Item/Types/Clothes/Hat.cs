@@ -138,9 +138,6 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         new public ItemData SexAlternativeData { get => (ItemData)base.SexAlternativeData; }
 
-        [JsonIgnore]
-        public const int Slot = (int)Customization.AccessoryTypes.Hat;
-
         public override void Wear(PlayerData pData)
         {
             var player = pData.Player;

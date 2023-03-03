@@ -1,5 +1,4 @@
-﻿using BCRPClient.Sync;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -413,9 +412,9 @@ namespace BCRPClient.CEF
 
         public static void SetCID(uint value) => Browser.Window.ExecuteJs("Menu.setCID", value);
 
-        public static void SetFraction(Players.FractionTypes type) => Browser.Window.ExecuteJs("Menu.setFraction", Locale.General.Players.FractionNames[type]);
+        public static void SetFraction(Data.Locations.Fraction.Types type) => Browser.Window.ExecuteJs("Menu.setFraction", Locale.General.Players.FractionNames[type]);
 
-        public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? Locale.General.Players.FractionNames[Sync.Players.FractionTypes.None]);
+        public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? Locale.General.Players.FractionNames[Data.Locations.Fraction.Types.None]);
 
         public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs("Menu.setSkill", type, current);
 

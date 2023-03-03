@@ -97,22 +97,23 @@ namespace BCRPServer.Events
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all vehicles [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Data.Vehicles.LoadAll()}]~/~", false);
 
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all businesses [DATA]");
+            Utils.ConsoleOutput($" | ~Red~[{Game.Businesses.Business.LoadAll()}]~/~", false);
+
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all jobs [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Jobs.Job.InitializeAll()}]~/~", false);
-            #endregion
 
             Game.Estates.HouseBase.Style.LoadAll();
             Game.Estates.Garage.Style.LoadAll();
 
             Game.Bank.LoadAll();
+            #endregion
 
             #region Database Data Load Section
             MySQL.UpdateServerData();
 
             MySQL.LoadAll();
             MySQL.UpdateFreeUIDs();
-
-            Game.Businesses.Business.LoadAll();
 
             Game.Estates.House.LoadAll();
             Game.Estates.Apartments.LoadAll();
@@ -151,6 +152,8 @@ namespace BCRPServer.Events
             {
                 x.PostInitialize();
             }
+
+            Game.Businesses.Business.ReplaceClientsideLines();
 
             /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
@@ -282,5 +285,11 @@ namespace BCRPServer.Events
 
                     File.WriteAllLines("vehicleData.new.json", VehicleDataLines);
                 }*/
+
+        [RemoteEvent("debug_save")]
+        private static void DebugSaveText(Player player, string str)
+        {
+            File.AppendAllText(@"debug-save.txt", str + Environment.NewLine);
+        }
     }
 }

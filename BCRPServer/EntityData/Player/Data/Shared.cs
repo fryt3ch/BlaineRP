@@ -58,7 +58,7 @@ namespace BCRPServer
         /// <summary>Фракция игрока</summary>
         /// <remarks>Также вызывает событие Players::SetFraction на клиенте игроков в зоне стрима</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public FractionTypes Fraction { get => Info.Fraction; set { Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
+        public Game.Fractions.Types Fraction { get => Info.Fraction; set { if (value == Game.Fractions.Types.None) Player.ResetSharedData("Fraction"); else Player.SetSharedData("Fraction", value); Info.Fraction = value; } }
 
         /// <summary>В маске ли игрок?</summary>
         public Game.Items.Mask WearedMask => Accessories[1] as Game.Items.Mask;

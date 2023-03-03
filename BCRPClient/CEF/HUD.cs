@@ -53,7 +53,7 @@ namespace BCRPClient.CEF
 
                 { Types.WeaponSkinsMenu, () => Sync.Players.TryShowWeaponSkinsMenu() },
 
-                { Types.Job_Menu, () => Data.Locations.Job.ShowJobMenu() },
+                { Types.Job_Menu, () => Data.Jobs.Job.ShowJobMenu() },
             };
 
             public static List<Types> CurrentTypes { get; private set; } = new List<Types>();

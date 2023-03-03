@@ -34,6 +34,8 @@ namespace BCRPClient.CEF.PhoneApps
                         CurrentOrderInfo = null;
 
                         CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi3);
+
+                        Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                     }
                 }
                 else if (args.Length == 2)
@@ -62,6 +64,8 @@ namespace BCRPClient.CEF.PhoneApps
                             CurrentOrderInfo.Driver = null;
 
                             CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
+
+                            Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
                         else
                         {
@@ -71,6 +75,8 @@ namespace BCRPClient.CEF.PhoneApps
                             CurrentOrderInfo = null;
 
                             CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
+
+                            Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
                     }
                 }

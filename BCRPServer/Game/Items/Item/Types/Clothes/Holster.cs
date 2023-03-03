@@ -24,8 +24,6 @@ namespace BCRPServer.Game.Items
             { "hl_m_1", new ItemData("Кобура простая", true, 149, new int[] { 0 }, 147, null) },
         };
 
-        public const int Slot = 10;
-
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 

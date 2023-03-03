@@ -183,6 +183,9 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
+                    if (Game.Data.Customization.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
+                        return null;
+
                     player.InventoryUpdate(Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
 
                     item.Unwear(pData);
@@ -208,6 +211,9 @@ namespace BCRPServer.Game.Items
                     var item = pData.Accessories[slot];
 
                     if (item == null)
+                        return null;
+
+                    if (Game.Data.Customization.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
                         return null;
 
                     player.InventoryUpdate(Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));

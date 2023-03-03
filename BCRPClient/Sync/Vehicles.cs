@@ -226,6 +226,8 @@ namespace BCRPClient.Sync
             veh.TrackVisibility();
 
             veh.SetUndriveable(false);
+
+            //veh.SetAutomaticallyAttaches(0, 0);
             #endregion
 
             #region Default Settings

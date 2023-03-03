@@ -166,7 +166,11 @@ namespace BCRPClient.Sync
                         if (veh.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle || veh.GetPedInSeat(0, 0) == Player.LocalPlayer.Handle)
                         {
                             if (sType != actualStation && !Sync.Vehicles.LastRadioSent.IsSpam(1000, false, false))
+                            {
+                                Sync.Vehicles.LastRadioSent = Sync.World.ServerTime;
+
                                 RAGE.Events.CallRemote("Vehicles::SetRadio", (byte)CurrentStationType);
+                            }
                         }
                         else
                         {

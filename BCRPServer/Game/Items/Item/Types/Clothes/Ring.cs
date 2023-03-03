@@ -24,8 +24,6 @@ namespace BCRPServer.Game.Items
             { "ring_f_1", new ItemData("Золотое кольцо с красным камнем", false, "brp_p_ring_1_0", "ring_m_1") },
         };
 
-        public const int Slot = int.MinValue;
-
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 

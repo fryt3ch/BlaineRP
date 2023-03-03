@@ -423,13 +423,11 @@ namespace BCRPClient.Data
         }
 
         [Command("anim", true, "Смена измерения", "playanim")]
-        public static void PlayAnim(string dict, string name, float sp, float spMult, int dur, int fg, float pRate, bool p1 = false, bool p2 = false, bool p3 = false)
+        public static async void PlayAnim(string dict, string name, float sp, float spMult, int dur, int fg, float pRate, bool p1 = false, bool p2 = false, bool p3 = false)
         {
-            Utils.RequestAnimDict(dict).GetAwaiter().GetResult();
+            await Utils.RequestAnimDict(dict);
 
             Player.LocalPlayer.TaskPlayAnim(dict, name, sp, spMult, dur, fg, pRate, p1, p2, p3);
-
-            LastSent = Sync.World.ServerTime;
         }
 
         [Command("anim_stop", true, "Смена измерения", "stopanim")]
@@ -437,8 +435,6 @@ namespace BCRPClient.Data
         {
             Player.LocalPlayer.ClearTasks();
             Player.LocalPlayer.ClearTasksImmediately();
-
-            LastSent = Sync.World.ServerTime;
         }
 
         #endregion
@@ -971,6 +967,29 @@ namespace BCRPClient.Data
             CEF.MapEditor.Close();
         }
 
+        [Command("colshape_edit_start", true, "Установить сытость игроку")]
+        public static void ColshapeEditStart(int id)
+        {
+            var colshape = Additional.ExtraColshape.GetById(id);
+
+            if (colshape == null)
+                return;
+
+            if (CEF.MapEditor.IsActive)
+                CEF.MapEditor.Close();
+
+            CEF.MapEditor.Show(colshape, CEF.MapEditor.ModeTypes.Colshape, false);
+        }
+
+        [Command("colshape_edit_stop", true, "Установить сытость игроку")]
+        public static void ColshapeEditStop()
+        {
+            if (!CEF.MapEditor.IsActive)
+                return;
+
+            CEF.MapEditor.Close();
+        }
+
         #endregion
 
         #region Debug Labels (DL)
@@ -1043,7 +1062,7 @@ namespace BCRPClient.Data
             }
             else
             {
-                var veh = RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x?.RemoteId == id).FirstOrDefault();
+                var veh = id > ushort.MaxValue ? RAGE.Elements.Entities.Vehicles.Streamed.Where(x => Sync.Vehicles.GetData(x)?.VID == id).FirstOrDefault() : RAGE.Elements.Entities.Vehicles.Streamed.Where(x => x.RemoteId == id).FirstOrDefault();
 
                 if (veh == null)
                 {
@@ -1148,37 +1167,6 @@ namespace BCRPClient.Data
             (col as Additional.Polygon).SetHeading(angle);
         }
 
-        /*        [Command("colshape_new_cuboid2d", true, "Создать КШ Прямоугольник", "cs_n_c2d")]
-                public static void ColshapeNewRectangle(float width = 0, float depth = 0)
-                {
-                    if (width < 0 || depth < 0)
-                        return;
-
-                    var newVertice = Player.LocalPlayer.Position;
-                    newVertice.Z -= 1f;
-
-                    if (width != 0 && depth != 0)
-                    {
-                        Additional.ExtraColshape.CreateRectangle(newVertice, width, depth, Player.LocalPlayer.GetHeading(), Player.LocalPlayer.Dimension, Utils.RedColor, 125, false);
-
-                        Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos: {newVertice} | Width: {width} | Depth: {depth}");
-                    }
-                    else if (Additional.ExtraColshape.TempPosition == null)
-                    {
-                        Additional.ExtraColshape.TempPosition = newVertice;
-
-                        Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos1: {newVertice}");
-                    }
-                    else
-                    {
-                        Additional.ExtraColshape.CreateRectangle(Additional.ExtraColshape.TempPosition, newVertice, 0, Player.LocalPlayer.Dimension, Utils.RedColor, 125, false);
-
-                        Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_2D] Pos2: {newVertice}");
-
-                        Additional.ExtraColshape.TempPosition = null;
-                    }
-                }*/
-
         [Command("colshape_new_circle", true, "Создать КШ Круг", "cs_n_crl")]
         public static void ColshapeNewCircle(float radius)
         {
@@ -1221,8 +1209,8 @@ namespace BCRPClient.Data
             Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Sphere_3D] Pos: {newVertice} | Radius: {radius}");
         }
 
-        [Command("colshape_new_cuboid3d", true, "Создать КШ Параллелепипед", "cs_n_c3d")]
-        public static void ColshapeNew3d(float sX = 0, float sY = 0, float height = 0)
+        [Command("colshape_new_cuboid", true, "Создать КШ Параллелепипед", "cs_n_c3d")]
+        public static void ColshapeNewCuboid(float sX = 5f, float sY = 5f, float height = 5f)
         {
             if (sX < 0 || sY < 0 || height < 0)
                 return;
@@ -1232,28 +1220,36 @@ namespace BCRPClient.Data
 
             if (sX != 0 && sY != 0)
             {
-                Additional.Polygon.CreateCuboid(newVertice, sX, sY, height, Player.LocalPlayer.GetHeading(), false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
+                new Additional.Cuboid(newVertice, sX, sY, height, 0, false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
 
                 Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_3D] Pos: {newVertice} | Width: {sX} | Depth: {sY} | Height: {height}");
             }
-            else if (Additional.ExtraColshapes.TempPosition == null)
-            {
-                Additional.ExtraColshapes.TempPosition = newVertice;
+        }
 
-                Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_3D] Pos1: {newVertice}");
-            }
-            else
-            {
-                Additional.Polygon.CreateCuboid(Additional.ExtraColshapes.TempPosition, newVertice, Player.LocalPlayer.GetHeading(), false, new Utils.Colour(255, 0, 0, 255), Player.LocalPlayer.Dimension);
+        [Command("cuboid_setwidth", true, "Добавить вершину к полигону", "c3d_width")]
+        public static void CuboidSetWidth(uint id, float width)
+        {
+            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Cuboid;
 
-                Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes::Cuboid_3D] Pos2: {newVertice}");
+            if (poly == null)
+                return;
 
-                Additional.ExtraColshapes.TempPosition = null;
-            }
+            poly.SetWidth(width);
+        }
+
+        [Command("cuboid_setdepth", true, "Добавить вершину к полигону", "c3d_depth")]
+        public static void CuboidSetDepth(uint id, float depth)
+        {
+            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Cuboid;
+
+            if (poly == null)
+                return;
+
+            poly.SetDepth(depth);
         }
 
         [Command("poly_addvertice", true, "Добавить вершину к полигону", "poly_addv")]
-        public static void PolyAddVertice(uint id)
+        public static void PolyAddVertice(uint id, int idx = -1)
         {
             var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Polygon;
 
@@ -1263,7 +1259,10 @@ namespace BCRPClient.Data
             var newVertice = Player.LocalPlayer.Position;
             newVertice.Z -= 1f;
 
-            poly.AddVertice(newVertice);
+            if (idx < 0)
+                poly.AddVertice(newVertice);
+            else
+                poly.InsertVertice(idx, newVertice);
         }
 
         [Command("poly_removevertice", true, "Удалить вершину у полигона", "poly_rmv")]
@@ -1289,6 +1288,17 @@ namespace BCRPClient.Data
                 return;
 
             poly.SetHeight(height);
+        }
+
+        [Command("colshape_save_server", true, "Задать высоту полигону", "poly_sheight")]
+        public static void ColshapeSaveServer(uint id)
+        {
+            var poly = Additional.ExtraColshape.GetById((int)id);
+
+            if (poly == null)
+                return;
+
+            Utils.DebugServerSaveText(poly.ShortData);
         }
 
         [Command("highpolymode", true, "Сменить режим вида полигонов", "hpolymode")]

@@ -422,9 +422,6 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public const int Slot = (int)Customization.ClothesTypes.Top;
-
-        [JsonIgnore]
         /// <summary>Переключено ли состояние</summary>
         public bool Toggled { get; set; }
 
@@ -456,12 +453,12 @@ namespace BCRPServer.Game.Items
             if (Toggled)
             {
                 player.SetClothes(Slot, data.ExtraData.Drawable, data.Textures[variation]);
-                player.SetClothes(Gloves.Slot, data.ExtraData.BestTorso, 0);
+                player.SetClothes(3, data.ExtraData.BestTorso, 0);
             }
             else
             {
                 player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
-                player.SetClothes(Gloves.Slot, data.BestTorso, 0);
+                player.SetClothes(3, data.BestTorso, 0);
             }
 
             if (pData.Armour != null)
@@ -495,7 +492,7 @@ namespace BCRPServer.Game.Items
             var player = pData.Player;
 
             player.SetClothes(Slot, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Top, pData.Sex), 0);
-            player.SetClothes(Gloves.Slot, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Gloves, pData.Sex), 0);
+            player.SetClothes(3, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Gloves, pData.Sex), 0);
 
             if (pData.Armour != null)
             {

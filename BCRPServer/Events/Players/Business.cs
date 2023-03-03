@@ -452,6 +452,22 @@ namespace BCRPServer.Events.Players
             return business.ToClientMenuObject();
         }
 
+        [RemoteProc("Business::GMI")]
+        private static float GetMarginInfo(Player player, int id)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return float.MinValue;
+
+            var business = Game.Businesses.Business.Get(id);
+
+            if (business == null)
+                return float.MinValue;
+
+            return (float)business.Margin;
+        }
+
         [RemoteEvent("TuningShop::Enter")]
         public static void TuningShopEnter(Player player, int id, Vehicle veh)
         {

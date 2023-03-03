@@ -525,6 +525,9 @@ namespace BCRPServer.Game.Items
                             if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
                                 return Results.Error;
 
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
+                                return Results.Error;
+
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
                                 return Results.NoSpace;
 
@@ -569,6 +572,9 @@ namespace BCRPServer.Game.Items
                             int actualSlot;
 
                             if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
+                                return Results.Error;
+
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return Results.Error;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
@@ -1236,6 +1242,9 @@ namespace BCRPServer.Game.Items
                             if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
                                 return Results.Error;
 
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
+                                return Results.Error;
+
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
                                 return Results.NoSpace;
 
@@ -1283,6 +1292,9 @@ namespace BCRPServer.Game.Items
                             int actualSlot;
 
                             if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
+                                return Results.Error;
+
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
                                 return Results.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
@@ -2189,6 +2201,9 @@ namespace BCRPServer.Game.Items
                             if (toItem != null && toItem.Type != fromItem.Type)
                                 return Results.Error;
 
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
+                                return Results.Error;
+
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
                                 return Results.NoSpace;
 
@@ -2237,6 +2252,9 @@ namespace BCRPServer.Game.Items
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (toItem != null && toItem.Type != fromItem.Type)
+                                return Results.Error;
+
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return Results.Error;
 
                             var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
@@ -2293,6 +2311,9 @@ namespace BCRPServer.Game.Items
                             if (toItem != null && toItem.Type != fromItem.Type)
                                 return Results.Error;
 
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
+                                return Results.Error;
+
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
                                 return Results.NoSpace;
 
@@ -2341,6 +2362,9 @@ namespace BCRPServer.Game.Items
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (toItem != null && toItem.Type != fromItem.Type)
+                                return Results.Error;
+
+                            if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
                                 return Results.Error;
 
                             var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;

@@ -1,5 +1,4 @@
 ﻿using RAGE;
-using System;
 using static BCRPClient.CEF.Phone;
 
 namespace BCRPClient.CEF.PhoneApps

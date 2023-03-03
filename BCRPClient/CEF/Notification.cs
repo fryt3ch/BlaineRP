@@ -147,6 +147,8 @@ namespace BCRPClient.CEF
 
             { "Inv::HMPF", new Instance(Types.Error, Locale.Notifications.Inventory.MaxAmountFurnitureHouse, Locale.Notifications.ErrorHeader) },
             { "Inv::PMPF", new Instance(Types.Error, Locale.Notifications.Inventory.MaxAmountFurnitureOwned, Locale.Notifications.ErrorHeader) },
+            { "Inv::CCWUA", new Instance(Types.Error, "Вы не можете поменять эту одежду/аксессуар, пока находитесь в рабочей форме!", Locale.Notifications.ErrorHeader) },
+            { "Inv::CDTWUA", new Instance(Types.Error, "Вы не можете сделать это, пока находитесь в рабочей форме!", Locale.Notifications.ErrorHeader) },
 
             { "IOG::PINA", new Instance(Types.Error, Locale.Notifications.Inventory.PlacedItemOnGroundNotAllowed, Locale.Notifications.ErrorHeader) },
 

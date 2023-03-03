@@ -58,9 +58,6 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public const int Slot = (int)Customization.ClothesTypes.Accessory;
-
-        [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 
         [JsonIgnore]

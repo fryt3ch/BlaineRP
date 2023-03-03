@@ -583,7 +583,7 @@ namespace BCRPServer
             return vData;
         }
 
-        public static VehicleData NewJob(int jobId, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
+        public static VehicleData NewJob(int jobId, string numberplateText, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
         {
             var job = Game.Jobs.Job.Get(jobId);
 
@@ -610,7 +610,7 @@ namespace BCRPServer
 
             if (job is Game.Jobs.IVehicles vehJob)
             {
-                veh.NumberPlate = $"{vehJob.NumberplateText}{vehJob.Vehicles.Count + 1}";
+                veh.NumberPlate = $"{numberplateText}{vehJob.Vehicles.Count + 1}";
             }
 
             NAPI.Task.Run(() =>

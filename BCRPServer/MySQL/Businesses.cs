@@ -1,66 +1,13 @@
-﻿using MySql.Data.MySqlClient;
+﻿using GTANetworkAPI;
+using MySql.Data.MySqlClient;
 using System;
+using System.Collections.Generic;
+using ZstdNet;
 
 namespace BCRPServer
 {
     public static partial class MySQL
     {
-        public static bool LoadBusiness(Game.Businesses.Business business)
-        {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
-            {
-                conn.Open();
-
-                using (MySqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT * FROM businesses WHERE ID=@ID LIMIT 1;";
-
-                    cmd.Parameters.AddWithValue("@ID", business.ID);
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (!reader.HasRows)
-                            return false;
-
-                        reader.Read();
-
-                        if (reader["CID"] is DBNull)
-                        {
-                            business.UpdateOwner(null);
-                        }
-                        else
-                        {
-                            business.UpdateOwner(PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"])));
-                        }
-
-                        business.Cash = Convert.ToUInt64(reader["Cash"]);
-                        business.Bank = Convert.ToUInt64(reader["Bank"]);
-
-                        business.IncassationState = (bool)reader["IncassationState"];
-
-                        business.Materials = Convert.ToUInt32(reader["Materials"]);
-                        business.OrderedMaterials = Convert.ToUInt32(reader["OrderedMaterials"]);
-
-                        business.Margin = (decimal)(float)reader["Margin"];
-
-                        business.Tax = (decimal)(float)reader["Tax"];
-                        business.Rent = Convert.ToUInt32(reader["Rent"]);
-
-                        business.GovPrice = Convert.ToUInt32(reader["GovPrice"]);
-
-                        business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<ulong[]>();
-
-                        /*                        if (business is Game.Businesses.Farm)
-                                                {
-
-                                                }*/
-                    }
-                }
-            }
-
-            return true;
-        }
-
         public static void BusinessUpdateComplete(Game.Businesses.Business business)
         {
             var cmd = new MySqlCommand();

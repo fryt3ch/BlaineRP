@@ -31,9 +31,9 @@ namespace BCRPClient
 
             public static string VehicleNoNumberplate = "без гос. номера";
 
-            public static Dictionary<Data.Locations.Job.Types, string> JobNames = new Dictionary<Data.Locations.Job.Types, string>()
+            public static Dictionary<Data.Jobs.Types, string> JobNames = new Dictionary<Data.Jobs.Types, string>()
             {
-                { Data.Locations.Job.Types.Trucker, "Доставка грузов" },
+                { Data.Jobs.Types.Trucker, "Доставка грузов" },
             };
 
             public static Dictionary<Data.Locations.Business.Types, string> BusinessNames = new Dictionary<Data.Locations.Business.Types, string>()
@@ -66,6 +66,8 @@ namespace BCRPClient
                 { Data.Locations.Business.Types.MaskShop, "Торговец масок" },
 
                 { Data.Locations.Business.Types.FurnitureShop, "Мебельный магазин" },
+
+                { Data.Locations.Business.Types.Farm, "Ферма" },
             };
 
             public static Dictionary<CEF.Shop.FurnitureSubTypes, string> FurnitureSubTypeNames { get; private set; } = new Dictionary<CEF.Shop.FurnitureSubTypes, string>()

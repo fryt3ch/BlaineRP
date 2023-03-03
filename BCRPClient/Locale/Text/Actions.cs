@@ -55,9 +55,11 @@ namespace BCRPClient
             public static string JobVehicleRentText = "Вы хотите взять в аренду этот рабочий транспорт?\n\n{0}\n\nСтоимость аренды составит {1}";
 
             public static string JobVehicleOrderSelectTitle = "Список доступных заказов";
+            public static string JobVehicleRouteSelectTitle = "Список доступных маршрутов";
 
             public static string JobTruckerOrderText = "#{0} | -> {1} км. -> {2} км. | {3}";
-            public static string JobCabbieOrderText = "#{0} | {1} | {2}";
+            public static string JobCabbieOrderText = "#{0} | {1} | {2} км.";
+            public static string JobBusDriverRouteText = "#{0} | {1} | Длина: {2} км.";
 
             public static string SelectOkBtn0 = "Принять";
             public static string SelectCancelBtn0 = "Отменить";

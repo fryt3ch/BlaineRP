@@ -64,6 +64,8 @@ namespace BCRPServer.Sync
             MetalDetectorProcess0,
 
             CuffedStatic0,
+
+            FarmPlantSmallShovelProcess0,
         }
 
         public enum OtherTypes

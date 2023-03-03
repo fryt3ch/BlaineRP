@@ -1,4 +1,5 @@
 ﻿using BCRPClient.CEF;
+using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,9 +7,9 @@ using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCDialogues
 {
-    public class VehiclePound
+    public class VehiclePound : Events.Script
     {
-        public static void Load()
+        public VehiclePound()
         {
             new Dialogue("vpound_preprocess", null,
 

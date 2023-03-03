@@ -93,7 +93,9 @@ namespace BCRPServer
 
             public List<LicenseTypes> Licenses { get; set; }
 
-            public FractionTypes Fraction { get; set; }
+            public Game.Fractions.Types Fraction { get; set; }
+
+            public byte FractionRank { get; set; }
 
             public int OrganisationID { get; set; }
 

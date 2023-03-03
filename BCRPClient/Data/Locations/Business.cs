@@ -46,6 +46,8 @@ namespace BCRPClient.Data
                 TuningShop,
 
                 WeaponShop,
+
+                Farm,
             }
 
             public Types Type { get; set; }

@@ -16,7 +16,7 @@ namespace BCRPServer
             public DateTime IssueDate { get; set; }
 
             [JsonProperty(PropertyName = "F")]
-            public FractionTypes IssueFraction { get; set; }
+            public Game.Fractions.Types IssueFraction { get; set; }
 
             [JsonProperty(PropertyName = "N")]
             public string DoctorName { get; set; }

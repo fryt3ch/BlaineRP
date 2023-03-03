@@ -1,4 +1,5 @@
 ﻿using GTANetworkAPI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -113,43 +114,123 @@ namespace BCRPServer.Game.Businesses
                 new Vector3(2750.236f, 3472.052f, 55.68909f),
             });
 
-            var lines = new List<string>();
-
-            foreach (var x in All.Values)
+            new Farm(38, new Vector3(2036.85f, 4984.79f, 40.43526f), new Utils.Vector4(2020.814f, 4970.569f, 41.30896f, 266.771f))
             {
-                if (MySQL.LoadBusiness(x))
+                CropFields = new List<Farm.CropField>()
                 {
-                    var daysDiff = CurrentStatisticsDayIdx - PreviousStatisticsDayIdx;
-
-                    for (int j = 0; j < daysDiff; j++)
-                    {
-                        for (int i = 0; i < x.Statistics.Length; i++)
+                    new Farm.CropField(Farm.CropField.Types.Pumpkin, 40.09598f, new Utils.Vector2(2.16f, -2.16f), 11,
+                        new Utils.Vector2[]
                         {
-                            if (i == x.Statistics.Length - 1)
-                            {
-                                x.Statistics[i] = 0;
-                            }
-                            else
-                            {
-                                x.Statistics[i] = x.Statistics[i + 1];
-                            }
-                        }
-                    }
+                            new Utils.Vector2(2019.139f, 4939.039f),
+                            new Utils.Vector2(2020.566f, 4940.467f),
+                            new Utils.Vector2(2022.273f, 4942.173f),
+                            new Utils.Vector2(2023.703f, 4943.604f),
+                            new Utils.Vector2(2025.108f, 4945.008f),
+                            new Utils.Vector2(2026.458f, 4946.359f),
+                            new Utils.Vector2(2027.92f, 4947.82f),
+                            new Utils.Vector2(2029.353f, 4949.253f),
+                            new Utils.Vector2(2030.774f, 4950.675f),
+                            new Utils.Vector2(2032.135f, 4952.036f),
+                            new Utils.Vector2(2033.581f, 4953.481f),
+                            new Utils.Vector2(2035.001f, 4954.901f),
+                            new Utils.Vector2(2036.404f, 4956.305f),
+                            new Utils.Vector2(2037.807f, 4957.707f),
+                            new Utils.Vector2(2039.229f, 4959.129f),
+                            new Utils.Vector2(2040.655f, 4960.555f),
+                            new Utils.Vector2(2042.088f, 4961.988f),
+                            new Utils.Vector2(2043.435f, 4963.335f),
+                            new Utils.Vector2(2044.891f, 4964.791f),
+                            new Utils.Vector2(2046.293f, 4966.193f),
+                        }),
 
-                    if (x.OrderedMaterials > 0)
-                    {
-                        x.AddOrder(true, null);
-                    }
+                    new Farm.CropField(Farm.CropField.Types.Cabbage, 40.09598f, new Utils.Vector2(2.16f, -2.16f), 11,
+                        new Utils.Vector2[]
+                        {
+                            new Utils.Vector2(2046.209f, 4912.653f),
+                            new Utils.Vector2(2047.677f, 4914.121f),
+                            new Utils.Vector2(2049.343f, 4915.786f),
+                            new Utils.Vector2(2050.742f, 4917.186f),
+                            new Utils.Vector2(2052.181f, 4918.625f),
+                            new Utils.Vector2(2053.558f, 4920.002f),
+                            new Utils.Vector2(2054.976f, 4921.42f),
+                            new Utils.Vector2(2056.419f, 4922.864f),
+                            new Utils.Vector2(2057.854f, 4924.298f),
+                            new Utils.Vector2(2059.196f, 4925.641f),
+                            new Utils.Vector2(2060.621f, 4927.065f),
+                            new Utils.Vector2(2062.071f, 4928.516f),
+                            new Utils.Vector2(2063.497f, 4929.941f),
+                            new Utils.Vector2(2064.86f, 4931.304f),
+                            new Utils.Vector2(2066.296f, 4932.741f),
+                            new Utils.Vector2(2067.712f, 4934.156f),
+                            new Utils.Vector2(2069.134f, 4935.578f),
+                            new Utils.Vector2(2070.515f, 4936.958f),
+                            new Utils.Vector2(2071.931f, 4938.375f),
+                            new Utils.Vector2(2073.379f, 4939.823f),
+                        }),
+
+                    new Farm.CropField(Farm.CropField.Types.Cabbage, 41.9025f, new Utils.Vector2(2.16f, -2.16f), 11,
+                        new Utils.Vector2[]
+                        {
+                            new Utils.Vector2(2019.139f-36.571f, 4939.039f-36.579f),
+                            new Utils.Vector2(2020.566f-36.571f, 4940.467f-36.579f),
+                            new Utils.Vector2(2022.273f-36.571f, 4942.173f-36.579f),
+                            new Utils.Vector2(2023.703f-36.571f, 4943.604f-36.579f),
+                            new Utils.Vector2(2025.108f-36.571f, 4945.008f-36.579f),
+                            new Utils.Vector2(2026.458f-36.571f, 4946.359f-36.579f),
+                            new Utils.Vector2(2027.92f-36.571f, 4947.82f-36.579f),
+                            new Utils.Vector2(2029.353f-36.571f, 4949.253f-36.579f),
+                            new Utils.Vector2(2030.774f-36.571f, 4950.675f-36.579f),
+                            new Utils.Vector2(2032.135f-36.571f, 4952.036f-36.579f),
+                            new Utils.Vector2(2033.581f-36.571f, 4953.481f-36.579f),
+                            new Utils.Vector2(2035.001f-36.571f, 4954.901f-36.579f),
+                            new Utils.Vector2(2036.404f-36.571f, 4956.305f-36.579f),
+                            new Utils.Vector2(2037.807f-36.571f, 4957.707f-36.579f),
+                            new Utils.Vector2(2039.229f-36.571f, 4959.129f-36.579f),
+                            new Utils.Vector2(2040.655f-36.571f, 4960.555f-36.579f),
+                            new Utils.Vector2(2042.088f-36.571f, 4961.988f-36.579f),
+                            new Utils.Vector2(2043.435f-36.571f, 4963.335f-36.579f),
+                        }),
+
+                    new Farm.CropField(Farm.CropField.Types.Pumpkin, 41.9025f, new Utils.Vector2(2.16f, -2.16f), 11,
+                        new Utils.Vector2[]
+                        {
+                            new Utils.Vector2(2046.209f-36.625f, 4912.653f - 36.625f),
+                            new Utils.Vector2(2047.677f-36.625f, 4914.121f - 36.625f),
+                            new Utils.Vector2(2049.343f-36.625f, 4915.786f - 36.625f),
+                            new Utils.Vector2(2050.742f-36.625f, 4917.186f - 36.625f),
+                            new Utils.Vector2(2052.181f-36.625f, 4918.625f - 36.625f),
+                            new Utils.Vector2(2053.558f-36.625f, 4920.002f - 36.625f),
+                            new Utils.Vector2(2054.976f-36.625f, 4921.42f - 36.625f),
+                            new Utils.Vector2(2056.419f-36.625f, 4922.864f - 36.625f),
+                            new Utils.Vector2(2057.854f-36.625f, 4924.298f - 36.625f),
+                            new Utils.Vector2(2059.196f-36.625f, 4925.641f - 36.625f),
+                            new Utils.Vector2(2060.621f-36.625f, 4927.065f - 36.625f),
+                            new Utils.Vector2(2062.071f-36.625f, 4928.516f - 36.625f),
+                            new Utils.Vector2(2063.497f-36.625f, 4929.941f - 36.625f),
+                            new Utils.Vector2(2064.86f-36.625f, 4931.304f - 36.625f),
+                            new Utils.Vector2(2066.296f-36.625f, 4932.741f - 36.625f),
+                            new Utils.Vector2(2067.712f-36.625f, 4934.156f-36.625f),
+                            new Utils.Vector2(2069.134f-36.625f, 4935.578f - 36.625f),
+                            new Utils.Vector2(2070.515f-36.625f, 4936.958f - 36.625f),
+                        }),
                 }
-
-                lines.Add($"new {x.GetType().Name}({x.ClientData});");
-            }
-
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "BIZS_TO_REPLACE", lines);
+            };
 
             WeaponShop.ShootingRangePrice = 150;
 
             return All.Count;
+        }
+
+        public static void ReplaceClientsideLines()
+        {
+            var lines = new List<string>();
+
+            foreach (var x in All.Values)
+            {
+                lines.Add($"new {x.GetType().Name}({x.ClientData});");
+            }
+
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "BIZS_TO_REPLACE", lines);
         }
     }
 }

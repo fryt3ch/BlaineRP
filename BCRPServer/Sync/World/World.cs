@@ -27,6 +27,8 @@ namespace BCRPServer.Sync
 
         public static T GetSharedData<T>(string key) => ServerDataColshape.GetSharedData<T>(key);
 
+        public static void ResetSharedData(string key) => ServerDataColshape.ResetSharedData(key);
+
         public static void Initialize()
         {
             ServerDataColshape = NAPI.ColShape.CreatCircleColShape(0f, 0f, 0f, Utils.Dimensions.Stuff);

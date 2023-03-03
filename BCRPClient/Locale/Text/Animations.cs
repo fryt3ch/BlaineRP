@@ -13,6 +13,8 @@ namespace BCRPClient
                 public static string CancelTextCarryA = "Нажмите {0}, чтобы перестать нести человека";
                 public static string CancelTextCarryB = "Нажмите {0}, чтобы слезть с человека";
 
+                public static string JustStopText = "Нажмите {0}, чтобы остановиться";
+
                 public static string CancelTextInTrunk = "Нажмите {0}, чтобы вылезти из багажника";
 
                 public static string CancelTextPushVehicle = "Нажмите W/A/S/D, чтобы перестать толкать";

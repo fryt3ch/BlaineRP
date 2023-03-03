@@ -1,4 +1,5 @@
 ﻿using BCRPClient.CEF;
+using BCRPClient.Sync;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -333,10 +334,10 @@ namespace BCRPClient.Additional
         public static DateTime LastSent;
 
         /// <summary>Словарь всех колшэйпов</summary>
-        private static Dictionary<Colshape, ExtraColshape> All = new Dictionary<Colshape, ExtraColshape>();
+        public static Dictionary<Colshape, ExtraColshape> All { get; private set; } = new Dictionary<Colshape, ExtraColshape>();
 
         /// <summary>Список колшэйпов, находящихся в зоне стрима игрока</summary>
-        private static List<ExtraColshape> Streamed = new List<ExtraColshape>();
+        public static List<ExtraColshape> Streamed { get; private set; } = new List<ExtraColshape>();
 
         /// <summary>Получить колшейп по айди (локальный)</summary>
         public static ExtraColshape GetById(int id) => All.Where(x => x.Key?.Id == id).Select(x => x.Value).FirstOrDefault();
@@ -365,6 +366,9 @@ namespace BCRPClient.Additional
             /// <summary>Многогранник (трехмерный/двумерный)</summary>
             /// <remarks>Размерность зависит от высоты (0 - двухмерный, > 0 - трехмерный</remarks>
             Polygon,
+            /// <summary>Кубический (трехмерный/двумерный)</summary>
+            /// <remarks>Размерность зависит от высоты (0 - двухмерный, > 0 - трехмерный<br/>Фактически - Polygon</remarks>
+            Cuboid,
         }
 
         public enum ApproveTypes
@@ -1193,6 +1197,8 @@ namespace BCRPClient.Additional
             },
         };
 
+        public abstract string ShortData { get; }
+
         public bool Exists => All.ContainsValue(this);
 
         /// <summary>Сущность-держатель колшейпа, не имеет функциональности</summary>
@@ -1287,7 +1293,7 @@ namespace BCRPClient.Additional
 
             this.ApproveType = ApproveTypes.OnlyByFoot;
 
-            All.Add(this.Colshape, this); // the same key problem???
+            All.Add(this.Colshape, this);
         }
 
         public static void Render()
@@ -1310,9 +1316,9 @@ namespace BCRPClient.Additional
 
         public static void UpdateStreamed()
         {
-            foreach (var x in All.Keys)
+            foreach (var x in All.Keys.ToList())
             {
-                var cs = All[x];
+                var cs = All.GetValueOrDefault(x);
 
                 var state = cs?.IsStreamed();
 
@@ -1354,20 +1360,18 @@ namespace BCRPClient.Additional
 
             var pos = Player.LocalPlayer.Vehicle is Vehicle veh ? veh.Position : Player.LocalPlayer.Position;
 
-            for (int i = 0; i < Streamed.Count; i++)
+            Streamed.OrderByDescending(x => x.IsInside).ToList().ForEach(curPoly =>
             {
-                var curPoly = Streamed[i];
-
-                if (curPoly?.Colshape?.IsNull != false)
-                {
-                    if (curPoly?.Colshape != null)
-                        All.Remove(curPoly.Colshape);
-
-                    continue;
-                }
-
                 if (curPoly.IsInside)
                 {
+/*                    if (curPoly?.Colshape?.IsNull != false)
+                    {
+                        if (curPoly?.Colshape != null)
+                            All.Remove(curPoly.Colshape);
+
+                        continue;
+                    }*/
+
                     if ((curPoly.IsInteraction && !interactionAllowed) || !curPoly.IsPointInside(pos) || !(ApproveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
                     {
                         curPoly.IsInside = false;
@@ -1378,7 +1382,7 @@ namespace BCRPClient.Additional
                 else
                 {
                     if ((curPoly.IsInteraction && !interactionAllowed) || !(ApproveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
-                        continue;
+                        return;
 
                     if (curPoly.IsPointInside(pos))
                     {
@@ -1387,12 +1391,14 @@ namespace BCRPClient.Additional
                         Events.OnPlayerEnterColshape?.Invoke(curPoly.Colshape, null);
                     }
                 }
-            }
+            });
         }
     }
 
     public class Sphere : ExtraColshape
     {
+        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}";
+
         public float Radius { get; set; }
 
         public Sphere(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Sphere, IsVisible, Colour, Dimension, Colshape)
@@ -1400,6 +1406,9 @@ namespace BCRPClient.Additional
             this.Radius = Radius;
 
             this.Position = Position;
+
+            if (IsStreamed())
+                Streamed.Add(this);
         }
 
         public override void Draw()
@@ -1432,6 +1441,8 @@ namespace BCRPClient.Additional
 
     public class Circle : ExtraColshape
     {
+        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}";
+
         public float Radius { get; set; }
 
         public Circle(Vector3 Position, float Radius, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Circle, IsVisible, Colour, Dimension, Colshape)
@@ -1439,6 +1450,9 @@ namespace BCRPClient.Additional
             this.Radius = Radius;
 
             this.Position = Position;
+
+            if (IsStreamed())
+                Streamed.Add(this);
         }
 
         public override void Draw()
@@ -1473,6 +1487,8 @@ namespace BCRPClient.Additional
 
     public class Cylinder : ExtraColshape
     {
+        public override string ShortData => $"Type: {Type}, Pos: {RAGE.Util.Json.Serialize(Position)}, Radius: {Radius}, Height: {Height}";
+
         public float Radius { get; set; }
         public float Height { get; set; }
 
@@ -1482,6 +1498,9 @@ namespace BCRPClient.Additional
             this.Height = Height;
 
             this.Position = Position;
+
+            if (IsStreamed())
+                Streamed.Add(this);
         }
 
         public override void Draw()
@@ -1520,8 +1539,95 @@ namespace BCRPClient.Additional
         }
     }
 
+    public class Cuboid : Polygon
+    {
+        public override string ShortData => $"Type: {Type}, CenterPos: {RAGE.Util.Json.Serialize(Position)}, Width: {Width}, Depth: {Depth}, Height: {Height}, Heading: {Heading}";
+
+        public float Width { get; set; }
+
+        public float Depth { get; set; }
+
+        public Cuboid(Vector3 Position, float Width, float Depth, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = 7, Colshape Colshape = null) : base(Types.Cuboid, GetBaseVertices(Position, Width, Depth, Height), Height, Heading, IsVisible, Colour, Dimension, Colshape)
+        {
+            this.Width = Width;
+            this.Depth = Depth;
+        }
+
+        public static List<Vector3> GetBaseVertices(Vector3 centerPos, float width, float depth, float height)
+        {
+            var zCoord = centerPos.Z - height / 2;
+
+            var width2 = width / 2f;
+            var depth2 = depth / 2f;
+
+            return new List<Vector3>()
+            {
+                new Vector3(centerPos.X - width2, centerPos.Y - depth2, zCoord),
+                new Vector3(centerPos.X + width2, centerPos.Y - depth2, zCoord),
+                new Vector3(centerPos.X + width2, centerPos.Y + depth2, zCoord),
+                new Vector3(centerPos.X - width2, centerPos.Y + depth2, zCoord),
+            };
+        }
+
+        public void SetWidth(float value)
+        {
+            Width = value;
+
+            value /= 2f;
+
+            var depth2 = Depth / 2f;
+
+            Vertices[0].X = Position.X - value;
+            Vertices[1].X = Position.X + value;
+            Vertices[2].X = Position.X + value;
+            Vertices[3].X = Position.X - value;
+
+            Vertices[0].Y = Position.Y - depth2;
+            Vertices[1].Y = Position.Y - depth2;
+            Vertices[2].Y = Position.Y + depth2;
+            Vertices[3].Y = Position.Y + depth2;
+
+            UpdatePolygonCenterAndMaxRange();
+
+            var heading = Heading;
+
+            Heading = 0f;
+
+            SetHeading(heading);
+        }
+
+        public void SetDepth(float value)
+        {
+            Depth = value;
+
+            value /= 2f;
+
+            var width2 = Width / 2f;
+
+            Vertices[0].Y = Position.Y - value;
+            Vertices[1].Y = Position.Y - value;
+            Vertices[2].Y = Position.Y + value;
+            Vertices[3].Y = Position.Y + value;
+
+            Vertices[0].X = Position.X - width2;
+            Vertices[1].X = Position.X + width2;
+            Vertices[2].X = Position.X + width2;
+            Vertices[3].X = Position.X - width2;
+
+            UpdatePolygonCenterAndMaxRange();
+
+            var heading = Heading;
+
+            Heading = 0f;
+
+            SetHeading(heading);
+        }
+    }
+
     public class Polygon : ExtraColshape
     {
+        public override string ShortData => $"Type: {Type}, Vertices: {RAGE.Util.Json.Serialize(Vertices)}, Height: {Height}, Heading: {Heading}";
+
         public float MaxRange { get; set; }
 
         public float Height { get; set; }
@@ -1530,13 +1636,13 @@ namespace BCRPClient.Additional
 
         public List<Vector3> Vertices { get; set; }
 
-        public bool Is3D { get => Height > 0; }
+        public bool Is3D => Height > 0;
 
-        public Polygon(List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Types.Polygon, IsVisible, Colour, Dimension, Colshape)
+        protected Polygon(Types Type, List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : base(Type, IsVisible, Colour, Dimension, Colshape)
         {
             this.Height = Height;
 
-            this.Heading = Heading;
+            this.Heading = 0;
 
             this.Vertices = Vertices;
 
@@ -1544,37 +1650,18 @@ namespace BCRPClient.Additional
 
             UpdatePolygonCenterAndMaxRange();
 
-            for (int i = 0; i < Vertices.Count; i++)
-                Vertices[i] = Utils.RotatePoint(Vertices[i], Position, Heading);
-
             SetHeading(Heading);
+
+            if (IsStreamed())
+                Streamed.Add(this);
         }
 
-        public static Polygon CreateCuboid(Vector3 Position, float Width, float Depth, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION)
+        public Polygon(List<Vector3> Vertices, float Height, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION, Colshape Colshape = null) : this(Types.Polygon, Vertices, Height, Heading, IsVisible, Colour, Dimension, Colshape)
         {
-            var vertices = new List<Vector3>()
-                {
-                    new Vector3(Position.X - Width / 2, Position.Y - Depth / 2, Position.Z - Height / 2),
-                    new Vector3(Position.X + Width / 2, Position.Y - Depth / 2, Position.Z - Height / 2),
-                    new Vector3(Position.X + Width / 2, Position.Y + Depth / 2, Position.Z - Height / 2),
-                    new Vector3(Position.X - Width / 2, Position.Y + Depth / 2, Position.Z - Height / 2),
-                };
 
-            return new Polygon(vertices, Height, Heading, IsVisible, Colour, Dimension);
         }
 
-        public static Polygon CreateCuboid(Vector3 Position1, Vector3 Position2, float Heading, bool IsVisible, Utils.Colour Colour, uint Dimension = Settings.MAIN_DIMENSION)
-        {
-            var middlePos = Position1.GetMiddle(Position2);
-
-            var width = Math.Abs(Position2.X - Position1.X);
-            var depth = Math.Abs(Position2.Y - Position1.Y);
-            var height = Math.Abs(Position2.Z - Position1.Z);
-
-            return CreateCuboid(middlePos, width, depth, height, Heading, IsVisible, Colour, Dimension);
-        }
-
-        private void UpdatePolygonCenterAndMaxRange()
+        protected void UpdatePolygonCenterAndMaxRange()
         {
             Vector3 centerPos = new Vector3(0, 0, 0);
 
@@ -1595,35 +1682,7 @@ namespace BCRPClient.Additional
             MaxRange = Vertices.Max(x => x.DistanceTo(centerPos));
         }
 
-        public void SetHeading(float heading)
-        {
-            if (heading >= 360f)
-                heading %= 360f;
-            else if (heading <= -360f)
-                heading = -(-heading % 360f);
-
-            if (heading == Heading)
-                return;
-
-            var vertices = Vertices;
-            heading = (float)(heading * Math.PI / 180);
-            var originPoint = Position;
-            float cos = (float)Math.Cos(heading), sin = (float)Math.Sin(heading);
-
-            for (int i = 0; i < Vertices.Count; i++)
-            {
-                var point = vertices[i];
-
-                float x = point.X, y = point.Y;
-
-                point.X = cos * (x - originPoint.X) - sin * (y - originPoint.Y) + originPoint.X;
-                point.Y = sin * (x - originPoint.X) + cos * (y - originPoint.Y) + originPoint.Y;
-
-                vertices[i] = point;
-            }
-
-            Vertices = vertices;
-        }
+        public void SetHeading(float heading) => Rotate(heading - Heading);
 
         public static Vector3 GetCenterPosition(List<Vector3> vertices, float height)
         {
@@ -1647,24 +1706,10 @@ namespace BCRPClient.Additional
 
         public void Rotate(float angle)
         {
-            if (angle >= 360f)
-                angle %= 360f;
-            else if (angle <= -360f)
-                angle = -(-angle % 360f);
-
-            var lastAngle = Heading;
-
-            var diff = lastAngle + angle;
-
-            if (diff >= 360f)
-                diff %= 360f;
-            else if (diff <= -360f)
-                diff = -(-diff % 360f);
-
             for (int i = 0; i < Vertices.Count; i++)
-                Vertices[i] = Utils.RotatePoint(Vertices[i], Position, angle);
+                Utils.RotatePoint(Vertices[i], Position, angle);
 
-            Heading = diff;
+            Heading += angle;
         }
 
         public override void SetPosition(Vector3 position)
@@ -1686,6 +1731,8 @@ namespace BCRPClient.Additional
 
                 Vertices[i] = curVertice;
             }
+
+            base.SetPosition(position);
         }
 
         public void SetHeight(float height)
@@ -1700,6 +1747,9 @@ namespace BCRPClient.Additional
 
         public void AddVertice(Vector3 vertice)
         {
+            if (Type == Types.Cuboid)
+                return;
+
             if (!Is3D)
                 vertice.Z = Vertices[0].Z;
 
@@ -1708,8 +1758,27 @@ namespace BCRPClient.Additional
             UpdatePolygonCenterAndMaxRange();
         }
 
+        public void InsertVertice(int idx, Vector3 vertice)
+        {
+            if (Type == Types.Cuboid)
+                return;
+
+            if (!Is3D)
+                vertice.Z = Vertices[0].Z;
+
+            if (idx >= Vertices.Count)
+                return;
+
+            Vertices.Insert(idx, vertice);
+
+            UpdatePolygonCenterAndMaxRange();
+        }
+
         public void RemoveVertice(int verticeId)
         {
+            if (Type == Types.Cuboid)
+                return;
+
             if (verticeId < 0 || verticeId >= Vertices.Count)
                 return;
 
@@ -1847,8 +1916,8 @@ namespace BCRPClient.Additional
 
             for (int i = 0; i < Vertices.Count; i++)
             {
-                var p1 = new Vector3(Vertices[i].X - Position.X, Vertices[i].Y - Position.Y, Vertices[i].Z - Position.Z);
-                var p2 = new Vector3(Vertices[(i + 1) % Vertices.Count].X - Position.X, Vertices[(i + 1) % Vertices.Count].Y - Position.Y, Vertices[(i + 1) % Vertices.Count].Z - Position.Z);
+                var p1 = new Vector3(Vertices[i].X - point.X, Vertices[i].Y - point.Y, Vertices[i].Z - point.Z);
+                var p2 = new Vector3(Vertices[(i + 1) % Vertices.Count].X - point.X, Vertices[(i + 1) % Vertices.Count].Y - point.Y, Vertices[(i + 1) % Vertices.Count].Z - point.Z);
 
                 var m1 = Math.Sqrt((p1.X * p1.X) + (p1.Y * p1.Y) + (p1.Z * p1.Z));
                 var m2 = Math.Sqrt((p2.X * p2.X) + (p2.Y * p2.Y) + (p2.Z * p2.Z));
@@ -1874,7 +1943,7 @@ namespace BCRPClient.Additional
             {
                 for (int i = 0; i < Vertices.Count; i++)
                 {
-                    if (Position.Z >= Vertices[i].Z && Position.Z <= (Vertices[i].Z + Height) || angleSum >= 5.8f)
+                    if (point.Z >= Vertices[i].Z && point.Z <= (Vertices[i].Z + Height) || angleSum >= 5.8f)
                         polygonPoints2d.Add(new RAGE.Ui.Cursor.Vector2(Vertices[i].X, Vertices[i].Y));
                     else
                         return false;
@@ -1888,7 +1957,7 @@ namespace BCRPClient.Additional
                 float xi = polygonPoints2d[i].X, yi = polygonPoints2d[i].Y;
                 float xj = polygonPoints2d[j].X, yj = polygonPoints2d[j].Y;
 
-                if (((yi > Position.Y) != (yj > Position.Y)) && (Position.X < (xj - xi) * (Position.Y - yi) / (yj - yi) + xi))
+                if (((yi > point.Y) != (yj > point.Y)) && (point.X < (xj - xi) * (point.Y - yi) / (yj - yi) + xi))
                     inside = !inside;
             }
 

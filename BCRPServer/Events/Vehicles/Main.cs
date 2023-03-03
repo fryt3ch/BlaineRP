@@ -442,6 +442,11 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
+            var vehSeat = pData.VehicleSeat;
+
+            if (vehSeat != 0 && vehSeat != 1)
+                return;
+
             var stationType = (VehicleData.StationTypes)stationNum;
 
             vData.Radio = stationType;

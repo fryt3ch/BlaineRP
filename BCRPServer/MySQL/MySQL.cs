@@ -1,4 +1,5 @@
-﻿using MySql.Data.MySqlClient;
+﻿using GTANetworkAPI;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
@@ -523,7 +524,7 @@ namespace BCRPServer
 
                                 var lsa = (bool)reader["LosSantosAllowed"];
 
-                                var fraction = (PlayerData.FractionTypes)(int)reader["Fraction"];
+                                var fractionInfo = reader["Fraction"] is DBNull ? null : ((string)reader["Fraction"]).Split('_');
 
                                 var orgId = (int)reader["OrgID"];
 
@@ -590,7 +591,9 @@ namespace BCRPServer
 
                                     LosSantosAllowed = lsa,
 
-                                    Fraction = fraction,
+                                    Fraction = fractionInfo == null ? Game.Fractions.Types.None : (Game.Fractions.Types)int.Parse(fractionInfo[0]),
+
+                                    FractionRank = fractionInfo == null ? (byte)0 : byte.Parse(fractionInfo[1]),
 
                                     OrganisationID = orgId,
 
@@ -646,6 +649,11 @@ namespace BCRPServer
                             {
                                 var cid = Convert.ToUInt32(reader["ID"]);
 
+                                var pInfo = PlayerData.PlayerInfo.Get(cid);
+
+                                if (pInfo == null)
+                                    continue;
+
                                 var items = ((string)reader["Items"]).DeserializeFromJson<uint[]>();
                                 var clothes = ((string)reader["Clothes"]).DeserializeFromJson<uint[]>();
                                 var accs = ((string)reader["Accessories"]).DeserializeFromJson<uint[]>();
@@ -659,11 +667,6 @@ namespace BCRPServer
 
                                 var wskins = ((string)reader["WSkins"]).DeserializeFromJson<Dictionary<Game.Items.WeaponSkin.ItemData.Types, uint>>();
 
-                                var pInfo = PlayerData.PlayerInfo.Get(cid);
-
-                                if (pInfo == null)
-                                    continue;
-
                                 pInfo.Items = items.Select(x => x == 0 ? null : Game.Items.Item.Get(x)).ToArray();
                                 pInfo.Clothes = clothes.Select(x => x == 0 ? null : Game.Items.Item.Get(x) as Game.Items.Clothes).ToArray();
                                 pInfo.Accessories = accs.Select(x => x == 0 ? null : Game.Items.Item.Get(x) as Game.Items.Clothes).ToArray();
@@ -676,6 +679,115 @@ namespace BCRPServer
                                 pInfo.Furniture = furniture.Select(x => Game.Estates.Furniture.Get(x)).Where(x => x != null).ToList();
 
                                 pInfo.WeaponSkins = wskins.Where(x => Game.Items.Item.Get(x.Value) is Game.Items.WeaponSkin).ToDictionary(x => x.Key, x => (Game.Items.WeaponSkin)Game.Items.Item.Get(x.Value));
+                            }
+                        }
+                    }
+
+                    var farmsData = new Dictionary<uint, string>();
+
+                    cmd.CommandText = "SELECT * FROM farms_data;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var data = reader["Data"];
+
+                                farmsData.Add(Convert.ToUInt32(reader["ID"]), data is DBNull ? null : (string)data);
+                            }
+                        }
+                    }
+
+                    cmd.CommandText = "SELECT * FROM businesses;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var bizId = Convert.ToInt32(reader["ID"]);
+
+                                var business = Game.Businesses.Business.Get(bizId);
+
+                                if (business == null)
+                                    continue;
+
+                                if (reader["CID"] is DBNull)
+                                {
+                                    business.UpdateOwner(null);
+                                }
+                                else
+                                {
+                                    business.UpdateOwner(PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"])));
+                                }
+
+                                business.Cash = Convert.ToUInt64(reader["Cash"]);
+                                business.Bank = Convert.ToUInt64(reader["Bank"]);
+
+                                business.IncassationState = (bool)reader["IncassationState"];
+
+                                business.Materials = Convert.ToUInt32(reader["Materials"]);
+                                business.OrderedMaterials = Convert.ToUInt32(reader["OrderedMaterials"]);
+
+                                business.Margin = (decimal)(float)reader["Margin"];
+
+                                business.Tax = (decimal)(float)reader["Tax"];
+                                business.Rent = Convert.ToUInt32(reader["Rent"]);
+
+                                business.GovPrice = Convert.ToUInt32(reader["GovPrice"]);
+
+                                business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<ulong[]>();
+
+                                var daysDiff = Game.Businesses.Business.CurrentStatisticsDayIdx - Game.Businesses.Business.PreviousStatisticsDayIdx;
+
+                                for (int j = 0; j < daysDiff; j++)
+                                {
+                                    for (int i = 0; i < business.Statistics.Length; i++)
+                                    {
+                                        if (i ==business.Statistics.Length - 1)
+                                        {
+                                            business.Statistics[i] = 0;
+                                        }
+                                        else
+                                        {
+                                            business.Statistics[i] = business.Statistics[i + 1];
+                                        }
+                                    }
+                                }
+
+                                if (business.OrderedMaterials > 0)
+                                {
+                                    business.AddOrder(true, null);
+                                }
+
+                                if (business is Game.Businesses.Farm farm)
+                                {
+                                    //var time = ((DateTimeOffset)(Utils.GetCurrentTime().AddSeconds(30))).ToUnixTimeSeconds();
+
+                                    // load crop fields data
+                                    if (farm.CropFields != null)
+                                    {
+                                        for (int i = 0; i < farm.CropFields.Count; i++)
+                                        {
+                                            for (byte j = 0; j < farm.CropFields[i].CropsData.Count; j++)
+                                            {
+                                                for (byte k = 0; k < farm.CropFields[i].CropsData[j].Count; k++)
+                                                {
+                                                    var key = $"CF_{business.ID}_{i}_{j}_{k}";
+
+                                                    var data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
+
+                                                    var growTime = data == null ? (long?)null : long.Parse(data);
+
+                                                    farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, growTime);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

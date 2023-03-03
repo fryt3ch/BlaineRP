@@ -71,6 +71,8 @@ namespace BCRPClient.CEF
 
             JobTruckerOrderSelect,
             JobCabbieOrderSelect,
+            JobBusDriverRouteSelect,
+            JobCollectorOrderSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -195,6 +197,8 @@ namespace BCRPClient.CEF
                                 ActionTypes.Show, (args) =>
                                 {
                                     Bind();
+
+                                    Player.LocalPlayer.SetData("AB::TEMP::GIVECASHP", args[0] as Player);
                                 }
                             },
 
@@ -211,9 +215,11 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK)
                                     {
+                                        var player = Player.LocalPlayer.GetData<Player>("AB::TEMP::GIVECASHP");
+
                                         Close(true);
 
-                                        if (BCRPClient.Interaction.CurrentEntity is Player targetPlayer)
+                                        if (player is Player targetPlayer)
                                             Sync.Offers.Request(targetPlayer, Sync.Offers.Types.Cash, amount);
                                     }
                                     else if (rType == ReplyTypes.Cancel)
@@ -224,6 +230,13 @@ namespace BCRPClient.CEF
                                         return;
                                 }
                             },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::TEMP::GIVECASHP");
+                                }
+                            }
                         }
                     },
 
@@ -886,7 +899,12 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK)
                                     {
-                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Locations.Trucker.OrderInfo>>("AOL");
+                                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JTR1);
+
+                                        if (quest == null)
+                                            return;
+
+                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Trucker.OrderInfo>>("AOL");
 
                                         if (orders == null)
                                             return;
@@ -894,7 +912,101 @@ namespace BCRPClient.CEF
                                         if (id >= orders.Count)
                                             return;
 
-                                        var res = (byte)(await Events.CallRemoteProc("Job::TR::TO", orders[id].Id)).ToDecimal();
+                                        var res = await quest.CallProgressUpdateProc(orders[id].Id);
+
+                                        if (res == byte.MaxValue)
+                                        {
+                                            Close(true);
+                                        }
+                                        else
+                                        {
+                                            if (res == 2)
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderAlreadyTaken);
+                                            }
+                                            else
+                                            {
+                                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderTakeError);
+                                            }
+                                        }
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                                    if (checkAction != null)
+                                    {
+                                        GameEvents.Update -= checkAction.Invoke;
+
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                                    }
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.JobCollectorOrderSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    var vehicle = (Vehicle)args[0];
+
+                                    Bind();
+
+                                    var checkAction = new Action(() =>
+                                    {
+                                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                            Close(true);
+                                    });
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                                    GameEvents.Update -= checkAction.Invoke;
+                                    GameEvents.Update += checkAction.Invoke;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JCL1);
+
+                                        if (quest == null)
+                                            return;
+
+                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Collector.OrderInfo>>("AOL");
+
+                                        if (orders == null)
+                                            return;
+
+                                        if (id >= orders.Count)
+                                            return;
+
+                                        var res = await quest.CallProgressUpdateProc(orders[id].Id);
 
                                         if (res == byte.MaxValue)
                                         {
@@ -975,7 +1087,7 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK)
                                     {
-                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Locations.Cabbie.OrderInfo>>("AOL");
+                                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Cabbie.OrderInfo>>("AOL");
 
                                         if (orders == null)
                                             return;
@@ -989,7 +1101,7 @@ namespace BCRPClient.CEF
 
                                         if (res == byte.MaxValue)
                                         {
-                                            if (pData.CurrentJob is Data.Locations.Cabbie cabbieJob)
+                                            if (pData.CurrentJob is Data.Jobs.Cabbie cabbieJob)
                                             {
                                                 CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi5);
 
@@ -1038,6 +1150,89 @@ namespace BCRPClient.CEF
                                             {
                                                 CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderTakeError);
                                             }
+                                        }
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                                    if (checkAction != null)
+                                    {
+                                        GameEvents.Update -= checkAction.Invoke;
+
+                                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                                    }
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.JobBusDriverRouteSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    var vehicle = (Vehicle)args[0];
+
+                                    Bind();
+
+                                    var checkAction = new Action(() =>
+                                    {
+                                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                            Close(true);
+                                    });
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                                    GameEvents.Update -= checkAction.Invoke;
+                                    GameEvents.Update += checkAction.Invoke;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JBD1);
+
+                                        if (quest == null || quest.Step > 0)
+                                            return;
+
+                                        var routes = (pData.CurrentJob as Data.Jobs.BusDriver)?.Routes;
+
+                                        if (routes == null)
+                                            return;
+
+                                        if (id >= routes.Count)
+                                            return;
+
+                                        var res = await quest.CallProgressUpdateProc(id);
+
+                                        if (res == byte.MaxValue)
+                                        {
+                                            Close(true);
                                         }
                                     }
                                     else if (rType == ReplyTypes.Cancel)

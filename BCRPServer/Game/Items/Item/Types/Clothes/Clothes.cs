@@ -68,6 +68,9 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public ItemData SexAlternativeData => Data.SexAlternativeID is string str ? (ItemData)Stuff.GetData(str, Type) : null;
 
+        [JsonIgnore]
+        public int Slot => Game.Data.Customization.GetClothesIdxByType(Type);
+
         [JsonProperty(PropertyName = "V")]
         /// <summary>Вариация одежды</summary>
         public int Var { get; set; }

@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 namespace BCRPClient.CEF
 {
@@ -10,6 +11,8 @@ namespace BCRPClient.CEF
         public static bool IsActive { get; private set; }
 
         private static GameEntity Entity { get; set; }
+
+        private static Additional.ExtraColshape Colshape { get; set; }
 
         private static List<int> TempBinds { get; set; }
 
@@ -28,6 +31,8 @@ namespace BCRPClient.CEF
             FurnitureEdit,
 
             PlaceItem,
+
+            Colshape,
         }
 
         public class Mode
@@ -39,6 +44,8 @@ namespace BCRPClient.CEF
                 { ModeTypes.FurnitureEdit, new Mode(true, true, true, false, true, false) },
 
                 { ModeTypes.PlaceItem, new Mode(true, true, true, false, true, false) },
+
+                { ModeTypes.Colshape, new Mode(true, true, true, false, true, false) },
             };
 
             public bool EnableX { get; set; }
@@ -75,26 +82,44 @@ namespace BCRPClient.CEF
 
             Events.Add("MapEditor::Update", (object[] args) =>
             {
-                if (!IsActive || Entity?.Exists != true)
+                if (!IsActive)
                     return;
 
-                if ((bool)args[0])
+                if (CurrentModeType == ModeTypes.Colshape)
                 {
-                    RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), false, false, false);
+                    if ((bool)args[0])
+                    {
+                        Colshape.SetPosition(new Vector3(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3])));
+                    }
+                    else
+                    {
+                        (Colshape as Additional.Polygon)?.SetHeading(Convert.ToSingle(args[3]));
+                    }
                 }
                 else
                 {
-                    RAGE.Game.Entity.SetEntityRotation(Entity.Handle, Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), 2, true);
+                    if (Entity?.Exists != true)
+                        return;
+
+                    if ((bool)args[0])
+                    {
+                        RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), false, false, false);
+                    }
+                    else
+                    {
+                        RAGE.Game.Entity.SetEntityRotation(Entity.Handle, Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), 2, true);
+                    }
                 }
             });
         }
 
-        public static void Show(GameEntity gEntity, ModeTypes mType = ModeTypes.Default, bool enableRotation = false)
+        public static void Show(object gEntity, ModeTypes mType = ModeTypes.Default, bool enableRotation = false)
         {
             if (IsActive)
                 return;
 
-            Entity = gEntity;
+            if (gEntity == null)
+                return;
 
             var mode = Mode.All[mType];
 
@@ -118,7 +143,20 @@ namespace BCRPClient.CEF
             LastUpdatedJs = DateTime.MinValue;
 
             GameEvents.Render -= Render;
-            GameEvents.Render += Render;
+            GameEvents.Render -= RenderColshape;
+
+            if (gEntity is GameEntity gEntityT)
+            {
+                Entity = gEntityT;
+
+                GameEvents.Render += Render;
+            }
+            else
+            {
+                Colshape = gEntity as Additional.ExtraColshape;
+
+                GameEvents.Render += RenderColshape;
+            }
 
             CurrentModeType = mType;
 
@@ -154,6 +192,11 @@ namespace BCRPClient.CEF
             {
                 CEF.HouseMenu.FurnitureEditOnEnd(Entity as MapObject);
             }
+            else if (CurrentModeType == ModeTypes.Colshape)
+            {
+                if (Colshape != null)
+                    Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes] Pos: {RAGE.Util.Json.Serialize(Colshape.Position)}, Heading: {(Colshape as Additional.Polygon)?.Heading ?? 0f}");
+            }
 
             if (CurrentModeType != ModeTypes.Default)
             {
@@ -165,6 +208,8 @@ namespace BCRPClient.CEF
             IsActive = false;
 
             Entity = null;
+
+            Colshape = null;
 
             LastPos = null;
 
@@ -299,6 +344,100 @@ namespace BCRPClient.CEF
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
                     Utils.DrawText($"Угол поворота: {RAGE.Game.Entity.GetEntityHeading(Entity.Handle).ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                }
+            }
+        }
+
+        private static void RenderColshape()
+        {
+            if (Colshape?.Exists != true)
+            {
+                Close();
+
+                return;
+            }
+
+            var ePos = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z);
+
+            var eRot = (Colshape as Additional.Polygon)?.Heading ?? 0f;
+
+            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 200)
+            {
+                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+
+                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+
+                CEF.Browser.Window.ExecuteJs("mapEditor_update", ePos.X, ePos.Y, ePos.Z, 0, eRot, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+
+                LastUpdatedJs = Sync.World.ServerTime;
+            }
+
+            bool showRotZ = false;
+
+            float diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+
+            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            {
+                float xOff = 0f, yOff = 0f;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                    xOff -= diffPos;
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                    xOff += diffPos;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                    yOff -= diffPos;
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                    yOff += diffPos;
+
+                ePos.X += xOff;
+                ePos.Y += yOff;
+
+                Colshape.SetPosition(ePos);
+            }
+            else
+            {
+                float diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+
+                showRotZ = true;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                {
+                    ePos.Y += diffPos;
+
+                    Colshape.SetPosition(ePos);
+                }
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                {
+                    ePos.Y -= diffPos;
+
+                    Colshape.SetPosition(ePos);
+                }
+
+                if (Colshape is Additional.Polygon poly)
+                {
+                    if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                    {
+                        eRot -= diffRot;
+
+                        poly.SetHeading(eRot);
+                    }
+                    else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                    {
+                        eRot += diffRot;
+
+                        poly.SetHeading(eRot);
+                    }
+                }
+            }
+
+            if (RotationModeOn || showRotZ)
+            {
+                float sX = 0f, sY = 0f;
+
+                if (Utils.GetScreenCoordFromWorldCoord(ePos, ref sX, ref sY))
+                {
+                    Utils.DrawText($"Угол поворота: {((Colshape as Additional.Polygon)?.Heading ?? 0f).ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                 }
             }
         }

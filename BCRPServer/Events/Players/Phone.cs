@@ -320,10 +320,10 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Utils.Dimensions.Main)
                 return false;
 
-            if (pData.CurrentTaxiOrder != null)
+            if (Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).Any())
                 return false;
 
-            if (pData.CurrentJob?.Type == Game.Jobs.Job.Types.Cabbie)
+            if (pData.CurrentJob?.Type == Game.Jobs.Types.Cabbie)
                 return false;
 
             Game.Jobs.Cabbie.AddPlayerOrder(pData);

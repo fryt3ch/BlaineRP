@@ -90,9 +90,6 @@ namespace BCRPServer.Game.Items
         };
 
         [JsonIgnore]
-        public const int Slot = (int)Customization.ClothesTypes.Under;
-
-        [JsonIgnore]
         /// <summary>Переключено ли состояние</summary>
         public bool Toggled { get; set; }
 
@@ -125,13 +122,13 @@ namespace BCRPServer.Game.Items
             {
                 if (Toggled && data.BestTop.ExtraData != null)
                 {
-                    player.SetClothes(Top.Slot, data.BestTop.ExtraData.Drawable, data.Textures[variation]);
-                    player.SetClothes(Gloves.Slot, data.BestTop.ExtraData.BestTorso, 0);
+                    player.SetClothes(11, data.BestTop.ExtraData.Drawable, data.Textures[variation]);
+                    player.SetClothes(3, data.BestTop.ExtraData.BestTorso, 0);
                 }
                 else
                 {
-                    player.SetClothes(Top.Slot, data.BestTop.Drawable, data.Textures[variation]);
-                    player.SetClothes(Gloves.Slot, data.BestTop.BestTorso, 0);
+                    player.SetClothes(11, data.BestTop.Drawable, data.Textures[variation]);
+                    player.SetClothes(3, data.BestTop.BestTorso, 0);
                 }
             }
             else
@@ -139,12 +136,12 @@ namespace BCRPServer.Game.Items
                 if (Toggled && data.ExtraData != null)
                 {
                     player.SetClothes(Slot, data.ExtraData.Drawable, data.Textures[variation]);
-                    player.SetClothes(Gloves.Slot, data.ExtraData.BestTorso, 0);
+                    player.SetClothes(3, data.ExtraData.BestTorso, 0);
                 }
                 else
                 {
                     player.SetClothes(Slot, data.Drawable, data.Textures[variation]);
-                    player.SetClothes(Gloves.Slot, data.BestTorso, 0);
+                    player.SetClothes(3, data.BestTorso, 0);
                 }
             }
 
@@ -157,9 +154,9 @@ namespace BCRPServer.Game.Items
 
             if (pData.Clothes[1] == null)
             {
-                player.SetClothes(Top.Slot, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Top, pData.Sex), 0);
+                player.SetClothes(11, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Top, pData.Sex), 0);
                 player.SetClothes(Slot, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Top, pData.Sex), 0);
-                player.SetClothes(Gloves.Slot, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Gloves, pData.Sex), 0);
+                player.SetClothes(3, Game.Data.Customization.GetNudeDrawable(Game.Data.Customization.ClothesTypes.Gloves, pData.Sex), 0);
 
                 pData.Accessories[7]?.Wear(pData);
             }

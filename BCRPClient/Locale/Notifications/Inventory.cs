@@ -43,6 +43,7 @@
                 public static string DiggingNotAllowedHere = "Вы не можете здесь копать! Найдите подходящую поверхность";
 
                 public static string WorkbenchResultItemExists = "Перед тем, как начать создание нового предмета, заберите уже созданный!";
+                public static string WorkbenchWrongCraft = "Такого рецепта предмета не существует!";
 
                 public static string PlacedItemOnGroundNotAllowed = "Этот предмет принадлежит другому игроку!";
 

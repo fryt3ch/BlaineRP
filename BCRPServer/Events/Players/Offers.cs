@@ -400,53 +400,55 @@ namespace BCRPServer.Events.Players
             tData.Player.TriggerEvent("Inventory::Update", 14, false, state, otherState);
         }
 
-        [RemoteEvent("Trade::UpdateMoney")]
-        private static void UpdateMoney(Player player, int amountI)
+        [RemoteProc("Trade::UpdateMoney")]
+        private static bool UpdateMoney(Player player, int amountI)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return false;
 
             var pData = sRes.Data;
 
             if (amountI < 0)
-                return;
+                return false;
 
             var amount = (ulong)amountI;
 
             var offer = pData.ActiveOffer;
 
             if (offer == null || offer.Type != Types.Exchange || offer.TradeData == null)
-                return;
+                return false;
 
             if (offer.TradeData.SenderReady || offer.TradeData.ReceiverReady)
-                return;
+                return false;
 
             var isSender = offer.Sender == pData;
 
             var tData = isSender ? offer.Receiver : offer.Sender;
 
             if (pData.Cash < amount)
-                amount = pData.Cash;
+                return false;
 
             if (isSender)
             {
                 if (offer.TradeData.SenderMoney == amount)
-                    return;
+                    return false;
 
                 offer.TradeData.SenderMoney = amount;
             }
             else
             {
                 if (offer.TradeData.ReceiverMoney == amount)
-                    return;
+                    return false;
 
                 offer.TradeData.ReceiverMoney = amount;
             }
 
-            pData.Player.TriggerEvent("Inventory::Update", 11, true, amount);
+            //pData.Player.TriggerEvent("Inventory::Update", 11, true, amount);
             tData.Player.TriggerEvent("Inventory::Update", 13, true, amount);
+
+            return true;
         }
 
         [RemoteProc("Trade::UpdateProperty")]

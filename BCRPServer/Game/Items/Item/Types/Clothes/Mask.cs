@@ -50,8 +50,6 @@ namespace BCRPServer.Game.Items
             { "mask_f_1", new ItemData("Маска 'Череп'", false, 2, new int[] { 0 }, "mask_m_1") },
         };
 
-        public const int Slot = 1;
-
         [JsonIgnore]
         new public ItemData Data { get => (ItemData)base.Data; set => base.Data = value; }
 

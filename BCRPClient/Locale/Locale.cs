@@ -80,9 +80,9 @@ namespace BCRPClient
 
                 public static string PlayerQuitText = "Игрок вышел {0} в {1}\nCID: #{2} | ID: {3}";
 
-                public static Dictionary<Sync.Players.FractionTypes, string> FractionNames = new Dictionary<Sync.Players.FractionTypes, string>()
+                public static Dictionary<Data.Locations.Fraction.Types, string> FractionNames = new Dictionary<Data.Locations.Fraction.Types, string>()
                 {
-                    { Sync.Players.FractionTypes.None, "Отсутствует" },
+                    { Data.Locations.Fraction.Types.None, "Отсутствует" },
                 };
 
                 public static Dictionary<Sync.Players.SkillTypes, string> SkillNames = new Dictionary<Sync.Players.SkillTypes, string>()
@@ -159,6 +159,9 @@ namespace BCRPClient
             public static string ShootingRangeScoreText = "Счёт: {0} / {1}";
             public static string ShootingRangeAccuracyText = "Точность: {0}%";
 
+            public const string JobBusDriverWaitTitle = "~g~Ожидание пассажиров";
+            public const string JobCollectorWaitTitle = "~g~Загрузка денег";
+            public const string JobCollectorWaitTitle1 = "~g~Выгрузка денег";
             public const string JobTruckerLoadMaterialsTitle = "~g~Загрузка материалов";
             public const string JobTruckerUnloadMaterialsTitle = "~g~Выгрузка материалов";
             public const string JobTruckerLoadMaterialsText = "Подождите еще {0} сек.";

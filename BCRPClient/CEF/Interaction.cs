@@ -425,7 +425,7 @@ namespace BCRPClient.CEF
                             return;
                         }
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default);
+                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default, player);
                         break;
 
                     case PlayerActions.Money_50:

@@ -1,14 +1,13 @@
 ﻿using RAGE;
 using RAGE.Elements;
-using System;
 using System.Linq;
 using static BCRPClient.Data.Dialogue;
 
 namespace BCRPClient.Data.NPCDialogues
 {
-    public class Shop
+    public class Shop : Events.Script
     {
-        public static void Load()
+        public Shop()
         {
             new Dialogue("seller_bags_preprocess", null, (args) =>
             {

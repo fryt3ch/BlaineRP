@@ -47,9 +47,19 @@ namespace BCRPClient.Additional
                 var task = entity?.Exists == true ? new AsyncTask(() => { if (!entity.Exists) return; var coords = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false); blip.SetCoords(coords.X, coords.Y, coords.Z); }, 250, true, 0) : new AsyncTask(() => { Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy(); Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel(); Player.LocalPlayer.ResetData($"TrackerBlip::{key}"); Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}"); }, 5000, false, 0);
 
                 Player.LocalPlayer.SetData($"TrackerBlip::Task::{key}", task);
+                Player.LocalPlayer.SetData($"TrackerBlip::{key}", blip);
 
                 task.Run();
             });
+        }
+
+        public static void DestroyTrackerBlipByKey(string key)
+        {
+            Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy();
+            Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel();
+
+            Player.LocalPlayer.ResetData($"TrackerBlip::{key}");
+            Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}");
         }
 
         public static ExtraBlip CreateGPS(Vector3 pos, uint dim, bool drawRoute)
@@ -132,7 +142,7 @@ namespace BCRPClient.Additional
                     return false;
             }
 
-            Colshape = new Additional.Sphere(Position, range, false, Utils.RedColor, Dimension, null);
+            Colshape = new Additional.Circle(Position, range, false, Utils.RedColor, Dimension, null);
 
             Colshape.ActionType = ExtraColshape.ActionTypes.ReachableBlip;
             Colshape.Data = this;

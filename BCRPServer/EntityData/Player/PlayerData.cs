@@ -82,22 +82,6 @@ namespace BCRPServer
             Fishing = 3,
         }
 
-        public enum FractionTypes
-        {
-            /// <summary>Отсутствует</summary>
-            None = -1,
-
-            PBMS = 0, // Paleto Bay Medical Service
-            SSMS = 1, // Sandy Shores Medical Service
-            PBSD = 2, // Paleto Bay Sheriff's Department
-            SSSD = 3, // Sandy Shores Sheriff's Department
-            NG = 4, // National Guard
-            GOV = 5, // Government
-            WeazelNews = 6, // Weazel News
-            MM = 7, // Mexican Mafia
-            IM = 8, // Italian Mafia
-        }
-
         public enum PropertyTypes
         {
             /// <summary>Транспорт</summary>
@@ -458,7 +442,7 @@ namespace BCRPServer
             Sex = sex;
 
             AdminLevel = -1;
-            Fraction = FractionTypes.None;
+            Fraction = Game.Fractions.Types.None;
             OrganisationID = -1;
             BankAccount = null;
             LastJoinDate = Utils.GetCurrentTime();
@@ -644,6 +628,8 @@ namespace BCRPServer
             Armour?.Wear(this);
             Bag?.Wear(this);
             Holster?.Wear(this);
+
+            //Game.Data.Customization.ApplyUniform(this, Game.Data.Customization.UniformTypes.Farmer);
         }
 
         public void UpdateWeapons()

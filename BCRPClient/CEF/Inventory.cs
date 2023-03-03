@@ -131,7 +131,7 @@ namespace BCRPClient.CEF
 
         private static bool UpdateTooltips { get; set; } = false;
 
-        private static int CurrentGiveMoney { get; set; } = 0;
+        private static uint CurrentGiveMoney { get; set; } = 0;
 
         private static object[][] GiveItemsData { get; set; }
 
@@ -304,7 +304,7 @@ namespace BCRPClient.CEF
                 if (CurrentType != Types.Workbench)
                     return;
 
-                if (LastSent.IsSpam(1000, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 if (!Player.LocalPlayer.HasData("Inv::Temp::WBCPT"))
@@ -315,6 +315,8 @@ namespace BCRPClient.CEF
 
                     if (receipt == null)
                     {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.WorkbenchWrongCraft);
+
                         return;
                     }
 
@@ -983,14 +985,14 @@ namespace BCRPClient.CEF
 
                         if ((bool)curArgs[1])
                         {
-                            CurrentGiveMoney = (int)curArgs[2];
+                            CurrentGiveMoney = curArgs[2].ToUInt32();
 
                             Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
                         }
                         else
                         {
                             var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
-                            var propId = (uint)(int)curArgs[4];
+                            var propId = curArgs[4].ToUInt32();
 
                             string text = null;
 
@@ -1057,12 +1059,12 @@ namespace BCRPClient.CEF
 
                         if ((bool)curArgs[1])
                         {
-                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", (int)curArgs[2]);
+                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", curArgs[2].ToDecimal());
                         }
                         else
                         {
                             var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
-                            var propId = (uint)(int)curArgs[4];
+                            var propId = curArgs[4].ToUInt32();
 
                             string text = null;
 
@@ -1253,21 +1255,36 @@ namespace BCRPClient.CEF
                     if (CurrentGiveMoney < 0)
                         CurrentGiveMoney = 0;
 
-                    var newAmount = (int)args[1];
+                    var newAmountI = args[1].ToDecimal();
 
-                    if (newAmount < 0)
-                        newAmount = 0;
+                    int newAmount;
 
-                    if (CurrentGiveMoney == newAmount)
-                        return;
+                    if (!newAmountI.IsNumberValid(0, int.MaxValue, out newAmount, false))
+                        newAmount = int.MaxValue;
 
-                    if (!LastSent.IsSpam(250, false, false))
+                    if (pData.Cash < newAmountI)
+                        newAmount = (int)pData.Cash;
+
+                    if (!LastSent.IsSpam(100, false, false))
                     {
-                        CurrentGiveMoney = newAmount;
-
-                        Events.CallRemote("Trade::UpdateMoney", CurrentGiveMoney);
-
                         LastSent = Sync.World.ServerTime;
+
+                        var res = (bool)await Events.CallRemoteProc("Trade::UpdateMoney", newAmount);
+
+                        Utils.ConsoleOutput($"{res}, {newAmount}, {CurrentGiveMoney}");
+
+                        if (!res)
+                        {
+                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
+
+                            return;
+                        }
+                        else
+                        {
+                            CurrentGiveMoney = (uint)newAmount;
+
+                            Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
+                        }
                     }
                     else
                         Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
