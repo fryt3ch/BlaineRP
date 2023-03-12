@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Threading;
 
 namespace BCRPServer.Sync
@@ -20,7 +19,7 @@ namespace BCRPServer.Sync
 
         public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
 
-        public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type <= Types.ItemMedKit;
+        public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type < Types.VehicleTrailer;
 
         #region Types
         public enum Types
@@ -79,6 +78,12 @@ namespace BCRPServer.Sync
             ItemMedKit,
 
             FarmPlantSmallShovel,
+
+            FarmWateringCan,
+
+            FarmOrangeBoxCarry,
+
+            FarmMilkBucketCarry,
             #endregion
 
             #endregion
@@ -92,6 +97,8 @@ namespace BCRPServer.Sync
 
             /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
             VehicleTrailerObjBoat,
+
+            TractorTrailFarmHarv,
 
             PushVehicleFront,
             PushVehicleBack,
@@ -611,6 +618,198 @@ namespace BCRPServer.Sync
                                     }
 
                                     Game.Jobs.Farmer.ResetPlayerCurrentCropInfo(pData);
+                                }
+
+                                pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
+
+            {
+                Types.FarmWateringCan,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                pData.PlayAnim(Sync.Animations.GeneralTypes.WateringCan0);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                var farmerJob = pData.CurrentJob as Game.Jobs.Farmer;
+
+                                if (farmerJob == null)
+                                    return;
+
+                                int idx;
+
+                                if (Game.Jobs.Farmer.TryGetPlayerCurrentOrangeTreeInfo(pData, out idx))
+                                {
+                                    var info = farmerJob.FarmBusiness.OrangeTrees[idx];
+
+                                    if (info.CTS != null)
+                                    {
+                                        info.CTS.Cancel();
+                                        info.CTS.Dispose();
+
+                                        info.CTS = null;
+                                    }
+
+                                    Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pData);
+                                }
+
+                                pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
+
+            {
+                Types.FarmOrangeBoxCarry,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                pData.PlayAnim(Sync.Animations.GeneralTypes.BoxCarry0);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                var farmerJob = pData.CurrentJob as Game.Jobs.Farmer;
+
+                                if (farmerJob == null)
+                                    return;
+
+                                int idx;
+
+                                if (Game.Jobs.Farmer.TryGetPlayerCurrentOrangeTreeInfo(pData, out idx))
+                                {
+                                    var info = farmerJob.FarmBusiness.OrangeTrees[idx];
+
+                                    if (info.CTS != null)
+                                    {
+                                        info.CTS.Cancel();
+                                        info.CTS.Dispose();
+
+                                        info.CTS = null;
+                                    }
+
+                                    Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pData);
+                                }
+
+                                pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
+
+            {
+                Types.FarmMilkBucketCarry,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                if (pData.CrouchOn)
+                                    pData.CrouchOn = false;
+
+                                pData.PlayAnim(Sync.Animations.GeneralTypes.BucketCarryOneHand0);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                var farmerJob = pData.CurrentJob as Game.Jobs.Farmer;
+
+                                if (farmerJob == null)
+                                    return;
+
+                                int idx;
+
+                                if (Game.Jobs.Farmer.TryGetPlayerCurrentCowInfo(pData, out idx))
+                                {
+                                    var info = farmerJob.FarmBusiness.Cows[idx];
+
+                                    if (info.CTS != null)
+                                    {
+                                        info.CTS.Cancel();
+                                        info.CTS.Dispose();
+
+                                        info.CTS = null;
+                                    }
+
+                                    Game.Jobs.Farmer.ResetPlayerCurrentCowInfo(pData);
                                 }
 
                                 pData.StopGeneralAnim();

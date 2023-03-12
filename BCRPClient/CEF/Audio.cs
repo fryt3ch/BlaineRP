@@ -145,7 +145,7 @@ namespace BCRPClient.CEF
         {
             None = 0,
 
-            Auth1, Auth2, Auth3,
+            Auth1, Auth2, Auth3, Auth4, Auth5, Auth6, Auth7, Auth8,
 
             Error0,
             Success0,
@@ -158,6 +158,11 @@ namespace BCRPClient.CEF
             { TrackTypes.Auth1, "http://fishbotserver.ddns.net:1234/audio/auth_1.mp3" },
             { TrackTypes.Auth2, "http://fishbotserver.ddns.net:1234/audio/auth_2.mp3" },
             { TrackTypes.Auth3, "http://fishbotserver.ddns.net:1234/audio/auth_3.mp3" },
+            { TrackTypes.Auth4, "http://fishbotserver.ddns.net:1234/audio/auth_4.mp3" },
+            { TrackTypes.Auth5, "http://fishbotserver.ddns.net:1234/audio/auth_5.mp3" },
+            { TrackTypes.Auth6, "http://fishbotserver.ddns.net:1234/audio/auth_6.mp3" },
+            { TrackTypes.Auth7, "http://fishbotserver.ddns.net:1234/audio/auth_7.mp3" },
+            { TrackTypes.Auth8, "http://fishbotserver.ddns.net:1234/audio/auth_8.mp3" },
 
             { TrackTypes.Error0, "http://fishbotserver.ddns.net:1234/audio/error_0.wav" },
             { TrackTypes.Success0, "http://fishbotserver.ddns.net:1234/audio/success_0.mp3" },

@@ -21,7 +21,7 @@ namespace BCRPClient.Sync
 
         public static void Toggle()
         {
-            if (LastSwitchTime.IsSpam(1000, false, false))
+            if (LastSwitchTime.IsSpam(250, false, false))
                 return;
 
             if (!Toggled)

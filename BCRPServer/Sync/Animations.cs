@@ -66,6 +66,16 @@ namespace BCRPServer.Sync
             CuffedStatic0,
 
             FarmPlantSmallShovelProcess0,
+
+            BoxCarry0,
+
+            WateringCan0,
+
+            TreeCollect0,
+
+            BucketCarryOneHand0,
+
+            MilkCow0,
         }
 
         public enum OtherTypes

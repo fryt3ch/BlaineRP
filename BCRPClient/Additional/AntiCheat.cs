@@ -442,7 +442,7 @@ namespace BCRPClient.Additional
                 var lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
                 var curHp = veh.GetEngineHealth();
 
-                if (!vData.IsInvincible)
+/*                if (!vData.IsInvincible)
                 {
                     if (Player.LocalPlayer.Vehicle == veh || curHp < 0)
                     {
@@ -460,7 +460,7 @@ namespace BCRPClient.Additional
                             veh.SetInvincible(true);
                         }
                     }
-                }
+                }*/
 
                 if (veh.IsDead(0))
                 {

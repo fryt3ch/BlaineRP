@@ -222,9 +222,15 @@ namespace BCRPServer.Events.Vehicles
             }
 
             if (selfToggled)
+            {
                 ToggleEngine(pData, vData, null);
+            }
             else
+            {
+                Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+
                 ToggleEngine(pData, vData, false);
+            }
         }
 
         public static void ToggleEngine(PlayerData pData, VehicleData vData, bool? forceStatus = null)
@@ -1050,13 +1056,32 @@ namespace BCRPServer.Events.Vehicles
             if (pData.VehicleSeat != 0)
                 return 0;
 
-            if (pData.HasJob(true))
-                return 0;
-
             var jobData = vData.Job;
             var jobDataV = jobData as Game.Jobs.IVehicles;
 
             if (jobData == null || jobDataV == null)
+                return 0;
+
+            if (pData.HasJob(false))
+            {
+                if (jobData.Type == Game.Jobs.Types.Farmer)
+                {
+                    if (pData.CurrentJob != jobData)
+                    {
+                        player.Notify("Job::AHJ");
+
+                        return 0;
+                    }
+                }
+                else
+                {
+                    player.Notify("Job::AHJ");
+
+                    return 0;
+                }
+            }
+
+            if (!jobData.CanPlayerDoThisJob(pData))
                 return 0;
 
             if (vData.OwnerID != 0)
@@ -1089,7 +1114,13 @@ namespace BCRPServer.Events.Vehicles
 
             pData.AddRentedVehicle(vData, 600_000);
 
-            jobData.SetPlayerJob(pData, vData);
+            if (pData.CurrentJob == null)
+                jobData.SetPlayerJob(pData, vData);
+
+            if (jobData is Game.Jobs.Farmer farmerJob)
+            {
+                farmerJob.SetPlayerAsTractorTaker(pData, vData);
+            }
 
             return byte.MaxValue;
         }

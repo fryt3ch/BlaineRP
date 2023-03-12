@@ -170,6 +170,53 @@ namespace BCRPServer.Events.Players
             },
 
             {
+                "p_fly",
+
+                new Command(1, (pData, args) =>
+                {
+                    if (args.Length != 2)
+                        return;
+
+                    uint pid;
+                    bool state;
+
+                    if (!uint.TryParse(args[0], out pid))
+                        return;
+
+                    var tData = pData;
+
+                    if (pData.CID != pid && pData.Player.Id != pid)
+                    {
+                        tData = Utils.FindReadyPlayerOnline(pid);
+
+                        if (tData == null || tData.Player?.Exists != true)
+                        {
+                            pData.Player.Notify("Cmd::TargetNotFound");
+
+                            return;
+                        }
+                    }
+
+                    if (args[1].Length == 0)
+                    {
+                        tData.IsFlyOn = !tData.IsFlyOn;
+
+                        return;
+                    }
+                    else
+                    {
+                        if (!bool.TryParse(args[1], out state))
+                            return;
+
+                        if (tData.IsFlyOn == state)
+                            return;
+
+                        tData.IsFlyOn = state;
+                    }
+                })
+            },
+
+            {
                 "p_invis",
 
                 new Command(1, (pData, args) =>
@@ -197,9 +244,9 @@ namespace BCRPServer.Events.Players
                         }
                     }
 
-/*                    if (args[1].Length == 0)
+                    if (args[1].Length == 0)
                     {
-                        tData.IsInvincible = !tData.IsInvincible;
+                        tData.IsInvisible = !tData.IsInvisible;
 
                         return;
                     }
@@ -208,11 +255,11 @@ namespace BCRPServer.Events.Players
                         if (!bool.TryParse(args[1], out state))
                             return;
 
-                        if (tData.IsInvincible == state)
+                        if (tData.IsInvisible == state)
                             return;
 
-                        tData.IsInvincible = state;
-                    }*/
+                        tData.IsInvisible = state;
+                    }
                 })
             },
 

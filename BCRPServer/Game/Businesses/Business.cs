@@ -391,7 +391,7 @@ namespace BCRPServer.Game.Businesses
             }
         }
 
-        public void ProceedPayment(PlayerData pData, bool useCash, uint newMats, ulong newBalance, ulong newPlayerBalance)
+        public virtual void ProceedPayment(PlayerData pData, bool useCash, uint newMats, ulong newBalance, ulong newPlayerBalance)
         {
             if (useCash && !IncassationState)
             {

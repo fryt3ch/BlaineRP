@@ -578,6 +578,8 @@ namespace BCRPClient.Sync
 
                 if (Player.LocalPlayer.IsUsingActionMode())
                     Player.LocalPlayer.SetUsingActionMode(false, -1, "DEFAULT_ACTION");
+
+                Player.LocalPlayer.SetResetFlag(200, true);
             };
 
             GameEvents.Update += () =>
@@ -1007,16 +1009,20 @@ namespace BCRPClient.Sync
 
             if (targetEntity is Vehicle veh)
             {
-                if (veh.Controller?.Handle == Player.LocalPlayer.Handle)
-                    return;
-
                 if (LastSentVehicleDamage.IsSpam(100, false, false))
                 {
                     return;
                 }
                 else
                 {
-                    cancel.Cancel = false;
+                    if (veh.Controller?.Handle == Player.LocalPlayer.Handle)
+                    {
+                        IncomingDamage(null, Player.LocalPlayer, veh, weaponHashLong, 0, (int)boneIdx, cancel);
+                    }
+                    else
+                    {
+                        cancel.Cancel = false;
+                    }
 
                     LastSentVehicleDamage = Sync.World.ServerTime;
                 }

@@ -170,9 +170,7 @@ namespace BCRPServer.Game.Jobs
         {
             if (notify)
             {
-                var oldValue = GetPlayerTotalCashSalary(pData);
-
-                // todo
+                pData.Player.TriggerEvent("Job::TSC", value, GetPlayerTotalCashSalary(pData));
             }
 
             pData.Player.SetData("JCMC::TS", value);

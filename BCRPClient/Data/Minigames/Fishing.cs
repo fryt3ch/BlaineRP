@@ -3,7 +3,7 @@ using RAGE.Elements;
 using System;
 using System.Linq;
 
-namespace BCRPClient.Data
+namespace BCRPClient.Data.Minigames
 {
     public class Fishing : Events.Script
     {
@@ -175,7 +175,7 @@ namespace BCRPClient.Data
 
                         var newSpeed = leftDown ? fSpeed + deSpeed : fSpeed - deSpeed;
 
-                        if ((fSpeed > 0f && newSpeed < 0f) || (fSpeed < 0f && newSpeed > 0f))
+                        if (fSpeed > 0f && newSpeed < 0f || fSpeed < 0f && newSpeed > 0f)
                             newSpeed = 0f;
 
                         fSpeed = newSpeed;
@@ -239,7 +239,7 @@ namespace BCRPClient.Data
             Player.LocalPlayer.SetData("MG::F::SP", fSpeed);
             Player.LocalPlayer.SetData("MG::F::Interp", interp);
 
-            var newPos = RAGE.Vector3.Lerp(Player.LocalPlayer.GetData<Vector3>("MG::F::LP"), Player.LocalPlayer.GetData<Vector3>("MG::F::RP"), interp);
+            var newPos = Vector3.Lerp(Player.LocalPlayer.GetData<Vector3>("MG::F::LP"), Player.LocalPlayer.GetData<Vector3>("MG::F::RP"), interp);
 
             var waterH = -1f;
 

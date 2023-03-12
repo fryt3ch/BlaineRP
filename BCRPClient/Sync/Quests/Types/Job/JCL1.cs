@@ -161,7 +161,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                                     var jobVehicle = job.GetCurrentData<Vehicle>("JVEH");
 
-                                    if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
+                                    if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                     {
                                         CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
 

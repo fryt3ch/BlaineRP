@@ -883,6 +883,8 @@ namespace BCRPClient.Data
 
             var mapObject = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObject(itemData.Model, coords.X, coords.Y, coords.Z, false, false, false));
 
+            mapObject.SetTotallyInvincible(true);
+
             mapObject.SetData("ItemIdx", itemIdx);
 
             CEF.Cursor.Show(true, true);

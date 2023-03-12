@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.CEF;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,9 @@ namespace BCRPClient.Sync
                 JBD1,
 
                 JCL1,
+
+                JFRM1,
+                JFRM2,
             }
 
             public enum ColourTypes
@@ -287,7 +291,7 @@ namespace BCRPClient.Sync
                 {
                     (value as Entity)?.Destroy();
                 }
-                else if (x.StartsWith("CS"))
+                else if (x.StartsWith("CS_"))
                 {
                     (value as Additional.ExtraColshape)?.Destroy();
                 }
@@ -297,5 +301,79 @@ namespace BCRPClient.Sync
         }
 
         public async System.Threading.Tasks.Task<byte> CallProgressUpdateProc(params object[] args) => (byte)(int)await Events.CallRemoteProc("Quest::PU", (int)Type, string.Join('&', args));
+
+        public void SetQuestAsCompleted(bool success, bool notify)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (notify)
+                CEF.Notification.Show(Notification.Types.Quest, Data.Name, success ? Locale.Notifications.General.QuestFinishedText : Locale.Notifications.General.QuestCancelledText);
+
+            pData.Quests.Remove(this);
+
+            Destroy();
+
+            CEF.Menu.UpdateQuests(pData);
+        }
+
+        public void SetQuestAsStarted(bool notify)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            pData.Quests.Add(this);
+
+            Initialize();
+
+            if (notify)
+                CEF.Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestStartedText, GoalWithProgress));
+
+            CEF.Menu.UpdateQuests(pData);
+        }
+
+        public void SetQuestAsUpdated(byte step, int stepProgress, string data, bool notify)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            CurrentData = data;
+
+            StepProgress = stepProgress;
+
+            UpdateStep(step);
+
+            UpdateProgress(stepProgress);
+
+            if (notify)
+                CEF.Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, GoalWithProgress));
+
+            CEF.Menu.UpdateQuests(pData);
+        }
+
+        public void SetQuestAsUpdatedKeepOldData(byte step, int stepProgress, bool notify)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            StepProgress = stepProgress;
+
+            UpdateStep(step);
+
+            UpdateProgress(stepProgress);
+
+            if (notify)
+                CEF.Notification.Show(Notification.Types.Quest, Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, GoalWithProgress));
+
+            CEF.Menu.UpdateQuests(pData);
+        }
     }
 }

@@ -1,13 +1,36 @@
 ﻿using GTANetworkAPI;
 using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using ZstdNet;
 
 namespace BCRPServer
 {
     public static partial class MySQL
     {
+        public static void FarmEntityUpdateData(string key, object data, object data2 = null)
+        {
+            var cmd = new MySqlCommand();
+
+            var keyHash = NAPI.Util.GetHashKey(key);
+
+            cmd.CommandText = "UPDATE farms_data SET Data=@Data WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", keyHash);
+
+            if (data == null)
+            {
+                cmd.Parameters.AddWithValue("@Data", DBNull.Value);
+            }
+            else
+            {
+                if (data2 != null)
+                    data = $"{data}_{data2}";
+
+                cmd.Parameters.AddWithValue("@Data", data);
+            }
+
+            PushQuery(cmd);
+        }
+
         public static void BusinessUpdateComplete(Game.Businesses.Business business)
         {
             var cmd = new MySqlCommand();

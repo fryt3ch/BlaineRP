@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BCRPClient.Data.Jobs
+﻿namespace BCRPClient.Data.Jobs
 {
     public class Farmer : Job
     {
@@ -13,6 +9,14 @@ namespace BCRPClient.Data.Jobs
         public Farmer(int Id, int BuisnessId) : base(Id, Types.Farmer)
         {
             this.BusinessId = BuisnessId;
+        }
+
+        public override void OnEndJob()
+        {
+            Data.Minigames.Farm.StopCowMilk(false);
+            Data.Minigames.Farm.StopOrangeTreeCollect(false);
+
+            base.OnEndJob();
         }
     }
 }

@@ -1,10 +1,4 @@
-﻿using BCRPClient.CEF;
-using Newtonsoft.Json.Linq;
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using BCRPClient.CEF;using Newtonsoft.Json.Linq;using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;using System.Linq;
 
 namespace BCRPClient.Sync
 {
@@ -183,6 +177,8 @@ namespace BCRPClient.Sync
 
             public string FrozenPosition => Vehicle.GetSharedData<string>("IsFrozen");
 
+            public float ColshapeLimitedMaxSpeed { get => Vehicle.GetData<float>("CLMS"); set { if (value <= 0f) Vehicle.ResetData("CLMS"); else Vehicle.SetData("CLMS", value); } }
+
             public Data.Vehicles.Vehicle Data { get; set; }
 
             public Sync.AttachSystem.AttachmentEntity IsAttachedToVehicle
@@ -220,6 +216,8 @@ namespace BCRPClient.Sync
         public static async System.Threading.Tasks.Task OnVehicleStreamIn(Vehicle veh)
         {
             #region Required Things For Normal Behaviour
+            //veh.SetAutomaticallyAttaches(0, 0);
+
             RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
             RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
             veh.SetLoadCollisionFlag(true, 0);
@@ -232,6 +230,8 @@ namespace BCRPClient.Sync
 
             #region Default Settings
             veh.SetDisablePetrolTankDamage(true);
+
+            veh.SetHandling("fWeaponDamageMult", 0.1f);
             #endregion
 
             if (veh.IsLocal)
@@ -1559,6 +1559,8 @@ namespace BCRPClient.Sync
                     lastPos = curPos;
                 }
 
+                SetColshapeVehicleMaxSpeed(veh, Player.LocalPlayer.HasData("ColshapeVehicleSpeedLimited") ? Player.LocalPlayer.GetData<float>("ColshapeVehicleSpeedLimited") : float.MinValue);
+
                 return false;
             }, 1500, true, 0);
 
@@ -1576,8 +1578,24 @@ namespace BCRPClient.Sync
 
                 var vData = GetData(veh);
 
-                if (vData.ForcedSpeed != 0f)
-                    veh.SetForwardSpeed(vData.ForcedSpeed);
+                var fSpeed = vData.ForcedSpeed;
+
+                if (fSpeed != 0f)
+                {
+                    var lms = Player.LocalPlayer.Vehicle == vData.Vehicle ? Player.LocalPlayer.HasData("ColshapeVehicleSpeedLimited") ? Player.LocalPlayer.GetData<float>("ColshapeVehicleSpeedLimited") : float.MinValue : float.MinValue;
+
+                    if (lms >= 0f)
+                    {
+                        if (fSpeed > 0f)
+                            veh.SetForwardSpeed(fSpeed > lms ? lms : fSpeed);
+                        else
+                            veh.SetForwardSpeed(-fSpeed > lms ? -lms : fSpeed);
+                    }
+                    else
+                    {
+                        veh.SetForwardSpeed(fSpeed);
+                    }
+                }
             }
         }
 
@@ -1861,14 +1879,14 @@ namespace BCRPClient.Sync
             }
         }
 
-        /*        public static void ApplyTrailerSattings(Vehicle veh)
-                {
-                    veh.SetCanBeVisiblyDamaged(false);
-                    veh.SetCanBreak(false);
-                    veh.SetDeformationFixed();
-                    veh.SetDisablePetrolTankDamage(true);
-                    veh.SetDisablePetrolTankFires(true);
-                    veh.SetInvincible(true);
-                }*/
+        public static void SetColshapeVehicleMaxSpeed(Vehicle veh, float maxSpeed)
+        {
+            veh.SetMaxSpeed(maxSpeed);
+
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+        }
     }
 }

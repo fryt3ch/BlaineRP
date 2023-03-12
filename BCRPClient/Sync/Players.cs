@@ -228,6 +228,8 @@ namespace BCRPClient.Sync
 
             public bool IsInvincible => Player.GetSharedData<bool>("IsInvincible", false);
 
+            public bool IsFlyOn => Player.GetSharedData<bool>("Fly", false);
+
             public int MuteTime { get => Player.GetData<int>("MuteTime"); set => Player.SetData("MuteTime", value); }
 
             public int JailTime { get => Player.GetData<int>("JailTime"); set => Player.SetData("JailTime", value); }
@@ -585,6 +587,8 @@ namespace BCRPClient.Sync
 
                 CEF.Menu.SetCID(data.CID);
 
+                InvokeHandler("AdminLevel", data, data.AdminLevel, null);
+
                 InvokeHandler("Cash", data, data.Cash, null);
                 InvokeHandler("BankBalance", data, data.BankBalance, null);
 
@@ -789,17 +793,18 @@ namespace BCRPClient.Sync
                 Player.LocalPlayer.ResetData("Smoke::Data::Puffs");
 
                 Player.LocalPlayer.GetData<AsyncTask>("Smoke::Data::CTask")?.Cancel();
+                Player.LocalPlayer.GetData<AsyncTask>("Smoke::Data::CTask1")?.Cancel();
+                Player.LocalPlayer.GetData<AsyncTask>("Smoke::Data::CTask2")?.Cancel();
 
                 Player.LocalPlayer.ResetData("Smoke::Data::CTask");
+                Player.LocalPlayer.ResetData("Smoke::Data::CTask1");
+                Player.LocalPlayer.ResetData("Smoke::Data::CTask2");
             });
 
             Events.Add("Player::Smoke::Puff", (object[] args) =>
             {
-                AsyncTask.RunSlim(async () =>
+                var task1 = new AsyncTask(async () =>
                 {
-                    if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
-                        return;
-
                     await Utils.RequestPtfx("core");
 
                     var fxHandle = RAGE.Game.Graphics.StartParticleFxLoopedOnEntityBone("exp_grd_bzgas_smoke", Player.LocalPlayer.Handle, 0f, 0f, 0f, 0f, 0f, 0f, Player.LocalPlayer.GetBoneIndex(20279), 0.15f, false, false, false);
@@ -807,15 +812,21 @@ namespace BCRPClient.Sync
                     await RAGE.Game.Invoker.WaitAsync(1000);
 
                     RAGE.Game.Graphics.StopParticleFxLooped(fxHandle, false);
-                }, 2000);
+                }, 2000, false, 0);
 
-                AsyncTask.RunSlim(() =>
+                var task2 = new AsyncTask(() =>
                 {
                     if (!Player.LocalPlayer.HasData("Smoke::Data::Puffs"))
                         return;
 
                     Player.LocalPlayer.SetData("Smoke::Data::Puffs", Player.LocalPlayer.GetData<int>("Smoke::Data::Puffs") - 1);
-                }, 3000);
+                }, 3000, false, 0);
+
+                task1.Run();
+                task2.Run();
+
+                Player.LocalPlayer.SetData("Smoke::Data::CTask1", task1);
+                Player.LocalPlayer.SetData("Smoke::Data::CTask2", task2);
             });
 
             Events.Add("Player::CloseAll", args => CloseAll((bool)args[0]));
@@ -840,13 +851,7 @@ namespace BCRPClient.Sync
                     if (quest == null)
                         return;
 
-                    quests.Remove(quest);
-
-                    quest.Destroy();
-
-                    CEF.Menu.UpdateQuests(data);
-
-                    CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, success ? Locale.Notifications.General.QuestFinishedText : Locale.Notifications.General.QuestCancelledText);
+                    quest.SetQuestAsCompleted(success, true);
                 }
                 else
                 {
@@ -858,27 +863,19 @@ namespace BCRPClient.Sync
                     {
                         quest = new Sync.Quest(qType, step, sProgress, args.Length > 3 ? (string)args[3] : null);
 
-                        quests.Add(quest);
-
-                        quest.Initialize();
-
-                        CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestStartedText, quest.GoalWithProgress));
+                        quest.SetQuestAsStarted(true);
                     }
                     else
                     {
                         if (args.Length > 3)
-                            quest.CurrentData = (string)args[3];
-
-                        quest.StepProgress = sProgress;
-
-                        quest.UpdateStep(step);
-
-                        quest.UpdateProgress(sProgress);
-
-                        CEF.Notification.Show(Notification.Types.Quest, quest.Data.Name, string.Format(Locale.Notifications.General.QuestUpdatedText, quest.GoalWithProgress));
+                        {
+                            quest.SetQuestAsUpdated(step, sProgress, (string)args[3], true);
+                        }
+                        else
+                        {
+                            quest.SetQuestAsUpdatedKeepOldData(step, sProgress, true);
+                        }
                     }
-
-                    CEF.Menu.UpdateQuests(data);
                 }
             });
 
@@ -1217,6 +1214,27 @@ namespace BCRPClient.Sync
 
                     if (CEF.HouseMenu.IsActive)
                         CEF.HouseMenu.RemoveOwnedFurniture(fUid);
+                }
+            });
+
+            AddDataHandler("Fly", (pData, value, oldValue) =>
+            {
+                if (pData.Player != Player.LocalPlayer)
+                    return;
+
+                var state = (bool?)value ?? false;
+
+                GameEvents.Render -= FlyRender;
+
+                if (state)
+                {
+                    Player.LocalPlayer.ClearTasksImmediately();
+
+                    GameEvents.Render += FlyRender;
+                }
+                else
+                {
+
                 }
             });
 
@@ -1677,7 +1695,12 @@ namespace BCRPClient.Sync
 
             AddDataHandler("AdminLevel", (pData, value, oldValue) =>
             {
+                if (pData.Player == Player.LocalPlayer)
+                {
+                    var level = (int?)value ?? 0;
 
+                    SetPlayerAsAdmin(level);
+                }
             });
 
             AddDataHandler("VoiceRange", (pData, value, oldValue) =>
@@ -1962,6 +1985,98 @@ namespace BCRPClient.Sync
 
                 Sync.Finger.Stop();
             }
+        }
+
+        private static void SetPlayerAsAdmin(int aLvl)
+        {
+            var flyBindIdx = Player.LocalPlayer.GetData<int>("ADMIN::BINDS::FLY");
+
+            if (flyBindIdx >= 0)
+                KeyBinds.Unbind(flyBindIdx);
+
+            if (aLvl <= 0)
+            {
+
+            }
+            else
+            {
+                Player.LocalPlayer.SetData("ADMIN::BINDS::FLY", KeyBinds.Bind(RAGE.Ui.VirtualKeys.F5, true, () => Data.Commands.Fly(null)));
+            }
+        }
+
+        private static float FlyF { get; set; } = 2f;
+        private static float FlyW { get; set; } = 2f;
+        private static float FlyH { get; set; } = 2f;
+
+        private static void FlyRender()
+        {
+            var pos = Player.LocalPlayer.GetCoords(false);
+            var dir = Utils.RotationToDirection(RAGE.Game.Cam.GetGameplayCamRot(0));
+
+            if (RAGE.Game.Pad.IsControlPressed(32, 32)) // W
+            {
+                if (FlyF < 8f)
+                    FlyF *= 1.025f;
+
+                pos.X += dir.X * FlyF;
+                pos.Y += dir.Y * FlyF;
+                pos.Z += dir.Z * FlyF;
+            }
+            else if (RAGE.Game.Pad.IsControlPressed(32, 33)) // S
+            {
+                if (FlyF < 8f)
+                    FlyF *= 1.025f;
+
+                pos.X -= dir.X * FlyF;
+                pos.Y -= dir.Y * FlyF;
+                pos.Z -= dir.Z * FlyF;
+            }
+            else
+            {
+                FlyF = 2f;
+            }
+
+            if (RAGE.Game.Pad.IsControlPressed(32, 34)) // A
+            {
+                if (FlyW < 8f)
+                    FlyW *= 1.025f;
+
+                pos.X += -dir.Y * FlyW;
+                pos.Y += dir.X * FlyW;
+            }
+            else if (RAGE.Game.Pad.IsControlPressed(32, 35)) // D
+            {
+                if (FlyW < 8f)
+                    FlyW *= 1.05f;
+
+                pos.X -= -dir.Y * FlyW;
+                pos.Y -= dir.X * FlyW;
+            }
+            else
+            {
+                FlyW = 2f;
+            }
+
+            if (RAGE.Game.Pad.IsControlPressed(32, 321)) // Space
+            {
+                if (FlyH < 8f)
+                    FlyH *= 1.025f;
+
+                pos.Z += FlyH;
+            }
+            else if (RAGE.Game.Pad.IsControlPressed(32, 326)) // LCtrl
+            {
+                if (FlyH < 8f)
+                    FlyH *= 1.05f;
+
+                pos.Z -= FlyH;
+            }
+            else
+            {
+                FlyH = 2f;
+            }
+
+            Player.LocalPlayer.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
         }
     }
 }

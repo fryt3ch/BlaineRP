@@ -247,6 +247,20 @@ namespace BCRPClient.Data.Jobs
     {
         public JobEvents()
         {
+            Events.Add("Job::TSC", (args) =>
+            {
+                var newBalance = args[0].ToDecimal();
+
+                var oldBalance = args[1].ToDecimal();
+
+                var diff = newBalance > oldBalance ? newBalance - oldBalance : 0;
+
+                if (diff > 0)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Information, "+" + Utils.GetPriceString(diff), $"Сумма Вашей зарплаты: {Utils.GetPriceString(newBalance)}");
+                }
+            });
+
             Events.Add("Job::TR::OC", (args) =>
             {
                 var pData = Sync.Players.GetData(Player.LocalPlayer);

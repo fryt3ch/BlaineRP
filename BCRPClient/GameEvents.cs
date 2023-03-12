@@ -3,16 +3,13 @@
 using RAGE;
 using RAGE.Elements;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 
 namespace BCRPClient
 {
     public class GameEvents : Events.Script
     {
-        private static int _FPS { get; set; }
-
-        public static int FPS { get; private set; }
+        public static int FPS => (int)Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
 
         public static bool PlayerFreezed = false;
 
@@ -58,8 +55,6 @@ namespace BCRPClient
             RAGE.Chat.Show(false);
 
             RAGE.Game.Graphics.RemoveParticleFxInRange(0f, 0f, 0f, float.MaxValue);
-
-            FpsCounterStart();
 
             Player.LocalPlayer.SetVisible(true, false);
 
@@ -207,6 +202,8 @@ namespace BCRPClient
                 }
 
                 CEF.Audio.OnEntityStreamIn(gEntity);
+
+                entity.GetData<Action<Entity>>("ECA_SI")?.Invoke(entity);
             };
 
             Events.OnEntityStreamOut += async (entity) =>
@@ -234,6 +231,8 @@ namespace BCRPClient
                 {
                     CEF.Audio.OnEntityStreamOut(gEntity);
                 }
+
+                entity.GetData<Action<Entity>>("ECA_SO")?.Invoke(entity);
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
@@ -515,24 +514,6 @@ namespace BCRPClient
 
             RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53); // EndScaleformMovieMethod
         }
-
-        private static async void FpsCounterStart()
-        {
-            while (true)
-            {
-                _FPS = 0;
-
-                Render += FpsCounterRender;
-
-                await RAGE.Game.Invoker.WaitAsync(1000);
-
-                Render -= FpsCounterRender;
-
-                FPS = _FPS;
-            }
-        }
-
-        private static void FpsCounterRender() => _FPS++;
         #endregion
     }
 }

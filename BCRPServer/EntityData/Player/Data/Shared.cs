@@ -96,7 +96,7 @@ namespace BCRPServer
 
         /// <summary>Уровень администратора игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public int AdminLevel { get => Info.AdminLevel; set { Player.SetSharedData("AdminLevel", value); Info.AdminLevel = value; } }
+        public int AdminLevel { get => Info.AdminLevel; set { if (value <= 0) Player.ResetSharedData("AdminLevel"); else Player.SetSharedData("AdminLevel", value); Info.AdminLevel = value; } }
 
         /// <summary>Текущая шапка игрока, необходимо для нормального отображения в игре при входе/выходе из транспорта</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -109,6 +109,8 @@ namespace BCRPServer
         /// <summary>Является ли игрок бессмертным?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public bool IsInvincible { get => Player.GetSharedData<bool?>("IsInvincible") ?? false; set { if (value) Player.SetSharedData("IsInvincible", value); else Player.ResetSharedData("IsInvincible"); Player.SetInvincible(value); } }
+
+        public bool IsFlyOn { get => Player.GetSharedData<bool?>("Fly") ?? false; set { if (value) Player.SetSharedData("Fly", value); else Player.ResetSharedData("Fly"); } }
 
         /// <summary>Текущая анимация игрока (General)</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

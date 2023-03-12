@@ -93,6 +93,8 @@ namespace BCRPClient.CEF
             TuningShop,
 
             WeaponShop,
+
+            Farm,
         }
 
         public enum SectionTypes

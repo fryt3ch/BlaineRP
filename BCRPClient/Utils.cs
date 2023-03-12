@@ -678,7 +678,7 @@ namespace BCRPClient
             InVehicle,
             IsSwimming, InWater, HasWeapon, Crouch, Crawl, Shooting, Climbing,
             Cuffed, Falling, Jumping, Ragdoll, Scenario, OtherAnimation, Animation, FastAnimation, PushingVehicle, NotOnFoot, Reloading, Finger,
-            HasItemInHands, IsAttachedTo,
+            HasItemInHands, IsAttachedTo, MeleeCombat,
         }
 
         private static Dictionary<Actions, Func<Sync.Players.PlayerData, bool, bool>> ActionsFuncs = new Dictionary<Actions, Func<Sync.Players.PlayerData, bool, bool>>()
@@ -776,6 +776,8 @@ namespace BCRPClient
             { Actions.HasWeapon, (pData, notify) => Player.LocalPlayer.HasWeapon() },
 
             { Actions.Shooting, (pData, notify) => Player.LocalPlayer.IsShooting() },
+
+            { Actions.MeleeCombat, (pData, notify) => Player.LocalPlayer.IsInMeleeCombat() },
 
             { Actions.Cuffed, (pData, notify) => Player.LocalPlayer.IsCuffed() },
 
@@ -1710,5 +1712,23 @@ namespace BCRPClient
         public static void TaskLookAtCoord2(this PedBase ped, float posX, float posY, float posZ, int duration, int flags = 2048, int p2 = 3) => RAGE.Game.Invoker.Invoke(0x6FA46612594F7973, ped.Handle, posX, posY, posZ, duration, flags, p2);
 
         public static float GetPathfindTravelDistance(this Vector3 pos1, Vector3 pos2) => RAGE.Game.Pathfind.CalculateTravelDistanceBetweenPoints(pos1.X, pos1.Y, pos1.Z, pos2.X, pos2.Y, pos2.Z);
+
+        public static void SetTotallyInvincible(this MapObject obj, bool state)
+        {
+            if (state)
+            {
+                obj.SetDisableFragDamage(true);
+
+                obj.SetCanBeDamaged(false);
+                obj.SetInvincible(true);
+            }
+            else
+            {
+                obj.SetDisableFragDamage(false);
+
+                obj.SetCanBeDamaged(true);
+                obj.SetInvincible(false);
+            }
+        }
     }
 }

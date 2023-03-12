@@ -1,6 +1,5 @@
 ﻿using RAGE;
 using RAGE.Elements;
-using System;
 using System.Collections.Generic;
 
 namespace BCRPClient.Sync.Quests.Types.Job

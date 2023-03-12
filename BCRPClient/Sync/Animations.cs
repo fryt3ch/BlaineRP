@@ -1,7 +1,4 @@
-﻿using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
+﻿using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;
 
 namespace BCRPClient.Sync
 {
@@ -113,6 +110,16 @@ namespace BCRPClient.Sync
             CuffedStatic,
 
             FarmPlantSmallShovelProcess0,
+
+            BoxCarry0,
+
+            WateringCan0,
+
+            TreeCollect0,
+
+            BucketCarryOneHand0,
+
+            MilkCow0,
         }
 
         public enum OtherTypes
@@ -409,6 +416,16 @@ namespace BCRPClient.Sync
             { GeneralTypes.CuffedStatic, new Animation("mp_arresting", "idle", 1f, 0f, -1, 1, 1, false, false, false) },
 
             { GeneralTypes.FarmPlantSmallShovelProcess0, new Animation("amb@world_human_gardener_plant@male@base", "base", 2f, 2f, -1, 1, 0f, false, false, false) },
+
+            { GeneralTypes.BoxCarry0, new Animation("anim@heists@box_carry@", "idle", 2f, 2f, -1, 49, 0f, false, false, false) },
+
+            { GeneralTypes.WateringCan0, new Animation("missarmenian3_gardener", "blower_idle_a", 2f, 2f, -1, 1, 0f, false, false, false) }, // static - amb@lo_res_idles@ world_human_gardener_leaf_blower_lo_res_base
+
+            { GeneralTypes.TreeCollect0, new Animation("amb@prop_human_movie_bulb@base", "base", 2f, 2f, -1, 1, 0f, false, false, false) },
+
+            { GeneralTypes.BucketCarryOneHand0, new Animation("move_bucket", "idle", 2f, 2f, -1, 49, 0f, false, false, false) },
+
+            { GeneralTypes.MilkCow0, new Animation("amb@prop_human_parking_meter@female@base", "base_female", 2f, 2f, -1, 17, 0f, false, false, false) },
         };
 
         public static Dictionary<OtherTypes, Animation> OtherAnimsList { get; private set; } = new Dictionary<OtherTypes, Animation>()

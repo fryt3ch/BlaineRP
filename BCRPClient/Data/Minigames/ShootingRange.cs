@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BCRPClient.Data
+namespace BCRPClient.Data.Minigames
 {
     public class ShootingRange : Events.Script
     {

@@ -171,7 +171,7 @@ namespace BCRPClient
             public class Default
             {
                 public static int VoiceVolume = 100;
-                public static int SoundVolume = 75;
+                public static int SoundVolume = 50;
             }
 
             private static int _VoiceVolume;

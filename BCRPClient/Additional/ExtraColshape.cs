@@ -1,5 +1,4 @@
 ﻿using BCRPClient.CEF;
-using BCRPClient.Sync;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -451,6 +450,8 @@ namespace BCRPClient.Additional
             ApartmentsRootElevator,
 
             GarageRootEnter,
+
+            VehicleSpeedLimit,
         }
 
         public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
@@ -1195,6 +1196,44 @@ namespace BCRPClient.Additional
                     },
                 }
             },
+
+            {
+                ActionTypes.VehicleSpeedLimit,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is float maxSpeed && maxSpeed > 0f)
+                            {
+                                Player.LocalPlayer.SetData("ColshapeVehicleSpeedLimited", maxSpeed);
+
+                                if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                                {
+                                    Sync.Vehicles.SetColshapeVehicleMaxSpeed(veh, maxSpeed);
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("ColshapeVehicleSpeedLimited");
+
+                            if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                            {
+                                Sync.Vehicles.SetColshapeVehicleMaxSpeed(veh, float.MinValue);
+                            }
+                        }
+                    },
+                }
+            },
         };
 
         public abstract string ShortData { get; }
@@ -1364,13 +1403,13 @@ namespace BCRPClient.Additional
             {
                 if (curPoly.IsInside)
                 {
-/*                    if (curPoly?.Colshape?.IsNull != false)
-                    {
-                        if (curPoly?.Colshape != null)
-                            All.Remove(curPoly.Colshape);
+                    /*                    if (curPoly?.Colshape?.IsNull != false)
+                                        {
+                                            if (curPoly?.Colshape != null)
+                                                All.Remove(curPoly.Colshape);
 
-                        continue;
-                    }*/
+                                            continue;
+                                        }*/
 
                     if ((curPoly.IsInteraction && !interactionAllowed) || !curPoly.IsPointInside(pos) || !(ApproveFuncs.GetValueOrDefault(curPoly.ApproveType)?.Invoke() ?? true))
                     {

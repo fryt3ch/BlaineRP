@@ -3,10 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
-using System.Net.Mail;
-using System.Security.Cryptography.X509Certificates;
 
 namespace BCRPClient.Data
 {
@@ -14,6 +11,64 @@ namespace BCRPClient.Data
     {
         public class Farm : Business
         {
+            public const float TRACTOR_MAX_SPEED_KM_H = 15f;
+
+            public AsyncTask LoadTask { get; set; }
+
+            private static Dictionary<int, Dictionary<int, float>> CropFieldsRotations = new Dictionary<int, Dictionary<int, float>>()
+            {
+                {
+                    1,
+
+                    new Dictionary<int, float>()
+                    {
+                        { 0, float.PositiveInfinity },
+                        { 1, float.PositiveInfinity },
+                        { 2, float.PositiveInfinity },
+                        { 3, float.PositiveInfinity },
+                        { 4, float.PositiveInfinity },
+
+                        { 5, -225f },
+                        { 6, -225f },
+                        { 7, -225f },
+                        { 8, -225f },
+                    }
+                }
+            };
+
+            private static Dictionary<CropField.Types, (float GroundZOffset, float GrownZOffset, float SownZOffset, string Name, uint Model)> CropTypesData = new Dictionary<CropField.Types, (float, float, float, string, uint)>()
+            {
+                {
+                    CropField.Types.Cabbage,
+
+                    (0f, 0f, -0.22326f, "Капуста", RAGE.Util.Joaat.Hash("prop_veg_crop_03_cab"))
+                },
+
+                {
+                    CropField.Types.Pumpkin,
+
+                    (0f, 0f, -0.39441f, "Тыква", RAGE.Util.Joaat.Hash("prop_veg_crop_03_pump"))
+                },
+
+                {
+                    CropField.Types.Wheat,
+
+                    (-0.35f, 0f, -0.5f, "Пшеница", RAGE.Util.Joaat.Hash("prop_veg_crop_05"))
+                },
+
+                {
+                    CropField.Types.OrangeTree,
+
+                    (0f, 0f, 0f, "Апельсиновое дерево", RAGE.Util.Joaat.Hash("prop_veg_crop_orange"))
+                },
+
+                {
+                    CropField.Types.Cow,
+
+                    (0f, 0f, 0f, "Корова", RAGE.Util.Joaat.Hash("a_c_cow"))
+                },
+            };
+
             public class CropField
             {
                 public class CropData
@@ -32,9 +87,7 @@ namespace BCRPClient.Data
 
                     public static DateTime LastSent;
 
-                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte row, byte col) => Sync.World.GetSharedData<object>(GetSharedDataKey(farm, fieldIdx, row, col), null) is object obj ? Convert.ToInt64(obj) : (long?)null;
-
-                    public static string GetSharedDataKey(Farm farm, int fieldIdx, byte row, byte col) => $"FARM::CF_{farm.Id}_{fieldIdx}_{row}_{col}";
+                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Convert.ToInt64(obj) : (long?)null;
 
                     public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
                     {
@@ -46,15 +99,30 @@ namespace BCRPClient.Data
                             return;
 
                         var fieldIdx = int.Parse(data[2]);
-                        var row = byte.Parse(data[3]);
-                        var col = byte.Parse(data[4]);
+                        var col = byte.Parse(data[3]);
+                        var row = byte.Parse(data[4]);
 
-                        var cropData = farm.CropFields[fieldIdx].CropsData[row][col];
+                        var cropData = farm.CropFields[fieldIdx].CropsData[col][row];
 
-                        cropData.GrowTimeChanged(farm, fieldIdx, row, col, value == null ? (long?)null : Convert.ToInt64(value));
+                        cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Convert.ToInt64(value));
+
+                        if (farm.CropFields[fieldIdx].Type == Types.Wheat)
+                        {
+                            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                            if (pData != null)
+                            {
+                                var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JFRM1);
+
+                                if (quest != null)
+                                {
+                                    farm.UpdateTractorTakerData(quest);
+                                }
+                            }
+                        }
                     }
 
-                    public void GrowTimeChanged(Farm farm, int fieldIdx, byte row, byte col, long? growTimeN)
+                    public void GrowTimeChanged(Farm farm, int fieldIdx, byte col, byte row, long? growTimeN)
                     {
                         if (farm.CropFields[fieldIdx].Colshape?.IsInside == true)
                         {
@@ -77,11 +145,22 @@ namespace BCRPClient.Data
                                     if (TextLabel != null)
                                     {
                                         if (BindIdx >= 0)
+                                        {
                                             KeyBinds.Unbind(BindIdx);
 
-                                        BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, row, col));
+                                            BindIdx = -1;
+                                        }
 
-                                        TextLabel.Text = "Плод созрел\nНажмите E, чтобы собрать его";
+                                        if (farm.CropFields[fieldIdx].Type != Types.Wheat)
+                                        {
+                                            BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, col, row));
+
+                                            TextLabel.Text = "Плод созрел\nНажмите E, чтобы собрать его";
+                                        }
+                                        else
+                                        {
+                                            TextLabel.Text = "Плод созрел\nЧтобы собрать его, воспользуйтесь комбайном";
+                                        }
                                     }
                                 }
 
@@ -91,17 +170,49 @@ namespace BCRPClient.Data
 
                                     var field = farm.CropFields[fieldIdx];
 
-                                    field.GetCropPosition2DNotSafe(row, col, out x, out y);
+                                    var cropTData = CropTypesData[field.Type];
 
-                                    var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(CropModels[field.Type], x, y, field.CoordZ, false, false, false));
+                                    field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
-                                    prop.SetDisableFragDamage(true);
-                                    prop.SetInvincible(true);
-                                    prop.SetCanBeDamaged(false);
+                                    var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, field.CoordZ + 1f, false, false, false));
+
+                                    MapObject = prop;
+
+                                    prop.SetTotallyInvincible(true);
 
                                     prop.FreezePosition(true);
 
-                                    prop.SetHeading(RotationZ);
+                                    prop.PlaceOnGroundProperly();
+
+                                    var zOffset = cropTData.GroundZOffset + cropTData.GrownZOffset;
+
+                                    var factPos = prop.GetCoords(false);
+
+                                    prop.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
+
+                                    MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
+                                }
+                                else
+                                {
+                                    var field = farm.CropFields[fieldIdx];
+
+                                    var cropTData = CropTypesData[field.Type];
+
+                                    float x, y;
+
+                                    field.GetCropPosition2DNotSafe(col, row, out x, out y);
+
+                                    MapObject.SetCoordsNoOffset(x, y, field.CoordZ + 1f, false, false, false);
+
+                                    MapObject.PlaceOnGroundProperly();
+
+                                    var zOffset = cropTData.GroundZOffset + cropTData.GrownZOffset;
+
+                                    var factPos = MapObject.GetCoords(false);
+
+                                    MapObject.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
+
+                                    MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
                                 }
                             }
                             else
@@ -116,7 +227,11 @@ namespace BCRPClient.Data
                                     if (TextLabel != null)
                                     {
                                         if (BindIdx >= 0)
+                                        {
                                             KeyBinds.Unbind(BindIdx);
+
+                                            BindIdx = -1;
+                                        }
 
                                         var growDateTime = DateTimeOffset.FromUnixTimeSeconds(growTime).DateTime;
 
@@ -125,13 +240,64 @@ namespace BCRPClient.Data
                                             if (TextLabel == null)
                                                 return;
 
-                                            if (GetGrowTime(farm, fieldIdx, row, col) is long growTime && growTime != 0)
+                                            if (GetGrowTime(farm, fieldIdx, col, row) is long growTime && growTime != 0)
                                             {
                                                 TextLabel.Text = $"Грядка засеяна, до созревания плода осталось\n{growDateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}";
                                             }
                                         }, 1000, true, 0);
 
                                         Task.Run();
+                                    }
+
+                                    if (MapObject == null)
+                                    {
+                                        float x, y;
+
+                                        var field = farm.CropFields[fieldIdx];
+
+                                        var cropTData = CropTypesData[field.Type];
+
+                                        field.GetCropPosition2DNotSafe(col, row, out x, out y);
+
+                                        var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, field.CoordZ + 1f, false, false, false));
+
+                                        MapObject = prop;
+
+                                        prop.SetTotallyInvincible(true);
+
+                                        prop.FreezePosition(true);
+
+                                        prop.PlaceOnGroundProperly();
+
+                                        var zOffset = cropTData.GroundZOffset + cropTData.SownZOffset;
+
+                                        var factPos = prop.GetCoords(false);
+
+                                        prop.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
+
+                                        MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
+                                    }
+                                    else
+                                    {
+                                        var field = farm.CropFields[fieldIdx];
+
+                                        var cropTData = CropTypesData[field.Type];
+
+                                        float x, y;
+
+                                        field.GetCropPosition2DNotSafe(col, row, out x, out y);
+
+                                        MapObject.SetCoordsNoOffset(x, y, field.CoordZ + 1f, false, false, false);
+
+                                        MapObject.PlaceOnGroundProperly();
+
+                                        var zOffset = cropTData.GroundZOffset + cropTData.SownZOffset;
+
+                                        var factPos = MapObject.GetCoords(false);
+
+                                        MapObject.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
+
+                                        MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
                                     }
                                 }
                             }
@@ -150,9 +316,13 @@ namespace BCRPClient.Data
                                 if (TextLabel != null)
                                 {
                                     if (BindIdx >= 0)
+                                    {
                                         KeyBinds.Unbind(BindIdx);
 
-                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, row, col));
+                                        BindIdx = -1;
+                                    }
+
+                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCrop(farm, fieldIdx, col, row));
 
                                     TextLabel.Text = "Грядка пустая\nНажмите E, чтобы засеять её";
                                 }
@@ -160,43 +330,11 @@ namespace BCRPClient.Data
                         }
                     }
 
-                    public void OnEnter(Farm farm, int fieldIdx, byte row, byte col)
+                    public static async void ProcessCrop(Farm farm, int fieldIdx, byte col, byte row)
                     {
-                        var fieldData = farm.CropFields[fieldIdx];
+                        if (CEF.Cursor.IsVisible)
+                            return;
 
-                        float x, y, z;
-
-                        fieldData.GetCropPosition3DNotSafe(row, col, out x, out y, out z);
-
-                        TextLabel?.Destroy();
-
-                        TextLabel = new TextLabel(new Vector3(x, y, z + 0.25f), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) {  Font = 4, LOS = false };
-
-                        GrowTimeChanged(farm, fieldIdx, row, col, GetGrowTime(farm, fieldIdx, row, col));
-                    }
-
-                    public void OnExit(Farm farm, int fieldIdx, byte row, byte col)
-                    {
-                        if (TextLabel != null)
-                        {
-                            TextLabel.Destroy();
-
-                            TextLabel = null;
-                        }
-
-                        if (Task != null)
-                        {
-                            Task.Cancel();
-
-                            Task = null;
-                        }
-
-                        if (BindIdx >= 0)
-                            KeyBinds.Unbind(BindIdx);
-                    }
-
-                    public static async void ProcessCrop(Farm farm, int fieldIdx, byte row, byte col)
-                    {
                         var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                         if (pData == null)
@@ -219,13 +357,13 @@ namespace BCRPClient.Data
 
                         LastSent = Sync.World.ServerTime;
 
-                        var res = (int)await Events.CallRemoteProc("Job::FARM::CP", fieldIdx, row, col);
+                        var res = (int)await Events.CallRemoteProc("Job::FARM::CP", fieldIdx, col, row);
 
                         if (res == byte.MaxValue)
                         {
                             float x, y;
 
-                            farm.CropFields[fieldIdx].GetCropPosition2DNotSafe(row, col, out x, out y);
+                            farm.CropFields[fieldIdx].GetCropPosition2DNotSafe(col, row, out x, out y);
 
                             var pPos = Player.LocalPlayer.Position;
 
@@ -245,76 +383,92 @@ namespace BCRPClient.Data
                 {
                     Cabbage = 0,
                     Pumpkin,
-                }
 
-                public static Dictionary<Types, uint> CropModels = new Dictionary<Types, string>()
-                {
-                    { Types.Cabbage, "prop_veg_crop_03_cab" },
-                    { Types.Pumpkin, "prop_veg_crop_03_pump" },
-                }.ToDictionary(x => x.Key, x => RAGE.Util.Joaat.Hash(x.Value));
+                    Wheat,
+
+                    OrangeTree,
+
+                    Cow,
+                }
 
                 public static TextLabel MainLabel { get; set; }
                 public static TextLabel InfoLabel { get; set; }
 
+                public static AsyncTask LabelTask { get; set; }
+
                 public Additional.ExtraColshape Colshape { get; set; }
 
-                [JsonProperty(PropertyName ="T")]
+                [JsonProperty(PropertyName = "T")]
                 public Types Type { get; set; }
 
                 [JsonProperty(PropertyName = "CZ")]
                 public float CoordZ { get; set; }
 
                 [JsonProperty(PropertyName = "C")]
-                public RAGE.Ui.Cursor.Vector2[] Columns { get; set; }
+                public (RAGE.Ui.Cursor.Vector2 Pos, byte Count)[] Columns { get; set; }
 
                 [JsonProperty(PropertyName = "O")]
                 public RAGE.Ui.Cursor.Vector2 Offset { get; set; }
 
-                [JsonProperty(PropertyName = "RC")]
-                public byte RowsCount { get; set; }
+                [JsonProperty(PropertyName = "IRP")]
+                public List<Vector3> IrrigationPoints { get; set; }
 
                 public List<List<CropData>> CropsData { get; set; } = new List<List<CropData>>();
 
-                public Vector3 GetCropPosition3D(byte row, byte col) => row >= RowsCount || col >= Columns.Length ? null : new Vector3(Columns[col].X + Offset.X * row, Columns[col].Y + Offset.Y * row, CoordZ);
+                public Vector3 GetCropPosition3D(byte col, byte row) => col >= CropsData.Count || row >= CropsData[col].Count ? null : new Vector3(Columns[col].Pos.X + Offset.X * row, Columns[col].Pos.Y + Offset.Y * row, CoordZ);
 
-                public void GetCropPosition3DNotSafe(byte row, byte col, out float x, out float y, out float z)
+                public void GetCropPosition3DNotSafe(byte col, byte row, out float x, out float y, out float z)
                 {
-                    x = Columns[col].X + Offset.X * row;
-                    y = Columns[col].Y + Offset.Y * row;
+                    x = Columns[col].Pos.X + Offset.X * row;
+                    y = Columns[col].Pos.Y + Offset.Y * row;
 
                     z = CoordZ;
                 }
 
-                public RAGE.Ui.Cursor.Vector2 GetCropPosition2D(byte row, byte col) => row >= RowsCount || col >= Columns.Length ? null : new RAGE.Ui.Cursor.Vector2(Columns[col].X + Offset.X * row, Columns[col].Y + Offset.Y * row);
+                public RAGE.Ui.Cursor.Vector2 GetCropPosition2D(byte col, byte row) => col >= CropsData.Count || row >= CropsData[col].Count ? null : new RAGE.Ui.Cursor.Vector2(Columns[col].Pos.X + Offset.X * row, Columns[col].Pos.Y + Offset.Y * row);
 
-                public void GetCropPosition2DNotSafe(byte row, byte col, out float x, out float y)
+                public void GetCropPosition2DNotSafe(byte col, byte row, out float x, out float y)
                 {
-                    x = Columns[col].X + Offset.X * row;
-                    y = Columns[col].Y + Offset.Y * row;
+                    x = Columns[col].Pos.X + Offset.X * row;
+                    y = Columns[col].Pos.Y + Offset.Y * row;
+                }
+
+                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Sync.World.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+
+                public void IrrigationEndTimeChanged(Farm farm, int fieldIdx, long? irrigTimeN)
+                {
+                    if (farm.CropFields[fieldIdx].Colshape?.IsInside == true)
+                    {
+                        farm.CropFields[fieldIdx].UpdateLabels(farm, fieldIdx);
+                    }
                 }
 
                 public void PreInitialize(Farm farm, int fieldIdx)
                 {
-                    for (byte i = 0; i < RowsCount; i++)
+                    var fSubId = farm.SubId;
+
+                    for (byte i = 0; i < Columns.Length; i++)
                     {
                         CropsData.Add(new List<CropData>());
 
-                        for (byte j = 0; j < Columns.Length; j++)
+                        for (byte j = 0; j < Columns[i].Count; j++)
                         {
                             var cropData = new CropData();
 
                             CropsData[i].Add(cropData);
 
-                            cropData.RotationZ = 360f * (float)Utils.Random.NextDouble();
+                            var definedRot = CropFieldsRotations.GetValueOrDefault(fSubId)?.GetValueOrDefault(fieldIdx) ?? float.PositiveInfinity;
 
-                            Sync.World.AddDataHandler(CropData.GetSharedDataKey(farm, fieldIdx, i, j), CropData.OnSharedDataChanged);
+                            cropData.RotationZ = definedRot == float.PositiveInfinity ? 360f * (float)Utils.Random.NextDouble() : definedRot;
+
+                            Sync.World.AddDataHandler($"FARM::CF_{farm.Id}_{fieldIdx}_{i}_{j}", CropData.OnSharedDataChanged);
                         }
                     }
                 }
 
                 public void Initialize(Farm farm, int fieldIdx)
                 {
-                    var propHash = CropModels[Type];
+                    var cropTData = CropTypesData[farm.CropFields[fieldIdx].Type];
 
                     float x, y;
 
@@ -324,21 +478,25 @@ namespace BCRPClient.Data
                         {
                             var cropData = CropsData[i][j];
 
-                            if (CropData.GetGrowTime(farm, fieldIdx, i, j) == 0)
+                            if (CropData.GetGrowTime(farm, fieldIdx, i, j) is long growTime)
                             {
                                 GetCropPosition2DNotSafe(i, j, out x, out y);
 
-                                var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(propHash, x, y, CoordZ, false, false, false));
+                                var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, CoordZ + 1f, false, false, false));
 
-                                //prop.SetCollision(false, true);
-
-                                prop.SetDisableFragDamage(true);
-                                prop.SetInvincible(true);
-                                prop.SetCanBeDamaged(false);
+                                prop.SetTotallyInvincible(true);
 
                                 prop.FreezePosition(true);
 
-                                prop.SetHeading(cropData.RotationZ);
+                                prop.PlaceOnGroundProperly();
+
+                                var zOffset = cropTData.GroundZOffset + (growTime == 0 ? cropTData.GrownZOffset : cropTData.SownZOffset);
+
+                                var factPos = prop.GetCoords(false);
+
+                                prop.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
+
+                                prop.SetRotation(0f, 0f, cropData.RotationZ, 2, false);
 
                                 cropData.MapObject = prop;
                             }
@@ -374,26 +532,70 @@ namespace BCRPClient.Data
 
                     UpdateLabels(farm, fieldIdx);
 
+                    var csRange = farm.CropFields[fieldIdx].Type == Types.Wheat ? 2.5f : 0.75f;
+
                     float x, y;
 
                     for (byte i = 0; i < CropsData.Count; i++)
                     {
                         for (byte j = 0; j < CropsData[i].Count; j++)
                         {
-                            var row = i;
-                            var col = j;
+                            var col = i;
+                            var row = j;
 
                             var cropData = CropsData[i][j];
 
                             GetCropPosition2DNotSafe(i, j, out x, out y);
 
-                            var pos = new Vector3(x, y, CoordZ - 0.5f);
+                            var pos = new Vector3(x, y, CoordZ - 1.5f);
 
-                            cropData.Colshape = new Additional.Cylinder(pos, 0.75f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            cropData.Colshape = new Additional.Cylinder(pos, csRange, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                             {
-                                OnEnter = (cancel) => cropData.OnEnter(farm, fieldIdx, row, col),
+                                OnEnter = (cancel) =>
+                                {
+                                    var fieldData = farm.CropFields[fieldIdx];
 
-                                OnExit = (cancel) => cropData.OnExit(farm, fieldIdx, row, col),
+                                    float x, y, z;
+
+                                    fieldData.GetCropPosition3DNotSafe(col, row, out x, out y, out z);
+
+                                    float groundZ = z;
+
+                                    if (RAGE.Game.Misc.GetGroundZFor3dCoord(x, y, z + 1f, ref groundZ, true))
+                                        z = groundZ;
+                                    else
+                                        z += 0.5f;
+
+                                    CropData.TextLabel?.Destroy();
+
+                                    CropData.TextLabel = new TextLabel(new Vector3(x, y, z + 0.5f), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+
+                                    fieldData.CropsData[col][row].GrowTimeChanged(farm, fieldIdx, col, row, CropData.GetGrowTime(farm, fieldIdx, col, row));
+                                },
+
+                                OnExit = (cancel) =>
+                                {
+                                    if (CropData.TextLabel != null)
+                                    {
+                                        CropData.TextLabel.Destroy();
+
+                                        CropData.TextLabel = null;
+                                    }
+
+                                    if (CropData.Task != null)
+                                    {
+                                        CropData.Task.Cancel();
+
+                                        CropData.Task = null;
+                                    }
+
+                                    if (CropData.BindIdx >= 0)
+                                    {
+                                        KeyBinds.Unbind(CropData.BindIdx);
+
+                                        CropData.BindIdx = -1;
+                                    }
+                                }
                             };
 
                             //var blip = new Blip(1, pos, "", 0.35f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -410,6 +612,10 @@ namespace BCRPClient.Data
 
                     MainLabel = null;
                     InfoLabel = null;
+
+                    LabelTask?.Cancel();
+
+                    LabelTask = null;
 
                     for (byte i = 0; i < CropsData.Count; i++)
                     {
@@ -429,13 +635,18 @@ namespace BCRPClient.Data
                     if (InfoLabel == null)
                         return;
 
-                    var allAmount = RowsCount * Columns.Length;
+                    LabelTask?.Cancel();
+
+                    int allAmount = 0;
 
                     int grownCount = 0, seedCount = 0;
 
                     for (byte i = 0; i < CropsData.Count; i++)
+                    {
                         for (byte j = 0; j < CropsData[i].Count; j++)
                         {
+                            allAmount++;
+
                             var t = CropData.GetGrowTime(farm, fieldIdx, i, j);
 
                             if (t == 0)
@@ -443,25 +654,574 @@ namespace BCRPClient.Data
                             else if (t != null)
                                 seedCount++;
                         }
+                    }
 
-                    InfoLabel.Text = $"Тип плодов - {(Type == Types.Cabbage ? "капуста" : "тыква")}\nСвободно {allAmount - (grownCount + seedCount)} из {allAmount} грядок\nСозрело {grownCount} плодов, а созревает - {seedCount}";
+                    var cropTData = CropTypesData[Type];
+
+                    InfoLabel.Text = $"Тип плодов - {cropTData.Name.ToLower()}\nСвободно {allAmount - (grownCount + seedCount)} из {allAmount} грядок\nСозрело {grownCount} плодов, а созревает - {seedCount}\n\n";
+
+                    if (GetIrrigationEndTime(farm, fieldIdx) is long irrigEndTime)
+                    {
+                        var irrigEndDateTime = DateTimeOffset.FromUnixTimeSeconds(irrigEndTime).DateTime;
+
+                        LabelTask = new AsyncTask(() =>
+                        {
+                            if (InfoLabel == null)
+                                return;
+
+                            if (GetIrrigationEndTime(farm, fieldIdx) is long irrigEndTime && irrigEndTime != 0)
+                            {
+                                var curText = InfoLabel.Text;
+
+                                var startIdx = curText.LastIndexOf('\n');
+
+                                if (startIdx > 0)
+                                {
+                                    InfoLabel.Text = curText.Substring(0, startIdx + 1) + $"Почва удобрена еще {irrigEndDateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}";
+                                }
+                            }
+                        }, 1000, true, 0);
+
+                        LabelTask.Run();
+                    }
+                    else
+                    {
+                        LabelTask = null;
+
+                        InfoLabel.Text += $"Почва не удобрена";
+                    }
                 }
             }
+
+            public class OrangeTreeData
+            {
+                [JsonProperty(PropertyName = "P")]
+                public Vector3 Position { get; set; }
+
+                public Additional.ExtraColshape Colshape { get; set; }
+
+                public static AsyncTask Task { get; set; }
+
+                public static AsyncTask TextTask { get; set; }
+
+                public static string Text { get; set; }
+
+                public static int BindIdx { get; set; } = -1;
+
+                public OrangeTreeData()
+                {
+
+                }
+
+                public static void PreInitialize(Farm farm)
+                {
+                    for (int i = 0; i < farm.OrangeTrees.Count; i++)
+                    {
+                        Sync.World.AddDataHandler($"FARM::OT_{farm.Id}_{i}", OnSharedDataChanged);
+                    }
+                }
+
+                public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
+                {
+                    var data = dataKey.Split('_');
+
+                    var farm = Business.All[int.Parse(data[1])] as Farm;
+
+                    if (farm?.MainColshape.IsInside != true)
+                        return;
+
+                    var idx = int.Parse(data[2]);
+
+                    farm.OrangeTrees[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Convert.ToInt64(value));
+                }
+
+                public static void Initialize(Farm farm, int idx)
+                {
+                    var orangeTreeData = farm.OrangeTrees[idx];
+
+                    orangeTreeData.Colshape = new Additional.Cylinder(orangeTreeData.Position, 2.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    {
+                        OnEnter = (cancel) =>
+                        {
+                            TextTask?.Cancel();
+
+                            Text = "";
+
+                            var pos = new Vector3(orangeTreeData.Colshape.Position.X, orangeTreeData.Colshape.Position.Y, orangeTreeData.Colshape.Position.Z + 1f);
+
+                            float x = 0f, y = 0f;
+
+                            TextTask = new AsyncTask(() =>
+                            {
+                                if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
+                                    Utils.DrawText(Text, x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                            }, 0, true, 0);
+
+                            TextTask.Run();
+
+                            orangeTreeData.GrowTimeChanged(farm, idx, GetGrowTime(farm, idx));
+                        },
+
+                        OnExit = (cancel) =>
+                        {
+                            if (TextTask != null)
+                            {
+                                TextTask.Cancel();
+
+                                TextTask = null;
+                            }
+
+                            Text = null;
+
+                            if (Task != null)
+                            {
+                                Task.Cancel();
+
+                                Task = null;
+                            }
+
+                            if (BindIdx >= 0)
+                            {
+                                KeyBinds.Unbind(BindIdx);
+
+                                BindIdx = -1;
+                            }
+                        }
+                    };
+                }
+
+                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+
+                public void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
+                {
+                    if (growTimeN is long growTime)
+                    {
+                        if (growTime == 0)
+                        {
+                            if (Colshape?.IsInside == true)
+                            {
+                                if (Task != null)
+                                {
+                                    Task.Cancel();
+
+                                    Task = null;
+                                }
+
+                                if (Text != null)
+                                {
+                                    if (BindIdx >= 0)
+                                    {
+                                        KeyBinds.Unbind(BindIdx);
+
+                                        BindIdx = -1;
+                                    }
+
+                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessTree(farm, idx));
+
+                                    Text = "Апельсины созрели\nНажмите E, чтобы собрать их";
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (Colshape?.IsInside == true)
+                            {
+                                if (Task != null)
+                                {
+                                    Task.Cancel();
+                                }
+
+                                if (Text != null)
+                                {
+                                    if (BindIdx >= 0)
+                                    {
+                                        KeyBinds.Unbind(BindIdx);
+
+                                        BindIdx = -1;
+                                    }
+
+                                    var growDateTime = DateTimeOffset.FromUnixTimeSeconds(growTime).DateTime;
+
+                                    Task = new AsyncTask(() =>
+                                    {
+                                        if (Text == null)
+                                            return;
+
+                                        if (GetGrowTime(farm, idx) is long growTime && growTime != 0)
+                                        {
+                                            Text = $"До созревания апельсинов осталось\n{growDateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}";
+                                        }
+                                    }, 1000, true, 0);
+
+                                    Task.Run();
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (Colshape?.IsInside == true)
+                        {
+                            if (Text != null)
+                            {
+                                if (BindIdx >= 0)
+                                {
+                                    KeyBinds.Unbind(BindIdx);
+
+                                    BindIdx = -1;
+                                }
+
+                                BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessTree(farm, idx));
+
+                                Text = "Дерево не полито водой\nНажмите E, чтобы полить его";
+                            }
+                        }
+                    }
+                }
+
+                public static async void ProcessTree(Farm farm, int idx)
+                {
+                    if (CEF.Cursor.IsVisible)
+                        return;
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    var farmJob = pData.CurrentJob as Data.Jobs.Farmer;
+
+                    if (farmJob == null || farmJob.FarmBusiness != farm)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не работаете на этой ферме!");
+
+                        return;
+                    }
+
+                    if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                        return;
+
+                    if (CropField.CropData.LastSent.IsSpam(500))
+                        return;
+
+                    CropField.CropData.LastSent = Sync.World.ServerTime;
+
+                    var res = (int)await Events.CallRemoteProc("Job::FARM::OTP", idx);
+
+                    if (res == byte.MaxValue)
+                    {
+                        var pPos = Player.LocalPlayer.Position;
+
+                        Player.LocalPlayer.SetHeading(Utils.RadiansToDegrees((float)Math.Atan2(farm.OrangeTrees[idx].Position.Y - pPos.Y, farm.OrangeTrees[idx].Position.X - pPos.X)) - 90f);
+                    }
+                    else
+                    {
+                        if (res == 1)
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Кто-то уже работает с этим растением!");
+                        }
+                    }
+                }
+            }
+
+            public class CowData
+            {
+                public Ped Ped { get; set; }
+
+                public Additional.ExtraColshape Colshape { get; set; }
+
+                public static AsyncTask Task { get; set; }
+
+                public static TextLabel TextLabel { get; set; }
+
+                public static int BindIdx { get; set; }
+
+                [JsonProperty(PropertyName = "P")]
+                public Utils.Vector4 Position { get; set; }
+
+                public static void PreInitialize(Farm farm)
+                {
+                    for (int i = 0; i < farm.Cows.Count; i++)
+                    {
+                        Sync.World.AddDataHandler($"FARM::COW_{farm.Id}_{i}", OnSharedDataChanged);
+                    }
+                }
+
+                public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
+                {
+                    var data = dataKey.Split('_');
+
+                    var farm = Business.All[int.Parse(data[1])] as Farm;
+
+                    if (farm?.MainColshape.IsInside != true)
+                        return;
+
+                    var idx = int.Parse(data[2]);
+
+                    farm.Cows[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Convert.ToInt64(value));
+                }
+
+                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+
+                public async void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
+                {
+                    if (growTimeN is long growTime)
+                    {
+                        if (growTime == 0)
+                        {
+                            if (Ped != null)
+                            {
+                                Ped.ClearTasks();
+                            }
+
+                            if (Colshape?.IsInside == true)
+                            {
+                                if (Task != null)
+                                {
+                                    Task.Cancel();
+
+                                    Task = null;
+                                }
+
+                                if (TextLabel != null)
+                                {
+                                    if (BindIdx >= 0)
+                                    {
+                                        KeyBinds.Unbind(BindIdx);
+
+                                        BindIdx = -1;
+                                    }
+
+                                    BindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.E, false, () => ProcessCow(farm, idx));
+
+                                    TextLabel.Text = "Корова готова дать молоко\nНажмите E, чтобы подоить её";
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (Ped != null)
+                            {
+                                await Utils.RequestAnimDict("creatures@cow@amb@world_cow_grazing@base");
+
+                                Ped.TaskPlayAnim("creatures@cow@amb@world_cow_grazing@base", "base", 2f, 2f, -1, 1, 0f, false, false, false);
+                            }
+
+                            if (Colshape?.IsInside == true)
+                            {
+                                if (Task != null)
+                                {
+                                    Task.Cancel();
+                                }
+
+                                if (TextLabel != null)
+                                {
+                                    if (BindIdx >= 0)
+                                    {
+                                        KeyBinds.Unbind(BindIdx);
+
+                                        BindIdx = -1;
+                                    }
+
+                                    var growDateTime = DateTimeOffset.FromUnixTimeSeconds(growTime).DateTime;
+
+                                    Task = new AsyncTask(() =>
+                                    {
+                                        if (TextLabel == null)
+                                            return;
+
+                                        if (GetGrowTime(farm, idx) is long growTime && growTime != 0)
+                                        {
+                                            TextLabel.Text = $"Корова ест траву, будет готова дать молоко через\n{growDateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}";
+                                        }
+                                    }, 1000, true, 0);
+
+                                    Task.Run();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                public static async void ProcessCow(Farm farm, int idx)
+                {
+                    if (CEF.Cursor.IsVisible)
+                        return;
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    var farmJob = pData.CurrentJob as Data.Jobs.Farmer;
+
+                    if (farmJob == null || farmJob.FarmBusiness != farm)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не работаете на этой ферме!");
+
+                        return;
+                    }
+
+                    if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                        return;
+
+                    if (CropField.CropData.LastSent.IsSpam(500))
+                        return;
+
+                    CropField.CropData.LastSent = Sync.World.ServerTime;
+
+                    var emptyBucketModel = RAGE.Util.Joaat.Hash("brp_p_farm_bucket_0");
+
+                    await Utils.RequestModel(emptyBucketModel);
+
+                    var res = (int)await Events.CallRemoteProc("Job::FARM::COWP", idx);
+
+                    if (res == byte.MaxValue)
+                    {
+                        var playerPos = Player.LocalPlayer.Position;
+
+                        var cowLeftPos = farm.Cows[idx].Ped.GetOffsetFromInWorldCoords(-0.5f, -0.5f, 0f);
+                        var cowRightPos = farm.Cows[idx].Ped.GetOffsetFromInWorldCoords(0.5f, -0.5f, 0f);
+
+                        var pPos = playerPos.DistanceTo2D(cowLeftPos) < playerPos.DistanceTo2D(cowRightPos) ? cowLeftPos : cowRightPos;
+
+                        var tPos = farm.Cows[idx].Ped.GetOffsetFromInWorldCoords(0f, -0.5f, -1f);
+
+                        Player.LocalPlayer.Position = pPos;
+
+                        Sync.Animations.Play(Player.LocalPlayer, Sync.Animations.GeneralTypes.MilkCow0);
+
+                        Player.LocalPlayer.SetHeading(Utils.RadiansToDegrees((float)Math.Atan2(tPos.Y - pPos.Y, tPos.X - pPos.X)) - 90f);
+
+                        Player.LocalPlayer.GetData<MapObject>("FARMAT::TEMPBUCKET0")?.Destroy();
+
+                        var tempBucket = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(emptyBucketModel, tPos.X, tPos.Y, tPos.Z, false, false, false));
+
+                        Player.LocalPlayer.SetData("FARMAT::TEMPBUCKET0", tempBucket);
+                    }
+                    else
+                    {
+                        if (res == 1)
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Кто-то уже доет эту корову!");
+                        }
+                    }
+                }
+
+                public static void Initialize(Farm farm, int idx)
+                {
+                    var cow = farm.Cows[idx];
+
+                    cow.Ped?.Destroy();
+
+                    cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.MAIN_DIMENSION);
+
+                    cow.Ped.SetData<Action<Entity>>("ECA_SI", CowStreamInAction);
+
+                    cow.Ped.SetData("LGT", GetGrowTime(farm, idx));
+
+                    cow.Colshape?.Destroy();
+
+                    cow.Colshape = new Additional.Cylinder(new Vector3(cow.Position.X, cow.Position.Y, cow.Position.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    {
+                        OnEnter = (cancel) =>
+                        {
+                            TextLabel?.Destroy();
+
+                            TextLabel = new TextLabel(cow.Ped.GetCoords(false), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+
+                            cow.GrowTimeChanged(farm, idx, GetGrowTime(farm, idx));
+                        },
+
+                        OnExit = (cancel) =>
+                        {
+                            if (TextLabel != null)
+                            {
+                                TextLabel.Destroy();
+
+                                TextLabel = null;
+                            }
+
+                            if (Task != null)
+                            {
+                                Task.Cancel();
+
+                                Task = null;
+                            }
+
+                            if (BindIdx >= 0)
+                            {
+                                KeyBinds.Unbind(BindIdx);
+
+                                BindIdx = -1;
+                            }
+                        },
+                    };
+                }
+
+                private static async void CowStreamInAction(Entity entity)
+                {
+                    var ped = entity as Ped;
+
+                    if (ped == null)
+                        return;
+
+                    ped.SetComponentVariation(0, 0, 2, 2);
+                    ped.SetComponentVariation(3, 1, 0, 2);
+
+                    var lastGrowTime = ped.GetData<long?>("LGT");
+
+                    ped.ResetData("LGT");
+
+                    if (lastGrowTime != null && lastGrowTime != 0)
+                    {
+                        await Utils.RequestAnimDict("creatures@cow@amb@world_cow_grazing@base");
+
+                        ped.TaskPlayAnim("creatures@cow@amb@world_cow_grazing@base", "base", 2f, 2f, -1, 1, 0f, false, false, false);
+                    }
+                }
+            }
+
+            public List<Entity> TempEntities { get; set; } = new List<Entity>();
 
             public Additional.ExtraColshape MainColshape { get; set; }
 
             public List<CropField> CropFields { get; set; }
 
-            public T GetCropData<T>(string key, int fieldIdx, byte row, byte column, T otherwise = default) => Sync.World.GetSharedData<T>($"FARM::CF_{Id}_{fieldIdx}_{row}_{column}::{key}", otherwise);
+            public List<OrangeTreeData> OrangeTrees { get; set; }
 
-            public Farm(int Id, Vector3 PositionInfo, Utils.Vector4 PositionInteract, uint Price, uint Rent, float Tax, string CropFieldsStr) : base(Id, PositionInfo, Types.Farm, Price, Rent, Tax)
+            public List<Tuple<Vector3, Additional.ExtraColshape>> OrangeTreeBoxPositions { get; set; }
+
+            public List<Tuple<Vector3, Additional.ExtraColshape>> CowBucketPositions { get; set; }
+
+            public List<CowData> Cows { get; set; }
+
+            public Farm(int Id, Vector3 PositionInfo, Utils.Vector4 PositionInteract, uint Price, uint Rent, float Tax, string CropFieldsStr, string OrangeTreesStr, string CowsStr, string OrangeTreeBoxPositionsStr, string CowBucketPositionsStr) : base(Id, PositionInfo, Types.Farm, Price, Rent, Tax)
             {
                 this.CropFields = RAGE.Util.Json.Deserialize<List<CropField>>(CropFieldsStr);
+
+                this.OrangeTrees = RAGE.Util.Json.Deserialize<List<OrangeTreeData>>(OrangeTreesStr);
+
+                this.OrangeTreeBoxPositions = RAGE.Util.Json.Deserialize<List<Vector3>>(OrangeTreeBoxPositionsStr).Select(x => new Tuple<Vector3, Additional.ExtraColshape>(x, null)).ToList();
+
+                this.CowBucketPositions = RAGE.Util.Json.Deserialize<List<Vector3>>(CowBucketPositionsStr).Select(x => new Tuple<Vector3, Additional.ExtraColshape>(x, null)).ToList();
+
+                this.Cows = RAGE.Util.Json.Deserialize<List<CowData>>(CowsStr);
 
                 for (int i = 0; i < CropFields.Count; i++)
                 {
                     CropFields[i].PreInitialize(this, i);
+
+                    if (CropFields[i].IrrigationPoints != null)
+                    {
+                        foreach (var x in CropFields[i].IrrigationPoints)
+                            new RAGE.Elements.Checkpoint(40, x, 5f, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
+                    }
                 }
+
+                OrangeTreeData.PreInitialize(this);
+
+                CowData.PreInitialize(this);
 
                 if (SubId == 1)
                 {
@@ -497,63 +1257,314 @@ namespace BCRPClient.Data
 
             private static void OnEnterFarm(Farm farm)
             {
-                if (farm.SubId == 1)
+                farm.LoadTask?.Cancel();
+
+                AsyncTask task = null;
+
+                task = new AsyncTask(async () =>
                 {
-                    for (int i = 0; i < farm.CropFields.Count; i++)
+                    if (farm.SubId == 1)
                     {
-                        var fieldIdx = i;
-
-                        farm.CropFields[i].Initialize(farm, i);
-
-                        if (i == 0)
+                        if (farm.OrangeTrees != null)
                         {
-                            farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2042.795f, 4942.11133f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            for (int i = 0; i < farm.OrangeTrees.Count; i++)
                             {
-                                OnEnter = (cancel) => farm.CropFields[fieldIdx].OnEnter(farm, fieldIdx),
+                                OrangeTreeData.Initialize(farm, i);
+                            }
 
-                                OnExit = (cancel) => farm.CropFields[fieldIdx].OnExit(farm, fieldIdx),
-                            };
+                            for (int i = 0; i < farm.OrangeTreeBoxPositions.Count; i++)
+                            {
+                                farm.OrangeTreeBoxPositions[i].Item2?.Destroy();
+
+                                var pos = farm.OrangeTreeBoxPositions[i].Item1;
+
+                                var idx = i;
+
+                                farm.OrangeTreeBoxPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                {
+                                    OnEnter = (cancel) =>
+                                    {
+                                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                        if (pData == null)
+                                            return;
+
+                                        if (!pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.FarmOrangeBoxCarry).Any())
+                                            return;
+
+                                        Events.CallRemote("Job::FARM::OTF", idx);
+                                    },
+                                });
+                            }
                         }
-                        else if (i == 1)
-                        {
-                            farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2069.84937f, 4915.067f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
-                            {
-                                OnEnter = (cancel) => farm.CropFields[fieldIdx].OnEnter(farm, fieldIdx),
 
-                                OnExit = (cancel) => farm.CropFields[fieldIdx].OnExit(farm, fieldIdx),
-                            };
+                        if (farm.Cows != null)
+                        {
+                            for (int i = 0; i < farm.Cows.Count; i++)
+                            {
+                                CowData.Initialize(farm, i);
+                            }
+
+                            for (int i = 0; i < farm.CowBucketPositions.Count; i++)
+                            {
+                                farm.CowBucketPositions[i].Item2?.Destroy();
+
+                                var pos = farm.CowBucketPositions[i].Item1;
+
+                                var idx = i;
+
+                                farm.CowBucketPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(pos, new Additional.Cylinder(new Vector3(pos.X, pos.Y, pos.Z - 1f), 1.5f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                {
+                                    OnEnter = (cancel) =>
+                                    {
+                                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                        if (pData == null)
+                                            return;
+
+                                        if (!pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.FarmMilkBucketCarry).Any())
+                                            return;
+
+                                        Events.CallRemote("Job::FARM::COWF", idx);
+                                    },
+                                });
+                            }
                         }
-                        else if (i == 2)
-                        {
-                            farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2004.82715f, 4904.285f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
-                            {
-                                OnEnter = (cancel) => farm.CropFields[fieldIdx].OnEnter(farm, fieldIdx),
 
-                                OnExit = (cancel) => farm.CropFields[fieldIdx].OnExit(farm, fieldIdx),
-                            };
+                        for (int i = 0; i < farm.CropFields.Count; i++)
+                        {
+                            var fieldIdx = i;
+
+                            farm.CropFields[i].Initialize(farm, i);
+
+                            if (i == 0)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2042.795f, 4942.11133f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 1)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2069.84937f, 4915.067f, 63.9537277f), 50f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 2)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2004.82715f, 4904.285f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 3)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2031.902f, 4877.307f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 4)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1952.97778f, 4856.847f, 68.3354877f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 5)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1956.74463f, 4796.612f, 68.3354877f - 1.55087f), 50f, 40f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 6)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1915.74133f, 4761.87549f, 68.3354877f - 2.95878f), 55f, 40f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 7)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1887.2063f, 4790.97266f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+                            else if (i == 8)
+                            {
+                                farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(1860.861f, 4817.32959f, 68.3354877f - 1.30222f), 55f, 35f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null);
+                            }
+
+                            farm.CropFields[i].Colshape.ApproveType = Additional.ExtraColshape.ApproveTypes.None;
+                            farm.CropFields[i].Colshape.OnEnter = (cancel) => farm.CropFields[fieldIdx].OnEnter(farm, fieldIdx);
+                            farm.CropFields[i].Colshape.OnExit = (cancel) => farm.CropFields[fieldIdx].OnExit(farm, fieldIdx);
+
+                            await RAGE.Game.Invoker.WaitAsync(25);
+
+                            if (task?.IsCancelled != false)
+                                return;
                         }
-                        else if (i == 3)
-                        {
-                            farm.CropFields[i].Colshape = new Additional.Cuboid(new Vector3(2031.902f, 4877.307f, 63.9537277f + 1.80652f), 45f, 38f, 50f, 45f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
-                            {
-                                OnEnter = (cancel) => farm.CropFields[fieldIdx].OnEnter(farm, fieldIdx),
+                    }
+                }, 0, false, 0);
 
-                                OnExit = (cancel) => farm.CropFields[fieldIdx].OnExit(farm, fieldIdx),
-                            };
+                farm.LoadTask = task;
+
+                task.Run();
+            }
+
+            private static async void OnExitFarm(Farm farm)
+            {
+                farm.LoadTask?.Cancel();
+
+                farm.LoadTask = null;
+
+                if (farm.OrangeTrees != null)
+                {
+                    foreach (var x in farm.OrangeTrees)
+                    {
+                        if (x.Colshape != null)
+                        {
+                            x.Colshape.Destroy();
+
+                            x.Colshape = null;
+                        }
+                    }
+
+                    for (int i = 0; i < farm.OrangeTreeBoxPositions.Count; i++)
+                    {
+                        farm.OrangeTreeBoxPositions[i].Item2?.Destroy();
+
+                        farm.OrangeTreeBoxPositions[i] = new Tuple<Vector3, Additional.ExtraColshape>(farm.OrangeTreeBoxPositions[i].Item1, null);
+                    }
+                }
+
+                if (farm.Cows != null)
+                {
+                    foreach (var x in farm.Cows)
+                    {
+                        if (x.Ped != null)
+                        {
+                            x.Ped.Destroy();
+
+                            x.Ped = null;
                         }
                     }
                 }
-            }
 
-            private static void OnExitFarm(Farm farm)
-            {
                 foreach (var x in farm.CropFields)
                 {
                     x.Destroy();
 
-                    x.Colshape?.Destroy();
+                    if (x.Colshape != null)
+                    {
+                        x.Colshape.Destroy();
 
-                    x.Colshape = null;
+                        x.Colshape = null;
+                    }
+                }
+
+                /*                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                if (pData == null)
+                                    return;
+
+                                var curJob = pData.CurrentJob;
+
+                                if (curJob?.Type == Jobs.Types.Farmer)
+                                {
+                                    if (curJob == Jobs.Job.AllJobs.Values.Select(x => x as Jobs.Farmer).Where(x => x?.FarmBusiness == farm).FirstOrDefault())
+                                    {
+                                        if ((bool)await Events.CallRemoteProc("Job::FARM::FJ"))
+                                        {
+                                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Вы ушли слишком далеко от фермы и были уволены!");
+                                        }
+                                    }
+                                }*/
+            }
+
+            public void UpdateTractorTakerData(Sync.Quest quest)
+            {
+                float x, y;
+
+                var count = 0;
+
+                for (int i = 0; i < CropFields.Count; i++)
+                {
+                    if (CropFields[i].Type != CropField.Types.Wheat)
+                        continue;
+
+                    for (byte j = 0; j < CropFields[i].CropsData.Count; j++)
+                    {
+                        for (byte k = 0; k < CropFields[i].CropsData[j].Count; k++)
+                        {
+                            if (CropField.CropData.GetGrowTime(this, i, j, k) == 0)
+                            {
+                                count++;
+
+                                if (quest.GetActualData<object>($"E_MKR_{i}_{j}_{k}") == null)
+                                {
+                                    var fieldIdx = i; var col = j; var row = k;
+
+                                    var pos = CropFields[i].CropsData[j][k].MapObject?.GetCoords(false);
+
+                                    if (pos == null)
+                                    {
+                                        CropFields[i].GetCropPosition2DNotSafe(j, k, out x, out y);
+
+                                        pos = new Vector3(x, y, CropFields[i].CoordZ);
+                                    }
+
+                                    var marker = new RAGE.Elements.Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
+                                    var blip = new RAGE.Elements.Blip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                                    var cs = new Additional.Cylinder(pos, 2.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                                    {
+                                        ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+
+                                        OnEnter = async (cancel) =>
+                                        {
+                                            var jobVehicle = Sync.Players.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
+
+                                            if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                            {
+                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                                return;
+                                            }
+
+                                            if (jobVehicle.GetSpeedVector(true).Y < 0)
+                                                return;
+
+                                            if (Math.Floor(jobVehicle.GetSpeedKm()) > TRACTOR_MAX_SPEED_KM_H)
+                                            {
+                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Скорость Вашего трактора была слишком высока и урожай не был собран!\nНе превышайте скорость в {TRACTOR_MAX_SPEED_KM_H} км/ч");
+
+                                                return;
+                                            }
+
+                                            var res = await quest.CallProgressUpdateProc(fieldIdx, col, row);
+
+                                            if (res == byte.MaxValue)
+                                            {
+
+                                            }
+                                        },
+                                    };
+
+                                    quest.SetActualData($"E_MKR_{i}_{j}_{k}", marker);
+                                    quest.SetActualData($"E_BP_{i}_{j}_{k}", blip);
+                                    quest.SetActualData($"CS_{i}_{j}_{k}", cs);
+                                }
+                            }
+                            else
+                            {
+                                if (quest.GetActualData<object>($"E_MKR_{i}_{j}_{k}") is Entity marker)
+                                {
+                                    marker.Destroy();
+
+                                    quest.ResetActualData($"E_MKR_{i}_{j}_{k}");
+
+                                    if (quest.GetActualData<object>($"E_BP_{i}_{j}_{k}") is Entity blip)
+                                    {
+                                        blip.Destroy();
+
+                                        quest.ResetActualData($"E_BP_{i}_{j}_{k}");
+                                    }
+
+                                    if (quest.GetActualData<object>($"CS_{i}_{j}_{k}") is Additional.ExtraColshape cs)
+                                    {
+                                        cs.Destroy();
+
+                                        quest.ResetActualData($"CS_{i}_{j}_{k}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (count <= 0)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "На данный момент ни одна пшеница не созрела, ждите, пока на миникарте появится значок!");
                 }
             }
         }

@@ -2,25 +2,48 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace BCRPServer.Game.Businesses
 {
     public class Farm : Business
     {
+        public static Types DefaultType => Types.Farm;
+
+        public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 9)
+        {
+            Prices = new Dictionary<string, uint>()
+            {
+                { $"crop_{(int)CropField.Types.Cabbage}_0", 2 },
+                { $"crop_{(int)CropField.Types.Cabbage}_1", 2 },
+
+                { $"crop_{(int)CropField.Types.Pumpkin}_0", 2 },
+                { $"crop_{(int)CropField.Types.Pumpkin}_1", 2 },
+
+                { $"crop_{(int)CropField.Types.Wheat}_0", 2 },
+                { $"crop_{(int)CropField.Types.Wheat}_1", 3 },
+
+                { $"crop_{(int)CropField.Types.OrangeTree}_0", 2 },
+                { $"crop_{(int)CropField.Types.OrangeTree}_1", 2 },
+
+                { $"crop_{(int)CropField.Types.Cow}_1", 2 },
+            }
+        };
+
         public class CropField
         {
             public class CropData
             {
                 public CancellationTokenSource CTS { get; set; }
 
-                public static long? GetGrowTime(Farm farm, int fieldIdx, byte row, byte col) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.ID}_{fieldIdx}_{row}_{col}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+                public long PlantTime { get; set; }
 
-                public static void SetGrowTime(Farm farm, int fieldIdx, byte row, byte col, long? value) { var key = $"FARM::CF_{farm.ID}_{fieldIdx}_{row}_{col}";  if (value == null) Sync.World.ResetSharedData(key); else Sync.World.SetSharedData(key, value); }
+                public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.ID}_{fieldIdx}_{col}_{row}") is object obj ? Convert.ToInt64(obj) : (long?)null;
 
-                public void UpdateGrowTime(Farm farm, int fieldIdx, byte row, byte col, long? value)
+                public void UpdateGrowTime(Farm farm, int fieldIdx, byte col, byte row, long? value, bool updateDb, bool updatePlantTime = true)
                 {
+                    var key = $"FARM::CF_{farm.ID}_{fieldIdx}_{col}_{row}";
+
                     if (value is long valueL)
                     {
                         if (valueL == 0)
@@ -32,6 +55,8 @@ namespace BCRPServer.Game.Businesses
                                 CTS.Dispose();
 
                                 CTS = null;
+
+                                PlantTime = 0;
                             }
                         }
                         else
@@ -43,16 +68,25 @@ namespace BCRPServer.Game.Businesses
                                 CTS.Dispose();
                             }
 
-                            var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
+                            var curTime = Utils.GetCurrentTime();
+
+                            var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(curTime).TotalMilliseconds;
 
                             if (ms <= 0)
                             {
                                 CTS = null;
 
                                 value = 0;
+
+                                PlantTime = 0;
                             }
                             else
                             {
+                                if (updatePlantTime)
+                                {
+                                    PlantTime = curTime.GetUnixTimestamp();
+                                }
+
                                 CTS = new CancellationTokenSource();
 
                                 System.Threading.Tasks.Task.Run(async () =>
@@ -63,13 +97,15 @@ namespace BCRPServer.Game.Businesses
 
                                         NAPI.Task.Run(() =>
                                         {
-                                            UpdateGrowTime(farm, fieldIdx, row, col, 0);
+                                            UpdateGrowTime(farm, fieldIdx, col, row, 0, true);
                                         });
                                     }
                                     catch (Exception ex) { }
                                 });
                             }
                         }
+
+                        Sync.World.SetSharedData(key, value);
                     }
                     else
                     {
@@ -81,9 +117,14 @@ namespace BCRPServer.Game.Businesses
 
                             CTS = null;
                         }
+
+                        PlantTime = 0;
+
+                        Sync.World.ResetSharedData(key);
                     }
 
-                    SetGrowTime(farm, fieldIdx, row, col, value);
+                    if (updateDb)
+                        MySQL.FarmEntityUpdateData(key, value, PlantTime <= 0 ? (long?)null : PlantTime);
                 }
             }
 
@@ -91,6 +132,11 @@ namespace BCRPServer.Game.Businesses
             {
                 Cabbage = 0,
                 Pumpkin,
+
+                Wheat,
+
+                OrangeTree,
+                Cow,
             }
 
             [JsonProperty(PropertyName = "T")]
@@ -99,19 +145,22 @@ namespace BCRPServer.Game.Businesses
             [JsonProperty(PropertyName = "CZ")]
             public float CoordZ { get; set; }
 
-            [JsonProperty(PropertyName = "RC")]
-            public byte RowsCount { get; set; }
-
             [JsonProperty(PropertyName = "C")]
-            public Utils.Vector2[] Columns { get; set; }
+            public (Utils.Vector2 Pos, byte Count)[] Columns { get; set; }
 
             [JsonProperty(PropertyName = "O")]
             public Utils.Vector2 Offset { get; set; }
 
+            [JsonProperty(PropertyName = "IRP")]
+            public List<Vector3> IrrigationPoints { get; set; }
+
             [JsonIgnore]
             public List<List<CropData>> CropsData { get; set; }
 
-            public CropField(Types Type, float CoordZ, Utils.Vector2 Offset, byte RowsCount, Utils.Vector2[] Columns)
+            [JsonIgnore]
+            public CancellationTokenSource CTS { get; set; }
+
+            public CropField(Types Type, float CoordZ, Utils.Vector2 Offset, (Utils.Vector2, byte)[] Columns)
             {
                 this.Type = Type;
 
@@ -119,38 +168,376 @@ namespace BCRPServer.Game.Businesses
                 this.Columns = Columns;
                 this.Offset = Offset;
 
-                this.RowsCount = RowsCount;
-
                 CropsData = new List<List<CropData>>();
 
-                for (int i = 0; i < RowsCount; i++)
+                for (int i = 0; i < Columns.Length; i++)
                 {
                     CropsData.Add(new List<CropData>());
 
-                    for (int j = 0; j < Columns.Length; j++)
+                    for (int j = 0; j < Columns[i].Item2; j++)
                     {
                         CropsData[i].Add(new CropData());
                     }
                 }
             }
 
-            public Vector3 GetCropPosition3D(byte row, byte col) => row >= CropsData.Count || col >= Columns.Length ? null : new Vector3(Columns[col].X + Offset.X * row, Columns[col].Y + Offset.Y * row, CoordZ);
+            public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Sync.World.GetSharedData<object>($"FARM::CFI_{farm.ID}_{fieldIdx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
 
-            public Utils.Vector2 GetCropPosition2D(byte row, byte col) => row >= CropsData.Count || col >= Columns.Length ? null : new Utils.Vector2(Columns[col].X + Offset.X * row, Columns[col].Y + Offset.Y * row);
+            public void UpdateIrrigationEndTime(Farm farm, int fieldIdx, long? value, bool updateDb)
+            {
+                var key = $"FARM::CFI_{farm.ID}_{fieldIdx}";
 
-            public static CropData GetData(Farm farm, int fieldIdx, byte row, byte col) => farm.CropFields == null || fieldIdx < 0 || fieldIdx >= farm.CropFields.Count || row >= farm.CropFields[fieldIdx].RowsCount || col >= farm.CropFields[fieldIdx].Columns.Length ? null : fieldIdx < 0 || fieldIdx >= farm.CropFields.Count ? null : farm.CropFields[fieldIdx].CropsData[row][col];
+                if (value is long valueL)
+                {
+                    if (valueL == 0)
+                    {
+                        if (CTS != null)
+                        {
+                            CTS.Cancel();
+
+                            CTS.Dispose();
+
+                            CTS = null;
+                        }
+                    }
+                    else
+                    {
+                        if (CTS != null)
+                        {
+                            CTS.Cancel();
+
+                            CTS.Dispose();
+                        }
+
+                        var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
+
+                        if (ms <= 0)
+                        {
+                            CTS = null;
+
+                            value = 0;
+                        }
+                        else
+                        {
+                            CTS = new CancellationTokenSource();
+
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
+
+                                    NAPI.Task.Run(() =>
+                                    {
+                                        UpdateIrrigationEndTime(farm, fieldIdx, null, true);
+                                    });
+                                }
+                                catch (Exception ex) { }
+                            });
+                        }
+                    }
+
+                    Sync.World.SetSharedData(key, value);
+                }
+                else
+                {
+                    if (CTS != null)
+                    {
+                        CTS.Cancel();
+
+                        CTS.Dispose();
+
+                        CTS = null;
+                    }
+
+                    Sync.World.ResetSharedData(key);
+                }
+
+                if (updateDb)
+                    MySQL.FarmEntityUpdateData(key, value);
+            }
+
+            public bool IsIrrigated => CTS != null;
+
+            public Vector3 GetCropPosition3D(byte col, byte row) => col >= CropsData.Count || row >= CropsData[col].Count ? null : new Vector3(Columns[col].Pos.X + Offset.X * row, Columns[col].Pos.Y + Offset.Y * row, CoordZ);
+
+            public Utils.Vector2 GetCropPosition2D(byte col, byte row) => col >= CropsData.Count || row >= CropsData[col].Count ? null : new Utils.Vector2(Columns[col].Pos.X + Offset.X * row, Columns[col].Pos.Y + Offset.Y * row);
+
+            public static CropData GetData(Farm farm, int fieldIdx, byte col, byte row) => farm.CropFields == null || fieldIdx < 0 || fieldIdx >= farm.CropFields.Count || col >= farm.CropFields[fieldIdx].CropsData.Count || row >= farm.CropFields[fieldIdx].CropsData[col].Count ? null : farm.CropFields[fieldIdx].CropsData[col][row];
+        }
+
+        public class OrangeTreeData
+        {
+            [JsonIgnore]
+            public CancellationTokenSource CTS { get; set; }
+
+            [JsonProperty(PropertyName = "P")]
+            public Vector3 Position { get; set; }
+
+            public OrangeTreeData(Vector3 Position)
+            {
+                this.Position = Position;
+            }
+
+            public static OrangeTreeData GetData(Farm farm, int idx) => farm.OrangeTrees == null || idx >= farm.OrangeTrees.Count ? null : farm.OrangeTrees[idx];
+
+            public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::OT_{farm.ID}_{idx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+
+            public void UpdateGrowTime(Farm farm, int idx, long? value, bool updateDb)
+            {
+                var key = $"FARM::OT_{farm.ID}_{idx}";
+
+                if (value is long valueL)
+                {
+                    if (valueL == 0)
+                    {
+                        if (CTS != null)
+                        {
+                            CTS.Cancel();
+
+                            CTS.Dispose();
+
+                            CTS = null;
+                        }
+                    }
+                    else
+                    {
+                        if (CTS != null)
+                        {
+                            CTS.Cancel();
+
+                            CTS.Dispose();
+                        }
+
+                        var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
+
+                        if (ms <= 0)
+                        {
+                            CTS = null;
+
+                            value = 0;
+                        }
+                        else
+                        {
+                            CTS = new CancellationTokenSource();
+
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
+
+                                    NAPI.Task.Run(() =>
+                                    {
+                                        UpdateGrowTime(farm, idx, 0, true);
+                                    });
+                                }
+                                catch (Exception ex) { }
+                            });
+                        }
+                    }
+
+                    Sync.World.SetSharedData(key, value);
+                }
+                else
+                {
+                    if (CTS != null)
+                    {
+                        CTS.Cancel();
+
+                        CTS.Dispose();
+
+                        CTS = null;
+                    }
+
+                    Sync.World.ResetSharedData(key);
+                }
+
+                if (updateDb)
+                    MySQL.FarmEntityUpdateData(key, value);
+            }
+        }
+
+        public class CowData
+        {
+            [JsonIgnore]
+            public CancellationTokenSource CTS { get; set; }
+
+            [JsonProperty(PropertyName = "P")]
+            public Utils.Vector4 Position { get; set; }
+
+            public CowData(Utils.Vector4 Position)
+            {
+                this.Position = Position;
+            }
+
+            public static CowData GetData(Farm farm, int idx) => farm.Cows == null || idx < 0 || idx >= farm.Cows.Count ? null : farm.Cows[idx];
+
+            public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::COW_{farm.ID}_{idx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+
+            public void UpdateGrowTime(Farm farm, int idx, long? value, bool updateDb)
+            {
+                var key = $"FARM::COW_{farm.ID}_{idx}";
+
+                if (value is long valueL)
+                {
+                    if (valueL == 0)
+                    {
+                        if (CTS != null)
+                        {
+                            CTS.Cancel();
+
+                            CTS.Dispose();
+
+                            CTS = null;
+                        }
+                    }
+                    else
+                    {
+                        if (CTS != null)
+                        {
+                            CTS.Cancel();
+
+                            CTS.Dispose();
+                        }
+
+                        var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
+
+                        if (ms <= 0)
+                        {
+                            CTS = null;
+
+                            value = 0;
+                        }
+                        else
+                        {
+                            CTS = new CancellationTokenSource();
+
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
+
+                                    NAPI.Task.Run(() =>
+                                    {
+                                        UpdateGrowTime(farm, idx, 0, true);
+                                    });
+                                }
+                                catch (Exception ex) { }
+                            });
+                        }
+                    }
+
+                    Sync.World.SetSharedData(key, value);
+                }
+                else
+                {
+                    if (CTS != null)
+                    {
+                        CTS.Cancel();
+
+                        CTS.Dispose();
+
+                        CTS = null;
+                    }
+
+                    Sync.World.ResetSharedData(key);
+                }
+
+                if (updateDb)
+                    MySQL.FarmEntityUpdateData(key, value);
+            }
         }
 
         public List<CropField> CropFields { get; set; }
 
-        public void SetCropSharedData(string key, int fieldIdx, byte row, byte col, object data) => Sync.World.SetSharedData($"CF_{ID}_{fieldIdx}_{row}_{col}::{key}", data);
-        public T GetCropSharedData<T>(string key, int fieldIdx, byte row, byte col) => Sync.World.GetSharedData<T>($"CF_{ID}_{fieldIdx}_{row}_{col}::{key}");
+        public List<OrangeTreeData> OrangeTrees { get; set; }
+
+        public List<Vector3> OrangeTreeBoxPositions { get; set; }
+
+        public List<Vector3> CowBucketPositions { get; set; }
+
+        public List<CowData> Cows { get; set; }
 
         public Farm(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract) : base(ID, PositionInfo, PositionInteract, Types.Farm)
         {
 
         }
 
-        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {PositionInteract.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, \"{CropFields.SerializeToJson().Replace('"', '\'')}\"";
+        public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {PositionInteract.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, \"{CropFields.SerializeToJson().Replace('"', '\'')}\", \"{OrangeTrees.SerializeToJson().Replace('"', '\'')}\", \"{Cows.SerializeToJson().Replace('"', '\'')}\", \"{OrangeTreeBoxPositions.SerializeToJson().Replace('"', '\'')}\", \"{CowBucketPositions.SerializeToJson().Replace('"', '\'')}\"";
+
+        public bool TryProceedPayment(PlayerData pData, string itemId, decimal salaryCoef, out uint newMats, out ulong newBalance, out uint newPlayerBalance)
+        {
+            try
+            {
+                var matData = MaterialsData;
+
+                var matPrice = matData.Prices[itemId];
+
+                var hasMaterials = true;
+
+                if (Owner != null)
+                {
+                    if (!TryRemoveMaterials(matPrice, out newMats, false, null))
+                    {
+                        hasMaterials = false;
+
+                        newMats = Materials;
+                    }
+                }
+                else
+                {
+                    newMats = 0;
+                }
+
+                var realPriceP = Math.Floor((decimal)matPrice * matData.RealPrice * (2m - Margin) * salaryCoef);
+
+                if (realPriceP < 0)
+                    realPriceP = 0;
+
+                newPlayerBalance = Game.Jobs.Job.GetPlayerTotalCashSalary(pData) + (uint)realPriceP;
+
+                if (hasMaterials)
+                {
+                    var bizPrice = GetBusinessPrice(matPrice, false);
+
+                    if (!TryAddMoneyCash(bizPrice, out newBalance, true, pData))
+                        return false;
+                }
+                else
+                {
+                    newBalance = Cash;
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                newMats = 0;
+                newBalance = 0;
+                newPlayerBalance = 0;
+
+                return false;
+            }
+        }
+
+        public void ProceedPayment(PlayerData pData, uint newMats, ulong newBalance, uint newPlayerBalance)
+        {
+            if (Owner != null)
+            {
+                if (newMats != Materials)
+                    SetMaterials(newMats);
+
+                if (newBalance > Cash)
+                    UpdateStatistics(newBalance - Cash);
+
+                SetCash(newBalance);
+
+                MySQL.BusinessUpdateBalances(this, false);
+            }
+
+            Game.Jobs.Job.SetPlayerTotalCashSalary(pData, newPlayerBalance, true);
+        }
     }
 }

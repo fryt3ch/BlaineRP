@@ -200,7 +200,7 @@ namespace BCRPClient.CEF
 
             var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, Math.Round(biz.Tax * 100, 0).ToString(), res["C"].ToUInt64(), res["B"].ToUInt64(), res["M"].ToUInt32(), materialsBuyPrice, res["MS"].ToUInt32() };
 
-            var manage = new List<object>() { new object[] { Math.Round((res["MA"].ToDecimal() - 1m) * 100, 0), MAX_MARGIN }, false, (bool)res["IS"], Math.Round(res["IT"].ToDecimal() * 100, 0), };
+            var manage = new List<object>() { new object[] { Math.Round((res["MA"].ToDecimal() - 1m) * 100, 0), MAX_MARGIN }, biz.Type == Data.Locations.Business.Types.Farm, (bool)res["IS"], Math.Round(res["IT"].ToDecimal() * 100, 0), };
 
             var delState = ((string)res["DS"]).Split('_');
 

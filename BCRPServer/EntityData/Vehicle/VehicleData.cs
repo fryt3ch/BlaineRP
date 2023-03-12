@@ -398,7 +398,8 @@ namespace BCRPServer
                                 owner.PlayerData.RemoveRentedVehicle(this);
                             }
 
-                            Job.SetPlayerNoJob(owner);
+                            if (jobData.Type != Game.Jobs.Types.Farmer)
+                                Job.SetPlayerNoJob(owner);
                         }
 
                         Respawn(true);

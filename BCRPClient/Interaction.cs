@@ -39,9 +39,20 @@ namespace BCRPClient
 
             float x = 0f, y = 0f;
 
-            if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle || entity.Type == RAGE.Elements.Type.Ped)
+            if (entity.Type == RAGE.Elements.Type.Player || entity.Type == RAGE.Elements.Type.Vehicle)
             {
                 if ((entity.Type == RAGE.Elements.Type.Vehicle && entity.IsLocal) || !entity.GetScreenPosition(ref x, ref y))
+                {
+                    CurrentEntity = null;
+
+                    return;
+                }
+
+                CurrentEntity = entity;
+            }
+            else if (entity.Type == RAGE.Elements.Type.Ped)
+            {
+                if (!entity.HasData("ECA_INT"))
                 {
                     CurrentEntity = null;
 

@@ -1,9 +1,4 @@
-﻿using Newtonsoft.Json;
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Newtonsoft.Json;using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;using System.Linq;
 
 namespace BCRPClient.Sync
 {
@@ -14,7 +9,16 @@ namespace BCRPClient.Sync
 
         public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
 
-        public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type <= Types.ItemMedKit;
+        public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type < Types.VehicleTrailer;
+
+        /*
+            mp.game.streaming.requestNamedPtfxAsset('core');
+            mp.game.graphics.setPtfxAssetNextCall('core');
+            mp.game.graphics.startParticleFxLoopedOnEntity('water_cannon_spray', 2212114, 0.25, 0, 0, 0, 0, 0, 0.05, false, false, false);
+
+
+            mp.game.graphics.removeParticleFxInRange(0, 0, 0, 1000000);
+         */
 
         #region Types
         public enum Types
@@ -73,6 +77,12 @@ namespace BCRPClient.Sync
             ItemMedKit,
 
             FarmPlantSmallShovel,
+
+            FarmWateringCan,
+
+            FarmOrangeBoxCarry,
+
+            FarmMilkBucketCarry,
             #endregion
 
             #endregion
@@ -86,6 +96,8 @@ namespace BCRPClient.Sync
 
             /// <summary>Прикрепление СЕРВЕРНОГО транспорта к СЕРВЕРНОЙ лодке (к которой должен быть прикреплен TrailerObjOnBoat)</summary>
             VehicleTrailerObjBoat,
+
+            TractorTrailFarmHarv,
 
             PushVehicleFront,
             PushVehicleBack,
@@ -324,6 +336,8 @@ namespace BCRPClient.Sync
 
             { Types.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
 
+            { Types.TractorTrailFarmHarv, new AttachmentData(0, new Vector3(0f, -2.7f, 0f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
+
             { Types.ItemFishingRodG, new AttachmentData(60309, new Vector3(0.01f, -0.01f, 0.03f), new Vector3(0.1f, 0f, 0f), false, false, false, 2, true) },
 
             { Types.ItemShovel, new AttachmentData(28422, new Vector3(0.05f, -0.03f, -0.9f), new Vector3(2.1f, -4.2f, 5f), false, false, false, 2, true) },
@@ -437,7 +451,31 @@ namespace BCRPClient.Sync
             { Types.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
 
-            { Types.FarmPlantSmallShovel, new AttachmentData(28422, new Vector3(0f, 0.01f, -0.03f), new Vector3(0f, -180f, 0f), false, false, false, 2, true) },
+            {
+                Types.FarmPlantSmallShovel, new AttachmentData(28422, new Vector3(0f, 0.01f, -0.03f), new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    await Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("scrape_mud", gEntity.Handle,  0.25f, 0f, 0f, 0f, 0f, 0f, 0.25f, false, false, false));
+                })
+            }, // rot Y -180 prop_buck_spade_09
+
+            { Types.FarmOrangeBoxCarry, new AttachmentData(28422, new Vector3(0f, -0.02f, -0.07f), new Vector3(0f, 320f, 90f), false, false, false, 2, true) },
+
+            { Types.FarmMilkBucketCarry, new AttachmentData(28422, new Vector3(0.05f, 0f, -0.05f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+
+            {
+                Types.FarmWateringCan, new AttachmentData(28422, new Vector3(0.09f, 0f, -0.2f), new Vector3(0f, 25f, 0f), false, false, false, 2, true, async (args) =>
+                {
+                    var gEntity = (MapObject)args[0];
+
+                    await Utils.RequestPtfx("core");
+
+                    gEntity.SetData("PtfxHandle", RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_cannon_spray", gEntity.Handle,  0.35f, 0f, 0.25f, 0f, 0f, 0f, 0.15f, false, false, false));
+                })
+            }, // prop_wateringcan
         };
 
         public static async System.Threading.Tasks.Task OnEntityStreamIn(Entity entity)
@@ -741,13 +779,11 @@ namespace BCRPClient.Sync
             }
             else if (type == Types.TrailerObjOnBoat)
             {
-                var vTypeData = Data.Vehicles.GetByModel(hash);
-
                 var rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
 
                 var veh = new Vehicle(hash, target.Position, rot.Z, "", 255, true, 0, 0, target.Dimension);
 
-                veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
+                veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
 
                 var targetVeh = target as Vehicle;
 
@@ -767,9 +803,19 @@ namespace BCRPClient.Sync
 
                 gEntity.SetData("TrailerSync::Owner", targetVeh);
             }
+            else if (type == Types.TractorTrailFarmHarv)
+            {
+                var veh = new Vehicle(hash, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
+
+                (gTarget as Vehicle)?.SetAutomaticallyAttaches(0, 0);
+
+                veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
+
+                gEntity = veh;
+            }
             else
             {
-                gEntity = new MapObject(RAGE.Game.Object.CreateObject(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+                gEntity = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
             }
 
             if (gEntity == null)
@@ -842,27 +888,32 @@ namespace BCRPClient.Sync
 
             AttachmentData props = ModelDependentAttachments.GetValueOrDefault(item.Model)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
-            if (gTarget.Exists)
+            if (gEntity.HasData("PtfxHandle"))
             {
-                if (type == Types.TrailerObjOnBoat)
-                {
-                    RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
+                RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
+            }
 
-                    RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, props?.Collision ?? false);
+            if (type == Types.TrailerObjOnBoat)
+            {
+                RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
+
+                RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props?.Collision ?? false);
+
+                gEntity.Destroy();
+            }
+            else
+            {
+                if (gEntity.IsLocal)
+                {
+                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
+
+                    RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+
+                    gEntity.Destroy();
                 }
                 else
                 {
-                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, props?.Collision ?? false);
-                }
-
-                if (gEntity.HasData("PtfxHandle"))
-                {
-                    RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
-                }
-
-                if (gEntity.IsLocal)
-                {
-                    gEntity.Destroy();
+                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
                 }
             }
 
@@ -1232,6 +1283,148 @@ namespace BCRPClient.Sync
                         else
                         {
                             Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+
+            {
+                Types.FarmWateringCan,
+
+                (
+                    null,
+
+                    null,
+
+                    new Action(() =>
+                    {
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        if (bind.IsPressed)
+                        {
+                            GameEvents.Update -= GetRootActions(Types.FarmWateringCan).Value.Loop.Invoke;
+
+                            Events.CallRemote("Job::FARM::SOTP");
+                        }
+                        else
+                        {
+                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        }
+                    })
+                )
+            },
+
+            {
+                Types.FarmOrangeBoxCarry,
+
+                (
+                    new Action(() =>
+                    {
+                        var farmBusiness = (Sync.Players.GetData(Player.LocalPlayer)?.CurrentJob as Data.Jobs.Farmer)?.FarmBusiness;
+
+                        if (farmBusiness == null || farmBusiness.OrangeTreeBoxPositions == null)
+                            return;
+
+                        var markers = new List<Marker>();
+
+                        foreach (var x in farmBusiness.OrangeTreeBoxPositions)
+                        {
+                            markers.Add(new Marker(2, new Vector3(x.Item2.Position.X, x.Item2.Position.Y, x.Item2.Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(0, 0, 255, 125), true, Settings.MAIN_DIMENSION));
+                        }
+
+                        var closestOrangeBoxPos = farmBusiness.OrangeTreeBoxPositions.Select(x => x.Item1).OrderBy(x => x.DistanceTo(Player.LocalPlayer.Position)).FirstOrDefault();
+
+
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Blip(478, closestOrangeBoxPos, "Коробки с апельсинами", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
+
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Отнесите коробку с апельсинами в место, отмеченное на карте");
+                    }),
+
+                    new Action(() =>
+                    {
+                        Player.LocalPlayer.GetData<Blip>("JOBATFARM::FOBC::B")?.Destroy();
+
+                        Player.LocalPlayer.ResetData("JOBATFARM::FOBC::B");
+
+                        var markers = Player.LocalPlayer.GetData<List<Marker>>("JOBATFARM::FOBC::MS");
+
+                        if (markers != null)
+                        {
+                            foreach (var x in markers)
+                                x?.Destroy();
+                        }
+
+                        Player.LocalPlayer.ResetData("JOBATFARM::FOBC::MS");
+                    }),
+
+                    new Action(() =>
+                    {
+                        if (!Utils.CanDoSomething(false, Utils.Actions.Ragdoll, Utils.Actions.Falling, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Crawl, Utils.Actions.InVehicle, Utils.Actions.Reloading, Utils.Actions.Shooting, Utils.Actions.MeleeCombat))
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили коробку с апельсинами!");
+
+                            GameEvents.Update -= GetRootActions(Types.FarmOrangeBoxCarry).Value.Loop.Invoke;
+
+                            Events.CallRemote("Job::FARM::SOTP");
+                        }
+                    })
+                )
+            },
+
+            {
+                Types.FarmMilkBucketCarry,
+
+                (
+                    new Action(() =>
+                    {
+                        var farmBusiness = (Sync.Players.GetData(Player.LocalPlayer)?.CurrentJob as Data.Jobs.Farmer)?.FarmBusiness;
+
+                        if (farmBusiness == null || farmBusiness.CowBucketPositions == null)
+                            return;
+
+                        var markers = new List<Marker>();
+
+                        foreach (var x in farmBusiness.CowBucketPositions)
+                        {
+                            markers.Add(new Marker(2, new Vector3(x.Item2.Position.X, x.Item2.Position.Y, x.Item2.Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(0, 0, 255, 125), true, Settings.MAIN_DIMENSION));
+                        }
+
+                        var closestOrangeBoxPos = farmBusiness.CowBucketPositions.Select(x => x.Item1).OrderBy(x => x.DistanceTo(Player.LocalPlayer.Position)).FirstOrDefault();
+
+
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Blip(478, closestOrangeBoxPos, "Вёдра с молоком", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
+
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Отнесите ведро с молоком в место, отмеченное на карте");
+                    }),
+
+                    new Action(() =>
+                    {
+                        Player.LocalPlayer.GetData<Blip>("JOBATFARM::FOBC::B")?.Destroy();
+
+                        Player.LocalPlayer.ResetData("JOBATFARM::FOBC::B");
+
+                        var markers = Player.LocalPlayer.GetData<List<Marker>>("JOBATFARM::FOBC::MS");
+
+                        if (markers != null)
+                        {
+                            foreach (var x in markers)
+                                x?.Destroy();
+                        }
+
+                        Player.LocalPlayer.ResetData("JOBATFARM::FOBC::MS");
+                    }),
+
+                    new Action(() =>
+                    {
+                        if (!Utils.CanDoSomething(false, Utils.Actions.Ragdoll, Utils.Actions.Falling, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Crawl, Utils.Actions.InVehicle, Utils.Actions.Reloading, Utils.Actions.Shooting, Utils.Actions.MeleeCombat))
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили ведро с молоком!");
+
+                            GameEvents.Update -= GetRootActions(Types.FarmMilkBucketCarry).Value.Loop.Invoke;
+
+                            Events.CallRemote("Job::FARM::SCOWP");
                         }
                     })
                 )

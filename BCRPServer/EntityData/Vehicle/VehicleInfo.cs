@@ -122,7 +122,7 @@ namespace BCRPServer
 
                         var owner = FullOwnerPlayer;
 
-                        var freeGarageSlots = owner.TotalFreeGarageSlots;
+                        var freeGarageSlots = owner.PlayerData.VehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
 
                         if (LastData.Dimension != Utils.Dimensions.Main && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
                         {
@@ -130,13 +130,13 @@ namespace BCRPServer
 
                             var house = hId == 0 ? null : Game.Estates.House.Get(hId);
 
-                            if (house == null || house.Owner != owner)
+                            if (house == null)
                             {
                                 var gId = Utils.GetGarageIdByDimension(LastData.Dimension);
 
                                 var garage = gId == 0 ? null : Game.Estates.Garage.Get(gId);
 
-                                if (garage == null || garage.Owner != owner)
+                                if (garage == null || garage.Owner != owner || garage.GetVehiclesInGarage().Where(x => x.LastData.GarageSlot == LastData.GarageSlot && x.VID != VID).Any())
                                 {
                                     IsOnVehiclePound = true;
                                 }
@@ -147,11 +147,15 @@ namespace BCRPServer
                                     garage.SetVehicleToGarageOnSpawn(VehicleData);
                                 }
                             }
-                            else
+                            else if (house.Owner == FullOwnerPlayer && !house.GetVehiclesInGarage().Where(x => x.LastData.GarageSlot == LastData.GarageSlot && x.VID != VID).Any())
                             {
                                 VehicleData = new VehicleData(CreateVehicle(), this);
 
                                 house.SetVehicleToGarageOnSpawn(VehicleData);
+                            }
+                            else
+                            {
+                                IsOnVehiclePound = true;
                             }
                         }
                         else

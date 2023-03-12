@@ -17,6 +17,8 @@ namespace BCRPServer.Sync
                 JBD1,
 
                 JCL1,
+
+                JFRM1,
             }
 
             public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>()

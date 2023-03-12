@@ -685,6 +685,51 @@ namespace BCRPServer
 
                     var farmsData = new Dictionary<uint, string>();
 
+                    var farmBiz = Game.Businesses.Business.Get(38) as Game.Businesses.Farm;
+
+                    for (int i = 0; i < farmBiz.CropFields.Count; i++)
+                    {
+                        var key = $"FARM::CFI_{farmBiz.ID}_{i}";
+
+                        cmd.CommandText = $"INSERT INTO farms_data (ID, Data) VALUES ({NAPI.Util.GetHashKey(key)}, @Data) ON DUPLICATE KEY UPDATE Data=@Data;";
+
+                        cmd.Parameters.AddWithValue("@Data", DBNull.Value);
+
+                        cmd.ExecuteNonQuery();
+
+                        cmd.Parameters.Clear();
+
+                        for (byte j = 0; j < farmBiz.CropFields[i].CropsData.Count; j++)
+                        {
+                            for (byte k = 0; k < farmBiz.CropFields[i].CropsData[j].Count; k++)
+                            {
+                                key = $"FARM::CF_{farmBiz.ID}_{i}_{j}_{k}";
+
+                                cmd.CommandText = $"INSERT INTO farms_data (ID, Data) VALUES ({NAPI.Util.GetHashKey(key)}, 0) ON DUPLICATE KEY UPDATE Data=0;";
+
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+
+                    for (int i = 0; i < farmBiz.OrangeTrees.Count; i++)
+                    {
+                        var key = $"FARM::OT_{farmBiz.ID}_{i}";
+
+                        cmd.CommandText = $"INSERT INTO farms_data (ID, Data) VALUES ({NAPI.Util.GetHashKey(key)}, {0}) ON DUPLICATE KEY UPDATE Data=0;";
+
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    for (int i = 0; i < farmBiz.Cows.Count; i++)
+                    {
+                        var key = $"FARM::COW_{farmBiz.ID}_{i}";
+
+                        cmd.CommandText = $"INSERT INTO farms_data (ID, Data) VALUES ({NAPI.Util.GetHashKey(key)}, {0}) ON DUPLICATE KEY UPDATE Data=0;";
+
+                        cmd.ExecuteNonQuery();
+                    }
+
                     cmd.CommandText = "SELECT * FROM farms_data;";
 
                     using (var reader = cmd.ExecuteReader())
@@ -747,7 +792,7 @@ namespace BCRPServer
                                 {
                                     for (int i = 0; i < business.Statistics.Length; i++)
                                     {
-                                        if (i ==business.Statistics.Length - 1)
+                                        if (i == business.Statistics.Length - 1)
                                         {
                                             business.Statistics[i] = 0;
                                         }
@@ -776,15 +821,53 @@ namespace BCRPServer
                                             {
                                                 for (byte k = 0; k < farm.CropFields[i].CropsData[j].Count; k++)
                                                 {
-                                                    var key = $"CF_{business.ID}_{i}_{j}_{k}";
+                                                    var key = $"FARM::CF_{business.ID}_{i}_{j}_{k}";
 
                                                     var data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
 
-                                                    var growTime = data == null ? (long?)null : long.Parse(data);
+                                                    if (data is string dataStr)
+                                                    {
+                                                        var t = dataStr.Split('_');
 
-                                                    farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, growTime);
+                                                        if (t.Length > 1)
+                                                            farm.CropFields[i].CropsData[j][k].PlantTime = long.Parse(t[1]);
+
+                                                        farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, long.Parse(t[0]), false, false);
+                                                    }
+                                                    else
+                                                    {
+                                                        farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, null, false, false);
+                                                    }
                                                 }
                                             }
+                                        }
+                                    }
+
+                                    if (farm.OrangeTrees != null)
+                                    {
+                                        for (int i = 0; i < farm.OrangeTrees.Count; i++)
+                                        {
+                                            var key = $"FARM::OT_{business.ID}_{i}";
+
+                                            var data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
+
+                                            var growTime = data == null ? (long?)null : long.Parse(data);
+
+                                            farm.OrangeTrees[i].UpdateGrowTime(farm, i, growTime, false);
+                                        }
+                                    }
+
+                                    if (farm.Cows != null)
+                                    {
+                                        for (int i = 0; i < farm.Cows.Count; i++)
+                                        {
+                                            var key = $"FARM::COW_{business.ID}_{i}";
+
+                                            var data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
+
+                                            var growTime = data == null ? (long?)null : long.Parse(data);
+
+                                            farm.Cows[i].UpdateGrowTime(farm, i, growTime, false);
                                         }
                                     }
                                 }

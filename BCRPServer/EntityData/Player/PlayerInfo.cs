@@ -193,8 +193,6 @@ namespace BCRPServer
 
             public IEnumerable<VehicleData.VehicleInfo> VehiclesOnPound => OwnedVehicles.Where(x => x.VehicleData == null && x.IsOnVehiclePound);
 
-            public int TotalFreeGarageSlots => OwnedHouses.Select(x => x.GarageData == null ? 0 : (x.GarageData.MaxVehicles - x.GetVehiclesInGarage().Count())).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles - x.GetVehiclesInGarage().Count()).Sum();
-
             public DateTime GetCooldownLastTime(CooldownTypes cdType)
             {
                 DateTime dt;
