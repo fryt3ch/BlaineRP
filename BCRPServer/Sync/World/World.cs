@@ -14,8 +14,8 @@ namespace BCRPServer.Sync
         /// <summary>Базовый коэфициент отклонения позиции предмета от игрока</summary>
         public const float BaseOffsetCoeff = 0.5f;
 
-        /// <summary>CTS текущей задачи удаления предметов</summary>
-        private static CancellationTokenSource ClearItemsCTS { get; set; }
+        /// <summary>Таймер удаления всех предметов</summary>
+        private static Timer ClearItemsTimer { get; set; }
 
         /// <summary>Все выброшенные предметы на сервере</summary>
         /// <value>Словарь, где ключ - UID предмета, а значение - объект класса ItemOnGround</value>

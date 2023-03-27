@@ -113,89 +113,99 @@ namespace BCRPServer
 
             public VehicleData Spawn()
             {
-                if (VehicleData == null)
-                {
-                    if (OwnerType == OwnerTypes.Player)
-                    {
-                        if (IsOnVehiclePound)
-                            return null;
-
-                        var owner = FullOwnerPlayer;
-
-                        var freeGarageSlots = owner.PlayerData.VehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
-
-                        if (LastData.Dimension != Utils.Dimensions.Main && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
-                        {
-                            var hId = Utils.GetHouseIdByDimension(LastData.Dimension);
-
-                            var house = hId == 0 ? null : Game.Estates.House.Get(hId);
-
-                            if (house == null)
-                            {
-                                var gId = Utils.GetGarageIdByDimension(LastData.Dimension);
-
-                                var garage = gId == 0 ? null : Game.Estates.Garage.Get(gId);
-
-                                if (garage == null || garage.Owner != owner || garage.GetVehiclesInGarage().Where(x => x.LastData.GarageSlot == LastData.GarageSlot && x.VID != VID).Any())
-                                {
-                                    IsOnVehiclePound = true;
-                                }
-                                else
-                                {
-                                    VehicleData = new VehicleData(CreateVehicle(), this);
-
-                                    garage.SetVehicleToGarageOnSpawn(VehicleData);
-                                }
-                            }
-                            else if (house.Owner == FullOwnerPlayer && !house.GetVehiclesInGarage().Where(x => x.LastData.GarageSlot == LastData.GarageSlot && x.VID != VID).Any())
-                            {
-                                VehicleData = new VehicleData(CreateVehicle(), this);
-
-                                house.SetVehicleToGarageOnSpawn(VehicleData);
-                            }
-                            else
-                            {
-                                IsOnVehiclePound = true;
-                            }
-                        }
-                        else
-                        {
-                            if (freeGarageSlots <= 0 && LastData.GarageSlot != int.MinValue)
-                            {
-                                IsOnVehiclePound = true;
-                            }
-                            else
-                            {
-                                if (LastData.Dimension != Utils.Dimensions.Main)
-                                    LastData.Dimension = Utils.Dimensions.Main;
-
-                                if (LastData.GarageSlot != -1)
-                                    LastData.GarageSlot = -1;
-
-                                VehicleData = new VehicleData(CreateVehicle(), this);
-                            }
-                        }
-
-                        if (VehicleData != null)
-                        {
-                            NAPI.Task.Run(() =>
-                            {
-                                if (VehicleData?.Vehicle?.Exists != true)
-                                    return;
-
-                                VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
-                            }, 1500);
-                        }
-                    }
-
-                    return VehicleData;
-                }
-                else
+                if (VehicleData != null)
                 {
                     VehicleData.CancelDeletionTask();
 
                     return VehicleData;
                 }
+
+                if (OwnerType == OwnerTypes.Player)
+                {
+                    if (IsOnVehiclePound)
+                        return null;
+
+                    var owner = FullOwnerPlayer;
+
+                    var freeGarageSlots = owner.PlayerData.VehicleSlots - owner.OwnedVehicles.Where(x => x.VehicleData != null).Count() + owner.OwnedVehicles.Count;
+
+                    if (LastData.Dimension != Utils.Dimensions.Main && LastData.GarageSlot >= 0 && freeGarageSlots > 0)
+                    {
+                        var hId = Utils.GetHouseIdByDimension(LastData.Dimension);
+
+                        var house = hId == 0 ? null : Game.Estates.House.Get(hId);
+
+                        if (house == null)
+                        {
+                            var gId = Utils.GetGarageIdByDimension(LastData.Dimension);
+
+                            var garage = gId == 0 ? null : Game.Estates.Garage.Get(gId);
+
+                            if (garage == null || garage.Owner != owner || garage.GetVehiclesInGarage().Where(x => x.LastData.GarageSlot == LastData.GarageSlot && x.VID != VID).Any())
+                            {
+                                IsOnVehiclePound = true;
+                            }
+                            else
+                            {
+                                VehicleData = new VehicleData(CreateVehicle(), this);
+
+                                garage.SetVehicleToGarageOnSpawn(VehicleData);
+                            }
+                        }
+                        else if (house.Owner == FullOwnerPlayer && !house.GetVehiclesInGarage().Where(x => x.LastData.GarageSlot == LastData.GarageSlot && x.VID != VID).Any())
+                        {
+                            VehicleData = new VehicleData(CreateVehicle(), this);
+
+                            house.SetVehicleToGarageOnSpawn(VehicleData);
+                        }
+                        else
+                        {
+                            IsOnVehiclePound = true;
+                        }
+                    }
+                    else
+                    {
+                        if (freeGarageSlots <= 0 && LastData.GarageSlot != int.MinValue)
+                        {
+                            IsOnVehiclePound = true;
+                        }
+                        else
+                        {
+                            if (LastData.Dimension != Utils.Dimensions.Main)
+                                LastData.Dimension = Utils.Dimensions.Main;
+
+                            if (LastData.GarageSlot != -1)
+                                LastData.GarageSlot = -1;
+
+                            VehicleData = new VehicleData(CreateVehicle(), this);
+                        }
+                    }
+
+                    if (VehicleData != null)
+                    {
+                        NAPI.Task.Run(() =>
+                        {
+                            if (VehicleData?.Vehicle?.Exists != true)
+                                return;
+
+                            VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
+                        }, 1500);
+                    }
+                }
+                else if (OwnerType == OwnerTypes.Fraction || OwnerType == OwnerTypes.PlayerRentJob || OwnerType == OwnerTypes.PlayerRent)
+                {
+                    VehicleData = new VehicleData(CreateVehicle(), this);
+
+                    NAPI.Task.Run(() =>
+                    {
+                        if (VehicleData?.Vehicle?.Exists != true)
+                            return;
+
+                        VehicleData.Vehicle.Dimension = VehicleData.LastData.Dimension;
+                    }, 1500);
+                }
+
+                return VehicleData;
             }
 
             public void ShowPassport(Player player)

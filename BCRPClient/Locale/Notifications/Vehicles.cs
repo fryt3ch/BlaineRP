@@ -52,6 +52,7 @@
                     public static string On = "Двигатель запущен!";
                     public static string Off = "Двигатель заглушен!";
                     public static string OutOfFuel = "Закончилось топливо!";
+                    public static string WasBroken = "Двигатель заглох!";
                 }
 
                 public static class Doors
@@ -102,7 +103,7 @@
                 public static string FullOfGasDef = "Бак вашего Т/С уже полон!";
                 public static string FullOfGasElectrical = "Ваше Т/С уже полностью заряжено!";
 
-                public static string NotAtGasStationError = "Вы не на заправке!";
+                public static string NotAtGasStationError = "Вы не на заправке и у Вас нет предметов, которыми можно заправить транспорт!";
                 public static string InVehicleError = "Выйдите из транспорта, чтобы заправить его!";
 
                 public static string NotAllowed = "У вас нет ключей от этого транспорта!";

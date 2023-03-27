@@ -9,18 +9,20 @@ namespace BCRPServer
     {
         public static void CharacterAdd(PlayerData.PlayerInfo pInfo)
         {
-            MySqlCommand cmd = new MySqlCommand();
+            var cmd = new MySqlCommand();
 
-            cmd.CommandText = @"INSERT INTO characters (ID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, 
-                    Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, PhoneNumber, PhoneBalance, LastData, Familiars, Skills) 
-                    VALUES (@ID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, 
-                    @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @PhoneNumber, @PhoneBalance, @LastData, @Familiars, @Skills); 
+            cmd.CommandText = @"
+                INSERT INTO characters (ID, AID, CreationDate, AdminLevel, LastJoinDate, IsOnline, TimePlayed, Name, Surname, Sex, BirthDate, Licenses, Fraction, OrgID, Cash, PhoneNumber, PhoneBalance, LastData, Familiars, Skills) VALUES (@ID, @AID, @CreationDate, @AdminLevel, @LastJoinDate, @IsOnline, @TimePlayed, @Name, @Surname, @Sex, @BirthDate, @Licenses, @Fraction, @OrgID, @Cash, @PhoneNumber, @PhoneBalance, @LastData, @Familiars, @Skills); 
 
-                    INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@ID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
+                INSERT INTO customizations (ID, HeadBlend, HeadOverlays, FaceFeatures, Decorations, HairStyle, EyeColor) VALUES (@ID, @HeadBlend, @HeadOverlays, @FaceFeatures, @Decorations, @HairStyle, @EyeColor); 
 
-                    INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@ID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour);
+                INSERT INTO inventories (ID, Items, Clothes, Accessories, Bag, Holster, Weapons, Armour) VALUES (@ID, @Items, @Clothes, @Accessories, @Bag, @Holster, @Weapons, @Armour);
                     
-                    INSERT INTO achievements (ID) VALUES (@ID); INSERT INTO quests (ID) VALUES (@ID);";
+                INSERT INTO achievements (ID) VALUES (@ID);
+
+                INSERT INTO quests (ID) VALUES (@ID);
+
+                INSERT INTO cooldowns (ID) VALUES (@ID);";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 

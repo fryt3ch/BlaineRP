@@ -1253,8 +1253,8 @@ namespace BCRPServer.Sync
 
             public Trade TradeData { get; set; }
 
-            /// <summary>CancellationTokenSource предложения</summary>
-            private CancellationTokenSource CTS { get; set; }
+            /// <summary>Timer предложения</summary>
+            private Timer Timer { get; set; }
 
             public object Data { get; set; }
 
@@ -1275,27 +1275,16 @@ namespace BCRPServer.Sync
                 if (Duration == -1)
                     Duration = Settings.OFFER_DEFAULT_DURATION;
 
-                this.CTS = new CancellationTokenSource();
-
-                Task.Run(async () =>
+                this.Timer = new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await Task.Delay(Duration, CTS.Token);
+                        if (Timer == null)
+                            return;
 
-                        NAPI.Task.Run(() =>
-                        {
-                            if (CTS == null)
-                                return;
-
-                            Cancel(false, false, ReplyTypes.AutoCancel, false);
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
-                });
+                        Cancel(false, false, ReplyTypes.AutoCancel, false);
+                    });
+                }, null, Duration, Timeout.Infinite);
 
                 AllOffers.Add(this);
             }
@@ -1303,7 +1292,7 @@ namespace BCRPServer.Sync
             /// <summary>Метод для отмены предложения и удаления его из списка активных предложения</summary>
             public void Cancel(bool success = false, bool isSender = false, ReplyTypes rType = ReplyTypes.AutoCancel, bool justCancelCts = false)
             {
-                var ctsNull = CTS == null;
+                var ctsNull = Timer == null;
 
                 if (ctsNull)
                 {
@@ -1311,10 +1300,9 @@ namespace BCRPServer.Sync
                 }
                 else
                 {
-                    CTS.Cancel();
-                    CTS.Dispose();
+                    Timer.Dispose();
 
-                    CTS = null;
+                    Timer = null;
                 }
 
                 var sender = Sender?.Player;
@@ -1356,7 +1344,7 @@ namespace BCRPServer.Sync
 
             public void Execute()
             {
-                if (CTS == null)
+                if (Timer == null)
                     return;
 
                 OfferActions[Type][true].Invoke(Sender, Receiver, this);

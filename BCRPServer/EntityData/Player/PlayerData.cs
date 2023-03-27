@@ -95,11 +95,6 @@ namespace BCRPServer
             /// <summary>Бизнес</summary>
             Business,
         }
-
-        public enum CooldownTypes
-        {
-            ShootingRange = 0,
-        }
         #endregion
 
         public static Dictionary<SkillTypes, int> MaxSkills = new Dictionary<SkillTypes, int>()
@@ -108,12 +103,6 @@ namespace BCRPServer
             { SkillTypes.Shooting, 100 },
             { SkillTypes.Cooking, 100 },
             { SkillTypes.Fishing, 100 },
-        };
-
-        /// <summary>Стандартное время кулдаунов (в секундах!)</summary>
-        public static Dictionary<CooldownTypes, int> CooldownTimeouts = new Dictionary<CooldownTypes, int>()
-        {
-            { CooldownTypes.ShootingRange, 3600 },
         };
 
         /// <summary>Сущность игрока</summary>
@@ -392,7 +381,7 @@ namespace BCRPServer
             AttachedEntities = new List<Sync.AttachSystem.AttachmentEntityNet>();
             AttachedObjects = new List<Sync.AttachSystem.AttachmentObjectNet>();
 
-            Player.SetData(Sync.AttachSystem.AttachedObjectsCancelsKey, new Dictionary<Sync.AttachSystem.Types, CancellationTokenSource>());
+            Player.SetData(Sync.AttachSystem.AttachedObjectsTimersKey, new Dictionary<Sync.AttachSystem.Types, Timer>());
 
             Player.SetData("CharacterNotReady", true);
         }
@@ -608,7 +597,7 @@ namespace BCRPServer
 
                 Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                Player.Teleport(LastData.Position.Position, true, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Utils.HouseDimBase);
+                Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Utils.HouseDimBase);
 
                 Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
             }, 1000);
@@ -684,7 +673,7 @@ namespace BCRPServer
             return true;
         }
 
-        public bool HasCooldown(CooldownTypes cdType, int notifyType = -1)
+        public bool HasCooldown(Sync.Cooldowns.Types cdType, int notifyType = -1)
         {
             var ts = Info.GetCooldownTimeLeft(cdType);
 

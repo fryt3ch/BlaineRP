@@ -71,11 +71,11 @@ namespace BCRPServer
                 Players.Remove(Player);
             }
 
-            if (LoginCTS != null)
+            if (AuthTimer != null)
             {
-                LoginCTS.Cancel();
+                AuthTimer.Dispose();
 
-                LoginCTS = null;
+                AuthTimer = null;
             }
         }
 
@@ -83,7 +83,7 @@ namespace BCRPServer
 
         public StepTypes StepType { get; set; }
 
-        public CancellationTokenSource LoginCTS { get; set; }
+        public Timer AuthTimer { get; set; }
 
         public int LoginAttempts { get; set; }
 
@@ -117,39 +117,26 @@ namespace BCRPServer
 
             LoginAttempts = Settings.AUTH_ATTEMPTS;
 
-            LoginCTS = new CancellationTokenSource();
+            AuthTimer = new Timer((obj) =>
+            {
+                NAPI.Task.Run(() =>
+                {
+                    if (AuthTimer != null)
+                    {
+                        AuthTimer.Dispose();
+
+                        AuthTimer = null;
+                    }
+
+                    if (Player?.Exists != true)
+                        return;
+
+                    if (StepType < StepTypes.CharacterSelection)
+                        Utils.KickSilent(Player, "Время на вход вышло!");
+                });
+            }, null, Settings.AUTH_TIMEOUT_TIME, Timeout.Infinite);
 
             Characters = new PlayerData.PlayerInfo[3];
-
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await Task.Delay(Settings.AUTH_TIMEOUT_TIME, LoginCTS.Token);
-
-                    NAPI.Task.Run(() =>
-                    {
-                        if (Player?.Exists != true)
-                            return;
-
-                        if (StepType < StepTypes.CharacterSelection)
-                            Utils.KickSilent(Player, "Время на вход вышло!");
-                    });
-                }
-                catch (Exception ex)
-                {
-
-                }
-                finally
-                {
-                    if (LoginCTS != null)
-                    {
-                        LoginCTS.Cancel();
-
-                        LoginCTS = null;
-                    }
-                }
-            });
         }
 
         public void ShowStartPlace()
@@ -157,7 +144,7 @@ namespace BCRPServer
             if (PlayerData == null)
                 return;
 
-            List<StartPlaceTypes> sTypes = new List<StartPlaceTypes>() { StartPlaceTypes.Spawn };
+            var sTypes = new List<StartPlaceTypes>() { StartPlaceTypes.Spawn };
 
             if (PlayerData.LastData.Dimension != Utils.Dimensions.Main)
             {
@@ -184,7 +171,15 @@ namespace BCRPServer
                 sTypes.Add(PlayerData.SettledHouseBase.Type == Game.Estates.HouseBase.Types.House ? StartPlaceTypes.House : StartPlaceTypes.Apartments);
             }
 
-            Player.TriggerEvent("Auth::StartPlace::Load", sTypes.SerializeToJson());
+            if (PlayerData.Fraction != Game.Fractions.Types.None)
+            {
+                var fData = Game.Fractions.Fraction.Get(PlayerData.Fraction);
+
+                if (fData != null)
+                    sTypes.Add(StartPlaceTypes.Fraction);
+            }
+
+            Player.TriggerEvent("Auth::StartPlace::Load", sTypes);
         }
     }
 }

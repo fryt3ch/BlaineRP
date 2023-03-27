@@ -278,6 +278,15 @@ namespace BCRPClient.CEF
 
                 quest.MenuIconFunc();
             });
+
+            Events.Add("Menu::Report::Send", (args) => ReportSend((string)args[0]));
+
+            Events.Add("Menu::Report::C", (args) =>
+            {
+
+            });
+
+            Events.Add("Menu::Close", (args) => Close());
             #endregion
         }
 
@@ -412,9 +421,9 @@ namespace BCRPClient.CEF
 
         public static void SetCID(uint value) => Browser.Window.ExecuteJs("Menu.setCID", value);
 
-        public static void SetFraction(Data.Locations.Fraction.Types type) => Browser.Window.ExecuteJs("Menu.setFraction", Locale.General.Players.FractionNames[type]);
+        public static void SetFraction(Data.Fractions.Types type) => Browser.Window.ExecuteJs("Menu.setFraction", Data.Fractions.Fraction.Get(type)?.Name ?? Data.Fractions.Fraction.NoFractionStr);
 
-        public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? Locale.General.Players.FractionNames[Data.Locations.Fraction.Types.None]);
+        public static void SetOrganisation(string name) => Browser.Window.ExecuteJs("Menu.setOrganisation", name ?? "null");
 
         public static void UpdateSkill(Sync.Players.SkillTypes type, int current) => Browser.Window.ExecuteJs("Menu.setSkill", type, current);
 
@@ -485,6 +494,66 @@ namespace BCRPClient.CEF
             var quests = pData.Quests;
 
             Browser.Window.ExecuteJs("Menu.drawQuests", new object[] { quests.Select(x => new object[] { x.Type.ToString(), x.Data.Name, x.Data.GiverName, x.GoalWithProgress ?? "null", (int)x.Data.ColourType }) });
+        }
+
+        public static void ClearReportChatHistory()
+        {
+            Browser.Window.ExecuteJs("Menu.clearHelpMessages();");
+        }
+
+        public static void AddMessageToChatHistory(Player player, DateTime time, string text)
+        {
+            if (player == Player.LocalPlayer)
+            {
+                Browser.Window.ExecuteJs("Menu.newHelpMessage", false, $" ({time.ToString("HH:mm")})", "Вы", text);
+            }
+            else
+            {
+                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, $" ({time.ToString("HH:mm")})", $"{player.Name} [#{player.GetSharedData<object>("CID", 0).ToDecimal()}]", text);
+            }
+        }
+
+        public static void UpdatePlayerReportInput(string text)
+        {
+            Browser.Window.ExecuteJs("Menu.updateHelpMessage", text);
+        }
+
+        private static DateTime ReportSendAntiSpam;
+
+        public static async void ReportSend(string text)
+        {
+            if (text == null)
+                return;
+
+            if (text.Length < 10)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, 10));
+
+                UpdatePlayerReportInput(text);
+
+                return;
+            }
+
+            if (text.Length > 150)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, 150));
+
+                UpdatePlayerReportInput(text);
+
+                return;
+            }
+
+            if (ReportSendAntiSpam.IsSpam(2500, false, true))
+                return;
+
+            ReportSendAntiSpam = Sync.World.ServerTime;
+
+            if ((bool)await Events.CallRemoteProc("Report::Send", text))
+            {
+                UpdatePlayerReportInput("");
+
+                AddMessageToChatHistory(Player.LocalPlayer, Sync.World.ServerTime, text);
+            }
         }
     }
 }

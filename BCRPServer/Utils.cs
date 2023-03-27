@@ -54,11 +54,11 @@ namespace BCRPServer
 
         /// <summary>Номер первого CID</summary>
         /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, тогда 2999 - последний Remote ID</remarks>
-        public static uint FirstCID = 3000 * 1;
+        public const uint FirstCID = 3000;
 
         /// <summary>Номер первого VID</summary>
         /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, а машин у каждого - 100, тогда 299999 - посдений RemoteID</remarks>
-        public static uint FirstVID = 3000 * 100;
+        public const uint FirstVID = 100_000;
 
         public const uint PlayerPrivateDimBase = 1000;
         public const uint HouseDimBase = 10000;
@@ -669,6 +669,8 @@ namespace BCRPServer
         /// <param name="args">Дополнительные параметры</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public static void Notify(this Player player, string key, params object[] args) => player.TriggerEvent("Notify", key, args);
+
+        public static void NotifyWithPlayer(this Player player, string key, Player player1, params object[] args) => player.Notify("Notify::P", key, player1.Id, args);
         #endregion
 
         #region Data Extansions

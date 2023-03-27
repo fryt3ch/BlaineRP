@@ -12,7 +12,7 @@ namespace BCRPClient.CEF
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Chat); }
         public static bool InputVisible = false;
 
-        private DateTime LastSent;
+        public static DateTime LastSent;
 
         private static string TimeStr { get => Settings.Chat.ShowTime ? (Settings.Interface.UseServerTime ? "[" + Sync.World.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Sync.World.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
 
@@ -63,20 +63,14 @@ namespace BCRPClient.CEF
         }
         #endregion
 
-        private static Queue<(string, object[])> Queue;
+        private static Queue<(string, object[])> Queue = new Queue<(string, object[])>();
 
         private static void AddToQueue(string command, params object[] args) => Queue.Enqueue((command, args));
 
-        private static List<int> TempBinds { get; set; }
+        private static List<int> TempBinds { get; set; } = new List<int>();
 
         public Chat()
         {
-            LastSent = Sync.World.ServerTime;
-
-            TempBinds = new List<int>();
-
-            Queue = new Queue<(string, object[])>();
-
             #region Events
             #region Send
             Events.Add("Chat::Send", (object[] args) =>
@@ -86,10 +80,12 @@ namespace BCRPClient.CEF
 
                 ShowInput(false);
 
-                Browser.Window.ExecuteJs("Chat.needScroll", true);
+/*                Browser.Window.ExecuteCachedJs("Chat.needScroll();");
 
-                Type type = (Type)((int)args[0]);
-                string msg = (string)args[1];
+                Browser.Window.ExecuteCachedJs("Chat.tryScroll();");*/
+
+                var type = (Type)((int)args[0]);
+                var msg = (string)args[1];
 
                 if (msg.Length < 1 || char.IsWhiteSpace(msg[0]))
                     return;
@@ -106,17 +102,21 @@ namespace BCRPClient.CEF
                         var cmdInfo = msg.Substring(endOfCmd + 1);
                         var parameters = new List<string>();
 
-                        StringBuilder currentParam = new StringBuilder();
-                        bool textDetected = false;
+                        var currentParam = new StringBuilder();
+                        var textDetected = false;
 
                         for (int i = 0; i < cmdInfo.Length; i++)
                         {
                             if (!textDetected)
                             {
                                 if (cmdInfo[i] != '"' && cmdInfo[i] != ' ' && cmdInfo[i] != ',')
+                                {
                                     currentParam.Append(cmdInfo[i]);
+                                }
                                 else if (cmdInfo[i] == '"')
+                                {
                                     textDetected = true;
+                                }
                                 else if (currentParam.Length > 0)
                                 {
                                     parameters.Add(currentParam.ToString().ToLower());
@@ -127,7 +127,9 @@ namespace BCRPClient.CEF
                             else
                             {
                                 if (cmdInfo[i] != '"')
+                                {
                                     currentParam.Append(cmdInfo[i]);
+                                }
                                 else
                                 {
                                     textDetected = false;
@@ -145,7 +147,7 @@ namespace BCRPClient.CEF
                                 parameters.Add(currentParam.ToString().ToLower());
                         }
 
-                        Utils.ConsoleOutput($"Cmd: {cmd}, Params: {string.Join(" | ", parameters)}");
+                        //Utils.ConsoleOutput($"Cmd: {cmd}, Params: {string.Join(" | ", parameters)}");
 
                         if (parameters.Count > 0)
                             Data.Commands.Execute(cmd, parameters.ToArray());
@@ -160,93 +162,116 @@ namespace BCRPClient.CEF
                     return;
 
                 Events.CallRemote("Chat::Send", (int)type, msg);
-
-                Browser.Window.ExecuteJs("Chat.tryScroll();");
             });
             #endregion
 
             #region Show Casual Message
-            Events.Add("Chat::ShowCasualMessage", (object[] args) =>
+            Events.Add("Chat::SCM", (object[] args) =>
             {
                 if (!CEF.Browser.IsRendered(CEF.Browser.IntTypes.Chat))
                     return;
 
                 var timeStr = TimeStr;
 
-                Player player = (Player)args[0];
-                Type type = (Type)((int)args[1]);
-                string message = (string)args[2];
-                Player player2 = args.Length > 3 ? (Player)args[3] : null;
+                var player = Entities.Players.GetAtRemote((ushort)(int)args[0]);
+                var type = (Type)((int)args[1]);
+                var message = (string)args[2];
+                var player2 = args.Length > 3 ? Entities.Players.GetAtRemote((ushort)(int)args[3]) : null;
 
                 var data = Sync.Players.GetData(player);
 
                 if (data == null)
                     return;
 
-                string name = Player.LocalPlayer.Name;
-                string name2 = null;
+                var name = player != Player.LocalPlayer ? Utils.GetPlayerName(player, true, false, false) : Player.LocalPlayer.Name;
 
-                if (player.RemoteId != Player.LocalPlayer.RemoteId)
-                    name = Utils.GetPlayerName(player, true, false, false);
-
-                if (player2 != null)
-                    name2 = Utils.GetPlayerName(player2, true, false, true);
+                var name2 = player2 != null ? Utils.GetPlayerName(player2, true, false, true) : "null";
 
                 if (Settings.Chat.UseFilter)
-                    message = Additional.StringFilter.Process(message);
+                    message = Additional.StringFilter.Process(message, true, '♡');
 
-                if (!IsActive)
+                if (type == Type.Say)
+                    AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
+                else if (type == Type.Shout)
+                    AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
+                else if (type == Type.Whisper)
+                    AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
+                else if (type == Type.NonRP)
+                    AddToQueue("Messages.showOOC", timeStr, name, player.RemoteId, message);
+                else if (type == Type.Me)
+                    AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message);
+                else if (type == Type.MePlayer)
+                    AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message + " " + name2);
+                else if (type == Type.TryPlayer)
+                    AddToQueue("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')) + " " + name2, message.Substring(message.IndexOf('*') + 1) == "1");
+                else if (type == Type.Do)
+                    AddToQueue("Messages.showDo", timeStr, name, player.RemoteId, message);
+                else if (type == Type.Todo)
+                    AddToQueue("Messages.showToDo", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1));
+                else if (type == Type.Try)
+                    AddToQueue("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1) == "1");
+
+                if (IsActive)
                 {
-                    if (type == Type.Say)
-                        AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Shout)
-                        AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Whisper)
-                        AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                    else if (type == Type.NonRP)
-                        AddToQueue("Messages.showOOC", timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Me)
-                        AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message);
-                    else if (type == Type.MePlayer)
-                        AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message + " " + name2);
-                    else if (type == Type.TryPlayer)
-                        AddToQueue("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')) + " " + name2, message.Substring(message.IndexOf('*') + 1) == "true");
-                    else if (type == Type.Do)
-                        AddToQueue("Messages.showDo", timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Todo)
-                        AddToQueue("Messages.showToDo", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1));
-                    else if (type == Type.Try)
-                        AddToQueue("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1) == "true");
-                }
-                else
-                {
-                    Browser.Window.ExecuteJs("Chat.needScroll();");
+                    (string, object[]) t;
 
-                    if (type == Type.Say)
-                        Browser.Window.ExecuteJs("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Shout)
-                        Browser.Window.ExecuteJs("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Whisper)
-                        Browser.Window.ExecuteJs("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                    else if (type == Type.NonRP)
-                        Browser.Window.ExecuteJs("Messages.showOOC", timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Me)
-                        Browser.Window.ExecuteJs("Messages.showMe", timeStr, name, player.RemoteId, message);
-                    else if (type == Type.MePlayer)
-                        Browser.Window.ExecuteJs("Messages.showMe", timeStr, name, player.RemoteId, message + " " + name2);
-                    else if (type == Type.TryPlayer)
-                        Browser.Window.ExecuteJs("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')) + " " + name2, message.Substring(message.IndexOf('*') + 1) == "true");
-                    else if (type == Type.Do)
-                        Browser.Window.ExecuteJs("Messages.showDo", timeStr, name, player.RemoteId, message);
-                    else if (type == Type.Todo)
-                        Browser.Window.ExecuteJs("Messages.showToDo", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1));
-                    else if (type == Type.Try)
-                        Browser.Window.ExecuteJs("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1) == "true");
+                    if (Queue.TryDequeue(out t))
+                    {
+                        Browser.Window.ExecuteCachedJs("Chat.needScroll();");
 
-                    Browser.Window.ExecuteJs("Chat.tryScroll();");
+                        Browser.Window.ExecuteJs(t.Item1, t.Item2);
+
+                        Browser.Window.ExecuteCachedJs("Chat.tryScroll();");
+                    }
                 }
             });
             #endregion
+
+            Events.Add("Chat::SFM", (args) =>
+            {
+                if (!CEF.Browser.IsRendered(CEF.Browser.IntTypes.Chat))
+                    return;
+
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (Data.Fractions.Fraction.AllMembers == null)
+                    return;
+
+                var fData = pData.CurrentFraction;
+
+                if (fData == null)
+                    return;
+
+                var timeStr = TimeStr;
+
+                var cid = args[0].ToUInt32();
+                var rid = (ushort)(int)args[1];
+                var message = (string)args[2];
+
+                var mData = Data.Fractions.Fraction.AllMembers.GetValueOrDefault(cid);
+
+                if (mData == null)
+                    return;
+
+                AddToQueue("Messages.showFraction", timeStr, $"{fData.GetRankName(mData.Rank)} [{mData.Rank + 1}]", mData.Name, rid, message);
+
+                if (IsActive)
+                {
+                    (string, object[]) t;
+
+                    if (Queue.TryDequeue(out t))
+                    {
+                        Browser.Window.ExecuteCachedJs("Chat.needScroll();");
+
+                        Browser.Window.ExecuteJs(t.Item1, t.Item2);
+
+                        Browser.Window.ExecuteCachedJs("Chat.tryScroll();");
+                    }
+                }
+            });
 
             #region Show Global Message
             Events.Add("Chat::ShowGlobalMessage", (object[] args) =>
@@ -256,113 +281,73 @@ namespace BCRPClient.CEF
 
                 var timeStr = TimeStr;
 
-                string playerStr = (string)args[0];
-                Type type = (Type)((int)args[1]);
-                string message = (string)args[2];
+                var playerStr = (string)args[0];
+                var type = (Type)((int)args[1]);
+                var message = (string)args[2];
 
-                if (!IsActive)
+                if (Settings.Chat.UseFilter)
+                    message = Additional.StringFilter.Process(message, true, '♡');
+
+                if (type == Type.Admin)
+                    AddToQueue("Messages.admin_message", timeStr, playerStr, message);
+                else if (type == Type.Goverment)
+                    AddToQueue("Messages.government", timeStr, playerStr, message);
+                else if (type == Type.News)
+                    AddToQueue("Messages.news", timeStr, playerStr, message);
+                else if (type == Type.Advert)
                 {
-                    if (type == Type.Admin)
-                        AddToQueue("Messages.admin_message", timeStr, playerStr, message);
-                    else if (type == Type.Goverment)
-                        AddToQueue("Messages.government", timeStr, playerStr, message);
-                    else if (type == Type.News)
-                        AddToQueue("Messages.news", timeStr, playerStr, message);
-                    else if (type == Type.Advert)
-                    {
-                        string targetStr = (string)args[3];
+                    var targetStr = (string)args[3];
 
-                        AddToQueue("Messages.advert", timeStr, playerStr, targetStr, message, ""); // phone number
+                    AddToQueue("Messages.advert", timeStr, playerStr, targetStr, message, ""); // phone number
+                }
+                else if (type == Type.Kick || type == Type.Ban || type == Type.BanHard || type == Type.Mute || type == Type.Jail)
+                {
+                    var targetStr = (string)args[3];
+
+                    if (type == Type.BanHard)
+                    {
+                        AddToQueue("Messages.admin_ban_hard", timeStr, playerStr, targetStr, message);
                     }
-                    else if (type == Type.Kick || type == Type.Ban || type == Type.BanHard || type == Type.Mute || type == Type.Jail)
+                    else if (type == Type.Kick)
                     {
-                        string targetStr = (string)args[3];
-
-                        if (type == Type.BanHard)
-                        {
-                            AddToQueue("Messages.admin_ban_hard", timeStr, playerStr, targetStr, message);
-                        }
-                        else if (type == Type.Kick)
-                        {
-                            AddToQueue("Messages.admin_kick", timeStr, playerStr, targetStr, message);
-                        }
-                        else
-                        {
-                            string time = (string)args[4];
-
-                            if (type == Type.Ban)
-                                AddToQueue("Messages.admin_ban", timeStr, playerStr, targetStr, time, message);
-                            else if (type == Type.Mute)
-                                AddToQueue("Messages.admin_mute", timeStr, playerStr, targetStr, time, message);
-                            else if (type == Type.Jail)
-                                AddToQueue("Messages.admin_jail", timeStr, playerStr, targetStr, time, message);
-                        }
+                        AddToQueue("Messages.admin_kick", timeStr, playerStr, targetStr, message);
                     }
-                    else if (type == Type.UnBan || type == Type.UnMute || type == Type.UnJail)
+                    else
                     {
-                        string targetStr = (string)args[3];
+                        var time = (string)args[4];
 
-                        if (type == Type.UnBan)
-                            AddToQueue("Messages.admin_unban", timeStr, playerStr, targetStr, message);
-                        else if (type == Type.UnMute)
-                            AddToQueue("Messages.admin_unmute", timeStr, playerStr, targetStr, message);
-                        else if (type == Type.UnJail)
-                            AddToQueue("Messages.admin_unjail", timeStr, playerStr, targetStr, message);
+                        if (type == Type.Ban)
+                            AddToQueue("Messages.admin_ban", timeStr, playerStr, targetStr, time, message);
+                        else if (type == Type.Mute)
+                            AddToQueue("Messages.admin_mute", timeStr, playerStr, targetStr, time, message);
+                        else if (type == Type.Jail)
+                            AddToQueue("Messages.admin_jail", timeStr, playerStr, targetStr, time, message);
                     }
                 }
-                else
+                else if (type == Type.UnBan || type == Type.UnMute || type == Type.UnJail)
                 {
-                    Browser.Window.ExecuteJs("Chat.needScroll();");
+                    var targetStr = (string)args[3];
 
-                    if (type == Type.Admin)
-                        Browser.Window.ExecuteJs("Messages.admin_message", timeStr, playerStr, message);
-                    else if (type == Type.Goverment)
-                        Browser.Window.ExecuteJs("Messages.government", timeStr, playerStr, message);
-                    else if (type == Type.News)
-                        Browser.Window.ExecuteJs("Messages.news", timeStr, playerStr, message);
-                    else if (type == Type.Advert)
+                    if (type == Type.UnBan)
+                        AddToQueue("Messages.admin_unban", timeStr, playerStr, targetStr, message);
+                    else if (type == Type.UnMute)
+                        AddToQueue("Messages.admin_unmute", timeStr, playerStr, targetStr, message);
+                    else if (type == Type.UnJail)
+                        AddToQueue("Messages.admin_unjail", timeStr, playerStr, targetStr, message);
+                }
+
+                if (IsActive)
+                {
+                    (string, object[]) t;
+
+                    if (Queue.TryPeek(out t))
                     {
-                        string targetStr = (string)args[3];
+                        Browser.Window.ExecuteCachedJs("Chat.needScroll();");
 
-                        Browser.Window.ExecuteJs("Messages.advert", timeStr, playerStr, targetStr, message, ""); // phone number
+                        Browser.Window.ExecuteJs(t.Item1, t.Item2);
+
+                        Browser.Window.ExecuteCachedJs("Chat.tryScroll();");
                     }
-                    else if (type == Type.Kick || type == Type.Ban || type == Type.BanHard || type == Type.Mute || type == Type.Jail)
-                    {
-                        string targetStr = (string)args[3];
-
-                        if (type == Type.BanHard)
-                        {
-                            Browser.Window.ExecuteJs("Messages.admin_ban_hard", timeStr, playerStr, targetStr, message);
-                        }
-                        else if (type == Type.Kick)
-                        {
-                            Browser.Window.ExecuteJs("Messages.admin_kick", timeStr, playerStr, targetStr, message);
-                        }
-                        else
-                        {
-                            string time = (string)args[4];
-
-                            if (type == Type.Ban)
-                                Browser.Window.ExecuteJs("Messages.admin_ban", timeStr, playerStr, targetStr, time, message);
-                            else if (type == Type.Mute)
-                                Browser.Window.ExecuteJs("Messages.admin_mute", timeStr, playerStr, targetStr, time, message);
-                            else if (type == Type.Jail)
-                                Browser.Window.ExecuteJs("Messages.admin_jail", timeStr, playerStr, targetStr, time, message);
-                        }
-                    }
-                    else if (type == Type.UnBan || type == Type.UnMute || type == Type.UnJail)
-                    {
-                        string targetStr = (string)args[3];
-
-                        if (type == Type.UnBan)
-                            Browser.Window.ExecuteJs("Messages.admin_unban", timeStr, playerStr, targetStr, message);
-                        else if (type == Type.UnMute)
-                            Browser.Window.ExecuteJs("Messages.admin_unmute", timeStr, playerStr, targetStr, message);
-                        else if (type == Type.UnJail)
-                            Browser.Window.ExecuteJs("Messages.admin_unjail", timeStr, playerStr, targetStr, message);
-                    }
-
-                    Browser.Window.ExecuteJs("Chat.tryScroll();");
                 }
             });
             #endregion
@@ -375,17 +360,20 @@ namespace BCRPClient.CEF
 
                 string message = (string)args[0];
 
-                if (!IsActive)
+                if (Settings.Chat.UseFilter)
+                    message = Additional.StringFilter.Process(message, true, '♡');
+
+                if (IsActive)
                 {
-                    AddToQueue("Messages.server", TimeStr, message);
-                }
-                else
-                {
-                    Browser.Window.ExecuteJs($"Chat.needScroll();");
+                    Browser.Window.ExecuteCachedJs("Chat.needScroll();");
 
                     Browser.Window.ExecuteJs("Messages.server", TimeStr, message);
 
-                    Browser.Window.ExecuteJs("Chat.tryScroll();");
+                    Browser.Window.ExecuteCachedJs("Chat.tryScroll();");
+                }
+                else
+                {
+                    AddToQueue("Messages.server", TimeStr, message);
                 }
             });
             #endregion
@@ -400,14 +388,14 @@ namespace BCRPClient.CEF
 
             if (Queue.Count > 0)
             {
-                Browser.Window.ExecuteJs($"Chat.needScroll();");
+                Browser.Window.ExecuteCachedJs($"Chat.needScroll();");
 
                 (string Function, object[] Args) cmd;
 
                 while (Queue.TryDequeue(out cmd))
                     CEF.Browser.Window.ExecuteJs(cmd.Function, cmd.Args);
 
-                Browser.Window.ExecuteJs("Chat.tryScroll();");
+                Browser.Window.ExecuteCachedJs("Chat.tryScroll();");
             }
         }
 

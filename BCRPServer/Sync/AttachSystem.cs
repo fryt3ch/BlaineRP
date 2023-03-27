@@ -13,11 +13,11 @@ namespace BCRPServer.Sync
         public const string AttachedEntitiesKey = "AttachedEntities";
         public const string EntityIsAttachedToKey = "IAT::E";
 
-        public const string AttachedObjectsCancelsKey = AttachedObjectsKey + "::Cancels";
+        public const string AttachedObjectsTimersKey = AttachedObjectsKey + "::Timers";
 
         private static object[] EmptyArgs { get; } = new object[] { };
 
-        public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
+        public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type < Types.VehKey;
 
         public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type < Types.VehicleTrailer;
 
@@ -36,13 +36,18 @@ namespace BCRPServer.Sync
             WeaponRightBack,
             WeaponLeftBack,
 
-            Phone,
+            PhoneSync,
+
+            ParachuteSync,
 
             #endregion
 
             #region Object In Hand Types | Типы, наличие у игрока которых запрещает определенные действия (ведь предмет находится в руках)
 
             VehKey,
+
+            Cuffs,
+            CableCuffs,
 
             ItemFishingRodG, ItemFishG,
 
@@ -107,6 +112,8 @@ namespace BCRPServer.Sync
             PiggyBack,
             Hostage,
 
+            PoliceEscort,
+
             VehicleTrunk, VehicleTrunkForced,
 
             #endregion
@@ -118,6 +125,11 @@ namespace BCRPServer.Sync
             public static uint Phone { get; } = NAPI.Util.GetHashKey("prop_phone_ing");
 
             public static uint VehicleRemoteFob { get; } = NAPI.Util.GetHashKey("lr_prop_carkey_fob");
+
+            public static uint ParachuteSync { get; } = NAPI.Util.GetHashKey("p_parachute1_mp_dec");
+
+            public static uint Cuffs { get; } = NAPI.Util.GetHashKey("p_cs_cuffs_02_s");
+            public static uint CableCuffs { get; } = NAPI.Util.GetHashKey("brp_p_cablecuffs_0");
         }
 
         public class AttachmentObjectNet
@@ -606,19 +618,7 @@ namespace BCRPServer.Sync
                                 int cFieldIdx; byte cRow, cCol;
 
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentCropInfo(pData, out cFieldIdx, out cRow, out cCol))
-                                {
-                                    var info = farmerJob.FarmBusiness.CropFields[cFieldIdx].CropsData[cRow][cCol];
-
-                                    if (info.CTS != null)
-                                    {
-                                        info.CTS.Cancel();
-                                        info.CTS.Dispose();
-
-                                        info.CTS = null;
-                                    }
-
                                     Game.Jobs.Farmer.ResetPlayerCurrentCropInfo(pData);
-                                }
 
                                 pData.StopGeneralAnim();
                             }
@@ -669,19 +669,7 @@ namespace BCRPServer.Sync
                                 int idx;
 
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentOrangeTreeInfo(pData, out idx))
-                                {
-                                    var info = farmerJob.FarmBusiness.OrangeTrees[idx];
-
-                                    if (info.CTS != null)
-                                    {
-                                        info.CTS.Cancel();
-                                        info.CTS.Dispose();
-
-                                        info.CTS = null;
-                                    }
-
                                     Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pData);
-                                }
 
                                 pData.StopGeneralAnim();
                             }
@@ -732,19 +720,7 @@ namespace BCRPServer.Sync
                                 int idx;
 
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentOrangeTreeInfo(pData, out idx))
-                                {
-                                    var info = farmerJob.FarmBusiness.OrangeTrees[idx];
-
-                                    if (info.CTS != null)
-                                    {
-                                        info.CTS.Cancel();
-                                        info.CTS.Dispose();
-
-                                        info.CTS = null;
-                                    }
-
                                     Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pData);
-                                }
 
                                 pData.StopGeneralAnim();
                             }
@@ -798,19 +774,7 @@ namespace BCRPServer.Sync
                                 int idx;
 
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentCowInfo(pData, out idx))
-                                {
-                                    var info = farmerJob.FarmBusiness.Cows[idx];
-
-                                    if (info.CTS != null)
-                                    {
-                                        info.CTS.Cancel();
-                                        info.CTS.Dispose();
-
-                                        info.CTS = null;
-                                    }
-
                                     Game.Jobs.Farmer.ResetPlayerCurrentCowInfo(pData);
-                                }
 
                                 pData.StopGeneralAnim();
                             }
@@ -973,32 +937,18 @@ namespace BCRPServer.Sync
 
             if (detachAfter != -1)
             {
-                var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+                var timers = entity.GetData<Dictionary<Types, Timer>>(AttachedObjectsTimersKey);
 
-                var cts = new CancellationTokenSource();
-
-                cancels.Add(type, cts);
-
-                System.Threading.Tasks.Task.Run(async () =>
+                timers.Add(type, new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await System.Threading.Tasks.Task.Delay(detachAfter, cts.Token);
+                        if (entity?.Exists != true)
+                            return;
 
-                        NAPI.Task.Run(() =>
-                        {
-                            if (entity?.Exists != true)
-                                return;
-
-                            entity.DetachObject(type);
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
-                });
-
+                        entity.DetachObject(type);
+                    });
+                }, null, detachAfter, Timeout.Infinite));
             }
 
             return true;
@@ -1020,16 +970,15 @@ namespace BCRPServer.Sync
             if (item == null)
                 return false;
 
-            var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+            var timers = entity.GetData<Dictionary<Types, Timer>>(AttachedObjectsTimersKey);
 
-            var cts = cancels.GetValueOrDefault(type);
+            var timer = timers.GetValueOrDefault(type);
 
-            if (cts != null)
+            if (timer != null)
             {
-                cts.Cancel();
-                cts.Dispose();
+                timer.Dispose();
 
-                cancels.Remove(type);
+                timers.Remove(type);
             }
 
             list.Remove(item);
@@ -1051,23 +1000,19 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+            var timers = entity.GetData<Dictionary<Types, Timer>>(AttachedObjectsTimersKey);
 
             foreach (var x in list)
             {
-                if (cancels.GetValueOrDefault(x.Type) is CancellationTokenSource cts)
-                {
-                    cts.Cancel();
-
-                    cts.Dispose();
-
-                    cancels.Remove(x.Type);
-                }
+                if (timers.GetValueOrDefault(x.Type) is Timer timer)
+                    timer.Dispose();
 
                 GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
 
                 list.Remove(x);
             }
+
+            timers.Clear();
 
             list.Clear();
 
@@ -1086,20 +1031,18 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            var cancels = entity.GetData<Dictionary<Types, CancellationTokenSource>>(AttachedObjectsCancelsKey);
+            var timers = entity.GetData<Dictionary<Types, Timer>>(AttachedObjectsTimersKey);
 
             list.ToList().ForEach(x =>
             {
                 if (!IsTypeObjectInHand(x.Type))
                     return;
 
-                if (cancels.GetValueOrDefault(x.Type) is CancellationTokenSource cts)
+                if (timers.GetValueOrDefault(x.Type) is Timer timer)
                 {
-                    cts.Cancel();
+                    timer.Dispose();
 
-                    cts.Dispose();
-
-                    cancels.Remove(x.Type);
+                    timers.Remove(x.Type);
                 }
 
                 GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);

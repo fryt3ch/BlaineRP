@@ -88,46 +88,27 @@ namespace BCRPServer.Sync
         /// <returns>true/false если type = Try, true - в любом другом случае</returns>
         public static bool SendLocal(Types type, Player sender, string message, Player target = null)
         {
-            float range = Settings.CHAT_MAX_RANGE_DEFAULT;
-
-            if (type == Types.Whisper)
-                range = Settings.CHAT_MAX_RANGE_WHISPER;
-            else if (type == Types.Shout)
-                range = Settings.CHAT_MAX_RANGE_LOUD;
+            var range = type == Types.Whisper ? Settings.CHAT_MAX_RANGE_WHISPER : type == Types.Shout ? Settings.CHAT_MAX_RANGE_LOUD : Settings.CHAT_MAX_RANGE_DEFAULT;
 
             if (type != Types.Try && type != Types.TryPlayer)
             {
                 if (target != null)
-                    NAPI.Task.Run(() =>
-                    {
-                        if (sender?.Exists != true)
-                            return;
-
-                        sender.TriggerEventInDistance(range, "Chat::ShowCasualMessage", sender.Handle, (int)type, message, target.Handle);
-                    });
+                {
+                    sender.TriggerEventInDistance(range, "Chat::SCM", sender.Id, (int)type, message, target.Id);
+                }
                 else
-                    NAPI.Task.Run(() =>
-                    {
-                        if (sender?.Exists != true)
-                            return;
-
-                        sender.TriggerEventInDistance(range, "Chat::ShowCasualMessage", sender.Handle, (int)type, message);
-                    });
+                {
+                    sender.TriggerEventInDistance(range, "Chat::SCM", sender.Id, (int)type, message);
+                }
             }
             else
             {
-                bool result = Utils.Randoms.Chat.Next(0, 2) != 0;
+                var result = Utils.Randoms.Chat.Next(0, 2) != 0;
 
-                NAPI.Task.Run(() =>
-                {
-                    if (sender?.Exists != true)
-                        return;
-
-                    if (target != null)
-                        sender.TriggerEventInDistance(range, "Chat::ShowCasualMessage", sender.Handle, (int)type, message + $"*{(result ? "true" : "false")}", target.Handle);
-                    else
-                        sender.TriggerEventInDistance(range, "Chat::ShowCasualMessage", sender.Handle, (int)type, message + $"*{(result ? "true" : "false")}");
-                });
+                if (target != null)
+                    sender.TriggerEventInDistance(range, "Chat::SCM", sender.Id, (int)type, message + $"*{(result ? 1 : 0)}", target.Id);
+                else
+                    sender.TriggerEventInDistance(range, "Chat::SCM", sender.Id, (int)type, message + $"*{(result ? 1 : 0)}");
 
                 return result;
             }

@@ -47,7 +47,7 @@ namespace BCRPClient.Sync
 
         public static void Toggle()
         {
-            if (LastSwitchTime.IsSpam(2000, false, false))
+            if (LastSwitchTime.IsSpam(1000, false, false))
                 return;
 
             var pData = Sync.Players.GetData(Player.LocalPlayer);

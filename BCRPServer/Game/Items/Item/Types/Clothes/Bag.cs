@@ -55,7 +55,7 @@ namespace BCRPServer.Game.Items
         {
             var player = pData.Player;
 
-            if (pData.BeltOn)
+            if (pData.Items.Where(x => (x as Game.Items.Parachute)?.InUse == true).Any()) // pData.BeltOn ||
                 return;
 
             var data = Data;
@@ -80,7 +80,7 @@ namespace BCRPServer.Game.Items
         {
             var player = pData.Player;
 
-            if (pData.BeltOn)
+            if (pData.Items.Where(x => (x as Game.Items.Parachute)?.InUse == true).Any()) // pData.BeltOn ||
                 return;
 
             player.SetClothes(Slot, 0, 0);

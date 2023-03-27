@@ -7,7 +7,7 @@ namespace BCRPClient.Sync
         public static string AttachedObjectsKey = "AttachedObjects";
         public static string AttachedEntitiesKey = "AttachedEntities";
 
-        public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type <= Types.WeaponRightBack;
+        public static bool IsTypeStaticObject(Types type) => type >= Types.PedRingLeft3 && type < Types.VehKey;
 
         public static bool IsTypeObjectInHand(Types type) => type >= Types.VehKey && type < Types.VehicleTrailer;
 
@@ -35,13 +35,18 @@ namespace BCRPClient.Sync
             WeaponRightBack,
             WeaponLeftBack,
 
-            Phone,
+            PhoneSync,
+
+            ParachuteSync,
 
             #endregion
 
             #region Object In Hand Types | Типы, наличие у игрока которых запрещает определенные действия (ведь предмет находится в руках)
 
             VehKey,
+
+            Cuffs,
+            CableCuffs,
 
             ItemFishingRodG, ItemFishG,
 
@@ -105,6 +110,8 @@ namespace BCRPClient.Sync
             Carry,
             PiggyBack,
             Hostage,
+
+            PoliceEscort,
 
             VehicleTrunk, VehicleTrunkForced,
 
@@ -319,8 +326,9 @@ namespace BCRPClient.Sync
         {
             { Types.PushVehicleFront, new AttachmentData(6286, new Vector3(0f, 0.35f, 0.95f), new Vector3(0f, 0f, 180f), false, false, true, 2, true) },
             { Types.PushVehicleBack, new AttachmentData(6286, new Vector3(0f, -0.6f, 0.95f), new Vector3(0f, 0f, 0f), false, false, true, 2, true) },
-            { Types.Phone, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
+            { Types.PhoneSync, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
             { Types.VehKey, new AttachmentData(6286, new Vector3(0.08f, 0.04f, -0.015f), new Vector3(175f, -115f, -90f), false, false, false, 2, true) },
+            { Types.ParachuteSync, new AttachmentData(1_000_000 + 57717, new Vector3(0f, 0f, 3f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
 
             { Types.WeaponLeftTight, new AttachmentData(58271, new Vector3(0.08f, 0.03f, -0.1f), new Vector3(-80.77f, 0f, 0f), false, false, false, 2, true) },
             { Types.WeaponRightTight, new AttachmentData(51826, new Vector3(0.02f, 0.06f, 0.1f), new Vector3(-100f, 0f, 0f), false, false, false, 2, true) },
@@ -450,6 +458,11 @@ namespace BCRPClient.Sync
             { Types.ItemChocolate, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemPizza, new AttachmentData(28422, new Vector3(-0.01f, -0.01f, 0f), new Vector3(20f, 0f, 0f), false, false, false, 2, true) },
             { Types.ItemBeer, new AttachmentData(28422, new Vector3(0.012f, 0.028f, -0.1f), new Vector3(5f, 0f, 0f), false, false, false, 2, true) },
+
+            { Types.Cuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
+            { Types.CableCuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
+
+            { Types.PoliceEscort, new AttachmentData(11816, new Vector3(0.4f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
             {
                 Types.FarmPlantSmallShovel, new AttachmentData(28422, new Vector3(0f, 0.01f, -0.03f), new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
@@ -670,7 +683,7 @@ namespace BCRPClient.Sync
                 return;
 
             if (props != null)
-                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
 
             if (type == Types.VehicleTrailer)
             {
@@ -755,7 +768,7 @@ namespace BCRPClient.Sync
 
             if (gTarget.Handle == Player.LocalPlayer.Handle)
             {
-                if (type == Types.Phone)
+                if (type == Types.PhoneSync || type == Types.ParachuteSync)
                     return;
             }
 
@@ -846,17 +859,12 @@ namespace BCRPClient.Sync
                     {
                         AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
-                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
                     }
                     else
                     {
-                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
                     }
-                }
-
-                if (gEntity is MapObject mObj)
-                {
-                    mObj.Hidden = false;
                 }
 
                 props.EntityAction?.Invoke(new object[] { gEntity });

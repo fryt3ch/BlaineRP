@@ -57,6 +57,31 @@ namespace BCRPServer.Game.Items
                     return !house.ContainersLocked;
                 }
             },
+
+            {
+                "f_storage",
+
+                (cont, pData) =>
+                {
+                    var fractionData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                    if (fractionData == null || fractionData.ContainerId != cont.ID)
+                    {
+                        pData.Player.Notify("Fraction::NM");
+
+                        return false;
+                    }
+
+                    if (fractionData.ContainerLocked && !fractionData.IsLeaderOrWarden(pData.Info, false))
+                    {
+                        pData.Player.Notify("Container::CF");
+
+                        return false;
+                    }
+
+                    return true;
+                }
+            },
         };
 
         private static Dictionary<string, Func<Container, PlayerData, bool>> NearnessCheckFuncs = new Dictionary<string, Func<Container, PlayerData, bool>>()
@@ -91,6 +116,24 @@ namespace BCRPServer.Game.Items
                     var house = pData.CurrentHouse;
 
                     return house != null && house.Fridge == cont.ID;
+                }
+            },
+
+            {
+                "f_storage",
+
+                (cont, pData) =>
+                {
+                    var fractionData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                    if (fractionData == null || fractionData.ContainerId != cont.ID)
+                    {
+                        pData.Player.Notify("Fraction::NM");
+
+                        return false;
+                    }
+
+                    return fractionData.ContainerPosition.Position.DistanceTo(pData.Player.Position) <= fractionData.ContainerPosition.RotationZ + 2.5f;
                 }
             },
         };

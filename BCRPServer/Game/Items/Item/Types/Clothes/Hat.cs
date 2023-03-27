@@ -157,11 +157,26 @@ namespace BCRPServer.Game.Items
             }
 
             if (data.ExtraData != null)
-                player.SetAccessories(Slot, Toggled ? data.ExtraData.Drawable : data.Drawable, data.Textures[variation]);
+            {
+                if (Toggled)
+                {
+                    player.SetAccessories(Slot, data.ExtraData.Drawable, data.Textures[variation]);
+
+                    pData.Hat = $"{data.ExtraData.Drawable}|{data.Textures[variation]}";
+                }
+                else
+                {
+                    player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
+
+                    pData.Hat = $"{data.Drawable}|{data.Textures[variation]}";
+                }
+            }
             else
+            {
                 player.SetAccessories(Slot, data.Drawable, data.Textures[variation]);
 
-            pData.Hat = $"{this.ID}|{Var}|{(Toggled ? 1 : 0)}";
+                pData.Hat = $"{data.Drawable}|{data.Textures[variation]}";
+            }
         }
 
         public override void Unwear(PlayerData pData)

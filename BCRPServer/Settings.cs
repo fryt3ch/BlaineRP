@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Org.BouncyCastle.Bcpg;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace BCRPServer
@@ -236,6 +237,14 @@ namespace BCRPServer
 
         public const uint VEHICLE_EVACUATION_COST = 1_000;
 
+        public const int FRACTION_NEWS_MAX_COUNT = 25;
+
+        public const int FRACTION_NEWS_MIN_CHAR = 10;
+        public const int FRACTION_NEWS_MAX_CHAR = 250;
+        public const int FRACTION_NEWS_MAX_NL = 10;
+
+        public const int FRACTION_VEHICLE_RESPAWN_CD = 120;
+
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 
@@ -254,7 +263,7 @@ namespace BCRPServer
             Utils.WeatherTypes.RAIN,
             Utils.WeatherTypes.THUNDER,
             Utils.WeatherTypes.CLEARING,
-            Utils.WeatherTypes.BLIZZARD,
+            //Utils.WeatherTypes.BLIZZARD,
         };
 
         public static string SettingsToClientStr = (STREAM_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE_RENDER, MIN_CRUISE_CONTROL_SPEED, MAX_CRUISE_CONTROL_SPEED, MAX_INVENTORY_WEIGHT).SerializeToJson();

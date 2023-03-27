@@ -227,6 +227,8 @@ namespace BCRPServer
 
         public static void LoadAll()
         {
+            var curTime = Utils.GetCurrentTime();
+
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
                 conn.Open();
@@ -490,6 +492,42 @@ namespace BCRPServer
                         }
                     }
 
+                    var allCooldowns = new Dictionary<uint, Dictionary<Sync.Cooldowns.Types, DateTime>>();
+
+                    cmd.CommandText = "SELECT * FROM cooldowns;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            var types = Enum.GetValues(typeof(Sync.Cooldowns.Types)).Cast<Sync.Cooldowns.Types>().Where(x => !Sync.Cooldowns.IsTemp(x)).ToList();
+
+                            while (reader.Read())
+                            {
+                                var cid = Convert.ToUInt32(reader["ID"]);
+
+                                var cooldowns = new Dictionary<Sync.Cooldowns.Types, DateTime>();
+
+                                allCooldowns.Add(cid, cooldowns);
+
+                                foreach (var x in types)
+                                {
+                                    var obj = reader[x.ToString()];
+
+                                    if (obj == DBNull.Value)
+                                        continue;
+
+                                    var dateTime = (DateTime)obj;
+
+                                    if (dateTime < curTime)
+                                        continue;
+
+                                    cooldowns.Add(x, dateTime);
+                                }
+                            }
+                        }
+                    }
+
                     cmd.CommandText = "SELECT * FROM characters;";
 
                     using (var reader = cmd.ExecuteReader())
@@ -629,6 +667,8 @@ namespace BCRPServer
                                     Achievements = achievements,
 
                                     Quests = quests,
+
+                                    Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<Sync.Cooldowns.Types, DateTime>(),
                                 };
 
                                 if (pInfo.BankAccount != null)
@@ -817,26 +857,36 @@ namespace BCRPServer
                                     {
                                         for (int i = 0; i < farm.CropFields.Count; i++)
                                         {
+                                            var key = $"FARM::CFI_{business.ID}_{i}";
+
+                                            var data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
+
+                                            farm.CropFields[i].UpdateIrrigationEndTime(farm, i, data == null ? (long?)null : long.Parse(data), false);
+
                                             for (byte j = 0; j < farm.CropFields[i].CropsData.Count; j++)
                                             {
                                                 for (byte k = 0; k < farm.CropFields[i].CropsData[j].Count; k++)
                                                 {
-                                                    var key = $"FARM::CF_{business.ID}_{i}_{j}_{k}";
+/*                                                    farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, null, false);
 
-                                                    var data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
+                                                    continue;*/
+
+                                                    key = $"FARM::CF_{business.ID}_{i}_{j}_{k}";
+
+                                                    data = farmsData.GetValueOrDefault(NAPI.Util.GetHashKey(key));
 
                                                     if (data is string dataStr)
                                                     {
                                                         var t = dataStr.Split('_');
 
                                                         if (t.Length > 1)
-                                                            farm.CropFields[i].CropsData[j][k].PlantTime = long.Parse(t[1]);
+                                                            farm.CropFields[i].CropsData[j][k].WasIrrigated = byte.Parse(t[1]) == 1;
 
-                                                        farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, long.Parse(t[0]), false, false);
+                                                        farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, long.Parse(t[0]), false);
                                                     }
                                                     else
                                                     {
-                                                        farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, null, false, false);
+                                                        farm.CropFields[i].CropsData[j][k].UpdateGrowTime(farm, i, j, k, null, false);
                                                     }
                                                 }
                                             }
@@ -873,6 +923,77 @@ namespace BCRPServer
                                 }
                             }
                         }
+                    }
+
+                    cmd.CommandText = "SELECT * FROM fractions;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var type = (Game.Fractions.Types)Convert.ToInt32(reader["ID"]);
+
+                                var data = Game.Fractions.Fraction.Get(type);
+
+                                if (data == null)
+                                    continue;
+
+                                data.Balance = Convert.ToUInt64(reader["Balance"]);
+                                data.ContainerId = Convert.ToUInt32(reader["Storage"]);
+
+                                var leaderObj = reader["Leader"];
+
+                                data.SetLeader(leaderObj is DBNull ? null : PlayerData.PlayerInfo.Get(Convert.ToUInt32(leaderObj)), true);
+
+                                data.SetMaterials(Convert.ToUInt32(reader["Materials"]), false);
+                                data.SetStorageLocked((bool)reader["STL"], false);
+                                data.SetCreationWorkbenchLocked((bool)reader["CWL"], false);
+
+                                data.AllVehicles = (((string)reader["Vehicles"]).DeserializeFromJson<Dictionary<uint, Game.Fractions.VehicleProps>>()).ToDictionary(x => VehicleData.VehicleInfo.Get(x.Key), x => x.Value);
+
+                                data.Ranks = ((string)reader["Ranks"]).DeserializeFromJson<List<Game.Fractions.RankData>>();
+
+                                data.News = ((string)reader["News"]).DeserializeFromJson<Game.Fractions.NewsData>();
+
+                                if (data.News.All.Count > 0)
+                                {
+                                    foreach (var x in Enumerable.Range(0, data.News.All.Keys.Max()))
+                                    {
+                                        if (!data.News.All.ContainsKey(x))
+                                        {
+                                            if (data.News.PinnedId == x)
+                                                data.News.PinnedId = -1;
+
+                                            data.News.FreeIdxes.Enqueue(x);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (data.News.PinnedId >= 0)
+                                        data.News.PinnedId = -1;
+                                }
+                            }
+                        }
+                    }
+
+                    foreach (var x in PlayerData.PlayerInfo.All)
+                    {
+                        if (x.Value.Fraction == Game.Fractions.Types.None)
+                            continue;
+
+                        var data = Game.Fractions.Fraction.Get(x.Value.Fraction);
+
+                        if (data == null)
+                        {
+                            x.Value.Fraction = Game.Fractions.Types.None;
+
+                            continue;
+                        }
+
+                        data.AllMembers.Add(x.Value);
                     }
                 }
             }

@@ -28,6 +28,8 @@ namespace BCRPClient
                     { "job_trucker", "Глава дальнобойщиков" },
 
                     { "farmer", "Фермер" },
+
+                    { "cop0", "Дежурный полиции" },
                 };
 
                 public static Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>>()

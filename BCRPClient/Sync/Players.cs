@@ -30,8 +30,8 @@ namespace BCRPClient.Sync
         /// <summary>Кол-во здоровья, ниже которого оно не будет отниматься, если игрок голоден</summary>
         private const int HungryLowestHP = 10;
 
-        private static GameEvents.UpdateHandler WoundedHandler;
-        private static GameEvents.UpdateHandler HungryHandler;
+        private static AsyncTask WoundedTask { get; set; }
+        private static AsyncTask HungerTask { get; set; }
 
         private static AsyncTask RentedVehiclesCheckTask { get; set; }
 
@@ -148,7 +148,7 @@ namespace BCRPClient.Sync
             public DateTime IssueDate { get; set; }
 
             [JsonProperty(PropertyName = "F")]
-            public Data.Locations.Fraction.Types IssueFraction { get; set; }
+            public Data.Fractions.Types IssueFraction { get; set; }
 
             [JsonProperty(PropertyName = "N")]
             public string DoctorName { get; set; }
@@ -174,7 +174,7 @@ namespace BCRPClient.Sync
 
             public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
-            public Data.Locations.Fraction.Types Fraction => (Data.Locations.Fraction.Types)Player.GetSharedData<int>("Fraction", 0);
+            public Data.Fractions.Types Fraction => (Data.Fractions.Types)Player.GetSharedData<int>("Fraction", 0);
 
             public int Satiety => Player.GetSharedData<int>("Satiety", 0);
 
@@ -193,6 +193,8 @@ namespace BCRPClient.Sync
             public float VoiceRange => Player.GetSharedData<float>("VoiceRange", 0f);
 
             public bool IsMuted => VoiceRange < 0f;
+
+            public bool IsCuffed => Player.GetSharedData<bool>("IsCuffed", false);
 
             public bool IsInvalid => Player.GetSharedData<bool>("IsInvalid", false);
 
@@ -287,6 +289,8 @@ namespace BCRPClient.Sync
             public CEF.PhoneApps.PhoneApp.CallInfo ActiveCall { get => Player.GetData<CEF.PhoneApps.PhoneApp.CallInfo>("ActiveCall"); set { if (value == null) Player.ResetData("ActiveCall"); Player.SetData("ActiveCall", value); } }
 
             public Data.Jobs.Job CurrentJob { get => Player.GetData<Data.Jobs.Job>("CJob"); set { if (value == null) Player.ResetData("CJob"); Player.SetData("CJob", value); } }
+
+            public Data.Fractions.Fraction CurrentFraction { get => Player.GetData<Data.Fractions.Fraction>("CFraction"); set { if (value == null) Player.ResetData("CFraction"); Player.SetData("CFraction", value); } }
             #endregion
 
             public void Reset()
@@ -389,9 +393,6 @@ namespace BCRPClient.Sync
         public Players()
         {
             CharacterLoaded = false;
-
-            (new AsyncTask(() => WoundedHandler?.Invoke(), WoundedTime, true, 0)).Run();
-            (new AsyncTask(() => HungryHandler?.Invoke(), HungryTime, true, 0)).Run();
 
             (new AsyncTask(() =>
             {
@@ -615,6 +616,13 @@ namespace BCRPClient.Sync
                 if (CharacterLoaded)
                     return;
 
+                var pPos = Player.LocalPlayer.Position;
+
+                float z = 0f;
+
+                if (RAGE.Game.Misc.GetGroundZFor3dCoord(pPos.X, pPos.Y, pPos.Z, ref z, true))
+                    Player.LocalPlayer.SetCoordsNoOffset(pPos.X, pPos.Y, z, false, false, false);
+
                 var data = GetData(Player.LocalPlayer);
 
                 while (data == null)
@@ -689,6 +697,142 @@ namespace BCRPClient.Sync
             #endregion
 
             #region Local Player Events
+
+            Events.Add("Player::ParachuteS", (args) =>
+            {
+                var parachuteWeaponHash = RAGE.Util.Joaat.Hash("gadget_parachute");
+
+                if (!(bool)args[0])
+                {
+                    Player.LocalPlayer.RemoveWeaponFrom(parachuteWeaponHash);
+
+                    if (!(bool)args[1])
+                    {
+                        Player.LocalPlayer.GetData<AsyncTask>("ParachuteATask")?.Cancel();
+
+                        Player.LocalPlayer.ResetData("ParachuteATask");
+
+                        if (Player.LocalPlayer.GetParachuteState() >= 0)
+                            Player.LocalPlayer.ClearTasksImmediately();
+                    }
+                }
+                else
+                {
+                    Player.LocalPlayer.GetData<AsyncTask>("ParachuteATask")?.Cancel();
+
+                    Player.LocalPlayer.RemoveWeaponFrom(parachuteWeaponHash);
+
+                    Player.LocalPlayer.GiveWeaponTo(parachuteWeaponHash, 0, false, false);
+
+                    RAGE.Game.Player.SetPlayerParachuteVariationOverride(66, 0, 2, false);
+                    RAGE.Game.Player.SetPlayerParachuteTintIndex(6);
+
+                    AsyncTask task = null;
+
+                    var isInFly = false;
+
+                    var lastSentState = int.MinValue;
+
+                    task = new AsyncTask(() =>
+                    {
+                        var pState = Player.LocalPlayer.GetParachuteState();
+
+                        if (isInFly)
+                        {
+                            if (pState < 0 || pState == 3)
+                            {
+                                if (lastSentState != -1)
+                                {
+                                    Events.CallRemote("Player::ParachuteS", false);
+
+                                    if (lastSentState == 1 || lastSentState == 2)
+                                        task?.Cancel();
+
+                                    lastSentState = -1;
+
+                                    isInFly = false;
+                                }
+                            }
+                            else if (pState == 1 || pState == 2)
+                            {
+                                if (lastSentState != 1)
+                                {
+                                    Events.CallRemote("Player::ParachuteS", true);
+
+                                    CEF.Notification.ShowHint("Используйте F, чтобы открепиться от парашюта", true, -1);
+
+                                    lastSentState = 1;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (pState < 0 || pState == 3)
+                                return;
+
+                            isInFly = true;
+
+                            if (lastSentState != 0)
+                            {
+                                //Events.CallRemote("Player::ParachuteS", 0);
+
+                                lastSentState = 0;
+
+                                CEF.Notification.ShowHint("Используйте ЛКМ или F, чтобы раскрыть парашют", true, -1);
+                            }
+                        }
+                    }, 25, true, 0);
+
+                    Player.LocalPlayer.SetData("ParachuteATask", task);
+
+                    task.Run();
+                }
+            });
+
+            Events.Add("Player::SCF", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (args == null || args.Length < 1)
+                {
+                    var lastFraction = pData.CurrentFraction;
+
+                    if (lastFraction != null)
+                    {
+                        lastFraction.OnEndMembership();
+                    }
+
+                    pData.CurrentFraction = null;
+
+                    CEF.HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Fraction_Menu);
+
+                    CEF.Menu.SetFraction(Data.Fractions.Types.None);
+                }
+                else
+                {
+                    var fraction = (Data.Fractions.Types)(int)args[0];
+
+                    var fData = Data.Fractions.Fraction.Get(fraction);
+
+                    var lastFraction = pData.CurrentFraction;
+
+                    if (lastFraction != null)
+                    {
+                        lastFraction.OnEndMembership();
+                    }
+
+                    pData.CurrentFraction = fData;
+
+                    CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Fraction_Menu);
+
+                    CEF.Menu.SetFraction(fraction);
+
+                    fData.OnStartMembership(args.Skip(1).ToArray());
+                }
+            });
 
             Events.Add("Player::SCJ", (args) =>
             {
@@ -1217,6 +1361,23 @@ namespace BCRPClient.Sync
                 }
             });
 
+            AddDataHandler("IsCuffed", (pData, value, oldValue) =>
+            {
+                if (pData.Player != Player.LocalPlayer)
+                    return;
+
+                var state = value as bool? ?? false;
+
+                if (state)
+                {
+
+                }
+                else
+                {
+
+                }
+            });
+
             AddDataHandler("Fly", (pData, value, oldValue) =>
             {
                 if (pData.Player != Player.LocalPlayer)
@@ -1335,8 +1496,20 @@ namespace BCRPClient.Sync
 
                         CEF.Notification.ShowHint(Locale.Notifications.Players.States.Wounded, false);
 
-                        WoundedHandler -= WoundedUpdate;
-                        WoundedHandler += WoundedUpdate;
+                        if (WoundedTask != null)
+                            WoundedTask.Cancel();
+
+                        WoundedTask = new AsyncTask(() =>
+                        {
+                            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                            if (pData == null || pData.IsInvincible)
+                                return;
+
+                            Player.LocalPlayer.SetRealHealth(Player.LocalPlayer.GetRealHealth() - WoundedReduceHP);
+                        }, WoundedTime, true, WoundedTime / 2);
+
+                        WoundedTask.Run();
 
                         RAGE.Game.Graphics.StartScreenEffect("DeathFailMPDark", 0, true);
                     }
@@ -1346,7 +1519,12 @@ namespace BCRPClient.Sync
 
                         CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Wounded, false);
 
-                        WoundedHandler -= WoundedUpdate;
+                        if (WoundedTask != null)
+                        {
+                            WoundedTask.Cancel();
+
+                            WoundedTask = null;
+                        }
                     }
                 }
             });
@@ -1410,13 +1588,36 @@ namespace BCRPClient.Sync
 
                     if (satiety == 0)
                     {
-                        HungryHandler -= HungryUpdate;
-                        HungryHandler += HungryUpdate;
+                        if (HungerTask != null)
+                            HungerTask.Cancel();
+
+                        HungerTask = new AsyncTask(() =>
+                        {
+                            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                            if (pData == null || pData.IsInvincible)
+                                return;
+
+                            var currentHp = Player.LocalPlayer.GetRealHealth();
+
+                            if (currentHp <= HungryLowestHP)
+                                return;
+
+                            if (currentHp - HungryReduceHP <= HungryLowestHP)
+                                Player.LocalPlayer.SetRealHealth(HungryLowestHP);
+                            else
+                                Player.LocalPlayer.SetRealHealth(currentHp - HungryReduceHP);
+                        }, HungryTime, true, HungryTime / 2);
                     }
                 }
                 else
                 {
-                    HungryHandler -= HungryUpdate;
+                    if (HungerTask != null)
+                    {
+                        HungerTask.Cancel();
+
+                        HungerTask = null;
+                    }
 
                     CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
                 }
@@ -1683,16 +1884,6 @@ namespace BCRPClient.Sync
                 }
             });
 
-            AddDataHandler("Fraction", (pData, value, oldValue) =>
-            {
-                if (pData.Player == Player.LocalPlayer)
-                {
-                    var fraction = value is int vint ? (Data.Locations.Fraction.Types)vint : Data.Locations.Fraction.Types.None;
-
-                    CEF.Menu.SetFraction(fraction);
-                }
-            });
-
             AddDataHandler("AdminLevel", (pData, value, oldValue) =>
             {
                 if (pData.Player == Player.LocalPlayer)
@@ -1820,34 +2011,6 @@ namespace BCRPClient.Sync
             #endregion
         }
 
-        private static void WoundedUpdate()
-        {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-            if (pData == null || pData.IsInvincible)
-                return;
-
-            Player.LocalPlayer.SetRealHealth(Player.LocalPlayer.GetRealHealth() - WoundedReduceHP);
-        }
-
-        private static void HungryUpdate()
-        {
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-            if (pData == null || pData.IsInvincible)
-                return;
-
-            var currentHp = Player.LocalPlayer.GetRealHealth();
-
-            if (currentHp <= HungryLowestHP)
-                return;
-
-            if (currentHp - HungryReduceHP <= HungryLowestHP)
-                Player.LocalPlayer.SetRealHealth(HungryLowestHP);
-            else
-                Player.LocalPlayer.SetRealHealth(currentHp - HungryReduceHP);
-        }
-
         public static void UpdateHat(Player player)
         {
             if (player == null)
@@ -1858,24 +2021,16 @@ namespace BCRPClient.Sync
             if (pData == null)
                 return;
 
-            if (pData.Hat == null)
+            var hData = pData.Hat?.Split('|');
+
+            if (hData == null)
             {
                 player.ClearProp(0);
 
                 return;
             }
 
-            var hData = pData.Hat.Split('|');
-
-            if (hData.Length < 3)
-                return;
-
-            var data = (Data.Items.Hat.ItemData)Data.Items.GetData(hData[0], typeof(Data.Items.Hat));
-
-            if (data == null)
-                return;
-
-            player.SetPropIndex(0, hData[2] == "1" ? data.ExtraData?.Drawable ?? data.Drawable : data.Drawable, data.Textures[int.Parse(hData[1])], true);
+            player.SetPropIndex(0, int.Parse(hData[0]), int.Parse(hData[1]), true);
         }
 
         private static void UpdateSkill(SkillTypes sType, int value)

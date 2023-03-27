@@ -52,7 +52,12 @@ namespace BCRPServer.Events.Players
 
                     if (aRes.Result == MySQL.AuthResults.RegOk)
                     {
-                        tData.LoginCTS?.Cancel();
+                        if (tData.AuthTimer != null)
+                        {
+                            tData.AuthTimer.Dispose();
+
+                            tData.AuthTimer = null;
+                        }
 
                         tData.AccountData = aRes.AccountData;
 
@@ -142,7 +147,12 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            tData.LoginCTS?.Cancel();
+            if (tData.AuthTimer != null)
+            {
+                tData.AuthTimer.Dispose();
+
+                tData.AuthTimer = null;
+            }
 
             tData.StepType = TempData.StepTypes.CharacterSelection;
 
@@ -308,6 +318,18 @@ namespace BCRPServer.Events.Players
                     tData.DimensionToSpawn = Utils.Dimensions.Main;
 
                     player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
+                }
+                else if (sType == TempData.StartPlaceTypes.Fraction)
+                {
+                    if (tData.PlayerData.Fraction != Game.Fractions.Types.None)
+                    {
+                        var fData = Game.Fractions.Fraction.Get(tData.PlayerData.Fraction);
+
+                        tData.PositionToSpawn = fData.SpawnPosition.Position;
+                        tData.DimensionToSpawn = Utils.Dimensions.Main;
+
+                        player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
+                    }
                 }
                 else if (sType == TempData.StartPlaceTypes.House)
                 {

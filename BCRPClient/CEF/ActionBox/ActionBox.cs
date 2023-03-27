@@ -73,6 +73,13 @@ namespace BCRPClient.CEF
             JobCabbieOrderSelect,
             JobBusDriverRouteSelect,
             JobCollectorOrderSelect,
+
+            FractionUniformSelect,
+
+            GasStationOrItemSelect,
+            GasItemRange,
+
+            DrivingSchoolSelect,
         }
 
         public static Types CurrentType { get; private set; }
@@ -90,6 +97,52 @@ namespace BCRPClient.CEF
 
                 new Dictionary<Contexts, Dictionary<ActionTypes, Action<object[]>>>()
                 {
+                    {
+                        Contexts.GasItemRange,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Player.LocalPlayer.SetData("AB::Temp::GASIRAI", (int)args[0]);
+
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("AB::Temp::GASIRAI");
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var amountD = (decimal)(args[1]);
+
+                                    int amount;
+
+                                    if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                                        return;
+
+                                    var itemIdx = Player.LocalPlayer.GetData<int>("AB::Temp::GASIRAI");
+
+                                    Close(true);
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        if (BCRPClient.Interaction.CurrentEntity is Vehicle veh)
+                                            Events.CallRemote("Vehicles::JerrycanUse", veh, itemIdx, amount);
+                                    }
+                                }
+                            }
+                        }
+                    },
+
                     {
                         Contexts.ItemOnGroundTakeRange,
 
@@ -130,6 +183,12 @@ namespace BCRPClient.CEF
                                     Close(true);
 
                                     if (iog?.Object?.Exists != true)
+                                        return;
+
+                                    if (Player.LocalPlayer.IsInAnyVehicle(false))
+                                        return;
+
+                                    if (!Utils.CanDoSomething(true, Utils.Actions.Cuffed, Utils.Actions.Frozen))
                                         return;
 
                                     if (rType == ReplyTypes.OK)
@@ -437,6 +496,45 @@ namespace BCRPClient.CEF
                 new Dictionary<Contexts, Dictionary<ActionTypes, Action<object[]>>>()
                 {
                     {
+                        Contexts.DrivingSchoolSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Player.LocalPlayer.SetData("AB::Temp::DriveSchoolId", args[0]);
+
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) => Player.LocalPlayer.ResetData("AB::Temp::DriveSchoolId")
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var schoolId = Player.LocalPlayer.GetData<int>("AB::Temp::DriveSchoolId");
+
+                                    Close(true);
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        var licType = (Sync.Players.LicenseTypes)id;
+
+                                        CEF.AutoschoolTest.Show(schoolId, licType, Data.Locations.Autoschool.Prices.GetValueOrDefault(licType));
+                                    }
+                                }
+                            }
+                        }
+                    },
+
+                    {
                         Contexts.PlacedItemOnGroundSelect,
 
                         new Dictionary<ActionTypes, Action<object[]>>()
@@ -495,14 +593,8 @@ namespace BCRPClient.CEF
                             {
                                 ActionTypes.Show, (args) =>
                                 {
-                                    Player.LocalPlayer.SetData("ActionBox::Temp::NPSI", args[0]);
-
                                     Bind();
                                 }
-                            },
-
-                            {
-                                ActionTypes.Close, (args) => Player.LocalPlayer.ResetData("ActionBox::Temp::NPSI")
                             },
 
                             {
@@ -513,15 +605,64 @@ namespace BCRPClient.CEF
 
                                     if (rType == ReplyTypes.OK)
                                     {
-                                        var items = Player.LocalPlayer.GetData<Dictionary<uint, string>>("ActionBox::Temp::NPSI");
-
                                         if (BCRPClient.Interaction.CurrentEntity is Vehicle veh)
                                         {
-                                            Events.CallRemote("Vehicles::SetupPlate", veh, items.ElementAt(id).Key);
+                                            Events.CallRemote("Vehicles::SetupPlate", veh, id);
                                         }
                                     }
 
                                     Close(true);
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.GasStationOrItemSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Player.LocalPlayer.SetData("ActionBoxTempData::GSOISS", (Dictionary<int, int>)args[0]);
+
+                                    Bind();
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("ActionBoxTempData::GSOISS");
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    var fuelAmount = Player.LocalPlayer.GetData<Dictionary<int, int>>("ActionBoxTempData::GSOISS")?.GetValueOrDefault(id) ?? 0;
+
+                                    Close(true);
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        if (BCRPClient.Interaction.CurrentEntity is Vehicle veh)
+                                        {
+                                            if (id < 0)
+                                            {
+                                                CEF.Gas.RequestShow(veh, true);
+                                            }
+                                            else
+                                            {
+                                                if (fuelAmount > 0)
+                                                    CEF.ActionBox.ShowRange(Contexts.GasItemRange, Locale.Actions.GasItemRangeHeader, 1, fuelAmount, fuelAmount, 1, RangeSubTypes.Default, id);
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1255,6 +1396,50 @@ namespace BCRPClient.CEF
 
                                         Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
                                     }
+                                }
+                            }
+                        }
+                    },
+
+                    {
+                        Contexts.FractionUniformSelect,
+
+                        new Dictionary<ActionTypes, Action<object[]>>()
+                        {
+                            {
+                                ActionTypes.Show, (args) =>
+                                {
+                                    Bind();
+
+                                    Player.LocalPlayer.SetData("ActionBox::Temp::FRACTIONUNIFS::F", (Data.Fractions.Types)args[0]);
+                                }
+                            },
+
+                            {
+                                ActionTypes.Choose, async (args) =>
+                                {
+                                    var rType = (ReplyTypes)args[0];
+                                    var id = (int)args[1];
+
+                                    if (rType == ReplyTypes.OK)
+                                    {
+                                        Events.CallRemote("Fraction::UNIFC", (int)Player.LocalPlayer.GetData<Data.Fractions.Types>("ActionBox::Temp::FRACTIONUNIFS::F"), id);
+
+                                        Close(true);
+                                    }
+                                    else if (rType == ReplyTypes.Cancel)
+                                    {
+                                        Close(true);
+                                    }
+                                    else
+                                        return;
+                                }
+                            },
+
+                            {
+                                ActionTypes.Close, (args) =>
+                                {
+                                    Player.LocalPlayer.ResetData("ActionBox::Temp::FRACTIONUNIFS::F");
                                 }
                             }
                         }

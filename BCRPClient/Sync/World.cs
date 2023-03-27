@@ -67,6 +67,12 @@ namespace BCRPClient.Sync
                 if (Utils.IsAnyCefActive(true))
                     return;
 
+                if (Player.LocalPlayer.IsInAnyVehicle(false))
+                    return;
+
+                if (!Utils.CanDoSomething(true, Utils.Actions.Cuffed, Utils.Actions.Frozen))
+                    return;
+
                 if (Amount == 1)
                 {
                     if (LastSent.IsSpam(500, false, false))
@@ -226,7 +232,7 @@ namespace BCRPClient.Sync
                     obj.UpdateOwnerName(name);
                 });
 
-                InvokeHandler($"Business::{id}::OName", GetSharedData<string>($"Business::{id}::OName"), null);
+                InvokeHandler($"Business::{id}::OName", obj.OwnerName, null);
             }
 
             foreach (var x in Data.Locations.House.All.Values)
@@ -241,7 +247,7 @@ namespace BCRPClient.Sync
                     obj.UpdateOwnerName(name);
                 });
 
-                InvokeHandler($"House::{id}::OName", GetSharedData<string>($"House::{id}::OName"), null);
+                InvokeHandler($"House::{id}::OName", obj.OwnerName, null);
             }
 
             foreach (var x in Data.Locations.Apartments.All.Values)
@@ -274,7 +280,13 @@ namespace BCRPClient.Sync
                     obj.UpdateOwnerName(name);
                 });
 
-                InvokeHandler($"Garages::{id}::OName", GetSharedData<string>($"Garages::{id}::OName"), null);
+                InvokeHandler($"Garages::{id}::OName", obj.OwnerName, null);
+            }
+
+            foreach (var x in Data.Fractions.Fraction.All)
+            {
+                Data.Fractions.Fraction.OnStorageLockedChanged($"FRAC::SL_{(int)x.Key}", x.Value.StorageLocked, null);
+                Data.Fractions.Fraction.OnCreationWorkbenchLockedChanged($"FRAC::CWBL_{(int)x.Key}", x.Value.CreationWorkbenchLocked, null);
             }
         }
 

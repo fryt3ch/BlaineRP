@@ -56,5 +56,11 @@ namespace BCRPClient.Data
                 Sync.Vehicles.Lock(state, veh);
             }
         }
+
+        [Command("report", false, "Связь с администрацией", "rep", "ask")]
+        public static void Report(string text)
+        {
+            CEF.Menu.ReportSend(text);
+        }
     }
 }

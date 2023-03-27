@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPServer.Game.Items
 {
@@ -812,6 +813,47 @@ namespace BCRPServer.Game.Items
                             else
                             {
                                 if (player.Vehicle != null || pData.IsAttachedToEntity != null || pData.CurrentItemInUse != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
+                                {
+                                    player.Notify("ASP::ARN");
+
+                                    return Results.Error;
+                                }
+
+                                if (!itemU.StartUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+
+                            return Results.Success;
+                        }
+                    }
+                }
+            },
+
+            {
+                typeof(Game.Items.Parachute),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var player = pData.Player;
+
+                            if (group != Groups.Items)
+                                return Results.ActionRestricted;
+
+                            var itemU = (Game.Items.Parachute)item;
+
+                            if (itemU.InUse)
+                            {
+                                if (!itemU.StopUse(pData, group, slot, true))
+                                    return Results.Error;
+                            }
+                            else
+                            {
+                                if (pData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.ParachuteSync).Any() || pData.CurrentItemInUse != null)
                                 {
                                     player.Notify("ASP::ARN");
 

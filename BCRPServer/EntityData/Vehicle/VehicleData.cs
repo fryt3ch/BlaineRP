@@ -31,14 +31,21 @@ namespace BCRPServer
             All.Add(vehicle, data);
         }
 
-        private static void Remove(VehicleData vData)
+        public static void Remove(VehicleData vData)
         {
             if (vData == null)
                 return;
 
+            if (vData.DeletionTimer is Timer deletionTimer)
+                deletionTimer.Dispose();
+
             vData.Info.VehicleData = null;
 
             All.Remove(vData.Vehicle);
+
+            vData.Vehicle.DetachAllEntities();
+
+            vData.Vehicle.GetEntityIsAttachedTo()?.DetachEntity(vData.Vehicle);
 
             vData.Vehicle.Delete();
 
@@ -71,6 +78,10 @@ namespace BCRPServer
             PlayerRent,
             /// <summary>Арендуется игроком, при этом - принадлежит работе</summary>
             PlayerRentJob,
+            /// <summary>Используется игроком для прохождения практического экзамена в автошколе</summary>
+            PlayerDrivingSchool,
+            /// <summary>Принадлежит фракции</summary>
+            Fraction,
         }
 
         public enum StationTypes : byte
@@ -169,7 +180,7 @@ namespace BCRPServer
             AttachedObjects = new List<AttachSystem.AttachmentObjectNet>();
             AttachedEntities = new List<AttachSystem.AttachmentEntityNet>();
 
-            Vehicle.SetData(Sync.AttachSystem.AttachedObjectsCancelsKey, new Dictionary<Sync.AttachSystem.Types, CancellationTokenSource>());
+            Vehicle.SetData(Sync.AttachSystem.AttachedObjectsTimersKey, new Dictionary<Sync.AttachSystem.Types, Timer>());
 
             SetData(Vehicle, this);
         }
@@ -233,79 +244,8 @@ namespace BCRPServer
             }
         }
 
-        public void Respawn(bool useLastDataCoords)
-        {
-            if (Vehicle?.Exists != true)
-                return;
-
-            Vehicle.DetachAllEntities();
-
-            Vehicle.GetEntityIsAttachedTo()?.DetachEntity(Vehicle);
-
-            IsDead = false;
-
-            IsFrozen = false;
-
-            IsInvincible = false;
-
-            uint dimension;
-
-            var lastDim = Vehicle.Dimension;
-
-            Vehicle.Dimension = Utils.Dimensions.Stuff;
-
-            Vehicle.Occupants.ForEach(x =>
-            {
-                if (x is Entity entity)
-                {
-                    entity.Position = entity.Position;
-
-                    entity.Dimension = lastDim;
-                }
-            });
-
-            if (useLastDataCoords)
-            {
-                Vehicle.Spawn(LastData.Position, LastData.Heading);
-
-                dimension = LastData.Dimension;
-            }
-            else
-            {
-                Vehicle.Spawn(Vehicle.Position, Vehicle.Heading);
-
-                dimension = lastDim;
-            }
-
-            EngineOn = false;
-            Locked = false;
-
-            LightsOn = false;
-            LeftIndicatorOn = false;
-            RightIndicatorOn = false;
-
-            TrunkLocked = true;
-            HoodLocked = true;
-
-            NAPI.Task.Run(() =>
-            {
-                if (Vehicle?.Exists != true)
-                    return;
-
-                Vehicle.Dimension = dimension;
-            }, 1000);
-        }
-
         public void Delete(bool completely)
         {
-            if (CTSDelete is CancellationTokenSource ctsDelete)
-            {
-                ctsDelete.Cancel();
-                ctsDelete.Dispose();
-
-                CTSDelete = null;
-            }
-
             if (completely)
             {
                 this.Numberplate?.Delete();
@@ -332,7 +272,7 @@ namespace BCRPServer
             }
             else
             {
-                if (VID > 0)
+                if (OwnerType == OwnerTypes.Player)
                 {
                     if (IsDead)
                     {
@@ -354,65 +294,85 @@ namespace BCRPServer
 
                     Console.WriteLine($"[VehDeletion] Deleted VID: {VID}");
                 }
-                else
+                else if (OwnerType == OwnerTypes.PlayerRent)
                 {
-                    if (OwnerType == OwnerTypes.PlayerRent)
+                    var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
+
+                    OwnerID = 0;
+
+                    if (owner != null)
                     {
-                        var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
-
-                        OwnerID = 0;
-
-                        if (owner != null)
+                        if (owner.PlayerData != null)
                         {
-                            if (owner.PlayerData != null)
-                            {
-                                owner.PlayerData.RemoveRentedVehicle(this);
-                            }
-                        }
-
-                        if (LastData.GarageSlot == int.MinValue)
-                        {
-                            Remove(this);
-                        }
-                        else
-                        {
-                            Respawn(true);
-
-                            var data = Data;
-
-                            FuelLevel = data.Tank;
+                            owner.PlayerData.RemoveRentedVehicle(this);
                         }
                     }
-                    else if (OwnerType == OwnerTypes.PlayerRentJob)
+
+                    if (LastData.GarageSlot == int.MinValue)
                     {
-                        var jobData = Job;
+                        Remove(this);
+                    }
+                    else
+                    {
+                        var numberplate = Vehicle.NumberPlate;
+                        var numberplateS = Vehicle.NumberPlateStyle;
 
-                        var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
-
-                        OwnerID = 0;
-
-                        if (owner != null)
-                        {
-                            if (owner.PlayerData != null)
-                            {
-                                owner.PlayerData.RemoveRentedVehicle(this);
-                            }
-
-                            if (jobData.Type != Game.Jobs.Types.Farmer)
-                                Job.SetPlayerNoJob(owner);
-                        }
-
-                        Respawn(true);
+                        Remove(this);
 
                         var data = Data;
 
-                        FuelLevel = data.Tank;
+                        Info.LastData.Fuel = data.Tank;
 
-                        if (jobData is Game.Jobs.IVehicles jobDataV)
+                        var vData = Info.Spawn();
+
+                        if (vData != null)
                         {
-                            jobDataV.OnVehicleRespawned(this);
+                            vData.Vehicle.NumberPlate = numberplate;
+                            vData.Vehicle.NumberPlateStyle = numberplateS;
                         }
                     }
+                }
+                else if (OwnerType == OwnerTypes.PlayerRentJob)
+                {
+                    var jobData = Job;
+
+                    var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
+
+                    OwnerID = 0;
+
+                    if (owner != null)
+                    {
+                        if (owner.PlayerData != null)
+                        {
+                            owner.PlayerData.RemoveRentedVehicle(this);
+                        }
+                    }
+
+                    var numberplate = Vehicle.NumberPlate;
+                    var numberplateS = Vehicle.NumberPlateStyle;
+
+                    Remove(this);
+
+                    Info.LastData.Fuel = Data.Tank;
+
+                    var vData = Info.Spawn();
+
+                    if (vData != null)
+                    {
+                        vData.Job = jobData;
+
+                        vData.Vehicle.NumberPlate = numberplate;
+                        vData.Vehicle.NumberPlateStyle = numberplateS;
+                    }
+
+                    if (jobData is Game.Jobs.IVehicles jobDataV)
+                    {
+                        jobDataV.OnVehicleRespawned(Info, owner);
+                    }
+                }
+                else if (OwnerType == OwnerTypes.Fraction)
+                {
+                    Remove(this);
                 }
             }
         }
@@ -528,6 +488,8 @@ namespace BCRPServer
 
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
+            vInfo.VehicleData = vData;
+
             var veh = vData.Vehicle;
 
             NAPI.Task.Run(() =>
@@ -562,6 +524,8 @@ namespace BCRPServer
 
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
+            vInfo.VehicleData = vData;
+
             pData.AddRentedVehicle(vData, 300_000);
 
             var veh = vData.Vehicle;
@@ -584,7 +548,7 @@ namespace BCRPServer
             return vData;
         }
 
-        public static VehicleData NewJob(int jobId, string numberplateText, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
+        public static VehicleData.VehicleInfo NewJob(int jobId, string numberplateText, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
         {
             var job = Game.Jobs.Job.Get(jobId);
 
@@ -605,7 +569,9 @@ namespace BCRPServer
 
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
-            vData.Vehicle.SetData("JID", jobId);
+            vInfo.VehicleData = vData;
+
+            vData.Job = job;
 
             var veh = vData.Vehicle;
 
@@ -622,34 +588,62 @@ namespace BCRPServer
                 veh.Dimension = dimension;
             }, 1500);
 
-            return vData;
+            return vInfo;
+        }
+
+        public static VehicleData.VehicleInfo NewAutoschool(int autoschoolId, Game.Data.Vehicles.Vehicle vType, Utils.Colour color1, Utils.Colour color2, Utils.Vector4 position, uint dimension)
+        {
+            var autoschool = Game.Autoschool.Get(autoschoolId);
+
+            var vInfo = new VehicleInfo()
+            {
+                VID = 0,
+
+                Data = vType,
+                AllKeys = new List<uint>(),
+                OwnerType = OwnerTypes.PlayerDrivingSchool,
+                OwnerID = 0,
+                ID = vType.ID,
+                Numberplate = null,
+                Tuning = Game.Data.Vehicles.Tuning.CreateNew(color1, color2),
+                LastData = new LastVehicleData() { Position = position.Position, Dimension = dimension, Heading = position.RotationZ, Fuel = vType.Tank, Mileage = 0f, GarageSlot = -1 },
+                RegistrationDate = Utils.GetCurrentTime(),
+            };
+
+            var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
+
+            vInfo.VehicleData = vData;
+
+            var veh = vData.Vehicle;
+
+            veh.NumberPlate = "DRSCHOOL";
+
+            NAPI.Task.Run(() =>
+            {
+                if (veh?.Exists != true)
+                    return;
+
+                veh.Dimension = dimension;
+            }, 1500);
+
+            return vInfo;
         }
 
         public bool StartDeletionTask(int time)
         {
-            if (CTSDelete != null)
-                return false;
+            if (DeletionTimer is Timer deletionTimer)
+                deletionTimer.Dispose();
 
-            var ctsDelete = new CancellationTokenSource();
-
-            Task.Run(async () =>
+            DeletionTimer = new Timer((obj) =>
             {
-                try
+                NAPI.Task.Run(() =>
                 {
-                    await Task.Delay(time, ctsDelete.Token);
+                    if (Vehicle?.Exists != true)
+                        return;
 
-                    NAPI.Task.Run(() =>
-                    {
-                        if (Vehicle?.Exists != true)
-                            return;
-
-                        Delete(false);
-                    });
-                }
-                catch (Exception ex) { }
-            });
-
-            CTSDelete = ctsDelete;
+                    Delete(false);
+                });
+            }, null, time, Timeout.Infinite);
 
             Console.WriteLine("[VehDeletion] Started deletion");
 
@@ -658,12 +652,11 @@ namespace BCRPServer
 
         public bool CancelDeletionTask()
         {
-            if (CTSDelete is CancellationTokenSource ctsDelete)
+            if (DeletionTimer is Timer deletionTimer)
             {
-                ctsDelete.Cancel();
-                ctsDelete.Dispose();
+                deletionTimer.Dispose();
 
-                CTSDelete = null;
+                DeletionTimer = null;
 
                 Console.WriteLine("[VehDeletion] Cancelled deletion");
 
@@ -715,6 +708,13 @@ namespace BCRPServer
             else if (OwnerType == OwnerTypes.PlayerRentJob)
             {
                 if (OwnerID == pData.CID)
+                    return true;
+            }
+            else if (OwnerType == OwnerTypes.Fraction)
+            {
+                var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)OwnerID);
+
+                if (pData.Fraction == fData.Type && pData.Info.FractionRank >= (fData.AllVehicles.GetValueOrDefault(Info)?.MinimalRank ?? byte.MaxValue))
                     return true;
             }
 

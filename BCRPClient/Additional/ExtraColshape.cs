@@ -281,11 +281,11 @@ namespace BCRPClient.Additional
                     if (!ExtraColshape.InteractionColshapesAllowed)
                         return;
 
-                    var func = ExtraColshape.GetInteractionFunc(data.InteractionType);
+                    var func = ExtraColshape.GetInteractionAction(data.InteractionType);
 
                     CEF.HUD.InteractionAction = func;
 
-                    CEF.HUD.SwitchInteractionText(true, string.Format(Locale.Interaction.Names[data.InteractionType], FormatArgsLastIntColshape));
+                    CEF.HUD.SwitchInteractionText(true, string.Format(Locale.Interaction.Names.GetValueOrDefault(data.InteractionType) ?? "null", FormatArgsLastIntColshape));
                 }
 
                 data.OnEnter?.Invoke(null);
@@ -351,7 +351,7 @@ namespace BCRPClient.Additional
 
         public static Action<ExtraColshape> GetExitAction(ActionTypes aType) => Actions.GetValueOrDefault(aType)?.GetValueOrDefault(false);
 
-        public static Func<bool> GetInteractionFunc(InteractionTypes iType) => InteractionFuncs.GetValueOrDefault(iType);
+        public static Action GetInteractionAction(InteractionTypes iType) => InteractionActions.GetValueOrDefault(iType);
 
         /// <summary>Типы колшейпов</summary>
         public enum Types
@@ -416,6 +416,12 @@ namespace BCRPClient.Additional
             ApartmentsRootElevator,
 
             GarageRootEnter,
+
+            ContainerInteract,
+            FractionCreationWorkbenchInteract,
+            FractionLockerRoomInteract,
+
+            DrivingSchoolInteract,
         }
 
         public enum ActionTypes
@@ -452,6 +458,11 @@ namespace BCRPClient.Additional
             GarageRootEnter,
 
             VehicleSpeedLimit,
+
+            ContainerInteract,
+            FractionInteract,
+
+            DrivingSchoolInteract,
         }
 
         public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
@@ -565,22 +576,160 @@ namespace BCRPClient.Additional
             },
         };
 
-        public static Dictionary<InteractionTypes, Func<bool>> InteractionFuncs = new Dictionary<InteractionTypes, Func<bool>>()
+        public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
+            {
+                InteractionTypes.DrivingSchoolInteract, async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    if (!Player.LocalPlayer.HasData("EXED::DriveSchoolId"))
+                        return;
+
+                    var schoolId = Player.LocalPlayer.GetData<int>("EXED::DriveSchoolId");
+
+                    var lics = pData.Licenses;
+
+                    var notOwnedLics = BCRPClient.Data.Locations.Autoschool.Prices.Keys.Where(x => !lics.Contains(x)).ToList();
+
+                    if (notOwnedLics.Count == 0)
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уже владеете всеми лицензиями для транспорта, так держать!", -1);
+
+                        return;
+                    }
+
+                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.DrivingSchoolSelect, "Выбор категории", notOwnedLics.Select(x => ((int)x, Locale.General.Players.LicenseNames.GetValueOrDefault(x) ?? "null")).ToArray(), null, null, schoolId);
+                }
+            },
+
+            {
+                InteractionTypes.FractionLockerRoomInteract, async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    if (!Player.LocalPlayer.HasData("EXED::CFractionId"))
+                        return;
+
+                    var fType = Player.LocalPlayer.GetData<Data.Fractions.Types>("EXED::CFractionId");
+
+                    var fData = BCRPClient.Data.Fractions.Fraction.Get(fType);
+
+                    var fDataUnif = fData as BCRPClient.Data.Fractions.IUniformable;
+
+                    if (fDataUnif == null)
+                        return;
+
+                    if (pData.CurrentFraction != fData)
+                    {
+                        CEF.Notification.Show("Fraction::NM");
+
+                        return;
+                    }
+
+                    var res = (int)await Events.CallRemoteProc("Fraction::UNIFS", (int)fType);
+
+                    if (res == int.MinValue)
+                        return;
+
+                    var allButtons = new List<(int, string)>();
+
+                    if (res >= 0)
+                        allButtons.Add((-1, "[Завершить рабочий день]"));
+
+                    for (int i = 0; i < fDataUnif.UniformNames.Count; i++)
+                    {
+                        if (res == i)
+                            continue;
+
+                        allButtons.Add((i, fDataUnif.UniformNames[i]));
+                    }
+
+                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.FractionUniformSelect, Locale.Actions.FractionUniformSelectTitle, allButtons.ToArray(), null, null, fType);
+                }
+            },
+
+            {
+                InteractionTypes.FractionCreationWorkbenchInteract, async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    if (!Player.LocalPlayer.HasData("EXED::CFractionId"))
+                        return;
+
+                    var fType = Player.LocalPlayer.GetData<Data.Fractions.Types>("EXED::CFractionId");
+
+                    var fData = BCRPClient.Data.Fractions.Fraction.Get(fType);
+
+                    if (fData.CreationWorkbenchPrices.Count == 0)
+                        return;
+
+                    if (pData.CurrentFraction != fData)
+                    {
+                        CEF.Notification.Show("Fraction::NM");
+
+                        return;
+                    }
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = (int)await Events.CallRemoteProc("Fraction::CWBS", (int)fType);
+
+                    if (res == byte.MaxValue)
+                    {
+                        if (Utils.IsAnyCefActive(true))
+                            return;
+
+                        CEF.MaterialWorkbench.Show(MaterialWorkbench.Types.Fraction, fData.CreationWorkbenchPrices, fData.Materials);
+                    }
+                }
+            },
+
+            {
+                InteractionTypes.ContainerInteract, () =>
+                {
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    if (!Player.LocalPlayer.HasData("EXED::ContId"))
+                        return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    Events.CallRemote("Container::Show", Player.LocalPlayer.GetData<uint>("EXED::ContId"));
+                }
+            },
+
             {
                 InteractionTypes.BusinessEnter, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentBusiness"))
-                        return false;
-
-                    Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
+                        return;
 
                     LastSent = Sync.World.ServerTime;
 
-                    return true;
+                    Events.CallRemote("Business::Enter", Player.LocalPlayer.GetData<int>("CurrentBusiness"));
                 }
             },
 
@@ -588,16 +737,14 @@ namespace BCRPClient.Additional
                 InteractionTypes.BusinessInfo, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentBusiness"))
-                        return false;
+                        return;
 
-                    CEF.Estate.ShowBusinessInfo( Player.LocalPlayer.GetData<BCRPClient.Data.Locations.Business>("CurrentBusiness"), true);
+                    CEF.Estate.ShowBusinessInfo(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.Business>("CurrentBusiness"), true);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -605,16 +752,14 @@ namespace BCRPClient.Additional
                 InteractionTypes.HouseEnter, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentHouse"))
-                        return false;
+                        return;
 
                     CEF.Estate.ShowHouseBaseInfo(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.HouseBase>("CurrentHouse"), true);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -622,10 +767,10 @@ namespace BCRPClient.Additional
                 InteractionTypes.HouseExit, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
-                        return false;
+                        return;
 
                     var house = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.HouseBase>("House::CurrentHouse");
 
@@ -639,8 +784,6 @@ namespace BCRPClient.Additional
 
                         LastSent = Sync.World.ServerTime;
                     }
-
-                    return true;
                 }
             },
 
@@ -648,7 +791,7 @@ namespace BCRPClient.Additional
                 InteractionTypes.GarageExit, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
                     {
@@ -658,8 +801,6 @@ namespace BCRPClient.Additional
                     {
                         CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (2, Locale.Actions.HouseExitActionBoxToHouse), (0, Locale.Actions.HouseExitActionBoxOutside) }, null, null);
                     }
-
-                    return true;
                 }
             },
 
@@ -667,23 +808,21 @@ namespace BCRPClient.Additional
                 InteractionTypes.NpcDialogue, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentNPC"))
-                        return false;
+                        return;
 
                     var npc = Player.LocalPlayer.GetData<Data.NPC>("CurrentNPC");
 
                     if (npc == null)
-                        return false;
+                        return;
 
                     npc.SwitchDialogue(true);
 
                     npc.ShowDialogue(npc.DefaultDialogueId);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -691,16 +830,14 @@ namespace BCRPClient.Additional
                 InteractionTypes.ATM, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentATM"))
-                        return false;
+                        return;
 
                     Events.CallRemote("Bank::Show", true, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ATM>("CurrentATM").Id);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -708,20 +845,20 @@ namespace BCRPClient.Additional
                 InteractionTypes.TuningEnter, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentTuning"))
-                        return false;
+                        return;
 
                     var baseVeh = Player.LocalPlayer.Vehicle;
 
                     if (baseVeh == null)
-                        return false;
+                        return;
 
                     var bVehData = Sync.Vehicles.GetData(baseVeh);
 
                     if (bVehData == null)
-                        return false;
+                        return;
 
                     var trVehHandle = baseVeh.GetTrailerVehicle();
 
@@ -732,19 +869,17 @@ namespace BCRPClient.Additional
                             var boatData = Sync.Vehicles.GetData(boat);
 
                             if (boatData == null)
-                                return false;
+                                return;
 
                             CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehicleTuningVehicleSelect, Locale.Actions.VehicleTuningVehicleSelect, new (int Id, string Text)[] { (1, $"{bVehData.Data.SubName} [#{bVehData.VID}]"), (2, $"{boatData.Data.SubName} [#{boatData.VID}]") }, null, null, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, baseVeh, boat);
 
-                            return false;
+                            return;
                         }
                     }
 
                     Events.CallRemote("TuningShop::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, baseVeh);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -752,16 +887,14 @@ namespace BCRPClient.Additional
                 InteractionTypes.ShootingRangeEnter, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentShootingRange"))
-                        return false;
+                        return;
 
                     Events.CallRemote("SRange::Enter::Shop", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.WeaponShop>("CurrentShootingRange").Id);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -769,16 +902,14 @@ namespace BCRPClient.Additional
                 InteractionTypes.ApartmentsRootEnter, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentApartmentsRoot"))
-                        return false;
+                        return;
 
                     Events.CallRemote("ARoot::Enter", (int)Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("CurrentApartmentsRoot").Type);
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -786,16 +917,14 @@ namespace BCRPClient.Additional
                 InteractionTypes.ApartmentsRootExit, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("ApartmentsRoot::Current"))
-                        return false;
+                        return;
 
                     Events.CallRemote("ARoot::Exit");
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
 
@@ -803,15 +932,15 @@ namespace BCRPClient.Additional
                 InteractionTypes.ApartmentsRootElevator, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("ApartmentsRoot::Current"))
-                        return false;
+                        return;
 
                     var aRoot = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current");
 
                     if (aRoot == null)
-                        return false;
+                        return;
 
                     var curFloor = aRoot.GetCurrentFloor();
 
@@ -820,11 +949,7 @@ namespace BCRPClient.Additional
                         CEF.Elevator.Show(aRoot.StartFloor + aRoot.FloorsAmount - 1, floor, Elevator.ContextTypes.ApartmentsRoot);
 
                         LastSent = Sync.World.ServerTime;
-
-                        return true;
                     }
-
-                    return false;
                 }
             },
 
@@ -832,22 +957,98 @@ namespace BCRPClient.Additional
                 InteractionTypes.GarageRootEnter, () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
-                        return false;
+                        return;
 
                     if (!Player.LocalPlayer.HasData("CurrentGarageRoot"))
-                        return false;
+                        return;
 
                     CEF.GarageMenu.Show(Player.LocalPlayer.GetData<BCRPClient.Data.Locations.GarageRoot>("CurrentGarageRoot"));
 
                     LastSent = Sync.World.ServerTime;
-
-                    return true;
                 }
             },
         };
 
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
         {
+            {
+                ActionTypes.DrivingSchoolInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is int id)
+                                Player.LocalPlayer.SetData("EXED::DriveSchoolId", id);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::DriveSchoolId");
+                        }
+                    }
+                }
+            },
+
+            {
+                ActionTypes.FractionInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is Data.Fractions.Types fType)
+                                Player.LocalPlayer.SetData("EXED::CFractionId", fType);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::CFractionId");
+                        }
+                    }
+                }
+            },
+
+            {
+                ActionTypes.ContainerInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is uint contId)
+                                Player.LocalPlayer.SetData("EXED::ContId", contId);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::ContId");
+                        }
+                    }
+                }
+            },
+
             {
                 ActionTypes.GasStation,
 

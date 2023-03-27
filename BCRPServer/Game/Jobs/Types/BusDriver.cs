@@ -22,7 +22,7 @@ namespace BCRPServer.Game.Jobs
 
         public override string ClientData => $"{Id}, {Position.ToCSharpStr()}, new List<(uint, List<Vector3>)>(){{{string.Join(',', Routes.Select(x => $"({x.Reward}, new List<Vector3>(){{{string.Join(',', x.Positions.Select(y => y.ToCSharpStr()))}}})"))}}}";
 
-        public List<VehicleData> Vehicles { get; set; } = new List<VehicleData>();
+        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
 
@@ -45,7 +45,7 @@ namespace BCRPServer.Game.Jobs
 
             pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JBD1)?.Cancel(pInfo);
 
-            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.Delete(false);
+            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.VehicleData?.Delete(false);
         }
 
         public override bool CanPlayerDoThisJob(PlayerData pData)
@@ -92,9 +92,12 @@ namespace BCRPServer.Game.Jobs
 
         }
 
-        public void OnVehicleRespawned(VehicleData vData)
+        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
         {
-
+            if (pInfo != null)
+            {
+                SetPlayerNoJob(pInfo);
+            }
         }
 
         public BusDriver(Utils.Vector4 Position) : base(Types.BusDriver, Position)

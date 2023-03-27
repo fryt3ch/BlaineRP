@@ -22,6 +22,10 @@ namespace BCRPClient.Data
 
             #endregion
 
+            #region FRACTIONS_TO_REPLACE
+
+            #endregion
+
             #region ATM_TO_REPLACE
 
             #endregion
@@ -50,6 +54,10 @@ namespace BCRPClient.Data
 
             #endregion
 
+            #region DRIVINGSCHOOLS_TO_REPLACE
+
+            #endregion
+
             new NPC("vpound_w_0", "Джон", NPC.Types.Talkable, "ig_trafficwarden", new Vector3(485.6506f, -54.18661f, 78.30058f), 55.38f, Settings.MAIN_DIMENSION)
             {
                 Blip = new Blip(832, new Vector3(485.6506f, -54.18661f, 78.30058f), "Штрафстоянка", 1f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION),
@@ -63,6 +71,10 @@ namespace BCRPClient.Data
 
                 DefaultDialogueId = "vrent_s_preprocess",
             };
+
+            new NPC($"cop0_{(int)Fractions.Types.PolicePaleto}", "Майкл", NPC.Types.Talkable, "csb_cop", new Vector3(-448.2888f, 6012.634f, 31.71635f), 313.2359f, Settings.MAIN_DIMENSION);
+
+            new Blip(60, new Vector3(-444f, 6016f, 33f), Fractions.Fraction.Get(Fractions.Types.PolicePaleto)?.Name ?? "null", 1f, 63, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
         }
     }
 }

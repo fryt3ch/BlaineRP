@@ -78,7 +78,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null)
                 return;
 
             var item = Sync.World.GetItemOnGround(UID);
@@ -396,6 +396,45 @@ namespace BCRPServer.Events.Players
                 return;
 
             item.Value.Item.StopUse(pData, Groups.Items, item.Value.Slot, true);
+        }
+
+        [RemoteEvent("Player::ParachuteS")]
+        private static void ParachuteState(Player player, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (state)
+            {
+                for (int slot = 0; slot < pData.Items.Length; slot++)
+                {
+                    if (pData.Items[slot] is Game.Items.Parachute parachute && parachute.InUse)
+                    {
+                        if (parachute.StopUse(pData, Groups.Items, slot, false, false))
+                        {
+                            parachute.Delete();
+
+                            pData.Items[slot] = null;
+
+                            player.InventoryUpdate(Groups.Items, slot, Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items));
+
+                            MySQL.CharacterItemsUpdate(pData.Info);
+
+                            player.AttachObject(Sync.AttachSystem.Models.ParachuteSync, Sync.AttachSystem.Types.ParachuteSync, -1, null);
+
+                            return;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                player.DetachObject(Sync.AttachSystem.Types.ParachuteSync);
+            }
         }
     }
 }

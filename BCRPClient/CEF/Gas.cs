@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.CEF
 {
@@ -69,28 +70,21 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static void RequestShow(Vehicle vehicle)
+        public static void RequestShow(Vehicle vehicle, bool showGasAnyway = false)
         {
             if (IsActive)
-                return;
-
-            var gasStationId = StationID;
-
-            if (gasStationId < 0)
-            {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.NotAtGasStationError);
-
-                return;
-            }
-
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-            if (pData == null)
                 return;
 
             var vData = Sync.Vehicles.GetData(vehicle);
 
             if (vData == null || vData.Data == null)
+                return;
+
+            var vDataData = vData.Data;
+
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
                 return;
 
             if (Player.LocalPlayer.Vehicle != null)
@@ -100,15 +94,76 @@ namespace BCRPClient.CEF
                 return;
             }
 
-            if (vData.FuelLevel == vData.Data.Tank)
+            if (vDataData.FuelType == Data.Vehicles.Vehicle.FuelTypes.None)
+                return;
+
+            var vehIsPetrol = vDataData.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol;
+
+            var maxFuel = (int)Math.Floor(vDataData.Tank - vData.FuelLevel);
+
+            if (maxFuel == 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? Locale.Notifications.Vehicles.FullOfGasElectrical : Locale.Notifications.Vehicles.FullOfGasDef);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, vehIsPetrol ? Locale.Notifications.Vehicles.FullOfGasDef : Locale.Notifications.Vehicles.FullOfGasElectrical);
 
                 return;
             }
 
-            if (vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.None)
+            var gasStationId = StationID;
+
+            var allGasItems = new List<(int, string, int)>();
+
+            if (!showGasAnyway)
+            {
+                for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+                {
+                    if (CEF.Inventory.ItemsParams[i] == null)
+                        continue;
+
+                    if (Data.Items.GetType(CEF.Inventory.ItemsParams[i].Id, false) == typeof(Data.Items.VehicleJerrycan))
+                    {
+                        if ((Data.Items.GetData(CEF.Inventory.ItemsParams[i].Id, typeof(Data.Items.VehicleJerrycan)) as Data.Items.VehicleJerrycan.ItemData)?.IsPetrol == vehIsPetrol)
+                        {
+                            var name = ((string)(((object[])CEF.Inventory.ItemsData[i][0])[1]));
+
+                            var nameT = name.Split(' ');
+
+                            var fuelAmount = int.Parse(new string(nameT[nameT.Length - 1].Where(x => char.IsDigit(x)).ToArray()));
+
+                            allGasItems.Add((i, name, fuelAmount));
+                        }
+                    }
+                }
+            }
+
+            if (gasStationId < 0)
+            {
+                if (allGasItems.Count == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.NotAtGasStationError);
+                }
+                else if (allGasItems.Count == 1)
+                {
+                    var item = allGasItems[0];
+
+                    var maxFuel1 = Math.Min(item.Item3, maxFuel);
+
+                    CEF.ActionBox.ShowRange(ActionBox.Contexts.GasItemRange, Locale.Actions.GasItemRangeHeader, 1, maxFuel1, maxFuel1, 1, ActionBox.RangeSubTypes.Default, item.Item1);
+                }
+                else
+                {
+                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.GasStationOrItemSelect, Locale.Actions.DefaultSelectHeader, allGasItems.Select(x => (x.Item1, x.Item2)).ToArray(), null, null, allGasItems.ToDictionary(x => x.Item1, x => Math.Min(x.Item3, maxFuel)));
+                }
+
                 return;
+            }
+            else if (allGasItems.Count > 0)
+            {
+                allGasItems.Insert(0, (-1, Locale.Actions.GasStationText, 0));
+
+                CEF.ActionBox.ShowSelect(ActionBox.Contexts.GasStationOrItemSelect, Locale.Actions.DefaultSelectHeader, allGasItems.Select(x => (x.Item1, x.Item2)).ToArray(), null, null, allGasItems.ToDictionary(x => x.Item1, x => Math.Min(x.Item3, maxFuel)));
+
+                return;
+            }
 
             TargetVehicle = vehicle;
 

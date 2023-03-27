@@ -46,7 +46,7 @@ namespace BCRPServer.Sync.Phone
 
         public bool Exists => AllCalls.Contains(this);
 
-        private CancellationTokenSource CTS { get; set; }
+        private Timer Timer { get; set; }
 
         public Call(PlayerData Caller, PlayerData Receiver)
         {
@@ -59,62 +59,39 @@ namespace BCRPServer.Sync.Phone
 
             AllCalls.Add(this);
 
-            CTS = new CancellationTokenSource();
-
-            System.Threading.Tasks.Task.Run(async () =>
+            Timer = new Timer((obj) =>
             {
-                try
+                NAPI.Task.Run(() =>
                 {
-                    await System.Threading.Tasks.Task.Delay(Settings.PHONE_MAX_CALL_OUT_TIME, CTS.Token);
+                    if (!Exists || StatusType != StatusTypes.Outgoing)
+                        return;
 
-                    NAPI.Task.Run(() =>
-                    {
-                        if (!Exists || StatusType != StatusTypes.Outgoing)
-                            return;
-
-                        Cancel(CancelTypes.ServerAuto);
-                    });
-                }
-                catch (Exception)
-                {
-
-                }
-            });
+                    Cancel(CancelTypes.ServerAuto);
+                });
+            }, null, Settings.PHONE_MAX_CALL_OUT_TIME, Timeout.Infinite);
 
             Receiver.Player.TriggerEvent("Phone::ACS", false, Caller.Info.PhoneNumber);
         }
 
         public void SetAsProcess()
         {
-            if (CTS != null)
+            if (Timer != null)
             {
-                CTS.Cancel();
-                CTS.Dispose();
+                Timer.Dispose();
             }
 
             var maxCallTime = (int)((Caller.Info.PhoneBalance / Settings.PHONE_CALL_COST_X) * Settings.PHONE_CALL_X);
 
-            CTS = new CancellationTokenSource();
-
-            System.Threading.Tasks.Task.Run(async () =>
+            Timer = new Timer((obj) =>
             {
-                try
+                NAPI.Task.Run(() =>
                 {
-                    await System.Threading.Tasks.Task.Delay(maxCallTime, CTS.Token);
+                    if (!Exists)
+                        return;
 
-                    NAPI.Task.Run(() =>
-                    {
-                        if (!Exists)
-                            return;
-
-                        Cancel(CancelTypes.NotEnoughBalance);
-                    });
-                }
-                catch (Exception)
-                {
-
-                }
-            });
+                    Cancel(CancelTypes.NotEnoughBalance);
+                });
+            }, null, maxCallTime, Timeout.Infinite);
 
             StatusType = StatusTypes.Process;
 
@@ -124,13 +101,12 @@ namespace BCRPServer.Sync.Phone
 
         public void Cancel(CancelTypes cancelType)
         {
-            if (CTS == null)
+            if (Timer == null)
                 return;
 
-            CTS.Cancel();
-            CTS.Dispose();
+            Timer.Dispose();
 
-            CTS = null;
+            Timer = null;
 
             AllCalls.Remove(this);
 

@@ -15,6 +15,10 @@ namespace BCRPClient.Additional
         private static GameEvents.UpdateHandler Update { get; set; }
         private static AsyncTask Loop { get; set; }
 
+        public static bool LastTeleportWasGround { get; set; }
+
+        private static AsyncTask GroundTeleportTask { get; set; }
+
         #region Variables
         public static Vector3 LastPosition { get; set; }
 
@@ -74,9 +78,18 @@ namespace BCRPClient.Additional
                     return;
                 }
 
+                if (GroundTeleportTask != null)
+                {
+                    GroundTeleportTask.Cancel();
+
+                    GroundTeleportTask = null;
+                }
+
                 LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.Position;
 
                 var onGround = (bool)args[2];
+
+                LastTeleportWasGround = onGround;
 
                 var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
 
@@ -138,6 +151,34 @@ namespace BCRPClient.Additional
                         {
                             Sync.AttachSystem.ReattachObjects(veh);
                         }, 500);
+
+                        if (onGround)
+                        {
+                            var counter = 0;
+                            var coordZ = 0f;
+                            var coordZr = LastAllowedPos.Z;
+
+                            GroundTeleportTask = new AsyncTask(() =>
+                            {
+                                if (counter++ > 50 || veh?.Exists != true)
+                                    return true;
+
+                                if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
+                                {
+                                    veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+
+                                    return true;
+                                }
+                                else
+                                {
+                                    coordZr += 250f;
+                                }
+
+                                return false;
+                            }, 25, true, 1);
+
+                            GroundTeleportTask.Run();
+                        }
                     }
                 }
                 else
@@ -152,7 +193,35 @@ namespace BCRPClient.Additional
 
                     if (onGround)
                     {
-                        RAGE.Game.Player.StartPlayerTeleport(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, heading, false, onGround, true);
+                        var counter = 0;
+                        var coordZ = 0f;
+
+                        var coordZr = LastAllowedPos.Z;
+
+                        GroundTeleportTask = new AsyncTask(() =>
+                        {
+                            if (counter++ > 50)
+                            {
+                                Player.LocalPlayer.Position = LastAllowedPos;
+
+                                return true;
+                            }
+
+                            if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
+                            {
+                                Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+
+                                return true;
+                            }
+                            else
+                            {
+                                Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 250f, false, false, false);
+                            }
+
+                            return false;
+                        }, 25, true, 1);
+
+                        GroundTeleportTask.Run();
                     }
                 }
 
@@ -357,7 +426,7 @@ namespace BCRPClient.Additional
             }
             else
             {
-                if (Vector3.Distance(Player.LocalPlayer.Position, LastAllowedPos) >= 50f)
+                if ((LastTeleportWasGround ? Player.LocalPlayer.Position.DistanceIgnoreZ(LastAllowedPos) : Vector3.Distance(Player.LocalPlayer.Position, LastAllowedPos)) >= 50f)
                     Player.LocalPlayer.Position = LastAllowedPos;
             }
 

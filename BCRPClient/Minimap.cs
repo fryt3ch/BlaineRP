@@ -6,6 +6,7 @@ namespace BCRPClient
     class Minimap : Events.Script
     {
         public static int MinimapZoomState = 0;
+
         private static Timer MinimapZoomTimer = null;
 
         public Minimap()
@@ -30,7 +31,7 @@ namespace BCRPClient
 
                 MinimapZoomState = 1;
 
-                MinimapZoomTimer = new Timer((object unused) =>
+                MinimapZoomTimer = new Timer((obj) =>
                 {
                     RAGE.Game.Ui.SetRadarBigmapEnabled(false, true);
                     RAGE.Game.Ui.SetRadarZoom(1);
@@ -46,6 +47,7 @@ namespace BCRPClient
                 if (MinimapZoomTimer != null)
                 {
                     MinimapZoomTimer.Dispose();
+
                     MinimapZoomTimer = null;
                 }
 
@@ -62,6 +64,7 @@ namespace BCRPClient
                 if (MinimapZoomTimer != null)
                 {
                     MinimapZoomTimer.Dispose();
+
                     MinimapZoomTimer = null;
                 }
 

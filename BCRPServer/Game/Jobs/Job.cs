@@ -181,10 +181,10 @@ namespace BCRPServer.Game.Jobs
 
     public interface IVehicles
     {
-        public List<VehicleData> Vehicles { get; set; }
+        public List<VehicleData.VehicleInfo> Vehicles { get; set; }
 
         public uint VehicleRentPrice { get; set; }
 
-        public void OnVehicleRespawned(VehicleData vData);
+        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo);
     }
 }

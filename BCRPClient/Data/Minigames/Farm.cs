@@ -11,12 +11,21 @@ namespace BCRPClient.Data.Minigames
         {
             Events.Add("MG::OTC::S", (args) =>
             {
-                StartOrangeTreeCollect();
+                var orangesAmount = (int)args[0];
+
+                StartOrangeTreeCollect(orangesAmount);
             });
 
             Events.Add("MG::COWC::S", (args) =>
             {
                 StartCowMilk();
+            });
+
+            Events.Add("MiniGames::OrangesCollected", (args) =>
+            {
+                StopOrangeTreeCollect(false);
+
+                Events.CallRemote("Job::FARM::OTFC");
             });
         }
 
@@ -69,30 +78,56 @@ namespace BCRPClient.Data.Minigames
             }
         }
 
-        public static void StartOrangeTreeCollect()
+        public static async void StartOrangeTreeCollect(int orangesAmount)
         {
             GameEvents.Update -= RenderOrangeTreeCollect;
             GameEvents.Update += RenderOrangeTreeCollect;
 
-            TempTask?.Cancel();
+            await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, true, true);
 
-            TempTask = new AsyncTask(() =>
+            CEF.HUD.ShowHUD(false);
+
+            CEF.Chat.Show(false);
+
+            CEF.Browser.Window.ExecuteJs("MG.OP.draw", orangesAmount);
+
+            CEF.Cursor.Show(true, true);
+
+            RAGE.Game.Graphics.TransitionToBlurred(0f);
+
+            if (Player.LocalPlayer.HasData("MG::TempData::OrangePicking::EscBind"))
             {
-                StopOrangeTreeCollect(false);
+                var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
 
-                Events.CallRemote("Job::FARM::OTFC");
-            }, 5000, false, 0);
+                KeyBinds.Unbind(bind);
+            }
 
-            TempTask.Run();
+            Player.LocalPlayer.SetData("MG::TempData::OrangePicking::EscBind", KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => StopOrangeTreeCollect(true)));
         }
 
         public static void StopOrangeTreeCollect(bool callRemote)
         {
             GameEvents.Update -= RenderOrangeTreeCollect;
 
-            TempTask?.Cancel();
+            RAGE.Game.Graphics.TransitionFromBlurred(0f);
 
-            TempTask = null;
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(true);
+
+            CEF.Chat.Show(true);
+
+            CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, false, false);
+
+            CEF.Cursor.Show(false, false);
+
+            if (Player.LocalPlayer.HasData("MG::TempData::OrangePicking::EscBind"))
+            {
+                var bind = Player.LocalPlayer.GetData<int>("MG::TempData::OrangePicking::EscBind");
+
+                KeyBinds.Unbind(bind);
+
+                Player.LocalPlayer.ResetData("MG::TempData::OrangePicking::EscBind");
+            }
 
             if (callRemote)
             {

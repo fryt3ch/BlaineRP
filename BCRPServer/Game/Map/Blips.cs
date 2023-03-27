@@ -74,7 +74,6 @@ namespace BCRPServer.Game.Map
             #endregion
 
             #region Paleto Bay
-            BlipList.Add(NAPI.Blip.CreateBlip(60, new Vector3(-444f, 6016f, 33f), 1, 29, name: "Полиция", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(419, new Vector3(-148f, 6301.3f, 20f), 1, 4, name: "Администрация федерации", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(436, new Vector3(-371.8f, 6121.9f, 20f), 1, 1, name: "Пожарная станция", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(305, new Vector3(-322.3f, 6164.9f, 20f), 1, 5, name: "Церковь", shortRange: true));

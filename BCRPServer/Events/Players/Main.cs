@@ -131,6 +131,8 @@ namespace BCRPServer.Events.Players
 
                 pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
 
+                Sync.Report.GetByStarterPlayer(pData.Info)?.Close(pData);
+
                 var currentTaxiOrder = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();
 
                 if (currentTaxiOrder.Value != null)
@@ -387,6 +389,13 @@ namespace BCRPServer.Events.Players
                 jobVehicle.Job?.SetPlayerJob(pData, jobVehicle);
             }
 
+            if (pData.Fraction != Game.Fractions.Types.None)
+            {
+                var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                fData?.OnMemberJoined(pData);
+            }
+
             return true;
         }
 
@@ -581,15 +590,23 @@ namespace BCRPServer.Events.Players
 
             if (isBeltOn)
             {
-                player.SetClothes(5, 81, 0);
+                //player.SetClothes(5, 81, 0);
 
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOn);
             }
             else
             {
-                player.SetClothes(5, 0, 0);
-
-                pData.Bag?.Wear(pData);
+/*                if (pData.Items.Where(x => (x as Game.Items.Parachute)?.InUse == true).Any())
+                {
+                    Game.Items.Parachute.Wear(pData);
+                }
+                else
+                {
+                    if (pData.Bag != null)
+                        pData.Bag.Wear(pData);
+                    else
+                        player.SetClothes(5, 0, 0);
+                }*/
 
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOff);
             }
@@ -662,7 +679,7 @@ namespace BCRPServer.Events.Players
                 {
                     Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
 
-                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.Phone, -1, null);
+                    player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.PhoneSync, -1, null);
                 }
             }
             else

@@ -143,7 +143,7 @@ namespace BCRPServer.Game.Jobs
 
         public List<Vector3> MaterialsPositions { get; set; }
 
-        public List<VehicleData> Vehicles { get; set; } = new List<VehicleData>();
+        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
 
@@ -199,7 +199,7 @@ namespace BCRPServer.Game.Jobs
                 SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
             }
 
-            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.Delete(false);
+            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.VehicleData?.Delete(false);
         }
 
         public override bool CanPlayerDoThisJob(PlayerData pData)
@@ -236,9 +236,12 @@ namespace BCRPServer.Game.Jobs
             }
         }
 
-        public void OnVehicleRespawned(VehicleData vData)
+        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
         {
-
+            if (pInfo != null)
+            {
+                SetPlayerNoJob(pInfo);
+            }
         }
 
         public override void OnWorkerExit(PlayerData pData)

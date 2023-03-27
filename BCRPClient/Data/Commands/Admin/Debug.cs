@@ -594,5 +594,44 @@ namespace BCRPClient.Data
 
             CEF.MapEditor.Close();
         }
+
+        [Command("farm_pos_save", true, "Установить сытость игроку")]
+        public static void FarmPosSave()
+        {
+            var farm = Data.Locations.Farm.All[38] as Data.Locations.Farm;
+
+            var t = new Dictionary<int, Dictionary<int, List<List<float>>>>();
+
+            var fT = new Dictionary<int, List<List<float>>>();
+
+            t.Add(farm.Id, fT);
+
+            for (int i = 5; i < farm.CropFields.Count; i++)
+            {
+                var fiT = new List<List<float>>();
+
+                fT.Add(i, fiT);
+
+                for (byte j = 0; j < farm.CropFields[i].CropsData.Count; j++)
+                {
+                    var ficT = new List<float>();
+
+                    fiT.Add(ficT);
+
+                    for (byte k = 0; k < farm.CropFields[i].CropsData[j].Count; k++)
+                    {
+                        var coords = farm.CropFields[i].GetCropPosition3D(j, k);
+
+                        var z = 0f;
+
+                        RAGE.Game.Misc.GetGroundZFor3dCoord(coords.X, coords.Y, coords.Z + 10f, ref z, true);
+
+                        ficT.Add(z);
+                    }
+                }
+            }
+
+            Utils.DebugServerSaveText(RAGE.Util.Json.Serialize(t));
+        }
     }
 }

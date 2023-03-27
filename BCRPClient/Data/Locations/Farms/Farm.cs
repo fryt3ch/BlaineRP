@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 
 namespace BCRPClient.Data
@@ -36,36 +38,38 @@ namespace BCRPClient.Data
                 }
             };
 
-            private static Dictionary<CropField.Types, (float GroundZOffset, float GrownZOffset, float SownZOffset, string Name, uint Model)> CropTypesData = new Dictionary<CropField.Types, (float, float, float, string, uint)>()
+            public static Dictionary<int, Dictionary<int, List<List<float>>>> CropFieldsZCoords { get; private set; } = RAGE.Util.Json.Deserialize<Dictionary<int, Dictionary<int, List<List<float>>>>>("{\"1\":{\"5\":[[42.5336838,42.64844,42.7764168,42.89217,42.86189,42.79722,42.6871262,42.68867],[42.3295364,42.3898125,42.42328,42.4887123,42.4823227,42.4578247,42.4056854,42.3499947],[41.9964943,42.1416855,42.14894,42.093586,42.0516052,41.9847221,41.9349823,41.8873177]],\"6\":[[41.0347252,41.2381859,41.4085274,41.46087,41.3224945,41.4318428,41.4992676,41.5380859,41.62737],[40.8451233,41.15395,41.2773,41.48984,41.6455078,41.77222,41.78264,41.8097076,41.82335,41.96824],[40.5231743,40.9371643,41.2473145,41.62332,41.8919678,41.92287,42.0365143,42.0438347,42.05152,42.1918831],[40.48166,41.01341,41.56176,41.8789,42.04512,42.143158,42.34362,42.4107,42.4367752,42.5841064]],\"7\":[[40.83733,41.5813065,42.2078934,42.7316971,43.1412048,43.31361,43.4344444,43.6241074,43.668602,43.73133],[41.1258469,41.8893,42.4115334,42.84376,43.3128128,43.61136,43.90068,44.1271172,44.22177,44.4324036],[41.2688,41.9774857,42.6814041,43.2070351,43.4911461,43.77423,44.09675,44.3787231,44.518158,44.7212448]],\"8\":[[42.50969,42.7982674,43.1128731,43.47725,43.80024,44.02668,44.2374649,44.3879356,44.4127579,44.52336],[42.7892036,42.9787331,43.30298,43.5958748,43.8641777,44.0514374,44.14557,44.20916,44.20378,44.30516],[42.85647,43.1364975,43.3894768,43.637,43.78091,43.85371,43.880043,43.8782043,43.8117332,43.8009758]]}}");
+
+            private static Dictionary<CropField.Types, (float GrownZOffset, float SownZOffset, string Name, uint Model)> CropTypesData = new Dictionary<CropField.Types, (float, float, string, uint)>()
             {
                 {
                     CropField.Types.Cabbage,
 
-                    (0f, 0f, -0.22326f, "Капуста", RAGE.Util.Joaat.Hash("prop_veg_crop_03_cab"))
+                    (0f, -0.22326f, "Капуста", RAGE.Util.Joaat.Hash("prop_veg_crop_03_cab"))
                 },
 
                 {
                     CropField.Types.Pumpkin,
 
-                    (0f, 0f, -0.39441f, "Тыква", RAGE.Util.Joaat.Hash("prop_veg_crop_03_pump"))
+                    (0f, -0.39441f, "Тыква", RAGE.Util.Joaat.Hash("prop_veg_crop_03_pump"))
                 },
 
                 {
                     CropField.Types.Wheat,
 
-                    (-0.35f, 0f, -0.5f, "Пшеница", RAGE.Util.Joaat.Hash("prop_veg_crop_05"))
+                    (0.5f, 0f, "Пшеница", RAGE.Util.Joaat.Hash("prop_veg_crop_05"))
                 },
 
                 {
                     CropField.Types.OrangeTree,
 
-                    (0f, 0f, 0f, "Апельсиновое дерево", RAGE.Util.Joaat.Hash("prop_veg_crop_orange"))
+                    (0f, 0f, "Апельсиновое дерево", RAGE.Util.Joaat.Hash("prop_veg_crop_orange"))
                 },
 
                 {
                     CropField.Types.Cow,
 
-                    (0f, 0f, 0f, "Корова", RAGE.Util.Joaat.Hash("a_c_cow"))
+                    (0f, 0f, "Корова", RAGE.Util.Joaat.Hash("a_c_cow"))
                 },
             };
 
@@ -95,29 +99,27 @@ namespace BCRPClient.Data
 
                         var farm = Business.All[int.Parse(data[1])] as Farm;
 
-                        if (farm?.MainColshape.IsInside != true)
-                            return;
-
                         var fieldIdx = int.Parse(data[2]);
-                        var col = byte.Parse(data[3]);
-                        var row = byte.Parse(data[4]);
 
-                        var cropData = farm.CropFields[fieldIdx].CropsData[col][row];
-
-                        cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Convert.ToInt64(value));
-
-                        if (farm.CropFields[fieldIdx].Type == Types.Wheat)
+                        if (farm?.MainColshape.IsInside == true)
                         {
-                            var pData = Sync.Players.GetData(Player.LocalPlayer);
+                            var col = byte.Parse(data[3]);
+                            var row = byte.Parse(data[4]);
 
-                            if (pData != null)
+                            var cropData = farm.CropFields[fieldIdx].CropsData[col][row];
+
+                            cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Convert.ToInt64(value));
+                        }
+
+                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                        if (pData != null && farm.CropFields[fieldIdx].Type == Types.Wheat)
+                        {
+                            var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JFRM1);
+
+                            if (quest != null)
                             {
-                                var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JFRM1);
-
-                                if (quest != null)
-                                {
-                                    farm.UpdateTractorTakerData(quest);
-                                }
+                                farm.UpdateTractorTakerData(quest);
                             }
                         }
                     }
@@ -166,7 +168,7 @@ namespace BCRPClient.Data
 
                                 if (MapObject == null)
                                 {
-                                    float x, y;
+                                    float x, y, z;
 
                                     var field = farm.CropFields[fieldIdx];
 
@@ -174,21 +176,17 @@ namespace BCRPClient.Data
 
                                     field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
-                                    var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, field.CoordZ + 1f, false, false, false));
+                                    z = CropFieldsZCoords.GetValueOrDefault(farm.SubId)?.GetValueOrDefault(fieldIdx)?[col][row] ?? field.CoordZ;
+
+                                    var zOffset = cropTData.GrownZOffset;
+
+                                    var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, z + zOffset, false, false, false));
 
                                     MapObject = prop;
 
                                     prop.SetTotallyInvincible(true);
 
                                     prop.FreezePosition(true);
-
-                                    prop.PlaceOnGroundProperly();
-
-                                    var zOffset = cropTData.GroundZOffset + cropTData.GrownZOffset;
-
-                                    var factPos = prop.GetCoords(false);
-
-                                    prop.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
 
                                     MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
                                 }
@@ -198,21 +196,15 @@ namespace BCRPClient.Data
 
                                     var cropTData = CropTypesData[field.Type];
 
-                                    float x, y;
+                                    float x, y, z;
 
                                     field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
-                                    MapObject.SetCoordsNoOffset(x, y, field.CoordZ + 1f, false, false, false);
+                                    z = CropFieldsZCoords.GetValueOrDefault(farm.SubId)?.GetValueOrDefault(fieldIdx)?[col][row] ?? field.CoordZ;
 
-                                    MapObject.PlaceOnGroundProperly();
+                                    var zOffset = cropTData.GrownZOffset;
 
-                                    var zOffset = cropTData.GroundZOffset + cropTData.GrownZOffset;
-
-                                    var factPos = MapObject.GetCoords(false);
-
-                                    MapObject.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
-
-                                    MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
+                                    MapObject.SetCoordsNoOffset(x, y, z + zOffset, false, false, false);
                                 }
                             }
                             else
@@ -251,7 +243,7 @@ namespace BCRPClient.Data
 
                                     if (MapObject == null)
                                     {
-                                        float x, y;
+                                        float x, y, z;
 
                                         var field = farm.CropFields[fieldIdx];
 
@@ -259,21 +251,17 @@ namespace BCRPClient.Data
 
                                         field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
-                                        var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, field.CoordZ + 1f, false, false, false));
+                                        z = CropFieldsZCoords.GetValueOrDefault(farm.SubId)?.GetValueOrDefault(fieldIdx)?[col][row] ?? field.CoordZ;
+
+                                        var zOffset = cropTData.SownZOffset;
+
+                                        var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, z + zOffset, false, false, false));
 
                                         MapObject = prop;
 
                                         prop.SetTotallyInvincible(true);
 
                                         prop.FreezePosition(true);
-
-                                        prop.PlaceOnGroundProperly();
-
-                                        var zOffset = cropTData.GroundZOffset + cropTData.SownZOffset;
-
-                                        var factPos = prop.GetCoords(false);
-
-                                        prop.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
 
                                         MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
                                     }
@@ -283,19 +271,15 @@ namespace BCRPClient.Data
 
                                         var cropTData = CropTypesData[field.Type];
 
-                                        float x, y;
+                                        float x, y, z;
 
                                         field.GetCropPosition2DNotSafe(col, row, out x, out y);
 
-                                        MapObject.SetCoordsNoOffset(x, y, field.CoordZ + 1f, false, false, false);
+                                        z = CropFieldsZCoords.GetValueOrDefault(farm.SubId)?.GetValueOrDefault(fieldIdx)?[col][row] ?? field.CoordZ;
 
-                                        MapObject.PlaceOnGroundProperly();
+                                        var zOffset = cropTData.SownZOffset;
 
-                                        var zOffset = cropTData.GroundZOffset + cropTData.SownZOffset;
-
-                                        var factPos = MapObject.GetCoords(false);
-
-                                        MapObject.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
+                                        MapObject.SetCoordsNoOffset(x, y, z + zOffset, false, false, false);
 
                                         MapObject.SetRotation(0f, 0f, RotationZ, 2, false);
                                     }
@@ -443,6 +427,32 @@ namespace BCRPClient.Data
                     }
                 }
 
+                public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
+                {
+                    var data = dataKey.Split('_');
+
+                    var farm = Business.All[int.Parse(data[1])] as Farm;
+
+                    var fieldIdx = int.Parse(data[2]);
+
+                    if (farm?.MainColshape.IsInside == true)
+                    {
+                       farm.CropFields[fieldIdx].IrrigationEndTimeChanged(farm, fieldIdx, value == null ? (long?)null : Convert.ToInt64(value));
+                    }
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData != null)
+                    {
+                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JFRM2);
+
+                        if (quest != null)
+                        {
+                            farm.UpdatePlaneIrrigatorData(quest);
+                        }
+                    }
+                }
+
                 public void PreInitialize(Farm farm, int fieldIdx)
                 {
                     var fSubId = farm.SubId;
@@ -464,13 +474,15 @@ namespace BCRPClient.Data
                             Sync.World.AddDataHandler($"FARM::CF_{farm.Id}_{fieldIdx}_{i}_{j}", CropData.OnSharedDataChanged);
                         }
                     }
+
+                    Sync.World.AddDataHandler($"FARM::CFI_{farm.Id}_{fieldIdx}", OnSharedDataChanged);
                 }
 
                 public void Initialize(Farm farm, int fieldIdx)
                 {
                     var cropTData = CropTypesData[farm.CropFields[fieldIdx].Type];
 
-                    float x, y;
+                    float x, y, z;
 
                     for (byte i = 0; i < CropsData.Count; i++)
                     {
@@ -482,19 +494,15 @@ namespace BCRPClient.Data
                             {
                                 GetCropPosition2DNotSafe(i, j, out x, out y);
 
-                                var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, CoordZ + 1f, false, false, false));
+                                z = CropFieldsZCoords.GetValueOrDefault(farm.SubId)?.GetValueOrDefault(fieldIdx)?[i][j] ?? CoordZ;
+
+                                var zOffset = growTime == 0 ? cropTData.GrownZOffset : cropTData.SownZOffset;
+
+                                var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, z + zOffset, false, false, false));
 
                                 prop.SetTotallyInvincible(true);
 
                                 prop.FreezePosition(true);
-
-                                prop.PlaceOnGroundProperly();
-
-                                var zOffset = cropTData.GroundZOffset + (growTime == 0 ? cropTData.GrownZOffset : cropTData.SownZOffset);
-
-                                var factPos = prop.GetCoords(false);
-
-                                prop.SetCoordsNoOffset(factPos.X, factPos.Y, factPos.Z + zOffset, false, false, false);
 
                                 prop.SetRotation(0f, 0f, cropData.RotationZ, 2, false);
 
@@ -677,7 +685,7 @@ namespace BCRPClient.Data
 
                                 if (startIdx > 0)
                                 {
-                                    InfoLabel.Text = curText.Substring(0, startIdx + 1) + $"Почва удобрена еще {irrigEndDateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}";
+                                    InfoLabel.Text = curText.Substring(0, startIdx + 1) + $"Почва орошена еще {irrigEndDateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}";
                                 }
                             }
                         }, 1000, true, 0);
@@ -688,7 +696,7 @@ namespace BCRPClient.Data
                     {
                         LabelTask = null;
 
-                        InfoLabel.Text += $"Почва не удобрена";
+                        InfoLabel.Text += $"Почва не орошена";
                     }
                 }
             }
@@ -1211,12 +1219,6 @@ namespace BCRPClient.Data
                 for (int i = 0; i < CropFields.Count; i++)
                 {
                     CropFields[i].PreInitialize(this, i);
-
-                    if (CropFields[i].IrrigationPoints != null)
-                    {
-                        foreach (var x in CropFields[i].IrrigationPoints)
-                            new RAGE.Elements.Checkpoint(40, x, 5f, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
-                    }
                 }
 
                 OrangeTreeData.PreInitialize(this);
@@ -1463,7 +1465,7 @@ namespace BCRPClient.Data
 
             public void UpdateTractorTakerData(Sync.Quest quest)
             {
-                float x, y;
+                float x, y, z;
 
                 var count = 0;
 
@@ -1484,14 +1486,13 @@ namespace BCRPClient.Data
                                 {
                                     var fieldIdx = i; var col = j; var row = k;
 
-                                    var pos = CropFields[i].CropsData[j][k].MapObject?.GetCoords(false);
+                                    CropFields[i].GetCropPosition2DNotSafe(col, row, out x, out y);
 
-                                    if (pos == null)
-                                    {
-                                        CropFields[i].GetCropPosition2DNotSafe(j, k, out x, out y);
+                                    z = CropFieldsZCoords.GetValueOrDefault(SubId)?.GetValueOrDefault(fieldIdx)?[col][row] ?? CropFields[i].CoordZ;
 
-                                        pos = new Vector3(x, y, CropFields[i].CoordZ);
-                                    }
+                                    z += 0.5f;
+
+                                    var pos = new Vector3(x, y, z);
 
                                     var marker = new RAGE.Elements.Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
                                     var blip = new RAGE.Elements.Blip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
@@ -1511,7 +1512,7 @@ namespace BCRPClient.Data
                                                 return;
                                             }
 
-                                            if (jobVehicle.GetSpeedVector(true).Y < 0)
+                                            if (jobVehicle.GetSpeedVector(true).Y < 0) // reverse check
                                                 return;
 
                                             if (Math.Floor(jobVehicle.GetSpeedKm()) > TRACTOR_MAX_SPEED_KM_H)
@@ -1565,6 +1566,118 @@ namespace BCRPClient.Data
                 if (count <= 0)
                 {
                     CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "На данный момент ни одна пшеница не созрела, ждите, пока на миникарте появится значок!");
+                }
+            }
+
+            public void UpdatePlaneIrrigatorData(Sync.Quest quest)
+            {
+                float x, y;
+
+                var count = 0;
+
+                for (int i = 0; i < CropFields.Count; i++)
+                {
+                    if (CropField.GetIrrigationEndTime(this, i) == null)
+                    {
+                        count++;
+
+                        for (int j = 0; j < CropFields[i].IrrigationPoints.Count; j++)
+                        {
+                            if (quest.GetActualData<object>($"E_CHP_{i}_{j}") == null)
+                            {
+                                var fieldIdx = i; var pointIdx = j;
+
+                                var pos = CropFields[i].IrrigationPoints[j];
+
+                                var blip = new RAGE.Elements.Blip(441, pos, "Чекпоинт", 0.5f, 3, 255, 0f, false, 180, 0f, Settings.MAIN_DIMENSION);
+
+                                var checkpoint = new Checkpoint(40, pos, 5f, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION)
+                                {
+                                    OnEnter = async (cancel) =>
+                                    {
+                                        var jobVehicle = Sync.Players.GetData(Player.LocalPlayer)?.CurrentJob?.GetCurrentData<Vehicle>("JVEH");
+
+                                        if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                        {
+                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                            return;
+                                        }
+
+                                        await Utils.RequestPtfx("core");
+
+                                        var res = await quest.CallProgressUpdateProc(fieldIdx, pointIdx);
+
+                                        if (res == byte.MaxValue || res == 254)
+                                        {
+                                            quest.GetActualData<Entity>($"E_CHP_{fieldIdx}_{pointIdx}")?.Destroy();
+                                            quest.ResetActualData($"E_CHP_{fieldIdx}_{pointIdx}");
+
+                                            quest.GetActualData<Entity>($"E_BP_{fieldIdx}_{pointIdx}")?.Destroy();
+                                            quest.ResetActualData($"E_BP_{fieldIdx}_{pointIdx}");
+
+                                            if (res == 254)
+                                            {
+                                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, $"Поле #{fieldIdx + 1} полностью орошено!");
+                                            }
+
+                                            if (jobVehicle.Exists)
+                                            {
+                                                var effects = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
+
+                                                if (effects != null)
+                                                {
+                                                    quest.SetActualData("FARMJOBTEMPFXT::PW", Sync.World.ServerTimestampMilliseconds);
+
+                                                    if (effects.Count == 0)
+                                                    {
+                                                        RAGE.Game.Graphics.UseParticleFxAssetNextCall("core");
+                                                        effects.Add(RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_cannon_jet", jobVehicle.Handle, -4.293f, -0.72f, -0.88f, -10f, 190f, 180f, 0.5f, false, false, false));
+
+                                                        RAGE.Game.Graphics.UseParticleFxAssetNextCall("core");
+                                                        effects.Add(RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_cannon_jet", jobVehicle.Handle, -4.1f, -0.7f, -0.885f, -10f, 190f, 180f, 0.5f, false, false, false));
+
+                                                        RAGE.Game.Graphics.UseParticleFxAssetNextCall("core");
+                                                        effects.Add(RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_cannon_jet", jobVehicle.Handle, 4.293f, -0.72f, -0.88f, -10f, 190f, 180f, 0.5f, false, false, false));
+
+                                                        RAGE.Game.Graphics.UseParticleFxAssetNextCall("core");
+                                                        effects.Add(RAGE.Game.Graphics.StartParticleFxLoopedOnEntity("water_cannon_jet", jobVehicle.Handle, 4.1f, -0.7f, -0.885f, -10f, 190f, 180f, 0.5f, false, false, false));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                };
+
+                                quest.SetActualData($"E_CHP_{i}_{j}", checkpoint);
+                                quest.SetActualData($"E_BP_{i}_{j}", blip);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int j = 0; j < CropFields[i].IrrigationPoints.Count; j++)
+                        {
+                            if (quest.GetActualData<object>($"E_CHP_{i}_{j}") is Entity checkpoint)
+                            {
+                                checkpoint.Destroy();
+
+                                quest.ResetActualData($"E_CHP_{i}_{j}");
+
+                                if (quest.GetActualData<object>($"E_BP_{i}_{j}") is Entity blip)
+                                {
+                                    blip.Destroy();
+
+                                    quest.ResetActualData($"E_BP_{i}_{j}");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (count <= 0)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "На данный момент нет ни одного не орошенного, ждите, пока на миникарте появится значок!");
                 }
             }
         }

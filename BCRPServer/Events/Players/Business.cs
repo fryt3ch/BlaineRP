@@ -60,7 +60,7 @@ namespace BCRPServer.Events.Players
             if (currentSkill == 100)
                 pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (int)Math.Round(accuracy));
 
-            pData.Info.SetCooldown(PlayerData.CooldownTypes.ShootingRange);
+            pData.Info.SetCooldown(Sync.Cooldowns.Types.ShootingRange, Sync.Cooldowns.CD_SHOOTING_RANGE);
         }
 
         [RemoteEvent("SRange::Enter::Shop")]
@@ -87,7 +87,7 @@ namespace BCRPServer.Events.Players
             if (!ws.IsPlayerNearShootingRangeEnterPosition(pData))
                 return;
 
-            if (pData.HasCooldown(PlayerData.CooldownTypes.ShootingRange, 2))
+            if (pData.HasCooldown(Sync.Cooldowns.Types.ShootingRange, 2))
                 return;
 
             if (!ws.TryBuyShootingRange(pData))
@@ -782,13 +782,6 @@ namespace BCRPServer.Events.Players
             if (vData.Data.FuelType != fType)
                 return;
 
-            if (vData.FuelLevel == vData.Data.Tank)
-            {
-                player.Notify(fType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
-
-                return;
-            }
-
             var newFuelLevel = vData.FuelLevel + amount;
 
             if (newFuelLevel > vData.Data.Tank)
@@ -796,6 +789,13 @@ namespace BCRPServer.Events.Players
                 amount = (uint)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
 
                 newFuelLevel = vData.Data.Tank;
+
+                if (amount == 0)
+                {
+                    player.Notify(fType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
+
+                    return;
+                }
             }
 
             uint newMats;

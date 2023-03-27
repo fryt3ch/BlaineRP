@@ -63,6 +63,8 @@ namespace BCRPServer
 
         public bool IsAnchored { get => Vehicle.GetSharedData<bool?>("Anchor") ?? false; set { if (value) Vehicle.SetSharedData("Anchor", value); else Vehicle.ResetSharedData("Anchor"); } }
 
+        public bool IsPlaneChassisOff { get => Vehicle.GetSharedData<bool?>("IPCO") ?? false; set { if (value) Vehicle.SetSharedData("IPCO", value); else Vehicle.ResetSharedData("IPCO"); } }
+
         public bool IsFrozen { get => Vehicle.GetSharedData<string>("IsFrozen") != null; set { if (value) SetFreezePosition(Vehicle.Position, Vehicle.Heading); else Vehicle.ResetSharedData("IsFrozen"); } }
 
         public Utils.Vector4 FrozenPosition

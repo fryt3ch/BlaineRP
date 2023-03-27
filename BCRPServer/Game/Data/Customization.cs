@@ -55,6 +55,10 @@ namespace BCRPServer.Game.Data
         public enum UniformTypes
         {
             Farmer = 0,
+
+            FractionPaletoPolice_0,
+            FractionPaletoPolice_1,
+            FractionPaletoPolice_2,
         }
 
         // if >= 1000 -> prop
@@ -72,7 +76,53 @@ namespace BCRPServer.Game.Data
                     { 3, new Tuple<int, int>[] { new Tuple<int, int>(70, 0), new Tuple<int, int>(0, 0) } },
                     { 7, new Tuple<int, int>[] { new Tuple<int, int>(0, 0), new Tuple<int, int>(0, 0) } },
                 }
-            }
+            },
+
+            {
+                UniformTypes.FractionPaletoPolice_0,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(318, 3), new Tuple<int, int>(0, 0) } },
+                    { 4, new Tuple<int, int>[] { new Tuple<int, int>(141, 6), new Tuple<int, int>(0, 0) } },
+                    { 8, new Tuple<int, int>[] { new Tuple<int, int>(153, 0), new Tuple<int, int>(0, 0) } },
+                    { 6, new Tuple<int, int>[] { new Tuple<int, int>(10, 0), new Tuple<int, int>(0, 0) } },
+                    { 3, new Tuple<int, int>[] { new Tuple<int, int>(11, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(38, 0), new Tuple<int, int>(0, 0) } },
+                }
+            },
+
+            {
+                UniformTypes.FractionPaletoPolice_1,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(50, 0), new Tuple<int, int>(0, 0) } },
+                    { 4, new Tuple<int, int>[] { new Tuple<int, int>(130, 1), new Tuple<int, int>(0, 0) } },
+                    { 8, new Tuple<int, int>[] { new Tuple<int, int>(129, 0), new Tuple<int, int>(0, 0) } },
+                    { 6, new Tuple<int, int>[] { new Tuple<int, int>(60, 0), new Tuple<int, int>(0, 0) } },
+                    { 3, new Tuple<int, int>[] { new Tuple<int, int>(17, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(128, 0), new Tuple<int, int>(0, 0) } },
+                    { 1, new Tuple<int, int>[] { new Tuple<int, int>(130, 0), new Tuple<int, int>(0, 0) } },
+
+                    { 1000 + 0, new Tuple<int, int>[] { new Tuple<int, int>(150, 0), new Tuple<int, int>(-1, 0) } },
+                    { 1000 + 1, new Tuple<int, int>[] { new Tuple<int, int>(-1, 0), new Tuple<int, int>(-1, 0) } },
+                }
+            },
+
+            {
+                UniformTypes.FractionPaletoPolice_2,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(25, 3), new Tuple<int, int>(0, 0) } },
+                    { 4, new Tuple<int, int>[] { new Tuple<int, int>(24, 6), new Tuple<int, int>(0, 0) } },
+                    { 8, new Tuple<int, int>[] { new Tuple<int, int>(6, 0), new Tuple<int, int>(0, 0) } },
+                    { 6, new Tuple<int, int>[] { new Tuple<int, int>(20, 0), new Tuple<int, int>(0, 0) } },
+                    { 3, new Tuple<int, int>[] { new Tuple<int, int>(11, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(24, 2), new Tuple<int, int>(0, 0) } },
+                }
+            },
         };
 
         public static void ApplyUniform(PlayerData pData, UniformTypes uType)
@@ -88,7 +138,20 @@ namespace BCRPServer.Game.Data
             {
                 if (x.Key >= 1000)
                 {
-                    pData.Player.SetAccessories(x.Key - 1000, x.Value[idx].Item1, x.Value[idx].Item2);
+                    if (x.Value[idx].Item1 < 0)
+                    {
+                        pData.Player.ClearAccessory(x.Key - 1000);
+
+                        if (x.Key == 1000)
+                            pData.Hat = null;
+                    }
+                    else
+                    {
+                        pData.Player.SetAccessories(x.Key - 1000, x.Value[idx].Item1, x.Value[idx].Item2);
+
+                        if (x.Key == 1000)
+                            pData.Hat = $"{x.Value[idx].Item1}|{x.Value[idx].Item2}";
+                    }
                 }
                 else
                 {

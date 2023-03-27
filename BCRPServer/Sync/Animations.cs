@@ -76,6 +76,8 @@ namespace BCRPServer.Sync
             BucketCarryOneHand0,
 
             MilkCow0,
+
+            PoliceEscort0,
         }
 
         public enum OtherTypes

@@ -34,6 +34,12 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator, "чтобы воспользоваться лифтом" },
 
                 { Additional.ExtraColshape.InteractionTypes.GarageRootEnter, "для взаимодействия" },
+
+                { Additional.ExtraColshape.InteractionTypes.ContainerInteract, "для взаимодействия" },
+                { Additional.ExtraColshape.InteractionTypes.FractionCreationWorkbenchInteract, "для взаимодействия" },
+                { Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract, "чтобы переодеться" },
+
+                { Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract, "чтобы выбрать категорию и пройти тест" },
             };
         }
     }

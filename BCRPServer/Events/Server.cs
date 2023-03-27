@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events
@@ -103,6 +104,9 @@ namespace BCRPServer.Events
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all jobs [DATA]");
             Utils.ConsoleOutput($" | ~Red~[{Game.Jobs.Job.InitializeAll()}]~/~", false);
 
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all fractions [DATA]");
+            Utils.ConsoleOutput($" | ~Red~[{Game.Fractions.Fraction.InitializeAll()}]~/~", false);
+
             Game.Estates.HouseBase.Style.LoadAll();
             Game.Estates.Garage.Style.LoadAll();
 
@@ -153,7 +157,11 @@ namespace BCRPServer.Events
                 x.PostInitialize();
             }
 
+            Game.Fractions.Fraction.PostInitializeAll();
+
             Game.Businesses.Business.ReplaceClientsideLines();
+
+            Game.Autoschool.InitializeAll();
 
             /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
@@ -169,28 +177,30 @@ namespace BCRPServer.Events
             {
                 while (true)
                 {
-                    await Task.Delay(800);
+                    await Task.Delay(1000);
 
                     var currentTime = Utils.GetCurrentTime();
 
-                    if (currentTime.Minute == 0 && currentTime.Second == 0)
+                    if (currentTime.Second == 0)
                     {
-                        NAPI.Task.Run(() =>
+                        if (currentTime.Minute == 0)
                         {
-                            DoPayDay();
-                        });
+                            NAPI.Task.Run(() =>
+                            {
+                                DoPayDay();
+                            });
 
-                        GC.Collect();
-                    }
-
-                    if (currentTime.Minute == 30 && currentTime.Second == 0)
-                    {
-                        var newWeather = Settings.Weathers[(new Random().Next(0, Settings.Weathers.Count))];
-
-                        NAPI.Task.Run(() =>
+                            GC.Collect();
+                        }
+                        else if (currentTime.Minute == 30)
                         {
-                            Utils.SetWeather(newWeather);
-                        });
+                            var newWeather = Settings.Weathers[(new Random().Next(0, Settings.Weathers.Count))];
+
+                            NAPI.Task.Run(() =>
+                            {
+                                Utils.SetWeather(newWeather);
+                            });
+                        }
                     }
                 }
             });

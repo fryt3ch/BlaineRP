@@ -62,6 +62,12 @@ namespace BCRPServer.Game.Items
 
             pData.PlayAnim(data.Animation);
 
+            if (data.RemovesWounded)
+            {
+                if (pData.IsWounded)
+                    pData.IsWounded = false;
+            }
+
             var hp = player.Health;
 
             var healthDiff = Utils.GetCorrectDiff(hp, data.Health, 0, 100);

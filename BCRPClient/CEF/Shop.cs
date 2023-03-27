@@ -27,7 +27,7 @@ namespace BCRPClient.CEF
 
         private static Additional.Camera.StateTypes[] AllowedCameraStates;
 
-        private static DateTime LastSent;
+        public static DateTime LastSent;
 
         /// <summary>ID текущего предмета</summary>
         private static string CurrentItem;
@@ -2122,7 +2122,7 @@ namespace BCRPClient.CEF
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
-                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => new object[] { y, Data.Items.GetName(y), prices[y], (Data.Items.GetData(y) as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, Data.Items.GetData(y).Weight, false })), null, false);
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => { var itemData = Data.Items.GetData(y); return new object[] { y, itemData.Name, prices[y], (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, false }; })), null, false);
                 }
 
                 OnShowFinish();

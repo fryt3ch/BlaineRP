@@ -10,7 +10,7 @@ namespace BCRPServer.Game.Items.Craft
     {
         public class PendingCraftData
         {
-            public CancellationTokenSource CTS { get; private set; }
+            public Timer Timer { get; private set; }
 
             public DateTime CreationDate { get; private set; }
 
@@ -20,7 +20,7 @@ namespace BCRPServer.Game.Items.Craft
 
             public List<Item> CraftItems { get; private set; }
 
-            public bool IsInProcess => CTS?.IsCancellationRequested == false;
+            public bool IsInProcess => Timer != null;
 
             public PendingCraftData(List<Item> CraftItems, Craft.Receipt Receipt, int Amount = 1)
             {
@@ -37,27 +37,16 @@ namespace BCRPServer.Game.Items.Craft
 
                 CreationDate = Utils.GetCurrentTime().AddMilliseconds(timeout);
 
-                CTS = new CancellationTokenSource();
-
-                System.Threading.Tasks.Task.Run(async () =>
+                Timer = new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await System.Threading.Tasks.Task.Delay(timeout, CTS.Token);
+                        if (!wb.Exists)
+                            return;
 
-                        NAPI.Task.Run(() =>
-                        {
-                            if (!wb.Exists)
-                                return;
-
-                            wb.ProceedCraft(CraftItems, Receipt, Amount, 0);
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-
-                    }
-                }, CTS.Token);
+                        wb.ProceedCraft(CraftItems, Receipt, Amount, 0);
+                    });
+                }, null, timeout, Timeout.Infinite);
             }
 
             public void Cancel()
@@ -65,10 +54,9 @@ namespace BCRPServer.Game.Items.Craft
                 if (!IsInProcess)
                     return;
 
-                CTS.Cancel();
-                CTS.Dispose();
+                Timer.Dispose();
 
-                CTS = null;
+                Timer = null;
             }
         }
 

@@ -1,5 +1,7 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json.Linq;
+using RAGE;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace BCRPClient.CEF
@@ -38,7 +40,7 @@ namespace BCRPClient.CEF
             {
                 CEF.Auth.CloseAll(true);
 
-                CurrentTypes = RAGE.Util.Json.Deserialize<Types[]>((string)args[0]);
+                CurrentTypes = ((JArray)args[0]).ToObject<Types[]>();
 
                 LastType = CurrentTypes.Contains(Types.Last) ? Types.Last : CurrentTypes.First();
 
@@ -56,27 +58,38 @@ namespace BCRPClient.CEF
 
                 if (!LastSent.IsSpam(500, false, false))
                 {
+                    LastSent = Sync.World.ServerTime;
+
                     if ((bool)await Events.CallRemoteProc("Auth::StartPlace", false, (int)type))
                     {
                         LastType = type;
 
                         CEF.Browser.Switch(Browser.IntTypes.StartPlace, false);
                     }
-
-                    LastSent = Sync.World.ServerTime;
+                    else
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не можете выбрать это место для появления!", -1);
+                    }
                 }
             });
 
-            Events.Add("Auth::StartPlace::Start", (object[] args) =>
+            Events.Add("Auth::StartPlace::Start", async (object[] args) =>
             {
                 if (!IsActive)
                     return;
 
                 if (!LastSent.IsSpam(1000, false, false))
                 {
-                    Events.CallRemoteProc("Auth::StartPlace", true, LastType);
-
                     LastSent = Sync.World.ServerTime;
+
+                    if ((bool)await Events.CallRemoteProc("Auth::StartPlace", true, LastType))
+                    {
+
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не можете выбрать это место для появления!", -1);
+                    }
                 }
             });
 

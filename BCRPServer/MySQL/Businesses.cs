@@ -25,7 +25,7 @@ namespace BCRPServer
                 if (data2 != null)
                     data = $"{data}_{data2}";
 
-                cmd.Parameters.AddWithValue("@Data", data);
+                cmd.Parameters.AddWithValue("@Data", data.ToString());
             }
 
             PushQuery(cmd);

@@ -16,12 +16,15 @@ namespace BCRPServer.Game.Businesses
             {
                 { $"crop_{(int)CropField.Types.Cabbage}_0", 2 },
                 { $"crop_{(int)CropField.Types.Cabbage}_1", 2 },
+                { $"crop_{(int)CropField.Types.Cabbage}_2", 100 },
 
                 { $"crop_{(int)CropField.Types.Pumpkin}_0", 2 },
                 { $"crop_{(int)CropField.Types.Pumpkin}_1", 2 },
+                { $"crop_{(int)CropField.Types.Pumpkin}_2", 100 },
 
                 { $"crop_{(int)CropField.Types.Wheat}_0", 2 },
                 { $"crop_{(int)CropField.Types.Wheat}_1", 3 },
+                { $"crop_{(int)CropField.Types.Wheat}_2", 50 },
 
                 { $"crop_{(int)CropField.Types.OrangeTree}_0", 2 },
                 { $"crop_{(int)CropField.Types.OrangeTree}_1", 2 },
@@ -34,13 +37,13 @@ namespace BCRPServer.Game.Businesses
         {
             public class CropData
             {
-                public CancellationTokenSource CTS { get; set; }
+                public Timer Timer { get; set; }
 
-                public long PlantTime { get; set; }
+                public bool WasIrrigated { get; set; }
 
                 public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.ID}_{fieldIdx}_{col}_{row}") is object obj ? Convert.ToInt64(obj) : (long?)null;
 
-                public void UpdateGrowTime(Farm farm, int fieldIdx, byte col, byte row, long? value, bool updateDb, bool updatePlantTime = true)
+                public void UpdateGrowTime(Farm farm, int fieldIdx, byte col, byte row, long? value, bool updateDb)
                 {
                     var key = $"FARM::CF_{farm.ID}_{fieldIdx}_{col}_{row}";
 
@@ -48,60 +51,50 @@ namespace BCRPServer.Game.Businesses
                     {
                         if (valueL == 0)
                         {
-                            if (CTS != null)
+                            if (Timer != null)
                             {
-                                CTS.Cancel();
+                                Timer.Dispose();
 
-                                CTS.Dispose();
+                                Timer = null;
 
-                                CTS = null;
-
-                                PlantTime = 0;
+                                WasIrrigated = false;
                             }
                         }
                         else
                         {
-                            if (CTS != null)
-                            {
-                                CTS.Cancel();
-
-                                CTS.Dispose();
-                            }
-
                             var curTime = Utils.GetCurrentTime();
 
                             var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(curTime).TotalMilliseconds;
 
                             if (ms <= 0)
                             {
-                                CTS = null;
+                                if (Timer != null)
+                                {
+                                    Timer.Dispose();
+
+                                    Timer = null;
+                                }
 
                                 value = 0;
 
-                                PlantTime = 0;
+                                WasIrrigated = false;
                             }
                             else
                             {
-                                if (updatePlantTime)
+                                if (Timer == null)
                                 {
-                                    PlantTime = curTime.GetUnixTimestamp();
-                                }
-
-                                CTS = new CancellationTokenSource();
-
-                                System.Threading.Tasks.Task.Run(async () =>
-                                {
-                                    try
+                                    Timer = new Timer((obj) =>
                                     {
-                                        await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
-
                                         NAPI.Task.Run(() =>
                                         {
                                             UpdateGrowTime(farm, fieldIdx, col, row, 0, true);
                                         });
-                                    }
-                                    catch (Exception ex) { }
-                                });
+                                    }, null, ms, Timeout.Infinite);
+                                }
+                                else
+                                {
+                                    Timer.Change(ms, Timeout.Infinite);
+                                }
                             }
                         }
 
@@ -109,22 +102,20 @@ namespace BCRPServer.Game.Businesses
                     }
                     else
                     {
-                        if (CTS != null)
+                        if (Timer != null)
                         {
-                            CTS.Cancel();
+                            Timer.Dispose();
 
-                            CTS.Dispose();
-
-                            CTS = null;
+                            Timer = null;
                         }
 
-                        PlantTime = 0;
+                        WasIrrigated = false;
 
                         Sync.World.ResetSharedData(key);
                     }
 
                     if (updateDb)
-                        MySQL.FarmEntityUpdateData(key, value, PlantTime <= 0 ? (long?)null : PlantTime);
+                        MySQL.FarmEntityUpdateData(key, value, WasIrrigated ? (byte?)1 : null);
                 }
             }
 
@@ -158,7 +149,7 @@ namespace BCRPServer.Game.Businesses
             public List<List<CropData>> CropsData { get; set; }
 
             [JsonIgnore]
-            public CancellationTokenSource CTS { get; set; }
+            public Timer Timer { get; set; }
 
             public CropField(Types Type, float CoordZ, Utils.Vector2 Offset, (Utils.Vector2, byte)[] Columns)
             {
@@ -191,49 +182,44 @@ namespace BCRPServer.Game.Businesses
                 {
                     if (valueL == 0)
                     {
-                        if (CTS != null)
+                        if (Timer != null)
                         {
-                            CTS.Cancel();
+                            Timer.Dispose();
 
-                            CTS.Dispose();
-
-                            CTS = null;
+                            Timer = null;
                         }
                     }
                     else
                     {
-                        if (CTS != null)
-                        {
-                            CTS.Cancel();
-
-                            CTS.Dispose();
-                        }
-
                         var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
 
                         if (ms <= 0)
                         {
-                            CTS = null;
+                            if (Timer != null)
+                            {
+                                Timer.Dispose();
+
+                                Timer = null;
+                            }
 
                             value = 0;
                         }
                         else
                         {
-                            CTS = new CancellationTokenSource();
-
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (Timer == null)
                             {
-                                try
+                                Timer = new Timer((obj) =>
                                 {
-                                    await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
-
                                     NAPI.Task.Run(() =>
                                     {
                                         UpdateIrrigationEndTime(farm, fieldIdx, null, true);
                                     });
-                                }
-                                catch (Exception ex) { }
-                            });
+                                }, null, ms, Timeout.Infinite);
+                            }
+                            else
+                            {
+                                Timer.Change(ms, Timeout.Infinite);
+                            }
                         }
                     }
 
@@ -241,13 +227,11 @@ namespace BCRPServer.Game.Businesses
                 }
                 else
                 {
-                    if (CTS != null)
+                    if (Timer != null)
                     {
-                        CTS.Cancel();
+                        Timer.Dispose();
 
-                        CTS.Dispose();
-
-                        CTS = null;
+                        Timer = null;
                     }
 
                     Sync.World.ResetSharedData(key);
@@ -257,7 +241,7 @@ namespace BCRPServer.Game.Businesses
                     MySQL.FarmEntityUpdateData(key, value);
             }
 
-            public bool IsIrrigated => CTS != null;
+            public bool IsIrrigated => Timer != null;
 
             public Vector3 GetCropPosition3D(byte col, byte row) => col >= CropsData.Count || row >= CropsData[col].Count ? null : new Vector3(Columns[col].Pos.X + Offset.X * row, Columns[col].Pos.Y + Offset.Y * row, CoordZ);
 
@@ -269,7 +253,10 @@ namespace BCRPServer.Game.Businesses
         public class OrangeTreeData
         {
             [JsonIgnore]
-            public CancellationTokenSource CTS { get; set; }
+            public Timer Timer { get; set; }
+
+            [JsonIgnore]
+            public byte OrangesAmount { get; set; }
 
             [JsonProperty(PropertyName = "P")]
             public Vector3 Position { get; set; }
@@ -291,49 +278,48 @@ namespace BCRPServer.Game.Businesses
                 {
                     if (valueL == 0)
                     {
-                        if (CTS != null)
+                        if (Timer != null)
                         {
-                            CTS.Cancel();
+                            Timer.Dispose();
 
-                            CTS.Dispose();
-
-                            CTS = null;
+                            Timer = null;
                         }
+
+                        OrangesAmount = (byte)Utils.Randoms.Chat.Next(Game.Jobs.Farmer.ORANGES_ON_TREE_MIN_AMOUNT, Game.Jobs.Farmer.ORANGES_ON_TREE_MAX_AMOUNT + 1);
                     }
                     else
                     {
-                        if (CTS != null)
-                        {
-                            CTS.Cancel();
-
-                            CTS.Dispose();
-                        }
-
                         var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
 
                         if (ms <= 0)
                         {
-                            CTS = null;
+                            if (Timer != null)
+                            {
+                                Timer.Dispose();
+
+                                Timer = null;
+                            }
 
                             value = 0;
+
+                            OrangesAmount = (byte)Utils.Randoms.Chat.Next(Game.Jobs.Farmer.ORANGES_ON_TREE_MIN_AMOUNT, Game.Jobs.Farmer.ORANGES_ON_TREE_MAX_AMOUNT + 1);
                         }
                         else
                         {
-                            CTS = new CancellationTokenSource();
-
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (Timer == null)
                             {
-                                try
+                                Timer = new Timer((obj) =>
                                 {
-                                    await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
-
                                     NAPI.Task.Run(() =>
                                     {
                                         UpdateGrowTime(farm, idx, 0, true);
                                     });
-                                }
-                                catch (Exception ex) { }
-                            });
+                                }, null, ms, Timeout.Infinite);
+                            }
+                            else
+                            {
+                                Timer.Change(ms, Timeout.Infinite);
+                            }
                         }
                     }
 
@@ -341,13 +327,11 @@ namespace BCRPServer.Game.Businesses
                 }
                 else
                 {
-                    if (CTS != null)
+                    if (Timer != null)
                     {
-                        CTS.Cancel();
+                        Timer.Dispose();
 
-                        CTS.Dispose();
-
-                        CTS = null;
+                        Timer = null;
                     }
 
                     Sync.World.ResetSharedData(key);
@@ -361,7 +345,7 @@ namespace BCRPServer.Game.Businesses
         public class CowData
         {
             [JsonIgnore]
-            public CancellationTokenSource CTS { get; set; }
+            public Timer Timer { get; set; }
 
             [JsonProperty(PropertyName = "P")]
             public Utils.Vector4 Position { get; set; }
@@ -383,49 +367,44 @@ namespace BCRPServer.Game.Businesses
                 {
                     if (valueL == 0)
                     {
-                        if (CTS != null)
+                        if (Timer != null)
                         {
-                            CTS.Cancel();
+                            Timer.Dispose();
 
-                            CTS.Dispose();
-
-                            CTS = null;
+                            Timer = null;
                         }
                     }
                     else
                     {
-                        if (CTS != null)
-                        {
-                            CTS.Cancel();
-
-                            CTS.Dispose();
-                        }
-
                         var ms = (int)DateTimeOffset.FromUnixTimeSeconds(valueL).Subtract(Utils.GetCurrentTime()).TotalMilliseconds;
 
                         if (ms <= 0)
                         {
-                            CTS = null;
+                            if (Timer != null)
+                            {
+                                Timer.Dispose();
+
+                                Timer = null;
+                            }
 
                             value = 0;
                         }
                         else
                         {
-                            CTS = new CancellationTokenSource();
-
-                            System.Threading.Tasks.Task.Run(async () =>
+                            if (Timer == null)
                             {
-                                try
+                                Timer = new Timer((obj) =>
                                 {
-                                    await System.Threading.Tasks.Task.Delay(ms, CTS.Token);
-
                                     NAPI.Task.Run(() =>
                                     {
                                         UpdateGrowTime(farm, idx, 0, true);
                                     });
-                                }
-                                catch (Exception ex) { }
-                            });
+                                }, null, ms, Timeout.Infinite);
+                            }
+                            else
+                            {
+                                Timer.Change(ms, Timeout.Infinite);
+                            }
                         }
                     }
 
@@ -433,13 +412,11 @@ namespace BCRPServer.Game.Businesses
                 }
                 else
                 {
-                    if (CTS != null)
+                    if (Timer != null)
                     {
-                        CTS.Cancel();
+                        Timer.Dispose();
 
-                        CTS.Dispose();
-
-                        CTS = null;
+                        Timer = null;
                     }
 
                     Sync.World.ResetSharedData(key);

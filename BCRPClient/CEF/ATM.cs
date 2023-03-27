@@ -24,11 +24,17 @@ namespace BCRPClient.CEF
                 if (!IsActive)
                     return;
 
-                string id = (string)args[0];
+                if (args == null || args.Length != 2 || args[1] == null)
+                    return;
 
-                int amount = (int)args[1];
+                var id = (string)args[0];
 
-                if (amount <= 0)
+                if (id == null)
+                    return;
+
+                int amount;
+
+                if (!args[1].ToDecimal().IsNumberValid(1, int.MaxValue, out amount, true))
                     return;
 
                 if (LastSent.IsSpam(1000, false, false))

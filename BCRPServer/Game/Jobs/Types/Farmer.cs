@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPServer.Game.Jobs
 {
@@ -22,6 +23,12 @@ namespace BCRPServer.Game.Jobs
         public static uint EmptyBucketModel => NAPI.Util.GetHashKey("brp_p_farm_bucket_0");
         public static uint MilkBucketModel => NAPI.Util.GetHashKey("brp_p_farm_bucket_1");
 
+        public static Game.Data.Vehicles.Vehicle TractorVehicleData => Game.Data.Vehicles.GetData("tractor2");
+        public static Game.Data.Vehicles.Vehicle PlaneVehicleData => Game.Data.Vehicles.GetData("duster");
+
+        public const byte ORANGES_ON_TREE_MIN_AMOUNT = 3;
+        public const byte ORANGES_ON_TREE_MAX_AMOUNT = 12;
+
         public static decimal GetPlayerSalaryCoef(PlayerData.PlayerInfo pInfo) => 1m;
 
         private static Dictionary<Game.Businesses.Farm.CropField.Types, int> CropGrowTimes = new Dictionary<Businesses.Farm.CropField.Types, int>()
@@ -38,12 +45,12 @@ namespace BCRPServer.Game.Jobs
 
         public static int GetGrowTimeForCrop(Game.Businesses.Farm.CropField.Types type) => CropGrowTimes.GetValueOrDefault(type);
 
-        public int CropFieldIrrigationDuration => 120 * 60;
-        public float CropFieldIrrigationTimeCoef => 0.75f;
+        public static int CropFieldIrrigationDuration => 120 * 60;
+        public static float CropFieldIrrigationTimeCoef => 0.75f;
 
         public Game.Businesses.Farm FarmBusiness { get; set; }
 
-        public List<VehicleData> Vehicles { get; set; } = new List<VehicleData>();
+        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
 
@@ -53,22 +60,27 @@ namespace BCRPServer.Game.Jobs
 
             var numberplate = $"FARM{FarmBusiness.ID}";
 
-            var tractorType = Game.Data.Vehicles.GetData("tractor2");
-
-            var tractorCol1 = new Utils.Colour(255, 0, 0, 255);
-            var tractorCol2 = new Utils.Colour(0, 0, 0, 255);
+            var tractorType = TractorVehicleData;
+            var planeType = PlaneVehicleData;
 
             if (subId == 0)
             {
+                var tractorCol1 = new Utils.Colour(255, 0, 0, 255);
+                var tractorCol2 = new Utils.Colour(0, 0, 0, 255);
+
+                //2133.948f, 4783.06f, 41.31395f, 23.95123f - plane pos
+
                 Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1865.232f, 4872.092f, 44.38249f, 206.4608f), Utils.Dimensions.Main));
                 Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1870.744f, 4874.888f, 44.66641f, 206.8733f), Utils.Dimensions.Main));
                 Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1876.944f, 4878.157f, 45.11294f, 202.0746f), Utils.Dimensions.Main));
                 Vehicles.Add(VehicleData.NewJob(Id, numberplate, tractorType, tractorCol1, tractorCol2, new Utils.Vector4(1859.166f, 4868.78f, 44.17879f, 210.0185f), Utils.Dimensions.Main));
+
+                Vehicles.Add(VehicleData.NewJob(Id, numberplate, planeType, tractorCol1, tractorCol2, new Utils.Vector4(2143.947f, 4813.993f, 41.57311f, 114.3835f), Utils.Dimensions.Main));
             }
 
-            foreach (var x in Vehicles)
+            foreach (var x in Vehicles.Where(x => x.Data == tractorType))
             {
-                AttachHarvTrailOnTractor(x);
+                AttachHarvTrailOnTractor(x.VehicleData);
             }
         }
 
@@ -113,16 +125,6 @@ namespace BCRPServer.Game.Jobs
 
                             if (TryGetPlayerCurrentOrangeTreeInfo(pInfo.PlayerData, out treeIdx))
                             {
-                                var business = FarmBusiness;
-
-                                if (business.OrangeTrees[treeIdx].CTS != null)
-                                {
-                                    business.OrangeTrees[treeIdx].CTS.Cancel();
-                                    business.OrangeTrees[treeIdx].CTS.Dispose();
-
-                                    business.OrangeTrees[treeIdx].CTS = null;
-                                }
-
                                 if (pInfo.PlayerData.GeneralAnim == Sync.Animations.GeneralTypes.TreeCollect0)
                                     pInfo.PlayerData.StopGeneralAnim();
 
@@ -139,16 +141,6 @@ namespace BCRPServer.Game.Jobs
 
                         if (TryGetPlayerCurrentCowInfo(pInfo.PlayerData, out cowIdx))
                         {
-                            var business = FarmBusiness;
-
-                            if (business.Cows[cowIdx].CTS != null)
-                            {
-                                business.Cows[cowIdx].CTS.Cancel();
-                                business.Cows[cowIdx].CTS.Dispose();
-
-                                business.Cows[cowIdx].CTS = null;
-                            }
-
                             if (pInfo.PlayerData.GeneralAnim == Sync.Animations.GeneralTypes.MilkCow0)
                                 pInfo.PlayerData.StopGeneralAnim();
 
@@ -157,12 +149,15 @@ namespace BCRPServer.Game.Jobs
                     }
                 }
 
-                pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM1)?.Cancel(pInfo);
-
-                Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.Delete(false);
+                ResetPlayerFieldsIrrigationData(pInfo.PlayerData);
 
                 Data.Customization.SetNoUniform(pInfo.PlayerData);
             }
+
+            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM1)?.Cancel(pInfo);
+            pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM2)?.Cancel(pInfo);
+
+            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.VehicleData?.Delete(false);
 
             base.SetPlayerNoJob(pInfo);
         }
@@ -187,9 +182,25 @@ namespace BCRPServer.Game.Jobs
 
         }
 
-        public void OnVehicleRespawned(VehicleData vData)
+        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
         {
+            if (vInfo.Data == TractorVehicleData)
+            {
+                if (pInfo != null)
+                {
+                    pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM1)?.Cancel(pInfo);
+                }
+            }
+            else if (vInfo.Data == PlaneVehicleData)
+            {
+                if (pInfo != null)
+                {
+                    pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM2)?.Cancel(pInfo);
 
+                    if (pInfo.PlayerData != null)
+                        ResetPlayerFieldsIrrigationData(pInfo.PlayerData);
+                }
+            }
         }
 
         public static bool HasPlayerCurrentCropInfo(PlayerData pData) => pData.Player.HasData("FJOBD::CCI");
@@ -214,9 +225,48 @@ namespace BCRPServer.Game.Jobs
             return true;
         }
 
+        public PlayerData GetCropCurrentWorker(int fieldIdx, byte col, byte row)
+        {
+            var str = $"{fieldIdx}&{col}&{row}";
+
+            return Workers.Where(x => x.Player.GetData<string>("FJOBD::CCI") == str).FirstOrDefault();
+        }
+
+        public PlayerData GetOrangeTreeCurrentWorker(int treeIdx)
+        {
+            int t;
+
+            return Workers.Where(x => TryGetPlayerCurrentOrangeTreeInfo(x, out t) && t == treeIdx).FirstOrDefault();
+        }
+
+        public PlayerData GetCowCurrentWorker(int cowIdx)
+        {
+            int t;
+
+            return Workers.Where(x => TryGetPlayerCurrentCowInfo(x, out t) && t == cowIdx).FirstOrDefault();
+        }
+
+        public static void SetPlayerCurrentTimer(PlayerData pData, Timer timer) => pData.Player.SetData("FJOBD::Timer", timer);
+
+        public static void ResetPlayerCurrentTimer(PlayerData pData) => pData.Player.ResetData("FJOBD::Timer");
+
+        public static Timer GetPlayerCurrentTimer(PlayerData pData) => pData.Player.GetData<Timer>("FJOBD::Timer");
+
         public static void SetPlayerCurrentCropInfo(PlayerData pData, int fieldIdx, byte col, byte row) => pData.Player.SetData("FJOBD::CCI", $"{fieldIdx}&{col}&{row}");
 
-        public static void ResetPlayerCurrentCropInfo(PlayerData pData) => pData.Player.ResetData("FJOBD::CCI");
+        public static void ResetPlayerCurrentCropInfo(PlayerData pData)
+        {
+            pData.Player.ResetData("FJOBD::CCI");
+
+            var timer = GetPlayerCurrentTimer(pData);
+
+            if (timer != null)
+            {
+                timer.Dispose();
+
+                ResetPlayerCurrentTimer(pData);
+            }
+        }
 
         public static bool HasPlayerCurrentOrangeTreeInfo(PlayerData pData) => pData.Player.HasData("FJOBD::COTI");
 
@@ -236,7 +286,19 @@ namespace BCRPServer.Game.Jobs
 
         public static void SetPlayerCurrentOrangeTreeInfo(PlayerData pData, int idx) => pData.Player.SetData("FJOBD::COTI", idx);
 
-        public static void ResetPlayerCurrentOrangeTreeInfo(PlayerData pData) => pData.Player.ResetData("FJOBD::COTI");
+        public static void ResetPlayerCurrentOrangeTreeInfo(PlayerData pData)
+        {
+            pData.Player.ResetData("FJOBD::COTI");
+
+            var timer = GetPlayerCurrentTimer(pData);
+
+            if (timer != null)
+            {
+                timer.Dispose();
+
+                ResetPlayerCurrentTimer(pData);
+            }
+        }
 
         public static bool HasPlayerCurrentCowInfo(PlayerData pData) => pData.Player.HasData("FJOBD::CCOWI");
 
@@ -256,7 +318,25 @@ namespace BCRPServer.Game.Jobs
 
         public static void SetPlayerCurrentCowInfo(PlayerData pData, int idx) => pData.Player.SetData("FJOBD::CCOWI", idx);
 
-        public static void ResetPlayerCurrentCowInfo(PlayerData pData) => pData.Player.ResetData("FJOBD::CCOWI");
+        public static void ResetPlayerCurrentCowInfo(PlayerData pData)
+        {
+            pData.Player.ResetData("FJOBD::CCOWI");
+
+            var timer = GetPlayerCurrentTimer(pData);
+
+            if (timer != null)
+            {
+                timer.Dispose();
+
+                ResetPlayerCurrentTimer(pData);
+            }
+        }
+
+        public static Dictionary<int, HashSet<int>> GetPlayerFieldsIrrigationData(PlayerData pData) => pData.Player.GetData<Dictionary<int, HashSet<int>>>("FJOBD::FIRD");
+
+        public static void SetPlayerFieldsIrrigationData(PlayerData pData) => pData.Player.SetData("FJOBD::FIRD", new Dictionary<int, HashSet<int>>());
+
+        public static void ResetPlayerFieldsIrrigationData(PlayerData pData) => pData.Player.ResetData("FJOBD::FIRD");
 
         public static bool AttachHarvTrailOnTractor(VehicleData vData)
         {
@@ -266,6 +346,13 @@ namespace BCRPServer.Game.Jobs
         public void SetPlayerAsTractorTaker(PlayerData pData, VehicleData vData)
         {
             Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JFRM1, 0, 0, $"{vData.Vehicle.Id}");
+        }
+
+        public void SetPlayerAsPlaneIrrigator(PlayerData pData, VehicleData vData)
+        {
+            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.JFRM2, 0, 0, $"{vData.Vehicle.Id}");
+
+            SetPlayerFieldsIrrigationData(pData);
         }
     }
 }

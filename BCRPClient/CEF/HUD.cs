@@ -25,6 +25,10 @@ namespace BCRPClient.CEF
                 Inventory,
                 /// <summary>Телефон</summary>
                 Phone,
+                /// <summary>Служебный планшет полиции</summary>
+                Fraction_Police_TabletPC,
+                /// <summary>Меню фракции</summary>
+                Fraction_Menu,
                 /// <summary>Меню работы</summary>
                 Job_Menu,
                 /// <summary>Меню дома</summary>
@@ -54,6 +58,10 @@ namespace BCRPClient.CEF
                 { Types.WeaponSkinsMenu, () => Sync.Players.TryShowWeaponSkinsMenu() },
 
                 { Types.Job_Menu, () => Data.Jobs.Job.ShowJobMenu() },
+
+                { Types.Fraction_Menu, () => Data.Fractions.Fraction.ShowFractionMenu() },
+
+                { Types.Fraction_Police_TabletPC, () => Data.Fractions.Police.ShowPoliceTabletPc() },
             };
 
             public static List<Types> CurrentTypes { get; private set; } = new List<Types>();
@@ -171,7 +179,7 @@ namespace BCRPClient.CEF
         public static GameEvents.UpdateHandler Update;
         private static AsyncTask Loop;
 
-        public static Func<bool> InteractionAction = null;
+        public static Action InteractionAction = null;
         private static int InteractionBind = -1;
 
         public enum StatusTypes
@@ -540,7 +548,7 @@ namespace BCRPClient.CEF
 
                 float currentSpeed = Player.LocalPlayer.Vehicle.GetSpeedKm();
 
-                if (currentSpeed > 30 && Player.LocalPlayer.Vehicle.GetSpeedVector(true).Y > 0)
+                if (data.Data.HasCruiseControl && currentSpeed > 30 && Player.LocalPlayer.Vehicle.GetSpeedVector(true).Y > 0)
                     SwitchCruiseControlIcon(isCruiseControlOn);
                 else
                     SwitchCruiseControlIcon(null);

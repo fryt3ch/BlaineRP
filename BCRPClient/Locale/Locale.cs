@@ -80,11 +80,6 @@ namespace BCRPClient
 
                 public static string PlayerQuitText = "Игрок вышел {0} в {1}\nCID: #{2} | ID: {3}";
 
-                public static Dictionary<Data.Locations.Fraction.Types, string> FractionNames = new Dictionary<Data.Locations.Fraction.Types, string>()
-                {
-                    { Data.Locations.Fraction.Types.None, "Отсутствует" },
-                };
-
                 public static Dictionary<Sync.Players.SkillTypes, string> SkillNames = new Dictionary<Sync.Players.SkillTypes, string>()
                 {
                     { Sync.Players.SkillTypes.Shooting, "Стрельба" },
@@ -99,6 +94,17 @@ namespace BCRPClient
                     { Sync.Players.SkillTypes.Fishing, "рыболовства" },
                     { Sync.Players.SkillTypes.Cooking, "кулинарии" },
                     { Sync.Players.SkillTypes.Strength, "силы" },
+                };
+
+                public static Dictionary<Sync.Players.LicenseTypes, string> LicenseNames = new Dictionary<Sync.Players.LicenseTypes, string>()
+                {
+                    { Sync.Players.LicenseTypes.B, "B (легковой транспорт)" },
+                    { Sync.Players.LicenseTypes.C, "C (грузовой транспорт)" },
+                    { Sync.Players.LicenseTypes.D, "D (маршрутный транспорт)" },
+                    { Sync.Players.LicenseTypes.A, "D (мотоциклы)" },
+                    { Sync.Players.LicenseTypes.M, "M (мопеды)" },
+                    { Sync.Players.LicenseTypes.Sea, "Sea (водный транспорт)" },
+                    { Sync.Players.LicenseTypes.Fly, "Fly (воздушный транспорт)" },
                 };
 
                 public static Dictionary<Sync.Players.AchievementTypes, (string Title, string Desc)> AchievementTexts = new Dictionary<Sync.Players.AchievementTypes, (string, string)>()
@@ -176,6 +182,7 @@ namespace BCRPClient
                 { CEF.HUD.Menu.Types.Menu_House, "Меню дома" },
                 { CEF.HUD.Menu.Types.Menu_Apartments, "Меню квартиры" },
                 { CEF.HUD.Menu.Types.Job_Menu, "Меню работы" },
+                { CEF.HUD.Menu.Types.Fraction_Menu, "Меню фракции" },
 
                 { CEF.HUD.Menu.Types.Inventory, "Инвентарь" },
                 { CEF.HUD.Menu.Types.Phone, "Телефон" },
@@ -184,6 +191,8 @@ namespace BCRPClient
                 { CEF.HUD.Menu.Types.BlipsMenu, "Меню меток" },
 
                 { CEF.HUD.Menu.Types.WeaponSkinsMenu, "Раскраски оружия" },
+
+                { CEF.HUD.Menu.Types.Fraction_Police_TabletPC, "Служебный планшет" },
             };
         }
         #endregion

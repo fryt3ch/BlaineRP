@@ -476,7 +476,7 @@ namespace BCRPClient
 
             if (fractionToo)
             {
-                return pData.Familiars.Contains(tData.CID) || pData.Fraction == tData.Fraction && pData.Fraction != Data.Locations.Fraction.Types.None;
+                return pData.Familiars.Contains(tData.CID) || pData.Fraction == tData.Fraction && pData.Fraction != Data.Fractions.Types.None;
             }
             else
             {
@@ -491,7 +491,7 @@ namespace BCRPClient
             if (pData == null)
                 return includeId ? Locale.General.Players.MaleNameDefault + string.Format(Locale.General.Players.Id, player.RemoteId) : Locale.General.Players.MaleNameDefault;
 
-            string name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.IsMasked) ? player.Name : pData.Sex ? Locale.General.Players.MaleNameDefault : Locale.General.Players.FemaleNameDefault) : player.Name;
+            var name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.IsMasked) ? player.Name : pData.Sex ? Locale.General.Players.MaleNameDefault : Locale.General.Players.FemaleNameDefault) : player.Name;
 
             if (includeId)
                 return name + " " + string.Format(Locale.General.Players.Id, player.RemoteId);
@@ -779,7 +779,7 @@ namespace BCRPClient
 
             { Actions.MeleeCombat, (pData, notify) => Player.LocalPlayer.IsInMeleeCombat() },
 
-            { Actions.Cuffed, (pData, notify) => Player.LocalPlayer.IsCuffed() },
+            { Actions.Cuffed, (pData, notify) => pData?.IsCuffed ?? false },
 
             { Actions.Climbing, (pData, notify) => Player.LocalPlayer.IsClimbing() },
 

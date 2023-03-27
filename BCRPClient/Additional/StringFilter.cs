@@ -1,34 +1,23 @@
 ﻿using RAGE;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BCRPClient.Additional
 {
-    class StringFilter : Events.Script
+    class StringFilter
     {
         /*
            Swear Word Filter By frytech
          */
 
-        private static List<string> ExceptionWords = new List<string>();
-        private static List<string> FilterWords = new List<string>();
-
-        public StringFilter()
+        private static List<string> ExceptionWords = new List<string>()
         {
-            Events.Add("StringFilter::LoadIn", (object[] args) =>
-            {
-                FilterWords = RAGE.Util.Json.Deserialize<List<string>>((string)args[0]);
-                ExceptionWords = RAGE.Util.Json.Deserialize<List<string>>((string)args[1]);
-            });
-        }
 
-        public static void Load() => Events.CallLocal("StringFilter::LoadOut");
+        };
 
-        public static void Unload()
-        {
-            FilterWords.Clear();
-            ExceptionWords.Clear();
-        }
+        private static Regex Pattern = new Regex(@"(?<=^|[^а-я])(([уyu]|[нзnz3][аa]|(хитро|не)?[вvwb][зz3]?[ыьъi]|[сsc][ьъ']|(и|[рpr][аa4])[зсzs]ъ?|([оo0][тбtb6]|[пp][оo0][дd9])[ьъ']?|(.\\B)+?[оаеиeo])?-?([еёe][бb6](?!о[рй])|и[пб][ае][тц]).*?|([нn][иеаaie]|([дпdp]|[вv][еe3][рpr][тt])[оo0]|[рpr][аa][зсzc3]|[з3z]?[аa]|с(ме)?|[оo0]([тt]|дно)?|апч)?-?[хxh][уuy]([яйиеёюuie]|ли(?!ган)).*?|([вvw][зы3z]|(три|два|четыре)жды|(н|[сc][уuy][кk])[аa])?-?[бb6][лl]([яy](?!(х|ш[кн]|мб)[ауеыио]).*?|[еэe][дтdt][ь']?)|([рp][аa][сзc3z]|[знzn][аa]|[соsc]|[вv][ыi]?|[пp]([еe][рpr][еe]|[рrp][оиioеe]|[оo0][дd])|и[зс]ъ?|[аоao][тt])?[пpn][иеёieu][зz3][дd9].*?|([зz3][аa])?[пp][иеieu][дd][аоеaoe]?[рrp](ну.*?|[оаoa][мm]|([аa][сcs])?([иiu]([лl][иiu])?[нщктлtlsn]ь?)?|([оo](ч[еиei])?|[аa][сcs])?[кk]([оo]й)?|[юu][гg])[ауеыauyei]?|[мm][аa][нnh][дd]([ауеыayueiи]([лl]([иi][сзc3щ])?[ауеыauyei])?|[оo][йi]|[аоao][вvwb][оo](ш|sh)[ь']?([e]?[кk][ауеayue])?|юк(ов|[ауи])?)|[мm][уuy][дd6]([яyаиоaiuo0].*?|[еe]?[нhn]([ьюия'uiya]|ей))|мля([тд]ь)?|лять|([нз]а|по)х|м[ао]л[ао]фь([яию]|[её]й))(?=($|[^а-я]))", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.IgnoreCase);
 
         public static string Beatify(string str, bool trim = true, bool removeExtraSpaces = true, bool removeExtraSymbols = false)
         {
@@ -52,113 +41,17 @@ namespace BCRPClient.Additional
             return str;
         }
 
-        public static string Process(string str, bool checkExceptions = true, bool replaceAllWord = true, char replaceChar = '♡')
+        public static string Process(string str, bool checkExceptions, char replaceChar)
         {
-            char?[] removedChars = new char?[str.Length];
-            bool[] upperChars = new bool[str.Length];
-
-            for (int i = 0, k = 0; i < str.Length; i++, k++)
+            return Pattern.Replace(str, (match) =>
             {
-                if (char.IsUpper(str[i]))
-                    upperChars[k] = true;
+                var value = match.Value;
 
-                if (char.IsWhiteSpace(str[i]) || char.IsPunctuation(str[i]) || (i + 1 < str.Length && char.ToLower(str[i]) == char.ToLower(str[i + 1])))
-                {
-                    removedChars[k] = str[i];
+                if (checkExceptions && ExceptionWords.Contains(value))
+                    return value;
 
-                    str = str.Remove(i--, 1);
-                }
-            }
-
-            str = str.ToLower();
-
-            foreach (var word in FilterWords)
-            {
-                int idx = -1;
-
-                while ((idx = str.IndexOf(word, idx + 1)) != -1)
-                {
-                    if (checkExceptions)
-                    {
-                        bool isExcept = false;
-
-                        foreach (var exception in ExceptionWords)
-                        {
-                            if (!exception.Contains(word))
-                                continue;
-
-                            int idxEx = str.IndexOf(exception);
-
-                            if (idxEx == -1)
-                                continue;
-
-                            if (idxEx + exception.IndexOf(word) == idx)
-                            {
-                                isExcept = true;
-
-                                break;
-                            }
-                        }
-
-                        if (isExcept)
-                            continue;
-                    }
-
-                    str = str.Remove(idx, word.Length);
-                    str = str.Insert(idx, new string(replaceChar, word.Length));
-                }
-            }
-
-            StringBuilder strB = new StringBuilder();
-
-            int j = 0;
-
-            for (int i = 0; i < removedChars.Length; i++)
-            {
-                if (removedChars[i] != null)
-                    strB.Append(removedChars[i]);
-                else if (j < str.Length)
-                    strB.Append(str[j++]);
-
-                if (upperChars[i])
-                    strB[i] = char.ToUpper(strB[i]);
-            }
-
-            if (replaceAllWord)
-            {
-                int nextPos = -1;
-
-                for (int i = 0; i < strB.Length; i++)
-                {
-                    if (nextPos == -1 && ((!char.IsWhiteSpace(strB[i]) && !char.IsPunctuation(strB[i])) || strB[i] == replaceChar))
-                    {
-                        bool containsFilter = false;
-
-                        for (int k = i; k < strB.Length; k++)
-                        {
-                            if ((char.IsWhiteSpace(strB[k]) || char.IsPunctuation(strB[k])) && strB[k] != replaceChar)
-                                break;
-
-                            if (strB[k] == replaceChar)
-                                containsFilter = true;
-
-                            nextPos = k;
-                        }
-
-                        if (!containsFilter)
-                            nextPos = -1;
-                    }
-
-                    if (i <= nextPos)
-                    {
-                        strB[i] = replaceChar;
-                    }
-                    else
-                        nextPos = -1;
-                }
-            }
-
-            return strB.ToString();
+                return new string(replaceChar, value.Length);
+            });
         }
     }
 }

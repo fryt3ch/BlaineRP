@@ -22,6 +22,12 @@ namespace BCRPClient
 
             public static string GarageVehicleActionBoxHeader = "Загнать Т/С в гараж";
 
+            public static string DefaultSelectHeader = "Выбор действия";
+
+            public static string GasStationText = "Заправочная станция";
+
+            public static string GasItemRangeHeader = "Выберите количество";
+
             public static string NumberplateSelectHeader = "Выбор номерного знака";
 
             public static string GarageVehicleSlotSelectHeader = "Выбор места в гараже";
@@ -56,6 +62,8 @@ namespace BCRPClient
 
             public static string JobVehicleOrderSelectTitle = "Список доступных заказов";
             public static string JobVehicleRouteSelectTitle = "Список доступных маршрутов";
+
+            public static string FractionUniformSelectTitle = "Выбор рабочей формы";
 
             public static string JobTruckerOrderText = "#{0} | -> {1} км. -> {2} км. | {3}";
             public static string JobCabbieOrderText = "#{0} | {1} | {2} км.";

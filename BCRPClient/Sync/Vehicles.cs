@@ -1,4 +1,5 @@
 ﻿using BCRPClient.CEF;using Newtonsoft.Json.Linq;using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;using System.Linq;
+using System.Reflection;
 
 namespace BCRPClient.Sync
 {
@@ -171,6 +172,8 @@ namespace BCRPClient.Sync
 
             public bool IsAnchored => Vehicle.GetSharedData<bool>("Anchor", false);
 
+            public bool IsPlaneChassisOff => Vehicle.GetSharedData<bool>("IPCO", false);
+
             public Utils.Colour TyreSmokeColour => Vehicle.GetSharedData<JObject>("Mods::TSColour")?.ToObject<Utils.Colour>();
 
             public byte DirtLevel => (byte)Vehicle.GetSharedData<int>("DirtLevel", 0);
@@ -215,11 +218,14 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task OnVehicleStreamIn(Vehicle veh)
         {
+            var pos = veh.GetCoords(false);
+
             #region Required Things For Normal Behaviour
             //veh.SetAutomaticallyAttaches(0, 0);
 
-            RAGE.Game.Streaming.RequestCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
-            RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(veh.Position.X, veh.Position.Y, veh.Position.Z);
+            RAGE.Game.Streaming.RequestCollisionAtCoord(pos.X, pos.Y, pos.Z);
+            RAGE.Game.Streaming.RequestAdditionalCollisionAtCoord(pos.X, pos.Y, pos.Z);
+
             veh.SetLoadCollisionFlag(true, 0);
             veh.TrackVisibility();
 
@@ -274,6 +280,11 @@ namespace BCRPClient.Sync
             InvokeHandler("Radio", data, (int)data.Radio, null);
 
             InvokeHandler("DirtLevel", data, data.DirtLevel, null);
+
+            if (veh.HasLandingGear())
+            {
+                veh.ControlLandingGear(data.IsPlaneChassisOff ? 3 : 2);
+            }
 
             if (data.TrunkLocked)
             {
@@ -525,6 +536,18 @@ namespace BCRPClient.Sync
             #endregion
 
             #region Events
+
+            AddDataHandler("IPCO", (vData, value, oldValue) =>
+            {
+                var veh = vData.Vehicle;
+
+                var state = (bool?)value ?? false;
+
+                if (!veh.HasLandingGear())
+                    return;
+
+                veh.ControlLandingGear(state ? 1 : 0);
+            });
 
             AddDataHandler("IsInvincible", (vData, value, oldValue) =>
             {
@@ -888,6 +911,12 @@ namespace BCRPClient.Sync
                 if (Utils.CanShowCEF(true, true))
                     Sync.Vehicles.TryEnterVehicle(Interaction.CurrentEntity as Vehicle, -1);
             });
+
+            KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                    Sync.Vehicles.ToggleLandingGearState(Player.LocalPlayer.Vehicle);
+            });
         }
 
         #region Handlers
@@ -1054,12 +1083,12 @@ namespace BCRPClient.Sync
 
                 if (vehicle?.Exists == true && vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
-                    Events.CallRemote("Vehicles::ToggleDoorsLockSync", vehicle);
+                    Events.CallRemote("Vehicles::TDL", vehicle);
 
                     return;
                 }
 
-                vehicle = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
             }
 
             if (vehicle?.Exists != true)
@@ -1072,7 +1101,7 @@ namespace BCRPClient.Sync
 
             if (forceStatus != null)
             {
-                bool curStatus = data.DoorsLocked;
+                var curStatus = data.DoorsLocked;
 
                 if (forceStatus == curStatus)
                 {
@@ -1082,16 +1111,21 @@ namespace BCRPClient.Sync
                 }
             }
 
-            Events.CallRemote("Vehicles::ToggleDoorsLockSync", vehicle);
+            Events.CallRemote("Vehicles::TDL", vehicle);
         }
         #endregion
 
         #region Engine
         public static void Engine(bool ignoreIf = false)
         {
-            Vehicle veh = Player.LocalPlayer.Vehicle;
+            var veh = Player.LocalPlayer.Vehicle;
 
             if (veh?.Exists != true)
+                return;
+
+            var vData = Sync.Vehicles.GetData(veh);
+
+            if (vData == null)
                 return;
 
             if (!ignoreIf)
@@ -1105,7 +1139,7 @@ namespace BCRPClient.Sync
 
             LastEngineToggled = Sync.World.ServerTime;
 
-            Events.CallRemote("Vehicles::ToggleEngineSync", true);
+            Events.CallRemote("Vehicles::ET", (byte)(vData.EngineOn ? 0 : 1));
         }
         #endregion
 
@@ -1131,7 +1165,7 @@ namespace BCRPClient.Sync
 
             LastIndicatorToggled = Sync.World.ServerTime;
 
-            Events.CallRemote("Vehicles::ToggleIndicator", type);
+            Events.CallRemote("Vehicles::TIND", type);
         }
         #endregion
 
@@ -1157,7 +1191,7 @@ namespace BCRPClient.Sync
 
             LastLightsToggled = Sync.World.ServerTime;
 
-            Events.CallRemote("Vehicles::ToggleLights");
+            Events.CallRemote("Vehicles::TLI");
         }
         #endregion
 
@@ -1175,12 +1209,12 @@ namespace BCRPClient.Sync
 
                 if (vehicle?.Exists == true && vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
-                    Events.CallRemote("Vehicles::ToggleTrunkLockSync", vehicle);
+                    Events.CallRemote("Vehicles::TTL", vehicle);
 
                     return;
                 }
 
-                vehicle = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
             }
 
             if (vehicle?.Exists != true)
@@ -1203,7 +1237,7 @@ namespace BCRPClient.Sync
                 }
             }
 
-            Events.CallRemote("Vehicles::ToggleTrunkLockSync", vehicle);
+            Events.CallRemote("Vehicles::TTL", vehicle);
         }
         #endregion
 
@@ -1221,12 +1255,12 @@ namespace BCRPClient.Sync
 
                 if (vehicle?.Exists == true && vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
                 {
-                    Events.CallRemote("Vehicles::ToggleHoodLockSync", vehicle);
+                    Events.CallRemote("Vehicles::THL", vehicle);
 
                     return;
                 }
 
-                vehicle = Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
+                vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle ?? Utils.GetClosestVehicle(Player.LocalPlayer.Position, Settings.ENTITY_INTERACTION_MAX_DISTANCE);
             }
 
             if (vehicle?.Exists != true)
@@ -1249,11 +1283,51 @@ namespace BCRPClient.Sync
                 }
             }
 
-            Events.CallRemote("Vehicles::ToggleHoodLockSync", vehicle);
+            Events.CallRemote("Vehicles::THL", vehicle);
         }
         #endregion
 
         #endregion
+
+        public static async void ToggleLandingGearState(Vehicle vehicle)
+        {
+            if (vehicle == null || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                return;
+
+            if (!vehicle.HasLandingGear())
+                return;
+
+            var vType = Data.Vehicles.GetByModel(vehicle.Model);
+
+            if (vType?.Type != Data.Vehicles.Vehicle.Types.Plane || vType.ID == "duster")
+                return;
+
+            if (vehicle.IsLocal)
+            {
+                var curGearState = vehicle.GetLandingGearState();
+
+                vehicle.ControlLandingGear(curGearState == 1 || curGearState == 3 ? 0 : 1);
+            }
+            else
+            {
+                var vData = Sync.Vehicles.GetData(vehicle);
+
+                if (vData == null)
+                    return;
+
+                if (LastCruiseControlToggled.IsSpam(1000))
+                    return;
+
+                LastCruiseControlToggled = Sync.World.ServerTime;
+
+                var curState = vData.IsPlaneChassisOff;
+
+                if ((bool)await Events.CallRemoteProc("Vehicles::SPSOS", !vData.IsPlaneChassisOff))
+                {
+                    CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Vehicles.Header, curState ? "Шасси вкл." : "Шасси выкл.");
+                }
+            }
+        }
 
         #region Vehicle Menu Methods
         #region Shuffle Seat
@@ -1342,9 +1416,6 @@ namespace BCRPClient.Sync
             if (CEF.PhoneApps.CameraApp.IsActive)
                 return;
 
-            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.IsAttachedTo))
-                return;
-
             if (Player.LocalPlayer.GetScriptTaskStatus(2500551826) != 7)
             {
                 Player.LocalPlayer.ClearTasks();
@@ -1360,8 +1431,13 @@ namespace BCRPClient.Sync
                     return;
             }
 
-            if (veh.IsDead(0))
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.PushingVehicle, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.IsAttachedTo))
                 return;
+
+            if (veh.IsDead(0))
+            {
+                return;
+            }
 
             if (seatId < 0)
             {
@@ -1549,7 +1625,7 @@ namespace BCRPClient.Sync
 
                     if (!veh.GetIsEngineRunning())
                     {
-                        Events.CallRemote("Vehicles::ToggleEngineSync", false);
+                        Events.CallRemote("Vehicles::ET", (byte)2);
                     }
 
                     //RAGE.Ui.Console.LogLine(RAGE.Ui.ConsoleVerbosity.Error, "Fuel: " + data.FuelLevel);
@@ -1660,13 +1736,40 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            Events.CallRemote("Vehicles::SetupPlate", veh, 0);
+            var allNumberplates = new List<(int, string)>();
+
+            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            {
+                if (CEF.Inventory.ItemsParams[i] == null)
+                    continue;
+
+                if (Data.Items.GetType(CEF.Inventory.ItemsParams[i].Id, false) == typeof(Data.Items.Numberplate))
+                {
+                    var name = ((string)(((object[])CEF.Inventory.ItemsData[i][0])[1])).Split(' ');
+
+                    allNumberplates.Add((i, name[name.Length - 1]));
+                }
+            }
+
+            if (allNumberplates.Count == 0)
+            {
+                CEF.Notification.Show("Inventory::NoItem");
+            }
+            else if (allNumberplates.Count == 1)
+            {
+                Events.CallRemote("Vehicles::SetupPlate", veh, allNumberplates[0].Item1);
+            }
+            else
+            {
+                CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, allNumberplates.ToArray(), null, null);
+            }
+
+            //Events.CallRemote("Vehicles::SetupPlate", veh, 0);
         }
 
         public static void ToggleAutoPilot(bool? forceStatus = null, bool stopVehicle = false)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
-
             if (pData == null)
                 return;
 
@@ -1717,7 +1820,8 @@ namespace BCRPClient.Sync
 
                 if (!vData.Data.HasAutoPilot)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Vehicles.Additional.Unsupported);
+                    if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Plane)
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.Vehicles.Additional.HeaderAutoPilot, Locale.Notifications.Vehicles.Additional.Unsupported);
 
                     return;
                 }

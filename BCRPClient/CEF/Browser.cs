@@ -47,12 +47,17 @@ namespace BCRPClient.CEF
             Chat,
             Menu,
             Phone,
-            MenuBusiness, MenuGarage, MenuBank, MenuHome,
+            MenuBusiness, MenuGarage, MenuBank, MenuHome, MenuFraction,
+            AutoschoolTest,
             Estate, EstateAgency,
             Elevator,
             ATM,
             BlipsMenu,
             Notifications,
+
+            MinigameOrangePicking, MinigameLockPicking,
+
+            Note,
         }
 
         private static Dictionary<IntTypes, string> IntNames = new Dictionary<IntTypes, string>()
@@ -87,7 +92,9 @@ namespace BCRPClient.CEF
 
             { IntTypes.Menu, "menu" },
 
-            { IntTypes.MenuBusiness, "menu_biz" }, { IntTypes.MenuGarage, "menu_gar" }, { IntTypes.MenuBank, "menu_bank" }, { IntTypes.MenuHome, "menu_home" },
+            { IntTypes.MenuBusiness, "menu_biz" }, { IntTypes.MenuGarage, "menu_gar" }, { IntTypes.MenuBank, "menu_bank" }, { IntTypes.MenuHome, "menu_home" }, { IntTypes.MenuFraction, "menu_frac" },
+
+            { IntTypes.AutoschoolTest, "autoschool" },
 
             { IntTypes.Estate, "estate" }, { IntTypes.EstateAgency, "est_agency" },
 
@@ -95,9 +102,13 @@ namespace BCRPClient.CEF
 
             { IntTypes.ATM, "atm" },
 
+            { IntTypes.Note, "note" },
+
             { IntTypes.BlipsMenu, "blips" },
 
             { IntTypes.Notifications, "notifications" },
+
+            { IntTypes.MinigameOrangePicking, "orange_picking" }, { IntTypes.MinigameLockPicking, "lock_picking" },
         };
 
         private static Dictionary<IntTypes, IntTypes> RenderDependencies = new Dictionary<IntTypes, IntTypes>()

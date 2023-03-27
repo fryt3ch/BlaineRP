@@ -18,14 +18,29 @@ namespace BCRPServer.Events.Players
             if (!Enum.IsDefined(typeof(Sync.Chat.Types), typeNum))
                 return;
 
-            Sync.Chat.Types type = (Sync.Chat.Types)typeNum;
+            var type = (Sync.Chat.Types)typeNum;
 
             if (type > Sync.Chat.Types.Admin)
                 return;
 
-            if (type <= Sync.Chat.Types.Fraction)
+            if (type <= Sync.Chat.Types.Try)
             {
                 Sync.Chat.SendLocal(type, player, message, null);
+            }
+            else if (type == Sync.Chat.Types.Fraction)
+            {
+                if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
+                    return;
+
+                var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                if (fData == null)
+                    return;
+
+                if (!fData.HasMemberPermission(pData.Info, 6, true))
+                    return;
+
+                fData.TriggerEventToMembers("Chat::SFM", pData.CID, pData.Player.Id, message);
             }
             else if (type == Sync.Chat.Types.Goverment || type == Sync.Chat.Types.Admin) // add if of who can call
             {

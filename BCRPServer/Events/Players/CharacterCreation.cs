@@ -150,7 +150,19 @@ namespace BCRPServer.Events.Players
             player.SetClothes(3, 15, 0);
             player.SetClothes(4, sex ? 21 : 15, 0);
             player.SetClothes(6, sex ? 34 : 35, 0);
+            player.SetClothes(1, 0, 0);
+            player.SetClothes(5, 0, 0);
+            player.SetClothes(7, 0, 0);
             player.SetClothes(9, 0, 0);
+            player.SetClothes(10, 0, 0);
+
+            player.ClearAccessory(0);
+            player.ClearAccessory(1);
+            player.ClearAccessory(2);
+            player.ClearAccessory(6);
+            player.ClearAccessory(7);
+
+            player.ResetSharedData("Hat");
         }
 
         #region Validation

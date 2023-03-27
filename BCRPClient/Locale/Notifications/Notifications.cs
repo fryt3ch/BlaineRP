@@ -45,7 +45,7 @@ namespace BCRPClient
 
                 public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";
 
-                public static string LessThanMinValue = "Введенное значение должно быть больше, чем {0}!";
+                public static string LessThanMinValue = "Введенное значение должно быть не меньше, чем {0}!";
                 public static string BiggerThanMaxValue = "Введенное значение должно быть меньше либо равно ({0})!";
 
                 public static string BusinessNewMarginOwner0 = "Теперь наценка на продукцию Вашего бизнеса составляет {0}%";
@@ -54,6 +54,7 @@ namespace BCRPClient
 
                 public static string MinimalCharactersCount = "Минимальная длина текста должна составлять {0} символов!";
                 public static string MaximalCharactersCount = "Максимальная длина текста должна составлять {0} символов!";
+                public static string MaximalNewLineCharacterCount = "Максимальное кол-во абзацев текста не может быть больше, чем {0}!";
 
                 public static string SmsDeleteConfirmText = "Данное действие удалит весь чат с данным абонентом!\nЕсли вы уверены, что хотите это сделать, нажмите еще раз";
 

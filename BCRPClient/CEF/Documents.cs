@@ -89,7 +89,7 @@ namespace BCRPClient.CEF
                     var surname = (string)args[2];
 
                     var diagnose = (Sync.Players.MedicalCard.DiagnoseTypes)(int)args[3];
-                    var issueFraction = (Data.Locations.Fraction.Types)(int)args[4];
+                    var issueFraction = (Data.Fractions.Types)(int)args[4];
                     var docName = (string)args[5];
                     var issueDate = RAGE.Util.Json.Deserialize<DateTime>((string)args[6]);
 
@@ -130,7 +130,9 @@ namespace BCRPClient.CEF
 
             var res = GetResumeData(ns.Name, ns.Surname, null);
 
-            CEF.Browser.Window.ExecuteJs("Docs.show", true, 0, new object[] { pas, lic, med, null, res, null });
+            var fractionData = pData.CurrentFraction is Data.Fractions.Fraction fData ? GetFractionData(ns.Name, ns.Surname, fData, Data.Fractions.Fraction.AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0) : null;
+
+            CEF.Browser.Window.ExecuteJs("Docs.show", true, 0, new object[] { pas, lic, med, fractionData, res, null });
         }
 
         public static async System.Threading.Tasks.Task ShowPasport(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed)
@@ -153,7 +155,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 1, new object[] { null, GetLicensesData(name, surname, licenses) });
         }
 
-        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Locations.Fraction.Types issueFraction, string docName, DateTime dateOfIssue)
+        public static async System.Threading.Tasks.Task ShowMedicalCard(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Types issueFraction, string docName, DateTime dateOfIssue)
         {
             if (IsActive)
                 return;
@@ -208,6 +210,17 @@ namespace BCRPClient.CEF
 
         public static object[] GetVehiclePassportData(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue) => new object[] { vName, $"{oName} {oSurname}", $"#{vid}", oCount, plate ?? Locale.General.Documents.VehiclePassportNoPlate, dateOfIssue.ToString("dd.MM.yyyy") };
 
-        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Locations.Fraction.Types issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, diagnose.ToString(), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
+        public static object[] GetMedicalCardData(string name, string surname, Sync.Players.MedicalCard.DiagnoseTypes diagnose, Data.Fractions.Types issueFraction, string docName, DateTime dateOfIssue) => new object[] { name, surname, diagnose.ToString(), issueFraction.ToString(), docName, dateOfIssue.ToString("dd.MM.yyyy") };
+
+        public static object[] GetFractionData(string name, string surname, Data.Fractions.Fraction fData, byte rank) => new object[]
+        {
+            Data.Fractions.Fraction.IsFractionPolice(fData) ? "cop" : Data.Fractions.Fraction.IsFractionMedical(fData) ? "med" : Data.Fractions.Fraction.IsFractionArmy(fData) ? "army" : "press",
+
+            fData.Name,
+
+            name, surname,
+
+            $"{rank} - {fData.GetRankName(rank)}",
+        };
     }
 }

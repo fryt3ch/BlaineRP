@@ -17,7 +17,7 @@ namespace BCRPServer.Game.Jobs
 
             public PlayerData.PlayerInfo CurrentWorker { get; set; }
 
-            public CancellationTokenSource GPSTrackerCTS { get; set; }
+            public Timer GPSTrackerTimer { get; set; }
 
             public OrderInfo(Entity Entity, Vector3 Position)
             {
@@ -65,10 +65,11 @@ namespace BCRPServer.Game.Jobs
         {
             if (ActiveOrders.Remove(id))
             {
-                if (oInfo.GPSTrackerCTS != null)
+                if (oInfo.GPSTrackerTimer != null)
                 {
-                    oInfo.GPSTrackerCTS.Cancel();
-                    oInfo.GPSTrackerCTS.Dispose();
+                    oInfo.GPSTrackerTimer.Dispose();
+
+                    oInfo.GPSTrackerTimer = null;
                 }
 
                 FreeOrderId(id);
@@ -102,41 +103,23 @@ namespace BCRPServer.Game.Jobs
             {
                 player.TriggerEvent("Taxi::UO", pDataDriver.Player.Id, pDataDriver.Info.PhoneNumber);
 
-                if (oInfo.GPSTrackerCTS != null)
+                if (oInfo.GPSTrackerTimer != null)
                 {
-                    oInfo.GPSTrackerCTS.Cancel();
-                    oInfo.GPSTrackerCTS.Dispose();
+                    oInfo.GPSTrackerTimer.Dispose();
                 }
 
-                oInfo.GPSTrackerCTS = new CancellationTokenSource();
-
-                System.Threading.Tasks.Task.Run(async () =>
+                oInfo.GPSTrackerTimer = new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        var doAction = true;
+                        if (!oInfo.Exists || oInfo.CurrentWorker == null)
+                            return;
 
-                        while (doAction)
-                        {
-                            await System.Threading.Tasks.Task.Delay(5000, oInfo.GPSTrackerCTS.Token);
+                        var pos = pDataDriver.Player.Position;
 
-                            NAPI.Task.Run(() =>
-                            {
-                                if (!oInfo.Exists || oInfo.CurrentWorker == null)
-                                {
-                                    doAction = false;
-
-                                    return;
-                                }
-
-                                var pos = pDataDriver.Player.Position;
-
-                                player.SendGPSTracker(0, pos.X, pos.Y, pDataDriver.Player);
-                            });
-                        }
-                    }
-                    catch (System.Exception ex) { }
-                });
+                        player.SendGPSTracker(0, pos.X, pos.Y, pDataDriver.Player);
+                    });
+                }, null, 5_000, 5_000);
             }
         }
 
@@ -144,10 +127,11 @@ namespace BCRPServer.Game.Jobs
         {
             oInfo.CurrentWorker = null;
 
-            if (oInfo.GPSTrackerCTS != null)
+            if (oInfo.GPSTrackerTimer != null)
             {
-                oInfo.GPSTrackerCTS.Cancel();
-                oInfo.GPSTrackerCTS.Dispose();
+                oInfo.GPSTrackerTimer.Dispose();
+
+                oInfo.GPSTrackerTimer = null;
             }
 
             TriggerEventToWorkersByJobType(Types.Cabbie, "Job::CAB::OC", $"{orderId}_{oInfo.Position.X}_{oInfo.Position.Y}_{oInfo.Position.Z}");
@@ -160,7 +144,7 @@ namespace BCRPServer.Game.Jobs
 
         public override string ClientData => $"{Id}, {Position.ToCSharpStr()}";
 
-        public List<VehicleData> Vehicles { get; set; } = new List<VehicleData>();
+        public List<VehicleData.VehicleInfo> Vehicles { get; set; } = new List<VehicleData.VehicleInfo>();
 
         public uint VehicleRentPrice { get; set; }
 
@@ -199,7 +183,7 @@ namespace BCRPServer.Game.Jobs
                 SetOrderAsNotTaken(orderPair.Key, orderPair.Value);
             }
 
-            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.Delete(false);
+            Vehicles.Where(x => x.OwnerID == pInfo.CID).FirstOrDefault()?.VehicleData?.Delete(false);
         }
 
         public override bool CanPlayerDoThisJob(PlayerData pData)
@@ -253,9 +237,12 @@ namespace BCRPServer.Game.Jobs
 
         }
 
-        public void OnVehicleRespawned(VehicleData vData)
+        public void OnVehicleRespawned(VehicleData.VehicleInfo vInfo, PlayerData.PlayerInfo pInfo)
         {
-
+            if (pInfo != null)
+            {
+                SetPlayerNoJob(pInfo);
+            }
         }
 
         public override void OnWorkerExit(PlayerData pData)

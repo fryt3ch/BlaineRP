@@ -3,6 +3,8 @@ using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Policy;
 using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer.Events.Vehicles
@@ -67,6 +69,31 @@ namespace BCRPServer.Events.Vehicles
                         else
                         {
                             player.Notify("Vehicles::RVAH");
+                        }
+                    }
+                }
+                else if (vData.OwnerType == VehicleData.OwnerTypes.PlayerDrivingSchool)
+                {
+                    PlayerData.LicenseTypes licType;
+
+                    for (int i = 0; i < Game.Autoschool.All.Count; i++)
+                    {
+                        var x = Game.Autoschool.All[i];
+
+                        if (x.Vehicles.TryGetValue(vData.Info, out licType))
+                        {
+                            if (pData.Info.GetTempData(Game.Autoschool.HasPlayerPassedTestKey, PlayerData.LicenseTypes.M) != licType)
+                            {
+                                player.Notify("DriveS::NPTT");
+
+                                player.WarpOutOfVehicle();
+
+                                return;
+                            }
+
+                            x.StartPracticeExam(pData, vData, licType);
+
+                            break;
                         }
                     }
                 }
@@ -174,8 +201,8 @@ namespace BCRPServer.Events.Vehicles
         }
 
         #region Engine
-        [RemoteEvent("Vehicles::ToggleEngineSync")]
-        private static void ToggleEngineRemote(Player player, bool selfToggled)
+        [RemoteEvent("Vehicles::ET")]
+        private static void ToggleEngineRemote(Player player, byte state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -187,7 +214,7 @@ namespace BCRPServer.Events.Vehicles
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
                 return;
 
-            Vehicle veh = player.Vehicle;
+            var veh = player.Vehicle;
 
             var vData = veh.GetMainData();
 
@@ -196,6 +223,20 @@ namespace BCRPServer.Events.Vehicles
 
             if (player.VehicleSeat != 0)
                 return;
+
+            if (state == 2)
+            {
+                if (!vData.EngineOn)
+                    return;
+
+                Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+
+                vData.EngineOn = false;
+
+                player.Notify("Engine::SF");
+
+                return;
+            }
 
             if (!vData.CanManipulate(pData, true))
                 return;
@@ -221,74 +262,50 @@ namespace BCRPServer.Events.Vehicles
                 }
             }
 
-            if (selfToggled)
-            {
-                ToggleEngine(pData, vData, null);
-            }
-            else
-            {
-                Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+            var newState = state == 1;
 
-                ToggleEngine(pData, vData, false);
-            }
-        }
+            if (vData.EngineOn == newState)
+                return;
 
-        public static void ToggleEngine(PlayerData pData, VehicleData vData, bool? forceStatus = null)
-        {
-            var player = pData.Player;
-
-            if (forceStatus != null)
+            if (newState)
             {
-                if (forceStatus == vData.EngineOn)
+                if (vData.IsDead || vData.Vehicle.Health <= -4000f)
+                {
+                    Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineStartFault);
+
+                    player.Notify("Engine::SF");
+
                     return;
+                }
 
-                if (forceStatus == true)
+                if (vData.FuelLevel > 0f)
                 {
-                    if (vData.FuelLevel <= 0f || vData.IsDead)
-                        return;
+                    vData.EngineOn = true;
+
+                    Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOn);
+
+                    player.Notify("Engine::On");
                 }
                 else
-                    vData.EngineOn = false;
+                {
+                    Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineStartFault);
+
+                    player.Notify("Engine::OutOfFuel");
+                }
             }
             else
             {
-                if (!vData.EngineOn)
-                {
-                    if (vData.IsDead || vData.Vehicle.Health <= -4000f)
-                    {
-                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+                vData.EngineOn = false;
 
-                        return;
-                    }
+                Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOff);
 
-                    if (vData.FuelLevel > 0f)
-                    {
-                        vData.EngineOn = true;
-
-                        Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOn);
-
-                        player.Notify("Engine::On");
-                    }
-                    else
-                    {
-                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
-
-                        player.Notify("Engine::OutOfFuel");
-                    }
-                }
-                else
-                {
-                    vData.EngineOn = false;
-
-                    Chat.SendLocal(Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOff);
-                    player.Notify("Engine::Off");
-                }
+                player.Notify("Engine::Off");
             }
         }
         #endregion
 
         #region Doors Lock
-        [RemoteEvent("Vehicles::ToggleDoorsLockSync")]
+        [RemoteEvent("Vehicles::TDL")]
         public static void ToggleDoorsLock(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
@@ -312,7 +329,7 @@ namespace BCRPServer.Events.Vehicles
             if (!vData.CanManipulate(pData, true))
                 return;
 
-            bool newState = !vData.Locked;
+            var newState = !vData.Locked;
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
@@ -337,7 +354,7 @@ namespace BCRPServer.Events.Vehicles
         #endregion
 
         #region Indicators + Lights
-        [RemoteEvent("Vehicles::ToggleIndicator")]
+        [RemoteEvent("Vehicles::TIND")]
         public static void ToggleIndicator(Player player, int type)
         {
             var sRes = player.CheckSpamAttack();
@@ -397,7 +414,7 @@ namespace BCRPServer.Events.Vehicles
             }
         }
 
-        [RemoteEvent("Vehicles::ToggleLights")]
+        [RemoteEvent("Vehicles::TLI")]
         public static void ToggleLights(Player player)
         {
             var sRes = player.CheckSpamAttack();
@@ -460,7 +477,7 @@ namespace BCRPServer.Events.Vehicles
         #endregion
 
         #region Trunk Lock
-        [RemoteEvent("Vehicles::ToggleTrunkLockSync")]
+        [RemoteEvent("Vehicles::TTL")]
         public static void ToggleTrunk(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
@@ -520,7 +537,7 @@ namespace BCRPServer.Events.Vehicles
         #endregion
 
         #region Hood Lock
-        [RemoteEvent("Vehicles::ToggleHoodLockSync")]
+        [RemoteEvent("Vehicles::THL")]
         public static void ToggleHood(Player player, Vehicle veh)
         {
             var sRes = player.CheckSpamAttack();
@@ -601,29 +618,41 @@ namespace BCRPServer.Events.Vehicles
 
             if (fuelDiff > 0f && fuelDiff < 1f)
             {
-                float curFuel = vData.FuelLevel;
+                var curFuel = vData.FuelLevel;
 
-                curFuel -= fuelDiff;
+                var newFuel = curFuel - fuelDiff;
 
-                if (curFuel < 0f)
-                    curFuel = 0f;
+                if (newFuel < 0f)
+                    newFuel = 0f;
 
-                vData.FuelLevel = curFuel;
-
-                if (curFuel == 0f)
+                if (curFuel != newFuel)
                 {
-                    ToggleEngine(pData, vData, false);
+                    vData.FuelLevel = newFuel;
+
+                    if (newFuel == 0f)
+                    {
+                        vData.EngineOn = false;
+
+                        Chat.SendLocal(Chat.Types.Do, player, Locale.Chat.Vehicle.OutOfFuel);
+
+                        player.Notify("Engine::OutOfFuel");
+                    }
                 }
             }
 
             if (mileageDiff > 0 && mileageDiff < 1000f)
             {
-                var newMileage = vData.Mileage + mileageDiff;
+                var curMileage = vData.Mileage;
+
+                var newMileage = curMileage + mileageDiff;
 
                 if (newMileage > float.MaxValue)
-                    vData.Mileage = float.MaxValue;
-                else
+                    newMileage = float.MaxValue;
+
+                if (curMileage != newMileage)
+                {
                     vData.Mileage = newMileage;
+                }
             }
         }
         #endregion
@@ -732,7 +761,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData.Numberplate == null)
                 return;
 
-            if (!vData.IsFullOwner(pData))
+            if (!vData.IsFullOwner(pData, true))
                 return;
 
             if (!pData.TryGiveExistingItem(vData.Numberplate, 1, true, true))
@@ -746,7 +775,7 @@ namespace BCRPServer.Events.Vehicles
         }
 
         [RemoteEvent("Vehicles::SetupPlate")]
-        public static void SetupPlate(Player player, Vehicle veh, uint npUid)
+        public static void SetupPlate(Player player, Vehicle veh, int npIdx)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -769,60 +798,20 @@ namespace BCRPServer.Events.Vehicles
             if (vData.Numberplate != null)
                 return;
 
-            if (!vData.IsFullOwner(pData))
+            if (!vData.IsFullOwner(pData, true))
                 return;
 
-            if (npUid == 0)
-            {
-                var nps = new Dictionary<uint, string>();
-
-                for (int i = 0; i < pData.Items.Length; i++)
-                {
-                    if (pData.Items[i] is Game.Items.Numberplate cnp)
-                        nps.TryAdd(cnp.UID, cnp.Tag);
-                }
-
-                if (nps.Count == 0)
-                {
-                    player.Notify("Inventory::NoItem");
-
-                    return;
-                }
-                else if (nps.Count == 1)
-                {
-                    npUid = nps.Keys.First();
-                }
-                else
-                {
-                    player.TriggerEvent("Vehicles::NPChoose", nps);
-
-                    return;
-                }
-            }
-
-            var idx = -1;
-
-            for (int i = 0; i < pData.Items.Length; i++)
-            {
-                if (pData.Items[i]?.UID == npUid)
-                {
-                    idx = i;
-
-                    break;
-                }
-            }
-
-            if (idx < 0)
+            if (npIdx < 0 || npIdx >= pData.Items.Length)
                 return;
 
-            var np = pData.Items[idx] as Game.Items.Numberplate;
+            var np = pData.Items[npIdx] as Game.Items.Numberplate;
 
             if (np == null)
                 return;
 
-            pData.Items[idx] = null;
+            pData.Items[npIdx] = null;
 
-            player.InventoryUpdate(Groups.Items, idx, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(Groups.Items, npIdx, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -921,22 +910,17 @@ namespace BCRPServer.Events.Vehicles
 
             Game.Items.VehicleRepairKit rKit = null;
 
-            var minAmount = int.MaxValue;
-
             var idx = -1;
 
             for (int i = 0; i < pData.Items.Length; i++)
             {
                 if (pData.Items[i] is Game.Items.VehicleRepairKit vrk)
                 {
-                    if (vrk.Amount < minAmount)
-                    {
-                        rKit = vrk;
+                    rKit = vrk;
 
-                        idx = i;
+                    idx = i;
 
-                        minAmount = vrk.Amount;
-                    }
+                    break;
                 }
             }
 
@@ -967,6 +951,65 @@ namespace BCRPServer.Events.Vehicles
             }
 
             player.InventoryUpdate(Game.Items.Inventory.Groups.Items, idx, Game.Items.Item.ToClientJson(rKit, Game.Items.Inventory.Groups.Items));
+        }
+
+        [RemoteEvent("Vehicles::JerrycanUse")]
+        private static void VehicleJerrycanUse(Player player, Vehicle veh, int itemIdx, int amount)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return;
+
+            if (veh?.Exists != true)
+                return;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return;
+
+            if (player.Vehicle != null || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            var vDataData = vData.Data;
+
+            if (vDataData.FuelType == Game.Data.Vehicles.Vehicle.FuelTypes.None || amount <= 0 || itemIdx < 0 || itemIdx >= pData.Items.Length)
+                return;
+
+            var jerrycanItem = pData.Items[itemIdx] as Game.Items.VehicleJerrycan;
+
+            if (jerrycanItem == null || ((vDataData.FuelType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol) != jerrycanItem.Data.IsPetrol))
+                return;
+
+            if (jerrycanItem.Amount < amount)
+                amount = jerrycanItem.Amount;
+
+            jerrycanItem.Apply(pData, vData, amount);
+
+            jerrycanItem.Amount -= amount;
+
+            if (jerrycanItem.Amount == 0)
+            {
+                jerrycanItem.Delete();
+
+                pData.Items[itemIdx] = null;
+
+                MySQL.CharacterItemsUpdate(pData.Info);
+            }
+            else
+            {
+                jerrycanItem.Update();
+            }
+
+            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, itemIdx, Game.Items.Item.ToClientJson(pData.Items[itemIdx], Game.Items.Inventory.Groups.Items));
+
+            player.Notify(vDataData.FuelType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::JCUSP" : "Vehicle::JCUSE");
         }
 
         [RemoteEvent("VRent::Cancel")]
@@ -1033,6 +1076,32 @@ namespace BCRPServer.Events.Vehicles
 
                 vData.Vehicle.Teleport(waterPos, null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
             }
+        }
+
+        [RemoteProc("Vehicles::SPSOS")]
+        private static bool SetPlaneChassisOffState(Player player, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
+
+            var vData = player.Vehicle?.GetMainData();
+
+            if (vData == null || vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Plane || pData.VehicleSeat != 0)
+                return false;
+
+            if (state == vData.IsPlaneChassisOff)
+                return false;
+
+            vData.IsPlaneChassisOff = state;
+
+            return true;
         }
 
         [RemoteProc("Vehicles::JVRS")]
@@ -1119,7 +1188,10 @@ namespace BCRPServer.Events.Vehicles
 
             if (jobData is Game.Jobs.Farmer farmerJob)
             {
-                farmerJob.SetPlayerAsTractorTaker(pData, vData);
+                if (vData.Data == Game.Jobs.Farmer.TractorVehicleData)
+                    farmerJob.SetPlayerAsTractorTaker(pData, vData);
+                else if (vData.Data == Game.Jobs.Farmer.PlaneVehicleData)
+                    farmerJob.SetPlayerAsPlaneIrrigator(pData, vData);
             }
 
             return byte.MaxValue;
@@ -1239,6 +1311,9 @@ namespace BCRPServer.Events.Vehicles
 
                 var garageSlot = freeSlots.First();
 
+                if (vInfo.VehicleData != null)
+                    VehicleData.Remove(vInfo.VehicleData);
+
                 house.SetVehicleToGarageOnlyData(vInfo, garageSlot);
             }
             else
@@ -1266,25 +1341,15 @@ namespace BCRPServer.Events.Vehicles
 
                 var garageSlot = freeSlots.First();
 
+                if (vInfo.VehicleData != null)
+                    VehicleData.Remove(vInfo.VehicleData);
+
                 garage.SetVehicleToGarageOnlyData(vInfo, garageSlot);
             }
 
             pData.BankAccount.SetDebitBalance(newBalance, null);
 
-            if (vInfo.VehicleData != null)
-            {
-                vInfo.VehicleData.AttachBoatToTrailer();
-
-                vInfo.VehicleData.Respawn(true);
-
-                vInfo.VehicleData.SetFreezePosition(vInfo.LastData.Position, vInfo.LastData.Heading);
-
-                vInfo.VehicleData.IsInvincible = true;
-            }
-            else
-            {
-                vInfo.Spawn();
-            }
+            vInfo.Spawn();
         }
     }
 }

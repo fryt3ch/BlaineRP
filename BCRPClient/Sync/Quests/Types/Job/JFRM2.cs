@@ -1,10 +1,13 @@
 ﻿using RAGE;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.Sync.Quests.Types.Job
 {
     internal class JFRM2 : Events.Script
     {
+        private const int PLANE_IRRIGATION_WATER_FX_TIME = 7_500;
+
         public JFRM2()
         {
             new Quest.QuestData(Quest.QuestData.Types.JFRM2, "Орошение полей", "Фермер", new Dictionary<byte, Quest.QuestData.StepData>()
@@ -35,11 +38,47 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                             job.SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(jobVehicleRId));
 
-                            businessData.UpdateTractorTakerData(quest);
+                            businessData.UpdatePlaneIrrigatorData(quest);
+
+                            quest.SetActualData("FARMJOBTEMPFX::PW", new List<int>());
+
+                            var task = new AsyncTask(() =>
+                            {
+                                var effects = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
+
+                                if (effects == null || effects.Count == 0)
+                                    return;
+
+                                if (Sync.World.ServerTimestampMilliseconds - quest.GetActualData<long>("FARMJOBTEMPFXT::PW") >= PLANE_IRRIGATION_WATER_FX_TIME)
+                                {
+                                    for (int i = 0; i < effects.Count; i++)
+                                    {
+                                        RAGE.Game.Graphics.RemoveParticleFx(effects[i], false);
+                                    }
+
+                                    effects.Clear();
+                                }
+                            }, 1000, true, 0);
+
+                            quest.SetActualData("FxTask", task);
+
+                            task.Run();
                         },
 
                         EndAction = (pData, quest) =>
                         {
+                            quest.GetActualData<AsyncTask>("FxTask")?.Cancel();
+
+                            var tempFxList = quest.GetActualData<List<int>>("FARMJOBTEMPFX::PW");
+
+                            if (tempFxList != null)
+                            {
+                                for (int i = 0; i < tempFxList.Count; i++)
+                                {
+                                    RAGE.Game.Graphics.RemoveParticleFx(tempFxList[i], false);
+                                }
+                            }
+
                             quest.ClearAllActualData();
                         }
                     }

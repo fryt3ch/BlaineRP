@@ -68,7 +68,7 @@ namespace BCRPServer.Sync
                 activeCall.Cancel(activeCall.Caller == pData ? Phone.Call.CancelTypes.Caller : Phone.Call.CancelTypes.Receiver);
             }
 
-            player.DetachObject(AttachSystem.Types.Phone);
+            player.DetachObject(AttachSystem.Types.PhoneSync);
 
             Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOff);
         }

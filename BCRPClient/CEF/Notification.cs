@@ -91,9 +91,12 @@ namespace BCRPClient.CEF
             { "Auth::WrongLogin", new Instance(Types.Error, Locale.Notifications.Auth.WrongLogin, Locale.Notifications.ErrorHeader, -1) },
             { "Auth::WrongToken", new Instance(Types.Error, Locale.Notifications.Auth.WrongToken, Locale.Notifications.ErrorHeader, -1) },
 
+            { "Auth::SPWC", new Instance(Types.Error, "Что-то пошло не так, выберите другое место Вашего появления!", Locale.Notifications.ErrorHeader, -1) },
+
             { "Engine::On", new Instance(Types.Success, Locale.Notifications.Vehicles.Engine.On, Locale.Notifications.Vehicles.Header) },
             { "Engine::Off", new Instance(Types.Success, Locale.Notifications.Vehicles.Engine.Off, Locale.Notifications.Vehicles.Header) },
             { "Engine::OutOfFuel", new Instance(Types.Information, Locale.Notifications.Vehicles.Engine.OutOfFuel, Locale.Notifications.Vehicles.Header) },
+            { "Engine::SF", new Instance(Types.Information, Locale.Notifications.Vehicles.Engine.WasBroken, Locale.Notifications.Vehicles.Header) },
 
             { "Doors::Locked", new Instance(Types.Success, Locale.Notifications.Vehicles.Doors.Locked, Locale.Notifications.Vehicles.Header) },
             { "Doors::Unlocked", new Instance(Types.Success, Locale.Notifications.Vehicles.Doors.Unlocked, Locale.Notifications.Vehicles.Header) },
@@ -122,9 +125,14 @@ namespace BCRPClient.CEF
 
             { "Vehicle::RVAH", new Instance(Types.Error, Locale.Notifications.General.JobRentVehicleAlreadyRented1, Locale.Notifications.ErrorHeader) },
 
+            { "Vehicle::JCUSP", new Instance(Types.Success, "Вы заправили транспорт с помощью канистры!", Locale.Notifications.DefHeader) },
+            { "Vehicle::JCUSE", new Instance(Types.Success, "Вы заправили транспорт с помощью аккумулятора!", Locale.Notifications.DefHeader) },
+
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
             { "Container::Wait", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },
+            { "Container::C", new Instance(Types.Error, "Этот контейнер сейчас закрыт!", Locale.Notifications.ErrorHeader) },
+            { "Container::CF", new Instance(Types.Error, "Этот склад сейчас закрыт!", Locale.Notifications.ErrorHeader) },
 
             { "Weapon::InVehicleRestricted", new Instance(Types.Error, Locale.Notifications.Weapon.InVehicleRestricted, Locale.Notifications.Weapon.Header) },
 
@@ -266,9 +274,59 @@ namespace BCRPClient.CEF
             { $"Lic::N_{(int)Sync.Players.LicenseTypes.Lawyer}", new Instance(Types.Error, "У Вас отсутствует лицензия на работу адвокатом!", Locale.Notifications.ErrorHeader) },
             { $"Lic::N_{(int)Sync.Players.LicenseTypes.Hunting}", new Instance(Types.Error, "У Вас отсутствует лицензия на охоту!", Locale.Notifications.ErrorHeader) },
 
+            { "Report::N", new Instance(Types.Success, "Ваше сообщение принято, ответ будет дан администрацией в ближайшее время!\n\nС каждым новым отправленным сообщением Ваш запрос будет перемещен в конец очереди.\n\nНомер Вашего запроса в очереди: {0}", Locale.Notifications.DefHeader) },
+            { "Report::S", new Instance(Types.Error, "Вы сможете отправить новое сообщение к этому запросу через {0}", Locale.Notifications.ErrorHeader) },
+            { "Report::AT", new Instance(Types.Information, "Администратор {0} начал заниматься Вашим запросом!", Locale.Notifications.DefHeader) },
+
+            { "Fraction::NM", new Instance(Types.Error, "Вы не состоите в этой фракции!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NMA", new Instance(Types.Error, "Вы не состоите ни в одной фракции!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NA", new Instance(Types.Error, "У Вас недостаточно прав!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NAL", new Instance(Types.Error, "Только лидер фракции может делать это!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::RE0", new Instance(Types.Error, "Вы не можете редактировать эту должность!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::RE1", new Instance(Types.Error, "Вы не можете самостоятельно изменить название должности!\nОставьте заявку на форуме с желаемыми названиями должностей и ожидайте ответа", Locale.Notifications.ErrorHeader) },
+
             { "CDown::1", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText1, Locale.Notifications.ErrorHeader) },
             { "CDown::2", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText2, Locale.Notifications.ErrorHeader) },
             { "CDown::3", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText3, Locale.Notifications.ErrorHeader) },
+
+            { "Cuffs::0_0_0", new Instance(Types.Success, "Вы надели наручники на {0}", Locale.Notifications.DefHeader) },
+            { "Cuffs::0_0_1", new Instance(Types.Success, "Вы сняли наручники с {0}", Locale.Notifications.DefHeader) },
+
+            { "Cuffs::0_0", new Instance(Types.Information, "{0} надел на Вас наручники!", Locale.Notifications.DefHeader) },
+            { "Cuffs::0_1", new Instance(Types.Information, "{0} снял с Вас наручники", Locale.Notifications.DefHeader) },
+
+            { "Cuffs::1_0_0", new Instance(Types.Information, "Вы надели стяжки на {0}", Locale.Notifications.DefHeader) },
+            { "Cuffs::1_0_1", new Instance(Types.Information, "Вы сняли стяжки с {0}", Locale.Notifications.DefHeader) },
+
+            { "Cuffs::1_0", new Instance(Types.Information, "{0} надел на Вас стяжки!", Locale.Notifications.DefHeader) },
+            { "Cuffs::1_1", new Instance(Types.Information, "{0} снял с Вас стяжки", Locale.Notifications.DefHeader) },
+
+            { "Escort::0_0_0", new Instance(Types.Information, "Вы начали вести за собой {0}", Locale.Notifications.DefHeader) },
+            { "Escort::0_0_1", new Instance(Types.Information, "Вы перестали вести за собой {0}", Locale.Notifications.DefHeader) },
+
+            { "Escort::0_0", new Instance(Types.Information, "{0} начал вести Вас за собой!", Locale.Notifications.DefHeader) },
+            { "Escort::0_1", new Instance(Types.Information, "{0} перестал вести Вас за собой", Locale.Notifications.DefHeader) },
+
+            { "Fraction::RU", new Instance(Types.Information, "{0} повысил Вас до должности {1}!", Locale.Notifications.DefHeader) },
+            { "Fraction::RD", new Instance(Types.Information, "{0} понизил Вас до должности {1}!", Locale.Notifications.DefHeader) },
+            { "Fraction::F", new Instance(Types.Information, "{0} уволил Вас из фракции!", Locale.Notifications.DefHeader) },
+            { "Fraction::FN", new Instance(Types.Information, "Вы были уволены из фракции!", Locale.Notifications.DefHeader) },
+
+            { "Fraction::CWL", new Instance(Types.Error, "Создание предметов из материалов на данный момент недоступно!\nОбратитесь к руководству фракции", Locale.Notifications.ErrorHeader) },
+
+            { "Fraction::NEWSMC", new Instance(Types.Error, "Достигнуто максимальное кол-во активных новостей, удалите любую старую новость!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NEWSDE", new Instance(Types.Error, "Новость не существует!", Locale.Notifications.ErrorHeader) },
+
+            { "Fraction::JJ", new Instance(Types.Information, "Теперь Вы состоите во фракции {0}!", Locale.Notifications.DefHeader) },
+
+            { "DriveS::NPTT", new Instance(Types.Error, "Вы не проходили теоритический тест для этого типа транспорта, чтобы сдавать практический!", Locale.Notifications.ErrorHeader) },
+            { "DriveS::AHPT", new Instance(Types.Error, "Вы уже сдали теоретическую часть одного теста, завершите его практическую часть, чтобы начать сдавать другой!", Locale.Notifications.ErrorHeader) },
+            { "DriveS::AHTL", new Instance(Types.Error, "Вы уже владеете лицензией этого типа!", Locale.Notifications.ErrorHeader) },
+
+            { "DriveS::TTF0", new Instance(Types.Error, "Вы провалили теоретическую часть теста!", Locale.Notifications.DefHeader) },
+            { "DriveS::TTF1", new Instance(Types.Error, "Вы провалили теоретическую часть теста!\nНабрано баллов: {0} из {1} минимальных", Locale.Notifications.DefHeader) },
+
+            { "DriveS::TTS", new Instance(Types.Success, "Вы сдали теоретическую часть теста!\nНабрано баллов: {0} из {1} минимальных", Locale.Notifications.DefHeader) },
         };
 
         public Notification()
@@ -292,15 +350,26 @@ namespace BCRPClient.CEF
             {
                 CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.Inventory.FishingHeader, (int)args[1] > 1 ? string.Format(Locale.Notifications.Inventory.FishCatched, Data.Items.GetName((string)args[0]), (int)args[1]) : string.Format(Locale.Notifications.Inventory.FishCatchedOne, Data.Items.GetName((string)args[0])));
             });
+
+            Events.Add("Notify::P", (object[] args) =>
+            {
+                var player = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[1]);
+
+                if (player == null)
+                    return;
+
+                var args1 = ((Newtonsoft.Json.Linq.JArray)args[2]).ToObject<List<object>>();
+
+                args1.Insert(0, Utils.GetPlayerName(player, true, false, true));
+
+                Show((string)args[0], args1.ToArray());
+            });
         }
 
         #region Showers
         public static void Show(string type, params object[] args)
         {
-            if (!Prepared.ContainsKey(type))
-                return;
-
-            var inst = Prepared[type];
+            var inst = Prepared.GetValueOrDefault(type);
 
             if (args.Length > 0)
                 Show(inst.Type, inst.Title, string.Format(inst.Message, args), inst.Timeout);

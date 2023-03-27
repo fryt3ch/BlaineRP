@@ -512,6 +512,25 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
+        public class VehicleJerrycan : Item, IConsumable
+        {
+            new public class ItemData : Item.ItemData, Item.ItemData.IConsumable
+            {
+                public int MaxAmount { get; set; }
+
+                public bool IsPetrol { get; set; }
+
+                public ItemData(string Name, float Weight, int MaxAmount, bool IsPetrol) : base(Name, Weight)
+                {
+                    this.MaxAmount = MaxAmount;
+
+                    this.IsPetrol = IsPetrol;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public class WeaponComponent : Item
         {
             new public class ItemData : Item.ItemData
@@ -562,6 +581,19 @@ namespace BCRPClient.Data
         }
 
         public class Shovel : Item, IUsable
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public ItemData(string Name, float Weight) : base(Name, Weight)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Parachute : Item, IUsable
         {
             new public class ItemData : Item.ItemData
             {

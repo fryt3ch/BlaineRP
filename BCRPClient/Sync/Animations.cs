@@ -120,6 +120,8 @@ namespace BCRPClient.Sync
             BucketCarryOneHand0,
 
             MilkCow0,
+
+            PoliceEscort0,
         }
 
         public enum OtherTypes
@@ -413,7 +415,7 @@ namespace BCRPClient.Sync
 
             { GeneralTypes.MetalDetectorProcess0, new Animation("mini@golfai", "wood_idle_a", 2f, 2f, -1, 49, 0f, false, false, false) },
 
-            { GeneralTypes.CuffedStatic, new Animation("mp_arresting", "idle", 1f, 0f, -1, 1, 1, false, false, false) },
+            { GeneralTypes.CuffedStatic, new Animation("mp_arresting", "idle", 8f, -8f, -1, 49, 1, false, false, false) },
 
             { GeneralTypes.FarmPlantSmallShovelProcess0, new Animation("amb@world_human_gardener_plant@male@base", "base", 2f, 2f, -1, 1, 0f, false, false, false) },
 
@@ -426,6 +428,8 @@ namespace BCRPClient.Sync
             { GeneralTypes.BucketCarryOneHand0, new Animation("move_bucket", "idle", 2f, 2f, -1, 49, 0f, false, false, false) },
 
             { GeneralTypes.MilkCow0, new Animation("amb@prop_human_parking_meter@female@base", "base_female", 2f, 2f, -1, 17, 0f, false, false, false) },
+
+            { GeneralTypes.PoliceEscort0, new Animation("amb@world_human_drinking@coffee@female@base", "base", 8f, -8f, -1, 49, 0f, false, false, false) },
         };
 
         public static Dictionary<OtherTypes, Animation> OtherAnimsList { get; private set; } = new Dictionary<OtherTypes, Animation>()

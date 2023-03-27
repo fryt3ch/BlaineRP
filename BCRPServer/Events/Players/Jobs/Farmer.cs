@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
+using System.Threading;
 
 namespace BCRPServer.Events.Players.Jobs
 {
@@ -85,7 +86,10 @@ namespace BCRPServer.Events.Players.Jobs
             if (cropData == null)
                 return 0;
 
-            if (cropData.CTS != null)
+            if (cropData.Timer != null)
+                return 0;
+
+            if (job.GetCropCurrentWorker(fieldIdx, col, row) != null)
                 return 1;
 
             var cropField = farmBusiness.CropFields[fieldIdx];
@@ -105,63 +109,58 @@ namespace BCRPServer.Events.Players.Jobs
                 if (cropField.Type == Game.Businesses.Farm.CropField.Types.Wheat)
                     return 0;
 
-                cropData.CTS = new System.Threading.CancellationTokenSource();
-
-                System.Threading.Tasks.Task.Run(async () =>
+                Game.Jobs.Farmer.SetPlayerCurrentTimer(pData, new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await System.Threading.Tasks.Task.Delay(10000, cropData.CTS.Token);
-
-                        NAPI.Task.Run(() =>
+                        if (pData.Player?.Exists == true)
                         {
-                            if (pData.Player?.Exists == true)
+                            if (pData.Player.DetachObject(Sync.AttachSystem.Types.FarmPlantSmallShovel))
                             {
-                                if (pData.Player.DetachObject(Sync.AttachSystem.Types.FarmPlantSmallShovel))
-                                {
-                                    cropData.UpdateGrowTime(farmBusiness, fieldIdx, col, row, null, true);
+                                cropData.UpdateGrowTime(farmBusiness, fieldIdx, col, row, null, true);
 
-                                    uint newMats, playerTotalSalary;
-                                    ulong newBizBalance;
+                                uint newMats, playerTotalSalary;
+                                ulong newBizBalance;
 
-                                    if (farmBusiness.TryProceedPayment(pData, $"crop_{(int)cropField.Type}_1", Game.Jobs.Farmer.GetPlayerSalaryCoef(pData.Info), out newMats, out newBizBalance, out playerTotalSalary))
-                                        farmBusiness.ProceedPayment(pData, newMats, newBizBalance, playerTotalSalary);
-                                }
+                                if (farmBusiness.TryProceedPayment(pData, $"crop_{(int)cropField.Type}_1", Game.Jobs.Farmer.GetPlayerSalaryCoef(pData.Info), out newMats, out newBizBalance, out playerTotalSalary))
+                                    farmBusiness.ProceedPayment(pData, newMats, newBizBalance, playerTotalSalary);
                             }
-                        });
-                    }
-                    catch (Exception ex) { }
-                });
+                        }
+                    });
+                }, null, 10_000, Timeout.Infinite));
             }
             else
             {
-                cropData.CTS = new System.Threading.CancellationTokenSource();
-
-                System.Threading.Tasks.Task.Run(async () =>
+                Game.Jobs.Farmer.SetPlayerCurrentTimer(pData, new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await System.Threading.Tasks.Task.Delay(10000, cropData.CTS.Token);
-
-                        NAPI.Task.Run(() =>
+                        if (pData.Player?.Exists == true)
                         {
-                            if (pData.Player?.Exists == true)
+                            if (pData.Player.DetachObject(Sync.AttachSystem.Types.FarmPlantSmallShovel))
                             {
-                                if (pData.Player.DetachObject(Sync.AttachSystem.Types.FarmPlantSmallShovel))
+                                if (cropField.IsIrrigated)
                                 {
-                                    cropData.UpdateGrowTime(farmBusiness, fieldIdx, col, row, Utils.GetCurrentTime().GetUnixTimestamp() + Game.Jobs.Farmer.GetGrowTimeForCrop(cropField.Type), true);
+                                    cropData.WasIrrigated = true;
 
-                                    uint newMats, playerTotalSalary;
-                                    ulong newBizBalance;
-
-                                    if (farmBusiness.TryProceedPayment(pData, $"crop_{(int)cropField.Type}_0", Game.Jobs.Farmer.GetPlayerSalaryCoef(pData.Info), out newMats, out newBizBalance, out playerTotalSalary))
-                                        farmBusiness.ProceedPayment(pData, newMats, newBizBalance, playerTotalSalary);
+                                    cropData.UpdateGrowTime(farmBusiness, fieldIdx, col, row, Utils.GetCurrentTime().GetUnixTimestamp() + (long)Math.Floor(Game.Jobs.Farmer.CropFieldIrrigationTimeCoef * Game.Jobs.Farmer.GetGrowTimeForCrop(cropField.Type)), true);
                                 }
+                                else
+                                {
+                                    cropData.WasIrrigated = false;
+
+                                    cropData.UpdateGrowTime(farmBusiness, fieldIdx, col, row, Utils.GetCurrentTime().GetUnixTimestamp() + Game.Jobs.Farmer.GetGrowTimeForCrop(cropField.Type), true);
+                                }
+
+                                uint newMats, playerTotalSalary;
+                                ulong newBizBalance;
+
+                                if (farmBusiness.TryProceedPayment(pData, $"crop_{(int)cropField.Type}_0", Game.Jobs.Farmer.GetPlayerSalaryCoef(pData.Info), out newMats, out newBizBalance, out playerTotalSalary))
+                                    farmBusiness.ProceedPayment(pData, newMats, newBizBalance, playerTotalSalary);
                             }
-                        });
-                    }
-                    catch (Exception ex) { }
-                });
+                        }
+                    });
+                }, null, 10_000, Timeout.Infinite));
             }
 
             Game.Jobs.Farmer.SetPlayerCurrentCropInfo(pData, fieldIdx, col, row);
@@ -209,7 +208,10 @@ namespace BCRPServer.Events.Players.Jobs
             if (cropData == null)
                 return 0;
 
-            if (cropData.CTS != null)
+            if (cropData.Timer != null)
+                return 0;
+
+            if (job.GetOrangeTreeCurrentWorker(idx) != null)
                 return 1;
 
             if (cropData.Position.DistanceTo(player.Position) > 5f)
@@ -219,41 +221,31 @@ namespace BCRPServer.Events.Players.Jobs
 
             if (growTimeT is long growTime)
             {
-                cropData.CTS = new System.Threading.CancellationTokenSource();
-
                 pData.PlayAnim(Sync.Animations.GeneralTypes.TreeCollect0);
 
-                player.TriggerEvent("MG::OTC::S");
+                player.TriggerEvent("MG::OTC::S", cropData.OrangesAmount);
             }
             else
             {
-                cropData.CTS = new System.Threading.CancellationTokenSource();
-
-                System.Threading.Tasks.Task.Run(async () =>
+                Game.Jobs.Farmer.SetPlayerCurrentTimer(pData, new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await System.Threading.Tasks.Task.Delay(10000, cropData.CTS.Token);
-
-                        NAPI.Task.Run(() =>
+                        if (pData.Player?.Exists == true)
                         {
-                            if (pData.Player?.Exists == true)
+                            if (pData.Player.DetachObject(Sync.AttachSystem.Types.FarmWateringCan))
                             {
-                                if (pData.Player.DetachObject(Sync.AttachSystem.Types.FarmWateringCan))
-                                {
-                                    cropData.UpdateGrowTime(farmBusiness, idx, Utils.GetCurrentTime().GetUnixTimestamp() + Game.Jobs.Farmer.GetGrowTimeForCrop(Game.Businesses.Farm.CropField.Types.OrangeTree), true);
+                                cropData.UpdateGrowTime(farmBusiness, idx, Utils.GetCurrentTime().GetUnixTimestamp() + Game.Jobs.Farmer.GetGrowTimeForCrop(Game.Businesses.Farm.CropField.Types.OrangeTree), true);
 
-                                    uint newMats, playerTotalSalary;
-                                    ulong newBizBalance;
+                                uint newMats, playerTotalSalary;
+                                ulong newBizBalance;
 
-                                    if (farmBusiness.TryProceedPayment(pData, $"crop_{(int)Game.Businesses.Farm.CropField.Types.OrangeTree}_0", Game.Jobs.Farmer.GetPlayerSalaryCoef(pData.Info), out newMats, out newBizBalance, out playerTotalSalary))
-                                        farmBusiness.ProceedPayment(pData, newMats, newBizBalance, playerTotalSalary);
-                                }
+                                if (farmBusiness.TryProceedPayment(pData, $"crop_{(int)Game.Businesses.Farm.CropField.Types.OrangeTree}_0", Game.Jobs.Farmer.GetPlayerSalaryCoef(pData.Info), out newMats, out newBizBalance, out playerTotalSalary))
+                                    farmBusiness.ProceedPayment(pData, newMats, newBizBalance, playerTotalSalary);
                             }
-                        });
-                    }
-                    catch (Exception ex) { }
-                });
+                        }
+                    });
+                }, null, 10_000, Timeout.Infinite));
 
                 pData.Player.AttachObject(Game.Jobs.Farmer.WateringCanModel, Sync.AttachSystem.Types.FarmWateringCan, -1, null);
             }
@@ -288,14 +280,6 @@ namespace BCRPServer.Events.Players.Jobs
                         return;
 
                     var business = job.FarmBusiness;
-
-                    if (business.OrangeTrees[treeIdx].CTS != null)
-                    {
-                        business.OrangeTrees[treeIdx].CTS.Cancel();
-                        business.OrangeTrees[treeIdx].CTS.Dispose();
-
-                        business.OrangeTrees[treeIdx].CTS = null;
-                    }
 
                     if (pData.GeneralAnim == Sync.Animations.GeneralTypes.TreeCollect0)
                         pData.StopGeneralAnim();
@@ -332,14 +316,6 @@ namespace BCRPServer.Events.Players.Jobs
 
             if (pData.GeneralAnim != Sync.Animations.GeneralTypes.TreeCollect0 || player.Dimension != Utils.Dimensions.Main || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || business.OrangeTrees[treeIdx].Position.DistanceTo(player.Position) > 10f)
             {
-                if (business.OrangeTrees[treeIdx].CTS != null)
-                {
-                    business.OrangeTrees[treeIdx].CTS.Cancel();
-                    business.OrangeTrees[treeIdx].CTS.Dispose();
-
-                    business.OrangeTrees[treeIdx].CTS = null;
-                }
-
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.TreeCollect0)
                     pData.StopGeneralAnim();
 
@@ -421,7 +397,10 @@ namespace BCRPServer.Events.Players.Jobs
             if (cropData == null)
                 return 0;
 
-            if (cropData.CTS != null)
+            if (cropData.Timer != null)
+                return 0;
+
+            if (job.GetCowCurrentWorker(idx) != null)
                 return 1;
 
             if (cropData.Position.Position.DistanceTo(player.Position) > 5f)
@@ -431,8 +410,6 @@ namespace BCRPServer.Events.Players.Jobs
 
             if (growTimeT is long growTime)
             {
-                cropData.CTS = new System.Threading.CancellationTokenSource();
-
                 if (!pData.CrouchOn)
                     pData.CrouchOn = true;
 
@@ -474,22 +451,12 @@ namespace BCRPServer.Events.Players.Jobs
 
                 var business = job.FarmBusiness;
 
-                if (business.Cows[cowIdx].CTS != null)
-                {
-                    business.Cows[cowIdx].CTS.Cancel();
-                    business.Cows[cowIdx].CTS.Dispose();
-
-                    business.Cows[cowIdx].CTS = null;
-                }
-
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.MilkCow0)
                     pData.StopGeneralAnim();
 
                 Game.Jobs.Farmer.ResetPlayerCurrentCowInfo(pData);
             }
         }
-
-        //2133.948f, 4783.06f, 41.31395f, 23.95123f | 2143.947f, 4813.993f, 41.57311f, 114.3835f - planes pos
 
         [RemoteEvent("Job::FARM::COWFC")]
         private static void CowFinishCollect(Player player)
@@ -518,14 +485,6 @@ namespace BCRPServer.Events.Players.Jobs
 
             if (pData.GeneralAnim != Sync.Animations.GeneralTypes.MilkCow0 || player.Dimension != Utils.Dimensions.Main || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || player.Vehicle != null || business.Cows[cowIdx].Position.Position.DistanceTo(player.Position) > 10f)
             {
-                if (business.Cows[cowIdx].CTS != null)
-                {
-                    business.Cows[cowIdx].CTS.Cancel();
-                    business.Cows[cowIdx].CTS.Dispose();
-
-                    business.Cows[cowIdx].CTS = null;
-                }
-
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.MilkCow0)
                     pData.StopGeneralAnim();
 

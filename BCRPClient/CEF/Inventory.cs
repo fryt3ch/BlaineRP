@@ -89,13 +89,13 @@ namespace BCRPClient.CEF
         private static DateTime LastShowed;
         public static DateTime LastSent;
 
-        private static ItemParams[] ItemsParams { get; set; }
+        public static ItemParams[] ItemsParams { get; set; }
         private static Data.Craft.ItemPrototype[] WorkbenchCraftParams { get; set; }
         private static Data.Craft.ItemPrototype[] WorkbenchToolsParams { get; set; }
 
         private static object[][] WeaponsData { get; set; }
         private static object[] ArmourData { get; set; }
-        private static object[][] ItemsData { get; set; }
+        public static object[][] ItemsData { get; set; }
         private static object[][] ClothesData { get; set; }
         private static object[][] AccessoriesData { get; set; }
         private static object[][] BagData { get; set; }
@@ -104,7 +104,7 @@ namespace BCRPClient.CEF
         private static object[][] WorkbenchToolsData { get; set; }
         private static object[][] WorkbenchResultData { get; set; }
 
-        private static float BagWeight { get; set; } = 0f;
+        private static float BagWeight { get; set; }
 
         private static (string, int)? CurrentSlotFrom { get; set; }
         private static (string, int)? CurrentSlotTo { get; set; }
@@ -368,13 +368,13 @@ namespace BCRPClient.CEF
                         {
                             var selectedWeapon = Player.LocalPlayer.GetSelectedWeapon();
 
-                            if (selectedWeapon == Sync.WeaponSystem.UnarmedHash || selectedWeapon == Sync.WeaponSystem.MobileHash)
+/*                            if (selectedWeapon == Sync.WeaponSystem.UnarmedHash || selectedWeapon == Sync.WeaponSystem.MobileHash)
                             {
                                 WeaponsData[activeWeapon][4] = false;
 
                                 ammoUpdated = true;
-                            }
-                            else if ((int)WeaponsData[activeWeapon][3] != Additional.AntiCheat.LastAllowedAmmo)
+                            }*/
+                            if ((int)WeaponsData[activeWeapon][3] != Additional.AntiCheat.LastAllowedAmmo)
                             {
                                 WeaponsData[activeWeapon][3] = Additional.AntiCheat.LastAllowedAmmo;
 

@@ -179,7 +179,7 @@ namespace BCRPServer
             /// <summary>Скины на оружие игрока</summary>
             public Dictionary<Game.Items.WeaponSkin.ItemData.Types, Game.Items.WeaponSkin> WeaponSkins { get; set; }
 
-            public Dictionary<CooldownTypes, DateTime> Cooldowns { get; set; }
+            public Dictionary<Sync.Cooldowns.Types, DateTime> Cooldowns { get; set; }
 
             public List<Sync.Phone.SMS> AllSMS { get; set; }
 
@@ -193,29 +193,75 @@ namespace BCRPServer
 
             public IEnumerable<VehicleData.VehicleInfo> VehiclesOnPound => OwnedVehicles.Where(x => x.VehicleData == null && x.IsOnVehiclePound);
 
-            public DateTime GetCooldownLastTime(CooldownTypes cdType)
+            private static Dictionary<string, object> TempData { get; set; } = new Dictionary<string, object>();
+
+            public void SetTempData(string key, object value)
+            {
+                if (!TempData.TryAdd(key, value))
+                    TempData[key] = value;
+            }
+
+            public T GetTempData<T>(string key, T otherwise = default(T))
+            {
+                object value;
+
+                if (!TempData.TryGetValue(key, out value))
+                    return otherwise;
+
+                if (value is T valueT)
+                    return valueT;
+
+                return otherwise;
+            }
+
+            public bool HasTempData(string key) => TempData.ContainsKey(key);
+
+            public bool ResetTempData(string key)
+            {
+                return TempData.Remove(key);
+            }
+
+            public bool HasCooldown(Sync.Cooldowns.Types cdType)
             {
                 DateTime dt;
 
                 if (!Cooldowns.TryGetValue(cdType, out dt))
-                    dt = DateTime.MaxValue;
+                    return false;
 
-                return dt;
+                return dt > Utils.GetCurrentTime();
             }
 
-            public bool HasCooldown(CooldownTypes cdType) => GetCooldownTimeLeft(cdType).TotalSeconds <= CooldownTimeouts[cdType];
-
-            public TimeSpan GetCooldownTimeLeft(CooldownTypes cdType) => Utils.GetCurrentTime().Subtract(GetCooldownLastTime(cdType));
-
-            public void SetCooldown(CooldownTypes cdType)
+            public TimeSpan GetCooldownTimeLeft(Sync.Cooldowns.Types cdType)
             {
-                var curTime = Utils.GetCurrentTime();
+                DateTime dt;
 
-                if (!Cooldowns.TryAdd(cdType, curTime))
-                    Cooldowns[cdType] = curTime;
+                if (!Cooldowns.TryGetValue(cdType, out dt))
+                    dt = DateTime.MinValue;
+
+                return Utils.GetCurrentTime().Subtract(dt);
             }
 
-            public bool RemoveCooldown(CooldownTypes cdType) => Cooldowns.Remove(cdType);
+            public void SetCooldown(Sync.Cooldowns.Types cdType, int secs)
+            {
+                var time = Utils.GetCurrentTime().AddSeconds(secs);
+
+                if (!Cooldowns.TryAdd(cdType, time))
+                    Cooldowns[cdType] = time;
+
+                MySQL.CharacterCooldownSet(this, cdType);
+            }
+
+            public bool RemoveCooldown(Sync.Cooldowns.Types cdType)
+            {
+                if (Cooldowns.Remove(cdType))
+                {
+                    MySQL.CharacterCooldownRemove(this, cdType);
+
+                    return true;
+                }
+
+                return false;
+            }
 
             public bool TryAddCash(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
             {
@@ -312,8 +358,6 @@ namespace BCRPServer
 
             public PlayerInfo()
             {
-                this.Cooldowns = new Dictionary<CooldownTypes, DateTime>();
-
                 this.AllSMS = new List<Sync.Phone.SMS>() { };
             }
         }

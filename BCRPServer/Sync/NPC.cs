@@ -12,6 +12,8 @@ namespace BCRPServer.Sync
             { "vpound_w_0", new Vector3(485.6506f, -54.18661f, 78.30058f) },
 
             { "vrent_s_0", new Vector3(-718.6724f, 5821.765f, 17.21804f) },
+
+            { $"cop0_{(int)Game.Fractions.Types.PolicePaleto}", new Vector3(-448.2888f, 6012.634f, 31.71635f) },
         };
 
         private static Dictionary<List<string>, List<string>> AllowedActionsProcs = new Dictionary<List<string>, List<string>>()

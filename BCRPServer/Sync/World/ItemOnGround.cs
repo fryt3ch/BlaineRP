@@ -29,8 +29,8 @@ namespace BCRPServer.Sync
             /// <summary>Объект модели предмета на сервере</summary>
             public GTANetworkAPI.Object Object { get; set; }
 
-            /// <summary>CTS автоудаления предмета</summary>
-            private CancellationTokenSource DeletionCTS { get; set; }
+            /// <summary>Таймер автоудаления предмета</summary>
+            private Timer DeletionTImer { get; set; }
 
             public string ID { get => Object.GetSharedData<string>("I"); set => Object.SetSharedData("I", value); }
 
@@ -67,46 +67,26 @@ namespace BCRPServer.Sync
 
             public void StartDeletionTask()
             {
-                if (this.DeletionCTS != null)
+                if (DeletionTImer != null)
                     return;
 
-                this.DeletionCTS = new CancellationTokenSource();
-
-                Task.Run(async () =>
+                DeletionTImer = new Timer((obj) =>
                 {
-                    try
+                    NAPI.Task.Run(() =>
                     {
-                        await Task.Delay(Settings.IOG_TIME_TO_AUTODELETE, this.DeletionCTS.Token);
-
-                        NAPI.Task.Run(() =>
-                        {
-                            this.DeletionCTS?.Cancel();
-
-                            var uid = this.Item.UID;
-
-                            this.Object?.Delete();
-
-                            ItemsOnGround.Remove(uid);
-
-                            this.Item.Delete();
-
-                            this.Item = null;
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        NAPI.Task.Run(() =>
-                        {
-                            this.DeletionCTS?.Cancel();
-                        });
-                    }
-                });
+                        Delete(true);
+                    });
+                }, null, Settings.IOG_TIME_TO_AUTODELETE, Timeout.Infinite);
             }
 
             public void CancelDeletionTask()
             {
-                this.DeletionCTS?.Cancel();
-                this.DeletionCTS = null;
+                if (DeletionTImer != null)
+                {
+                    DeletionTImer.Dispose();
+
+                    DeletionTImer = null;
+                }
             }
 
             public void UpdateAmount()
@@ -253,54 +233,43 @@ namespace BCRPServer.Sync
 
         public static void ClearAllItems(int delay)
         {
-            if (ClearItemsCTS != null)
-                ClearItemsCTS.Cancel();
+            if (ClearItemsTimer != null)
+                ClearItemsTimer.Dispose();
 
             Sync.Chat.SendServer(string.Format(Locale.Chat.Server.ClearItemsSoon, delay));
 
-            ClearItemsCTS = new CancellationTokenSource();
-
-            (new Task(async () =>
+            ClearItemsTimer = new Timer((obj) =>
             {
-                try
-                {
-                    await Task.Delay(delay * 1000, ClearItemsCTS.Token);
-                }
-                catch (Exception ex)
-                {
-                    ClearItemsCTS = null;
-
-                    return;
-                }
-
                 NAPI.Task.Run(() =>
                 {
+                    if (ClearItemsTimer != null)
+                    {
+                        ClearItemsTimer.Dispose();
+
+                        ClearItemsTimer = null;
+                    }
+
                     int counter = 0;
 
-                    foreach (var x in ItemsOnGround.Values)
+                    foreach (var x in ItemsOnGround.Values.ToList())
                     {
-                        if (x == null)
-                            continue;
+                        x?.Delete(true);
 
-                        try
-                        {
-                            x?.Delete(true);
-
-                            counter++;
-                        }
-                        catch (Exception ex) { }
+                        counter++;
                     }
 
                     Sync.Chat.SendServer(string.Format(Locale.Chat.Server.ClearItems, counter));
                 });
-            })).Start();
+            }, null, delay * 1000, Timeout.Infinite);
         }
 
         public static void ClearAllItemsCancel()
         {
-            if (ClearItemsCTS != null)
+            if (ClearItemsTimer != null)
             {
-                ClearItemsCTS.Cancel();
+                ClearItemsTimer.Dispose();
+
+                ClearItemsTimer = null;
 
                 Sync.Chat.SendServer(Locale.Chat.Server.ClearItemsCancelled);
             }

@@ -377,6 +377,12 @@ namespace BCRPClient
 
             // Disable F (enter vehicle)
             RAGE.Game.Pad.DisableControlAction(0, 23, true);
+
+            // Disable F (detach parachute)
+            //RAGE.Game.Pad.DisableControlAction(32, 145, true);
+
+            // Disable G (plane landing gear)
+            RAGE.Game.Pad.DisableControlAction(32, 113, true);
         }
         #endregion
 
