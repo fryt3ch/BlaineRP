@@ -90,29 +90,33 @@ namespace BCRPServer.Events.Players
             return garage.BuyFromGov(pData);
         }
 
-        [RemoteEvent("Garage::SellGov")]
-        public static void GarageSellGov(Player player, uint id)
+        [RemoteProc("Garage::STG")]
+        public static bool GarageSellGov(Player player, uint id)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return false;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                return;
+                return false;
 
             var garage = Game.Estates.Garage.Get(id);
 
             if (garage == null)
-                return;
+                return false;
 
             if (garage.Owner != pData.Info)
-                return;
+                return false;
 
             if (!garage.Root.IsEntityNearEnter(player))
-                return;
+                return false;
+
+            garage.SellToGov(true, true);
+
+            return true;
         }
 
         [RemoteEvent("Garage::Enter")]

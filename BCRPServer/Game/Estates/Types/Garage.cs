@@ -265,10 +265,10 @@ namespace BCRPServer.Game.Estates
             {
                 if (notifyOnFault)
                 {
-                    /*                    if (PlayerInfo.PlayerData != null)
-                                        {
-                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
-                                        }*/
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Estate::NEMB", Balance);
+                    }
                 }
 
                 return false;
@@ -307,12 +307,12 @@ namespace BCRPServer.Game.Estates
 
             pData.SetCash(newCash);
 
-            ChangeOwner(pData.Info);
+            ChangeOwner(pData.Info, true);
 
             return true;
         }
 
-        public void ChangeOwner(PlayerData.PlayerInfo pInfo)
+        public void ChangeOwner(PlayerData.PlayerInfo pInfo, bool buyGov = false)
         {
             if (Owner != null)
             {
@@ -322,6 +322,11 @@ namespace BCRPServer.Game.Estates
             if (pInfo != null)
             {
                 pInfo.PlayerData?.AddGarageProperty(this);
+
+                var minBalance = Settings.MIN_PAID_HOURS_HOUSE_APS * (uint)Tax;
+
+                if (buyGov && Balance < minBalance)
+                    SetBalance(minBalance, null);
             }
 
             var vehicles = GetVehiclesInGarage()?.ToList();
@@ -337,6 +342,63 @@ namespace BCRPServer.Game.Estates
             UpdateOwner(pInfo);
 
             MySQL.GarageUpdateOwner(this);
+        }
+
+        public void SellToGov(bool balancesBack = true, bool govHalfPriceBack = true)
+        {
+            if (Owner == null)
+                return;
+
+            ulong newBalance;
+
+            if (balancesBack)
+            {
+                var totalMoney = Balance;
+
+                if (totalMoney > 0)
+                {
+                    if (Owner.BankAccount != null)
+                    {
+                        if (Owner.BankAccount.TryAddMoneyDebit(totalMoney, out newBalance, true))
+                        {
+                            Owner.BankAccount.SetDebitBalance(newBalance, null);
+                        }
+                    }
+                    else
+                    {
+                        if (Owner.TryAddCash(totalMoney, out newBalance, true))
+                        {
+                            Owner.SetCash(newBalance);
+                        }
+                    }
+                }
+            }
+
+            if (govHalfPriceBack)
+            {
+                var totalMoney = (uint)Price / 2;
+
+                if (Owner.BankAccount != null)
+                {
+                    if (Owner.BankAccount.TryAddMoneyDebit(totalMoney, out newBalance, true))
+                    {
+                        Owner.BankAccount.SetDebitBalance(newBalance, null);
+                    }
+                }
+                else
+                {
+                    if (Owner.TryAddCash(totalMoney, out newBalance, true))
+                    {
+                        Owner.SetCash(newBalance);
+                    }
+                }
+            }
+
+            IsLocked = false;
+
+            SetBalance(0, null);
+
+            ChangeOwner(null, true);
         }
 
         public void SetVehicleToGarage(VehicleData vData, int slot)

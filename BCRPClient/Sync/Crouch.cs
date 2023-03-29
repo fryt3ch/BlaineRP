@@ -4,7 +4,7 @@ using System;
 
 namespace BCRPClient.Sync
 {
-    public class Crouch : Events.Script
+    public class Crouch
     {
         private static DateTime LastSwitchTime;
 
@@ -13,11 +13,6 @@ namespace BCRPClient.Sync
         public const float ClipSetSwitchTime = 0.25f;
 
         public static bool Toggled { get; private set; }
-
-        public Crouch()
-        {
-            LastSwitchTime = Sync.World.ServerTime;
-        }
 
         public static void Toggle()
         {

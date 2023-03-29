@@ -87,6 +87,11 @@ namespace BCRPClient.CEF.PhoneApps
 
             Events.Add("Phone::CabAction", async (args) =>
             {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
                 if (CEF.Phone.LastSent.IsSpam(500, false, false))
                     return;
 
@@ -159,7 +164,19 @@ namespace BCRPClient.CEF.PhoneApps
                     {
                         if (id == 0)
                         {
-                            // todo show sms app
+                            var allSms = pData.AllSMS;
+                            var pNumber = pData.PhoneNumber;
+
+                            var chatList = PhoneApps.SMSApp.GetChatList(allSms, CurrentOrderInfo.DriverNumber, pNumber);
+
+                            if (chatList != null)
+                            {
+                                PhoneApps.SMSApp.ShowChat(CurrentOrderInfo.DriverNumber, chatList, Phone.GetContactNameByNumberNull(CurrentOrderInfo.DriverNumber));
+                            }
+                            else
+                            {
+                                PhoneApps.SMSApp.ShowWriteNew(CurrentOrderInfo.DriverNumber.ToString());
+                            }
                         }
                         else if (id == 1)
                         {

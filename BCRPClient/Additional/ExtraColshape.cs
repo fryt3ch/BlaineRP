@@ -1506,12 +1506,12 @@ namespace BCRPClient.Additional
 
             if (Colshape != null)
             {
+                All.Remove(Colshape);
+
                 if (IsInside)
                 {
                     Events.OnPlayerExitColshape?.Invoke(Colshape, null);
                 }
-
-                All.Remove(Colshape);
 
                 Colshape.ResetData();
 

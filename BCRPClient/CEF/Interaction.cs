@@ -129,6 +129,10 @@ namespace BCRPClient.CEF
                         Sync.Vehicles.ToggleHoodLock(false, vehicle);
                         break;
 
+                    case OutVehicleActions.HoodLook:
+                        Sync.Vehicles.LookHood(vehicle);
+                        break;
+
                     case OutVehicleActions.HoodClose:
                         Sync.Vehicles.ToggleHoodLock(true, vehicle);
                         break;
@@ -216,6 +220,10 @@ namespace BCRPClient.CEF
 
                     case InVehicleActions.DoorsClose:
                         Sync.Vehicles.Lock(true, vehicle);
+                        break;
+
+                    case InVehicleActions.HoodLook:
+                        Sync.Vehicles.LookHood(vehicle);
                         break;
 
                     case InVehicleActions.TrunkOpen:

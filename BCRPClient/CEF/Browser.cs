@@ -17,8 +17,6 @@ namespace BCRPClient.CEF
 
         private static HashSet<IntTypes> RenderedInterfaces { get; set; } = new HashSet<IntTypes>();
 
-        public static bool IsAnyDomElementFocused { get; private set; }
-
         private static bool _IsAnyCEFActive;
 
         public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive || CEF.Phone.IsActive; private set { _IsAnyCEFActive = value; CEF.Cursor.SwitchEscMenuAccess(!value); } }
@@ -169,27 +167,6 @@ namespace BCRPClient.CEF
                 RenderedInterfaces.Add(IntNames.Where(x => x.Value == (string)args[0]).First().Key);
 
                 //Utils.ConsoleOutput($"v-if: Ready, {IntNames.Where(x => x.Value == (string)args[0]).First().Key}");
-            });
-
-            Events.Add("Browser::OnFocusElem", (args) =>
-            {
-                var elemTypeStr = args[0] is string str ? str : null;
-
-                if (elemTypeStr == null)
-                {
-                    IsAnyDomElementFocused = false;
-                }
-                else
-                {
-                    if (elemTypeStr == "text")
-                    {
-                        IsAnyDomElementFocused = true;
-                    }
-                    else
-                    {
-                        IsAnyDomElementFocused = false;
-                    }
-                }
             });
         }
 

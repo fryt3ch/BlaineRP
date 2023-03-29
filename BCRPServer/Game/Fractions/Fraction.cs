@@ -33,9 +33,6 @@ namespace BCRPServer.Game.Fractions
         /// <remarks>0 - Доступ к складу, 1 - Приглашение, 2 - Повышение/понижение<br/>3 - Увольнение, 4 - Респавн транспорта</remarks>
         [JsonProperty(PropertyName = "P")]
         public Dictionary<uint, byte> Permissions { get; set; }
-
-        [JsonIgnore]
-        public uint Salary { get; set; }
     }
 
     public class VehicleProps
@@ -99,6 +96,8 @@ namespace BCRPServer.Game.Fractions
 
         public List<RankData> Ranks { get; set; }
 
+        public List<uint> Salary { get; set; }
+
         public Utils.Vector4 SpawnPosition { get; set; }
 
         public abstract string ClientData { get; }
@@ -128,6 +127,12 @@ namespace BCRPServer.Game.Fractions
                 {
                     { "w_pistol", 100 },
                 },
+
+                Salary = new List<uint>()
+                {
+                    1_000,
+                    2_000,
+                }
             };
 
             foreach (var x in All.Values)

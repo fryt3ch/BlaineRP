@@ -46,10 +46,10 @@ namespace BCRPServer.Events.Players
                 return false;
             }
 
-            if (player.HasData(Game.Autoschool.HasPlayerBoughtTestKey))
+            if (player.HasData("DRSCHOOL::T::BT"))
                 return false;
 
-            if (pData.Info.HasTempData(Game.Autoschool.HasPlayerPassedTestKey))
+            if (pData.Info.Quests.ContainsKey(Sync.Quest.QuestData.Types.DRSCHOOL0))
             {
                 player.Notify("DriveS::AHPT");
 
@@ -76,7 +76,7 @@ namespace BCRPServer.Events.Players
                 pData.BankAccount.SetDebitBalance(newBalance, $"DrivingSchool_Test_{licType}");
             }
 
-            pData.Info.SetTempData(Game.Autoschool.HasPlayerBoughtTestKey, licType);
+            player.SetData("DRSCHOOL::T::BT", licType);
 
             return true;
         }
@@ -96,12 +96,12 @@ namespace BCRPServer.Events.Players
             if (school == null)
                 return;
 
-            if (!player.HasData(Game.Autoschool.HasPlayerBoughtTestKey))
-                return false;
+            if (!player.HasData("DRSCHOOL::T::BT"))
+                return;
 
-            var licType = player.GetData<PlayerData.LicenseTypes>(Game.Autoschool.HasPlayerBoughtTestKey);
+            var licType = player.GetData<PlayerData.LicenseTypes>("DRSCHOOL::T::BT");
 
-            player.ResetData(Game.Autoschool.HasPlayerBoughtTestKey);
+            player.ResetData("DRSCHOOL::T::BT");
 
             if (allAmount == 0)
             {
@@ -122,7 +122,7 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            pData.Info.SetTempData(Game.Autoschool.HasPlayerPassedTestKey, licType);
+            Sync.Quest.StartQuest(pData, Sync.Quest.QuestData.Types.DRSCHOOL0, 0, 0, $"{(int)licType}");
 
             return;
         }

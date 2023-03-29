@@ -27,6 +27,37 @@ namespace BCRPServer.Events.Players
         private static Dictionary<string, Command> All = new Dictionary<string, Command>()
         {
             {
+                "s_payday",
+
+                new Command(1, (pData, args) =>
+                {
+                    Events.Server.DoPayDay(false);
+                })
+            },
+
+            {
+                "s_paydayX",
+
+                new Command(1, (pData, args) =>
+                {
+                    if (args.Length != 1)
+                        return;
+
+                    byte x;
+
+                    if (!byte.TryParse(args[0], out x))
+                        return;
+
+                    if (x < 0)
+                        x = 1;
+                    else if (x > 10)
+                        x = 10;
+
+                    Events.Server.PayDayX = x;
+                })
+            },
+
+            {
                 "p_kick",
 
                 new Command(1, (pData, args) =>

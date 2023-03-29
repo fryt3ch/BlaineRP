@@ -324,7 +324,7 @@ namespace BCRPClient
 
                 public static string AdmitToBuy = "Вы уверены? Нажмите еще раз,\nчтобы совершить покупку";
 
-                public static string AdmitToSellGov1 = "Вы уверены? Вы получите {0}\nНажмите еще раз для подтверждения";
+                public static string AdmitToSellGov1 = "Вы уверены? Вы получите {0} и все деньги, которые сейчас есть на счёте\nНажмите еще раз для подтверждения";
 
                 public static string NoMaterialsShop = "В этом магазине недостаточно материалов!";
 

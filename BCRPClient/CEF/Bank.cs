@@ -23,6 +23,8 @@ namespace BCRPClient.CEF
 
         private static List<int> TempBinds { get; set; }
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         public Bank()
         {
             TempBinds = new List<int>();
@@ -180,6 +182,15 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBank, true, true);
 
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close(false);
+                }
+            };
+
             if (args == null)
             {
                 CEF.Browser.Window.ExecuteJs("MenuBank.draw();");
@@ -202,6 +213,10 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
+
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
 
             CEF.Browser.Render(Browser.IntTypes.MenuBank, false, false);
 

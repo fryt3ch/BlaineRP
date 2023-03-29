@@ -1231,7 +1231,7 @@ namespace BCRPServer
 
         public static void InventoryUpdate(Game.Items.Inventory.Groups group, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, 0, updStr);
 
-        public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh, seatId, timeout);
+        public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh.Id, seatId, timeout);
 
         public static bool IsAnyAnimOn(this PlayerData pData) => pData.GeneralAnim != Animations.GeneralTypes.None || pData.FastAnim != Animations.FastTypes.None || pData.OtherAnim != Animations.OtherTypes.None;
 

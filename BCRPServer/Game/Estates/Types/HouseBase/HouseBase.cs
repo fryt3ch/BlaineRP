@@ -288,7 +288,65 @@ namespace BCRPServer.Game.Estates
 
         public abstract bool IsEntityNearEnter(Entity entity);
 
-        public abstract void ChangeOwner(PlayerData.PlayerInfo pInfo);
+        public abstract void ChangeOwner(PlayerData.PlayerInfo pInfo, bool buyGov = false);
+
+        public void SellToGov(bool balancesBack = true, bool govHalfPriceBack = true)
+        {
+            if (Owner == null)
+                return;
+
+            ulong newBalance;
+
+            if (balancesBack)
+            {
+                var totalMoney = Balance;
+
+                if (totalMoney > 0)
+                {
+                    if (Owner.BankAccount != null)
+                    {
+                        if (Owner.BankAccount.TryAddMoneyDebit(totalMoney, out newBalance, true))
+                        {
+                            Owner.BankAccount.SetDebitBalance(newBalance, null);
+                        }
+                    }
+                    else
+                    {
+                        if (Owner.TryAddCash(totalMoney, out newBalance, true))
+                        {
+                            Owner.SetCash(newBalance);
+                        }
+                    }
+                }
+            }
+
+            if (govHalfPriceBack)
+            {
+                var totalMoney = (uint)Price / 2;
+
+                if (Owner.BankAccount != null)
+                {
+                    if (Owner.BankAccount.TryAddMoneyDebit(totalMoney, out newBalance, true))
+                    {
+                        Owner.BankAccount.SetDebitBalance(newBalance, null);
+                    }
+                }
+                else
+                {
+                    if (Owner.TryAddCash(totalMoney, out newBalance, true))
+                    {
+                        Owner.SetCash(newBalance);
+                    }
+                }
+            }
+
+            ContainersLocked = true;
+            IsLocked = false;
+
+            SetBalance(0, null);
+
+            ChangeOwner(null);
+        }
 
         public bool TryAddMoneyBalance(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
         {
@@ -311,10 +369,10 @@ namespace BCRPServer.Game.Estates
             {
                 if (notifyOnFault)
                 {
-                    /*                    if (PlayerInfo.PlayerData != null)
-                                        {
-                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
-                                        }*/
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Estate::NEMB", Balance);
+                    }
                 }
 
                 return false;
@@ -326,6 +384,8 @@ namespace BCRPServer.Game.Estates
         public void SetBalance(ulong value, string reason)
         {
             Balance = value;
+
+            MySQL.HouseUpdateBalance(this);
         }
 
         public void SettlePlayer(PlayerData.PlayerInfo pInfo, bool state, PlayerData pDataInit = null)
@@ -409,7 +469,7 @@ namespace BCRPServer.Game.Estates
 
             pData.SetCash(newCash);
 
-            ChangeOwner(pData.Info);
+            ChangeOwner(pData.Info, true);
 
             return true;
         }

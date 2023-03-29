@@ -13,7 +13,11 @@ namespace BCRPServer.Events
         public static bool IsRestarting = false;
 
         /// <summary>Кол-во средств, которое получит безработный игрок</summary>
-        private const int JoblessBenefits = 500;
+        private const uint JoblessBenefits = 500;
+
+        public static bool PayDayEstateTaxIsEnabled { get; set; } = true;
+
+        public static byte PayDayX { get; set; } = 1;
 
         #region On Start
         [ServerEvent(Event.ResourceStart)]
@@ -111,6 +115,8 @@ namespace BCRPServer.Events
             Game.Estates.Garage.Style.LoadAll();
 
             Game.Bank.LoadAll();
+
+            Sync.Quest.InitializeAll();
             #endregion
 
             #region Database Data Load Section
@@ -187,7 +193,7 @@ namespace BCRPServer.Events
                         {
                             NAPI.Task.Run(() =>
                             {
-                                DoPayDay();
+                                DoPayDay(true);
                             });
 
                             GC.Collect();
@@ -207,19 +213,86 @@ namespace BCRPServer.Events
         }
         #endregion
 
-        public static void DoPayDay()
+        public static void DoPayDay(bool isAuto)
         {
-            var minSessionTimeForPaydayMinutes = Settings.MIN_SESSION_TIME_FOR_PAYDAY / 60;
+            if (PayDayEstateTaxIsEnabled)
+            {
+                foreach (var x in Game.Estates.House.All.Values)
+                {
+                    if (x.Owner == null)
+                        continue;
+
+                    ulong newBalance;
+
+                    if (x.TryRemoveMoneyBalance((uint)x.Tax, out newBalance, false, null))
+                    {
+                        x.SetBalance(newBalance, "PAYDAY");
+                    }
+                    else
+                    {
+                        x.ChangeOwner(null);
+                    }
+                }
+
+                foreach (var x in Game.Estates.Apartments.All.Values)
+                {
+                    if (x.Owner == null)
+                        continue;
+
+                    ulong newBalance;
+
+                    if (x.TryRemoveMoneyBalance((uint)x.Tax, out newBalance, false, null))
+                    {
+                        x.SetBalance(newBalance, "PAYDAY");
+                    }
+                    else
+                    {
+                        x.ChangeOwner(null);
+                    }
+                }
+
+                foreach (var x in Game.Estates.Garage.All.Values)
+                {
+                    if (x.Owner == null)
+                        continue;
+
+                    ulong newBalance;
+
+                    if (x.TryRemoveMoneyBalance((uint)x.Tax, out newBalance, false, null))
+                    {
+                        x.SetBalance(newBalance, "PAYDAY");
+                    }
+                    else
+                    {
+                        x.ChangeOwner(null);
+                    }
+                }
+
+                foreach (var x in Game.Businesses.Business.All.Values)
+                {
+                    if (x.Owner == null)
+                        continue;
+
+                    ulong newBalance;
+
+                    if (x.TryRemoveMoneyBank(x.Rent, out newBalance, false, null))
+                    {
+                        x.SetBank(newBalance);
+                    }
+                    else
+                    {
+                        x.SellToGov(true, true);
+                    }
+                }
+            }
 
             foreach (var pData in PlayerData.All.Values)
             {
                 var player = pData.Player;
 
-                Sync.Chat.SendServer("PayDay", player);
-
-                if (pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
+                if (isAuto && pData.LastData.SessionTime < Settings.MIN_SESSION_TIME_FOR_PAYDAY)
                 {
-                    player.Notify("PayDay::FailTime", pData.LastData.SessionTime, minSessionTimeForPaydayMinutes);
+                    player.TriggerEvent("opday", pData.LastData.SessionTime);
 
                     continue;
                 }
@@ -228,7 +301,31 @@ namespace BCRPServer.Events
 
                 if (pData.BankAccount == null)
                 {
-                    player.Notify("PayDay::FailBank");
+                    player.TriggerEvent("opday");
+
+                    continue;
+                }
+                else
+                {
+                    uint joblessBenefit = JoblessBenefits, fractionSalary = 0, organisationSalary = 0;
+
+                    if (pData.Fraction != Game.Fractions.Types.None)
+                    {
+                        var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                        fractionSalary = fData.Salary[pData.Info.FractionRank];
+
+                        joblessBenefit = 0;
+                    }
+
+                    ulong totalSalary = (joblessBenefit + fractionSalary + organisationSalary) * PayDayX;
+
+                    ulong newBalance;
+
+                    if (pData.BankAccount.TryAddMoneyDebit(totalSalary, out newBalance, true, null))
+                        pData.BankAccount.SetDebitBalance(newBalance, "PAYDAY");
+
+                    player.TriggerEvent("opday", joblessBenefit, fractionSalary, organisationSalary);
 
                     continue;
                 }

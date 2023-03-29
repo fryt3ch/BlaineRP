@@ -33,13 +33,18 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuHome::Action", async (args) =>
             {
-                string id = (string)args[0];
+                var house = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
+
+                if (house == null)
+                    return;
+
+                var id = (string)args[0];
 
                 if (id == "entry" || id == "closet") // states
                 {
                     var state = (bool)args[1];
 
-                    if (LastSent.IsSpam(1000, false, false))
+                    if (LastSent.IsSpam(1000, false, true))
                         return;
 
                     LastSent = Sync.World.ServerTime;
@@ -70,7 +75,7 @@ namespace BCRPClient.CEF
                         if (furn == null && pFurn == null)
                             return;
 
-                        if (LastSent.IsSpam(1000, false, false))
+                        if (LastSent.IsSpam(1000, false, true))
                             return;
 
                         LastSent = Sync.World.ServerTime;
@@ -110,7 +115,7 @@ namespace BCRPClient.CEF
                         if (furn == null)
                             return;
 
-                        if (LastSent.IsSpam(1000, false, false))
+                        if (LastSent.IsSpam(1000, false, true))
                             return;
 
                         Events.CallRemote("House::Menu::Furn::Remove", fUid);
@@ -125,7 +130,22 @@ namespace BCRPClient.CEF
                 }
                 else if (id == "sell2gov")
                 {
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
 
+                    if (!Player.LocalPlayer.HasData("HouseMenu::SellGov::ApproveTime") || Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("HouseMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
+                    {
+                        Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", Sync.World.ServerTime);
+
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Notifications.ApproveHeader, string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(house.Price))), 5000);
+                    }
+                    else
+                    {
+                        Player.LocalPlayer.ResetData("HouseMenu::SellGov::ApproveTime");
+
+                        if ((bool)await Events.CallRemoteProc("House::STG"))
+                            Close();
+                    }
                 }
                 else if (id == "browse" || id == "cash" || id == "bank") // layouts
                 {
@@ -140,7 +160,7 @@ namespace BCRPClient.CEF
                 {
                     uint cid = (uint)(int)args[1];
 
-                    if (LastSent.IsSpam(1000, false, false))
+                    if (LastSent.IsSpam(1000, false, true))
                         return;
 
                     Events.CallRemote("House::Menu::Expel", cid);
@@ -344,6 +364,8 @@ namespace BCRPClient.CEF
             {
                 x?.SetLightColour(x.GetData<Utils.Colour>("RGB"));
             }
+
+            Player.LocalPlayer.ResetData("HouseMenu::SellGov::ApproveTime");
         }
 
         public static void SetButtonState(string id, bool state) => CEF.Browser.Window.ExecuteJs("MenuHome.setButton", id, state);

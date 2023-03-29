@@ -80,6 +80,8 @@ namespace BCRPClient.CEF
             GasItemRange,
 
             DrivingSchoolSelect,
+
+            VehicleBoatOutOfTrailerSelect,
         }
 
         public static Types CurrentType { get; private set; }

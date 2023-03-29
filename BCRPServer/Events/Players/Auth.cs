@@ -67,14 +67,7 @@ namespace BCRPServer.Events.Players
 
                         var cData = new object[3];
 
-                        for (int i = 0; i < cData.Length; i++)
-                            cData[i] = new object[14];
-
-                        player.TriggerEvent("Auth::CloseRegistrationPage", true);
-                        player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.ToString("d"), tData.AccountData.BCoins, cData.SerializeToJson());
-
-                        player.TriggerEvent("Auth::SaveLogin", tData.AccountData.Login);
-                        player.TriggerEvent("Auth::SaveToken", tData.ActualToken);
+                        player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, tData.ActualToken);
 
                         tData.StepType = TempData.StepTypes.CharacterSelection;
                     }
@@ -173,13 +166,13 @@ namespace BCRPServer.Events.Players
 
                     cData[i] = new object[14]
                     {
-                            tData.Characters[i].Name + " " + tData.Characters[i].Surname,
+                            $"{tData.Characters[i].Name} {tData.Characters[i].Surname}",
                             tData.Characters[i].BankAccount == null ? 0 : tData.Characters[i].BankAccount.Balance,
                             tData.Characters[i].Cash,
                             tData.Characters[i].Sex,
                             tData.Characters[i].BirthDate.GetTotalYears(),
-                            tData.Characters[i].Fraction == Game.Fractions.Types.None ? Locale.General.Auth.NoFraction : tData.Characters[i].Fraction.ToString(),
-                            (tData.Characters[i].TimePlayed / 60f).ToString("0.0"),
+                            (int)tData.Characters[i].Fraction,
+                            tData.Characters[i].TimePlayed,
                             tData.Characters[i].CID,
                             lastBan != null,
                             tData.Characters[i].IsOnline,
@@ -192,23 +185,16 @@ namespace BCRPServer.Events.Players
                     if (lastBan != null)
                     {
                         cData[i][10] = lastBan.Reason;
-                        cData[i][11] = lastBan.AdminID.ToString();
-                        cData[i][12] = lastBan.StartDate.ToString();
-                        cData[i][13] = lastBan.EndDate.ToString();
+                        cData[i][11] = lastBan.AdminID;
+                        cData[i][12] = lastBan.StartDate;
+                        cData[i][13] = lastBan.EndDate;
                     }
                 }
-                else
-                    cData[i] = new object[14] { null, null, null, null, null, null, null, null, null, null, null, null, null, null };
             }
 
             var newToken = GenerateToken(tData.AccountData, hwid);
-            var jsonData = cData.SerializeToJson();
 
-            player.TriggerEvent("Auth::CloseLoginPage", true);
-            player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.ToString("d"), tData.AccountData.BCoins, jsonData);
-
-            player.TriggerEvent("Auth::SaveLogin", tData.AccountData.Login);
-            player.TriggerEvent("Auth::SaveToken", newToken);
+            player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, newToken);
         }
         #endregion
 
@@ -255,7 +241,7 @@ namespace BCRPServer.Events.Players
             }
             else // create new character
             {
-                int charactersCount = tData.Characters.Where(x => x != null).Count();
+                var charactersCount = tData.Characters.Where(x => x != null).Count();
 
                 if (charNum != charactersCount)
                     return;

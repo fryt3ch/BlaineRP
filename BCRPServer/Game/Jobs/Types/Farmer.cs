@@ -190,6 +190,9 @@ namespace BCRPServer.Game.Jobs
                 {
                     pInfo.Quests.GetValueOrDefault(Sync.Quest.QuestData.Types.JFRM1)?.Cancel(pInfo);
                 }
+
+                if (vInfo.VehicleData != null)
+                    AttachHarvTrailOnTractor(vInfo.VehicleData);
             }
             else if (vInfo.Data == PlaneVehicleData)
             {

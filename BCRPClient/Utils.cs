@@ -536,7 +536,7 @@ namespace BCRPClient
             RAGE.Game.Weapon.RequestWeaponAsset(hash, 31, 0);
 
             while (!RAGE.Game.Weapon.HasWeaponAssetLoaded(hash))
-                await RAGE.Game.Invoker.WaitAsync(25);
+                await RAGE.Game.Invoker.WaitAsync(5);
         }
 
         public static async System.Threading.Tasks.Task RequestAnimDict(string name)
@@ -547,7 +547,7 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestAnimDict(name);
 
             while (!RAGE.Game.Streaming.HasAnimDictLoaded(name))
-                await RAGE.Game.Invoker.WaitAsync(25);
+                await RAGE.Game.Invoker.WaitAsync(5);
         }
 
         public static async System.Threading.Tasks.Task RequestClipSet(string name)
@@ -558,7 +558,7 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestClipSet(name);
 
             while (!RAGE.Game.Streaming.HasClipSetLoaded(name))
-                await RAGE.Game.Invoker.WaitAsync(25);
+                await RAGE.Game.Invoker.WaitAsync(5);
         }
 
         public static async System.Threading.Tasks.Task<bool> RequestModel(uint hash)
@@ -572,7 +572,7 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestModel(hash);
 
             while (!RAGE.Game.Streaming.HasModelLoaded(hash))
-                await RAGE.Game.Invoker.WaitAsync(25);
+                await RAGE.Game.Invoker.WaitAsync(5);
 
             return true;
         }
@@ -589,7 +589,7 @@ namespace BCRPClient
             RAGE.Game.Streaming.RequestNamedPtfxAsset(name);
 
             while (!RAGE.Game.Streaming.HasNamedPtfxAssetLoaded(name))
-                await RAGE.Game.Invoker.WaitAsync(25);
+                await RAGE.Game.Invoker.WaitAsync(5);
 
             RAGE.Game.Graphics.UseParticleFxAssetNextCall(name);
         }

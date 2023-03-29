@@ -17,10 +17,18 @@ namespace BCRPServer.Game.Items
                     if (house == null || house.Locker != cont.ID)
                         return false;
 
-                    if (house.Owner == pData.Info || house.Settlers.GetValueOrDefault(pData.Info)?[2] == true)
+                    if (house.Owner == pData.Info)
                         return true;
 
-                    return !house.ContainersLocked;
+                    if (!house.ContainersLocked)
+                        return true;
+
+                    if (house.Settlers.GetValueOrDefault(pData.Info)?[2] == true)
+                        return true;
+
+                    pData.Player.Notify("House::NotAllowed");
+
+                    return false;
                 }
             },
 
@@ -34,10 +42,15 @@ namespace BCRPServer.Game.Items
                     if (house == null || house.Wardrobe != cont.ID)
                         return false;
 
-                    if (house.Owner == pData.Info || house.Settlers.GetValueOrDefault(pData.Info)?[3] == true)
+                    if (!house.ContainersLocked)
                         return true;
 
-                    return !house.ContainersLocked;
+                    if (house.Settlers.GetValueOrDefault(pData.Info)?[3] == true)
+                        return true;
+
+                    pData.Player.Notify("House::NotAllowed");
+
+                    return false;
                 }
             },
 
@@ -51,10 +64,15 @@ namespace BCRPServer.Game.Items
                     if (house == null || house.Fridge != cont.ID)
                         return false;
 
-                    if (house.Owner == pData.Info || house.Settlers.GetValueOrDefault(pData.Info)?[4] == true)
+                    if (!house.ContainersLocked)
                         return true;
 
-                    return !house.ContainersLocked;
+                    if (house.Settlers.GetValueOrDefault(pData.Info)?[4] == true)
+                        return true;
+
+                    pData.Player.Notify("House::NotAllowed");
+
+                    return false;
                 }
             },
 

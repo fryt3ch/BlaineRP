@@ -16,6 +16,8 @@ namespace BCRPClient.CEF
 
         private static List<int> TempBinds { get; set; }
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         public GarageMenu()
         {
             LastSent = DateTime.MinValue;
@@ -35,7 +37,7 @@ namespace BCRPClient.CEF
                 if (garage == null)
                     return;
 
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(500, false, true))
                     return;
 
                 LastSent = Sync.World.ServerTime;
@@ -64,9 +66,12 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        Events.CallRemote("Garage::SellGov", garage.Id);
-
                         Player.LocalPlayer.ResetData("GarageMenu::SellGov::ApproveTime");
+
+                        if ((bool)await Events.CallRemoteProc("Garage::STG", garage.Id))
+                        {
+                            Close();
+                        }
                     }
                 }
                 else if (aId == "buy")
@@ -105,6 +110,15 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuGarage, true, true);
 
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close();
+                }
+            };
+
             CurrentGarageRoot = gRoot;
 
             List<object> gData = new List<object>();
@@ -142,6 +156,10 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
+
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
 
             CEF.Browser.Render(Browser.IntTypes.MenuGarage, false);
 

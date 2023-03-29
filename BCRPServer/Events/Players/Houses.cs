@@ -7,6 +7,36 @@ namespace BCRPServer.Events.Players
 {
     class Houses : Script
     {
+        [RemoteProc("House::STG")]
+        private static bool SellToGov(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
+            var house = pData.CurrentHouseBase;
+
+            if (house == null)
+                return false;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return false;
+            }
+
+            house.SellToGov(true, true);
+
+            return true;
+        }
+
         [RemoteProc("House::BuyGov")]
         private static bool BuyGov(Player player, int hTypeNum, uint id)
         {
@@ -147,9 +177,6 @@ namespace BCRPServer.Events.Players
 
             if (hType == Game.Estates.HouseBase.Types.House)
             {
-                if (player.Dimension != Utils.Dimensions.Main)
-                    return;
-
                 var house = Game.Estates.House.Get(id);
 
                 if (house == null)

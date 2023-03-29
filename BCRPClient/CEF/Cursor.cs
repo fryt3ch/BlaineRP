@@ -23,11 +23,15 @@ namespace BCRPClient.CEF
             if (value)
             {
                 SwitchEscMenuAccess(false);
+
+                CEF.Browser.Window.ExecuteCachedJs("focusLastBluredElem();");
             }
             else
             {
                 if (!Utils.IsAnyCefActive(true))
                     SwitchEscMenuAccess(true);
+
+                CEF.Browser.Window.ExecuteCachedJs("blurFocusedDomElement();");
             }
         }
 

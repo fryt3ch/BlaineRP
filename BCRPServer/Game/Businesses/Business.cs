@@ -1,4 +1,5 @@
-﻿using GTANetworkAPI;
+﻿using Google.Protobuf.WellKnownTypes;
+using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -250,10 +251,10 @@ namespace BCRPServer.Game.Businesses
             {
                 if (notifyOnFault)
                 {
-                    /*                    if (PlayerInfo.PlayerData != null)
-                                        {
-                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
-                                        }*/
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Business::NEMC", Bank);
+                    }
                 }
 
                 return false;
@@ -288,10 +289,10 @@ namespace BCRPServer.Game.Businesses
             {
                 if (notifyOnFault)
                 {
-                    /*                    if (PlayerInfo.PlayerData != null)
-                                        {
-                                            PlayerInfo.PlayerData.Player.Notify("Bank::NotEnough", Balance);
-                                        }*/
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Business::NEMB", Bank);
+                    }
                 }
 
                 return false;
@@ -441,21 +442,22 @@ namespace BCRPServer.Game.Businesses
 
             if (balancesBack)
             {
-                if (Cash > 0)
-                {
-                    if (Owner.TryAddCash(Cash, out newBalance, true))
-                    {
-                        Owner.SetCash(newBalance);
-                    }
-                }
+                var totalMoney = Cash + Bank;
 
-                if (Bank > 0)
+                if (totalMoney > 0)
                 {
                     if (Owner.BankAccount != null)
                     {
-                        if (Owner.BankAccount.TryAddMoneyDebit(Bank, out newBalance, true))
+                        if (Owner.BankAccount.TryAddMoneyDebit(totalMoney, out newBalance, true))
                         {
                             Owner.BankAccount.SetDebitBalance(newBalance, null);
+                        }
+                    }
+                    else
+                    {
+                        if (Owner.TryAddCash(totalMoney, out newBalance, true))
+                        {
+                            Owner.SetCash(newBalance);
                         }
                     }
                 }
@@ -463,9 +465,21 @@ namespace BCRPServer.Game.Businesses
 
             if (govHalfPriceBack)
             {
-                if (Owner.TryAddCash(GovPrice / 2, out newBalance, true))
+                var totalMoney = GovPrice / 2;
+
+                if (Owner.BankAccount != null)
                 {
-                    Owner.SetCash(newBalance);
+                    if (Owner.BankAccount.TryAddMoneyDebit(totalMoney, out newBalance, true))
+                    {
+                        Owner.BankAccount.SetDebitBalance(newBalance, null);
+                    }
+                }
+                else
+                {
+                    if (Owner.TryAddCash(totalMoney, out newBalance, true))
+                    {
+                        Owner.SetCash(newBalance);
+                    }
                 }
             }
 
@@ -478,6 +492,13 @@ namespace BCRPServer.Game.Businesses
             Bank = 0;
             Materials = 0;
             Margin = 1m;
+
+            var players = PlayersInteracting.Select(x => x.Player).ToArray();
+
+            if (players.Length == 0)
+                return;
+
+            NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Shop::UM", (float)Margin);
 
             UpdateOwner(null);
 
@@ -508,7 +529,7 @@ namespace BCRPServer.Game.Businesses
             return true;
         }
 
-        public void ChangeOwner(PlayerData.PlayerInfo pInfo)
+        public void ChangeOwner(PlayerData.PlayerInfo pInfo, bool buyGov = false)
         {
             if (Owner != null)
             {
@@ -518,6 +539,11 @@ namespace BCRPServer.Game.Businesses
             if (pInfo != null)
             {
                 pInfo.PlayerData?.AddBusinessProperty(this);
+
+                var minBalance = Settings.MIN_PAID_HOURS_BUSINESS * Rent;
+
+                if (buyGov && Bank < minBalance)
+                    SetBank(minBalance);
             }
 
             UpdateOwner(pInfo);

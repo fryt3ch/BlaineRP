@@ -155,7 +155,7 @@ namespace BCRPClient.Sync
 
         public static void DetachAllFromLocalEntity(int toHandle)
         {
-            RAGE.Game.Entity.DetachEntity(toHandle, false, false);
+            RAGE.Game.Entity.DetachEntity(toHandle, true, false);
 
             var list = StreamedAttachments.GetValueOrDefault(toHandle);
 
@@ -164,7 +164,7 @@ namespace BCRPClient.Sync
 
             list.ForEach(x =>
             {
-                RAGE.Game.Entity.DetachEntity(x, false, false);
+                RAGE.Game.Entity.DetachEntity(x, true, false);
             });
 
             StreamedAttachments.Remove(toHandle);
@@ -579,6 +579,43 @@ namespace BCRPClient.Sync
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
 
+/*            Entity tttVeh = null;
+
+            KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+            {
+                var gTarget = RAGE.Elements.Entities.Vehicles.GetAtRemote(58) as GameEntity;
+
+                var target = gTarget as Entity;
+
+                var rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
+
+                var pos = target.Position;
+
+                var veh = new Vehicle(0x1F3D44B5, new Vector3(pos.X, pos.Y, pos.Z + 1f), rot.Z, "", 255, true, 0, 0, target.Dimension);
+
+                veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
+
+                AsyncTask.RunSlim(() =>
+                {
+                    Utils.ConsoleOutput("CREATED");
+
+                    var gEntity = veh as GameEntity;
+
+                    tttVeh = veh;
+
+                    RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, 0, 0f, 0f, 0f, 0f, 0f, 0f, false, false, true, false, 0, true);
+                }, 1000);
+            });
+
+            KeyBinds.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
+            {
+                var gTarget = RAGE.Elements.Entities.Vehicles.GetAtRemote(58) as GameEntity;
+
+                RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, true);
+
+                tttVeh?.Destroy();
+            });*/
+
             #region Events
             Events.AddDataHandler(AttachedEntitiesKey, (Entity entity, object value, object oldValue) =>
             {
@@ -761,7 +798,7 @@ namespace BCRPClient.Sync
         {
             await Utils.RequestModel(hash);
 
-            GameEntity gTarget = Utils.GetGameEntity(target);
+            var gTarget = Utils.GetGameEntity(target);
 
             if (gTarget == null)
                 return;
@@ -779,7 +816,7 @@ namespace BCRPClient.Sync
 
             GameEntity gEntity = null;
 
-            Vector3 positionBase = Vector3.Zero;
+            var positionBase = Vector3.Zero;
 
             if (type >= Types.WeaponRightTight && type <= Types.WeaponLeftBack)
             {
@@ -794,7 +831,11 @@ namespace BCRPClient.Sync
             {
                 var rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
 
-                var veh = new Vehicle(hash, target.Position, rot.Z, "", 255, true, 0, 0, target.Dimension);
+                var pos = target.Position;
+
+                RAGE.Game.Entity.SetEntityCoordsNoOffset(gTarget.Handle, pos.X, pos.Y, pos.Z + 5f, false, false, false);
+
+                var veh = new Vehicle(hash, pos, rot.Z, "", 255, true, 0, 0, target.Dimension);
 
                 veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
 
@@ -809,7 +850,6 @@ namespace BCRPClient.Sync
 
                     if (targetData.Data.ID.StartsWith("seashark"))
                         positionBase.Z -= 0.5f;
-
                 }
 
                 gEntity = veh;
@@ -848,7 +888,7 @@ namespace BCRPClient.Sync
                     {
                         var pos = syncData.Split('&');
 
-                        RAGE.Game.Entity.SetEntityCoords(gEntity.Handle, float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]), false, false, false, false);
+                        RAGE.Game.Entity.SetEntityCoordsNoOffset(gEntity.Handle, float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]), false, false, false);
 
                         RAGE.Game.Entity.SetEntityVisible(gEntity.Handle, false, true);
                     }
@@ -913,7 +953,7 @@ namespace BCRPClient.Sync
             {
                 if (gEntity.IsLocal)
                 {
-                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
+                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
 
                     RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
 

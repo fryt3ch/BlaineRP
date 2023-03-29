@@ -13,6 +13,8 @@ namespace BCRPClient.CEF
 
         private static List<int> TempBinds { get; set; }
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         public ATM()
         {
             TempBinds = new List<int>();
@@ -70,20 +72,30 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.ATM, true, true);
 
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close();
+                }
+            };
+
             CEF.Browser.Window.ExecuteJs("ATM.draw", new object[] { new object[] { data.BankBalance, fee * 100 } });
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
         }
 
-        public static void Close(bool ignoreTimeout = false)
+        public static void Close()
         {
             if (!IsActive)
                 return;
 
-            if (!ignoreTimeout && LastSent.IsSpam(500, false, false))
-                return;
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
 
             CEF.Browser.Render(Browser.IntTypes.ATM, false, false);
 

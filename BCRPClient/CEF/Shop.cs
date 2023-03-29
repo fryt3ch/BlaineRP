@@ -59,6 +59,8 @@ namespace BCRPClient.CEF
         /// <summary>Тип текущего магазина</summary>
         private static Types CurrentType;
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         public enum Types
         {
             None = -1,
@@ -2111,6 +2113,15 @@ namespace BCRPClient.CEF
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
 
+                    CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+                    {
+                        OnExit = (cancel) =>
+                        {
+                            if (CloseColshape?.Exists == true)
+                                Close(false);
+                        }
+                    };
+
                     CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, false }) }, null, false);
                 }
                 else
@@ -2121,6 +2132,15 @@ namespace BCRPClient.CEF
                         return;
 
                     await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
+
+                    CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+                    {
+                        OnExit = (cancel) =>
+                        {
+                            if (CloseColshape?.Exists == true)
+                                Close(false);
+                        }
+                    };
 
                     CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => { var itemData = Data.Items.GetData(y); return new object[] { y, itemData.Name, prices[y], (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, false }; })), null, false);
                 }
@@ -2204,14 +2224,9 @@ namespace BCRPClient.CEF
 
             if (request)
             {
-                if (!ignoreTimeout && LastSent.IsSpam(250, false, false))
-                    return;
-
                 GameEvents.Render -= RenderTuning;
 
                 Events.CallRemote("Business::Exit");
-
-                LastSent = Sync.World.ServerTime;
             }
             else
             {
@@ -2329,6 +2344,10 @@ namespace BCRPClient.CEF
                 }
                 else if (Browser.IsRendered(Browser.IntTypes.Retail))
                 {
+                    CloseColshape?.Destroy();
+
+                    CloseColshape = null;
+
                     Browser.Render(Browser.IntTypes.Retail, false);
 
                     StopRetailPreview();

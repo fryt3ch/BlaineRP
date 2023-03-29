@@ -698,6 +698,40 @@ namespace BCRPClient.Sync
 
             #region Local Player Events
 
+            Events.Add("opday", (args) =>
+            {
+                if (args == null || args.Length == 0)
+                {
+                    Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как у Вас нет банковского счёта!");
+                }
+                else if (args.Length == 1)
+                {
+                    var playedTime = args[0].ToDecimal();
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как Вы наиграли {playedTime / 60} минут из {1000} необходимых!");
+                }
+                else
+                {
+                    var joblessBenefit = args[0].ToDecimal();
+                    var fractionSalary = args[1].ToDecimal();
+                    var organisationSalary = args[2].ToDecimal();
+
+                    if (joblessBenefit > 0)
+                    {
+                        Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(joblessBenefit)} (пособие по безработице) на свой счёт!");
+                    }
+                    else
+                    {
+                        if (organisationSalary == 0)
+                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(fractionSalary)} (от фракции) на свой счёт!");
+                        else if (fractionSalary != 0)
+                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(fractionSalary)} (от фракции) и {Utils.GetPriceString(organisationSalary)} (от организации) на свой счёт!");
+                        else
+                            Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы получаете {Utils.GetPriceString(fractionSalary)} (от организации) на свой счёт!");
+                    }
+                }
+            });
+
             Events.Add("Player::ParachuteS", (args) =>
             {
                 var parachuteWeaponHash = RAGE.Util.Joaat.Hash("gadget_parachute");
@@ -2120,7 +2154,7 @@ namespace BCRPClient.Sync
             CEF.Documents.Close();
 
             CEF.BlipsMenu.Close(true);
-            CEF.ATM.Close(true);
+            CEF.ATM.Close();
             CEF.Bank.Close(true);
 
             CEF.Estate.Close(true);

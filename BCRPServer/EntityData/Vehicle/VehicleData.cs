@@ -36,16 +36,35 @@ namespace BCRPServer
             if (vData == null)
                 return;
 
+            vData.Vehicle.DetachAllEntities();
+
+            vData.Vehicle.GetEntityIsAttachedTo()?.DetachEntity(vData.Vehicle);
+
+            foreach (var x in vData.Vehicle.Occupants)
+            {
+                if (x is Player player)
+                {
+                    var pData = player.GetMainData();
+
+                    if (pData != null)
+                    {
+                        player.WarpOutOfVehicle();
+
+                        Sync.Vehicles.OnPlayerLeaveVehicle(pData, vData);
+                    }
+                }
+                else
+                {
+                    x.ResetSharedData("VehicleSeat");
+                }
+            }
+
             if (vData.DeletionTimer is Timer deletionTimer)
                 deletionTimer.Dispose();
 
             vData.Info.VehicleData = null;
 
             All.Remove(vData.Vehicle);
-
-            vData.Vehicle.DetachAllEntities();
-
-            vData.Vehicle.GetEntityIsAttachedTo()?.DetachEntity(vData.Vehicle);
 
             vData.Vehicle.Delete();
 
@@ -374,6 +393,38 @@ namespace BCRPServer
                 {
                     Remove(this);
                 }
+                else if (OwnerType == OwnerTypes.PlayerDrivingSchool)
+                {
+                    var owner = OwnerID > 0 ? PlayerData.PlayerInfo.Get(OwnerID) : null;
+
+                    OwnerID = 0;
+
+                    if (owner != null)
+                    {
+                        if (owner.Quests.GetValueOrDefault(Quest.QuestData.Types.DRSCHOOL0) is Sync.Quest quest)
+                        {
+                            quest.Cancel(owner, false);
+
+                            if (owner.PlayerData != null)
+                                owner.PlayerData.Player.Notify("DriveS::PEF0");
+                        }
+                    }
+
+                    var numberplate = Vehicle.NumberPlate;
+                    var numberplateS = Vehicle.NumberPlateStyle;
+
+                    Remove(this);
+
+                    Info.LastData.Fuel = Data.Tank;
+
+                    var vData = Info.Spawn();
+
+                    if (vData != null)
+                    {
+                        vData.Vehicle.NumberPlate = numberplate;
+                        vData.Vehicle.NumberPlateStyle = numberplateS;
+                    }
+                }
             }
         }
 
@@ -700,12 +751,7 @@ namespace BCRPServer
                     }
                 }
             }
-            else if (OwnerType == OwnerTypes.PlayerTemp || OwnerType == OwnerTypes.PlayerRent)
-            {
-                if (OwnerID == pData.CID)
-                    return true;
-            }
-            else if (OwnerType == OwnerTypes.PlayerRentJob)
+            else if (OwnerType == OwnerTypes.PlayerTemp || OwnerType == OwnerTypes.PlayerRent || OwnerType == OwnerTypes.PlayerRentJob || OwnerType == OwnerTypes.PlayerDrivingSchool)
             {
                 if (OwnerID == pData.CID)
                     return true;

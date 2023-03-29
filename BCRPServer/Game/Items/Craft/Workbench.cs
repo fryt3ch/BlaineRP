@@ -461,6 +461,8 @@ namespace BCRPServer.Game.Items.Craft
             if (HouseBase.Settlers.GetValueOrDefault(pData.Info) != null)
                 return true;
 
+            pData.Player.Notify("House::NotAllowed");
+
             return false;
         }
 

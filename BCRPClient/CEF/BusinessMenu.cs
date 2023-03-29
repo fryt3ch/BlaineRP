@@ -16,6 +16,8 @@ namespace BCRPClient.CEF
 
         private const decimal MAX_MARGIN = 150m;
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         public BusinessMenu()
         {
             TempEscBind = -1;
@@ -56,7 +58,7 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuBiz::SellToGov", async (args) =>
             {
-                if (LastSent.IsSpam(1000, false, false))
+                if (LastSent.IsSpam(1000, false, true))
                     return;
 
                 var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
@@ -64,11 +66,22 @@ namespace BCRPClient.CEF
                 if (biz == null)
                     return;
 
-                LastSent = Sync.World.ServerTime;
-
-                if ((bool)await Events.CallRemoteProc("Business::SellGov", biz.Id))
+                if (!Player.LocalPlayer.HasData("BusinessMenu::SellGov::ApproveTime") || Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("BusinessMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
                 {
-                    Close(true);
+                    Player.LocalPlayer.SetData("BusinessMenu::SellGov::ApproveTime", Sync.World.ServerTime);
+
+                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Notifications.ApproveHeader, string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(biz.Price))), 5000);
+                }
+                else
+                {
+                    Player.LocalPlayer.ResetData("BusinessMenu::SellGov::ApproveTime");
+
+                    LastSent = Sync.World.ServerTime;
+
+                    if ((bool)await Events.CallRemoteProc("Business::SellGov", biz.Id))
+                    {
+                        Close(true);
+                    }
                 }
             });
 
@@ -226,6 +239,15 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuBusiness, true, true);
 
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close(false);
+                }
+            };
+
             CEF.Browser.Window.ExecuteJs("MenuBiz.draw", new object[] { new object[] { info, manage, new object[] { dates, stats } } });
 
             CEF.Cursor.Show(true, true);
@@ -240,10 +262,9 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            if (!ignoreTimeout && LastSent.IsSpam(500, false, false))
-                return;
+            CloseColshape?.Destroy();
 
-            LastSent = Sync.World.ServerTime;
+            CloseColshape = null;
 
             CEF.Browser.Render(Browser.IntTypes.MenuBusiness, false);
 
@@ -255,6 +276,8 @@ namespace BCRPClient.CEF
 
             Player.LocalPlayer.ResetData("BusinessMenu::Business");
             Player.LocalPlayer.ResetData("BusinessMenu::Business::Data1");
+
+            Player.LocalPlayer.ResetData("BusinessMenu::SellGov::ApproveTime");
         }
     }
 }

@@ -128,6 +128,8 @@ namespace BCRPClient.CEF
             { "Vehicle::JCUSP", new Instance(Types.Success, "Вы заправили транспорт с помощью канистры!", Locale.Notifications.DefHeader) },
             { "Vehicle::JCUSE", new Instance(Types.Success, "Вы заправили транспорт с помощью аккумулятора!", Locale.Notifications.DefHeader) },
 
+            { "Vehicle::HISLE", new Instance(Types.Error, "Капот этого транспорта сейчас закрыт!", Locale.Notifications.ErrorHeader) },
+
             { "Spam::Warning", new Instance(Types.Information, Locale.Notifications.AntiSpam.Warning, Locale.Notifications.AntiSpam.Header) },
 
             { "Container::Wait", new Instance(Types.Information, Locale.Notifications.Container.Wait, Locale.Notifications.DefHeader) },
@@ -188,6 +190,10 @@ namespace BCRPClient.CEF
             { "Bank::MaxSavings", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Notifications.ErrorHeader) },
             { "Bank::SendApprove", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApprove, Locale.Notifications.ApproveHeader) },
             { "Bank::SendApproveP", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApproveP, Locale.Notifications.ApproveHeader) },
+
+            { "Business::NEMB", new Instance(Types.Error, "На счёте Вашего бизнеса недостаточно средств!\nТекущий баланс: ${0}", Locale.Notifications.ErrorHeader) },
+            { "Business::NEMC", new Instance(Types.Error, "В кассе Вашего бизнеса недостаточно средств!\nТекущий баланс: ${0}", Locale.Notifications.ErrorHeader) },
+            { "Estate::NEMB", new Instance(Types.Error, "На счёте этой недвижимости недостаточно средств!\nТекущий баланс: ${0}", Locale.Notifications.ErrorHeader) },
 
             { "Phone::MBA", new Instance(Types.Error, Locale.Notifications.Money.PhoneBalanceMax, Locale.Notifications.ErrorHeader) },
             { "Phone::BNE", new Instance(Types.Error, Locale.Notifications.Money.PhoneBalanceNotEnough, Locale.Notifications.ErrorHeader) },
@@ -327,6 +333,15 @@ namespace BCRPClient.CEF
             { "DriveS::TTF1", new Instance(Types.Error, "Вы провалили теоретическую часть теста!\nНабрано баллов: {0} из {1} минимальных", Locale.Notifications.DefHeader) },
 
             { "DriveS::TTS", new Instance(Types.Success, "Вы сдали теоретическую часть теста!\nНабрано баллов: {0} из {1} минимальных", Locale.Notifications.DefHeader) },
+
+            { "DriveS::PEF0", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
+            { "DriveS::PEF1", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nПричина: транспорт уничтожен/потерян\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
+            { "DriveS::PEF2", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nПричина: покидание транспорта\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
+            { "DriveS::PEF3", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nПричина: езда без ремня безопасности\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
+            { "DriveS::PEF4", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nПричина: слишком сильное повреждение двигателя\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
+            { "DriveS::PEF5", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nПричина: закончилось топливо\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
+
+            { "DriveS::PES", new Instance(Types.Success, "Вы успешно сдали экзамен и получаете права категории {0}!\nНе нарушайте ПДД, за серьезные нарушения Вы можете лишиться прав!", Locale.Notifications.DefHeader) },
         };
 
         public Notification()

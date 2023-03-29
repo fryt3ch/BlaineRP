@@ -192,7 +192,7 @@ namespace BCRPServer
                         }, 1500);
                     }
                 }
-                else if (OwnerType == OwnerTypes.Fraction || OwnerType == OwnerTypes.PlayerRentJob || OwnerType == OwnerTypes.PlayerRent)
+                else if (OwnerType == OwnerTypes.Fraction || OwnerType == OwnerTypes.PlayerRentJob || OwnerType == OwnerTypes.PlayerRent || OwnerType == OwnerTypes.PlayerDrivingSchool)
                 {
                     VehicleData = new VehicleData(CreateVehicle(), this);
 

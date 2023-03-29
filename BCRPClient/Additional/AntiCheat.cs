@@ -594,13 +594,21 @@ namespace BCRPClient.Additional
                             else
                             {
                                 if (vData.IsAttachedToVehicle == null)
-                                    Events.CallRemoteUnreliable("votc", veh, trailerVeh);
+                                {
+                                    veh.DetachFromTrailer();
+
+                                    Events.CallRemote("votc", veh, trailerVeh);
+                                }
                             }
                         }
                         else
                         {
                             if (vData.IsAttachedToVehicle == null)
-                                Events.CallRemoteUnreliable("votc", veh, trailerVeh);
+                            {
+                                veh.DetachFromTrailer();
+
+                                Events.CallRemote("votc", veh, trailerVeh);
+                            }
                         }
                     }
                 }
@@ -610,7 +618,7 @@ namespace BCRPClient.Additional
 
                     if (actualAttach != null && (actualAttach.Type == Sync.AttachSystem.Types.VehicleTrailerObjBoat))
                     {
-                        Events.CallRemoteUnreliable("votc", veh, null);
+                        Events.CallRemote("votc", veh, null);
                     }
                 }
             }

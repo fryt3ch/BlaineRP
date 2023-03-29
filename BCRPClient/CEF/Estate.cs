@@ -18,6 +18,8 @@ namespace BCRPClient.CEF
 
         private static List<int> TempBinds { get; set; }
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         public enum Types
         {
             Info = 0,
@@ -156,6 +158,8 @@ namespace BCRPClient.CEF
                         }
                         else if (id == "mail")
                         {
+                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Пока нет писем!");
+
                             // todo
                         }
                         else if (id == "buy")
@@ -243,7 +247,47 @@ namespace BCRPClient.CEF
                         ShowOfferGarage(garage, player, price, true);
                     }
                 }
+                else if (type == Types.Info)
+                {
+                    var modelId = (string)args[0];
+                    var vid = args[1].ToDecimal();
+                    var engine = (int)args[2];
+                    var turbo = (bool)args[3];
+
+                    ShowVehicleInfo(modelId, vid, engine, turbo, true);
+                }
             });
+        }
+
+        public static async System.Threading.Tasks.Task ShowVehicleInfo(string id, decimal vid, int engine, bool turbo, bool showCursor = true)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (IsActive || CurrentType != null)
+                return;
+
+            if (Utils.IsAnyCefActive(true))
+                return;
+
+            var vData = Data.Vehicles.GetById(id);
+
+            if (vData == null)
+                return;
+
+            CurrentType = Types.Info;
+            CurrentPropertyType = Sync.Players.PropertyTypes.Vehicle;
+
+            await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
+
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "veh_info", null, new object[] { vData.Name, vid.ToString(), (engine == 255 ? 0 : engine + 1).ToString(), turbo, vData.HasCruiseControl, vData.HasAutoPilot, $"{(int)vData.FuelType}_{vData.Tank}", vData.TrunkData == null ? "0_0" : $"{vData.TrunkData.Slots}_{vData.TrunkData.MaxWeight}" });
+
+            if (showCursor)
+                CEF.Cursor.Show(true, true);
+
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
         }
 
         public static async System.Threading.Tasks.Task ShowHouseBaseInfo(Data.Locations.HouseBase houseBase, bool showCursor = true)
@@ -265,6 +309,15 @@ namespace BCRPClient.CEF
             Player.LocalPlayer.SetData("Estate::CurrentData", houseBase);
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
+
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close();
+                }
+            };
 
             if (houseBase is Data.Locations.House rHouse)
             {
@@ -300,6 +353,15 @@ namespace BCRPClient.CEF
             Player.LocalPlayer.SetData("Estate::CurrentData", business);
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
+
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close();
+                }
+            };
 
             CEF.Browser.Window.ExecuteJs("Estate.draw", "info", "biz", null, new object[] { $"{business.Name} #{business.SubId}", business.Name, business.OwnerName, business.Price, business.Rent, Math.Round(business.Tax * 100, 0).ToString() }, business.OwnerName == null ? null : (bool?)pData.OwnedBusinesses.Contains(business));
 
@@ -569,6 +631,10 @@ namespace BCRPClient.CEF
 
             if (CurrentType == Types.Offer && ignoreTimeout)
                 Sync.Offers.Reply(Sync.Offers.ReplyTypes.Deny);
+
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
 
             CEF.Browser.Render(Browser.IntTypes.Estate, false, false);
 

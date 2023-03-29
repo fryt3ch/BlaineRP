@@ -68,7 +68,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Workbench::Craft")]
-        private static void WorkbenchClose(Player player, int receiptIdx)
+        private static void WorkbenchCraft(Player player, int receiptIdx)
         {
             var sRes = player.CheckSpamAttack();
 

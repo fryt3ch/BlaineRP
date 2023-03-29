@@ -1,4 +1,5 @@
 ﻿using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,8 @@ namespace BCRPClient.CEF
         private static int CurrentSchoolId { get; set; }
 
         private static DateTime LastSent;
+
+        private static Additional.ExtraColshape CloseColshape { get; set; }
 
         private static Dictionary<Sync.Players.LicenseTypes, (int TestId, int MaxQuestions)> JsLibsData = new Dictionary<Sync.Players.LicenseTypes, (int, int)>()
         {
@@ -69,6 +72,15 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.AutoschoolTest, true, true);
 
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close(false);
+                }
+            };
+
             CurrentLicenseType = licType;
 
             CurrentSchoolId = schoolId;
@@ -98,6 +110,10 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
+
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
 
             CEF.Browser.Render(Browser.IntTypes.AutoschoolTest, false, false);
 

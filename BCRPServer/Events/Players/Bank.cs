@@ -574,8 +574,6 @@ namespace BCRPServer.Events.Players
                 house.SetBalance(newBalance, null);
             }
 
-            MySQL.HouseUpdateBalance(house);
-
             return house.Balance;
         }
 

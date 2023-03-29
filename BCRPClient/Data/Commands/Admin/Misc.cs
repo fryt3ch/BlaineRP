@@ -11,6 +11,17 @@ namespace BCRPClient.Data
             Utils.JsEval(cmd);
         }
 
+        [Command("dopayday", true, "Сделать PayDay")]
+        public static void DoPayDay()
+        {
+            if (LastSent.IsSpam(500, false, true))
+                return;
+
+            CallRemote("s_payday");
+
+            LastSent = Sync.World.ServerTime;
+        }
+
         [Command("settime", true, "st")]
         public static void SetTime(byte hour, byte minute = 0, byte second = 0)
         {

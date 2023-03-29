@@ -109,15 +109,15 @@ namespace BCRPServer.Sync
                                 player.WarpToVehicleSeat(veh.Vehicle, 0, 5000);
                             }
 
-                            veh.AttachBoatToTrailer();
-
                             veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
+
+                            veh.AttachBoatToTrailer();
                         }
                         else
                         {
-                            veh.AttachBoatToTrailer();
-
                             veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+
+                            veh.AttachBoatToTrailer();
                         }
 
                         veh.Tuning.Apply(veh.Vehicle);

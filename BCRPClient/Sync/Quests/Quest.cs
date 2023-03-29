@@ -26,6 +26,8 @@ namespace BCRPClient.Sync
 
                 JFRM1,
                 JFRM2,
+
+                DRSCHOOL0,
             }
 
             public enum ColourTypes

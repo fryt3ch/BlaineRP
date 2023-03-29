@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using Newtonsoft.Json.Linq;
+using RAGE;
 using System;
 
 namespace BCRPClient.CEF
@@ -28,11 +29,8 @@ namespace BCRPClient.CEF
             LastTime = Sync.World.ServerTime;
 
             #region Events
-            #region Savers
-            Events.Add("Auth::SaveLogin", (object[] args) => Additional.Storage.SetData("Auth::Login", (string)args[0]));
-            Events.Add("Auth::SaveToken", (object[] args) => Additional.Storage.SetData("Auth::Token", (string)args[0]));
+
             Events.Add("Auth::SaveLastCharacter", (object[] args) => Additional.Storage.SetData("Auth::LastCharacter", (int)args[0]));
-            #endregion
 
             #region Showers
             Events.Add("Auth::ShowLoginPage", async (object[] args) =>
@@ -81,17 +79,48 @@ namespace BCRPClient.CEF
             {
                 if ((bool)args[0])
                 {
-                    await Browser.Render(Browser.IntTypes.CharacterSelection, true);
+                    Browser.Render(Browser.IntTypes.Login, false);
+                    Browser.Render(Browser.IntTypes.Registration, false);
 
                     var login = (string)args[1];
-                    var regDate = (string)args[2];
-                    var bCoins = (int)args[3];
+                    var regDate = DateTimeOffset.FromUnixTimeSeconds((long)args[2]).DateTime;
+                    var bCoins = args[3].ToDecimal();
 
-                    var data = (string)args[4];
+                    var data = ((JArray)args[4]).ToObject<object[]>();
 
-                    Browser.Window.ExecuteJs("AuthSelect.fillPanel", login, regDate, bCoins, Additional.Storage.GetData<int?>("Auth::LastCharacter") ?? 1, data);
+                    var token = (string)args[5];
 
-                    await Browser.Switch(Browser.IntTypes.CharacterSelection, true);
+                    Additional.Storage.SetData("Auth::Login", login);
+                    Additional.Storage.SetData("Auth::Token", token);
+
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        var cData = ((JArray)data[i])?.ToObject<object[]>();
+
+                        if (cData == null)
+                        {
+                            data[i] = new object[14];
+
+                            continue;
+                        }
+
+                        data[i] = cData;
+
+                        var fractionType = (Data.Fractions.Types)cData[5].ToDecimal();
+
+                        cData[5] = Data.Fractions.Fraction.Get(fractionType)?.Name ?? Data.Fractions.Fraction.NoFractionStr;
+                        cData[6] = (cData[6].ToDecimal() / 60m).ToString("0.0");
+
+                        if (cData[12] != null)
+                        {
+                            cData[12] = ((DateTime)cData[12]).ToString("dd.MM.yyyy HH:mm");
+                            cData[13] = ((DateTime)cData[12]).ToString("dd.MM.yyyy HH:mm");
+                        }
+                    }
+
+                    await Browser.Render(Browser.IntTypes.CharacterSelection, true, true);
+
+                    Browser.Window.ExecuteJs("AuthSelect.fillPanel", login, regDate.ToString("dd.MM.yyyy"), bCoins, Additional.Storage.GetData<int?>("Auth::LastCharacter") ?? 1, RAGE.Util.Json.Serialize(data));
                 }
                 else
                 {
@@ -101,28 +130,6 @@ namespace BCRPClient.CEF
                 Cursor.Show(true, true);
 
                 Additional.Discord.SetStatus(Additional.Discord.Types.CharacterSelect);
-            });
-            #endregion
-
-            #region Closers
-            Events.Add("Auth::CloseLoginPage", (object[] args) =>
-            {
-                if ((bool)args[0])
-                {
-                    Browser.Render(Browser.IntTypes.Login, false);
-                }
-                else
-                    Browser.Switch(Browser.IntTypes.Login, false);
-            });
-
-            Events.Add("Auth::CloseRegistrationPage", (object[] args) =>
-            {
-                if ((bool)args[0])
-                {
-                    Browser.Render(Browser.IntTypes.Registration, false);
-                }
-                else
-                    Browser.Switch(Browser.IntTypes.Registration, false);
             });
             #endregion
 

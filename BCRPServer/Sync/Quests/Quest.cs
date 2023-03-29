@@ -1,6 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using BCRPServer.Game.Businesses;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace BCRPServer.Sync
 {
@@ -12,6 +15,7 @@ namespace BCRPServer.Sync
             {
                 TQ1 = 0,
 
+                #region Temp Quests
                 JTR1,
 
                 JBD1,
@@ -20,53 +24,18 @@ namespace BCRPServer.Sync
 
                 JFRM1,
                 JFRM2,
+
+                DRSCHOOL0,
+                #endregion
             }
 
-            public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>()
+            public static Dictionary<Types, QuestData> All { get; private set; } = new Dictionary<Types, QuestData>();
+
+            public Func<PlayerData, Sync.Quest, string[], byte> ProgressUpdateFunc { get; set; }
+
+            public QuestData(Types Type)
             {
-                {
-                    Types.TQ1,
-
-                    new QuestData(Types.TQ1, new Dictionary<int, StepData>()
-                    {
-                        {
-                            0,
-
-                            new StepData(1)
-                            {
-                                StartAction = null,
-                                EndAction = null,
-                            }
-                        }
-                    })
-                }
-            };
-
-            public Types Type { get; set; }
-
-            public Action CompleteAction { get; set; }
-
-            public Dictionary<int, StepData> Steps { get; set; }
-
-            public QuestData(Types Type, Dictionary<int, StepData> Steps)
-            {
-                this.Type = Type;
-
-                this.Steps = Steps;
-            }
-
-            public class StepData
-            {
-                public int MaxProgress { get; set; }
-
-                public Action StartAction { get; set; }
-
-                public Action EndAction { get; set; }
-
-                public StepData(int MaxProgress = 1)
-                {
-                    this.MaxProgress = MaxProgress;
-                }
+                All.Add(Type, this);
             }
         }
 
@@ -96,9 +65,6 @@ namespace BCRPServer.Sync
         [JsonIgnore]
         public string CurrentData { get; set; }
 
-        [JsonIgnore]
-        public QuestData.StepData CurrentStepData => Data?.Steps.GetValueOrDefault(Step);
-
         public Quest(QuestData.Types Type)
         {
             this.Type = Type;
@@ -115,7 +81,7 @@ namespace BCRPServer.Sync
         {
             var quest = new Quest(type, false, step, stepProgress);
 
-            if (pData.Info.Quests.TryAdd(type, new Quest(type, false, step, stepProgress)))
+            if (pData.Info.Quests.TryAdd(type, quest))
             {
                 quest.CurrentData = currentData;
 
@@ -128,13 +94,13 @@ namespace BCRPServer.Sync
             }
         }
 
-        public void Cancel(PlayerData.PlayerInfo pInfo)
+        public void Cancel(PlayerData.PlayerInfo pInfo, bool success = false)
         {
             if (pInfo.Quests.Remove(Type))
             {
                 if (pInfo.PlayerData != null)
                 {
-                    pInfo.PlayerData.Player.TriggerEvent("Player::Quest::Upd", (int)Type, false);
+                    pInfo.PlayerData.Player.TriggerEvent("Player::Quest::Upd", (int)Type, success);
                 }
 
                 if (!IsTemp)
@@ -151,13 +117,6 @@ namespace BCRPServer.Sync
             StepProgress = progress;
 
             CurrentData = currentData;
-
-            var sData = CurrentStepData;
-
-            if (sData != null)
-            {
-
-            }
 
             if (pInfo.PlayerData != null)
             {
@@ -178,13 +137,6 @@ namespace BCRPServer.Sync
 
             StepProgress = progress;
 
-            var sData = CurrentStepData;
-
-            if (sData != null)
-            {
-
-            }
-
             if (pInfo.PlayerData != null)
             {
                 var player = pInfo.PlayerData.Player;
@@ -198,6 +150,18 @@ namespace BCRPServer.Sync
             }
         }
 
-        public static bool IsQuestTemp(QuestData.Types type) => type >= QuestData.Types.JTR1;
+        public static bool IsQuestTemp(QuestData.Types type) => type >= QuestData.Types.JTR1 && type <= QuestData.Types.DRSCHOOL0;
+
+        public static void InitializeAll()
+        {
+            var ns = typeof(Sync.Quests.Types.JTR1).Namespace;
+
+            foreach (var x in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.Namespace == ns && t.IsClass))
+            {
+                var method = x.GetMethod("Initialize");
+
+                method?.Invoke(null, null);
+            }
+        }
     }
 }

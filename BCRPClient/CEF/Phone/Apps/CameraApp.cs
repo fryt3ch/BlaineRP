@@ -78,6 +78,8 @@ namespace BCRPClient.CEF.PhoneApps
             if (pData == null)
                 return;
 
+            Sync.Crouch.Off(false, Player.LocalPlayer);
+
             PhotoStartCounter = 0;
 
             CurrentCameraFilter = -1;

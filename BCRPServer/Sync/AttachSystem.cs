@@ -186,6 +186,37 @@ namespace BCRPServer.Sync
         private static Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>> Actions = new Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>>()
         {
             {
+                Types.TrailerObjOnBoat,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (Entity root, Entity target, Types type, object[] args) =>
+                        {
+
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (Entity root, Entity target, Types type, object[] args) =>
+                        {
+                            if (root is Vehicle veh)
+                            {
+                                var attachedTo = veh.GetEntityIsAttachedTo();
+
+                                if (attachedTo != null)
+                                    attachedTo.DetachEntity(veh);
+                            }
+                        }
+                    }
+                }
+            },
+
+            {
                 Types.PushVehicleBack,
 
                 new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
@@ -887,18 +918,16 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            for (int i = 0; i < list.Count; i++)
+            foreach (var x in list)
             {
-                var item = list[i];
-
-                Entity target = Utils.GetEntityById(item.EntityType, item.Id);
+                var target = Utils.GetEntityById(x.EntityType, x.Id);
 
                 if (target != null)
                 {
                     target.ResetData(EntityIsAttachedToKey);
                 }
 
-                GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
+                GetOffAction(x.Type)?.Invoke(entity, target, x.Type, EmptyArgs);
             }
 
             list.Clear();
@@ -1008,8 +1037,6 @@ namespace BCRPServer.Sync
                     timer.Dispose();
 
                 GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
-
-                list.Remove(x);
             }
 
             timers.Clear();

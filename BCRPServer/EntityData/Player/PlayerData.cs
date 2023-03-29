@@ -148,6 +148,8 @@ namespace BCRPServer
             Licenses.Add(lType);
 
             Player.TriggerEvent("Player::Licenses::Update", true, lType);
+
+            MySQL.CharacterLicensesUpdate(Info);
         }
 
         public void RemoveLicense(LicenseTypes lType)
@@ -156,6 +158,8 @@ namespace BCRPServer
                 return;
 
             Player.TriggerEvent("Player::Licenses::Update", false, lType);
+
+            MySQL.CharacterLicensesUpdate(Info);
         }
 
         public void UpdateSkill(SkillTypes sType, int updValue)

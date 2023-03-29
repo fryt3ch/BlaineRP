@@ -23,6 +23,8 @@ namespace BCRPClient.CEF
             { Data.Vehicles.Vehicle.FuelTypes.Electricity, "gas_e_0" },
         };
 
+        private static Additional.ExtraColshape CloseColshape { get; set; }
+
         private static List<int> TempBinds { get; set; }
 
         public Gas()
@@ -185,9 +187,18 @@ namespace BCRPClient.CEF
             if (vData == null || vData.Data == null)
                 return;
 
-            int maxFuel = (int)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
+            var maxFuel = (int)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
 
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
+
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close(false);
+                }
+            };
 
             var prices = CEF.Shop.GetPrices(Shop.Types.GasStation);
 
@@ -206,10 +217,9 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            if (!ignoreTimeout && LastSent.IsSpam(1000))
-            {
-                return;
-            }
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
 
             Events.CallRemote("GasStation::Exit");
 

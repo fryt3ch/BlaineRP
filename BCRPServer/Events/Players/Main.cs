@@ -1,6 +1,7 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -127,6 +128,9 @@ namespace BCRPServer.Events.Players
                 if (pData == null)
                     return;
 
+                if (pData.CurrentBusiness != null)
+                    Sync.Players.ExitFromBuiness(pData, false);
+
                 pData.ActiveOffer?.Cancel(false, true, Sync.Offers.ReplyTypes.AutoCancel, false);
 
                 pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
@@ -141,6 +145,8 @@ namespace BCRPServer.Events.Players
                 if (pData.CurrentJob is Game.Jobs.Job curJob)
                     curJob.OnWorkerExit(pData);
 
+                player.DetachAllObjects();
+
                 player.DetachAllEntities();
 
                 pData.IsAttachedToEntity?.DetachEntity(player);
@@ -152,6 +158,9 @@ namespace BCRPServer.Events.Players
                     if (vData != null)
                         Sync.Vehicles.OnPlayerLeaveVehicle(pData, vData);
                 }
+
+                if (pData.Info.Quests.GetValueOrDefault(Quest.QuestData.Types.DRSCHOOL0) is Sync.Quest driveSchoolQuest && driveSchoolQuest.Step > 0)
+                    driveSchoolQuest.Cancel(pData.Info);
 
                 #region Check&Start Deletion of Owned Vehicles
 
@@ -733,7 +742,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Players::PFA")]
-        public static void PlayAnim(Player player, int anim)
+        public static void PlayFastAnim(Player player, int anim)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -818,167 +827,6 @@ namespace BCRPServer.Events.Players
                 return;
 
             pData.PlayAnim((Animations.OtherTypes)anim);
-        }
-
-        [RemoteEvent("Players::StopCarry")]
-        public static void StopCarry(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var atPlayer = pData.IsAttachedToEntity as Player;
-
-            if (atPlayer?.Exists != true)
-            {
-                var aData = pData.AttachedEntities.Where(x => x.Type == AttachSystem.Types.Carry && x.EntityType == EntityType.Player && x.Id >= 0).FirstOrDefault();
-
-                if (aData == null)
-                    return;
-
-                var target = Utils.FindReadyPlayerOnline((uint)aData.Id);
-
-                if (target?.Player?.Exists != true)
-                    return;
-
-                player.DetachEntity(target.Player);
-            }
-            else
-            {
-                atPlayer.DetachEntity(player);
-            }
-        }
-
-        [RemoteEvent("Players::GoToTrunk")]
-        public static void GoToTrunk(Player player, Vehicle vehicle)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn())
-                return;
-
-            var vData = vehicle.GetMainData();
-
-            if (vData == null)
-                return;
-
-            vehicle.AttachEntity(player, AttachSystem.Types.VehicleTrunk);
-        }
-
-        [RemoteEvent("Players::StopInTrunk")]
-        public static void StopInTrunk(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var atVeh = pData.IsAttachedToEntity as Vehicle;
-
-            if (atVeh?.Exists != true)
-                return;
-
-            var atData = atVeh.GetAttachmentData(player);
-
-            if (atData == null || atData.Type != AttachSystem.Types.VehicleTrunk)
-                return;
-
-            atVeh.DetachEntity(player);
-        }
-
-        [RemoteEvent("Players::Smoke::Stop")]
-        public static void StopSmoke(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            foreach (var x in pData.AttachedObjects)
-            {
-                if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
-                {
-                    player.DetachObject(x.Type);
-
-                    pData.StopFastAnim();
-
-                    break;
-                }
-            }
-        }
-
-        [RemoteEvent("Players::Smoke::Puff")]
-        public static void SmokeDoPuff(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            foreach (var x in pData.AttachedObjects)
-            {
-                if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
-                {
-                    pData.PlayAnim(Animations.FastTypes.SmokePuffCig);
-
-                    player.TriggerEvent("Player::Smoke::Puff");
-
-                    break;
-                }
-            }
-        }
-
-        [RemoteEvent("Players::Smoke::State")]
-        public static void SmokeSetState(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            Sync.AttachSystem.AttachmentObjectNet attachData = null;
-
-            foreach (var x in pData.AttachedObjects)
-            {
-                if (Game.Items.Cigarette.AttachTypes.Contains(x.Type))
-                {
-                    pData.PlayAnim(Animations.FastTypes.SmokeTransitionCig);
-
-                    attachData = x;
-
-                    break;
-                }
-            }
-
-            if (attachData == null)
-                return;
-
-            var oppositeType = Game.Items.Cigarette.DependentTypes[attachData.Type];
-
-            NAPI.Task.Run(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                if (player.DetachObject(attachData.Type, false))
-                    player.AttachObject(attachData.Model, oppositeType, -1, null);
-            }, 500);
         }
 
         [RemoteEvent("atsdme")]

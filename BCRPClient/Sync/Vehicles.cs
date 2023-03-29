@@ -15,7 +15,6 @@ namespace BCRPClient.Sync
         private static DateTime LastSeatBeltShowed;
 
         public static DateTime LastRadioSent;
-        private static DateTime LastSyncSent;
 
         private static DateTime LastVehicleExitedTime;
         #endregion
@@ -270,8 +269,6 @@ namespace BCRPClient.Sync
 
             InvokeHandler("Mods::CT", data, veh.GetSharedData<int>("Mods::CT", 0), null);
 
-            //InvokeHandler("Anchor", data, veh.GetSharedData("Anchor"), null);
-
             InvokeHandler("Engine::On", data, data.EngineOn, null);
 
             InvokeHandler("Indicators::LeftOn", data, data.LeftIndicatorOn, null);
@@ -320,18 +317,9 @@ namespace BCRPClient.Sync
         public Vehicles()
         {
             #region Default Settings
-            LastBeltToggled = Sync.World.ServerTime;
-            LastDoorsLockToggled = Sync.World.ServerTime;
-            LastEngineToggled = Sync.World.ServerTime;
-            LastIndicatorToggled = Sync.World.ServerTime;
-            LastLightsToggled = Sync.World.ServerTime;
-            LastCruiseControlToggled = Sync.World.ServerTime;
-            LastSeatBeltShowed = Sync.World.ServerTime;
-
-            LastRadioSent = Sync.World.ServerTime;
-            LastSyncSent = Sync.World.ServerTime;
-
             RAGE.Game.Vehicle.DefaultEngineBehaviour = false;
+            RAGE.Game.Vehicle.RepairOnExtraToggle = false;
+
             //Player.LocalPlayer.SetConfigFlag(184, true);
             #endregion
 
@@ -850,7 +838,7 @@ namespace BCRPClient.Sync
 
             Events.Add("Vehicles::WTS", (args) =>
             {
-                var veh = (Vehicle)args[0];
+                var veh = RAGE.Elements.Entities.Vehicles.GetAtRemote((ushort)(int)args[0]);
                 var seat = (int)args[1] - 1;
 
                 var timeout = (int)args[2];
@@ -867,7 +855,10 @@ namespace BCRPClient.Sync
                     {
                         await RAGE.Game.Invoker.WaitAsync(50);
 
-                        if (Additional.SkyCamera.IsFadedOut)
+                        if (!Utils.IsTaskStillPending("Vehicles::WTS", task))
+                            return;
+
+                        if (Additional.SkyCamera.IsFadedOut || veh?.Exists != true)
                             continue;
 
                         if (Player.LocalPlayer.Vehicle == veh)
@@ -884,7 +875,7 @@ namespace BCRPClient.Sync
                     }
 
                     Utils.CancelPendingTask("Vehicles::WTS");
-                }, 0, false, 0);
+                }, 25, false, 0);
 
                 Utils.SetTaskAsPending("Vehicles::WTS", task);
             });
@@ -1953,8 +1944,6 @@ namespace BCRPClient.Sync
 
             if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)
             {
-                var heading = trVeh.GetRotation(2).Z;
-
                 var waterPos = veh.GetCoords(false);
 
                 if (!veh.IsInWater())
@@ -1977,7 +1966,7 @@ namespace BCRPClient.Sync
             }
             else
             {
-                Events.CallRemote("Vehicles::BTOW", veh, 56.77f, 0f, 0f);
+                Events.CallRemote("Vehicles::BTOT", veh);
 
                 return;
             }
@@ -1991,6 +1980,29 @@ namespace BCRPClient.Sync
 
             if (vData == null)
                 return;
+        }
+
+        public static async void LookHood(Vehicle veh)
+        {
+            if (veh?.Exists != true || veh.IsLocal)
+                return;
+
+            var vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            if (!(bool)await Events.CallRemoteProc("Vehicles::HVIL", veh))
+                return;
+
+            vData = GetData(veh);
+
+            if (vData == null)
+                return;
+
+            var vDataData = vData.Data;
+
+            CEF.Estate.ShowVehicleInfo(vDataData.ID, vData.VID, veh.GetMod(11), vData.HasTurboTuning, true);
         }
     }
 }

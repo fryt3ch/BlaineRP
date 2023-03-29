@@ -68,7 +68,7 @@ namespace BCRPServer.Game.Estates
             }
         }
 
-        public override void ChangeOwner(PlayerData.PlayerInfo pInfo)
+        public override void ChangeOwner(PlayerData.PlayerInfo pInfo, bool buyGov = false)
         {
             if (Owner != null)
             {
@@ -78,6 +78,11 @@ namespace BCRPServer.Game.Estates
             if (pInfo != null)
             {
                 pInfo.PlayerData?.AddHouseProperty(this);
+
+                var minBalance = Settings.MIN_PAID_HOURS_HOUSE_APS * (uint)Tax;
+
+                if (buyGov && Balance < minBalance)
+                    SetBalance(minBalance, null);
             }
 
             var vehsInGarage = GetVehiclesInGarage()?.ToList();

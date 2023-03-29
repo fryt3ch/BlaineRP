@@ -367,6 +367,19 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void CharacterLicensesUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE characters SET Licenses@Lics WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@Lics", pInfo.Licenses.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
         public static void CharacterContactsUpdate(PlayerData.PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();
