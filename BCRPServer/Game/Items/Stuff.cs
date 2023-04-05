@@ -15,8 +15,10 @@ namespace BCRPServer.Game.Items
         #region Give
         /// <summary>Создать и выдать реальный предмет игроку</summary>
         /// <remarks>Данный метод пробует выдать предмет игроку в любой свободный слот (или любой подходящий, если предмет IStackable), лишнее - выкидывается на землю</remarks>
-        public static bool GiveItemDropExcess(PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true)
+        public static bool GiveItemDropExcess(PlayerData pData, out Game.Items.Item item, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true)
         {
+            item = null;
+
             var player = pData.Player;
 
             var type = GetType(id, false);
@@ -108,7 +110,7 @@ namespace BCRPServer.Game.Items
                     {
                         if (freeIdx >= 0)
                         {
-                            var item = CreateItem(id, type, data, variation, amountExceed, false);
+                            item = CreateItem(id, type, data, variation, amountExceed, false);
 
                             pData.Items[freeIdx] = item;
 
@@ -159,7 +161,7 @@ namespace BCRPServer.Game.Items
 
             if (amount > 0)
             {
-                var item = CreateItem(id, type, data, variation, amount, false);
+                item = CreateItem(id, type, data, variation, amount, false);
 
                 if (freeIdx >= 0)
                 {
@@ -180,8 +182,10 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Создать и выдать реальный предмет игроку</summary>
         /// <remarks>Данный метод пробует выдать предмет игроку в любой свободный слот (или любой подходящий, если предмет IStackable)</remarks>
-        public static bool GiveItem(PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true)
+        public static bool GiveItem(PlayerData pData, out Game.Items.Item item, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true)
         {
+            item = null;
+
             var player = pData.Player;
 
             var type = GetType(id, false);
@@ -321,7 +325,7 @@ namespace BCRPServer.Game.Items
                 }
             }
 
-            var item = CreateItem(id, type, data, variation, amount, false);
+            item = CreateItem(id, type, data, variation, amount, false);
 
             if (item == null)
                 return false;

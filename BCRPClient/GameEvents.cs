@@ -51,6 +51,8 @@ namespace BCRPClient
             CultureInfo.CurrentCulture = Settings.CultureInfo;
 
             RAGE.Ui.Console.Clear();
+            RAGE.Ui.Console.Reset();
+
             RAGE.Chat.Activate(false);
             RAGE.Chat.Show(false);
 

@@ -97,7 +97,7 @@ namespace BCRPClient.Data.NPCDialogues
 
             new Dialogue("vpound_def_dg_1", "Здравствуйте, Ваш транспорт находится на нашей штрафстоянке, выберите нужный и оплатите штраф - {0}\nЕсли что, мы принимаем только наличные!", null,
 
-                new Button("[Перейти к выбору]", () =>
+                new Button("[Перейти к выбору]", async () =>
                 {
                     if (NPC.CurrentNPC == null)
                         return;
@@ -118,7 +118,43 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var counter = 0;
 
-                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePoundSelect, Locale.Actions.VehiclePoundSelectHeader, vids.Select(x => (counter++, pData.OwnedVehicles.Where(y => y.VID == x).Select(x => $"{x.Data.Name} [#{x.VID}]").FirstOrDefault() ?? "null")).ToArray(), null, null, vids, npcId);
+                    await CEF.ActionBox.ShowSelect
+                    (
+                        "VehiclePoundSelect", Locale.Actions.VehiclePoundSelectHeader, vids.Select(x => ((decimal)counter++, pData.OwnedVehicles.Where(y => y.VID == x).Select(x => $"{x.Data.Name} [#{x.VID}]").FirstOrDefault() ?? "null")).ToArray(), null, null,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        async (rType, idD) =>
+                        {
+                            var id = (int)idD;
+
+                            if (rType == CEF.ActionBox.ReplyTypes.OK)
+                            {
+                                var vid = vids[id];
+
+                                if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
+                                    return;
+
+                                var npcData = Data.NPC.GetData(npcId);
+
+                                if (npcData == null)
+                                    return;
+
+                                if ((bool?)await npcData.CallRemoteProc("vpound_p", vid) ?? false)
+                                {
+                                    CEF.ActionBox.Close(true);
+                                }
+                            }
+                            else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                            {
+                                CEF.ActionBox.Close(true);
+                            }
+                            else
+                                return;
+                        },
+
+                        null
+                    );
                 }),
 
                 Button.DefaultExitButton

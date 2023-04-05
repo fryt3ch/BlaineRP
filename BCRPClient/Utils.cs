@@ -1202,10 +1202,16 @@ namespace BCRPClient
         public static float GetLimitedValue(float curValue, float minValue, float maxValue) => Math.Min(maxValue, Math.Max(minValue, curValue));
 
         public static void DebugServerSaveText(string text) => Events.CallRemote("debug_save", text);
+
+        public static bool IsCoordInCountrysideV(float x, float y, float z) => RAGE.Game.Zone.GetHashOfMapAreaAtCoords(x, y, z) == 2072609373;
     }
 
     public static class Extensions
     {
+        public static long GetUnixTimestamp(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalSeconds;
+
+        public static long GetUnixTimestampMil(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalMilliseconds;
+
         public static async System.Threading.Tasks.Task<bool> WaitIsLoaded(this GameEntity gEntity)
         {
             await RAGE.Game.Invoker.WaitAsync(500);
@@ -1705,6 +1711,25 @@ namespace BCRPClient
             }
 
             converted = (T)Convert.ChangeType(number, typeof(T));
+
+            return true;
+        }
+
+        public static bool IsTextLengthValid(this string text, int minLength, int maxLength, bool notify)
+        {
+            if (text == null || text.Length < minLength)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, minLength));
+
+                return false;
+            }
+
+            if (text.Length > maxLength)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, maxLength));
+
+                return false;
+            }
 
             return true;
         }

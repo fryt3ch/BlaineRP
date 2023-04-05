@@ -97,6 +97,8 @@ namespace BCRPServer
 
             public LastVehicleData LastData { get; set; }
 
+            public string RegisteredNumberplate { get; set; }
+
             /// <summary>На штрафстоянке ли транспорт?</summary>
             public bool IsOnVehiclePound { get => LastData.GarageSlot == -2; set => LastData.GarageSlot = -2; }
 
@@ -213,9 +215,9 @@ namespace BCRPServer
                 var owner = PlayerData.PlayerInfo.Get(OwnerID);
 
                 if (owner == null)
-                    player.TriggerEvent("Documents::Show", 2, Data.Name, "null", "null", VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
+                    player.TriggerEvent("Documents::Show", 2, Data.Name, "null", "null", VID, OwnersCount, RegisteredNumberplate, RegistrationDate.SerializeToJson());
                 else
-                    player.TriggerEvent("Documents::Show", 2, Data.Name, owner.Name, owner.Surname, VID, OwnersCount, Numberplate?.Tag, RegistrationDate.SerializeToJson());
+                    player.TriggerEvent("Documents::Show", 2, Data.Name, owner.Name, owner.Surname, VID, OwnersCount, RegisteredNumberplate, RegistrationDate.SerializeToJson());
             }
 
             public void SetToVehiclePound()

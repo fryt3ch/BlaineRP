@@ -8,7 +8,6 @@ namespace BCRPServer.Events.Players
 {
     internal class Misc : Script
     {
-
         [RemoteEvent("Players::StopCarry")]
         public static void StopCarry(Player player)
         {
@@ -168,6 +167,25 @@ namespace BCRPServer.Events.Players
                 if (player.DetachObject(attachData.Type, false))
                     player.AttachObject(attachData.Model, oppositeType, -1, null);
             }, 500);
+        }
+
+        [RemoteEvent("Player::NRPP::TPME")]
+        public static void NonRpPrisonTeleportMe(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsFrozen)
+                return;
+
+            if (pData.Player.Dimension != Utils.Dimensions.Demorgan)
+                return;
+
+            Utils.Demorgan.SetToDemorgan(pData, true);
         }
     }
 }

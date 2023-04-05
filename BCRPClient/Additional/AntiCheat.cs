@@ -154,28 +154,31 @@ namespace BCRPClient.Additional
 
                         if (onGround)
                         {
-                            var counter = 0;
                             var coordZ = 0f;
-                            var coordZr = LastAllowedPos.Z;
 
-                            GroundTeleportTask = new AsyncTask(() =>
+                            GroundTeleportTask = new AsyncTask(async () =>
                             {
-                                if (counter++ > 50 || veh?.Exists != true)
-                                    return true;
-
-                                if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
+                                for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
                                 {
-                                    veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+                                    if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
+                                        break;
 
-                                    return true;
-                                }
-                                else
-                                {
-                                    coordZr += 250f;
+                                    if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
+                                    {
+                                        veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 25f, false, false, false);
+
+                                        await RAGE.Game.Invoker.WaitAsync(5);
+                                    }
                                 }
 
-                                return false;
-                            }, 25, true, 1);
+                                veh.Position = LastAllowedPos;
+                            }, 0, false, 0);
 
                             GroundTeleportTask.Run();
                         }
@@ -193,33 +196,30 @@ namespace BCRPClient.Additional
 
                     if (onGround)
                     {
-                        var counter = 0;
                         var coordZ = 0f;
 
                         var coordZr = LastAllowedPos.Z;
 
-                        GroundTeleportTask = new AsyncTask(() =>
+                        GroundTeleportTask = new AsyncTask(async () =>
                         {
-                            if (counter++ > 50)
+                            for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
                             {
-                                Player.LocalPlayer.Position = LastAllowedPos;
+                                if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
+                                {
+                                    Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
 
-                                return true;
+                                    return;
+                                }
+                                else
+                                {
+                                    Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 25f, false, false, false);
+
+                                    await RAGE.Game.Invoker.WaitAsync(5);
+                                }
                             }
 
-                            if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
-                            {
-                                Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
-
-                                return true;
-                            }
-                            else
-                            {
-                                Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 250f, false, false, false);
-                            }
-
-                            return false;
-                        }, 25, true, 1);
+                            Player.LocalPlayer.Position = LastAllowedPos;
+                        }, 0, false, 0);
 
                         GroundTeleportTask.Run();
                     }

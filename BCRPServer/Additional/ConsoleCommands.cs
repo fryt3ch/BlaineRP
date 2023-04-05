@@ -38,7 +38,7 @@ namespace BCRPServer.Additional
                         Console.WriteLine("Kicking all players...");
 
                         foreach (var player in NAPI.Pools.GetAllPlayers())
-                            Utils.KickSilent(player, "Вы были кикнуты!", 2000);
+                            Utils.Kick(player, "Вы были кикнуты!");
                     });
                 }
             },

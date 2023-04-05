@@ -84,7 +84,7 @@ namespace BCRPServer
 
         /// <summary>В муте ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsMuted { get => VoiceRange < 0f; set { Sync.Players.DisableMicrophone(this); VoiceRange = -1; } }
+        public bool IsMuted { get => VoiceRange < 0f; set { if (value) { Sync.Players.DisableMicrophone(this); VoiceRange = -1; } else { VoiceRange = 0f; } } }
 
         /// <summary>Проблемы ли у игрока со слухом/речью?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

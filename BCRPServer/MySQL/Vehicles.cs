@@ -45,11 +45,27 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET Numberplate=@Numberplate WHERE ID=@ID;";
+            cmd.CommandText = "UPDATE vehicles SET Numberplate=@Np WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
-            cmd.Parameters.AddWithValue("@Numberplate", vInfo.Numberplate?.UID ?? 0);
+            cmd.Parameters.AddWithValue("@Np", vInfo.Numberplate?.UID ?? 0);
+
+            PushQuery(cmd);
+        }
+
+        public static void VehicleRegisteredNumberplateUpdate(VehicleData.VehicleInfo vInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE vehicles SET RegNumberplate=@RegNp WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", vInfo.VID);
+
+            if (vInfo.RegisteredNumberplate == null)
+                cmd.Parameters.AddWithValue("@RegNp", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@RegNp", vInfo.RegisteredNumberplate);
 
             PushQuery(cmd);
         }

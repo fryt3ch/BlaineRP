@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
+using System.Linq;
 
 namespace BCRPServer.Events.Players
 {
@@ -23,6 +24,9 @@ namespace BCRPServer.Events.Players
             if (type > Sync.Chat.Types.Admin)
                 return;
 
+            if (pData.IsMuted)
+                return;
+
             if (type <= Sync.Chat.Types.Try)
             {
                 Sync.Chat.SendLocal(type, player, message, null);
@@ -40,11 +44,14 @@ namespace BCRPServer.Events.Players
                 if (!fData.HasMemberPermission(pData.Info, 6, true))
                     return;
 
+                if (pData.Info.Punishments.Where(x => x.Type == Sync.Punishment.Types.FractionMute && x.IsActive()).Any())
+                    return;
+
                 fData.TriggerEventToMembers("Chat::SFM", pData.CID, pData.Player.Id, message);
             }
             else if (type == Sync.Chat.Types.Goverment || type == Sync.Chat.Types.Admin) // add if of who can call
             {
-                Sync.Chat.SendGlobal(type, player, message);
+                Sync.Chat.SendGlobal(type, "todo", message);
             }
         }
     }

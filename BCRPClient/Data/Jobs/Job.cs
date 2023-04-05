@@ -318,7 +318,7 @@ namespace BCRPClient.Data.Jobs
 
                 job.SetCurrentData("AOL", activeOrders);
 
-                if (CEF.ActionBox.CurrentContext == CEF.ActionBox.Contexts.JobTruckerOrderSelect)
+                if (CEF.ActionBox.CurrentContextStr == "JobTruckerOrderSelect")
                 {
                     CEF.ActionBox.Close();
 
@@ -382,7 +382,7 @@ namespace BCRPClient.Data.Jobs
 
                 job.SetCurrentData("AOL", activeOrders);
 
-                if (CEF.ActionBox.CurrentContext == CEF.ActionBox.Contexts.JobCollectorOrderSelect)
+                if (CEF.ActionBox.CurrentContextStr == "JobCollectorOrderSelect")
                 {
                     CEF.ActionBox.Close();
 
@@ -467,7 +467,7 @@ namespace BCRPClient.Data.Jobs
 
                 job.SetCurrentData("AOL", activeOrders);
 
-                if (CEF.ActionBox.CurrentContext == CEF.ActionBox.Contexts.JobCabbieOrderSelect)
+                if (CEF.ActionBox.CurrentContextStr == "JobCabbieOrderSelect")
                 {
                     CEF.ActionBox.Close();
 

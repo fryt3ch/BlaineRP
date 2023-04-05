@@ -404,9 +404,48 @@ namespace BCRPClient.CEF
                             return;
                         }
 
-                        int t = 0;
+                        var t = 0;
 
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehiclePassportSelect, Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => (t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(), null, null);
+                        CEF.ActionBox.ShowSelect
+                        (
+                            "VehiclePassportSelect", Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => ((decimal)t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(), null, null,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, idD) =>
+                            {
+                                var id = (int)idD;
+
+                                if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                {
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    var allVehs = pData.OwnedVehicles;
+
+                                    if (allVehs.Count <= id)
+                                    {
+                                        CEF.ActionBox.Close(true);
+
+                                        return;
+                                    }
+
+                                    CEF.ActionBox.Close(true);
+
+                                    Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[id].VID);
+                                }
+                                else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                                {
+                                    CEF.ActionBox.Close(true);
+                                }
+                                else
+                                    return;
+                            },
+
+                            null
+                        );
                         break;
 
                     case PlayerActions.DocumentsLicenses:
@@ -433,7 +472,30 @@ namespace BCRPClient.CEF
                             return;
                         }
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GiveCash, string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default, player);
+                        await CEF.ActionBox.ShowRange
+                        (
+                            "GiveCash", string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, amountD) =>
+                            {
+                                int amount;
+
+                                if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                                    return;
+
+                                CEF.ActionBox.Close(true);
+
+                                if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                {
+                                    if (player is Player targetPlayer)
+                                        Sync.Offers.Request(targetPlayer, Sync.Offers.Types.Cash, amount);
+                                }
+                            },
+
+                            null
+                        );
                         break;
 
                     case PlayerActions.Money_50:
@@ -555,7 +617,38 @@ namespace BCRPClient.CEF
 
                         if (iog != null)
                         {
-                            CEF.ActionBox.ShowSelect(ActionBox.Contexts.PlacedItemOnGroundSelect, Locale.Actions.PlacedItemOnGroundSelectHeader, new (int, string)[] { (0, Locale.Actions.PlacedItemOnGroundSelectInteract), (1, iog.IsLocked ? Locale.Actions.PlacedItemOnGroundSelectUnlock : Locale.Actions.PlacedItemOnGroundSelectLock), (2, Locale.Actions.PlacedItemOnGroundSelectTake) }, null, null, iog);
+                            CEF.ActionBox.ShowSelect
+                            (
+                                "PlacedItemOnGroundSelect", Locale.Actions.PlacedItemOnGroundSelectHeader, new (decimal, string)[] { (0, Locale.Actions.PlacedItemOnGroundSelectInteract), (1, iog.IsLocked ? Locale.Actions.PlacedItemOnGroundSelectUnlock : Locale.Actions.PlacedItemOnGroundSelectLock), (2, Locale.Actions.PlacedItemOnGroundSelectTake) }, null, null,
+
+                                CEF.ActionBox.DefaultBindAction,
+
+                                (rType, id) =>
+                                {
+                                    CEF.ActionBox.Close(true);
+
+                                    if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                    {
+                                        if (iog?.Object?.Exists != true)
+                                            return;
+
+                                        if (id == 0)
+                                        {
+                                            CEF.Inventory.Show(Inventory.Types.Workbench, 0, iog.Uid);
+                                        }
+                                        else if (id == 1)
+                                        {
+                                            Events.CallRemote("Item::IOGL", iog.Uid, !iog.IsLocked);
+                                        }
+                                        else if (id == 2)
+                                        {
+                                            iog.TakeItem();
+                                        }
+                                    }
+                                },
+
+                                null
+                            );
                         }
                     }
                 }

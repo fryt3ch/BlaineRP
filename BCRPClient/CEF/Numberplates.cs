@@ -6,111 +6,63 @@ using System.Linq;
 
 namespace BCRPClient.CEF
 {
-    class Numberplates
+    class Numberplates : Events.Script
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.VehicleMisc); }
 
         private static DateTime LastSent;
 
-        private static int StoreID { get => Player.LocalPlayer.HasData("CurrentNumberplatesStore") ? Player.LocalPlayer.GetData<int>("CurrentNumberplatesStore") : -1; }
+        private static int EscBindIdx { get; set; } = -1;
 
-        private static Dictionary<string, int[]> Prices { get; set; } = new Dictionary<string, int[]>()
-        {
-            {
-                "np_0",
-
-                new int[]
-                {
-                    500_000, 450_000, 400_000, 150_000, 50_000, 15_000, 5_500, 1_500,
-                }
-            },
-
-            {
-                "np_1",
-
-                new int[]
-                {
-                    500_000, 450_000, 400_000, 150_000, 50_000, 15_000, 5_500, 1_500,
-                }
-            },
-
-            {
-                "np_2",
-
-                new int[]
-                {
-                    500_000, 450_000, 400_000, 150_000, 50_000, 15_000, 5_500, 1_500,
-                }
-            },
-
-            {
-                "np_3",
-
-                new int[]
-                {
-                    500_000, 450_000, 400_000, 150_000, 50_000, 15_000, 5_500, 1_500,
-                }
-            },
-
-            {
-                "np_4",
-
-                new int[]
-                {
-                    500_000, 450_000, 400_000, 150_000, 50_000, 15_000, 5_500, 1_500,
-                }
-            },
-        };
+        private static Additional.ExtraColshape CloseColshape { get; set; }
 
         public Numberplates()
         {
-            Events.Add("Numberplates::Buy", (object[] args) =>
+            Events.Add("Numberplates::Buy", async (args) =>
             {
-                bool byCash = (bool)args[0];
-                int num = (int)args[1];
-                int signsAmount = (int)args[2];
+                var byCash = (bool)args[0];
+                var num = (int)args[1];
+                var signsAmount = (int)args[2];
 
-                if (!LastSent.IsSpam(500, false, false))
+                var npcData = Data.NPC.GetData(Player.LocalPlayer.GetData<string>("NumberplatesBuy::NpcId"));
+
+                if (npcData == null)
+                    return;
+
+                if (!LastSent.IsSpam(1000, false, true))
                 {
-                    Events.CallRemote("", $"np_{num}", signsAmount);
-
                     LastSent = Sync.World.ServerTime;
+
+                    var res = (string)await npcData.CallRemoteProc("cop_np_buy", $"np_{num}", signsAmount, byCash ? 1 : 0);
+
+                    if (res != null)
+                    {
+                        SetText(res);
+                    }
                 }
             });
-
-
-            Events.Add("Numberplates::Show", async (object[] args) =>
-            {
-                float margin = (float)args[0];
-
-                await Show(margin);
-            });
         }
 
-        public static void RequestShow()
-        {
-            if (IsActive)
-                return;
-
-            if (!Player.LocalPlayer.HasData("CurrentGasStation"))
-                return;
-
-            var storeId = StoreID;
-
-            if (storeId < 0)
-                return;
-
-            var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-            if (pData == null)
-                return;
-        }
-
-        public static async System.Threading.Tasks.Task Show(float margin)
+        public static async System.Threading.Tasks.Task Show(decimal margin, string npcId)
         {
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Prices.Select(x => x.Value.Select(y => y * margin)) });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawPlates", new object[] { Data.Fractions.Police.NumberplatePrices.Select(x => x.Value.Select(y => Math.Floor(y * margin))) });
+
+            CEF.Cursor.Show(true, true);
+
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+
+            Player.LocalPlayer.SetData("NumberplatesBuy::NpcId", npcId);
+
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close();
+                }
+            };
         }
 
         public static void SetText(string text)
@@ -118,7 +70,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            CEF.Browser.Window.ExecuteJs("CarMain.setPlate", text);
+            CEF.Browser.Window.ExecuteJs("CarMaint.setPlate", text);
         }
 
         public static void Close()
@@ -126,7 +78,19 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
+            KeyBinds.Unbind(EscBindIdx);
+
+            EscBindIdx = -1;
+
+            Player.LocalPlayer.ResetData("NumberplatesBuy::NpcId");
+
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
+
             CEF.Browser.Render(Browser.IntTypes.VehicleMisc, false);
+
+            CEF.Cursor.Show(false, false);
         }
     }
 }

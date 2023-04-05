@@ -130,13 +130,11 @@ namespace BCRPServer.Events.Players
 
                 tData.Delete();
 
-                player.SetMainData(pData);
-
                 pData.SetReady();
             }
             catch (Exception ex)
             {
-                Utils.KickSilent(player, ex.Message);
+                Utils.Kick(player, ex.Message);
 
                 return;
             }

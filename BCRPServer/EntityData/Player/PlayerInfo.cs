@@ -113,7 +113,7 @@ namespace BCRPServer
 
             public Dictionary<SkillTypes, int> Skills { get; set; }
 
-            public List<Punishment> Punishments { get; set; }
+            public List<Sync.Punishment> Punishments { get; set; }
 
             public List<Game.Items.Gift> Gifts { get; set; }
 

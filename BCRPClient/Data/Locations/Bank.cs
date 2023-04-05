@@ -16,9 +16,9 @@ namespace BCRPClient.Data
 
             public Blip Blip { get; set; }
 
-            public Bank(int id, Utils.Vector4[] NPCs)
+            public Bank(int Id, Utils.Vector4[] NPCs)
             {
-                Id = id;
+                this.Id = Id;
 
                 Workers = new List<NPC>();
 
@@ -28,7 +28,7 @@ namespace BCRPClient.Data
                 {
                     posBlip += NPCs[i].Position;
 
-                    var npc = new NPC($"bank_{Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION)
+                    var npc = new NPC($"bank_{this.Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION)
                     {
                         DefaultDialogueId = "bank_preprocess",
 
@@ -38,7 +38,11 @@ namespace BCRPClient.Data
                     Workers.Add(npc);
                 }
 
-                Blip = new Blip(605, posBlip / NPCs.Length, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var pos = posBlip / NPCs.Length;
+
+                Blip = new Blip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                CEF.PhoneApps.GPSApp.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
             }
         }
 
@@ -69,6 +73,8 @@ namespace BCRPClient.Data
                 };
 
                 Blip = new Blip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                CEF.PhoneApps.GPSApp.AddPosition("money", "atms", $"atm_{Id}", $"atm& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(PositionParams.Position.X, PositionParams.Position.Y));
             }
         }
     }

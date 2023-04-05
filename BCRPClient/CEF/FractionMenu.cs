@@ -332,22 +332,8 @@ namespace BCRPClient.CEF
 
                     var text = ((string)args[2])?.Trim();
 
-                    if (text == null)
+                    if (!text.IsTextLengthValid(NEWS_TEXT_MIN_CHAR, NEWS_TEXT_MAX_CHAR, true))
                         return;
-
-                    if (text.Length < NEWS_TEXT_MIN_CHAR)
-                    {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, NEWS_TEXT_MIN_CHAR), -1);
-
-                        return;
-                    }
-
-                    if (text.Length > NEWS_TEXT_MAX_CHAR)
-                    {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, NEWS_TEXT_MAX_CHAR), -1);
-
-                        return;
-                    }
 
                     if (text.Where(x => x == '\n').Count() > NEWS_TEXT_MAX_NL)
                     {

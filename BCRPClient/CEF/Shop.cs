@@ -919,7 +919,59 @@ namespace BCRPClient.CEF
 
                     if (p < 0)
                     {
-                        CEF.ActionBox.ShowMoney(ActionBox.Contexts.TuningShopDeleteMod, Locale.Shop.ModDeletionTitle, string.Format(Locale.Shop.ModDeletionText, data[0] == "neon" ? Locale.General.Business.TuningNeon : data[0] == "pearl" ? Locale.General.Business.TuningPearl : data[0] == "tsmoke" ? Locale.General.Business.TuningTyreSmokeColour : Locale.General.Business.TuningWheelColour), data[0] + "_0");
+                        var id = data[0] + "_0";
+
+                        await CEF.ActionBox.ShowMoney
+                        (
+                            "TuningShopDeleteMod", Locale.Shop.ModDeletionTitle, string.Format(Locale.Shop.ModDeletionText, data[0] == "neon" ? Locale.General.Business.TuningNeon : data[0] == "pearl" ? Locale.General.Business.TuningPearl : data[0] == "tsmoke" ? Locale.General.Business.TuningTyreSmokeColour : Locale.General.Business.TuningWheelColour),
+                            
+                            null,
+
+                            async (rType) =>
+                            {
+                                if (rType == CEF.ActionBox.ReplyTypes.OK || rType == CEF.ActionBox.ReplyTypes.Cancel)
+                                {
+                                    if ((bool)await Events.CallRemoteProc("Shop::Buy", id, rType == CEF.ActionBox.ReplyTypes.OK))
+                                    {
+                                        var idData = id.Split('_');
+
+                                        if (CEF.Shop.IsRenderedTuning)
+                                        {
+                                            CEF.Browser.Window.ExecuteJs("Tuning.switchColor", false, idData[0]);
+
+                                            if (idData[0] == "neon")
+                                            {
+                                                CEF.Shop.TempVehicle?.SetNeonEnabled(false);
+                                            }
+                                            else if (idData[0] == "tsmoke")
+                                            {
+                                                CEF.Shop.TempVehicle?.SetTyreSmokeColor(255, 255, 255);
+                                            }
+                                            else if (idData[0] == "wcolour")
+                                            {
+                                                CEF.Shop.TempVehicle?.SetWheelsColour(0);
+                                            }
+                                            else if (idData[0] == "pearl")
+                                            {
+                                                CEF.Shop.TempVehicle?.SetPearlColour(0);
+                                            }
+                                        }
+                                    }
+
+                                    CEF.ActionBox.Close(false);
+                                }
+                                else if (rType == CEF.ActionBox.ReplyTypes.Additional1)
+                                {
+                                    CEF.ActionBox.Close(false);
+                                }
+                                else
+                                {
+                                    CEF.ActionBox.Close(false);
+                                }
+                            },
+
+                            null
+                        );
 
                         return;
                     }
@@ -2188,6 +2240,8 @@ namespace BCRPClient.CEF
                 if (CEF.ActionBox.IsActive)
                 {
                     CEF.ActionBox.Close(false);
+
+                    return;
                 }
                 else if (TestDriveActive)
                 {
@@ -2217,7 +2271,7 @@ namespace BCRPClient.CEF
             if (pData == null)
                 return;
 
-            if (CurrentType == Types.TuningShop && CEF.ActionBox.CurrentContext == ActionBox.Contexts.TuningShopDeleteMod)
+            if (CurrentType == Types.TuningShop && CEF.ActionBox.CurrentContextStr == "TuningShopDeleteMod")
             {
                 CEF.ActionBox.Close(true);
             }

@@ -747,19 +747,7 @@ namespace BCRPClient.Sync
             });
             #endregion
 
-            Events.Add("Vehicles::NPChoose", (args) =>
-            {
-                if (Utils.IsAnyCefActive(true))
-                    return;
-
-                var items = ((JObject)args[0]).ToObject<Dictionary<uint, string>>();
-
-                int counter = 0;
-
-                CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, items.Select(x => (counter++, $"[{x.Value}]")).ToArray(), null, null, items);
-            });
-
-            Events.Add("Vehicles::Garage::SlotsMenu", (args) =>
+            Events.Add("Vehicles::Garage::SlotsMenu", async (args) =>
             {
                 if (Utils.IsAnyCefActive(true))
                     return;
@@ -768,7 +756,40 @@ namespace BCRPClient.Sync
 
                 freeSlots.Insert(0, int.MinValue + freeSlots[(new Random()).Next(0, freeSlots.Count)]);
 
-                CEF.ActionBox.ShowSelect(ActionBox.Contexts.GarageVehiclePlaceSelect, Locale.Actions.GarageVehicleSlotSelectHeader, freeSlots.Select(x => (x, x < 0 ? "Случайное место" : $"Место #{x + 1}")).ToArray(), null, null);
+                await CEF.ActionBox.ShowSelect
+                (
+                    "GarageVehiclePlaceSelect", Locale.Actions.GarageVehicleSlotSelectHeader, freeSlots.Select(x => ((decimal)x, x < 0 ? "Случайное место" : $"Место #{x + 1}")).ToArray(), null, null,
+
+                    CEF.ActionBox.DefaultBindAction,
+
+                    (rType, idD) =>
+                    {
+                        var id = (int)idD;
+
+                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            var vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle;
+
+                            if (vehicle == null)
+                                return;
+
+                            CEF.ActionBox.Close(true);
+
+                            if (id < 0)
+                                id = int.MinValue + id;
+
+                            Sync.Vehicles.Park(vehicle, id);
+                        }
+                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                        else
+                            return;
+                    },
+
+                    null
+                );
             });
 
             Events.Add("Vehicles::Fuel", (args) =>
@@ -880,21 +901,104 @@ namespace BCRPClient.Sync
                 Utils.SetTaskAsPending("Vehicles::WTS", task);
             });
 
-            Events.Add("Vehicles::JVRO", (args) =>
+            Events.Add("Vehicles::JVRO", async (args) =>
             {
                 var rentPrice = (args[0]).ToDecimal();
 
-                var veh = Player.LocalPlayer.Vehicle;
+                var vehicle = Player.LocalPlayer.Vehicle;
 
-                if (veh?.Exists != true)
+                if (vehicle?.Exists != true)
                     return;
 
-                var vData = GetData(veh);
+                var vData = GetData(vehicle);
 
                 if (vData == null)
                     return;
 
-                CEF.ActionBox.ShowMoney(ActionBox.Contexts.JobVehicleRentMoney, Locale.Actions.JobVehicleRentTitle, string.Format(Locale.Actions.JobVehicleRentText, $"{vData.Data.Name} [{(veh.GetNumberplateText() ?? "null")}]", Utils.GetPriceString(rentPrice)), veh);
+                await CEF.ActionBox.ShowMoney
+                (
+                    "JobVehicleRentMoney", Locale.Actions.JobVehicleRentTitle, string.Format(Locale.Actions.JobVehicleRentText, $"{vData.Data.Name} [{(vehicle.GetNumberplateText() ?? "null")}]", Utils.GetPriceString(rentPrice)),
+
+                    () =>
+                    {
+                        CEF.ActionBox.DefaultBindAction.Invoke();
+
+                        var checkAction = new Action(() =>
+                        {
+                            if (vehicle?.Exists != true || Player.LocalPlayer.Vehicle != vehicle || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                                CEF.ActionBox.Close(true);
+                        });
+
+                        Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                        GameEvents.Update -= checkAction.Invoke;
+                        GameEvents.Update += checkAction.Invoke;
+                    },
+
+                    async (rType) =>
+                    {
+                        if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
+                            return;
+
+                        if (rType == CEF.ActionBox.ReplyTypes.OK || rType == CEF.ActionBox.ReplyTypes.Cancel)
+                        {
+                            CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+                            var res = (int)await Events.CallRemoteProc("Vehicles::JVRS", rType == CEF.ActionBox.ReplyTypes.OK);
+
+                            if (res == byte.MaxValue)
+                            {
+                                Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA::DLV", true);
+
+                                CEF.ActionBox.Close(true);
+                            }
+                            else
+                            {
+                                if (res == 3)
+                                    return;
+
+                                CEF.ActionBox.Close(true);
+
+                                if (res == 1)
+                                {
+                                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobRentVehicleAlreadyRented0);
+                                }
+                                else if (res == 2)
+                                {
+                                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobRentVehicleAlreadyRented1);
+                                }
+                            }
+                        }
+                        else if (rType == CEF.ActionBox.ReplyTypes.Additional1)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    },
+
+                    () =>
+                    {
+                        var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                        if (checkAction != null)
+                        {
+                            GameEvents.Update -= checkAction.Invoke;
+
+                            Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                        }
+
+                        if (!Player.LocalPlayer.HasData("ActionBox::Temp::JVRVA::DLV"))
+                        {
+                            if (Player.LocalPlayer.Vehicle == vehicle)
+                            {
+                                Player.LocalPlayer.TaskLeaveAnyVehicle(0, 0);
+                            }
+                        }
+                        else
+                        {
+                            Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA::DLV");
+                        }
+                    }
+                );
             });
 
             KeyBinds.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
@@ -1456,7 +1560,7 @@ namespace BCRPClient.Sync
             var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
             var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
-            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 5000 || (timePassed > 500 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
+            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 7500 || (timePassed > 1000 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
             {
                 if (tStatus != 7)
                     Player.LocalPlayer.ClearTasks();
@@ -1708,7 +1812,7 @@ namespace BCRPClient.Sync
             Events.CallRemote("Vehicles::TakePlate", veh);
         }
 
-        public static void SetupPlate(Vehicle veh)
+        public static async void SetupPlate(Vehicle veh)
         {
             var vData = GetData(veh);
 
@@ -1727,7 +1831,7 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            var allNumberplates = new List<(int, string)>();
+            var allNumberplates = new List<(decimal, string)>();
 
             for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
             {
@@ -1752,7 +1856,27 @@ namespace BCRPClient.Sync
             }
             else
             {
-                CEF.ActionBox.ShowSelect(ActionBox.Contexts.NumberplateSelect, Locale.Actions.NumberplateSelectHeader, allNumberplates.ToArray(), null, null);
+                await CEF.ActionBox.ShowSelect
+                (
+                    "NumberplateSelect", Locale.Actions.NumberplateSelectHeader, allNumberplates.ToArray(), null, null,
+
+                    CEF.ActionBox.DefaultBindAction,
+
+                    (rType, id) =>
+                    {
+                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            if (BCRPClient.Interaction.CurrentEntity is Vehicle veh)
+                            {
+                                Events.CallRemote("Vehicles::SetupPlate", veh, id);
+                            }
+                        }
+
+                        CEF.ActionBox.Close(true);
+                    },
+
+                    null
+                );
             }
 
             //Events.CallRemote("Vehicles::SetupPlate", veh, 0);
@@ -1932,7 +2056,7 @@ namespace BCRPClient.Sync
             Sync.Offers.Request(driver, Offers.Types.WaypointShare, $"{wpPos.X}_{wpPos.Y}");
         }
 
-        public static void BoatFromTrailerToWater(Vehicle veh)
+        public static async void BoatFromTrailerToWater(Vehicle veh)
         {
             var vData = GetData(veh);
 
@@ -1944,25 +2068,53 @@ namespace BCRPClient.Sync
 
             if (vData.IsAttachedToLocalTrailer is Vehicle trVeh)
             {
-                var waterPos = veh.GetCoords(false);
+                await CEF.ActionBox.ShowSelect
+                (
+                    "BoatFromTrailerSelect", "Снять лодку с прицепа", new (decimal Id, string Text)[] { (0, "На воду"), (1, "На землю") }, null, null,
 
-                if (!veh.IsInWater())
-                {
-                    var wPos = Utils.FindEntityWaterIntersectionCoord(veh, new Vector3(0f, 0f, 2.5f), 10f, 1.5f, -7.5f, 45f, 0.5f, 31);
+                    CEF.ActionBox.DefaultBindAction,
 
-                    if (wPos != null)
+                    (rType, id) =>
                     {
-                        waterPos = wPos;
-                    }
-                    else
-                    {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
+                        if (rType == ActionBox.ReplyTypes.OK)
+                        {
+                            if (id == 0)
+                            {
+                                if (!veh.IsInWater() && !trVeh.IsInWater())
+                                {
+                                    var wPos = Utils.FindEntityWaterIntersectionCoord(veh, new Vector3(0f, 0f, 2.5f), 10f, 1.5f, -7.5f, 45f, 0.5f, 31);
 
-                        return;
-                    }
-                }
+                                    if (wPos != null)
+                                    {
+                                        Events.CallRemote("Vehicles::BTOW", veh, wPos.X, wPos.Y, wPos.Z);
+                                    }
+                                    else
+                                    {
+                                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
 
-                Events.CallRemote("Vehicles::BTOW", veh, waterPos.X, waterPos.Y, waterPos.Z);
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    Events.CallRemote("Vehicles::BTOW", veh, float.MaxValue, float.MaxValue, float.MaxValue);
+                                }
+                            }
+                            else if (id == 1)
+                            {
+                                Events.CallRemote("Vehicles::BTOW", veh, float.MaxValue, float.MaxValue, float.MaxValue);
+                            }
+
+                            CEF.ActionBox.Close(true);
+                        }
+                        else
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    },
+
+                    null
+                );
             }
             else
             {

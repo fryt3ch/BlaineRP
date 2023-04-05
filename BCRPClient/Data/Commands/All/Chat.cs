@@ -33,5 +33,26 @@
         {
             Settings.Chat.Height = Settings.Chat.Height == 0 ? Settings.Chat.Default.Height : 0;
         }
+
+        [Command("mutef", false, "Скрыть/показать чат")]
+        public static void FractionMute(uint pid, uint mins, string reason)
+        {
+            if (!mins.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
+            CallRemote("p_mutef", pid, mins, reason);
+        }
+
+        [Command("unmutef", false, "Скрыть/показать чат")]
+        public static void FractionUnmute(uint pid, string reason)
+        {
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
+            CallRemote("p_unmutef", pid, reason);
+        }
     }
 }

@@ -124,18 +124,8 @@ namespace BCRPClient.CEF.PhoneApps
 
                 var text = ((string)args[1])?.Trim();
 
-                if (text == null || text.Length < Settings.PHONE_SMS_MIN_LENGTH)
-                {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, Settings.PHONE_SMS_MIN_LENGTH));
-
+                if (!text.IsTextLengthValid(Settings.PHONE_SMS_MIN_LENGTH, Settings.PHONE_SMS_MAX_LENGTH, true))
                     return;
-                }
-                else if (text.Length > Settings.PHONE_SMS_MAX_LENGTH)
-                {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, Settings.PHONE_SMS_MAX_LENGTH));
-
-                    return;
-                }
 
                 LastSent = Sync.World.ServerTime;
 

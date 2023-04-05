@@ -50,14 +50,17 @@ namespace BCRPClient.CEF
             MePlayer,
             /// <summary>/try над игроком</summary>
             TryPlayer,
+
             Ban,
             BanHard,
             Kick,
             Mute,
             Jail,
+            Warn,
             UnBan,
             UnMute,
             UnJail,
+            UnWarn,
             News,
             Advert,
         }
@@ -95,7 +98,9 @@ namespace BCRPClient.CEF
                     var endOfCmd = msg.IndexOf(' ');
 
                     if (endOfCmd == -1 || endOfCmd + 1 == msg.Length)
+                    {
                         Data.Commands.Execute(msg.Substring(1));
+                    }
                     else
                     {
                         var cmd = msg.Substring(1, endOfCmd - 1);
@@ -109,28 +114,27 @@ namespace BCRPClient.CEF
                         {
                             if (!textDetected)
                             {
-                                if (cmdInfo[i] != '"' && cmdInfo[i] != ' ' && cmdInfo[i] != ',')
-                                {
-                                    currentParam.Append(cmdInfo[i]);
-                                }
-                                else if (cmdInfo[i] == '"')
+                                if (cmdInfo[i] == '"')
                                 {
                                     textDetected = true;
                                 }
-                                else if (currentParam.Length > 0)
+                                else if (cmdInfo[i] == ' ' || cmdInfo[i] == ',')
                                 {
-                                    parameters.Add(currentParam.ToString().ToLower());
+                                    if (currentParam.Length > 0)
+                                    {
+                                        parameters.Add(currentParam.ToString().ToLower());
 
-                                    currentParam.Clear();
+                                        currentParam.Clear();
+                                    }
+                                }
+                                else
+                                {
+                                    currentParam.Append(cmdInfo[i]);
                                 }
                             }
                             else
                             {
-                                if (cmdInfo[i] != '"')
-                                {
-                                    currentParam.Append(cmdInfo[i]);
-                                }
-                                else
+                                if (cmdInfo[i] == '"')
                                 {
                                     textDetected = false;
 
@@ -140,6 +144,10 @@ namespace BCRPClient.CEF
 
                                         currentParam.Clear();
                                     }
+                                }
+                                else
+                                {
+                                    currentParam.Append(cmdInfo[i]);
                                 }
                             }
 
@@ -160,6 +168,15 @@ namespace BCRPClient.CEF
 
                 if (LastSent.IsSpam(500, false, true))
                     return;
+
+                var mute = type == Type.Fraction ? Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute || x.Type == Sync.Punishment.Types.FractionMute).FirstOrDefault() : Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute).FirstOrDefault(); ;
+
+                if (mute != null)
+                {
+                    mute.ShowErrorNotification();
+
+                    return;
+                }
 
                 Events.CallRemote("Chat::Send", (int)type, msg);
             });
@@ -300,7 +317,7 @@ namespace BCRPClient.CEF
 
                     AddToQueue("Messages.advert", timeStr, playerStr, targetStr, message, ""); // phone number
                 }
-                else if (type == Type.Kick || type == Type.Ban || type == Type.BanHard || type == Type.Mute || type == Type.Jail)
+                else if (type == Type.Kick || type == Type.Ban || type == Type.BanHard || type == Type.Mute || type == Type.Jail || type == Type.Warn)
                 {
                     var targetStr = (string)args[3];
 
@@ -311,6 +328,10 @@ namespace BCRPClient.CEF
                     else if (type == Type.Kick)
                     {
                         AddToQueue("Messages.admin_kick", timeStr, playerStr, targetStr, message);
+                    }
+                    else if (type == Type.Warn)
+                    {
+                        AddToQueue("Messages.admin_warn", timeStr, playerStr, targetStr, message);
                     }
                     else
                     {
@@ -324,7 +345,7 @@ namespace BCRPClient.CEF
                             AddToQueue("Messages.admin_jail", timeStr, playerStr, targetStr, time, message);
                     }
                 }
-                else if (type == Type.UnBan || type == Type.UnMute || type == Type.UnJail)
+                else if (type == Type.UnBan || type == Type.UnMute || type == Type.UnJail || type == Type.UnWarn)
                 {
                     var targetStr = (string)args[3];
 
@@ -334,13 +355,15 @@ namespace BCRPClient.CEF
                         AddToQueue("Messages.admin_unmute", timeStr, playerStr, targetStr, message);
                     else if (type == Type.UnJail)
                         AddToQueue("Messages.admin_unjail", timeStr, playerStr, targetStr, message);
+                    else if (type == Type.UnWarn)
+                        AddToQueue("Messages.admin_unwarn", timeStr, playerStr, targetStr, message);
                 }
 
                 if (IsActive)
                 {
                     (string, object[]) t;
 
-                    if (Queue.TryPeek(out t))
+                    if (Queue.TryDequeue(out t))
                     {
                         Browser.Window.ExecuteCachedJs("Chat.needScroll();");
 
@@ -358,7 +381,7 @@ namespace BCRPClient.CEF
                 if (!CEF.Browser.IsRendered(CEF.Browser.IntTypes.Chat))
                     return;
 
-                string message = (string)args[0];
+                var message = (string)args[0];
 
                 if (Settings.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');

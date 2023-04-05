@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using BCRPClient.CEF;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -26,7 +27,7 @@ namespace BCRPClient.Data.Jobs
             Blip = new Blip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
         }
 
-        public void ShowOrderSelection(List<OrderInfo> activeOrders)
+        public async void ShowOrderSelection(List<OrderInfo> activeOrders)
         {
             if (activeOrders.Count == 0)
             {
@@ -43,7 +44,124 @@ namespace BCRPClient.Data.Jobs
 
             activeOrders = activeOrders.OrderBy(x => { var dist = pPos.DistanceTo(x.Position); dict.Add(x.Id, dist); return dist; }).ToList();
 
-            CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobCabbieOrderSelect, Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => (counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.GetStreetName(x.Position), Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+            var vehicle = Player.LocalPlayer.Vehicle;
+
+            await CEF.ActionBox.ShowSelect
+            (
+                "JobCabbieOrderSelect", Locale.Actions.JobVehicleOrderSelectTitle, activeOrders.Select(x => ((decimal)counter++, string.Format(Locale.Actions.JobCabbieOrderText, counter, Utils.GetStreetName(x.Position), Math.Round(dict.GetValueOrDefault(x.Id) / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
+
+                () =>
+                {
+                    CEF.ActionBox.DefaultBindAction.Invoke();
+
+                    var checkAction = new Action(() =>
+                    {
+                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                            CEF.ActionBox.Close(true);
+                    });
+
+                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                    GameEvents.Update -= checkAction.Invoke;
+                    GameEvents.Update += checkAction.Invoke;
+                },
+
+                async (rType, idD) =>
+                {
+                    var id = (int)idD;
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (rType == CEF.ActionBox.ReplyTypes.OK)
+                    {
+                        var orders = pData.CurrentJob?.GetCurrentData<List<Data.Jobs.Cabbie.OrderInfo>>("AOL");
+
+                        if (orders == null)
+                            return;
+
+                        if (id >= orders.Count)
+                            return;
+
+                        var order = orders[id];
+
+                        var res = (byte)(await Events.CallRemoteProc("Job::CAB::TO", order.Id)).ToDecimal();
+
+                        if (res == byte.MaxValue)
+                        {
+                            if (pData.CurrentJob is Data.Jobs.Cabbie cabbieJob)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi5);
+
+                                cabbieJob.SetCurrentData("CO", order);
+
+                                var pos = new Vector3(order.Position.X, order.Position.Y, order.Position.Z);
+
+                                pos.Z -= 1f;
+
+                                var blip = new Blip(280, pos, Locale.General.Blip.JobTaxiTargetPlayer, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+
+                                blip.SetRoute(true);
+
+                                var colshape = new Additional.Circle(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, true, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                                {
+                                    ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
+
+                                    OnEnter = (cancel) =>
+                                    {
+                                        var jobVehicle = cabbieJob.GetCurrentData<Vehicle>("JVEH");
+
+                                        if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
+                                        {
+                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+
+                                            return;
+                                        }
+
+                                        Events.CallRemote("Job::CAB::OS", order.Id);
+                                    }
+                                };
+
+                                cabbieJob.SetCurrentData("Blip", blip);
+                                cabbieJob.SetCurrentData("CS", colshape);
+                            }
+
+                            CEF.ActionBox.Close(true);
+                        }
+                        else
+                        {
+                            if (res == 2)
+                            {
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderAlreadyTaken);
+                            }
+                            else
+                            {
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderTakeError);
+                            }
+                        }
+                    }
+                    else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                    {
+                        CEF.ActionBox.Close(true);
+                    }
+                    else
+                        return;
+                },
+
+                () =>
+                {
+                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                    if (checkAction != null)
+                    {
+                        GameEvents.Update -= checkAction.Invoke;
+
+                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                    }
+                }
+            );
         }
 
         public override void OnStartJob(object[] data)

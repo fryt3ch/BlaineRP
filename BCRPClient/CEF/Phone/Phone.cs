@@ -30,7 +30,7 @@ namespace BCRPClient.CEF
             BSim,
             Camera,
             Navigator,
-            Music,
+            Radio,
             Phone,
             Contacts,
             SMS,
@@ -46,7 +46,7 @@ namespace BCRPClient.CEF
             { AppTypes.BSim, "bsim" },
             { AppTypes.Camera, "camera" },
             { AppTypes.Navigator, "gps" },
-            { AppTypes.Music, "music" },
+            { AppTypes.Radio, "radio" },
             { AppTypes.Phone, "phone" },
             { AppTypes.Contacts, "contacts" },
             { AppTypes.SMS, "sms" },
@@ -60,7 +60,7 @@ namespace BCRPClient.CEF
         {
             Events.Add("Phone::OpenApp", async (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -79,7 +79,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Phone::Tab", async (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var pData = Sync.Players.GetData(RAGE.Elements.Player.LocalPlayer);
@@ -418,6 +418,10 @@ namespace BCRPClient.CEF
                         };
                     }
                 }
+                else if (CurrentApp == AppTypes.Navigator)
+                {
+                    CEF.PhoneApps.GPSApp.ShowTab((string)args[0]);
+                }
             });
 
             Events.Add("Phone::Tooltip", async (args) =>
@@ -732,7 +736,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Phone::UpdateToggle", (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var toggleId = (string)args[0];
@@ -819,10 +823,6 @@ namespace BCRPClient.CEF
 
                     PhoneApps.VehiclesApp.Show(ownedVehs.Count > 0 ? ownedVehs : null, rentedVehs.Count > 0 ? rentedVehs : null);
                 }
-                else if (appType == AppTypes.Navigator)
-                {
-
-                }
                 else if (appType == AppTypes.Contacts)
                 {
                     var allContacts = pData.Contacts;
@@ -854,6 +854,14 @@ namespace BCRPClient.CEF
                 else if (appType == AppTypes.Taxi)
                 {
                     PhoneApps.TaxiApp.Show(pData);
+                }
+                else if (appType == AppTypes.Radio)
+                {
+                    CEF.PhoneApps.RadioApp.Show();
+                }
+                else if (appType == AppTypes.Navigator)
+                {
+                    CEF.PhoneApps.GPSApp.Show();
                 }
             }
         }

@@ -480,7 +480,7 @@ namespace BCRPServer
 
             Familiars = new List<uint>();
 
-            Punishments = new List<Punishment>();
+            Punishments = new List<Sync.Punishment>();
 
             Info.PlayerData = this;
 
@@ -502,6 +502,8 @@ namespace BCRPServer
         /// <summary>Метод обозначает готовность персонажа к игре</summary>
         public void SetReady()
         {
+            Player.SetMainData(this);
+
             Player.Name = $"{Name} {Surname}";
 
             UpdateCustomization();
@@ -511,6 +513,16 @@ namespace BCRPServer
 
             foreach (var vInfo in OwnedVehicles)
                 vInfo.Spawn();
+
+            var activePunishments = Punishments.Where(x => x.IsActive()).ToList();
+
+            foreach (var x in activePunishments)
+            {
+                if (x.Type == Sync.Punishment.Types.Mute)
+                {
+                    IsMuted = true;
+                }
+            }
 
             NAPI.Task.Run(() =>
             {
@@ -550,6 +562,9 @@ namespace BCRPServer
 
                     { "Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson() },
                 };
+
+                if (activePunishments.Count > 0)
+                    data.Add("P", JArray.FromObject(activePunishments.Select(x => $"{x.Id}&{(int)x.Type}&{x.EndDate.GetUnixTimestamp()}&{x.AdditionalData ?? ""}")));
 
                 if (Info.Contacts.Count > 0)
                     data.Add("Conts", JObject.FromObject(Info.Contacts));
@@ -595,15 +610,13 @@ namespace BCRPServer
                 if (rentedVehs.Count > 0)
                     data.Add("RV", JArray.FromObject(rentedVehs.Select(x => $"{x.Vehicle.Id}&{x.Info.ID}").ToList()));
 
-                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
-
                 Player.SetAlpha(255);
 
                 Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Utils.HouseDimBase);
+                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
 
-                Player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, false, "Players::CharacterReady");
+                Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Utils.HouseDimBase);
             }, 1000);
         }
 

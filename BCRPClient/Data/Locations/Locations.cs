@@ -10,6 +10,8 @@ namespace BCRPClient.Data
     {
         public Locations()
         {
+            NorthYankton.Initialize();
+
             CayoPerico.Initialize();
 
             Garage.Style.LoadAll();
@@ -72,7 +74,10 @@ namespace BCRPClient.Data
                 DefaultDialogueId = "vrent_s_preprocess",
             };
 
-            new NPC($"cop0_{(int)Fractions.Types.PolicePaleto}", "Майкл", NPC.Types.Talkable, "csb_cop", new Vector3(-448.2888f, 6012.634f, 31.71635f), 313.2359f, Settings.MAIN_DIMENSION);
+            new NPC($"cop0_{(int)Fractions.Types.PolicePaleto}", "Майкл", NPC.Types.Talkable, "csb_cop", new Vector3(-448.2888f, 6012.634f, 31.71635f), 313.2359f, Settings.MAIN_DIMENSION)
+            {
+                DefaultDialogueId = "cop_0_g",
+            };
 
             new Blip(60, new Vector3(-444f, 6016f, 33f), Fractions.Fraction.Get(Fractions.Types.PolicePaleto)?.Name ?? "null", 1f, 63, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
         }

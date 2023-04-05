@@ -24,13 +24,13 @@ namespace BCRPServer
 
             public class Data
             {
-                public int Goal { get; set; }
+                public uint Goal { get; set; }
 
                 public bool IsHidden { get; set; }
 
                 public Game.Items.Gift.Prototype Reward { get; set; }
 
-                public Data(int Goal, Game.Items.Gift.Prototype Reward)
+                public Data(uint Goal, Game.Items.Gift.Prototype Reward)
                 {
                     this.Goal = Goal;
                     this.Reward = Reward;
@@ -43,7 +43,7 @@ namespace BCRPServer
             public bool IsRecieved { get; set; }
 
             [JsonProperty(PropertyName = "P")]
-            public int Progress { get; set; }
+            public uint Progress { get; set; }
 
             [JsonIgnore]
             public Types Type { get; set; }
@@ -56,13 +56,13 @@ namespace BCRPServer
                 this.Type = Type;
             }
 
-            public Achievement(Types Type, int Progress, bool IsRecieved) : this(Type)
+            public Achievement(Types Type, uint Progress, bool IsRecieved) : this(Type)
             {
                 this.Progress = Progress;
                 this.IsRecieved = IsRecieved;
             }
 
-            public bool UpdateProgress(PlayerInfo pInfo, int newProgress)
+            public bool UpdateProgress(PlayerInfo pInfo, uint newProgress)
             {
                 if (IsRecieved)
                     return true;

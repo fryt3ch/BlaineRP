@@ -84,6 +84,17 @@ namespace BCRPClient.CEF
         {
             { "ASP::ARN", new Instance(Types.Error, Locale.Notifications.AntiSpam.ActionRestrictedNow, Locale.Notifications.ErrorHeader) },
 
+            { "ACMD::NA", new Instance(Types.Error, "Для использования данной команды необходим более высокий уровень администрирования!", Locale.Notifications.ErrorHeader) },
+
+            { "ASTUFF::PIAMT", new Instance(Types.Error, "Данный игрок уже имеет активный мут!", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PINMT", new Instance(Types.Error, "У данного игрока нет активного мута!", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PIAJL", new Instance(Types.Error, "Данный игрок уже сидит в NonRP-тюрьме!", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PINJL", new Instance(Types.Error, "Данный игрок не сидит в NonRP-тюрьме!", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PAHMW", new Instance(Types.Error, "У данного игрока уже есть максимальное кол-во предупреждений ({0})!\nЕго следует заблокировать", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PWNFOF", new Instance(Types.Error, "У данного игрока отсутствует предупреждение с таким ID!", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PIAB", new Instance(Types.Error, "Данный игрок уже заблокирован!", Locale.Notifications.ErrorHeader) },
+            { "ASTUFF::PNB", new Instance(Types.Error, "Данный игрок не заблокирован!", Locale.Notifications.ErrorHeader) },
+
             { "Auth::MailNotFree", new Instance(Types.Error, Locale.Notifications.Auth.MailNotFree, Locale.Notifications.ErrorHeader, -1) },
             { "Auth::LoginNotFree", new Instance(Types.Error, Locale.Notifications.Auth.LoginNotFree, Locale.Notifications.ErrorHeader, -1) },
 
@@ -108,6 +119,7 @@ namespace BCRPClient.CEF
             { "Hood::Unlocked", new Instance(Types.Success, Locale.Notifications.Vehicles.Hood.Unlocked, Locale.Notifications.Vehicles.Header) },
 
             { "NP::Set", new Instance(Types.Success, Locale.Notifications.Vehicles.PlateInstalled, Locale.Notifications.Vehicles.Header) },
+            { "NP::NFNRN", new Instance(Types.Error, "На данный момент нет свободных номерных знаков!", Locale.Notifications.ErrorHeader) },
 
             { "Vehicle::NotAllowed", new Instance(Types.Error, Locale.Notifications.Vehicles.NotAllowed, Locale.Notifications.Vehicles.Header) },
             { "Vehicle::NFO", new Instance(Types.Error, Locale.Notifications.Vehicles.NotFullOwner, Locale.Notifications.ErrorHeader) },
@@ -165,6 +177,9 @@ namespace BCRPClient.CEF
             { "Job::AHJ", new Instance(Types.Error, Locale.Notifications.General.AlreadyHaveJob, Locale.Notifications.ErrorHeader) },
 
             { "Kick", new Instance(Types.Information, Locale.Notifications.General.Kick, Locale.Notifications.DefHeader) },
+            { "KickA", new Instance(Types.Information, Locale.Notifications.General.KickAdmin, Locale.Notifications.DefHeader) },
+            { "KickB", new Instance(Types.Ban, "Вы были заблокированы на сервере!\nАдминистратор: {0}\nПричина: {1}\nДата окончания блокировки: {2}\n\nВы можете обжаловать решение Администрации сервера на нашем форуме!", Locale.Notifications.DefHeader) },
+
             { "TeleportBy", new Instance(Types.Information, Locale.Notifications.General.TeleportBy, Locale.Notifications.DefHeader) },
 
             { "Report::Start", new Instance(Types.Information, Locale.Notifications.General.Report.Start, Locale.Notifications.General.Report.Header) },
@@ -284,13 +299,6 @@ namespace BCRPClient.CEF
             { "Report::S", new Instance(Types.Error, "Вы сможете отправить новое сообщение к этому запросу через {0}", Locale.Notifications.ErrorHeader) },
             { "Report::AT", new Instance(Types.Information, "Администратор {0} начал заниматься Вашим запросом!", Locale.Notifications.DefHeader) },
 
-            { "Fraction::NM", new Instance(Types.Error, "Вы не состоите в этой фракции!", Locale.Notifications.ErrorHeader) },
-            { "Fraction::NMA", new Instance(Types.Error, "Вы не состоите ни в одной фракции!", Locale.Notifications.ErrorHeader) },
-            { "Fraction::NA", new Instance(Types.Error, "У Вас недостаточно прав!", Locale.Notifications.ErrorHeader) },
-            { "Fraction::NAL", new Instance(Types.Error, "Только лидер фракции может делать это!", Locale.Notifications.ErrorHeader) },
-            { "Fraction::RE0", new Instance(Types.Error, "Вы не можете редактировать эту должность!", Locale.Notifications.ErrorHeader) },
-            { "Fraction::RE1", new Instance(Types.Error, "Вы не можете самостоятельно изменить название должности!\nОставьте заявку на форуме с желаемыми названиями должностей и ожидайте ответа", Locale.Notifications.ErrorHeader) },
-
             { "CDown::1", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText1, Locale.Notifications.ErrorHeader) },
             { "CDown::2", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText2, Locale.Notifications.ErrorHeader) },
             { "CDown::3", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText3, Locale.Notifications.ErrorHeader) },
@@ -312,6 +320,15 @@ namespace BCRPClient.CEF
 
             { "Escort::0_0", new Instance(Types.Information, "{0} начал вести Вас за собой!", Locale.Notifications.DefHeader) },
             { "Escort::0_1", new Instance(Types.Information, "{0} перестал вести Вас за собой", Locale.Notifications.DefHeader) },
+
+            { "Fraction::NM", new Instance(Types.Error, "Вы не состоите в этой фракции!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NMA", new Instance(Types.Error, "Вы не состоите ни в одной фракции!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NA", new Instance(Types.Error, "У Вас недостаточно прав!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NAL", new Instance(Types.Error, "Только лидер фракции может делать это!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::RE0", new Instance(Types.Error, "Вы не можете редактировать эту должность!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::RE1", new Instance(Types.Error, "Вы не можете самостоятельно изменить название должности!\nОставьте заявку на форуме с желаемыми названиями должностей и ожидайте ответа", Locale.Notifications.ErrorHeader) },
+            { "Fraction::HRIBTY", new Instance(Types.Error, "Ранг данного сотрудника равен либо выше Вашего, вы не можете сделать это!", Locale.Notifications.ErrorHeader) },
+            { "Fraction::TGINYF", new Instance(Types.Error, "Данный человек не состоит в Вашей фракции!", Locale.Notifications.ErrorHeader) },
 
             { "Fraction::RU", new Instance(Types.Information, "{0} повысил Вас до должности {1}!", Locale.Notifications.DefHeader) },
             { "Fraction::RD", new Instance(Types.Information, "{0} понизил Вас до должности {1}!", Locale.Notifications.DefHeader) },

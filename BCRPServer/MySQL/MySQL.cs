@@ -351,6 +351,8 @@ namespace BCRPServer
 
                                 var ownersCount = Convert.ToUInt32(reader["OwnersCount"]);
 
+                                var regNumberplate = reader["RegNumberplate"] is string str ? str : null;
+
                                 var vInfo = new VehicleData.VehicleInfo()
                                 {
                                     VID = vid,
@@ -376,6 +378,8 @@ namespace BCRPServer
                                     Data = Game.Data.Vehicles.All[sid],
 
                                     OwnersCount = ownersCount,
+
+                                    RegisteredNumberplate = regNumberplate,
                                 };
 
                                 VehicleData.VehicleInfo.AddOnLoad(vInfo);
@@ -453,7 +457,7 @@ namespace BCRPServer
                                 {
                                     var data = ((string)reader[x.ToString()]).DeserializeFromJson<JObject>();
 
-                                    var achievement = new PlayerData.Achievement(x, (int)data["P"], (bool)data["IR"]);
+                                    var achievement = new PlayerData.Achievement(x, Convert.ToUInt32(data["P"]), (bool)data["IR"]);
 
                                     allAchievements.Add(achievement, cid);
                                 }
@@ -528,6 +532,46 @@ namespace BCRPServer
                         }
                     }
 
+                    var allPunishments = new Dictionary<Sync.Punishment, uint>();
+
+                    cmd.CommandText = "SELECT * FROM punishments;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var id = Convert.ToUInt32(reader["ID"]);
+                                var cid = Convert.ToUInt32(reader["CID"]);
+                                var punisherCid = Convert.ToUInt32(reader["PunisherID"]);
+                                var type = (Sync.Punishment.Types)Convert.ToInt32(reader["Type"]);
+                                var startDate = (DateTime)reader["StartDate"];
+                                var endDate = (DateTime)reader["EndDate"];
+                                var reason = (string)reader["Reason"];
+
+                                var obj = new Sync.Punishment(id, type, reason, startDate, endDate, punisherCid);
+
+                                var amnestyObj = reader["Amnesty"];
+
+                                if (amnestyObj != DBNull.Value)
+                                    obj.AmnestyInfo = ((string)amnestyObj).DeserializeFromJson<Sync.Punishment.Amnesty>();
+                                else if (!obj.IsActive())
+                                    obj.AmnestyInfo = new Sync.Punishment.Amnesty();
+
+                                var dataObj = reader["Data"];
+
+                                if (dataObj != DBNull.Value)
+                                    obj.AdditionalData = (string)dataObj;
+
+                                allPunishments.Add(obj, cid);
+
+                                if (id > Sync.Punishment.MaxAddedId)
+                                    Sync.Punishment.MaxAddedId = id;
+                            }
+                        }
+                    }
+
                     cmd.CommandText = "SELECT * FROM characters;";
 
                     using (var reader = cmd.ExecuteReader())
@@ -584,7 +628,7 @@ namespace BCRPServer
 
                                 var skills = ((string)reader["Skills"]).DeserializeFromJson<Dictionary<PlayerData.SkillTypes, int>>();
 
-                                var punishments = GetPunishmentsByCID(cid);
+                                var punishments = allPunishments.Where(x => x.Value == cid).Select(x => x.Key).ToList();
 
                                 var gifts = allGifts.Where(x => x.Value == cid).Select(x => x.Key).ToList();
 

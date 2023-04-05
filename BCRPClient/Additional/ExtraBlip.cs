@@ -112,6 +112,8 @@ namespace BCRPClient.Additional
 
         public uint Dimension { get => Blip.Dimension; set => Blip.Dimension = value; }
 
+        public bool Exists => All.ContainsKey(Blip);
+
         public Types Type { get; set; }
 
         public ExtraBlip(uint Sprite, Vector3 Position, string Name = "", float Scale = 1f, int Colour = 0, int Alpha = 255, float DrawDistance = 0f, bool ShortRange = false, int Rotation = 0, float Radius = 0f, uint Dimension = uint.MaxValue, Types Type = Types.Default)
@@ -169,9 +171,10 @@ namespace BCRPClient.Additional
         {
             if (Blip != null)
             {
-                All.Remove(Blip);
-
-                Blip.Destroy();
+                if (All.Remove(Blip))
+                {
+                    Blip.Destroy();
+                }
             }
 
             Colshape?.Destroy();

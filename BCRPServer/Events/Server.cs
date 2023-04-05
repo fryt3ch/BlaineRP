@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,9 @@ namespace BCRPServer.Events
             CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
             CultureInfo.CurrentCulture = Settings.CultureInfo;
+
+            Events.Commands.Commands.LoadAll();
+            Events.NPC.NPC.LoadAll();
 
             Sync.World.Initialize();
 
@@ -346,7 +350,7 @@ namespace BCRPServer.Events
 
             foreach (var player in NAPI.Pools.GetAllPlayers())
             {
-                Utils.KickSilent(player, "Сервер был отключён!", 2000);
+                Utils.Kick(player, "Сервер был отключён!");
             }
 
             foreach (var vehicle in VehicleData.All.Values)

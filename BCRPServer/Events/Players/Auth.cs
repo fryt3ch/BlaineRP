@@ -156,15 +156,15 @@ namespace BCRPServer.Events.Players
                 tData.AccountData.UpdateOnEnter();
             });
 
-            var cData = new object[3][];
+            var cData = new object[3];
 
             for (int i = 0; i < cData.Length; i++)
             {
                 if (tData.Characters[i] != null)
                 {
-                    var lastBan = tData.Characters[i].Punishments.Where(x => x.Type == PlayerData.Punishment.Types.Ban && x.GetSecondsLeft() > 0).FirstOrDefault();
+                    var lastBan = tData.Characters[i].Punishments.Where(x => x.Type == Sync.Punishment.Types.Ban && x.IsActive()).FirstOrDefault();
 
-                    cData[i] = new object[14]
+                    var charArr = new object[14]
                     {
                             $"{tData.Characters[i].Name} {tData.Characters[i].Surname}",
                             tData.Characters[i].BankAccount == null ? 0 : tData.Characters[i].BankAccount.Balance,
@@ -184,11 +184,13 @@ namespace BCRPServer.Events.Players
 
                     if (lastBan != null)
                     {
-                        cData[i][10] = lastBan.Reason;
-                        cData[i][11] = lastBan.AdminID;
-                        cData[i][12] = lastBan.StartDate;
-                        cData[i][13] = lastBan.EndDate;
+                        charArr[10] = lastBan.PunisherID;
+                        charArr[11] = lastBan.Reason;
+                        charArr[12] = lastBan.StartDate.GetUnixTimestamp();
+                        charArr[13] = lastBan.EndDate.GetUnixTimestamp();
                     }
+
+                    cData[i] = charArr;
                 }
             }
 
@@ -219,9 +221,9 @@ namespace BCRPServer.Events.Players
 
             if (tData.Characters[charNum] != null) // character exists
             {
-                var activeBan = tData.Characters[charNum].Punishments.Where(x => x.Type == PlayerData.Punishment.Types.Ban && x.GetSecondsLeft() > 0).FirstOrDefault();
+                var activePunishment = tData.Characters[charNum].Punishments.Where(x => (x.Type == Sync.Punishment.Types.Ban || x.Type == Sync.Punishment.Types.NRPPrison || x.Type == Sync.Punishment.Types.FederalPrison || x.Type == Sync.Punishment.Types.Arrest) && x.IsActive()).FirstOrDefault();
 
-                if (activeBan != null || tData.Characters[charNum].IsOnline)
+                if (activePunishment?.Type == Sync.Punishment.Types.Ban || tData.Characters[charNum].IsOnline)
                     return;
 
                 var data = PlayerData.PlayerInfo.Get(tData.Characters[charNum].CID);
@@ -231,13 +233,44 @@ namespace BCRPServer.Events.Players
 
                 tData.StepType = TempData.StepTypes.StartPlace;
 
-                tData.PlayerData = new PlayerData(player, data);
+                var pData = new PlayerData(player, data);
+
+                tData.PlayerData = pData;
 
                 MySQL.CharacterUpdateOnEnter(data);
 
                 player.TriggerEvent("Auth::SaveLastCharacter", num);
 
-                tData.ShowStartPlace();
+                if (activePunishment != null)
+                {
+                    if (activePunishment.Type == Sync.Punishment.Types.NRPPrison)
+                    {
+                        var pos = Utils.Demorgan.GetNextPos();
+
+                        data.LastData.Dimension = Utils.Dimensions.Demorgan;
+                        data.LastData.Position.Position = pos;
+                    }
+                    else if (activePunishment.Type == Sync.Punishment.Types.Arrest)
+                    {
+                        var fData = Game.Fractions.Fraction.Get(activePunishment.AdditionalData.DeserializeFromJson<Game.Fractions.Types>()) as Game.Fractions.Police;
+
+                        if (fData == null)
+                            return;
+
+                        var pos = fData.GetNextArrestCellPosition();
+
+                        data.LastData.Position.Position = pos;
+                        data.LastData.Dimension = Utils.Dimensions.Main;
+                    }
+
+                    tData.Delete();
+
+                    pData.SetReady();
+                }
+                else
+                {
+                    tData.ShowStartPlace();
+                }
             }
             else // create new character
             {
@@ -273,14 +306,12 @@ namespace BCRPServer.Events.Players
 
                 var pData = tData.PlayerData;
 
-                pData.LastData.Position.Position = tData.PositionToSpawn;
+                pData.LastData.Position = tData.PositionToSpawn;
                 pData.LastData.Dimension = tData.DimensionToSpawn;
 
                 pData.AccountData = tData.AccountData;
 
                 tData.Delete();
-
-                player.SetMainData(pData);
 
                 pData.SetReady();
             }
@@ -293,17 +324,17 @@ namespace BCRPServer.Events.Players
 
                 if (sType == TempData.StartPlaceTypes.Last)
                 {
-                    tData.PositionToSpawn = tData.PlayerData.LastData.Position.Position;
+                    tData.PositionToSpawn = tData.PlayerData.LastData.Position;
                     tData.DimensionToSpawn = tData.PlayerData.LastData.Dimension;
 
-                    player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
+                    player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                 }
                 else if (sType == TempData.StartPlaceTypes.Spawn)
                 {
-                    tData.PositionToSpawn = Utils.DefaultSpawnPosition;
+                    tData.PositionToSpawn = new Utils.Vector4(Utils.DefaultSpawnPosition.X, Utils.DefaultSpawnPosition.Y, Utils.DefaultSpawnPosition.Z, Utils.DefaultSpawnHeading);
                     tData.DimensionToSpawn = Utils.Dimensions.Main;
 
-                    player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
+                    player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                 }
                 else if (sType == TempData.StartPlaceTypes.Fraction)
                 {
@@ -311,10 +342,10 @@ namespace BCRPServer.Events.Players
                     {
                         var fData = Game.Fractions.Fraction.Get(tData.PlayerData.Fraction);
 
-                        tData.PositionToSpawn = fData.SpawnPosition.Position;
+                        tData.PositionToSpawn = new Utils.Vector4(fData.SpawnPosition.X, fData.SpawnPosition.Y, fData.SpawnPosition.Z, fData.SpawnPosition.RotationZ);
                         tData.DimensionToSpawn = Utils.Dimensions.Main;
 
-                        player.Teleport(tData.PositionToSpawn, true, Utils.GetPrivateDimension(player));
+                        player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                     }
                 }
                 else if (sType == TempData.StartPlaceTypes.House)
@@ -323,7 +354,9 @@ namespace BCRPServer.Events.Players
 
                     if (house != null)
                     {
-                        tData.PositionToSpawn = house.StyleData.Position;
+                        var hPos = house.StyleData.Position;
+
+                        tData.PositionToSpawn = new Utils.Vector4(hPos.X, hPos.Y, hPos.Z, house.StyleData.Heading);
                         tData.DimensionToSpawn = house.Dimension;
 
                         player.Teleport(house.PositionParams.Position, true, Utils.GetPrivateDimension(player));
@@ -337,7 +370,9 @@ namespace BCRPServer.Events.Players
 
                     if (aps != null)
                     {
-                        tData.PositionToSpawn = aps.StyleData.Position;
+                        var hPos = aps.StyleData.Position;
+
+                        tData.PositionToSpawn = new Utils.Vector4(hPos.X, hPos.Y, hPos.Z, aps.StyleData.Heading);
                         tData.DimensionToSpawn = aps.Dimension;
 
                         player.Teleport(aps.Root.EnterParams.Position, true, Utils.GetPrivateDimension(player));

@@ -54,11 +54,11 @@ namespace BCRPServer.Events.Players
 
                 pData.UpdateSkill(PlayerData.SkillTypes.Shooting, diff);
 
-                pData.Info.Achievements[PlayerData.Achievement.Types.SR1].UpdateProgress(pData.Info, currentSkill);
+                pData.Info.Achievements[PlayerData.Achievement.Types.SR1].UpdateProgress(pData.Info, (uint)currentSkill);
             }
 
             if (currentSkill == 100)
-                pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (int)Math.Round(accuracy));
+                pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (uint)Math.Round(accuracy < 0 ? 0f : accuracy > 100f ? 100f : accuracy));
 
             pData.Info.SetCooldown(Sync.Cooldowns.Types.ShootingRange, Sync.Cooldowns.CD_SHOOTING_RANGE);
         }

@@ -522,23 +522,10 @@ namespace BCRPClient.CEF
 
         public static async void ReportSend(string text)
         {
-            if (text == null)
-                return;
-
-            if (text.Length < 10)
+            if (!text.IsTextLengthValid(10, 150, true))
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, 10));
-
-                UpdatePlayerReportInput(text);
-
-                return;
-            }
-
-            if (text.Length > 150)
-            {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, 150));
-
-                UpdatePlayerReportInput(text);
+                if (text != null)
+                    UpdatePlayerReportInput(text);
 
                 return;
             }

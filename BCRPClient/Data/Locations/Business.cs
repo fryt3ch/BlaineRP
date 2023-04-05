@@ -157,6 +157,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothes1", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -179,6 +181,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothes2", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -201,6 +205,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothes3", $"clothes_{Id}", $"clothess& #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -223,6 +229,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_bags_preprocess",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -245,6 +253,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -268,6 +278,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("clothes", "clothesother", $"clothes_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -335,6 +347,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("bizother", "market", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -356,6 +370,8 @@ namespace BCRPClient.Data
                 //this.Seller = new NPC($"seller_{Id}", NamePed, NPC.Types.Seller, ModelPed, PositionPed, HeadingPed, Settings.MAIN_DIMENSION, "seller_clothes_greeting_0");
 
                 //this.Seller.Data = this;
+
+                CEF.PhoneApps.GPSApp.AddPosition("bizother", "gas", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionGas.X, PositionGas.Y));
             }
         }
 
@@ -510,6 +526,8 @@ namespace BCRPClient.Data
                 };
 
                 new Marker(44, PositionInteract.Position, 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
+
+                CEF.PhoneApps.GPSApp.AddPosition("bizother", "tuning", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -544,6 +562,8 @@ namespace BCRPClient.Data
                 };
 
                 var shootingRangeText = new TextLabel(new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z + 0.5f), Locale.General.Business.ShootingRangeTitle, new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
+
+                CEF.PhoneApps.GPSApp.AddPosition("bizother", "weapon", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
 
@@ -566,6 +586,8 @@ namespace BCRPClient.Data
 
                     DefaultDialogueId = "seller_furn_g_0",
                 };
+
+                CEF.PhoneApps.GPSApp.AddPosition("bizother", "furn", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
         }
     }

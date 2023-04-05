@@ -10,7 +10,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static BCRPServer.Game.Items.Inventory;
 
 namespace BCRPServer
 {
@@ -26,6 +25,43 @@ namespace BCRPServer
 
             /// <summary>Деморган</summary>
             public const uint Demorgan = 2;
+        }
+
+        public static class Demorgan
+        {
+            private static Vector3[] Positions = new Vector3[]
+            {
+                new Vector3(5345.206f, -5219.23f, 82.77666f),
+                new Vector3(5345.876f, -5232.199f, 82.81819f),
+                new Vector3(5354.328f, -5232.279f, 82.82253f),
+                new Vector3(5357.439f, -5217.218f, 82.85942f),
+            };
+
+            private static int LastPosUsed { get; set; }
+
+            public static Vector3 GetNextPos()
+            {
+                var pos = LastPosUsed >= Positions.Length ? Positions[LastPosUsed = 0] : Positions[LastPosUsed++];
+
+                return new Vector3(pos.X, pos.Y, pos.Z);
+            }
+
+            public static void SetToDemorgan(PlayerData pData, bool justTeleport)
+            {
+                if (!justTeleport)
+                {
+                    pData.RemoveAllWeapons(true, true);
+                }
+
+                var pos = GetNextPos();
+
+                pData.Player.Teleport(pos, false, Utils.Dimensions.Demorgan, null, false);
+            }
+
+            public static void SetFromDemorgan(PlayerData pData)
+            {
+                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Utils.Dimensions.Main, Utils.DefaultSpawnHeading, false);
+            }
         }
 
         public static class Randoms
@@ -280,23 +316,18 @@ namespace BCRPServer
         /// <summary>Получить текущее время (по МСК.)</summary>
         public static DateTime GetCurrentTime() => DateTime.UtcNow.AddHours(3);
 
-        public static long GetUnixTimestamp(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeSeconds();
+        public static long GetUnixTimestamp(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalSeconds;
 
-        public static long GetUnixTimestampMil(this DateTime dt) => ((DateTimeOffset)dt).ToUnixTimeMilliseconds();
-
-        public static DateTime GetUnixTimestamp(long timestampSecs) => DateTimeOffset.FromUnixTimeSeconds(timestampSecs).DateTime;
+        public static long GetUnixTimestampMil(this DateTime dt) => (long)(new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, TimeSpan.Zero)).Subtract(DateTimeOffset.UnixEpoch).TotalMilliseconds;
 
 
         /// <summary>Тихий кик игрока (со стороны сервера)</summary>
         /// <param name="player">Сущность игрока</param>
         /// <param name="reason">Причина кика</param>
-        /// <param name="delay">Задержка перед киком</param>
-        public static void KickSilent(Player player, string reason, int delay = 2000)
+        public static void Kick(Player player, string reason)
         {
-            if (player?.Exists != true)
-                return;
-
-            player.Notify("Kick", reason);
+            if (reason != null)
+                player.Notify("Kick", reason);
 
             NAPI.Task.Run(() =>
             {
@@ -304,30 +335,7 @@ namespace BCRPServer
                     return;
 
                 player.KickSilent(reason);
-            }, delay);
-        }
-
-        /// <summary>Кик игрока со сторорны администратора</summary>
-        /// <param name="player">Сущность игрока</param>
-        /// <param name="reason">Причина кика</param>
-        /// <param name="delay">Задержка перед киком</param>
-        public static void Kick(Player player, string adminStr, string reason, int delay = 2000)
-        {
-            NAPI.Task.Run(() =>
-            {
-                if (player?.Exists != true)
-                    return;
-
-                player.Notify("KickBy", adminStr, reason);
-
-                NAPI.Task.Run(() =>
-                {
-                    if (player?.Exists != true)
-                        return;
-
-                    player.KickSilent(reason);
-                }, delay);
-            });
+            }, 1);
         }
 
         public static List<T> ToList<T>(this Newtonsoft.Json.Linq.JArray jArray) => jArray.ToObject<List<T>>();
@@ -424,7 +432,7 @@ namespace BCRPServer
 
         #region Client Utils
 
-        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, Additional.AntiCheat.VehicleTeleportTypes tpType = Additional.AntiCheat.VehicleTeleportTypes.Default) => Additional.AntiCheat.TeleportVehicle(vehicle, position, dimension, heading, fade, tpType);
+        public static void Teleport(this Vehicle vehicle, Vector3 position, uint? dimension = null, float? heading = null, bool fade = false, Additional.AntiCheat.VehicleTeleportTypes tpType = Additional.AntiCheat.VehicleTeleportTypes.Default, bool toGround = false) => Additional.AntiCheat.TeleportVehicle(vehicle, position, dimension, heading, fade, tpType, toGround);
 
         /// <inheritdoc cref="Additional.AntiCheat.SetPlayerPos(Player, Vector3, bool, uint?)"/>
         public static void Teleport(this Player player, Vector3 position, bool toGround, uint? dimension = null, float? heading = null, bool fade = false) => Additional.AntiCheat.TeleportPlayers(position, toGround, dimension, heading, fade, false, player.Dimension, player);
@@ -508,9 +516,9 @@ namespace BCRPServer
 
         public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
-        public static bool GiveItem(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItem(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
+        public static bool GiveItem(this PlayerData pData, out Game.Items.Item item, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItem(pData, out item, id, variation, amount, notifyOnSuccess, notifyOnFault);
 
-        public static bool GiveItemDropExcess(this PlayerData pData, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItemDropExcess(pData, id, variation, amount, notifyOnSuccess, notifyOnFault);
+        public static bool GiveItemDropExcess(this PlayerData pData, out Game.Items.Item item, string id, int variation = 0, int amount = 1, bool notifyOnSuccess = true, bool notifyOnFault = true) => Game.Items.Stuff.GiveItemDropExcess(pData, out item, id, variation, amount, notifyOnSuccess, notifyOnFault);
 
         /// <summary>Метод для удаления всего оружия у игрока</summary>
         /// <param name="pData">PlayerData игрока</param>
@@ -521,23 +529,31 @@ namespace BCRPServer
         {
             pData.UnequipActiveWeapon();
 
-            List<(Game.Items.Inventory.Groups Group, int Slot)> updList = new List<(Game.Items.Inventory.Groups Group, int Slot)>();
+            var updList = new List<(Game.Items.Inventory.Groups Group, int Slot)>();
 
             for (int i = 0; i < pData.Weapons.Length; i++)
             {
                 if (pData.Weapons[i] != null)
                 {
+                    pData.Weapons[i].Unwear(pData);
+
                     pData.Weapons[i].Delete();
+
+                    pData.Weapons[i] = null;
 
                     updList.Add((Game.Items.Inventory.Groups.Weapons, i));
                 }
             }
+
+            MySQL.CharacterWeaponsUpdate(pData.Info);
 
             if (pData.Holster?.Items[0] is Game.Items.Weapon)
             {
                 pData.Holster.Items[0].Delete();
 
                 updList.Add((Game.Items.Inventory.Groups.Holster, 2));
+
+                pData.Holster.Update();
             }
 
             if (fromInventoryToo)
@@ -548,9 +564,13 @@ namespace BCRPServer
                     {
                         pData.Items[i].Delete();
 
+                        pData.Items[i] = null;
+
                         updList.Add((Game.Items.Inventory.Groups.Items, i));
                     }
                 }
+
+                MySQL.CharacterItemsUpdate(pData.Info);
             }
 
             if (fromBagToo && pData.Bag != null)
@@ -561,9 +581,13 @@ namespace BCRPServer
                     {
                         pData.Bag.Items[i].Delete();
 
+                        pData.Bag.Items[i] = null;
+
                         updList.Add((Game.Items.Inventory.Groups.Bag, i));
                     }
                 }
+
+                pData.Bag.Update();
             }
 
             foreach (var x in updList)
@@ -987,8 +1011,6 @@ namespace BCRPServer
         /// <inheritdoc cref="Additional.SkyCamera.Move(Player, Additional.SkyCamera.SwitchTypes, bool, string, object[])"></inheritdoc>
         public static void SkyCameraMove(this Player player, Additional.SkyCamera.SwitchTypes switchType, bool fade, string eventOnFinish = null, params object[] args) => Additional.SkyCamera.Move(player, switchType, fade, eventOnFinish, args);
 
-        public static void FadeScreen(this Player player, bool state, int time = 1000, int inTime = -1) => Additional.SkyCamera.FadeScreen(player, state, time, inTime);
-
         /// <summary>Метод, который закрывает все активные интерфейсы на стороне клиента</summary>
         /// <param name="player"></param>
         public static void CloseAll(this Player player, bool onlyInterfaces = false) => player.TriggerEvent("Player::CloseAll", onlyInterfaces);
@@ -1244,7 +1266,7 @@ namespace BCRPServer
             if (curItem == null)
                 return false;
 
-            curItem.Value.Item.StopUse(pData, Groups.Items, curItem.Value.Slot, true);
+            curItem.Value.Item.StopUse(pData, Game.Items.Inventory.Groups.Items, curItem.Value.Slot, true);
 
             return true;
         }

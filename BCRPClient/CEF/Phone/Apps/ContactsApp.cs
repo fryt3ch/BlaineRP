@@ -35,18 +35,8 @@ namespace BCRPClient.CEF.PhoneApps
 
                 var name = ((string)args[0])?.Trim();
 
-                if (name == null)
+                if (!name.IsTextLengthValid(1, 24, true))
                     return;
-
-                if (name.Length < 1)
-                    return;
-
-                if (name.Length > 24)
-                {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, 24));
-
-                    return;
-                }
 
                 for (int i = 0; i < name.Length; i++)
                 {

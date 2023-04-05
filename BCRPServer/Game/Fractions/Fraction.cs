@@ -123,6 +123,16 @@ namespace BCRPServer.Game.Fractions
                     Data.Customization.UniformTypes.FractionPaletoPolice_2,
                 },
 
+                ArrestCellsPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-429.6015f, 6001.549f, 31.71618f, 3f),
+                    new Utils.Vector4(-426.6064f, 5998.16f, 31.71618f, 3f),
+                },
+
+                ArrestFreePosition = new Utils.Vector4(-442.0793f, 6017.475f, 31.67867f, 314.3072f),
+
+                ArrestMenuPosition = new Vector3(-435.4453f, 5997.362f, 31.71618f),
+
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
                     { "w_pistol", 100 },
@@ -146,6 +156,8 @@ namespace BCRPServer.Game.Fractions
         public static void PostInitializeAll()
         {
             var lines = new List<string>();
+
+            lines.Add($"Fractions.Police.NumberplatePrices = RAGE.Util.Json.Deserialize<Dictionary<string, uint[]>>(\"{Police.NumberplatePrices.SerializeToJson().Replace('"', '\'')}\");");
 
             foreach (var x in All.Values)
             {
@@ -314,14 +326,19 @@ namespace BCRPServer.Game.Fractions
 
         public virtual void OnMemberJoined(PlayerData pData)
         {
-            TriggerEventToMembers("Fraction::UMO", pData.CID, true);
+            TriggerEventToMembers("Fraction::UMO", pData.CID, true, GetMemberStatus(pData.Info));
 
-            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}"), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{byte.MaxValue}&{x.LastJoinDate.GetUnixTimestamp()}"));
+            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}"), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}"));
         }
 
         public virtual void OnMemberDisconnect(PlayerData pData)
         {
             TriggerEventToMembers("Fraction::UMO", pData.CID, false);
+        }
+
+        public virtual void OnMemberStatusChange(PlayerData.PlayerInfo pInfo, byte status)
+        {
+            TriggerEventToMembers("Fraction::UMS", pInfo.CID, status);
         }
 
         public virtual void SetPlayerFraction(PlayerData.PlayerInfo pInfo, byte rank)
@@ -454,6 +471,27 @@ namespace BCRPServer.Game.Fractions
             }
 
             return true;
+        }
+
+        public virtual byte GetMemberStatus(PlayerData.PlayerInfo pInfo)
+        {
+            byte status = 0;
+
+            foreach (var x in pInfo.Punishments)
+            {
+                if (x.Type == Sync.Punishment.Types.Ban)
+                {
+                    if (x.IsActive())
+                        return 1;
+                }
+                else if (x.Type == Sync.Punishment.Types.NRPPrison)
+                {
+                    if (x.IsActive())
+                        status = 2;
+                }
+            }
+
+            return status;
         }
     }
 }

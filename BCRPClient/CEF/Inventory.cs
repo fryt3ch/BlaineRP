@@ -9,7 +9,7 @@ namespace BCRPClient.CEF
 {
     public class Inventory : Events.Script
     {
-        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContext == ActionBox.Contexts.Inventory; }
+        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContextStr == "Inventory"; }
 
         private static int FreezeCounter { get; set; }
 
@@ -1466,7 +1466,7 @@ namespace BCRPClient.CEF
 
             TempBindEsc = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
-                if (CEF.ActionBox.CurrentContext == ActionBox.Contexts.Inventory)
+                if (ActionBox.CurrentContextStr == "Inventory")
                 {
                     CEF.ActionBox.Close(false);
 
@@ -1511,7 +1511,7 @@ namespace BCRPClient.CEF
             WorkbenchToolsData = null;
             WorkbenchCraftParams = null;
 
-            if (ActionBox.CurrentContext == ActionBox.Contexts.Inventory)
+            if (ActionBox.CurrentContextStr == "Inventory")
                 ActionBox.Close(true);
 
             if (CurrentType == Types.Workbench)
@@ -1872,7 +1872,39 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name), 1, amount, amount / 2, -1, ActionBox.RangeSubTypes.Default);
+                ActionBox.ShowRange
+                (
+                    "Inventory", string.Format(slotStr == "weapon" ? Locale.Actions.GetAmmo : Locale.Actions.Split, name), 1, amount, amount / 2, -1, ActionBox.RangeSubTypes.Default,
+
+                    () =>
+                    {
+                        CEF.Inventory.FreezeInterface(true, false);
+                    },
+
+                    (rType, amountD) =>
+                    {
+                        int amount;
+
+                        if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                            return;
+
+                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            CEF.Inventory.Action(amount);
+                        }
+                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                        {
+                            CEF.Inventory.Action(-1);
+                        }
+                        else
+                            return;
+                    },
+
+                    () =>
+                    {
+                        CEF.Inventory.FreezeInterface(false, false);
+                    }
+                );
 
                 CurrentAction = 1;
 
@@ -1887,7 +1919,39 @@ namespace BCRPClient.CEF
                         return;
                 }
 
-                ActionBox.ShowRange(ActionBox.Contexts.Inventory, string.Format(Locale.Actions.Drop, name), 1, amount, amount, -1, ActionBox.RangeSubTypes.Default);
+                ActionBox.ShowRange
+                (
+                    "Inventory", string.Format(Locale.Actions.Drop, name), 1, amount, amount, -1, ActionBox.RangeSubTypes.Default,
+
+                    () =>
+                    {
+                        CEF.Inventory.FreezeInterface(true, false);
+                    },
+
+                    (rType, amountD) =>
+                    {
+                        int amount;
+
+                        if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                            return;
+
+                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            CEF.Inventory.Action(amount);
+                        }
+                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                        {
+                            CEF.Inventory.Action(-1);
+                        }
+                        else
+                            return;
+                    },
+
+                    () =>
+                    {
+                        CEF.Inventory.FreezeInterface(false, false);
+                    }
+                );
 
                 CurrentAction = 2;
 

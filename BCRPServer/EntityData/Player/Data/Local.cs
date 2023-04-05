@@ -8,7 +8,7 @@ namespace BCRPServer
     public partial class PlayerData
     {
         /// <summary>Список наказаний игрока</summary>
-        public List<Punishment> Punishments { get => Info.Punishments; set => Info.Punishments = value; }
+        public List<Sync.Punishment> Punishments { get => Info.Punishments; set => Info.Punishments = value; }
 
         /// <summary>Банковский счёт игрока</summary>
         public Game.Bank.Account BankAccount { get => Info.BankAccount; set => Info.BankAccount = value; }

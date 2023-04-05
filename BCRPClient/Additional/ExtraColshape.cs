@@ -605,7 +605,26 @@ namespace BCRPClient.Additional
                         return;
                     }
 
-                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.DrivingSchoolSelect, "Выбор категории", notOwnedLics.Select(x => ((int)x, Locale.General.Players.LicenseNames.GetValueOrDefault(x) ?? "null")).ToArray(), null, null, schoolId);
+                    await CEF.ActionBox.ShowSelect
+                    (
+                        "DrivingSchoolSelect", "Выбор категории", notOwnedLics.Select(x => ((decimal)x, Locale.General.Players.LicenseNames.GetValueOrDefault(x) ?? "null")).ToArray(), null, null,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        (rType, id) =>
+                        {
+                            CEF.ActionBox.Close(true);
+
+                            if (rType == CEF.ActionBox.ReplyTypes.OK)
+                            {
+                                var licType = (Sync.Players.LicenseTypes)id;
+
+                                CEF.AutoschoolTest.Show(schoolId, licType, BCRPClient.Data.Locations.Autoschool.Prices.GetValueOrDefault(licType));
+                            }
+                        },
+
+                        null
+                    );
                 }
             },
 
@@ -644,7 +663,7 @@ namespace BCRPClient.Additional
                     if (res == int.MinValue)
                         return;
 
-                    var allButtons = new List<(int, string)>();
+                    var allButtons = new List<(decimal, string)>();
 
                     if (res >= 0)
                         allButtons.Add((-1, "[Завершить рабочий день]"));
@@ -657,7 +676,30 @@ namespace BCRPClient.Additional
                         allButtons.Add((i, fDataUnif.UniformNames[i]));
                     }
 
-                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.FractionUniformSelect, Locale.Actions.FractionUniformSelectTitle, allButtons.ToArray(), null, null, fType);
+                    await CEF.ActionBox.ShowSelect
+                    (
+                        "FractionUniformSelect", Locale.Actions.FractionUniformSelectTitle, allButtons.ToArray(), null, null,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        (rType, id) =>
+                        {
+                            if (rType == CEF.ActionBox.ReplyTypes.OK)
+                            {
+                                Events.CallRemote("Fraction::UNIFC", (int)Player.LocalPlayer.GetData<Data.Fractions.Types>("ActionBox::Temp::FRACTIONUNIFS::F"), id);
+
+                                CEF.ActionBox.Close(true);
+                            }
+                            else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                            {
+                                CEF.ActionBox.Close(true);
+                            }
+                            else
+                                return;
+                        },
+
+                        null
+                    );
                 }
             },
 
@@ -764,7 +806,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.HouseExit, () =>
+                InteractionTypes.HouseExit, async () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
                         return;
@@ -776,7 +818,36 @@ namespace BCRPClient.Additional
 
                     if (house is Data.Locations.House rHouse && rHouse.GarageType != null)
                     {
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) }, null, null);
+                        await CEF.ActionBox.ShowSelect
+                        (
+                            "HouseExit", Locale.Actions.HouseExitActionBoxHeader, new (decimal, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) }, null, null,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, id) =>
+                            {
+                                CEF.ActionBox.Close(true);
+
+                                if (LastSent.IsSpam(500, false, true))
+                                    return;
+
+                                if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                {
+                                    // house/houseGarage -> outside
+                                    if (id == 0)
+                                    {
+                                        Events.CallRemote("House::Exit");
+                                    }
+                                    // house -> garage
+                                    else if (id == 1)
+                                    {
+                                        Events.CallRemote("House::Garage", true);
+                                    }
+                                }
+                            },
+
+                            null
+                        );
                     }
                     else
                     {
@@ -788,7 +859,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.GarageExit, () =>
+                InteractionTypes.GarageExit, async () =>
                 {
                     if (LastSent.IsSpam(1000, false, false))
                         return;
@@ -799,7 +870,36 @@ namespace BCRPClient.Additional
                     }
                     else
                     {
-                        CEF.ActionBox.ShowSelect(ActionBox.Contexts.HouseExit, Locale.Actions.HouseExitActionBoxHeader, new (int, string)[] { (2, Locale.Actions.HouseExitActionBoxToHouse), (0, Locale.Actions.HouseExitActionBoxOutside) }, null, null);
+                        await CEF.ActionBox.ShowSelect
+                        (
+                            "HouseExit", Locale.Actions.HouseExitActionBoxHeader, new (decimal, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) }, null, null,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, id) =>
+                            {
+                                CEF.ActionBox.Close(true);
+
+                                if (LastSent.IsSpam(500, false, true))
+                                    return;
+
+                                if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                {
+                                    // house/houseGarage -> outside
+                                    if (id == 0)
+                                    {
+                                        Events.CallRemote("House::Exit");
+                                    }
+                                    // garage -> house
+                                    else if (id == 2)
+                                    {
+                                        Events.CallRemote("House::Garage", false);
+                                    }
+                                }
+                            },
+
+                            null
+                        );
                     }
                 }
             },
@@ -842,9 +942,9 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.TuningEnter, () =>
+                InteractionTypes.TuningEnter, async () =>
                 {
-                    if (LastSent.IsSpam(1000, false, false))
+                    if (LastSent.IsSpam(1000, false, true))
                         return;
 
                     if (!Player.LocalPlayer.HasData("CurrentTuning"))
@@ -871,7 +971,40 @@ namespace BCRPClient.Additional
                             if (boatData == null)
                                 return;
 
-                            CEF.ActionBox.ShowSelect(ActionBox.Contexts.VehicleTuningVehicleSelect, Locale.Actions.VehicleTuningVehicleSelect, new (int Id, string Text)[] { (1, $"{bVehData.Data.SubName} [#{bVehData.VID}]"), (2, $"{boatData.Data.SubName} [#{boatData.VID}]") }, null, null, Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id, baseVeh, boat);
+                            var tuningId = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.TuningShop>("CurrentTuning").Id;
+
+                            await CEF.ActionBox.ShowSelect
+                            (
+                                "VehicleTuningVehicleSelect", Locale.Actions.VehicleTuningVehicleSelect, new (decimal Id, string Text)[] { (1, $"{bVehData.Data.SubName} [#{bVehData.VID}]"), (2, $"{boatData.Data.SubName} [#{boatData.VID}]") }, null, null,
+
+                                CEF.ActionBox.DefaultBindAction,
+
+                                (rType, id) =>
+                                {
+                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                                    if (pData == null)
+                                        return;
+
+                                    if (rType == CEF.ActionBox.ReplyTypes.OK)
+                                    {
+                                        if (id != 1 && id != 2)
+                                            return;
+
+                                        Events.CallRemote("TuningShop::Enter", tuningId, id == 1 ? baseVeh : boat);
+
+                                        CEF.ActionBox.Close(true);
+                                    }
+                                    else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                                    {
+                                        CEF.ActionBox.Close(true);
+                                    }
+                                    else
+                                        return;
+                                },
+
+                                null
+                            );
 
                             return;
                         }

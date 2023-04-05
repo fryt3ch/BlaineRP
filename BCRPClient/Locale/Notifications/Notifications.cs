@@ -40,7 +40,8 @@ namespace BCRPClient
 
             public static class General
             {
-                public static string Kick = "Вы были кикнуты!\nПричина: {0}";
+                public static string Kick = "Вы были выгнаны с сервера!\nПричина: {0}";
+                public static string KickAdmin = "Вы были выгнаны с сервера администратором {0}!\nПричина: {1}";
                 public static string TeleportBy = "Вы были телепортированы!\nАдминистратор: {0}";
 
                 public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";

@@ -29,7 +29,7 @@ namespace BCRPClient.Data.Jobs
             base.OnEndJob();
         }
 
-        public void ShowRouteSelection()
+        public async void ShowRouteSelection()
         {
             if (Routes.Count == 0)
                 return;
@@ -48,7 +48,77 @@ namespace BCRPClient.Data.Jobs
                 }
             }
 
-            CEF.ActionBox.ShowSelect(CEF.ActionBox.Contexts.JobBusDriverRouteSelect, Locale.Actions.JobVehicleRouteSelectTitle, Routes.Select(x => (counter, string.Format(Locale.Actions.JobBusDriverRouteText, counter + 1, Utils.GetPriceString(x.Reward), Math.Round(dict[counter++] / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1, Player.LocalPlayer.Vehicle);
+            var vehicle = Player.LocalPlayer.Vehicle;
+
+            await CEF.ActionBox.ShowSelect
+            (
+                "JobBusDriverRouteSelect", Locale.Actions.JobVehicleRouteSelectTitle, Routes.Select(x => ((decimal)counter, string.Format(Locale.Actions.JobBusDriverRouteText, counter + 1, Utils.GetPriceString(x.Reward), Math.Round(dict[counter++] / 1000f, 2)))).ToArray(), Locale.Actions.SelectOkBtn2, Locale.Actions.SelectCancelBtn1,
+
+                () =>
+                {
+                    CEF.ActionBox.DefaultBindAction.Invoke();
+
+                    var checkAction = new Action(() =>
+                    {
+                        if (Player.LocalPlayer.Vehicle != vehicle || vehicle?.Exists != true || vehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
+                            CEF.ActionBox.Close(true);
+                    });
+
+                    Player.LocalPlayer.SetData("ActionBox::Temp::JVRVA", checkAction);
+
+                    GameEvents.Update -= checkAction.Invoke;
+                    GameEvents.Update += checkAction.Invoke;
+                },
+
+                async (rType, id) =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (rType == CEF.ActionBox.ReplyTypes.OK)
+                    {
+                        var quest = Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JBD1);
+
+                        if (quest == null || quest.Step > 0)
+                            return;
+
+                        var routes = (pData.CurrentJob as Data.Jobs.BusDriver)?.Routes;
+
+                        if (routes == null)
+                            return;
+
+                        if (id >= routes.Count)
+                            return;
+
+                        var res = await quest.CallProgressUpdateProc(id);
+
+                        if (res == byte.MaxValue)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    }
+                    else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                    {
+                        CEF.ActionBox.Close(true);
+                    }
+                    else
+                        return;
+                },
+
+                () =>
+                {
+                    var checkAction = Player.LocalPlayer.GetData<Action>("ActionBox::Temp::JVRVA");
+
+                    if (checkAction != null)
+                    {
+                        GameEvents.Update -= checkAction.Invoke;
+
+                        Player.LocalPlayer.ResetData("ActionBox::Temp::JVRVA");
+                    }
+                }
+            );
         }
     }
 }

@@ -63,7 +63,7 @@ namespace BCRPServer.Game.Items
 
         /// <summary>Метод для генерации случайного номера</summary>
         /// <param name="length">Длина номера (от 1 до 8)</param>
-        public string GenerateTag(int length)
+        public static string GenerateTag(byte length)
         {
             if (length < 1 || length > 8)
                 length = 8;
@@ -77,7 +77,7 @@ namespace BCRPServer.Game.Items
 
             while (true)
             {
-                for (int i = 0; i < length + 1; i++)
+                for (int i = 0; i < length; i++)
                     strBuilder.Append(Chars[Utils.Randoms.Chat.Next(0, Chars.Length)]);
 
                 var retStr = strBuilder.ToString();

@@ -8,6 +8,9 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
             CallRemote("p_kick", pid, reason);
 
             LastSent = Sync.World.ServerTime;
@@ -17,6 +20,9 @@
         public static void SilentKick(uint pid, string reason)
         {
             if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
             CallRemote("p_skick", pid, reason);
@@ -30,6 +36,12 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
+            if (!mins.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
             CallRemote("p_mute", pid, mins, reason);
 
             LastSent = Sync.World.ServerTime;
@@ -41,7 +53,10 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_mute", pid, -1, reason);
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
+            CallRemote("p_unmute", pid, reason);
 
             LastSent = Sync.World.ServerTime;
         }
@@ -50,6 +65,9 @@
         public static void Warn(uint pid, string reason)
         {
             if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
             CallRemote("p_warn", pid, reason);
@@ -63,6 +81,9 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
             CallRemote("p_uwarn", pid, reason);
 
             LastSent = Sync.World.ServerTime;
@@ -72,6 +93,12 @@
         public static void Ban(uint pid, uint days, string reason)
         {
             if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            if (!days.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
             CallRemote("p_ban", pid, days, reason);
@@ -85,6 +112,9 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
             CallRemote("p_uban", pid, reason);
 
             LastSent = Sync.World.ServerTime;
@@ -94,6 +124,9 @@
         public static void HardBan(uint pid, string reason)
         {
             if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
             CallRemote("p_hban", pid, reason);
@@ -107,6 +140,9 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
             CallRemote("p_uhban", pid, reason);
 
             LastSent = Sync.World.ServerTime;
@@ -116,6 +152,12 @@
         public static void Jail(uint pid, uint mins, string reason)
         {
             if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            if (!mins.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+                return;
+
+            if (!reason.IsTextLengthValid(1, 24, true))
                 return;
 
             CallRemote("p_jail", pid, mins, reason);
@@ -129,7 +171,10 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            CallRemote("p_ujail", pid, reason);
+            if (!reason.IsTextLengthValid(1, 24, true))
+                return;
+
+            CallRemote("p_unjail", pid, reason);
 
             LastSent = Sync.World.ServerTime;
         }

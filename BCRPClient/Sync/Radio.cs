@@ -14,67 +14,65 @@ namespace BCRPClient.Sync
             Off = 0,
 
             /// <summary>Los Santos Rock Radio</summary>
-            LSRR,
+            LSRR = 1,
             /// <summary>Non-Stop-Pop FM</summary>
-            NSPFM,
+            NSPFM = 2,
             /// <summary>Radio Los Santos</summary>
-            RLS,
+            RLS = 3,
             /// <summary>Channel X</summary>
-            CHX,
+            CHX = 4,
             /// <summary>West Coast Talk Radio</summary>
-            WCTR,
+            WCTR = 5,
             /// <summary>Rebel Radio</summary>
-            RR,
+            RR = 6,
             /// <summary>Soulwax FM</summary>
-            SWFM,
+            SWFM = 7,
             /// <summary>East Los FM</summary>
-            ELFM,
+            ELFM = 8,
             /// <summary>West Coast Classics</summary>
-            WCC,
+            WCC = 9,
             /// <summary>Blaine County Talk Radio</summary>
-            BCTR,
+            BCTR = 10,
             /// <summary>Blue Ark</summary>
-            BA,
+            BA = 11,
             /// <summary>Worldwide FM</summary>
-            WWFM,
+            WWFM = 12,
             /// <summary>FlyLo FM</summary>
-            FLFM,
+            FLFM = 13,
             /// <summary>The Lowdown 91.1</summary>
-            TLD,
+            TLD = 14,
             /// <summary>Radio Mirror Park</summary>
-            RMP,
+            RMP = 15,
             /// <summary>Space 103.2</summary>
-            SPA,
+            SPA = 16,
             /// <summary>Vinewood Boulevard Radio</summary>
-            VWBR,
-            /// <summary>Self Radio</summary>
-            SR,
+            VWBR = 17,
             /// <summary>The Lab</summary>
-            TL,
+            TL = 19,
             /// <summary>Blonded Los Santos 97.8 FM</summary>
-            BLS,
-            /// <summary>Los Santos Underground Radiok</summary>
-            LSUR,
+            BLS = 20,
+            /// <summary>Los Santos Underground Radio</summary>
+            LSUR = 21,
             /// <summary>iFruit Radio</summary>
-            IFR,
+            IFR = 22,
             /// <summary>Still Slipping Los Santos</summary>
-            SSLS,
+            SSLS = 23,
             /// <summary>Kult FM</summary>
-            KFM,
+            KFM = 24,
             /// <summary>The Music Locker</summary>
-            TML,
+            TML = 25,
             /// <summary>MOTOMAMI Los Santos</summary>
-            MMLS,
+            MMLS = 26,
 
             /// <summary>Media Player</summary>
             /// <remarks>Фактически, радио Blaine RP</remarks>
-            MP_BRP,
+            MP_BRP = 27,
 
-            BRP_0,
-            BRP_1,
-            BRP_2,
-            BRP_3,
-            BRP_4,
+            BRP_0 = 28,
+            BRP_1 = 29,
+            BRP_2 = 30,
+            BRP_3 = 31,
+            BRP_4 = 32,
         }
 
         private static Dictionary<StationTypes, string> StationIds { get; set; } = new Dictionary<StationTypes, string>()
@@ -98,7 +96,7 @@ namespace BCRPClient.Sync
             { StationTypes.RMP, "RADIO_16_SILVERLAKE" },
             { StationTypes.SPA, "RADIO_17_FUNK" },
             { StationTypes.VWBR, "RADIO_18_90S_ROCK" },
-            { StationTypes.SR, "RADIO_19_USER" },
+            //{ StationTypes.SR, "RADIO_19_USER" }, 18
             { StationTypes.TL, "RADIO_20_THELAB" },
             { StationTypes.BLS, "RADIO_21_DLC_XM17" },
             { StationTypes.LSUR, "RADIO_22_DLC_BATTLE_MIX1_RADIO" },
@@ -131,6 +129,8 @@ namespace BCRPClient.Sync
 
         public static bool IsMobilePhoneRadioEnabled { get; private set; }
 
+        public static CEF.Audio.Data LocalPlayerStreamRadioAudioData => CEF.Audio.AllAudios.Where(x => x.Id == "PLAYER_LOCAL_RADIO").FirstOrDefault();
+
         public Radio()
         {
             SetRadioStationName(StationTypes.MP_BRP, "Radio Blaine RP");
@@ -144,6 +144,8 @@ namespace BCRPClient.Sync
             SetCustomRadioStationTrackName(null);
 
             SetRadioStationLocked(StationTypes.SSLS, false);
+
+            RAGE.Game.Invoker.Invoke(0x477D9DB48F889591, "RADIO_19_USER", true);
 
             ToggleMobilePhoneRadio(false);
 
@@ -185,6 +187,8 @@ namespace BCRPClient.Sync
                 {
 
                 }
+
+                CEF.PhoneApps.RadioApp.UpdateRadioStation(CurrentStationType == StationTypes.Off ? StationTypes.NSPFM : CurrentStationType);
             }, 1000, true, 1000)).Run();
         }
 
@@ -198,13 +202,37 @@ namespace BCRPClient.Sync
 
             RAGE.Game.Audio.SetRadioToStationName(radioId);
 
-            if (Player.LocalPlayer.Vehicle is Vehicle veh)
+            var curVehicle = Player.LocalPlayer.Vehicle;
+
+            if (curVehicle != null)
             {
-                SetVehicleRadioStation(veh, sType);
+                SetVehicleRadioStation(curVehicle, sType);
             }
-            else if (IsRadioStationCustom(sType))
+            
+            if (curVehicle == null || IsMobilePhoneRadioEnabled)
             {
-                // todo
+                var audioData = LocalPlayerStreamRadioAudioData;
+
+                if (IsRadioStationCustom(sType) && IsMobilePhoneRadioEnabled)
+                {
+                    var trackType = CustomStationTracks.GetValueOrDefault(sType);
+
+                    if (audioData == null)
+                    {
+                        audioData = new CEF.Audio.Data("PLAYER_LOCAL_RADIO", 1f);
+                    }
+
+                    if (audioData.CurrentTrackType != trackType)
+                    {
+                        audioData.Stop();
+
+                        audioData.Play(trackType, Settings.Audio.PlayerLocalRadioVolume, false, 0);
+                    }
+                }
+                else
+                {
+                    audioData?.Destroy();
+                }
             }
         }
 
@@ -243,7 +271,9 @@ namespace BCRPClient.Sync
             }
             else
             {
-                var details = RAGE.Game.Invoker.Invoke<int>(0x50B196FC9ED6545B).ToString();
+                RAGE.Game.Ui.ShowHudComponentThisFrame(16);
+
+                var details = RAGE.Game.Audio.GetAudibleMusicTrackTextId().ToString();
 
                 artistName = RAGE.Game.Ui.GetLabelText(details + "A");
                 songName = RAGE.Game.Ui.GetLabelText(details + "S");
@@ -268,13 +298,25 @@ namespace BCRPClient.Sync
             GameEvents.Render -= MobilePhoneRadioRender;
 
             if (state)
+            {
                 GameEvents.Render += MobilePhoneRadioRender;
+            }
+            else
+            {
+                LocalPlayerStreamRadioAudioData?.Destroy();
+            }
         }
 
         private static void MobilePhoneRadioRender()
         {
             if (Player.LocalPlayer.Vehicle is Vehicle veh && veh.GetIsEngineRunning())
+            {
+                CEF.PhoneApps.RadioApp.UpdateRadioStationState(false);
+
+                ToggleMobilePhoneRadio(false);
+
                 return;
+            }
 
             RAGE.Game.Pad.DisableControlAction(32, 81, true);
             RAGE.Game.Pad.DisableControlAction(32, 82, true);

@@ -24,7 +24,7 @@ namespace BCRPClient.CEF
             {
                 SwitchEscMenuAccess(false);
 
-                CEF.Browser.Window.ExecuteCachedJs("focusLastBluredElem();");
+                //CEF.Browser.Window.ExecuteCachedJs("focusLastBluredElem();");
             }
             else
             {

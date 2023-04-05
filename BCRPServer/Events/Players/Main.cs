@@ -1,5 +1,6 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
+using Org.BouncyCastle.Asn1.Tsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace BCRPServer.Events.Players
 
                 if (bans.Count > 0)
                 {
-                    Utils.KickSilent(player, bans[0].ToString());
+                    Utils.Kick(player, bans[0].ToString());
 
                     return;
                 }
@@ -299,13 +300,24 @@ namespace BCRPServer.Events.Players
 
                 pData.StopUseCurrentItem();
 
-                player.Teleport(null, false, null, null, false);
-
-                NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
-
                 player.SetHealth(10);
 
                 pData.IsKnocked = false;
+
+                if (pData.Player.Dimension == Utils.Dimensions.Demorgan)
+                {
+                    var pos = Utils.Demorgan.GetNextPos();
+
+                    player.Teleport(pos, false, null, null, false);
+
+                    NAPI.Player.SpawnPlayer(player, pos, player.Heading);
+                }
+                else
+                {
+                    player.Teleport(null, false, null, null, false);
+
+                    NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
+                }
             }
             else
             {
@@ -856,11 +868,73 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-
             if (pData.IsWounded || pData.IsKnocked)
                 return;
 
             pData.IsWounded = true;
+        }
+
+        [RemoteEvent("Player::UnpunishMe")]
+        private static void UnpunishMe(Player player, uint punishmentId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            var punishment = pData.Punishments.Where(x => x.Id == punishmentId).FirstOrDefault();
+
+            if (punishment == null)
+                return;
+
+            if (punishment.IsActive())
+                return;
+
+            if (punishment.Type == Punishment.Types.Mute)
+            {
+                pData.IsMuted = false;
+
+                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
+
+                punishment.AmnestyInfo = new Punishment.Amnesty();
+
+                MySQL.UpdatePunishmentAmnesty(punishment);
+            }
+            else if (punishment.Type == Punishment.Types.NRPPrison)
+            {
+                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
+
+                Utils.Demorgan.SetFromDemorgan(pData);
+
+                if (pData.Info.Fraction != Game.Fractions.Types.None)
+                {
+                    var fData = Game.Fractions.Fraction.Get(pData.Info.Fraction);
+
+                    fData.OnMemberStatusChange(pData.Info, fData.GetMemberStatus(pData.Info));
+                }
+
+                punishment.AmnestyInfo = new Punishment.Amnesty();
+
+                MySQL.UpdatePunishmentAmnesty(punishment);
+            }
+            else if (punishment.Type == Punishment.Types.Warn)
+            {
+                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
+
+                punishment.AmnestyInfo = new Punishment.Amnesty();
+
+                MySQL.UpdatePunishmentAmnesty(punishment);
+            }
+            else if (punishment.Type == Punishment.Types.FractionMute)
+            {
+                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
+
+                punishment.AmnestyInfo = new Punishment.Amnesty();
+
+                MySQL.UpdatePunishmentAmnesty(punishment);
+            }
         }
     }
 }

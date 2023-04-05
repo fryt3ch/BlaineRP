@@ -44,9 +44,11 @@ namespace BCRPServer.Sync
             Kick,
             Mute,
             Jail,
+            Warn,
             UnBan,
             UnMute,
             UnJail,
+            UnWarn,
             News,
             Advert,
         }
@@ -60,9 +62,9 @@ namespace BCRPServer.Sync
         /// <param name="message">Сообщение</param>
         /// <param name="targetStr">Строка цели</param>
         /// <param name="time">Время (для наказаний)</param>
-        public static void SendGlobal(Types type, Player sender, string message, string targetStr = null, string time = null)
+        public static void SendGlobal(Types type, string senderStr, string message, string targetStr = null, string time = null)
         {
-            NAPI.ClientEvent.TriggerClientEventForAll("Chat::ShowGlobalMessage", sender.Name, (int)type, message, targetStr, time);
+            NAPI.ClientEvent.TriggerClientEventForAll("Chat::ShowGlobalMessage", senderStr, (int)type, message, targetStr, time);
         }
         #endregion
 

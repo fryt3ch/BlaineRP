@@ -62,7 +62,7 @@ namespace BCRPClient.Sync
                 return new ItemOnGround(obj);
             }
 
-            public void TakeItem()
+            public async void TakeItem()
             {
                 if (Utils.IsAnyCefActive(true))
                     return;
@@ -87,9 +87,47 @@ namespace BCRPClient.Sync
                     if (LastShowed.IsSpam(500, false, false))
                         return;
 
-                    CEF.ActionBox.ShowRange(CEF.ActionBox.Contexts.ItemOnGroundTakeRange, string.Format(Locale.Actions.Take, Name), 1, Amount, Amount, 1, CEF.ActionBox.RangeSubTypes.Default, this);
-
                     LastShowed = Sync.World.ServerTime;
+
+                    var iog = this;
+
+                    await CEF.ActionBox.ShowRange
+                    (
+                        "ItemOnGroundTakeRange", string.Format(Locale.Actions.Take, Name), 1, Amount, Amount, 1, CEF.ActionBox.RangeSubTypes.Default,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        (rType, amountD) =>
+                        {
+                            if (Sync.World.ItemOnGround.LastSent.IsSpam(500, false, true))
+                                return;
+
+                            int amount;
+
+                            if (!amountD.IsNumberValid(0, int.MaxValue, out amount, true))
+                                return;
+
+                            CEF.ActionBox.Close(true);
+
+                            if (iog?.Object?.Exists != true)
+                                return;
+
+                            if (Player.LocalPlayer.IsInAnyVehicle(false))
+                                return;
+
+                            if (!Utils.CanDoSomething(true, Utils.Actions.Cuffed, Utils.Actions.Frozen))
+                                return;
+
+                            if (rType == CEF.ActionBox.ReplyTypes.OK)
+                            {
+                                Events.CallRemote("Inventory::Take", iog.Uid, amount);
+
+                                Sync.World.ItemOnGround.LastSent = Sync.World.ServerTime;
+                            }
+                        },
+
+                        null
+                    );
                 }
             }
         }
@@ -411,7 +449,7 @@ namespace BCRPClient.Sync
                     {
                         ClosestItemOnGround = null;
 
-                        if (CEF.ActionBox.CurrentContext == CEF.ActionBox.Contexts.ItemOnGroundTakeRange)
+                        if (CEF.ActionBox.CurrentContextStr == "ItemOnGroundTakeRange")
                         {
                             CEF.ActionBox.Close(true);
                         }

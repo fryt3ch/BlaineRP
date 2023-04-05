@@ -46,17 +46,18 @@ namespace BCRPClient.Data
         {
             /// <summary>Данные команды</summary>
             public CommandAttribute Attribute { get; }
+
             /// <summary>Параметры команды</summary>
-            public ParameterInfo[] Parameters { get; }
+            public ParameterInfo[] Parameters => MethodInfo.GetParameters();
+
             /// <summary>Данные метода команды</summary>
             public MethodInfo MethodInfo { get; }
 
-            public Instance(MethodInfo MethodInfo)
+            public Instance(MethodInfo MethodInfo, CommandAttribute Attribute)
             {
-                this.MethodInfo = MethodInfo;
+                this.Attribute = Attribute;
 
-                this.Parameters = MethodInfo.GetParameters();
-                this.Attribute = MethodInfo.GetCustomAttribute<CommandAttribute>();
+                this.MethodInfo = MethodInfo;
             }
         }
 
@@ -82,9 +83,9 @@ namespace BCRPClient.Data
                 return;
             }
 
-            bool correct = true;
+            var correct = true;
 
-            object[] newArgs = new object[inst.Parameters.Length];
+            var newArgs = new object[inst.Parameters.Length];
 
             for (int i = 0; i < inst.Parameters.Length; i++)
             {
@@ -141,12 +142,14 @@ namespace BCRPClient.Data
 
         public Commands()
         {
-            foreach (MethodInfo method in typeof(Commands).GetMethods().Where(x => x.IsStatic))
+            foreach (var method in typeof(Commands).GetMethods().Where(x => x.IsStatic))
             {
-                if (method.GetCustomAttribute<CommandAttribute>() == null)
+                var attr = method.GetCustomAttribute<CommandAttribute>();
+
+                if (attr == null)
                     continue;
 
-                All.Add(new Instance(method));
+                All.Add(new Instance(method, attr));
             }
         }
     }

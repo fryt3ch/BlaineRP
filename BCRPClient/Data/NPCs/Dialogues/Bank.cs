@@ -141,7 +141,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     NPC.CurrentNPC.SwitchDialogue(false);
 
-                    await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.HouseBalanceDeposit, 0, nBalance, nBalance / 2, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData, bank, true);
+                    await CEF.ActionBox.ShowRange
+                    (
+                        "HouseBalanceChange", Locale.Actions.HouseBalanceDeposit, 0, nBalance, nBalance / 2, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, houseData, bank, true),
+
+                        null
+                    );
                 }));
 
                 if (balance > 0)
@@ -167,7 +176,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.HouseBalanceWithdraw, 0, nBalance, nBalance, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange, houseData, bank, false);
+                        await CEF.ActionBox.ShowRange
+                        (
+                            "HouseBalanceChange", Locale.Actions.HouseBalanceWithdraw, 0, nBalance, nBalance, houseData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, houseData, bank, false),
+
+                            null
+                        );
                     }));
                 }
 
@@ -253,7 +271,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.ApartmentsBalanceDeposit, 0, nBalance, nBalance / 2, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData, bank, true);
+                        await CEF.ActionBox.ShowRange
+                        (
+                            "HouseBalanceChange", Locale.Actions.ApartmentsBalanceDeposit, 0, nBalance, nBalance / 2, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, apsData, bank, true),
+
+                            null
+                        );
                     }));
 
                     if (balance > 0)
@@ -279,7 +306,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.HouseBalanceChange, Locale.Actions.ApartmentsBalanceWithdraw, 0, nBalance, nBalance, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange, apsData, bank, false);
+                            await CEF.ActionBox.ShowRange
+                            (
+                                "HouseBalanceChange", Locale.Actions.ApartmentsBalanceWithdraw, 0, nBalance, nBalance, apsData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+
+                                CEF.ActionBox.DefaultBindAction,
+
+                                (rType, amountD) => HouseBalanceChangeRangeActionBoxAction(rType, amountD, apsData, bank, false),
+
+                                null
+                            );
                         }));
                     }
 
@@ -365,7 +401,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceChange, Locale.Actions.GarageBalanceDeposit, 0, nBalance, nBalance / 2, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData, bank, true);
+                        await CEF.ActionBox.ShowRange
+                        (
+                            "GarageBalanceChange", Locale.Actions.GarageBalanceDeposit, 0, nBalance, nBalance / 2, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, amountD) => GarageBalanceChangeRangeActionBoxAction(rType, amountD, garageData, bank, true),
+
+                            null
+                        );
                     }));
 
                     if (balance > 0)
@@ -391,7 +436,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.GarageBalanceChange, Locale.Actions.GarageBalanceWithdraw, 0, nBalance, nBalance, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange, garageData, bank, false);
+                            await CEF.ActionBox.ShowRange
+                            (
+                                "GarageBalanceChange", Locale.Actions.GarageBalanceWithdraw, 0, nBalance, nBalance, garageData.Tax, ActionBox.RangeSubTypes.MoneyRange,
+
+                                CEF.ActionBox.DefaultBindAction,
+
+                                (rType, amountD) => GarageBalanceChangeRangeActionBoxAction(rType, amountD, garageData, bank, false),
+
+                                null
+                            );
                         }));
                     }
 
@@ -477,7 +531,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         NPC.CurrentNPC.SwitchDialogue(false);
 
-                        await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceChange, Locale.Actions.BusinessBalanceDeposit, 0, nBalance, nBalance / 2, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData, bank, true);
+                        await CEF.ActionBox.ShowRange
+                        (
+                            "BusinessBalanceChange", Locale.Actions.BusinessBalanceDeposit, 0, nBalance, nBalance / 2, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, amountD) => BusinessBalanceChangeRangeActionBoxAction(rType, amountD, businessData, bank, true),
+
+                            null
+                        );
                     }));
 
                     if (balance > 0)
@@ -503,7 +566,16 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             NPC.CurrentNPC.SwitchDialogue(false);
 
-                            await CEF.ActionBox.ShowRange(ActionBox.Contexts.BusinessBalanceChange, Locale.Actions.BusinessBalanceWithdraw, 0, nBalance, nBalance, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange, businessData, bank, false);
+                            await CEF.ActionBox.ShowRange
+                            (
+                                "BusinessBalanceChange", Locale.Actions.BusinessBalanceWithdraw, 0, nBalance, nBalance, businessData.Rent, ActionBox.RangeSubTypes.MoneyRange,
+
+                                CEF.ActionBox.DefaultBindAction,
+
+                                (rType, amountD) => BusinessBalanceChangeRangeActionBoxAction(rType, amountD, businessData, bank, false),
+
+                                null
+                            );
                         }));
                     }
 
@@ -548,6 +620,72 @@ namespace BCRPClient.Data.NPCs.Dialogues
             new Dialogue("bank_garage_0", "Баланс на счете Вашего гаража составляет {0}, налог в час - {1}.\n{2}", null);
 
             new Dialogue("bank_business_0", "Баланс на счете Вашего бизнеса составляет {0}, стоимость аренды помещения в час - {1}.\n{2}", null);
+        }
+
+        private static async void HouseBalanceChangeRangeActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal amountD, Data.Locations.HouseBase house, Data.Locations.Bank bank, bool add)
+        {
+            if (CEF.ActionBox.LastSent.IsSpam(1000, false, true))
+                return;
+
+            int amount;
+
+            if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                return;
+
+            CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+            var useCash = rType == CEF.ActionBox.ReplyTypes.OK;
+
+            var resObj = await Events.CallRemoteProc("Bank::HBC", house.Type == Sync.House.HouseTypes.House, house.Id, bank.Id, amount, useCash, add);
+
+            if (resObj == null)
+                return;
+
+            CEF.ActionBox.Close(true);
+        }
+
+        private static async void GarageBalanceChangeRangeActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal amountD, Data.Locations.Garage garage, Data.Locations.Bank bank, bool add)
+        {
+            if (CEF.ActionBox.LastSent.IsSpam(1000, false, true))
+                return;
+
+            int amount;
+
+            if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                return;
+
+            CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+            var useCash = rType == CEF.ActionBox.ReplyTypes.OK;
+
+            var resObj = await Events.CallRemoteProc("Bank::GBC", garage.Id, bank.Id, amount, useCash, add);
+
+            if (resObj == null)
+                return;
+
+            CEF.ActionBox.Close(true);
+        }
+
+        private static async void BusinessBalanceChangeRangeActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal amountD, Data.Locations.Business biz, Data.Locations.Bank bank, bool add)
+        {
+            if (CEF.ActionBox.LastSent.IsSpam(1000, false, true))
+                return;
+
+            int amount;
+
+            if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                return;
+
+            CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+            var useCash = rType == CEF.ActionBox.ReplyTypes.OK;
+
+            var resObj = await Events.CallRemoteProc("Bank::BBC", biz.Id, bank.Id, amount, useCash, add);
+
+            if (resObj == null)
+                return;
+
+            CEF.ActionBox.Close(true);
         }
     }
 }

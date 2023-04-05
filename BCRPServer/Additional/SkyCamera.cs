@@ -35,13 +35,5 @@ namespace BCRPServer.Additional
                 }
             }
         }
-
-        public static void FadeScreen(Player player, bool state, int time = 1000, int inTime = -1)
-        {
-            if (state && inTime >= 0)
-                player.TriggerEvent("FadeScreen", state, time, inTime);
-            else
-                player.TriggerEvent("FadeScreen", state, time);
-        }
     }
 }

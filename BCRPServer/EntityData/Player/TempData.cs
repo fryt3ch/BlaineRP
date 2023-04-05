@@ -95,7 +95,7 @@ namespace BCRPServer
 
         public PlayerData PlayerData { get; set; }
 
-        public Vector3 PositionToSpawn { get; set; }
+        public Utils.Vector4 PositionToSpawn { get; set; }
 
         public uint DimensionToSpawn { get; set; }
 
@@ -132,7 +132,7 @@ namespace BCRPServer
                         return;
 
                     if (StepType < StepTypes.CharacterSelection)
-                        Utils.KickSilent(Player, "Время на вход вышло!");
+                        Utils.Kick(Player, "Время на вход вышло!");
                 });
             }, null, Settings.AUTH_TIMEOUT_TIME, Timeout.Infinite);
 

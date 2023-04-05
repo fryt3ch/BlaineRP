@@ -57,7 +57,7 @@ namespace BCRPServer.Events.Players
             {
                 var rItem = Game.Items.FishingRod.ItemData.GetRandomItem();
 
-                pData.GiveItemDropExcess(rItem.Id, 0, rItem.Amount, false, false);
+                pData.GiveItemDropExcess(out _, rItem.Id, 0, rItem.Amount, false, false);
 
                 player.TriggerEvent("Item::FCN", rItem.Id, rItem.Amount);
             }
@@ -91,7 +91,7 @@ namespace BCRPServer.Events.Players
 
             var rItem = Game.Items.Shovel.ItemData.GetRandomItem();
 
-            pData.GiveItemDropExcess(rItem.Id, 0, rItem.Amount, false, false);
+            pData.GiveItemDropExcess(out _, rItem.Id, 0, rItem.Amount, false, false);
 
             player.TriggerEvent("Item::FCN", rItem.Id, rItem.Amount);
         }

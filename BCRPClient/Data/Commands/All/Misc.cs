@@ -62,5 +62,11 @@ namespace BCRPClient.Data
         {
             CEF.Menu.ReportSend(text);
         }
+
+        [Command("cleargps", false, "Связь с администрацией", "cgps", "gpsclear", "gpsc")]
+        public static void ClearGPS()
+        {
+            Additional.ExtraBlip.DestroyAllByType(Additional.ExtraBlip.Types.GPS);
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace BCRPServer.Additional
         }
 
         #region Legalization Methods
-        public static void TeleportVehicle(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportTypes tpType = VehicleTeleportTypes.Default)
+        public static void TeleportVehicle(Vehicle veh, Vector3 pos, uint? dimension = null, float? heading = null, bool fade = false, VehicleTeleportTypes tpType = VehicleTeleportTypes.Default, bool toGround = false)
         {
             veh.DetachAllEntities();
 
@@ -82,7 +82,7 @@ namespace BCRPServer.Additional
                     {
                         if (!wasDriver && player.VehicleSeat == 0)
                         {
-                            TeleportPlayers(pos, false, dimension, heading, fade, true, lastDim, player);
+                            TeleportPlayers(pos, toGround, dimension, heading, fade, true, lastDim, player);
 
                             wasDriver = true;
 
@@ -139,7 +139,7 @@ namespace BCRPServer.Additional
                 }
                 else
                 {
-                    TeleportPlayers(pos, false, dimension, heading, fade, true, lastDim, occupants.ToArray());
+                    TeleportPlayers(pos, toGround, dimension, heading, fade, true, lastDim, occupants.ToArray());
                 }
             }
         }

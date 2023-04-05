@@ -83,7 +83,7 @@ namespace BCRPClient.CEF
                     Browser.Render(Browser.IntTypes.Registration, false);
 
                     var login = (string)args[1];
-                    var regDate = DateTimeOffset.FromUnixTimeSeconds((long)args[2]).DateTime;
+                    var regDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(args[2])).DateTime;
                     var bCoins = args[3].ToDecimal();
 
                     var data = ((JArray)args[4]).ToObject<object[]>();
@@ -111,10 +111,10 @@ namespace BCRPClient.CEF
                         cData[5] = Data.Fractions.Fraction.Get(fractionType)?.Name ?? Data.Fractions.Fraction.NoFractionStr;
                         cData[6] = (cData[6].ToDecimal() / 60m).ToString("0.0");
 
-                        if (cData[12] != null)
+                        if (cData[10] != null)
                         {
-                            cData[12] = ((DateTime)cData[12]).ToString("dd.MM.yyyy HH:mm");
-                            cData[13] = ((DateTime)cData[12]).ToString("dd.MM.yyyy HH:mm");
+                            cData[12] = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(cData[12])).DateTime.ToString("dd.MM.yyyy HH:mm");
+                            cData[13] = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(cData[13])).DateTime.ToString("dd.MM.yyyy HH:mm");
                         }
                     }
 

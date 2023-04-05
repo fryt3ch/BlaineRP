@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.Sync
 {
@@ -135,8 +136,17 @@ namespace BCRPClient.Sync
             if (pData == null || pData.VoiceRange > 0f)
                 return;
 
-            if (LastSwitched.IsSpam(500, false, false) || pData.IsMuted)
+            if (LastSwitched.IsSpam(500, false, false))
                 return;
+
+            var mute = Sync.Punishment.All.Where(x => x.Type == Punishment.Types.Mute).FirstOrDefault();
+
+            if (mute != null)
+            {
+                mute.ShowErrorNotification();
+
+                return;
+            }
 
             LastSwitched = Sync.World.ServerTime;
 

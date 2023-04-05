@@ -391,14 +391,24 @@ namespace BCRPServer.Events.Vehicles
             if (!vData.CanManipulate(pData, true))
                 return;
 
-            var placePos = new Vector3(x, y, z);
-
-            if (placePos.DistanceTo(veh.Position) > 15f)
-                return;
-
-            if (vData.DetachBoatFromTrailer())
+            if (x == float.MaxValue)
             {
-                vData.Vehicle.Teleport(placePos, null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
+                if (vData.DetachBoatFromTrailer())
+                {
+
+                }
+            }
+            else
+            {
+                var placePos = new Vector3(x, y, z);
+
+                if (placePos.DistanceTo(veh.Position) > 15f)
+                    return;
+
+                if (vData.DetachBoatFromTrailer())
+                {
+                    vData.Vehicle.Teleport(placePos, null, null, false, Additional.AntiCheat.VehicleTeleportTypes.All);
+                }
             }
         }
 

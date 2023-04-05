@@ -440,6 +440,8 @@ namespace BCRPClient.Sync
 
                 await CEF.Browser.Render(CEF.Browser.IntTypes.Phone, true, false);
 
+                RAGE.Game.Invoker.Invoke(0x95C0A5BBDC189AA1);
+
                 CEF.Browser.Window.ExecuteJs("Hud.createSpeedometer", 500);
 
                 var player = Player.LocalPlayer;
@@ -466,6 +468,18 @@ namespace BCRPClient.Sync
                 data.Skills = RAGE.Util.Json.Deserialize<Dictionary<SkillTypes, int>>((string)sData["Skills"]);
 
                 data.PhoneNumber = (uint)sData["PN"];
+
+                if (sData.ContainsKey("P"))
+                {
+                    foreach (var x in ((JArray)sData["P"]).ToObject<List<string>>())
+                    {
+                        var t = x.Split('&');
+
+                        Sync.Punishment.AddPunishment(new Punishment() { Id = uint.Parse(t[0]), Type = (Sync.Punishment.Types)int.Parse(t[1]), EndDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(t[2])).DateTime, AdditionalData = t[3].Length > 0 ? t[3] : null });
+                    }
+
+                    Sync.Punishment.StartCheckTask();
+                }
 
                 if (sData.ContainsKey("Conts"))
                     data.Contacts = ((JObject)sData["Conts"]).ToObject<Dictionary<uint, string>>();
@@ -604,33 +618,13 @@ namespace BCRPClient.Sync
 
                 InvokeHandler("Wounded", data, data.IsWounded, null);
 
+                InvokeHandler("VoiceRange", data, data.VoiceRange, null);
+
                 InvokeHandler("Anim::General", data, (int)data.GeneralAnim, null);
 
                 InvokeHandler("CHO", data, player.GetSharedData<int>("CHO", 0), null);
 
                 InvokeHandler("DCR", data, Player.LocalPlayer.GetSharedData<JArray>("DCR", null), null);
-            });
-
-            Events.Add("Players::CharacterReady", async (object[] args) =>
-            {
-                if (CharacterLoaded)
-                    return;
-
-                var pPos = Player.LocalPlayer.Position;
-
-                float z = 0f;
-
-                if (RAGE.Game.Misc.GetGroundZFor3dCoord(pPos.X, pPos.Y, pPos.Z, ref z, true))
-                    Player.LocalPlayer.SetCoordsNoOffset(pPos.X, pPos.Y, z, false, false, false);
-
-                var data = GetData(Player.LocalPlayer);
-
-                while (data == null)
-                {
-                    await RAGE.Game.Invoker.WaitAsync(10);
-
-                    data = GetData(Player.LocalPlayer);
-                }
 
                 (new AsyncTask(() =>
                 {
@@ -697,6 +691,85 @@ namespace BCRPClient.Sync
             #endregion
 
             #region Local Player Events
+
+            Events.Add("Player::MuteShow", (args) => Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute).FirstOrDefault()?.ShowErrorNotification());
+
+            Events.Add("Player::FMuteShow", (args) => Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.FractionMute).FirstOrDefault()?.ShowErrorNotification());
+
+            Events.Add("Player::Punish", (args) =>
+            {
+                var id = args[0].ToUInt32();
+
+                var type = (Sync.Punishment.Types)(int)args[1];
+
+                var admin = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[2]);
+
+                var endDateL = Convert.ToInt64(args[3]);
+
+                var reason = (string)args[4];
+
+                if (endDateL >= 0)
+                {
+                    var endDate = DateTimeOffset.FromUnixTimeSeconds(endDateL).DateTime;
+
+                    var mData = new Sync.Punishment() { Type = type, EndDate = endDate, Id = id };
+
+                    Sync.Punishment.AddPunishment(mData);
+
+                    var timeStr = endDate.Subtract(Sync.World.ServerTime).GetBeautyString();
+
+                    if (type == Punishment.Types.Mute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Мут", admin == null ? $"Вам был выдан мут (запрет на использование текстового и голосового чатов) на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование текстового и голосового чатов) на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.NRPPrison)
+                    {
+                        CEF.Notification.Show(Notification.Types.Jail1, "NonRP-тюрьма", admin == null ? $"Вы были посажены в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.Warn)
+                    {
+                        CEF.Notification.Show(Notification.Types.Warn, "Предупреждение", admin == null ? $"Вам было выдано предупреждение!\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам предупреждение\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.FractionMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Мут (фракция)", admin == null ? $"Вам был выдан мут (запрет на использование чата фракции) на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование чата фракции) на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.OrganisationMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Мут (организация)", admin == null ? $"Вам был выдан мут (запрет на использование чата организации) на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование чата организации) на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.Arrest)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Арест (СИЗО)", admin == null ? $"Вы были арестованы и посажены в СИЗО на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в СИЗО на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.FederalPrison)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Арест (Федеральная тюрьма)", admin == null ? $"Вы были арестованы и посажены в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}");
+                    }
+                }
+                else
+                {
+                    var mData = Sync.Punishment.All.Where(x => x.Type == type && x.Id == id).FirstOrDefault();
+
+                    if (mData != null)
+                    {
+                        Sync.Punishment.RemovePunishment(mData);
+                    }
+
+                    if (type == Punishment.Types.FractionMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, "Мут (фракция)", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила Вашей фракции!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.OrganisationMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, "Мут (организация)", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила Вашей организации!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, type == Punishment.Types.Mute ? "Мут" : type == Punishment.Types.NRPPrison ? "NonRP-тюрьма" : type == Punishment.Types.Warn ? "Предупреждение" : "???", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила нашего сервера!" : $"Администратор {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                    }
+                }
+            });
 
             Events.Add("opday", (args) =>
             {
@@ -2113,7 +2186,7 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static void TryShowWeaponSkinsMenu()
+        public static async void TryShowWeaponSkinsMenu()
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -2129,7 +2202,48 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            CEF.ActionBox.ShowSelect(ActionBox.Contexts.WeaponSkinsMenuSelect, Locale.Actions.WeaponSkinsMenuSelectHeader, wSkins.Select(x => ((int)x.Key, $"{(Locale.Actions.WeaponSkinTypeNames.GetValueOrDefault(x.Key) ?? "null")} | {Data.Items.GetName(x.Value).Split(' ')[0]}")).ToArray(), Locale.Actions.SelectOkBtn1, Locale.Actions.SelectCancelBtn1);
+            await CEF.ActionBox.ShowSelect
+            (
+                "WeaponSkinsMenuSelect", Locale.Actions.WeaponSkinsMenuSelectHeader, wSkins.Select(x => ((decimal)x.Key, $"{(Locale.Actions.WeaponSkinTypeNames.GetValueOrDefault(x.Key) ?? "null")} | {Data.Items.GetName(x.Value).Split(' ')[0]}")).ToArray(), Locale.Actions.SelectOkBtn1, Locale.Actions.SelectCancelBtn1,
+
+                CEF.ActionBox.DefaultBindAction,
+
+                async (rType, id) =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    var wSkins = pData.WeaponSkins;
+
+                    if (rType == CEF.ActionBox.ReplyTypes.OK)
+                    {
+                        if (!wSkins.Keys.Where(x => (int)x == id).Any())
+                        {
+                            CEF.ActionBox.Close(true);
+
+                            return;
+                        }
+
+                        if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
+                            return;
+
+                        if ((bool)await Events.CallRemoteProc("WSkins::Rm", id))
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    }
+                    else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                    {
+                        CEF.ActionBox.Close(true);
+                    }
+                    else
+                        return;
+                },
+
+                null
+            );
         }
 
         public static void CloseAll(bool onlyInterfaces = false)

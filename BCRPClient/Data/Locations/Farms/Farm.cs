@@ -1255,6 +1255,11 @@ namespace BCRPClient.Data
 
                     Data = this,
                 };
+
+                var gpsPos = new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y);
+
+                CEF.PhoneApps.GPSApp.AddPosition("bizother", "farm", $"bizother_{Id}", $"{Name} #{SubId}", gpsPos);
+                CEF.PhoneApps.GPSApp.AddPosition("jobs", "jobfarm", $"jobfarm_{Id}", $"{Name} #{SubId}", gpsPos);
             }
 
             private static void OnEnterFarm(Farm farm)

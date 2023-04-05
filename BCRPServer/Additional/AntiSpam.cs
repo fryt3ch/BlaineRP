@@ -16,7 +16,7 @@ namespace BCRPServer.Additional
 
             if (pData == null || !player.Exists)
             {
-                Utils.KickSilent(player, "Подозрение в спам-атаке");
+                Utils.Kick(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
@@ -36,7 +36,7 @@ namespace BCRPServer.Additional
 
             if (curSpams > Settings.ANTISPAM_MAX_COUNT)
             {
-                Utils.KickSilent(player, "Подозрение в спам-атаке");
+                Utils.Kick(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
@@ -72,7 +72,7 @@ namespace BCRPServer.Additional
 
             if (tData == null || !player.Exists)
             {
-                Utils.KickSilent(player, "Подозрение в спам-атаке");
+                Utils.Kick(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }
@@ -89,7 +89,7 @@ namespace BCRPServer.Additional
 
             if (curSpams > Settings.ANTISPAM_MAX_COUNT)
             {
-                Utils.KickSilent(player, "Подозрение в спам-атаке");
+                Utils.Kick(player, "Подозрение в спам-атаке");
 
                 return (true, null);
             }

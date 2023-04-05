@@ -245,6 +245,16 @@ namespace BCRPServer
 
         public const int FRACTION_VEHICLE_RESPAWN_CD = 120;
 
+        public const byte MAX_PUNISHMENTS_PER_TYPE_HISTORY = 5;
+
+        public const byte MAX_WARNS_BEFORE_BAN = 3;
+
+        public const ushort WARN_DAYS_TO_UNWARN = 30;
+
+        public const ushort FRACTION_MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
+
+        public const ushort MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
+
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
 

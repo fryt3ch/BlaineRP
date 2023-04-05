@@ -9,7 +9,7 @@ namespace BCRPClient.Data.Fractions
 {
     public class Police : Fraction, IUniformable
     {
-        public Police(Types Type, string Name, uint StorageContainerId, Utils.Vector4 ContainerPos, Utils.Vector4 CWbPos, byte MaxRank, Vector3 LockerRoomPosition, string CreationWorkbenchPricesJs) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
+        public Police(Types Type, string Name, uint StorageContainerId, Utils.Vector4 ContainerPos, Utils.Vector4 CWbPos, byte MaxRank, Vector3 LockerRoomPosition, string CreationWorkbenchPricesJs, string ArrestCellsPositionsJs, Vector3 ArrestMenuPosition) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
         {
             var lockerRoomCs = new Additional.Cylinder(LockerRoomPosition, 1f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
             {
@@ -34,7 +34,13 @@ namespace BCRPClient.Data.Fractions
                     "Форма руководства",
                 };
             }
+
+            this.ArrestCellsPositions = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(ArrestCellsPositionsJs);
         }
+
+        public static Dictionary<string, uint[]> NumberplatePrices { get; set; }
+
+        public Utils.Vector4[] ArrestCellsPositions { get; set; }
 
         public List<string> UniformNames { get; set; }
 

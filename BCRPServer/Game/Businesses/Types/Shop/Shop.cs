@@ -128,7 +128,7 @@ namespace BCRPServer.Game.Businesses
             if (!TryProceedPayment(pData, useCash, iData[0], (uint)amount, out newMats, out newBalance, out newPlayerBalance))
                 return false;
 
-            if (!pData.GiveItem(iData[0], variation, amount, true, true))
+            if (!pData.GiveItem(out _, iData[0], variation, amount, true, true))
                 return false;
 
             ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);

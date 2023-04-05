@@ -72,7 +72,7 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static void RequestShow(Vehicle vehicle, bool showGasAnyway = false)
+        public static async void RequestShow(Vehicle vehicle, bool showGasAnyway = false)
         {
             if (IsActive)
                 return;
@@ -137,6 +137,55 @@ namespace BCRPClient.CEF
                 }
             }
 
+            async void gasStationOrItemSelectActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal id)
+            {
+                CEF.ActionBox.Close(true);
+
+                if (rType == CEF.ActionBox.ReplyTypes.OK)
+                {
+                    if (vehicle?.Exists == true)
+                    {
+                        if (id < 0)
+                        {
+                            CEF.Gas.RequestShow(vehicle, true);
+                        }
+                        else
+                        {
+                            var fuelAmount = allGasItems.Where(x => x.Item1 == id).Select(x => Math.Min(x.Item3, maxFuel)).FirstOrDefault();
+
+                            if (fuelAmount > 0)
+                            {
+                                await CEF.ActionBox.ShowRange
+                                (
+                                    "GasItemRange", Locale.Actions.GasItemRangeHeader, 1, fuelAmount, fuelAmount, 1, CEF.ActionBox.RangeSubTypes.Default,
+
+                                    CEF.ActionBox.DefaultBindAction,
+
+                                    (rType, amountD) => gasItemRangeActionBoxAction(rType, amountD, (int)id),
+
+                                    null
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
+            void gasItemRangeActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal amountD, int itemIdx)
+            {
+                int amount;
+
+                if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                    return;
+
+                CEF.ActionBox.Close(true);
+
+                if (rType == CEF.ActionBox.ReplyTypes.OK)
+                {
+                    Events.CallRemote("Vehicles::JerrycanUse", vehicle, itemIdx, amount);
+                }
+            }
+
             if (gasStationId < 0)
             {
                 if (allGasItems.Count == 0)
@@ -149,11 +198,29 @@ namespace BCRPClient.CEF
 
                     var maxFuel1 = Math.Min(item.Item3, maxFuel);
 
-                    CEF.ActionBox.ShowRange(ActionBox.Contexts.GasItemRange, Locale.Actions.GasItemRangeHeader, 1, maxFuel1, maxFuel1, 1, ActionBox.RangeSubTypes.Default, item.Item1);
+                    await CEF.ActionBox.ShowRange
+                    (
+                        "GasItemRange", Locale.Actions.GasItemRangeHeader, 1, maxFuel1, maxFuel1, 1, ActionBox.RangeSubTypes.Default,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        (rType, amountD) => gasItemRangeActionBoxAction(rType, amountD, item.Item1),
+
+                        null
+                    );
                 }
                 else
                 {
-                    CEF.ActionBox.ShowSelect(ActionBox.Contexts.GasStationOrItemSelect, Locale.Actions.DefaultSelectHeader, allGasItems.Select(x => (x.Item1, x.Item2)).ToArray(), null, null, allGasItems.ToDictionary(x => x.Item1, x => Math.Min(x.Item3, maxFuel)));
+                    await CEF.ActionBox.ShowSelect
+                    (
+                        "GasStationOrItemSelect", Locale.Actions.DefaultSelectHeader, allGasItems.Select(x => ((decimal)x.Item1, x.Item2)).ToArray(), null, null,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        (rType, id) => gasStationOrItemSelectActionBoxAction(rType, id),
+
+                        null
+                    );
                 }
 
                 return;
@@ -162,7 +229,16 @@ namespace BCRPClient.CEF
             {
                 allGasItems.Insert(0, (-1, Locale.Actions.GasStationText, 0));
 
-                CEF.ActionBox.ShowSelect(ActionBox.Contexts.GasStationOrItemSelect, Locale.Actions.DefaultSelectHeader, allGasItems.Select(x => (x.Item1, x.Item2)).ToArray(), null, null, allGasItems.ToDictionary(x => x.Item1, x => Math.Min(x.Item3, maxFuel)));
+                await CEF.ActionBox.ShowSelect
+                (
+                    "GasStationOrItemSelect", Locale.Actions.DefaultSelectHeader, allGasItems.Select(x => ((decimal)x.Item1, x.Item2)).ToArray(), null, null,
+
+                    CEF.ActionBox.DefaultBindAction,
+
+                    (rType, id) => gasStationOrItemSelectActionBoxAction(rType, id),
+
+                    null
+                );
 
                 return;
             }
