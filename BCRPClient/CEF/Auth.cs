@@ -118,9 +118,11 @@ namespace BCRPClient.CEF
                         }
                     }
 
-                    await Browser.Render(Browser.IntTypes.CharacterSelection, true, true);
+                    await Browser.Render(Browser.IntTypes.CharacterSelection, true, false);
 
                     Browser.Window.ExecuteJs("AuthSelect.fillPanel", login, regDate.ToString("dd.MM.yyyy"), bCoins, Additional.Storage.GetData<int?>("Auth::LastCharacter") ?? 1, RAGE.Util.Json.Serialize(data));
+
+                    Browser.Switch(Browser.IntTypes.CharacterSelection, true);
                 }
                 else
                 {

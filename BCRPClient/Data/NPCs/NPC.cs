@@ -19,7 +19,7 @@ namespace BCRPClient.Data
 
         public static DateTime LastSent;
 
-        private static List<int> TempBinds { get; set; }
+        private static int EscBindIdx { get; set; } = -1;
 
         public enum Types
         {
@@ -78,7 +78,7 @@ namespace BCRPClient.Data
 
         public object Data { get; set; }
 
-        public object TempDialogueData { get => Player.LocalPlayer.HasData($"NPC::{Id}::TDD") ? Player.LocalPlayer.GetData<object>($"NPC::{Id}::TDD") : null; set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::TDD"); else Player.LocalPlayer.SetData($"NPC::{Id}::TDD", value); } }
+        private Dictionary<string, object> TempDialogueData { get => Player.LocalPlayer.GetData<Dictionary<string, object>>($"NPC::{Id}::TDD"); set { if (value == null) Player.LocalPlayer.ResetData($"NPC::{Id}::TDD"); else Player.LocalPlayer.SetData($"NPC::{Id}::TDD", value); } }
 
         public NPC(string Id, string Name, Types Type, uint Model, Vector3 Position, float Heading = 0f, uint Dimension = 0)
         {
@@ -160,8 +160,6 @@ namespace BCRPClient.Data
         {
             LastSent = DateTime.MinValue;
 
-            TempBinds = new List<int>();
-
             GameEvents.Render += () =>
             {
                 float screenX = 0f, screenY = 0f;
@@ -214,12 +212,35 @@ namespace BCRPClient.Data
 
         }
 
+        public void SetTempDialogueData(string key, object value)
+        {
+            if (TempDialogueData == null)
+                return;
+
+            if (!TempDialogueData.TryAdd(key, value))
+                TempDialogueData[key] = value;
+        }
+
+        public bool ResetTempDialogueData(string key) => TempDialogueData?.Remove(key) == true;
+
+        public T GetTempDialogueData<T>(string key)
+        {
+            var data = TempDialogueData?.GetValueOrDefault(key);
+
+            if (data is T dataT)
+                return dataT;
+
+            return default;
+        }
+
         public void SwitchDialogue(bool state = true)
         {
             if (state)
             {
                 if (CurrentNPC != null)
                     return;
+
+                TempDialogueData = new Dictionary<string, object>();
 
                 LastDialogues = new List<Dialogue.LastInfo>();
 
@@ -245,7 +266,7 @@ namespace BCRPClient.Data
 
                 Ped.TaskLookAtCoord2(playerHeadCoord.X, playerHeadCoord.Y, playerHeadCoord.Z, -1, 2048, 3);
 
-                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => SwitchDialogue(false)));
+                BindEsc();
             }
             else
             {
@@ -261,16 +282,15 @@ namespace BCRPClient.Data
 
                 Ped.TaskClearLookAt();
 
-                foreach (var x in TempBinds)
-                    KeyBinds.Unbind(x);
-
-                TempBinds.Clear();
+                UnbindEsc();
 
                 Additional.Camera.Disable(750);
 
                 Player.LocalPlayer.SetVisible(true, false);
 
                 Ped.SetHeading(DefaultHeading);
+
+                TempDialogueData?.Clear();
 
                 TempDialogueData = null;
 
@@ -305,6 +325,30 @@ namespace BCRPClient.Data
             CurrentDialogue = dialogue;
 
             dialogue.Show(this, args, textArgs);
+        }
+
+        public static bool UnbindEsc()
+        {
+            if (EscBindIdx >= 0)
+            {
+                KeyBinds.Unbind(EscBindIdx);
+
+                EscBindIdx = -1;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool BindEsc()
+        {
+            if (EscBindIdx >= 0)
+                return false;
+
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => NPC.CurrentNPC?.SwitchDialogue(false));
+
+            return true;
         }
     }
 }

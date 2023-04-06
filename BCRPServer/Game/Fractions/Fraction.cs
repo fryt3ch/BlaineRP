@@ -145,6 +145,8 @@ namespace BCRPServer.Game.Fractions
                 }
             };
 
+            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.PolicePaleto}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
+
             foreach (var x in All.Values)
             {
                 x.Initialize();

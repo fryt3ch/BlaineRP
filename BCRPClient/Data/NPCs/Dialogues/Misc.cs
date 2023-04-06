@@ -55,6 +55,23 @@ namespace BCRPClient.Data.NPCs.Dialogues
                 Button.DefaultExitButton
 
                 );
+
+            new Dialogue("drivingschool_d_0", "Здравствуйте, хотите получить лицензию на управление каким-то типом транспорта?", null,
+
+                new Button("Да, хотелось бы", async () =>
+                {
+                    NPC.CurrentNPC?.ShowDialogue("drivingschool_d_1", true, null);
+                }),
+
+                Button.DefaultExitButton
+            );
+
+            new Dialogue("drivingschool_d_1", "Тогда пройдите в экзаменационный класс и выберите нужный Вам тип лицензии!\n\nКогда оплатите сдачу теоретического теста и пройдете его, набрав не менее 80% правильных ответов, сможете пройти практику в любое удобное для вас время в течение дня\n\n[сдача практического экзамена доступна до перезапуска сервера, если не пройдете его до этого момента, Вам придется снова сдавать теорию]", null,
+
+            Button.DefaultBackButton,
+
+            Button.DefaultExitButton
+        );
         }
     }
 }

@@ -29,10 +29,10 @@ namespace BCRPServer.Events.Vehicles
             if (player.Vehicle != null)
                 return;
 
-            if (vData.Numberplate == null)
+            if (!vData.IsFullOwner(pData, true))
                 return;
 
-            if (!vData.IsFullOwner(pData, true))
+            if (vData.Numberplate == null)
                 return;
 
             if (!pData.TryGiveExistingItem(vData.Numberplate, 1, true, true))
@@ -440,6 +440,76 @@ namespace BCRPServer.Events.Vehicles
                 return;
 
             vData.AttachBoatToTrailer();
+        }
+
+        [RemoteProc("Vehicles::VDGP")]
+        private static ulong? VehicleDestructionGetPrice(Player player, Vehicle veh, int destrId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return null;
+
+            if (!veh.AreEntitiesNearby(player, 10f))
+                return null;
+
+            var destr = Game.Misc.VehicleDestruction.Get(destrId);
+
+            if (destr == null)
+                return null;
+
+            if (player.Dimension != Utils.Dimensions.Main || destr.Position.DistanceTo(player.Position) > 10f)
+                return null;
+
+            if (!vData.IsFullOwner(pData, true))
+                return null;
+
+            return destr.GetPriceForVehicle(vData.Info);
+        }
+
+        [RemoteProc("Vehicles::VDC")]
+        private static bool VehicleDestructionConfirm(Player player, Vehicle veh, int destrId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return false;
+
+            if (!veh.AreEntitiesNearby(player, 10f))
+                return false;
+
+            var destr = Game.Misc.VehicleDestruction.Get(destrId);
+
+            if (destr == null)
+                return false;
+
+            if (player.Dimension != Utils.Dimensions.Main || destr.Position.DistanceTo(player.Position) > 10f)
+                return false;
+
+            if (!vData.IsFullOwner(pData, true))
+                return false;
+
+            return true;
         }
     }
 }

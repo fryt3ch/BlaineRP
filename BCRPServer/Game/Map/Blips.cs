@@ -60,7 +60,6 @@ namespace BCRPServer.Game.Map
             #endregion
 
             #region For Vehicles
-            BlipList.Add(NAPI.Blip.CreateBlip(380, new Vector3(2390.89f, 3112.29f, 20f), 1, 1, name: "Свалка автомобилей", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(728, new Vector3(340.87f, 3569.55f, 20f), 1, 19, name: "Рынок автомобилей", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(728, new Vector3(2049.33f, 3436.35f, 20f), 1, 19, name: "Рынок автомобилей", shortRange: true));
             #endregion

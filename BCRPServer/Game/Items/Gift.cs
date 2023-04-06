@@ -4,37 +4,22 @@ namespace BCRPServer.Game.Items
 {
     public class Gift
     {
-        private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
-
-        private static uint LastAddedMaxId { get; set; }
-
-        public static uint MoveNextId()
-        {
-            uint id;
-
-            if (!FreeIDs.TryDequeue(out id))
-            {
-                id = ++LastAddedMaxId;
-            }
-
-            return id;
-        }
-
-        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
 
         public static void AddOnLoad(Gift gift)
         {
             if (gift == null)
                 return;
 
-            if (gift.ID > LastAddedMaxId)
-                LastAddedMaxId = gift.ID;
+            UidHandler.TryUpdateLastAddedMaxUid(gift.ID);
         }
 
         public static void Add(Gift gift, uint cid)
         {
             if (gift == null)
                 return;
+
+            gift.ID = UidHandler.MoveNextUid();
 
             MySQL.GiftAdd(gift, cid);
         }
@@ -46,7 +31,7 @@ namespace BCRPServer.Game.Items
 
             var id = gift.ID;
 
-            AddFreeId(id);
+            UidHandler.SetUidAsFree(id);
 
             MySQL.GiftDelete(gift);
         }
@@ -131,8 +116,6 @@ namespace BCRPServer.Game.Items
 
         public Gift(SourceTypes SourceType, Types Type, string GID = null, int Variation = 0, int Amount = 1)
         {
-            this.ID = MoveNextId();
-
             this.Amount = Amount;
             this.Type = Type;
             this.GID = GID;

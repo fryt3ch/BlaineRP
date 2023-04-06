@@ -60,6 +60,14 @@ namespace BCRPClient.Data
 
             #endregion
 
+            #region FISHBUYERS_TO_REPLACE
+
+            #endregion
+
+            #region VEHICLEDESTR_TO_REPLACE
+
+            #endregion
+
             new NPC("vpound_w_0", "Джон", NPC.Types.Talkable, "ig_trafficwarden", new Vector3(485.6506f, -54.18661f, 78.30058f), 55.38f, Settings.MAIN_DIMENSION)
             {
                 Blip = new Blip(832, new Vector3(485.6506f, -54.18661f, 78.30058f), "Штрафстоянка", 1f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION),
@@ -79,7 +87,9 @@ namespace BCRPClient.Data
                 DefaultDialogueId = "cop_0_g",
             };
 
-            new Blip(60, new Vector3(-444f, 6016f, 33f), Fractions.Fraction.Get(Fractions.Types.PolicePaleto)?.Name ?? "null", 1f, 63, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            new Blip(60, new Vector3(-444f, 6016f, 33f), Fractions.Fraction.Get(Fractions.Types.PolicePaleto)?.Name ?? "Paleto PD", 1f, 63, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            new Blip(744, new Vector3(-598.7835f, -929.9023f, 23.86344f), "Weazel News", 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            new Blip(680, new Vector3(927.9176f, 44.61714f, 81.08892f), "The Diamond Casino & Resort", 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
         }
     }
 }

@@ -547,7 +547,8 @@ namespace BCRPClient.Additional
 
                         if (LastPosition != null)
                         {
-                            Utils.ConsoleOutputLimited(RAGE.Util.Json.Serialize(LastPosition) + $" - {isSource}");
+                            //Utils.ConsoleOutputLimited(RAGE.Util.Json.Serialize(LastPosition) + $" - {isSource}");
+
                             if (isSource)
                             {
                                 Position = LastPosition;

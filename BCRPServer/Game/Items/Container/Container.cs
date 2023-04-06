@@ -11,39 +11,24 @@ namespace BCRPServer.Game.Items
         /// <value>Словарь, где ключ - UID контейнера, а значение - объект класса Container</value>
         public static Dictionary<uint, Container> All { get; private set; } = new Dictionary<uint, Container>();
 
-        private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
-
-        private static uint LastAddedMaxId { get; set; }
-
-        public static uint MoveNextId()
-        {
-            uint id;
-
-            if (!FreeIDs.TryDequeue(out id))
-            {
-                id = ++LastAddedMaxId;
-            }
-
-            return id;
-        }
-
-        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
 
         public static void AddOnLoad(Container cont)
         {
             if (cont == null)
                 return;
 
-            All.Add(cont.ID, cont);
+            UidHandler.TryUpdateLastAddedMaxUid(cont.ID);
 
-            if (cont.ID > LastAddedMaxId)
-                LastAddedMaxId = cont.ID;
+            All.Add(cont.ID, cont);
         }
 
         public static void Add(Container cont)
         {
             if (cont == null)
                 return;
+
+            cont.ID = UidHandler.MoveNextUid();
 
             All.Add(cont.ID, cont);
 
@@ -57,7 +42,7 @@ namespace BCRPServer.Game.Items
 
             var id = cont.ID;
 
-            AddFreeId(id);
+            UidHandler.SetUidAsFree(id);
 
             All.Remove(id);
 
@@ -191,8 +176,6 @@ namespace BCRPServer.Game.Items
 
         public Container(string SID)
         {
-            this.ID = MoveNextId();
-
             this.SID = SID;
             this.ContData = AllSIDs[SID];
 

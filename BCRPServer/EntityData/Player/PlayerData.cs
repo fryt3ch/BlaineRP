@@ -425,8 +425,6 @@ namespace BCRPServer
         {
             Info = new PlayerInfo() { AID = aid };
 
-            CID = PlayerInfo.MoveNextId();
-
             LastData = new LastPlayerData() { Dimension = Utils.Dimensions.Main, Position = new Utils.Vector4(Utils.DefaultSpawnPosition, Utils.DefaultSpawnHeading), Health = 100 };
 
             Name = name;
@@ -497,6 +495,8 @@ namespace BCRPServer
             OwnedBusinesses = new List<Game.Businesses.Business>();
 
             PlayerInfo.Add(Info);
+
+            CID = Info.CID;
         }
 
         /// <summary>Метод обозначает готовность персонажа к игре</summary>

@@ -6,25 +6,9 @@ namespace BCRPServer.Game.Estates
 {
     public class Furniture
     {
-        private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
-
         public static Dictionary<uint, Furniture> All { get; private set; } = new Dictionary<uint, Furniture>();
 
-        private static uint LastAddedMaxId { get; set; }
-
-        public static uint MoveNextId()
-        {
-            uint id;
-
-            if (!FreeIDs.TryDequeue(out id))
-            {
-                id = ++LastAddedMaxId;
-            }
-
-            return id;
-        }
-
-        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
 
         public static void AddOnLoad(Furniture f)
         {
@@ -33,14 +17,15 @@ namespace BCRPServer.Game.Estates
 
             All.Add(f.UID, f);
 
-            if (f.UID > LastAddedMaxId)
-                LastAddedMaxId = f.UID;
+            UidHandler.TryUpdateLastAddedMaxUid(f.UID);
         }
 
         public static void Add(Furniture f)
         {
             if (f == null)
                 return;
+
+            f.UID = UidHandler.MoveNextUid();
 
             All.Add(f.UID, f);
 
@@ -54,7 +39,7 @@ namespace BCRPServer.Game.Estates
 
             var id = f.UID;
 
-            AddFreeId(id);
+            UidHandler.SetUidAsFree(id);
 
             All.Remove(id);
 
@@ -890,8 +875,6 @@ namespace BCRPServer.Game.Estates
 
         public Furniture(string ID)
         {
-            this.UID = MoveNextId();
-
             this.ID = ID;
 
             Data = new Utils.Vector4(0f, 0f, 0f, 0f);

@@ -90,8 +90,6 @@ namespace BCRPServer.Events
             Utils.ConsoleOutput($" | ~Red~[{Game.Map.Blips.LoadAll()}]~/~", false);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Setting global dimension weather");
-
-            MySQL.StartService();
             #endregion
 
             #region Local Data Load Section
@@ -124,17 +122,14 @@ namespace BCRPServer.Events
             #endregion
 
             #region Database Data Load Section
-            MySQL.UpdateServerData();
-
             MySQL.LoadAll();
-            MySQL.UpdateFreeUIDs();
 
             Game.Estates.House.LoadAll();
             Game.Estates.Apartments.LoadAll();
             Game.Estates.Garage.LoadAll();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Clearing unused items & Getting free items UID's");
-            Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.FreeIDs.Count}]~/~", false);
+            Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.UidHandler.FreeUidsCount}]~/~", false);
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Item.All.Count} items");
 
@@ -172,6 +167,9 @@ namespace BCRPServer.Events
             Game.Businesses.Business.ReplaceClientsideLines();
 
             Game.Autoschool.InitializeAll();
+
+            Game.Misc.FishBuyer.InitializeAll();
+            Game.Misc.VehicleDestruction.InitializeAll();
 
             /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
@@ -214,6 +212,8 @@ namespace BCRPServer.Events
                     }
                 }
             });
+
+            MySQL.StartService();
         }
         #endregion
 

@@ -686,7 +686,7 @@ namespace BCRPClient.Additional
                         {
                             if (rType == CEF.ActionBox.ReplyTypes.OK)
                             {
-                                Events.CallRemote("Fraction::UNIFC", (int)Player.LocalPlayer.GetData<Data.Fractions.Types>("ActionBox::Temp::FRACTIONUNIFS::F"), id);
+                                Events.CallRemote("Fraction::UNIFC", (int)fType, id);
 
                                 CEF.ActionBox.Close(true);
                             }

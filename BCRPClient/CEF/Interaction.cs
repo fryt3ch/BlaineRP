@@ -187,6 +187,10 @@ namespace BCRPClient.CEF
                             Events.CallRemote("Vehicles::Fix", vehicle);
                         }
                         break;
+
+                    case OutVehicleActions.Junkyard:
+                        Data.Locations.VehicleDestruction.VehicleDestruct(vehicle);
+                        break;
                 }
             });
             #endregion

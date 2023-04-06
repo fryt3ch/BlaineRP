@@ -9,41 +9,26 @@ namespace BCRPServer
     {
         public class VehicleInfo
         {
-            private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
-
             public static Dictionary<uint, VehicleInfo> All { get; private set; } = new Dictionary<uint, VehicleInfo>();
 
-            private static uint LastAddedMaxId { get; set; }
-
-            public static uint MoveNextId()
-            {
-                uint id;
-
-                if (!FreeIDs.TryDequeue(out id))
-                {
-                    id = ++LastAddedMaxId;
-                }
-
-                return id;
-            }
-
-            public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Utils.FirstVID);
 
             public static void AddOnLoad(VehicleInfo vInfo)
             {
                 if (vInfo == null)
                     return;
 
-                All.Add(vInfo.VID, vInfo);
+                UidHandler.TryUpdateLastAddedMaxUid(vInfo.VID);
 
-                if (vInfo.VID > LastAddedMaxId)
-                    LastAddedMaxId = vInfo.VID;
+                All.Add(vInfo.VID, vInfo);
             }
 
             public static void Add(VehicleInfo vInfo)
             {
                 if (vInfo == null)
                     return;
+
+                vInfo.VID = UidHandler.MoveNextUid();
 
                 All.Add(vInfo.VID, vInfo);
 
@@ -57,7 +42,7 @@ namespace BCRPServer
 
                 var vid = vInfo.VID;
 
-                AddFreeId(vid);
+                UidHandler.SetUidAsFree(vid);
 
                 All.Remove(vid);
 

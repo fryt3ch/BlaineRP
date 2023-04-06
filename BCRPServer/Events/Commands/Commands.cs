@@ -13,8 +13,6 @@ namespace BCRPServer.Events.Commands
         {
             public int PermissionLevel { get; set; }
 
-            public Action<PlayerData, string[]> Action { get; set; }
-
             public string Id { get; set; }
 
             public CommandAttribute(string Id, int PermissionLevel)
@@ -22,6 +20,20 @@ namespace BCRPServer.Events.Commands
                 this.Id = Id;
 
                 this.PermissionLevel = PermissionLevel;
+            }
+        }
+
+        public class CommandData
+        {
+            public int PermissionLevel { get; set; }
+
+            public Action<PlayerData, string[]> Action { get; set; }
+
+            public CommandData(int PermissionLevel, Action<PlayerData, string[]> Action)
+            {
+                this.PermissionLevel = PermissionLevel;
+
+                this.Action = Action;
             }
 
             public bool IsAllowed(PlayerData pData, bool notify)
@@ -38,14 +50,14 @@ namespace BCRPServer.Events.Commands
             }
         }
 
-        public static Dictionary<string, CommandAttribute> All { get; private set; }
+        public static Dictionary<string, CommandData> All { get; private set; }
 
         public static void LoadAll()
         {
             if (All != null)
                 return;
 
-            All = new Dictionary<string, CommandAttribute>();
+            All = new Dictionary<string, CommandData>();
 
             foreach (var method in typeof(Commands).GetMethods(BindingFlags.NonPublic | BindingFlags.Static))
             {
@@ -54,9 +66,11 @@ namespace BCRPServer.Events.Commands
                 if (attr == null)
                     continue;
 
-                attr.Action = (Action<PlayerData, string[]>)method.CreateDelegate(typeof(Action<PlayerData, string[]>));
+                var deleg = (Action<PlayerData, string[]>)method.CreateDelegate(typeof(Action<PlayerData, string[]>));
 
-                All.TryAdd(attr.Id, attr);
+                var cmdData = new CommandData(attr.PermissionLevel, deleg);
+
+                All.TryAdd(attr.Id, cmdData);
             }
         }
 

@@ -43,6 +43,14 @@ namespace BCRPClient.Data
                 var marker = new RAGE.Elements.Marker(32, new Vector3(Position.X, Position.Y, Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
 
                 var blip = new RAGE.Elements.Blip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+
+                if (id == 1)
+                {
+                    var npc = new NPC($"drivingschool_{id}", "Оливия", NPC.Types.Talkable, "s_f_y_airhostess_01", new Vector3(214.5508f, -1400.095f, 30.58353f), 318.5795f, Settings.MAIN_DIMENSION)
+                    {
+                        DefaultDialogueId = "drivingschool_d_0",
+                    };
+                }
             }
 
             public static Sync.Players.LicenseTypes GetLicenseTypeForPracticeRoute(Sync.Players.LicenseTypes licType) => licType == Sync.Players.LicenseTypes.B || licType == Sync.Players.LicenseTypes.A || licType == Sync.Players.LicenseTypes.C || licType == Sync.Players.LicenseTypes.D ? Sync.Players.LicenseTypes.B : licType;

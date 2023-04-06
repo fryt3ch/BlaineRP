@@ -44,13 +44,13 @@ namespace BCRPClient.Data.NPCDialogues
                         {
                             var vid = vehs[0];
 
-                            NPC.CurrentNPC.TempDialogueData = vid;
+                            NPC.CurrentNPC.SetTempDialogueData("vid", vid);
 
                             NPC.CurrentNPC.ShowDialogue("vpound_def_dg_0", true, null, pData.OwnedVehicles.Where(x => x.VID == vid).Select(x => x.Data.Name).FirstOrDefault() ?? "null", price);
                         }
                         else
                         {
-                            NPC.CurrentNPC.TempDialogueData = vehs;
+                            NPC.CurrentNPC.SetTempDialogueData("vid", vehs);
 
                             NPC.CurrentNPC.ShowDialogue("vpound_def_dg_1", true, null, price);
                         }
@@ -77,7 +77,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                 new Button("[Оплатить]", async () =>
                 {
-                    var vid = NPC.CurrentNPC?.TempDialogueData as uint?;
+                    var vid = NPC.CurrentNPC.GetTempDialogueData<uint?>("vid");
 
                     if (vid == null || NPC.LastSent.IsSpam(500, false, false))
                     {
@@ -109,7 +109,7 @@ namespace BCRPClient.Data.NPCDialogues
 
                     var npcId = NPC.CurrentNPC.Id;
 
-                    var vids = NPC.CurrentNPC.TempDialogueData as List<uint>;
+                    var vids = NPC.CurrentNPC.GetTempDialogueData<List<uint>>("vehs");
 
                     if (vids == null)
                         return;

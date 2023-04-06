@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,60 +37,74 @@ namespace BCRPServer
 
         #region General
 
+        //private static Timer timer;
+
         public static void StartService()
         {
-            Task.Run(async () =>
+            var timer = new Timer(async (obj) =>
             {
-                while (true)
-                {
-                    await Task.Delay(10000);
+                await Wait();
 
-                    await Wait();
+                DoAllQueries();
 
-                    DoAllQueries();
-
-                    Release();
-                }
-            });
+                Release();
+            }, null, 0, 10_000);
         }
 
         public static void DoAllQueries()
         {
             var commands = new List<MySqlCommand>();
 
-            MySqlCommand cmd;
+            MySqlCommand qCmd;
 
-            while (QueriesQueue.TryDequeue(out cmd))
+            while (QueriesQueue.TryDequeue(out qCmd))
             {
-                if (cmd != null)
-                    commands.Add(cmd);
+                if (qCmd != null)
+                    commands.Add(qCmd);
             }
 
             if (commands.Count == 0)
                 return;
 
-            /*            for (int i = 0; i < commands.Count; i++)
+            //Console.WriteLine($"AllQ: {string.Join('\n', commands.Select(x => x.CommandText))}");
+
+            for (int i = commands.Count - 1; i >= 0; i--)
+            {
+                var cmd = commands[i];
+
+                var cmdIdParam = cmd.Parameters.Contains("@ID") ? cmd.Parameters["@ID"].Value.ToString() : null;
+
+                if (cmdIdParam != null)
+                {
+                    var cmdText = cmd.CommandText;
+
+                    MySqlCommand lastCmd = null;
+
+                    for (int j = commands.Count - 1; j >= 0; j--)
+                    {
+                        var sCmd = commands[j];
+
+                        if (sCmd.Parameters.Contains("@ID") && sCmd.Parameters["@ID"].Value.ToString() == cmdIdParam && sCmd.CommandText == cmdText)
                         {
-                            cmd = commands[i];
-
-                            if (cmd.Parameters["ID"].Value is uint id)
+                            if (lastCmd == null)
                             {
-                                var text = cmd.CommandText;
-
-                                var sameCommands = new List<MySqlCommand>();
-
-                                for (int j = 0; j < commands.Count; j++)
-                                {
-                                    var cmd1 = commands[j];
-
-                                    if (cmd1.Parameters["ID"].Value is uint && cmd1.CommandText == text)
-                                        sameCommands.Add(cmd1);
-                                }
-
-                                for (int j = 0; j < sameCommands.Count - 1; j++)
-                                    commands.Remove(sameCommands[j]);
+                                lastCmd = sCmd;
                             }
-                        }*/
+                            else
+                            {
+                                using (sCmd)
+                                {
+                                    commands.RemoveAt(j);
+
+                                    i--;
+
+                                    //Console.WriteLine($"Removed: {cmdText}");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             try
             {
@@ -187,19 +202,26 @@ namespace BCRPServer
             }
         }
 
-        public static void UpdateServerData()
+        public static void LoadAll()
         {
+            var currentTime = Utils.GetCurrentTime();
+
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {
                 conn.Open();
 
-                var currentTime = Utils.GetCurrentTime();
-
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT * FROM server_data; UPDATE server_data SET LastLaunchTime=@LLT";
+                    cmd.CommandText = "SELECT * FROM server_data;";
 
-                    cmd.Parameters.AddWithValue("@LLT", currentTime);
+                    var updCmd = new MySqlCommand()
+                    {
+                        CommandText = "UPDATE server_data SET LastLaunchTime=@LLT;",
+                    };
+
+                    updCmd.Parameters.AddWithValue("@LLT", currentTime);
+
+                    PushQuery(updCmd);
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -222,16 +244,6 @@ namespace BCRPServer
                         }
                     }
                 }
-            }
-        }
-
-        public static void LoadAll()
-        {
-            var curTime = Utils.GetCurrentTime();
-
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
-            {
-                conn.Open();
 
                 using (var cmd = conn.CreateCommand())
                 {
@@ -523,7 +535,7 @@ namespace BCRPServer
 
                                     var dateTime = (DateTime)obj;
 
-                                    if (dateTime < curTime)
+                                    if (dateTime < currentTime)
                                         continue;
 
                                     cooldowns.Add(x, dateTime);
@@ -618,6 +630,8 @@ namespace BCRPServer
 
                                 var phoneBalance = Convert.ToUInt32(reader["PhoneBalance"]);
 
+                                var casinoChips = Convert.ToUInt32(reader["CasinoChips"]);
+
                                 var contacts = ((string)reader["Contacts"]).DeserializeFromJson<Dictionary<uint, string>>();
 
                                 var phoneBlacklist = ((string)reader["PhoneBL"]).DeserializeFromJson<List<uint>>();
@@ -689,8 +703,6 @@ namespace BCRPServer
 
                                     PhoneBlacklist = phoneBlacklist,
 
-                                    BankAccount = GetBankAccountByCID(cid),
-
                                     LastData = lastData,
 
                                     Familiars = familiars,
@@ -698,6 +710,8 @@ namespace BCRPServer
                                     Skills = skills,
 
                                     Punishments = punishments,
+
+                                    CasinoChips = casinoChips,
 
                                     HeadBlend = (Game.Data.Customization.HeadBlend)customizations[cid][0],
                                     HeadOverlays = (Dictionary<int, Game.Data.Customization.HeadOverlay>)customizations[cid][1],
@@ -715,11 +729,46 @@ namespace BCRPServer
                                     Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<Sync.Cooldowns.Types, DateTime>(),
                                 };
 
-                                if (pInfo.BankAccount != null)
-                                    pInfo.BankAccount.PlayerInfo = pInfo;
-
                                 PlayerData.PlayerInfo.AddOnLoad(pInfo);
                             }
+                        }
+                    }
+
+                    cmd.CommandText = "SELECT * FROM bank_accounts;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var cid = Convert.ToUInt32(reader["ID"]);
+                                var balance = Convert.ToUInt64(reader["Balance"]);
+                                var savings = Convert.ToUInt64(reader["Savings"]);
+                                var tariff = (Game.Bank.Tariff.Types)(int)reader["Tariff"];
+                                var std = (bool)reader["STD"];
+
+                                var pInfo = PlayerData.PlayerInfo.Get(cid);
+
+                                if (pInfo != null)
+                                {
+                                    pInfo.BankAccount = new Game.Bank.Account()
+                                    {
+                                        Balance = balance,
+                                        SavingsBalance = savings,
+                                        Tariff = Game.Bank.Tariff.All[tariff],
+                                        SavingsToDebit = std,
+                                        MinSavingsBalance = savings,
+                                        TotalDayTransactions = 0,
+
+                                        PlayerInfo = pInfo,
+                                    };
+                                }
+                            }
+                        }
+                        else
+                        {
+
                         }
                     }
 
@@ -1040,203 +1089,112 @@ namespace BCRPServer
                         data.AllMembers.Add(x.Value);
                     }
                 }
+
+                UpdateFreeUIDs();
             }
         }
 
-        public static void UpdateFreeUIDs()
+        private static void UpdateFreeUIDs()
         {
-            using (var conn = new MySqlConnection(LocalConnectionCredentials))
+            var usedItems = new List<Game.Items.Item>();
+
+            usedItems.AddRange(Game.Items.Container.All.Values.SelectMany(x => x.Items));
+
+            usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(x.WeaponSkins.Values).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour })));
+
+            usedItems.AddRange(VehicleData.VehicleInfo.All.Values.Select(x => x.Numberplate));
+
+            usedItems.RemoveAll(x => x == null);
+
+            uint maxUid = 0;
+
+            foreach (var x in usedItems.ToList())
             {
-                conn.Open();
-
-                using (var cmd = conn.CreateCommand())
+                if (x is Game.Items.IContainer cont)
                 {
-                    var usedItems = new List<Game.Items.Item>();
+                    usedItems.AddRange(cont.Items);
 
-                    usedItems.AddRange(Game.Items.Container.All.Values.SelectMany(x => x.Items));
-
-                    usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(x.WeaponSkins.Values).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour })));
-
-                    usedItems.AddRange(VehicleData.VehicleInfo.All.Values.Select(x => x.Numberplate));
-
-                    usedItems.RemoveAll(x => x == null);
-
-                    foreach (var x in usedItems.ToList())
+                    foreach (var y in cont.Items)
                     {
-                        if (x is Game.Items.IContainer cont)
+                        if (y is Game.Items.IContainer cont1)
                         {
-                            usedItems.AddRange(cont.Items);
-
-                            foreach (var y in cont.Items)
-                            {
-                                if (y is Game.Items.IContainer cont1)
-                                {
-                                    usedItems.AddRange(cont1.Items);
-                                }
-                            }
+                            usedItems.AddRange(cont1.Items);
                         }
-                    }
-
-                    var toDel = Game.Items.Item.All.Values.Except(usedItems).ToList();
-
-                    toDel.ForEach(x => Game.Items.Item.RemoveOnLoad(x));
-
-                    if (toDel.Count > 0)
-                    {
-                        if (toDel.Count > 1)
-                            cmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', toDel.Select(x => x.UID))})";
-                        else
-                            cmd.CommandText = $"DELETE FROM Items WHERE ID={toDel[0].UID}";
-
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='items';";
-
-                    uint nextAi = 1;
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-
-                            nextAi = Convert.ToUInt32(reader[0]);
-                        }
-                    }
-
-                    for (uint i = 1; i < nextAi; i++)
-                    {
-                        if (Game.Items.Item.Get(i) == null && !Game.Items.Item.FreeIDs.Contains(i))
-                            Game.Items.Item.AddFreeId(i);
-                    }
-                }
-
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='characters';";
-
-                    var nextAi = Utils.FirstCID;
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-
-                            nextAi = Convert.ToUInt32(reader[0]);
-                        }
-                    }
-
-                    for (uint i = Utils.FirstCID; i < nextAi; i++)
-                    {
-                        if (PlayerData.PlayerInfo.Get(i) == null)
-                            PlayerData.PlayerInfo.AddFreeId(i);
-                    }
-                }
-
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='vehicles';";
-
-                    var nextAi = Utils.FirstVID;
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-
-                            nextAi = Convert.ToUInt32(reader[0]);
-                        }
-                    }
-
-                    for (uint i = Utils.FirstVID; i < nextAi; i++)
-                    {
-                        if (VehicleData.VehicleInfo.Get(i) == null)
-                            VehicleData.VehicleInfo.AddFreeId(i);
-                    }
-                }
-
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='containers';";
-
-                    uint nextAi = 1;
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-
-                            nextAi = Convert.ToUInt32(reader[0]);
-                        }
-                    }
-
-                    for (uint i = 1; i < nextAi; i++)
-                    {
-                        if (Game.Items.Container.Get(i) == null)
-                            Game.Items.Container.AddFreeId(i);
-                    }
-                }
-
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='gifts';";
-
-                    uint nextAi = 1;
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-
-                            nextAi = Convert.ToUInt32(reader[0]);
-                        }
-                    }
-
-                    var allGifts = PlayerData.PlayerInfo.All.SelectMany(x => x.Value.Gifts).ToDictionary(x => x.ID, y => y);
-
-                    for (uint i = 1; i < nextAi; i++)
-                    {
-                        if (!allGifts.ContainsKey(i))
-                            Game.Items.Gift.AddFreeId(i);
-                    }
-                }
-
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = $"SELECT auto_increment FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='{LocalDatabase}' AND table_name='furniture';";
-
-                    uint nextAi = 1;
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-
-                            nextAi = Convert.ToUInt32(reader[0]);
-                        }
-                    }
-
-                    for (uint i = 1; i < nextAi; i++)
-                    {
-                        if (Game.Estates.Furniture.Get(i) == null)
-                            Game.Estates.Furniture.AddFreeId(i);
-                    }
-                }
-
-                foreach (var x in Game.Items.Item.All.Values)
-                {
-                    if (x is Game.Items.Numberplate np)
-                    {
-                        np.AddTagToUsed();
                     }
                 }
             }
+
+            var toDel = Game.Items.Item.All.Values.Except(usedItems).ToList();
+
+            toDel.ForEach(x => Game.Items.Item.RemoveOnLoad(x));
+
+            if (toDel.Count > 0)
+            {
+                var updCmd = new MySqlCommand();
+
+                if (toDel.Count > 1)
+                    updCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', toDel.Select(x => x.UID))});";
+                else
+                    updCmd.CommandText = $"DELETE FROM Items WHERE ID={toDel[0].UID};";
+
+                PushQuery(updCmd);
+            }
+
+            Game.Items.Item.UidHandler.ResetLastAddedMaxUid();
+
+            foreach (var x in Game.Items.Item.All)
+            {
+                if (x.Value is Game.Items.Numberplate np)
+                {
+                    np.AddTagToUsed();
+                }
+
+                Game.Items.Item.UidHandler.TryUpdateLastAddedMaxUid(x.Key);
+            }
+
+            for (uint i = 1; i <= Game.Items.Item.UidHandler.LastAddedMaxUid; i++)
+            {
+                if (Game.Items.Item.Get(i) == null)
+                    Game.Items.Item.UidHandler.SetUidAsFree(i);
+            }
+
+            for (uint i = Utils.FirstCID; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
+            {
+                if (PlayerData.PlayerInfo.Get(i) == null)
+                    PlayerData.PlayerInfo.UidHandler.SetUidAsFree(i);
+            }
+
+            for (uint i = Utils.FirstVID; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
+            {
+                if (VehicleData.VehicleInfo.Get(i) == null)
+                    VehicleData.VehicleInfo.UidHandler.SetUidAsFree(i);
+            }
+
+            for (uint i = 1; i <= Game.Items.Container.UidHandler.LastAddedMaxUid; i++)
+            {
+                if (Game.Items.Container.Get(i) == null)
+                    Game.Items.Container.UidHandler.SetUidAsFree(i);
+            }
+
+            var allGifts = PlayerData.PlayerInfo.All.SelectMany(x => x.Value.Gifts).ToDictionary(x => x.ID, y => y);
+
+            for (uint i = 1; i <= Game.Items.Gift.UidHandler.LastAddedMaxUid; i++)
+            {
+                if (!allGifts.ContainsKey(i))
+                    Game.Items.Gift.UidHandler.SetUidAsFree(i);
+            }
+
+            for (uint i = 1; i <= Game.Estates.Furniture.UidHandler.LastAddedMaxUid; i++)
+            {
+                if (Game.Estates.Furniture.Get(i) == null)
+                    Game.Estates.Furniture.UidHandler.SetUidAsFree(i);
+            }
+
+            //Console.WriteLine(Game.Items.Item.UidHandler.HandlerStr);
+            //Console.WriteLine(Game.Estates.Furniture.UidHandler.HandlerStr);
+            //Console.WriteLine(Game.Items.Gift.UidHandler.HandlerStr);
+            //Console.WriteLine(VehicleData.VehicleInfo.UidHandler.HandlerStr);
+            //Console.WriteLine(PlayerData.PlayerInfo.UidHandler.HandlerStr);
         }
 
         #endregion

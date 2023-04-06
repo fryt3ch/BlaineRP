@@ -433,8 +433,6 @@ namespace BCRPServer
 
             var vInfo = new VehicleInfo()
             {
-                VID = VehicleInfo.MoveNextId(),
-
                 Data = vType,
                 AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.Player,
@@ -453,11 +451,11 @@ namespace BCRPServer
                 vInfo.TID = cont.ID;
             }
 
+            VehicleInfo.Add(vInfo);
+
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
             cont.UpdateOwner(vData.Vehicle);
-
-            VehicleInfo.Add(vInfo);
 
             pData.AddVehicleProperty(vInfo);
 

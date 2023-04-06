@@ -11,23 +11,9 @@ namespace BCRPServer.Game.Items
     [JsonConverter(typeof(ItemConverter))]
     public abstract class Item
     {
-        public static Queue<uint> FreeIDs { get; private set; } = new Queue<uint>();
-
         public static Dictionary<uint, Item> All { get; private set; } = new Dictionary<uint, Item>();
 
-        private static uint LastAddedMaxId { get; set; }
-
-        public static uint MoveNextId()
-        {
-            uint id;
-
-            if (!FreeIDs.TryDequeue(out id))
-                id = ++LastAddedMaxId;
-
-            return id;
-        }
-
-        public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+        public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
 
         public static void AddOnLoad(Item item)
         {
@@ -36,8 +22,7 @@ namespace BCRPServer.Game.Items
 
             All.Add(item.UID, item);
 
-            if (item.UID > LastAddedMaxId)
-                LastAddedMaxId = item.UID;
+            UidHandler.TryUpdateLastAddedMaxUid(item.UID);
         }
 
         public static void Add(Item item)
@@ -45,8 +30,7 @@ namespace BCRPServer.Game.Items
             if (item == null)
                 return;
 
-            if (item.UID > LastAddedMaxId)
-                LastAddedMaxId = item.UID;
+            item.UID = UidHandler.MoveNextUid();
 
             All.Add(item.UID, item);
 
@@ -72,7 +56,7 @@ namespace BCRPServer.Game.Items
                     np.RemoveTagFromUsed();
                 }
 
-                AddFreeId(item.UID);
+                UidHandler.SetUidAsFree(item.UID);
 
                 All.Remove(item.UID);
 
@@ -90,7 +74,7 @@ namespace BCRPServer.Game.Items
                 np.RemoveTagFromUsed();
             }
 
-            AddFreeId(item.UID);
+            UidHandler.SetUidAsFree(item.UID);
 
             All.Remove(item.UID);
         }

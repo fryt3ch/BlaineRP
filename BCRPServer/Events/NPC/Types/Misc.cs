@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using BCRPServer;
+using static BCRPServer.Game.Bank;
 
 namespace BCRPServer.Events.NPC
 {
@@ -104,6 +105,133 @@ namespace BCRPServer.Events.NPC
             var vData = VehicleData.NewRent(pData, vTypeData, new Utils.Colour(255, 0, 0, 255), new Utils.Colour(255, 0, 0, 255), vSpawnPos.Position, vSpawnPos.RotationZ, Utils.Dimensions.Main);
 
             return true;
+        }
+
+        [NPC.Action("fishbuyer_s", "fishbuyer_0")]
+        private static object FishBuyerSell(PlayerData pData, string npcId, string[] data)
+        {
+            if (data.Length != 2)
+                return 0;
+
+            var fishId = data[0];
+
+            var fishBuyer = Game.Misc.FishBuyer.Get(int.Parse(npcId.Split('_')[1]));
+
+            if (fishBuyer == null)
+                return 0;
+
+            if (fishId == string.Empty)
+            {
+                var dict = new Dictionary<string, int>();
+
+                var slotsToUpdate = new List<int>();
+
+                for (int i = 0; i < pData.Items.Length; i++)
+                {
+                    if (pData.Items[i] != null && pData.Items[i] is Game.Items.Food fish && Game.Misc.FishBuyer.BasePrices.ContainsKey(fish.ID))
+                    {
+                        var fAmount = fish.Amount;
+
+                        if (!dict.TryAdd(fish.ID, fAmount))
+                            dict[fish.ID] += fAmount;
+
+                        fish.Delete();
+
+                        pData.Items[i] = null;
+
+                        slotsToUpdate.Add(i);
+                    }
+                }
+
+                if (dict.Count == 0)
+                    return 1;
+
+                ulong totalGet = 0;
+
+                foreach (var x in dict)
+                {
+                    uint price;
+
+                    if (fishBuyer.TryGetPrice(x.Key, out price))
+                        totalGet += (ulong)(price * x.Value);
+                }
+
+                ulong newBalance;
+
+                if (pData.TryAddCash(totalGet, out newBalance, true))
+                    pData.SetCash(newBalance);
+
+                foreach (var x in slotsToUpdate)
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, x, Game.Items.Item.ToClientJson(pData.Items[x], Game.Items.Inventory.Groups.Items));
+
+                return byte.MaxValue;
+            }
+            else
+            {
+                int amount;
+
+                if (!int.TryParse(data[1], out amount))
+                    return 0;
+
+                if (amount <= 0)
+                    return 0;
+
+                uint price;
+
+                if (!fishBuyer.TryGetPrice(fishId, out price))
+                    return 0;
+
+                var amountFound = 0;
+
+                var slotsToUpdate = new List<int>();
+
+                for (int i = 0; i < pData.Items.Length; i++)
+                {
+                    if (pData.Items[i]?.ID == fishId && pData.Items[i] is Game.Items.Food fish)
+                    {
+                        var fAmount = fish.Amount;
+
+                        var amountNeed = amount - amountFound;
+
+                        if (fAmount < amountNeed)
+                            amountNeed = fAmount;
+
+                        fish.Amount -= amountNeed;
+                        amountFound += amountNeed;
+
+                        if (fish.Amount <= 0)
+                        {
+                            fish.Delete();
+
+                            pData.Items[i] = null;
+                        }
+                        else
+                        {
+                            fish.Update();
+                        }
+
+                        slotsToUpdate.Add(i);
+
+                        if (amountFound >= amount)
+                            break;
+                    }
+                }
+
+                if (amountFound == 0)
+                    return 1;
+
+                ulong newBalance;
+
+                var totalGet = (ulong)(price * amountFound);
+
+                if (pData.TryAddCash(totalGet, out newBalance, true))
+                    pData.SetCash(newBalance);
+
+                foreach (var x in slotsToUpdate)
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, x, Game.Items.Item.ToClientJson(pData.Items[x], Game.Items.Inventory.Groups.Items));
+
+                return byte.MaxValue;
+            }
         }
     }
 }

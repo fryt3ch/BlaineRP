@@ -29,8 +29,6 @@ namespace BCRPServer.Events.NPC
             { "vpound_w_0", new Vector3(485.6506f, -54.18661f, 78.30058f) },
 
             { "vrent_s_0", new Vector3(-718.6724f, 5821.765f, 17.21804f) },
-
-            { $"cop0_{(int)Game.Fractions.Types.PolicePaleto}", new Vector3(-448.2888f, 6012.634f, 31.71635f) }, // cop0_1
         };
 
         private static Dictionary<string, Tuple<string[], Delegate>> Actions;
@@ -58,6 +56,8 @@ namespace BCRPServer.Events.NPC
                 Actions.TryAdd(attr.Id, new Tuple<string[], Delegate>(attr.AllowedNpcIds, deleg));
             }
         }
+
+        public static bool AddNpc(string npcId, Vector3 pos) => Positions.TryAdd(npcId, pos);
 
         [RemoteEvent("NPC::Action")]
         private static void NPCAction(Player player, string npcId, string actionId, string data)

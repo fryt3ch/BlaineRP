@@ -8,41 +8,26 @@ namespace BCRPServer
     {
         public class PlayerInfo
         {
-            private static Queue<uint> FreeIDs { get; set; } = new Queue<uint>();
-
             public static Dictionary<uint, PlayerInfo> All { get; private set; } = new Dictionary<uint, PlayerInfo>();
 
-            private static uint LastAddedMaxId { get; set; }
-
-            public static uint MoveNextId()
-            {
-                uint id;
-
-                if (!FreeIDs.TryDequeue(out id))
-                {
-                    id = ++LastAddedMaxId;
-                }
-
-                return id;
-            }
-
-            public static void AddFreeId(uint id) => FreeIDs.Enqueue(id);
+            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Utils.FirstCID);
 
             public static void AddOnLoad(PlayerInfo pInfo)
             {
                 if (pInfo == null)
                     return;
 
-                All.Add(pInfo.CID, pInfo);
+                UidHandler.TryUpdateLastAddedMaxUid(pInfo.CID);
 
-                if (pInfo.CID > LastAddedMaxId)
-                    LastAddedMaxId = pInfo.CID;
+                All.Add(pInfo.CID, pInfo);
             }
 
             public static void Add(PlayerInfo pInfo)
             {
                 if (pInfo == null)
                     return;
+
+                pInfo.CID = UidHandler.MoveNextUid();
 
                 All.Add(pInfo.CID, pInfo);
 
@@ -56,7 +41,7 @@ namespace BCRPServer
 
                 var id = pInfo.CID;
 
-                AddFreeId(id);
+                UidHandler.SetUidAsFree(id);
 
                 All.Remove(id);
 
@@ -104,6 +89,8 @@ namespace BCRPServer
             public uint PhoneNumber { get; set; }
 
             public uint PhoneBalance { get; set; }
+
+            public uint CasinoChips { get; set; }
 
             public Game.Bank.Account BankAccount { get; set; }
 

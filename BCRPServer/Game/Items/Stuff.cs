@@ -658,8 +658,6 @@ namespace BCRPServer.Game.Items
 
             if (!isTemp)
             {
-                item.UID = Item.MoveNextId();
-
                 Item.Add(item);
 
                 return item;
