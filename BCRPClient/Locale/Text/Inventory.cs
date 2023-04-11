@@ -50,6 +50,9 @@ namespace BCRPClient
                     public static string StopUse = "Перестать использовать";
 
                     public static string FindVehicle = "Найти транспорт";
+
+                    public static string NoteRead = "Прочесть";
+                    public static string NoteWrite = "Написать";
                 }
             }
 

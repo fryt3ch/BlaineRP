@@ -87,7 +87,7 @@ namespace BCRPClient.CEF.PhoneApps
         {
             Events.Add("Phone::Call", (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var number = args[0]?.ToString();
@@ -102,7 +102,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             Events.Add("Phone::ReplyCall", (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var ans = (bool)args[0];
@@ -114,7 +114,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             Events.Add("Phone::BlacklistChange", async (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var pData = Sync.Players.GetData(Player.LocalPlayer);

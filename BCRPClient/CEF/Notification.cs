@@ -83,6 +83,7 @@ namespace BCRPClient.CEF
         private static Dictionary<string, Instance> Prepared = new Dictionary<string, Instance>()
         {
             { "ASP::ARN", new Instance(Types.Error, Locale.Notifications.AntiSpam.ActionRestrictedNow, Locale.Notifications.ErrorHeader) },
+            { "SA", new Instance(Types.Error, "Вы не можете делать это с самим собой!", Locale.Notifications.ErrorHeader) },
 
             { "ACMD::NA", new Instance(Types.Error, "Для использования данной команды необходим более высокий уровень администрирования!", Locale.Notifications.ErrorHeader) },
 
@@ -171,6 +172,9 @@ namespace BCRPClient.CEF
             { "Inv::PMPF", new Instance(Types.Error, Locale.Notifications.Inventory.MaxAmountFurnitureOwned, Locale.Notifications.ErrorHeader) },
             { "Inv::CCWUA", new Instance(Types.Error, "Вы не можете поменять эту одежду/аксессуар, пока находитесь в рабочей форме!", Locale.Notifications.ErrorHeader) },
             { "Inv::CDTWUA", new Instance(Types.Error, "Вы не можете сделать это, пока находитесь в рабочей форме!", Locale.Notifications.ErrorHeader) },
+
+            { "Inv::NWNOTE", new Instance(Types.Error, "Текст этой записки нельзя изменить!", Locale.Notifications.ErrorHeader) },
+            { "Inv::NRNOTE", new Instance(Types.Error, "Эту записку нельзя прочесть!", Locale.Notifications.ErrorHeader) },
 
             { "IOG::PINA", new Instance(Types.Error, Locale.Notifications.Inventory.PlacedItemOnGroundNotAllowed, Locale.Notifications.ErrorHeader) },
 

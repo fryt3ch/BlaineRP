@@ -43,8 +43,8 @@ namespace BCRPServer.Game.Businesses
 
         public const uint MATS_DELIVERY_PRICE = 2000;
 
-        public const decimal MAX_MARGIN = 2.5m;
-        public const ushort MAX_MARGIN_CLIENT = 150;
+        public const ushort MAX_MARGIN_CLIENT = 150; // 2.5
+        public const ushort MAX_MARGIN_CLIENT_FARM = 100; // 2.0
 
         public enum Types
         {

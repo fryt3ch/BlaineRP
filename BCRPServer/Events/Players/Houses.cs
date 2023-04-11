@@ -303,6 +303,12 @@ namespace BCRPServer.Events.Players
                 if (house == null || house.GarageData == null)
                     return;
 
+                if (house.Owner != pData.Info)
+                    return;
+
+                if (!house.IsEntityNearVehicleEnter(player))
+                    return;
+
                 var freeSlots = Enumerable.Range(0, house.GarageData.MaxVehicles).ToList();
 
                 var garageVehs = house.GetVehiclesInGarage();
@@ -343,7 +349,7 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || !vData.IsFullOwner(pData))
+            if (!vData.IsFullOwner(pData))
                 return;
 
             if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
@@ -357,12 +363,12 @@ namespace BCRPServer.Events.Players
             if (house.Owner != pData.Info)
                 return;
 
+            if (!house.IsEntityNearVehicleEnter(player))
+                return;
+
             var freeSlots = Enumerable.Range(0, house.GarageData.MaxVehicles).ToList();
 
             var garageVehs = house.GetVehiclesInGarage();
-
-            if (garageVehs == null)
-                return;
 
             foreach (var x in garageVehs)
             {

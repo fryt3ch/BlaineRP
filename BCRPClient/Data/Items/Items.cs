@@ -1,4 +1,4 @@
-using RAGE;
+п»їusing RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -12,21 +12,21 @@ namespace BCRPClient.Data
         {
             public class ItemData
             {
-                /// <summary>Этот интерфейс реализуют классы таких предметов, которые могут хранить в себе другие предметы</summary>
+                /// <summary>Р­С‚РѕС‚ РёРЅС‚РµСЂС„РµР№СЃ СЂРµР°Р»РёР·СѓСЋС‚ РєР»Р°СЃСЃС‹ С‚Р°РєРёС… РїСЂРµРґРјРµС‚РѕРІ, РєРѕС‚РѕСЂС‹Рµ РјРѕРіСѓС‚ С…СЂР°РЅРёС‚СЊ РІ СЃРµР±Рµ РґСЂСѓРіРёРµ РїСЂРµРґРјРµС‚С‹</summary>
                 public interface IContainer
                 {
                     public float MaxWeight { get; }
                 }
 
-                /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны стакаться</summary>
+                /// <summary>Р­С‚РѕС‚ РёРЅС‚РµСЂС„РµР№СЃ СЂРµР°Р»РёР·СѓСЋС‚ РєР»Р°СЃСЃС‹ С‚Р°РєРёС… РїСЂРµРґРјРµС‚РѕРІ, РєРѕС‚РѕСЂС‹Рµ СЃРїРѕСЃРѕР±РЅС‹ СЃС‚Р°РєР°С‚СЊСЃСЏ</summary>
                 public interface IStackable
                 {
-                    /// <summary>Максимальное кол-во единиц предмета в стаке</summary>
+                    /// <summary>РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»-РІРѕ РµРґРёРЅРёС† РїСЂРµРґРјРµС‚Р° РІ СЃС‚Р°РєРµ</summary>
                     public int MaxAmount { get; set; }
                 }
 
-                /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
-                /// <remarks>Не использовать одновременно с IStackable!</remarks>
+                /// <summary>Р­С‚РѕС‚ РёРЅС‚РµСЂС„РµР№СЃ СЂРµР°Р»РёР·СѓСЋС‚ РєР»Р°СЃСЃС‹ С‚Р°РєРёС… РїСЂРµРґРјРµС‚РѕРІ, РєРѕС‚РѕСЂС‹Рµ СЃРїРѕСЃРѕР±РЅС‹ С‚СЂР°С‚РёС‚СЊСЃСЏ</summary>
+                /// <remarks>РќРµ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ СЃ IStackable!</remarks>
                 public interface IConsumable
                 {
                     public int MaxAmount { get; set; }
@@ -364,10 +364,10 @@ namespace BCRPClient.Data
         {
             new public class ItemData : Clothes.ItemData
             {
-                /// <summary>Максимальное кол-во слотов</summary>
+                /// <summary>РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»-РІРѕ СЃР»РѕС‚РѕРІ</summary>
                 public byte MaxSlots { get; set; }
 
-                /// <summary>Максимальный вес содержимого</summary>
+                /// <summary>РњР°РєСЃРёРјР°Р»СЊРЅС‹Р№ РІРµСЃ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ</summary>
                 public float MaxWeight { get; set; }
 
                 public ItemData(string Name, float Weight, bool Sex, int Drawable, int[] Textures, byte MaxSlots, float MaxWeight, string SexAlternativeID = null) : base(Name, Weight, Sex, Drawable, Textures, SexAlternativeID)
@@ -476,6 +476,19 @@ namespace BCRPClient.Data
                 public ItemData(string Name, float Weight, int Mood, int MaxAmount) : base(Name, Weight, 0, Mood, 0)
                 {
                     this.MaxAmount = MaxAmount;
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
+        public class Note : Item
+        {
+            new public class ItemData : Item.ItemData
+            {
+                public ItemData(string Name, float Weight) : base(Name, Weight)
+                {
+
                 }
             }
 
@@ -823,6 +836,8 @@ namespace BCRPClient.Data
             new KeyValuePair<System.Type, object[][]>(typeof(VehicleKey), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.FindVehicle } }),
 
             new KeyValuePair<System.Type, object[][]>(typeof(WeaponSkin), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.Use } }),
+
+            new KeyValuePair<System.Type, object[][]>(typeof(Note), new object[][] { new object[] { 5, Locale.General.Inventory.Actions.NoteRead }, new object[] { 6, Locale.General.Inventory.Actions.NoteWrite } }),
         };
 
         private static List<KeyValuePair<System.Type, List<string>>> ItemsActionsNotBag { get; set; } = new List<KeyValuePair<System.Type, List<string>>>()
@@ -913,30 +928,61 @@ namespace BCRPClient.Data
 
             await Utils.RequestModel(itemData.Model);
 
-            var mapObject = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObject(itemData.Model, coords.X, coords.Y, coords.Z, false, false, false));
+            if (CEF.MapEditor.IsActive)
+                return;
+
+            var mapObject = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(itemData.Model, coords.X, coords.Y, coords.Z, false, false, false));
 
             mapObject.SetTotallyInvincible(true);
+            mapObject.SetCollision(false, false);
 
             mapObject.SetData("ItemIdx", itemIdx);
 
-            CEF.Cursor.Show(true, true);
+            CEF.MapEditor.Show
+            (
+                mapObject, "PlaceableItemEdit", new CEF.MapEditor.Mode(true, true, false, false, true, false),
 
-            CEF.MapEditor.Show(mapObject, CEF.MapEditor.ModeTypes.PlaceItem, false);
+                () =>
+                {
+                    CEF.Cursor.Show(true, true);
+
+                    CEF.Notification.ShowHint("РџРѕСЃС‚Р°РІСЊС‚Рµ РїСЂРµРґРјРµС‚ РІ Р¶РµР»Р°РµРјРѕРµ РјРµСЃС‚Рѕ (С‚Р°Рє Р¶Рµ, РјРѕР¶РµС‚Рµ Р·Р°РґР°С‚СЊ РµРјСѓ Р¶РµР»Р°РµРјС‹Р№ РїРѕРІРѕСЂРѕС‚)");
+                },
+
+                () => CEF.MapEditor.RenderPlaceItem(),
+
+                () =>
+                {
+                    mapObject?.Destroy();
+
+                    CEF.Cursor.Show(false, false);
+
+                    CEF.Notification.ShowHint("Р’С‹ РѕС‚РјРµРЅРёР»Рё СѓСЃС‚Р°РЅРѕРІРєСѓ РїСЂРµРґРјРµС‚Р° РЅР° Р·РµРјР»СЋ!");
+                },
+
+                (pos, rot) =>
+                {
+                    OnPlaceItemFinish(mapObject, pos, rot);
+                }
+            );
         }
 
-        public static void OnPlaceItemFinish(MapObject mObj)
+        public static void OnPlaceItemFinish(MapObject mObj, Vector3 pos, Vector3 rot)
         {
             if (mObj?.Exists != true)
             {
+                mObj?.Destroy();
+
                 CEF.Cursor.Show(false, false);
 
-                CEF.MapEditor.Close();
+                CEF.MapEditor.Close(false);
 
                 return;
             }
 
-            var pos = RAGE.Game.Entity.GetEntityCoords(mObj.Handle, false);
-            var heading = RAGE.Game.Entity.GetEntityHeading(mObj.Handle);
+            mObj?.Destroy();
+
+            var heading = rot?.Z ?? 0f;
 
             var itemIdx = mObj.HasData("ItemIdx") ? mObj.GetData<int>("ItemIdx") : -1;
 
@@ -944,14 +990,14 @@ namespace BCRPClient.Data
             {
                 CEF.Cursor.Show(false, false);
 
-                CEF.MapEditor.Close();
+                CEF.MapEditor.Close(false);
 
                 return;
             }
 
             CEF.Cursor.Show(false, false);
 
-            CEF.MapEditor.Close();
+            CEF.MapEditor.Close(false);
 
             CEF.Inventory.BindedAction(5, "pockets", itemIdx, pos.X.ToString(), pos.Y.ToString(), pos.Z.ToString(), heading.ToString());
         }

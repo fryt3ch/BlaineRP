@@ -11,15 +11,12 @@ namespace BCRPClient.CEF
 
         private static int EscBind { get; set; } = -1;
 
-        public static ContextTypes CurrentContext { get; set; } = ContextTypes.None;
+        public static string CurrentContext { get; private set; }
 
-        public enum ContextTypes
-        {
-            None = 0,
-        }
+        private static Action CurrentCloseAction { get; set; }
+        private static Action<string> CurrentSubmitAction { get; set; }
 
-        public static Action CurrentCloseAction { get; set; }
-        public static Action<string> CurrentSubmitAction { get; set; }
+        public static Action DefaultBindAction { get; } = () => Bind();
 
         public Note()
         {
@@ -37,43 +34,42 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static async void ShowWrite(ContextTypes contextType, string text = "")
+        public static async void ShowWrite(string context, string text = "", Action showAction = null, Action<string> submitAction = null, Action closeAction = null)
         {
             if (IsActive)
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.Note, true, true);
 
-            CurrentContext = contextType;
+            CurrentContext = context;
+
+            CurrentCloseAction = closeAction;
+            CurrentSubmitAction = submitAction;
 
             CEF.Browser.Window.ExecuteJs("Note.draw", true, text);
 
             CEF.Cursor.Show(true, true);
 
-            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
-            {
-                Close();
-            });
+            showAction?.Invoke();
         }
 
-        public static async void ShowRead(ContextTypes contextType, string text)
+        public static async void ShowRead(string context, string text, Action showAction = null, Action closeAction = null)
         {
             if (IsActive)
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.Note, true, true);
 
-            CurrentContext = contextType;
+            CurrentContext = context;
+
+            CurrentCloseAction = closeAction;
 
             CEF.Browser.Window.ExecuteJs("Note.draw", false, text);
 
-            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
-            {
-                Close();
-            });
+            showAction?.Invoke();
         }
 
-        public static void Close()
+        public static void Close(bool cursor = true)
         {
             if (!IsActive)
                 return;
@@ -90,11 +86,12 @@ namespace BCRPClient.CEF
                 EscBind = -1;
             }
 
-            CurrentContext = ContextTypes.None;
+            CurrentContext = null;
 
             CEF.Browser.Render(Browser.IntTypes.Note, false, false);
 
-            CEF.Cursor.Show(false, false);
+            if (cursor)
+                CEF.Cursor.Show(false, false);
         }
 
         public static void SetText(string text)
@@ -103,6 +100,14 @@ namespace BCRPClient.CEF
                 return;
 
             CEF.Browser.Window.ExecuteJs("Note.setText", text);
+        }
+
+        private static void Bind()
+        {
+            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            {
+                Close();
+            });
         }
     }
 }

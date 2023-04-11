@@ -37,11 +37,14 @@ namespace BCRPServer
 
         #region General
 
-        //private static Timer timer;
+        private static Timer QueriesServiceTimer;
 
         public static void StartService()
         {
-            var timer = new Timer(async (obj) =>
+            if (QueriesServiceTimer != null)
+                return;
+
+            QueriesServiceTimer = new Timer(async (obj) =>
             {
                 await Wait();
 
@@ -638,7 +641,7 @@ namespace BCRPServer
 
                                 var lastData = ((string)reader["LastData"]).DeserializeFromJson<PlayerData.LastPlayerData>();
 
-                                var familiars = ((string)reader["Familiars"]).DeserializeFromJson<List<uint>>();
+                                var familiars = ((string)reader["Familiars"]).DeserializeFromJson<HashSet<uint>>();
 
                                 var skills = ((string)reader["Skills"]).DeserializeFromJson<Dictionary<PlayerData.SkillTypes, int>>();
 

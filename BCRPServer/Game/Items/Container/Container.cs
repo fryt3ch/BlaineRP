@@ -301,6 +301,11 @@ namespace BCRPServer.Game.Items
         {
             ClearAllObservers();
 
+            foreach (var x in Items)
+            {
+                x?.Delete();
+            }
+
             Remove(this);
         }
 

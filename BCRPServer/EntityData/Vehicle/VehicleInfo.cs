@@ -221,6 +221,31 @@ namespace BCRPServer
                     MySQL.VehicleDeletionUpdate(this);
                 }
             }
+
+            public void ChangeOwner(PlayerData.PlayerInfo newOwner)
+            {
+                if (FullOwnerPlayer is PlayerData.PlayerInfo oInfo)
+                {
+                    OwnerID = newOwner.CID;
+
+                    if (oInfo.PlayerData != null)
+                    {
+                        oInfo.PlayerData.RemoveVehicleProperty(this);
+                    }
+
+                    if (newOwner.PlayerData != null)
+                    {
+                        newOwner.PlayerData.AddVehicleProperty(this);
+                    }
+
+                    if (LastData.GarageSlot >= 0)
+                    {
+                        SetToVehiclePound();
+                    }
+
+                    MySQL.VehicleOwnerUpdate(this);
+                }
+            }
         }
     }
 }

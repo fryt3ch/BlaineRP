@@ -2,8 +2,13 @@
 
 namespace BCRPClient.CEF
 {
-    class Cursor
+    public class Cursor
     {
+        private static bool ShouldBlockEscMenu()
+        {
+            return IsActive || CEF.Browser.IsAnyCEFActive;
+        }
+
         public static bool IsActive { get; private set; }
 
         /// <summary>Отображается ли курсор на экране?</summary>
@@ -28,7 +33,7 @@ namespace BCRPClient.CEF
             }
             else
             {
-                if (!Utils.IsAnyCefActive(true))
+                if (!ShouldBlockEscMenu())
                     SwitchEscMenuAccess(true);
 
                 CEF.Browser.Window.ExecuteCachedJs("blurFocusedDomElement();");
@@ -45,23 +50,31 @@ namespace BCRPClient.CEF
 
         public static void SwitchEscMenuAccess(bool state)
         {
-            StopBlockingEscTask?.Cancel();
-
             if (!state)
             {
-                StopBlockingEscTask = null;
+                if (StopBlockingEscTask != null)
+                {
+                    StopBlockingEscTask.Cancel();
+
+                    StopBlockingEscTask = null;
+                }
 
                 GameEvents.Render -= OnTickCursor;
                 GameEvents.Render += OnTickCursor;
             }
             else
             {
-                StopBlockingEscTask = new AsyncTask(() =>
+                if (StopBlockingEscTask == null)
                 {
-                    GameEvents.Render -= OnTickCursor;
-                }, 500, false, 0);
+                    StopBlockingEscTask = new AsyncTask(() =>
+                    {
+                        GameEvents.Render -= OnTickCursor;
 
-                StopBlockingEscTask.Run();
+                        StopBlockingEscTask = null;
+                    }, 500, false, 0);
+
+                    StopBlockingEscTask.Run();
+                }
             }
         }
     }

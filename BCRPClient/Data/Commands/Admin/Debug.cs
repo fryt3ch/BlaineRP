@@ -560,7 +560,27 @@ namespace BCRPClient.Data
             if (CEF.MapEditor.IsActive)
                 CEF.MapEditor.Close();
 
-            CEF.MapEditor.Show(gEntity, CEF.MapEditor.ModeTypes.Default, false);
+            CEF.MapEditor.Show
+            (
+                gEntity, "DebugEntityEdit", new CEF.MapEditor.Mode(true, true, true, true, true, true),
+
+                () =>
+                {
+
+                },
+
+                () => CEF.MapEditor.Render(),
+
+                () =>
+                {
+
+                },
+
+                (pos, rot) =>
+                {
+
+                }
+            );
         }
 
         [Command("entity_select_edit_stop", true, "Установить сытость игроку")]
@@ -583,7 +603,30 @@ namespace BCRPClient.Data
             if (CEF.MapEditor.IsActive)
                 CEF.MapEditor.Close();
 
-            CEF.MapEditor.Show(colshape, CEF.MapEditor.ModeTypes.Colshape, false);
+            CEF.MapEditor.Show
+            (
+                colshape, "DebugColshapeEdit", new CEF.MapEditor.Mode(true, true, true, false, true, false),
+
+                () =>
+                {
+
+                },
+
+                () => CEF.MapEditor.RenderColshape(),
+
+                () =>
+                {
+
+                },
+
+                (pos, rot) =>
+                {
+                    if (pos == null)
+                        pos = new Vector3(0f, 0f, 0f);
+
+                    Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes] Pos: {RAGE.Util.Json.Serialize(pos)}, Heading: {rot?.Z ?? 0f}");
+                }
+            );
         }
 
         [Command("colshape_edit_stop", true, "Установить сытость игроку")]

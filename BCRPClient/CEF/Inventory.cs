@@ -299,6 +299,91 @@ namespace BCRPClient.CEF
 
             #region Events
 
+            Events.Add("Inventory::Note", async (args) =>
+            {
+                if (!IsActive)
+                    return;
+
+                if (args.Length == 1)
+                {
+                    var str = (string)args[0] ?? string.Empty;
+
+                    CEF.Note.ShowRead
+                    (
+                        "InventoryNoteRead", str,
+
+                        () =>
+                        {
+                            if (!IsActive)
+                            {
+                                CEF.Note.Close(false);
+
+                                return;
+                            }
+
+                            FreezeInterface(true, false);
+
+                            CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, false);
+                        },
+
+                        () =>
+                        {
+                            if (IsActive)
+                            {
+                                FreezeInterface(false, false);
+
+                                CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, true);
+                            }
+                        }
+                    );
+                }
+                else
+                {
+                    var groupNum = (int)args[0];
+                    var slot = (int)args[1];
+
+                    var str = (string)args[2] ?? string.Empty;
+
+                    CEF.Note.ShowWrite
+                    (
+                        "InventoryNoteWrite", str,
+
+                        () =>
+                        {
+                            if (!IsActive)
+                            {
+                                CEF.Note.Close(false);
+
+                                return;
+                            }
+
+                            FreezeInterface(true, false);
+
+                            CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, false);
+                        },
+
+                        async (text) =>
+                        {
+                            text = text?.Trim();
+
+                            var res = await Events.CallRemoteProc("Player::NoteEdit", groupNum, slot, text);
+
+                            CEF.Note.Close(false);
+                        },
+
+                        () =>
+                        {
+                            if (IsActive)
+                            {
+                                FreezeInterface(false, false);
+
+                                CEF.Browser.SwitchTemp(Browser.IntTypes.Inventory, true);
+                            }
+                        }
+                    );
+                }
+            });
+
             Events.Add("Workbench::TryCraft", (args) =>
             {
                 if (CurrentType != Types.Workbench)
@@ -1474,6 +1559,10 @@ namespace BCRPClient.CEF
                     CurrentSlotFrom = null;
                     CurrentSlotTo = null;
                 }
+                else if (Note.CurrentContext == "InventoryNoteRead" || Note.CurrentContext == "InventoryNoteWrite")
+                {
+                    Note.Close(false);
+                }
                 else
                     Close(true);
             });
@@ -1513,6 +1602,9 @@ namespace BCRPClient.CEF
 
             if (ActionBox.CurrentContextStr == "Inventory")
                 ActionBox.Close(true);
+
+            if (Note.CurrentContext == "InventoryNoteRead" || Note.CurrentContext == "InventoryNoteWrite")
+                Note.Close(true);
 
             if (CurrentType == Types.Workbench)
             {
@@ -1645,15 +1737,11 @@ namespace BCRPClient.CEF
 
                     if (id > 0)
                     {
-                        if (LastSent.IsSpam(500, false, false))
+                        if (LastSent.IsSpam(250, false, false))
                             return;
 
-                        if (Player.LocalPlayer.Vehicle != null)
-                        {
-                            Notification.Show(Notification.Types.Error, Locale.Notifications.Inventory.Header, Locale.Notifications.Inventory.ActionRestricted);
-
+                        if (!Utils.CanDoSomething(true, Utils.Actions.InVehicle))
                             return;
-                        }
 
                         if (CurrentType == Types.Inventory)
                         {
@@ -2190,7 +2278,7 @@ namespace BCRPClient.CEF
 
         public static void Replace(string toStr, int toSlot, string fromStr, int fromSlot, int amount)
         {
-            if (LastSent.IsSpam(500, false, false))
+            if (LastSent.IsSpam(250, false, false))
                 return;
 
             GetRealSlot(ref toStr, ref toSlot);

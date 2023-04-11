@@ -155,7 +155,7 @@ namespace BCRPClient.CEF
 
                 if (pData.CID == cid)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не можете делать это с самим собой!");
+                    CEF.Notification.Show("SA");
 
                     return;
                 }

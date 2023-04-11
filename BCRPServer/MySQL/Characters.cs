@@ -405,5 +405,34 @@ namespace BCRPServer
 
             PushQuery(cmd);
         }
+
+        public static void CharacterFamiliarsUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE characters SET Familiars=@Fam WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            cmd.Parameters.AddWithValue("@Fam", pInfo.Familiars.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void CharacterFractionAndRankUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE characters SET Fraction=@F WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+
+            if (pInfo.Fraction == Game.Fractions.Types.None)
+                cmd.Parameters.AddWithValue("@F", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@F", $"{(int)pInfo.Fraction}_{pInfo.FractionRank}");
+
+            PushQuery(cmd);
+        }
     }
 }

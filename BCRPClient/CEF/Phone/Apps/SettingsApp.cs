@@ -9,7 +9,7 @@ namespace BCRPClient.CEF.PhoneApps
         {
             Events.Add("Phone::UpdateWallpaper", (args) =>
             {
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var wpNum = (int)args[0];

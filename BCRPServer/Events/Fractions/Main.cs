@@ -117,7 +117,7 @@ namespace BCRPServer.Events.Fractions
             if (vInfo == null)
                 return false;
 
-            if (!fData.HasMemberPermission(pData.Info, 5, true))
+            if (!fData.HasMemberPermission(pData.Info, 6, true))
                 return false;
 
             var vFData = fData.AllVehicles.GetValueOrDefault(vInfo);
@@ -165,8 +165,6 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
-            return false; // todo
-
             if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
                 return false;
 
@@ -177,6 +175,58 @@ namespace BCRPServer.Events.Fractions
 
             if (fData == null)
                 return false;
+
+            if (fData.Ranks.Count >= newRank)
+                newRank = (byte)fData.Ranks.Count;
+
+            if (cid == pData.CID)
+                return false;
+
+            var tInfo = PlayerData.PlayerInfo.Get(cid);
+
+            if (tInfo == null)
+                return false;
+
+            if (tInfo.FractionRank == newRank)
+                return false;
+
+            var rankUp = false;
+
+            if (tInfo.FractionRank < newRank)
+            {
+                if (!fData.HasMemberPermission(pData.Info, 4, true))
+                    return false;
+
+                rankUp = true;
+            }
+            else
+            {
+                if (!fData.HasMemberPermission(pData.Info, 3, true))
+                    return false;
+            }
+
+            if (tInfo.FractionRank >= pData.Info.FractionRank)
+            {
+                player.Notify("Fraction::HRIBTY");
+
+                return false;
+            }
+
+            fData.SetPlayerRank(tInfo, newRank);
+
+            if (tInfo.PlayerData != null)
+            {
+                if (rankUp)
+                {
+                    tInfo.PlayerData.Player.Notify("Fraction::RU", $"{player.Name} ({player.Id}) #{pData.CID}", $"{fData.Ranks[newRank].Name} - {newRank + 1}");
+                }
+                else
+                {
+                    tInfo.PlayerData.Player.Notify("Fraction::RD", $"{player.Name} ({player.Id}) #{pData.CID}", $"{fData.Ranks[newRank].Name} - {newRank + 1}");
+                }
+            }
+
+            return true;
         }
 
         [RemoteProc("Fraction::MF")]
@@ -189,8 +239,6 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
-            return false; // todo
-
             if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
                 return false;
 
@@ -201,6 +249,36 @@ namespace BCRPServer.Events.Fractions
 
             if (fData == null)
                 return false;
+
+            if (!fData.HasMemberPermission(pData.Info, 5, true))
+                return false;
+
+            if (cid == pData.CID)
+                return false;
+
+            var tInfo = PlayerData.PlayerInfo.Get(cid);
+
+            if (tInfo == null)
+                return false;
+
+            if (tInfo.Fraction != fData.Type)
+                return false;
+
+            if (pData.Info.FractionRank <= tInfo.FractionRank)
+            {
+                player.Notify("Fraction::HRIBTY");
+
+                return false;
+            }
+
+            fData.SetPlayerNoFraction(tInfo);
+
+            if (tInfo.PlayerData != null)
+            {
+                tInfo.PlayerData.Player.Notify("Fraction::F", $"{player.Name} ({player.Id}) #{pData.CID}");
+            }
+
+            return true;
         }
 
         [RemoteProc("Fraction::SL")]

@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.CEF;
+using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace BCRPClient.Sync
 {
-    public class Punishment
+    public class Punishment : Events.Script
     {
         public static List<Punishment> All { get; set; } = new List<Punishment>();
 
@@ -206,6 +207,88 @@ namespace BCRPClient.Sync
             Utils.DrawText($"ВЫ НАХОДИТЕСЬ В ФЕДЕРАЛЬНОЙ ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
 
             Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+        }
+
+        public Punishment()
+        {
+            Events.Add("Player::MuteShow", (args) => Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute).FirstOrDefault()?.ShowErrorNotification());
+
+            Events.Add("Player::FMuteShow", (args) => Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.FractionMute).FirstOrDefault()?.ShowErrorNotification());
+
+            Events.Add("Player::Punish", (args) =>
+            {
+                var id = args[0].ToUInt32();
+
+                var type = (Sync.Punishment.Types)(int)args[1];
+
+                var admin = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[2]);
+
+                var endDateL = Convert.ToInt64(args[3]);
+
+                var reason = (string)args[4];
+
+                if (endDateL >= 0)
+                {
+                    var endDate = DateTimeOffset.FromUnixTimeSeconds(endDateL).DateTime;
+
+                    var mData = new Sync.Punishment() { Type = type, EndDate = endDate, Id = id };
+
+                    Sync.Punishment.AddPunishment(mData);
+
+                    var timeStr = endDate.Subtract(Sync.World.ServerTime).GetBeautyString();
+
+                    if (type == Punishment.Types.Mute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Мут", admin == null ? $"Вам был выдан мут (запрет на использование текстового и голосового чатов) на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование текстового и голосового чатов) на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.NRPPrison)
+                    {
+                        CEF.Notification.Show(Notification.Types.Jail1, "NonRP-тюрьма", admin == null ? $"Вы были посажены в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.Warn)
+                    {
+                        CEF.Notification.Show(Notification.Types.Warn, "Предупреждение", admin == null ? $"Вам было выдано предупреждение!\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам предупреждение\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.FractionMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Мут (фракция)", admin == null ? $"Вам был выдан мут (запрет на использование чата фракции) на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование чата фракции) на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.OrganisationMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Мут (организация)", admin == null ? $"Вам был выдан мут (запрет на использование чата организации) на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование чата организации) на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.Arrest)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Арест (СИЗО)", admin == null ? $"Вы были арестованы и посажены в СИЗО на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в СИЗО на {timeStr}\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.FederalPrison)
+                    {
+                        CEF.Notification.Show(Notification.Types.Mute, "Арест (Федеральная тюрьма)", admin == null ? $"Вы были арестованы и посажены в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}");
+                    }
+                }
+                else
+                {
+                    var mData = Sync.Punishment.All.Where(x => x.Type == type && x.Id == id).FirstOrDefault();
+
+                    if (mData != null)
+                    {
+                        Sync.Punishment.RemovePunishment(mData);
+                    }
+
+                    if (type == Punishment.Types.FractionMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, "Мут (фракция)", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила Вашей фракции!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                    }
+                    else if (type == Punishment.Types.OrganisationMute)
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, "Мут (организация)", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила Вашей организации!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(Notification.Types.Information, type == Punishment.Types.Mute ? "Мут" : type == Punishment.Types.NRPPrison ? "NonRP-тюрьма" : type == Punishment.Types.Warn ? "Предупреждение" : "???", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила нашего сервера!" : $"Администратор {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                    }
+                }
+            });
         }
     }
 }

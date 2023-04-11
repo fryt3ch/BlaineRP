@@ -869,6 +869,61 @@ namespace BCRPServer.Game.Items
                     }
                 }
             },
+
+            {
+                typeof(Game.Items.Note),
+
+                new Dictionary<int, Func<PlayerData, Item, Groups, int, string[], Results>>()
+                {
+                    {
+                        5,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var player = pData.Player;
+
+                            var itemU = (Game.Items.Note)item;
+
+                            var iData = itemU.Data;
+
+                            if ((iData.Type & Note.ItemData.Types.Read) == Note.ItemData.Types.Read)
+                            {
+                                pData.Player.TriggerEvent("Inventory::Note", itemU.Text ?? itemU.Data.DefaultText);
+                            }
+                            else
+                            {
+                                pData.Player.Notify("Inv::NRNOTE");
+                            }
+
+                            return Results.Success;
+                        }
+                    },
+
+                    {
+                        6,
+
+                        (pData, item, group, slot, args) =>
+                        {
+                            var player = pData.Player;
+
+                            var itemU = (Game.Items.Note)item;
+
+                            var iData = itemU.Data;
+
+                            if ((iData.Type & Note.ItemData.Types.Write) == Note.ItemData.Types.Write || (((iData.Type & Note.ItemData.Types.WriteTextNullOnly) == Note.ItemData.Types.WriteTextNullOnly) && itemU.Text == null))
+                            {
+                                pData.Player.TriggerEvent("Inventory::Note", (int)group, slot, itemU.Text ?? itemU.Data.DefaultText);
+                            }
+                            else
+                            {
+                                pData.Player.Notify("Inv::NWNOTE");
+                            }
+
+                            return Results.Success;
+                        }
+                    },
+                }
+            },
         };
     }
 }

@@ -18,7 +18,7 @@ namespace BCRPServer.Events.Commands
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction);
 
-            if (!fData.HasMemberPermission(pData.Info, 7, true))
+            if (!fData.HasMemberPermission(pData.Info, 8, true))
                 return;
 
             uint pid, mins;
@@ -110,7 +110,7 @@ namespace BCRPServer.Events.Commands
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction);
 
-            if (!fData.HasMemberPermission(pData.Info, 7, true))
+            if (!fData.HasMemberPermission(pData.Info, 8, true))
                 return;
 
             uint pid;

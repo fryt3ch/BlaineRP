@@ -85,14 +85,11 @@ namespace BCRPServer.Game.Estates
                     SetBalance(minBalance, null);
             }
 
-            var vehsInGarage = GetVehiclesInGarage()?.ToList();
+            var vehsInGarage = GetVehiclesInGarage();
 
-            if (vehsInGarage != null)
+            foreach (var x in vehsInGarage)
             {
-                foreach (var x in vehsInGarage)
-                {
-                    x.SetToVehiclePound();
-                }
+                x.SetToVehiclePound();
             }
 
             foreach (var x in Settlers.Keys)
@@ -149,12 +146,12 @@ namespace BCRPServer.Game.Estates
             MySQL.VehicleDeletionUpdate(vInfo);
         }
 
-        public IEnumerable<VehicleData.VehicleInfo> GetVehiclesInGarage()
+        public List<VehicleData.VehicleInfo> GetVehiclesInGarage()
         {
             if (GarageData == null || Owner == null)
-                return null;
+                return new List<VehicleData.VehicleInfo>();
 
-            return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension);
+            return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension).ToList();
         }
     }
 }

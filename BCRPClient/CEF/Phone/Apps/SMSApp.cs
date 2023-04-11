@@ -83,7 +83,7 @@ namespace BCRPClient.CEF.PhoneApps
                 if (pData == null)
                     return;
 
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 if (args == null || args.Length < 2)
@@ -169,7 +169,7 @@ namespace BCRPClient.CEF.PhoneApps
                 if (pData == null)
                     return;
 
-                if (LastSent.IsSpam(500, false, false))
+                if (LastSent.IsSpam(250, false, false))
                     return;
 
                 var number = uint.Parse(args[0].ToString());

@@ -343,11 +343,22 @@ namespace BCRPServer.Game.Fractions
             TriggerEventToMembers("Fraction::UMS", pInfo.CID, status);
         }
 
+        public virtual void SetPlayerRank(PlayerData.PlayerInfo pInfo, byte rank)
+        {
+            pInfo.FractionRank = rank;
+
+            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
+
+            MySQL.CharacterFractionAndRankUpdate(pInfo);
+        }
+
         public virtual void SetPlayerFraction(PlayerData.PlayerInfo pInfo, byte rank)
         {
             if (pInfo.PlayerData != null)
             {
                 pInfo.PlayerData.Fraction = Type;
+
+                pInfo.PlayerData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}"), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}"));
             }
             else
             {
@@ -356,9 +367,11 @@ namespace BCRPServer.Game.Fractions
 
             pInfo.FractionRank = rank;
 
+            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
+
             AllMembers.Add(pInfo);
 
-            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
+            MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
 
         public virtual void SetPlayerNoFraction(PlayerData.PlayerInfo pInfo)
@@ -366,6 +379,8 @@ namespace BCRPServer.Game.Fractions
             if (pInfo.PlayerData != null)
             {
                 pInfo.PlayerData.Fraction = Types.None;
+
+                pInfo.PlayerData.Player.TriggerEvent("Player::SCF");
             }
             else
             {
@@ -377,6 +392,8 @@ namespace BCRPServer.Game.Fractions
             AllMembers.Remove(pInfo);
 
             TriggerEventToMembers("Fraction::MC", pInfo.CID);
+
+            MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
 
         public void AddNews(string text, bool updateDb)

@@ -175,7 +175,7 @@ namespace BCRPClient.Sync
 
         private static Dictionary<string, Action<object, object>> DataActions = new Dictionary<string, Action<object, object>>();
 
-        private static void InvokeHandler(string dataKey, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(value, oldValue);
+        public static void InvokeHandler(string dataKey, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(value, oldValue);
 
         public static void AddDataHandler(string dataKey, Action<object, object> action)
         {

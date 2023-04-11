@@ -101,10 +101,7 @@ namespace BCRPServer.Events.Vehicles
                 if (garageData == null)
                     return;
 
-                var garageVehs = house.GetVehiclesInGarage()?.ToList();
-
-                if (garageVehs == null)
-                    return;
+                var garageVehs = house.GetVehiclesInGarage();
 
                 var freeSlots = Enumerable.Range(0, garageData.MaxVehicles).ToList();
 
@@ -136,7 +133,7 @@ namespace BCRPServer.Events.Vehicles
 
                 var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
 
-                var garageVehs = garage.GetVehiclesInGarage().ToList();
+                var garageVehs = garage.GetVehiclesInGarage();
 
                 if (garageVehs.Count == freeSlots.Count)
                 {

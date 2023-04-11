@@ -329,14 +329,11 @@ namespace BCRPServer.Game.Estates
                     SetBalance(minBalance, null);
             }
 
-            var vehicles = GetVehiclesInGarage()?.ToList();
+            var vehicles = GetVehiclesInGarage();
 
-            if (vehicles != null)
+            foreach (var x in vehicles)
             {
-                foreach (var x in vehicles)
-                {
-                    x.SetToVehiclePound();
-                }
+                x.SetToVehiclePound();
             }
 
             UpdateOwner(pInfo);
@@ -447,7 +444,13 @@ namespace BCRPServer.Game.Estates
             MySQL.VehicleDeletionUpdate(vInfo);
         }
 
-        public IEnumerable<VehicleData.VehicleInfo> GetVehiclesInGarage() => Owner?.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension) ?? new List<VehicleData.VehicleInfo>();
+        public List<VehicleData.VehicleInfo> GetVehiclesInGarage()
+        {
+            if (Owner == null)
+                return new List<VehicleData.VehicleInfo>();
+
+            return Owner.OwnedVehicles.Where(x => x.LastData.GarageSlot >= 0 && (x.VehicleData?.Vehicle.Dimension ?? x.LastData.Dimension) == Dimension).ToList();
+        }
 
         public void SetPlayersInside(bool teleport, params Player[] players)
         {

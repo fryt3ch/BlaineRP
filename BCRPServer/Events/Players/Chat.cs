@@ -41,7 +41,7 @@ namespace BCRPServer.Events.Players
                 if (fData == null)
                     return;
 
-                if (!fData.HasMemberPermission(pData.Info, 6, true))
+                if (!fData.HasMemberPermission(pData.Info, 7, true))
                     return;
 
                 if (pData.Info.Punishments.Where(x => x.Type == Sync.Punishment.Types.FractionMute && x.IsActive()).Any())

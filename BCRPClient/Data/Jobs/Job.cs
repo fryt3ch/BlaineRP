@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.CEF;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -230,6 +231,8 @@ namespace BCRPClient.Data.Jobs
         public virtual void OnStartJob(object[] data)
         {
             CurrentData = new Dictionary<string, object>();
+
+            CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Job_Menu);
         }
 
         public virtual void OnEndJob()
@@ -240,6 +243,8 @@ namespace BCRPClient.Data.Jobs
 
                 CurrentData = null;
             }
+
+            CEF.HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Job_Menu);
         }
     }
 
@@ -247,6 +252,42 @@ namespace BCRPClient.Data.Jobs
     {
         public JobEvents()
         {
+            Events.Add("Player::SCJ", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (args == null || args.Length < 1)
+                {
+                    var lastJob = pData.CurrentJob;
+
+                    if (lastJob != null)
+                    {
+                        lastJob.OnEndJob();
+
+                        pData.CurrentJob = null;
+                    }
+
+                }
+                else
+                {
+                    var job = Data.Jobs.Job.Get((int)args[0]);
+
+                    var lastJob = pData.CurrentJob;
+
+                    if (lastJob != null)
+                    {
+                        lastJob.OnEndJob();
+                    }
+
+                    pData.CurrentJob = job;
+
+                    job.OnStartJob(args.Skip(1).ToArray());
+                }
+            });
+
             Events.Add("Job::TSC", (args) =>
             {
                 var newBalance = args[0].ToDecimal();

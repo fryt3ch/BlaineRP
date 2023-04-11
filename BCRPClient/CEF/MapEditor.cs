@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.Additional;
+using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -17,36 +18,21 @@ namespace BCRPClient.CEF
 
         private static bool RotationModeOn { get; set; }
 
-        private static ModeTypes? CurrentModeType { get; set; }
-
         private static DateTime LastUpdatedJs { get; set; }
 
         private static Vector3 LastPos { get; set; }
+        private static Vector3 LastRot { get; set; }
 
-        public enum ModeTypes
-        {
-            Default = 0,
+        public static string CurrentContext { get; private set; }
 
-            FurnitureEdit,
+        private static Mode CurrentMode { get; set; }
 
-            PlaceItem,
-
-            Colshape,
-        }
+        private static Action CurrentCloseAction { get; set; }
+        private static Action CurrentRenderAction { get; set; }
+        private static Action<Vector3, Vector3> CurrentFinishAction { get; set; }
 
         public class Mode
         {
-            public static Dictionary<ModeTypes, Mode> All { get; private set; } = new Dictionary<ModeTypes, Mode>()
-            {
-                { ModeTypes.Default, new Mode(true, true, true, true, true, true) },
-
-                { ModeTypes.FurnitureEdit, new Mode(true, true, true, false, true, false) },
-
-                { ModeTypes.PlaceItem, new Mode(true, true, true, false, true, false) },
-
-                { ModeTypes.Colshape, new Mode(true, true, true, false, true, false) },
-            };
-
             public bool EnableX { get; set; }
 
             public bool EnableY { get; set; }
@@ -84,130 +70,96 @@ namespace BCRPClient.CEF
                 if (!IsActive)
                     return;
 
-                if (CurrentModeType == ModeTypes.Colshape)
+                if ((bool)args[0])
                 {
-                    if ((bool)args[0])
-                    {
-                        Colshape.SetPosition(new Vector3(Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3])));
-                    }
-                    else
-                    {
-                        (Colshape as Additional.Polygon)?.SetHeading(Convert.ToSingle(args[3]));
-                    }
+                    if (LastPos == null)
+                        return;
+
+                    LastPos.X = Convert.ToSingle(args[1]);
+                    LastPos.Y = Convert.ToSingle(args[2]);
+                    LastPos.Z = Convert.ToSingle(args[3]);
                 }
                 else
                 {
-                    if (Entity?.Exists != true)
+                    if (LastRot == null)
                         return;
 
-                    if ((bool)args[0])
-                    {
-                        RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), false, false, false);
-                    }
-                    else
-                    {
-                        RAGE.Game.Entity.SetEntityRotation(Entity.Handle, Convert.ToSingle(args[1]), Convert.ToSingle(args[2]), Convert.ToSingle(args[3]), 2, true);
-                    }
+                    LastRot.X = Convert.ToSingle(args[1]);
+                    LastRot.Y = Convert.ToSingle(args[2]);
+                    LastRot.Z = Convert.ToSingle(args[3]);
                 }
             });
         }
 
-        public static void Show(object gEntity, ModeTypes mType = ModeTypes.Default, bool enableRotation = false)
+        public static void Show(object gEntity, string context, Mode mode, Action startAction = null, Action renderAction = null, Action closeAction = null, Action<Vector3, Vector3> finishAction = null)
         {
             if (IsActive)
                 return;
 
-            if (gEntity == null)
+            if (gEntity == null || renderAction == null)
                 return;
 
-            var mode = Mode.All[mType];
+            CurrentMode = mode ?? new Mode(true, true, true, true, true, true);
 
-            RotationModeOn = false;
+            CEF.Browser.Window.ExecuteJs("mapEditor_init", false, CurrentMode.EnableX, CurrentMode.EnableZ, CurrentMode.EnableY); // rot mode on: CEF.Browser.Window.ExecuteJs("mapEditor_init", true, mode.RotationEnableX, mode.RotationEnableY, mode.RotationEnableZ);
 
-            if (enableRotation)
-            {
-                if (mode.IsRotationAllowed)
-                    RotationModeOn = true;
-            }
+            CurrentContext = context;
 
-            if (RotationModeOn)
-            {
-                CEF.Browser.Window.ExecuteJs("mapEditor_init", true, mode.RotationEnableX, mode.RotationEnableY, mode.RotationEnableZ);
-            }
-            else
-            {
-                CEF.Browser.Window.ExecuteJs("mapEditor_init", false, mode.EnableX, mode.EnableY, mode.EnableZ);
-            }
+            CurrentCloseAction = closeAction;
+            CurrentRenderAction = renderAction;
+            CurrentFinishAction = finishAction;
 
-            LastUpdatedJs = DateTime.MinValue;
+            IsActive = true;
 
-            GameEvents.Render -= Render;
-            GameEvents.Render -= RenderColshape;
+            Sync.WeaponSystem.DisabledFiring = true;
+
+            startAction?.Invoke();
 
             if (gEntity is GameEntity gEntityT)
             {
                 Entity = gEntityT;
 
-                GameEvents.Render += Render;
+                LastPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
+                LastRot = RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2);
+
+                GameEvents.Render += CurrentRenderAction.Invoke;
             }
             else
             {
                 Colshape = gEntity as Additional.ExtraColshape;
 
-                GameEvents.Render += RenderColshape;
+                LastPos = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z);
+                LastRot = new Vector3(0f, 0f, (Colshape as Additional.Polygon)?.Heading ?? 0f);
+
+                GameEvents.Render += CurrentRenderAction.Invoke;
             }
-
-            CurrentModeType = mType;
-
-            IsActive = true;
 
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Control, true, () => ToggleRotationMode(!RotationModeOn)));
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
-
-            if (CurrentModeType == ModeTypes.FurnitureEdit)
-            {
-                CEF.HouseMenu.FurnitureEditOnStart(gEntity as MapObject);
-
-                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) CEF.HouseMenu.FurntureEditFinish(Entity as MapObject, RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false), RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2)); }));
-            }
-            else if (CurrentModeType == ModeTypes.PlaceItem)
-            {
-                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Return, true, () => { if (Entity?.Exists == true) Data.Items.OnPlaceItemFinish(Entity as MapObject); }));
-            }
-
-            Sync.WeaponSystem.DisabledFiring = true;
+            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Return, true, () => finishAction?.Invoke(LastPos == null ? null : new Vector3(LastPos.X, LastPos.Y, LastPos.Z), LastRot == null ? null : new Vector3(LastRot.X, LastRot.Y, LastRot.Z))));
         }
 
-        public static void Close()
+        public static void Close(bool invokeCurrentCloseAction = true)
         {
             if (!IsActive)
                 return;
 
-            GameEvents.Render -= Render;
+            if (invokeCurrentCloseAction)
+                CurrentCloseAction?.Invoke();
+
+            GameEvents.Render -= CurrentRenderAction.Invoke;
 
             CEF.Browser.Window.ExecuteCachedJs("mapEditor_destroy();");
 
-            if (CurrentModeType == ModeTypes.FurnitureEdit)
-            {
-                CEF.HouseMenu.FurnitureEditOnEnd(Entity as MapObject);
-            }
-            else if (CurrentModeType == ModeTypes.Colshape)
-            {
-                if (Colshape != null)
-                    Events.CallLocal("Chat::ShowServerMessage", $"[TColshapes] Pos: {RAGE.Util.Json.Serialize(Colshape.Position)}, Heading: {(Colshape as Additional.Polygon)?.Heading ?? 0f}");
-            }
-
-            if (CurrentModeType != ModeTypes.Default)
-            {
-                Entity?.Destroy();
-            }
-
-            CurrentModeType = null;
+            CurrentMode = null;
+            CurrentContext = null;
+            CurrentFinishAction = null;
+            CurrentRenderAction = null;
+            CurrentCloseAction = null;
 
             IsActive = false;
 
             Entity = null;
-
             Colshape = null;
 
             LastPos = null;
@@ -225,10 +177,8 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            if (CurrentModeType is ModeTypes mType)
+            if (CurrentMode is Mode mode)
             {
-                var mode = Mode.All[mType];
-
                 if (state)
                 {
                     if (!mode.IsRotationAllowed)
@@ -248,52 +198,42 @@ namespace BCRPClient.CEF
             }
         }
 
-        private static void Render()
+        public static void RenderFurnitureEdit()
         {
-            if (Entity?.Exists != true)
+            if (LastPos == null || Entity?.Exists != true)
             {
                 Close();
 
                 return;
             }
 
-            var ePos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, true);
+            var curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
 
-            var lastPos = LastPos;
-
-            LastPos = ePos;
-
-            if (CurrentModeType != ModeTypes.Default)
+            if (Player.LocalPlayer.Position.DistanceTo(LastPos) > 7.5f)
             {
-                if (Player.LocalPlayer.Position.DistanceTo(ePos) > 7.5f)
-                {
-                    if (LastPos == null)
-                        LastPos = Player.LocalPlayer.Position;
+                if (curPos.DistanceTo(Player.LocalPlayer.Position) > 7.5f)
+                    curPos = Player.LocalPlayer.Position;
 
-                    ePos = lastPos;
-
-                    LastPos = ePos;
-
-                    Entity.Position = ePos;
-                }
+                LastPos = curPos;
             }
 
-            var eRot = RAGE.Game.Entity.GetEntityRotation(Entity.Handle, 2);
+            RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
+            RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
 
-            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 200)
+            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
                 var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
-                CEF.Browser.Window.ExecuteJs("mapEditor_update", ePos.X, ePos.Y, ePos.Z, eRot.X, eRot.Y, eRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
                 LastUpdatedJs = Sync.World.ServerTime;
             }
 
-            bool showRotZ = false;
+            var showRotZ = false;
 
-            float diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
             if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
@@ -309,30 +249,31 @@ namespace BCRPClient.CEF
                 else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
-                RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, ePos.X + xOff, ePos.Y + yOff, ePos.Z, false, false, false);
+                LastPos.X += xOff;
+                LastPos.Y += yOff;
             }
             else
             {
-                float diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
                 if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
-                    RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, ePos.X, ePos.Y, ePos.Z + diffPos, false, false, false);
+                    LastPos.Z += diffPos;
                 }
                 else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
-                    RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, ePos.X, ePos.Y, ePos.Z - diffPos, false, false, false);
+                    LastPos.Z -= diffPos;
                 }
 
                 if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
-                    RAGE.Game.Entity.SetEntityRotation(Entity.Handle, eRot.X, eRot.Y, eRot.Z -= diffRot, 2, true);
+                    LastRot.Z -= diffRot;
                 }
                 else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
                 {
-                    RAGE.Game.Entity.SetEntityRotation(Entity.Handle, eRot.X, eRot.Y, eRot.Z += diffRot, 2, true);
+                    LastRot.Z += diffRot;
                 }
             }
 
@@ -342,38 +283,52 @@ namespace BCRPClient.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    Utils.DrawText($"Угол поворота: {RAGE.Game.Entity.GetEntityHeading(Entity.Handle).ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                 }
             }
         }
 
-        private static void RenderColshape()
+        public static void RenderPlaceItem()
         {
-            if (Colshape?.Exists != true)
+            if (LastPos == null || Entity?.Exists != true)
             {
                 Close();
 
                 return;
             }
 
-            var ePos = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z);
+            var curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
 
-            var eRot = (Colshape as Additional.Polygon)?.Heading ?? 0f;
+            if (Player.LocalPlayer.Position.DistanceTo(LastPos) > 7.5f)
+            {
+                if (curPos.DistanceTo(Player.LocalPlayer.Position) > 7.5f)
+                    curPos = Player.LocalPlayer.Position;
 
-            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 200)
+                LastPos = curPos;
+            }
+
+            var zCoord = 0f;
+
+            if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastPos.X, LastPos.Y, LastPos.Z + 10f, ref zCoord, true))
+                LastPos.Z = zCoord;
+
+            RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
+            RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
+
+            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
             {
                 var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
 
                 var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
 
-                CEF.Browser.Window.ExecuteJs("mapEditor_update", ePos.X, ePos.Y, ePos.Z, 0, eRot, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
 
                 LastUpdatedJs = Sync.World.ServerTime;
             }
 
-            bool showRotZ = false;
+            var showRotZ = false;
 
-            float diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
 
             if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
             {
@@ -389,44 +344,31 @@ namespace BCRPClient.CEF
                 else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
                     yOff += diffPos;
 
-                ePos.X += xOff;
-                ePos.Y += yOff;
-
-                Colshape.SetPosition(ePos);
+                LastPos.X += xOff;
+                LastPos.Y += yOff;
             }
             else
             {
-                float diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
 
                 showRotZ = true;
 
                 if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
                 {
-                    ePos.Y += diffPos;
-
-                    Colshape.SetPosition(ePos);
+                    LastPos.Z += diffPos;
                 }
                 else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
                 {
-                    ePos.Y -= diffPos;
-
-                    Colshape.SetPosition(ePos);
+                    LastPos.Z -= diffPos;
                 }
 
-                if (Colshape is Additional.Polygon poly)
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
                 {
-                    if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
-                    {
-                        eRot -= diffRot;
-
-                        poly.SetHeading(eRot);
-                    }
-                    else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
-                    {
-                        eRot += diffRot;
-
-                        poly.SetHeading(eRot);
-                    }
+                    LastRot.Z -= diffRot;
+                }
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                {
+                    LastRot.Z += diffRot;
                 }
             }
 
@@ -434,9 +376,169 @@ namespace BCRPClient.CEF
             {
                 float sX = 0f, sY = 0f;
 
-                if (Utils.GetScreenCoordFromWorldCoord(ePos, ref sX, ref sY))
+                if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    Utils.DrawText($"Угол поворота: {((Colshape as Additional.Polygon)?.Heading ?? 0f).ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                }
+            }
+        }
+
+        public static void Render()
+        {
+            if (LastPos == null || Entity?.Exists != true)
+            {
+                Close();
+
+                return;
+            }
+
+            RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);
+            RAGE.Game.Entity.SetEntityRotation(Entity.Handle, LastRot.X, LastRot.Y, LastRot.Z, 2, false);
+
+            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            {
+                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+
+                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+
+                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, LastRot.X, LastRot.Y, LastRot.Z, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+
+                LastUpdatedJs = Sync.World.ServerTime;
+            }
+
+            var showRotZ = false;
+
+            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+
+            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            {
+                float xOff = 0f, yOff = 0f;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                    xOff -= diffPos;
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                    xOff += diffPos;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                    yOff -= diffPos;
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                    yOff += diffPos;
+
+                LastPos.X += xOff;
+                LastPos.Y += yOff;
+            }
+            else
+            {
+                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+
+                showRotZ = true;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                {
+                    LastPos.Z += diffPos;
+                }
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                {
+                    LastPos.Z -= diffPos;
+                }
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                {
+                    LastRot.Z -= diffRot;
+                }
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                {
+                    LastRot.Z += diffRot;
+                }
+            }
+
+            if (RotationModeOn || showRotZ)
+            {
+                float sX = 0f, sY = 0f;
+
+                if (Entity.GetScreenPosition(ref sX, ref sY))
+                {
+                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                }
+            }
+        }
+
+        public static void RenderColshape()
+        {
+            if (Colshape?.Exists != true)
+            {
+                Close();
+
+                return;
+            }
+
+            if (Sync.World.ServerTime.Subtract(LastUpdatedJs).TotalMilliseconds > 100)
+            {
+                var camPos = RAGE.Game.Cam.GetGameplayCamCoord();
+
+                var lookAtPos = Utils.GetWorldCoordFromScreenCoord(camPos, RAGE.Game.Cam.GetGameplayCamRot(0), 0.5f, 0.5f, 10);
+
+                CEF.Browser.Window.ExecuteJs("mapEditor_update", LastPos.X, LastPos.Y, LastPos.Z, 0, LastRot.Z, 0, camPos.X, camPos.Y, camPos.Z, lookAtPos.X, lookAtPos.Y, lookAtPos.Z);
+
+                LastUpdatedJs = Sync.World.ServerTime;
+            }
+
+            Colshape.SetPosition(new Vector3(LastPos.X, LastPos.Y, LastPos.Z));
+            (Colshape as Polygon)?.SetHeading(LastRot.Z);
+
+            var showRotZ = false;
+
+            var diffPos = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.015f : 0.005f;
+
+            if (!KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Menu))
+            {
+                float xOff = 0f, yOff = 0f;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                    xOff -= diffPos;
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                    xOff += diffPos;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                    yOff -= diffPos;
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                    yOff += diffPos;
+
+                LastPos.X += xOff;
+                LastPos.Y += yOff;
+            }
+            else
+            {
+                var diffRot = KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Shift) ? 0.5f : 0.25f;
+
+                showRotZ = true;
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Up))
+                {
+                    LastPos.Y += diffPos;
+                }
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Down))
+                {
+                    LastPos.Y -= diffPos;
+                }
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Left))
+                {
+                    LastRot.Z -= diffRot;
+                }
+                else if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Right))
+                {
+                    LastRot.Z += diffRot;
+                }
+            }
+
+            if (RotationModeOn || showRotZ)
+            {
+                float sX = 0f, sY = 0f;
+
+                if (Utils.GetScreenCoordFromWorldCoord(LastPos, ref sX, ref sY))
+                {
+                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                 }
             }
         }

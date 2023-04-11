@@ -58,7 +58,7 @@ namespace BCRPServer
 
         /// <summary>Знакомые игроки</summary>
         /// <value>Список CID игроков</value>
-        public List<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
+        public HashSet<uint> Familiars { get => Info.Familiars; set => Info.Familiars = value; }
 
         /// <summary>Сущность, к которой прикреплен игрок</summary>
         public Entity IsAttachedToEntity => Player.GetEntityIsAttachedTo();

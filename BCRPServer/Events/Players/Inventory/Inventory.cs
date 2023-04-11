@@ -436,5 +436,63 @@ namespace BCRPServer.Events.Players
                 player.DetachObject(Sync.AttachSystem.Types.ParachuteSync);
             }
         }
+
+        [RemoteProc("Player::NoteEdit")]
+        private static bool NoteEdit(Player player, int invGroupNum, int slot, string text)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (slot < 0 || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), invGroupNum))
+                return false;
+
+            var invGroup = (Game.Items.Inventory.Groups)invGroupNum;
+
+            if (invGroup != Groups.Items && invGroup != Groups.Bag)
+                return false;
+
+            // text check
+
+            Game.Items.Note note;
+
+            if (invGroup == Groups.Items)
+            {
+                if (slot >= pData.Items.Length)
+                    return false;
+
+                note = pData.Items[slot] as Game.Items.Note;
+            }
+            else
+            {
+                if (pData.Bag == null || slot >= pData.Bag.Items.Length)
+                    return false;
+
+                note = pData.Bag.Items[slot] as Game.Items.Note;
+            }
+
+            if (note == null)
+                return false;
+
+            var iData = note.Data;
+
+            if ((iData.Type & Game.Items.Note.ItemData.Types.Write) == Game.Items.Note.ItemData.Types.Write || (((iData.Type & Game.Items.Note.ItemData.Types.WriteTextNullOnly) == Game.Items.Note.ItemData.Types.WriteTextNullOnly) && note.Text == null))
+            {
+                note.Text = text;
+
+                note.Update();
+
+                //player.InventoryUpdate(invGroup, slot, note.ToClientJson(invGroup));
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

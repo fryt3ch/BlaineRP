@@ -92,7 +92,7 @@ namespace BCRPClient.CEF.PhoneApps
                 if (pData == null)
                     return;
 
-                if (CEF.Phone.LastSent.IsSpam(500, false, false))
+                if (CEF.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
                 var id = args[0].ToDecimal();

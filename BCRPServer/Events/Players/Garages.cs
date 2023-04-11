@@ -213,7 +213,7 @@ namespace BCRPServer.Events.Players
 
             var freeSlots = Enumerable.Range(0, garage.StyleData.MaxVehicles).ToList();
 
-            var garageVehs = garage.GetVehiclesInGarage().ToList();
+            var garageVehs = garage.GetVehiclesInGarage();
 
             if (freeSlots.Count == garageVehs.Count)
             {

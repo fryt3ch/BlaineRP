@@ -96,7 +96,7 @@ namespace BCRPServer
 
             public LastPlayerData LastData { get; set; }
 
-            public List<uint> Familiars { get; set; }
+            public HashSet<uint> Familiars { get; set; }
 
             public Dictionary<SkillTypes, int> Skills { get; set; }
 

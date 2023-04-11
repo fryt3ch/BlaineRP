@@ -185,8 +185,6 @@ namespace BCRPClient.Data
             return obj;
         }
 
-        public MapObject CreateTempObject(Vector3 pos, Vector3 rot, uint dim) => new MapObject(Model, pos, rot, 125, dim);
-
         public static void LoadAll()
         {
             #region TO_REPLACE_FURN_LIST

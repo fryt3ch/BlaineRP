@@ -108,35 +108,27 @@ namespace BCRPServer
         /// <summary>Сущность игрока</summary>
         public Player Player { get; set; }
 
-        public void AddFamiliar(PlayerData tData)
+        public void AddFamiliar(PlayerData.PlayerInfo tInfo)
         {
-            var pCid = CID;
-            var tCid = tData.CID;
+            var tCid = tInfo.CID;
 
-            if (!Familiars.Contains(tCid))
+            if (Familiars.Add(tCid))
             {
                 Player.TriggerEvent("Player::Familiars::Update", true, tCid);
-            }
 
-            if (!tData.Familiars.Contains(pCid))
-            {
-                tData.Player.TriggerEvent("Player::Familiars::Update", true, pCid);
+                MySQL.CharacterFamiliarsUpdate(Info);
             }
         }
 
-        public void RemoveFamiliar(PlayerData tData)
+        public void RemoveFamiliar(PlayerData.PlayerInfo tInfo)
         {
-            var pCid = CID;
-            var tCid = tData.CID;
+            var tCid = tInfo.CID;
 
             if (Familiars.Remove(tCid))
             {
                 Player.TriggerEvent("Player::Familiars::Update", false, tCid);
-            }
 
-            if (tData.Familiars.Remove(pCid))
-            {
-                tData.Player.TriggerEvent("Player::Familiars::Update", false, pCid);
+                MySQL.CharacterFamiliarsUpdate(Info);
             }
         }
 
@@ -476,7 +468,7 @@ namespace BCRPServer
 
             Info.WeaponSkins = new Dictionary<WeaponSkin.ItemData.Types, WeaponSkin>();
 
-            Familiars = new List<uint>();
+            Familiars = new HashSet<uint>();
 
             Punishments = new List<Sync.Punishment>();
 

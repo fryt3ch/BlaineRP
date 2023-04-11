@@ -279,7 +279,7 @@ namespace BCRPServer.Events.Players
             if (!business.IsPlayerNearInfoPosition(pData))
                 return false;
 
-            if (marginC > Game.Businesses.Business.MAX_MARGIN_CLIENT)
+            if (marginC > (business.Type == Game.Businesses.Business.Types.Farm ? Game.Businesses.Business.MAX_MARGIN_CLIENT_FARM : Game.Businesses.Business.MAX_MARGIN_CLIENT))
                 return false;
 
             var margin = marginC / 100m + 1;

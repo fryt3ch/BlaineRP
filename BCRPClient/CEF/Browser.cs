@@ -19,7 +19,7 @@ namespace BCRPClient.CEF
 
         private static bool _IsAnyCEFActive;
 
-        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive || CEF.Phone.IsActive; private set { _IsAnyCEFActive = value; CEF.Cursor.SwitchEscMenuAccess(!value); } }
+        public static bool IsAnyCEFActive { get => _IsAnyCEFActive || CEF.MapEditor.IsActive || CEF.Phone.IsActive; private set { _IsAnyCEFActive = value; } }
 
         private static List<IntTypes> NormalInterfaces { get; set; } = new List<IntTypes>()
         {

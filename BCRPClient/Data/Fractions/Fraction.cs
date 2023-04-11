@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using BCRPClient.CEF;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.Data.Fractions
 {
@@ -57,22 +59,23 @@ namespace BCRPClient.Data.Fractions
             { 0, "Доступ к складу (даже если закрыт)" },
             { 1, "Доступ к созданию предметов (даже если закрыто)" },
             { 2, "Приглашать новых сотрудников" },
-            { 3, "Повышать/понижать сотрудников в должности" },
-            { 4, "Увольнять сотрудников сотрудников (ниже своего ранга)" },
-            { 5, "Респавнить фракционный транспорт" },
-            { 6, "Использовать чат фракции" },
-            { 7, "Мут чата фракции сотрудников (ниже своего ранга) | /mutef, /unmutef" },
+            { 3, "Понижать сотрудников в должности (ниже своего ранга)" },
+            { 4, "Повышать сотрудников в должности (ниже своего ранга)" },
+            { 5, "Увольнять сотрудников сотрудников (ниже своего ранга)" },
+            { 6, "Респавнить фракционный транспорт" },
+            { 7, "Использовать чат фракции" },
+            { 8, "Мут чата фракции сотрудников (ниже своего ранга) | /mutef, /unmutef" },
 
-            { 8, "Использовать чат департамента" },
+            { 9, "Использовать чат департамента" },
 
-            { 9, "Заключать в Следственный изолятор" },
-            { 10, "Выпускать из Следственного изолятора" },
-            { 11, "Изменять время заключения (только для Следственного изолятора)" },
+            { 10, "Заключать в Следственный изолятор" },
+            { 11, "Выпускать из Следственного изолятора" },
+            { 12, "Изменять время заключения (только для Следственного изолятора)" },
 
-            { 12, "Заключать в Федеральную тюрьму" },
+            { 13, "Заключать в Федеральную тюрьму" },
 
-            { 13, "Штрафовать" },
-            { 14, "Лишать лицензии (кроме адвокатской и на право владения бизнесом)" },
+            { 14, "Штрафовать" },
+            { 15, "Лишать лицензии (кроме адвокатской и на право владения бизнесом)" },
         };
 
         public static string GetFractionPermissionName(uint id) => PermissionNames.GetValueOrDefault(id);
@@ -321,6 +324,10 @@ namespace BCRPClient.Data.Fractions
 
                 AllMembers.Add(uint.Parse(data[0]), new MemberData() { Name = data[1], Rank = byte.Parse(data[2]), IsOnline = data[3] == "1", SubStatus = byte.Parse(data[4]), LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(data[5])).DateTime });
             }
+
+            CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Fraction_Menu);
+
+            CEF.Menu.SetFraction(Type);
         }
 
         public virtual void OnEndMembership()
@@ -331,6 +338,10 @@ namespace BCRPClient.Data.Fractions
 
                 CurrentData = null;
             }
+
+            CEF.HUD.Menu.UpdateCurrentTypes(false, HUD.Menu.Types.Fraction_Menu);
+
+            CEF.Menu.SetFraction(Data.Fractions.Types.None);
 
             CEF.FractionMenu.Close();
 
@@ -380,6 +391,43 @@ namespace BCRPClient.Data.Fractions
     {
         public FractionEvents()
         {
+            Events.Add("Player::SCF", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (args == null || args.Length < 1)
+                {
+                    var lastFraction = pData.CurrentFraction;
+
+                    if (lastFraction != null)
+                    {
+                        lastFraction.OnEndMembership();
+
+                        pData.CurrentFraction = null;
+                    }
+                }
+                else
+                {
+                    var fraction = (Data.Fractions.Types)(int)args[0];
+
+                    var fData = Data.Fractions.Fraction.Get(fraction);
+
+                    var lastFraction = pData.CurrentFraction;
+
+                    if (lastFraction != null)
+                    {
+                        lastFraction.OnEndMembership();
+                    }
+
+                    pData.CurrentFraction = fData;
+
+                    fData.OnStartMembership(args.Skip(1).ToArray());
+                }
+            });
+
             Events.Add("Fraction::UMS", (args) =>
             {
                 if (Fraction.AllMembers == null)

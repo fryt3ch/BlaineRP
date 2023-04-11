@@ -14,6 +14,8 @@ namespace BCRPServer.Game.Misc
 
         public static FishBuyer Get(int idx) => idx < 0 || idx >= All.Count ? null : All[idx];
 
+        private static Timer FishBuyersPricesUpdateTimer;
+
         public static Dictionary<string, uint> BasePrices { get; private set; } = new Dictionary<string, uint>()
         {
             { "f_acod", 10 },
@@ -69,7 +71,7 @@ namespace BCRPServer.Game.Misc
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "FISHBUYERS_TO_REPLACE", lines);
 
-            var timer = new Timer((obj) =>
+            FishBuyersPricesUpdateTimer = new Timer((obj) =>
             {
                 NAPI.Task.Run(() =>
                 {

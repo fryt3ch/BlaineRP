@@ -72,8 +72,18 @@ namespace BCRPClient.CEF
                     }
                     else if (id == "rearrange")
                     {
-                        if (furn == null && pFurn == null)
+                        if (furn != null)
+                        {
+                            await Utils.RequestModel(furn.Model);
+                        }
+                        else if (pFurn != null)
+                        {
+                            await Utils.RequestModel(pFurn.Model);
+                        }
+                        else
+                        {
                             return;
+                        }
 
                         if (LastSent.IsSpam(1000, false, true))
                             return;
@@ -91,21 +101,54 @@ namespace BCRPClient.CEF
                             {
                                 await Utils.RequestModel(pFurn.Model);
 
-                                furn = new MapObject(pFurn.Model, Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f), new Vector3(0f, 0f, 0f), 125, Player.LocalPlayer.Dimension);
+                                var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
+
+                                furn = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(pFurn.Model, pos.X, pos.Y, pos.Z, false, false, false));
+
+                                furn.SetAlpha(125, false);
                             }
                             else
                             {
+                                await Utils.RequestModel(furn.Model);
+
+                                var pos = furn.GetCoords(false);
+                                var rot = furn.GetRotation(2);
+                                var model = furn.Model;
+
                                 furn.SetVisible(false, false);
-                                furn.SetCollision(false, true);
+                                furn.SetCollision(false, false);
 
                                 furn.GetData<Blip>("Blip")?.Destroy();
 
-                                furn = new MapObject(RAGE.Game.Entity.GetEntityModel(furn.Handle), furn.GetCoords(false), furn.GetRotation(2), 125, Player.LocalPlayer.Dimension);
+                                furn = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(model, pos.X, pos.Y, pos.Z, false, false, false));
+
+                                furn.SetRotation(rot.X, rot.Y, rot.Z, 2, false);
+                                furn.SetAlpha(125, false);
                             }
 
                             furn.SetData("UID", fUid);
 
-                            CEF.MapEditor.Show(furn as GameEntity, MapEditor.ModeTypes.FurnitureEdit, false);
+                            CEF.MapEditor.Show
+                            (
+                                furn, "HouseFurnitureEdit", new MapEditor.Mode(true, true, true, false, true, false),
+
+                                () =>
+                                {
+                                    FurnitureEditOnStart(furn);
+                                },
+
+                                () => CEF.MapEditor.RenderFurnitureEdit(),
+
+                                () =>
+                                {
+                                    FurnitureEditOnEnd(furn);
+                                },
+
+                                (pos, rot) =>
+                                {
+                                    FurntureEditFinish(furn, pos, rot);
+                                }
+                            );
 
                             return;
                         }
@@ -413,6 +456,8 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
+
+            mObj?.Destroy();
 
             EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 

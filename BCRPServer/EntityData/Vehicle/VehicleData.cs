@@ -455,6 +455,8 @@ namespace BCRPServer
 
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
 
+            vInfo.VehicleData = vData;
+
             cont.UpdateOwner(vData.Vehicle);
 
             pData.AddVehicleProperty(vInfo);
@@ -497,6 +499,8 @@ namespace BCRPServer
             };
 
             var vData = new VehicleData(vInfo.CreateVehicle(), vInfo);
+
+            vInfo.VehicleData = vData;
 
             var veh = vData.Vehicle;
 

@@ -509,6 +509,17 @@ namespace BCRPServer.Events.Vehicles
             if (!vData.IsFullOwner(pData, true))
                 return false;
 
+            var price = destr.GetPriceForVehicle(vData.Info);
+
+            ulong newBalance;
+
+            if (pData.TryAddCash(price, out newBalance, true))
+            {
+                vData.Delete(true);
+
+                pData.SetCash(newBalance);
+            }
+
             return true;
         }
     }
