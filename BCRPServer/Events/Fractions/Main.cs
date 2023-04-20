@@ -12,6 +12,24 @@ namespace BCRPServer.Events.Fractions
     {
         private static Regex RankNamePattern = new Regex(@"^[a-zA-Zа-яА-Я0-9\s]{2,12}$", RegexOptions.Compiled);
 
+        [RemoteProc("Fraction::GMSD")]
+        private static string GetFractionMenuServerData(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+            return $"{fData.Balance}";
+        }
+
         [RemoteProc("Fraction::VGPS")]
         private static Vector3 GetFractionVehicleCoordsGPS(Player player, uint vid)
         {
@@ -486,7 +504,7 @@ namespace BCRPServer.Events.Fractions
         }
 
         [RemoteProc("Fraction::UNIFS")]
-        private static int UniformShow(Player player, int fractionTypeNum)
+        private static int UniformShow(Player player, int fractionTypeNum, byte lockerIdx)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -510,7 +528,12 @@ namespace BCRPServer.Events.Fractions
 
             if (fData is Game.Fractions.IUniformable fDataUnif)
             {
-                if (fDataUnif.LockerRoomPosition.DistanceTo(player.Position) > 5f)
+                var pos = fDataUnif.GetLockerPosition(lockerIdx);
+
+                if (pos == null)
+                    return int.MinValue;
+
+                if (pos.DistanceTo(player.Position) > 5f)
                     return int.MinValue;
 
                 var curUnif = pData.CurrentUniform;
@@ -531,7 +554,7 @@ namespace BCRPServer.Events.Fractions
         }
 
         [RemoteEvent("Fraction::UNIFC")]
-        private static void UniformChange(Player player, int fractionTypeNum, int uniformIdx)
+        private static void UniformChange(Player player, int fractionTypeNum, byte lockerIdx, int uniformIdx)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -555,7 +578,12 @@ namespace BCRPServer.Events.Fractions
 
             if (fData is Game.Fractions.IUniformable fDataUnif)
             {
-                if (fDataUnif.LockerRoomPosition.DistanceTo(player.Position) > 5f)
+                var pos = fDataUnif.GetLockerPosition(lockerIdx);
+
+                if (pos == null)
+                    return;
+
+                if (pos.DistanceTo(player.Position) > 5f)
                     return;
 
                 if (uniformIdx < 0)
@@ -575,7 +603,7 @@ namespace BCRPServer.Events.Fractions
         }
 
         [RemoteProc("Fraction::CWBS")]
-        private static byte CreationWorkbenchShow(Player player, int fractionTypeNum)
+        private static byte CreationWorkbenchShow(Player player, int fractionTypeNum, byte wbIdx)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -597,7 +625,9 @@ namespace BCRPServer.Events.Fractions
             if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
                 return 0;
 
-            if (fData.CreationWorkbenchPosition.Position.DistanceTo(player.Position) > fData.CreationWorkbenchPosition.RotationZ + 2.5f)
+            var pos = fData.GetCreationWorkbenchPosition(wbIdx);
+
+            if (pos == null || pos.Position.DistanceTo(player.Position) > pos.RotationZ + 2.5f)
                 return 0;
 
             if (fData.CreationWorkbenchLocked && !fData.HasMemberPermission(pData.Info, 1, false))
@@ -610,15 +640,82 @@ namespace BCRPServer.Events.Fractions
             return byte.MaxValue;
         }
 
-        [RemoteEvent("Fraction::CWBC")]
-        private static void CreationWorkbenchCreate(Player player, string itemId, int amount)
+        [RemoteProc("Fraction::CWBC")]
+        private static byte CreationWorkbenchCreate(Player player, int fractionTypeNum, byte wbIdx, string itemId, int amount)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
+
+            if (itemId == null || amount <= 0)
+                return 0;
+
+            if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
+                return 0;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+
+            if (fData == null)
+                return 0;
+
+            if (!Game.Fractions.Fraction.IsMember(pData, fData.Type, true))
+                return 0;
+
+            var pos = fData.GetCreationWorkbenchPosition(wbIdx);
+
+            if (pos == null || pos.Position.DistanceTo(player.Position) > pos.RotationZ + 2.5f)
+                return 0;
+
+            if (fData.CreationWorkbenchLocked && !fData.HasMemberPermission(pData.Info, 1, false))
+            {
+                player.Notify("Fraction::CWL");
+
+                return 0;
+            }
+
+            uint price;
+
+            if (!fData.CreationWorkbenchPrices.TryGetValue(itemId, out price))
+                return 0;
+
+            try
+            {
+                price *= (uint)amount;
+
+                uint newBalance;
+
+                if (!fData.TryRemoveMaterials(price, out newBalance, true, pData))
+                    return 0;
+
+                Game.Items.Item item;
+
+                if (!pData.GiveItem(out item, itemId, 0, amount, true, true))
+                    return 0;
+
+                if (fData.ItemTag != null)
+                {
+                    if (item is Game.Items.Weapon weapon)
+                    {
+                        weapon.Tag = $"{fData.ItemTag}@{weapon.UID}";
+
+                        weapon.Update();
+                    }
+                }
+
+                fData.SetMaterials(newBalance, true);
+
+                return byte.MaxValue;
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
         }
 
         [RemoteProc("Fraction::NEWSE")]

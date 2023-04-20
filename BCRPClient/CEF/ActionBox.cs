@@ -92,23 +92,23 @@ namespace BCRPClient.CEF
 
                     CurrentAction?.Invoke(new object[] { rType, id });
                 }
-                else if (CurrentType == Types.Input)
-                {
-                    var text = (string)args[1];
-
-                    CurrentAction?.Invoke(new object[] { rType, text });
-                }
                 else if (CurrentType == Types.Money)
                 {
                     CurrentAction?.Invoke(new object[] { rType });
                 }
                 else if (CurrentType == Types.Input)
                 {
-                    CurrentAction?.Invoke(new object[] { rType, (string)args[1] });
+                    if (args[1] is string str)
+                        CurrentAction?.Invoke(new object[] { rType, str });
+                    else
+                        CurrentAction?.Invoke(new object[] { rType, string.Empty });
                 }
                 else if (CurrentType == Types.InputWithText)
                 {
-                    CurrentAction?.Invoke(new object[] { rType, (string)args[1] });
+                    if (args[1] is string str)
+                        CurrentAction?.Invoke(new object[] { rType, str });
+                    else
+                        CurrentAction?.Invoke(new object[] { rType, string.Empty });
                 }
                 else if (CurrentType == Types.Text)
                 {
@@ -160,7 +160,7 @@ namespace BCRPClient.CEF
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowInput(string context, string name, int maxChars = 100, string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, string> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowInput(string context, string name, int maxChars = 100, string defText = "", string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, string> chooseAction = null, Action closeAction = null)
         {
             if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
@@ -175,12 +175,12 @@ namespace BCRPClient.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (string)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { maxChars }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }
 
-        public static async System.Threading.Tasks.Task ShowInputWithText(string context, string name, string text, int maxChars = 100, string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, string> chooseAction = null, Action closeAction = null)
+        public static async System.Threading.Tasks.Task ShowInputWithText(string context, string name, string text, int maxChars = 100, string defText = "", string btnTextOk = null, string btnTextCancel = null, Action showAction = null, Action<ReplyTypes, string> chooseAction = null, Action closeAction = null)
         {
             if (!await CEF.Browser.Render(Browser.IntTypes.ActionBox, true, true))
                 return;
@@ -195,7 +195,7 @@ namespace BCRPClient.CEF
             if (chooseAction != null)
                 CurrentAction = (args) => chooseAction.Invoke((ReplyTypes)args[0], (string)args[1]);
 
-            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { maxChars, Utils.ReplaceNewLineHtml(text) }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
+            CEF.Browser.Window.ExecuteJs("ActionBox.fill", false, CurrentType, name, new object[] { Utils.ReplaceNewLineHtml(text), maxChars, defText ?? string.Empty }, new object[] { btnTextOk ?? Locale.Actions.SelectOkBtn0, btnTextCancel ?? Locale.Actions.SelectCancelBtn0 });
 
             Cursor.Show(true, true);
         }

@@ -136,6 +136,11 @@ namespace BCRPServer.Events.Players
 
                 pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
 
+                var policeCall = Game.Fractions.Police.GetCallByCaller(player.Id);
+
+                if (policeCall != null)
+                    Game.Fractions.Police.RemoveCall(player.Id, policeCall, 0, null);
+
                 Sync.Report.GetByStarterPlayer(pData.Info)?.Close(pData);
 
                 var currentTaxiOrder = Game.Jobs.Cabbie.ActiveOrders.Where(x => x.Value.Entity == player).FirstOrDefault();

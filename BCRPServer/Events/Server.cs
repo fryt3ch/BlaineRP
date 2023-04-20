@@ -170,6 +170,7 @@ namespace BCRPServer.Events
 
             Game.Misc.FishBuyer.InitializeAll();
             Game.Misc.VehicleDestruction.InitializeAll();
+            Game.Misc.EstateAgency.InitializeAll();
 
             /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 

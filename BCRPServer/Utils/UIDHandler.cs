@@ -57,19 +57,21 @@ namespace BCRPServer
         }
     }
 
-    public class UidHandlerUInt64
+    public class UidHandlerUInt16
     {
-        public ulong LastAddedMaxUid { get; private set; }
+        public ushort LastAddedMaxUid { get; private set; }
 
-        private HashSet<ulong> FreeUids { get; set; } = new HashSet<ulong>();
-
-        public bool SetUidAsFree(ulong uid) => FreeUids.Add(uid);
+        private HashSet<ushort> FreeUids { get; set; } = new HashSet<ushort>();
 
         public int FreeUidsCount => FreeUids.Count;
 
-        public ulong MoveNextUid()
+        public string HandlerStr => $"LastAddedMaxUid: {LastAddedMaxUid}, FreeUids: {string.Join(',', FreeUids)}";
+
+        public bool SetUidAsFree(ushort uid) => FreeUids.Add(uid);
+
+        public ushort MoveNextUid()
         {
-            ulong id;
+            ushort id;
 
             if (FreeUids.Count == 0)
             {
@@ -87,7 +89,7 @@ namespace BCRPServer
             return id;
         }
 
-        public bool TryUpdateLastAddedMaxUid(ulong uid)
+        public bool TryUpdateLastAddedMaxUid(ushort uid)
         {
             if (uid > LastAddedMaxUid)
             {
@@ -99,7 +101,9 @@ namespace BCRPServer
             return false;
         }
 
-        public UidHandlerUInt64(ulong LastAddedMaxUid = 0)
+        public void ResetLastAddedMaxUid() => LastAddedMaxUid = 0;
+
+        public UidHandlerUInt16(ushort LastAddedMaxUid = 0)
         {
             this.LastAddedMaxUid = LastAddedMaxUid;
         }

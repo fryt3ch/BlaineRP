@@ -5,12 +5,12 @@ namespace BCRPServer.Game.Items
 {
     public partial class Container
     {
-        private static Dictionary<string, Func<Container, PlayerData, bool>> PermissionCheckFuncs = new Dictionary<string, Func<Container, PlayerData, bool>>()
+        private static Dictionary<string, Func<Container, PlayerData, object[], bool>> PermissionCheckFuncs = new Dictionary<string, Func<Container, PlayerData, object[], bool>>()
         {
             {
                 "h_locker",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var house = pData.CurrentHouse;
 
@@ -35,7 +35,7 @@ namespace BCRPServer.Game.Items
             {
                 "h_wardrobe",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var house = pData.CurrentHouse;
 
@@ -57,7 +57,7 @@ namespace BCRPServer.Game.Items
             {
                 "h_fridge",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var house = pData.CurrentHouse;
 
@@ -79,7 +79,7 @@ namespace BCRPServer.Game.Items
             {
                 "f_storage",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var fractionData = Game.Fractions.Fraction.Get(pData.Fraction);
 
@@ -102,12 +102,12 @@ namespace BCRPServer.Game.Items
             },
         };
 
-        private static Dictionary<string, Func<Container, PlayerData, bool>> NearnessCheckFuncs = new Dictionary<string, Func<Container, PlayerData, bool>>()
+        private static Dictionary<string, Func<Container, PlayerData, object[], bool>> NearnessCheckFuncs = new Dictionary<string, Func<Container, PlayerData, object[], bool>>()
         {
             {
                 "h_locker",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var house = pData.CurrentHouse;
 
@@ -118,7 +118,7 @@ namespace BCRPServer.Game.Items
             {
                 "h_wardrobe",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var house = pData.CurrentHouse;
 
@@ -129,7 +129,7 @@ namespace BCRPServer.Game.Items
             {
                 "h_fridge",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var house = pData.CurrentHouse;
 
@@ -140,7 +140,7 @@ namespace BCRPServer.Game.Items
             {
                 "f_storage",
 
-                (cont, pData) =>
+                (cont, pData, args) =>
                 {
                     var fractionData = Game.Fractions.Fraction.Get(pData.Fraction);
 
@@ -151,7 +151,17 @@ namespace BCRPServer.Game.Items
                         return false;
                     }
 
-                    return fractionData.ContainerPosition.Position.DistanceTo(pData.Player.Position) <= fractionData.ContainerPosition.RotationZ + 2.5f;
+                    var pPos = pData.Player.Position;
+
+                    for (int i = 0; i < fractionData.ContainerPositions.Length; i++)
+                    {
+                        var pos = fractionData.ContainerPositions[i];
+
+                        if (pPos.DistanceTo(pos.Position) <= pos.RotationZ + 2.5f)
+                            return true;
+                    }
+
+                    return false;
                 }
             },
         };

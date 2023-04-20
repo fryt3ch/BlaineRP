@@ -64,7 +64,7 @@ namespace BCRPClient.CEF.PhoneApps
                 }
                 else
                 {
-                    PhoneApps.ContactsApp.ShowAll(allContacts.OrderBy(x => x.Value).Select(x => new object[] { x.Value, x.Key }));
+                    PhoneApps.ContactsApp.ShowAll(allContacts.OrderBy(x => x.Value).Select(x => new object[] { x.Value, x.Key }).ToList());
                 }
             });
         }

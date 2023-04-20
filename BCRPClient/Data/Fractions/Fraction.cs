@@ -13,7 +13,15 @@ namespace BCRPClient.Data.Fractions
     {
         None = 0,
 
-        PolicePaleto,
+        BCPD,
+        LSPD,
+
+        WZLN,
+
+        BCEMS,
+        LSEMS,
+
+        LSADM,
     }
 
     public class MemberData
@@ -63,10 +71,10 @@ namespace BCRPClient.Data.Fractions
             { 4, "Повышать сотрудников в должности (ниже своего ранга)" },
             { 5, "Увольнять сотрудников сотрудников (ниже своего ранга)" },
             { 6, "Респавнить фракционный транспорт" },
-            { 7, "Использовать чат фракции" },
+            { 7, "Использовать чат фракции | /f, /r" },
             { 8, "Мут чата фракции сотрудников (ниже своего ранга) | /mutef, /unmutef" },
 
-            { 9, "Использовать чат департамента" },
+            { 9, "Использовать чат департамента | /d" },
 
             { 10, "Заключать в Следственный изолятор" },
             { 11, "Выпускать из Следственного изолятора" },
@@ -74,8 +82,22 @@ namespace BCRPClient.Data.Fractions
 
             { 13, "Заключать в Федеральную тюрьму" },
 
-            { 14, "Штрафовать" },
+            { 14, "Выписывать штрафы" },
             { 15, "Лишать лицензии (кроме адвокатской и на право владения бизнесом)" },
+
+            { 16, "Поиск граждан в Базе данных (Служебный планшет)" },
+            { 17, "Добавлять и исполнять ориентировки (Служебный планшет)" },
+            { 18, "Отправлять экстренные коды (Служебный планшет, [коды 0, 1, 2])" },
+            { 19, "Завершать активные вызовы (Служебный планшет, код 3)" },
+            { 20, "Устанавливать GPS-трекеры на транспорт" },
+            { 21, "Отключать активные GPS-трекеры на транспорте" },
+
+            { 22, "Лечить" },
+            { 23, "Лечить наркозависимость" },
+            { 24, "Выдавать медицинские карты" },
+
+            { 25, "Модерировать объявления" },
+            { 26, "Выходить в эфир" },
         };
 
         public static string GetFractionPermissionName(uint id) => PermissionNames.GetValueOrDefault(id);
@@ -99,8 +121,8 @@ namespace BCRPClient.Data.Fractions
         public bool StorageLocked => Sync.World.GetSharedData<bool>($"FRAC::SL_{(int)Type}", false);
         public bool CreationWorkbenchLocked => Sync.World.GetSharedData<bool>($"FRAC::CWL_{(int)Type}", false);
 
-        public TextLabel StorageTextInfo { get; set; }
-        public TextLabel CreationWorkbenchTextInfo { get; set; }
+        public TextLabel[] StorageTextInfos { get; set; }
+        public TextLabel[] CreationWorkbenchTextInfos { get; set; }
 
         public Types Type { get; set; }
 
@@ -110,7 +132,7 @@ namespace BCRPClient.Data.Fractions
 
         public Dictionary<string, uint> CreationWorkbenchPrices { get; set; }
 
-        public Fraction(Types Type, string Name, uint StorageContainerId, Utils.Vector4 ContainerPosition, Utils.Vector4 CreationWorkbenchPosition, byte MaxRank, Dictionary<string, uint> CreationWorkbenchPrices)
+        public Fraction(Types Type, string Name, uint StorageContainerId, string ContainerPositionsStr, string CreationWorkbenchPositionsStr, byte MaxRank, Dictionary<string, uint> CreationWorkbenchPrices)
         {
             this.Type = Type;
 
@@ -122,43 +144,67 @@ namespace BCRPClient.Data.Fractions
 
             this.CreationWorkbenchPrices = CreationWorkbenchPrices;
 
-            var containerCs = new Additional.Cylinder(ContainerPosition.Position, ContainerPosition.RotationZ, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+            var contPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(ContainerPositionsStr);
+            var wbPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(CreationWorkbenchPositionsStr);
+
+            var contTextInfos = new List<TextLabel>();
+            var wbTextInfos = new List<TextLabel>();
+
+            for (int i = 0; i < contPoses.Length; i++)
             {
-                InteractionType = Additional.ExtraColshape.InteractionTypes.ContainerInteract,
+                var contPos = contPoses[i];
 
-                ActionType = Additional.ExtraColshape.ActionTypes.ContainerInteract,
+                var containerCs = new Additional.Cylinder(contPos.Position, contPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                {
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.ContainerInteract,
 
-                Data = StorageContainerId,
-            };
+                    ActionType = Additional.ExtraColshape.ActionTypes.ContainerInteract,
 
-            var containerTextLabel = new TextLabel(new Vector3(ContainerPosition.X, ContainerPosition.Y, ContainerPosition.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                    Data = StorageContainerId,
+                };
+
+                var containerTextLabel = new TextLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                {
+                    Font = 0,
+                };
+
+                var containerInfoTextLabel = new TextLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                {
+                    Font = 0,
+                };
+
+                contTextInfos.Add(containerInfoTextLabel);
+            }
+
+            StorageTextInfos = contTextInfos.ToArray();
+
+            for (int i = 0; i < wbPoses.Length; i++)
             {
-                Font = 0,
-            };
+                var wbPos = wbPoses[i];
 
-            StorageTextInfo = new TextLabel(new Vector3(ContainerPosition.X, ContainerPosition.Y, ContainerPosition.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
-            {
-                Font = 0,
-            };
+                var creationWorkbenchCs = new Additional.Cylinder(wbPos.Position, wbPos.RotationZ, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                {
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.FractionCreationWorkbenchInteract,
 
-            var creationWorkbenchCs = new Additional.Cylinder(CreationWorkbenchPosition.Position, CreationWorkbenchPosition.RotationZ, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
-            {
-                InteractionType = Additional.ExtraColshape.InteractionTypes.FractionCreationWorkbenchInteract,
+                    ActionType = Additional.ExtraColshape.ActionTypes.FractionInteract,
 
-                ActionType = Additional.ExtraColshape.ActionTypes.FractionInteract,
+                    Data = $"{(int)Type}_{i}",
+                };
 
-                Data = Type,
-            };
+                var creationWorkbenchTextLabel = new TextLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                {
+                    Font = 0,
+                };
 
-            var creationWorkbenchTextLabel = new TextLabel(new Vector3(CreationWorkbenchPosition.X, CreationWorkbenchPosition.Y, CreationWorkbenchPosition.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
-            {
-                Font = 0,
-            };
+                var wbTextInfoLabel = new TextLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                {
+                    Font = 0,
+                };
 
-            CreationWorkbenchTextInfo = new TextLabel(new Vector3(CreationWorkbenchPosition.X, CreationWorkbenchPosition.Y, CreationWorkbenchPosition.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
-            {
-                Font = 0,
-            };
+                wbTextInfos.Add(wbTextInfoLabel);
+            }
+
+            CreationWorkbenchTextInfos = wbTextInfos.ToArray();
 
             All.Add(Type, this);
 
@@ -208,15 +254,21 @@ namespace BCRPClient.Data.Fractions
 
             if (state)
             {
-                fData.CreationWorkbenchTextInfo.Text = "[Закрыто]";
+                foreach (var x in fData.CreationWorkbenchTextInfos)
+                {
+                    x.Text = "[Закрыто]";
 
-                fData.CreationWorkbenchTextInfo.Color = new RGBA(255, 0, 0, 255);
+                    x.Color = new RGBA(255, 0, 0, 255);
+                }
             }
             else
             {
-                fData.CreationWorkbenchTextInfo.Text = "[Открыто]";
+                foreach (var x in fData.CreationWorkbenchTextInfos)
+                {
+                    x.Text = "[Открыто]";
 
-                fData.CreationWorkbenchTextInfo.Color = new RGBA(0, 255, 0, 255);
+                    x.Color = new RGBA(0, 255, 0, 255);
+                }
             }
 
             var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -245,15 +297,21 @@ namespace BCRPClient.Data.Fractions
 
             if (state)
             {
-                fData.StorageTextInfo.Text = "[Закрыт]";
+                foreach (var x in fData.StorageTextInfos)
+                {
+                    x.Text = "[Закрыт]";
 
-                fData.StorageTextInfo.Color = new RGBA(255, 0, 0, 255);
+                    x.Color = new RGBA(255, 0, 0, 255);
+                }
             }
             else
             {
-                fData.StorageTextInfo.Text = "[Открыт]";
+                foreach (var x in fData.StorageTextInfos)
+                {
+                    x.Text = "[Открыт]";
 
-                fData.StorageTextInfo.Color = new RGBA(0, 255, 0, 255);
+                    x.Color = new RGBA(0, 255, 0, 255);
+                }
             }
 
             var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -286,7 +344,7 @@ namespace BCRPClient.Data.Fractions
             CEF.FractionMenu.UpdateRankName((byte)(rank + 1), (string)value ?? "null");
         }
 
-        public static void ShowFractionMenu()
+        public static async void ShowFractionMenu()
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -298,7 +356,14 @@ namespace BCRPClient.Data.Fractions
             if (curFrac == null)
                 return;
 
-            CEF.FractionMenu.Show(curFrac.Type, NewsData, AllMembers, AllVehicles, 0, AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0);
+            var fMenuServerData = ((string)await Events.CallRemoteProc("Fraction::GMSD"))?.Split('&');
+
+            if (fMenuServerData == null)
+                return;
+
+            var balance = decimal.Parse(fMenuServerData[0]);
+
+            CEF.FractionMenu.Show(curFrac.Type, NewsData, AllMembers, AllVehicles, balance, AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0);
         }
 
         public virtual void OnStartMembership(params object[] args)

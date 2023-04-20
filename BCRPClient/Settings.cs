@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Globalization;
 
 namespace BCRPClient
 {
@@ -22,9 +21,9 @@ namespace BCRPClient
 
         public static float MAX_INVENTORY_WEIGHT = 0f;
 
-        public static CultureInfo CultureInfo { get; private set; } = new CultureInfo("en-US", false)
+        public static System.Globalization.CultureInfo CultureInfo { get; } = new System.Globalization.CultureInfo("en-US", false)
         {
-            NumberFormat = new NumberFormatInfo()
+            NumberFormat = new System.Globalization.NumberFormatInfo()
             {
                 CurrencyDecimalSeparator = ".",
                 NumberDecimalSeparator = ".",
@@ -100,7 +99,7 @@ namespace BCRPClient
             private static bool _AutoReload;
             private static bool _FingerOn;
 
-            public static bool UseServerTime { get => _UseServerTime; set { if (value != _UseServerTime) Additional.Storage.SetData("Settings::Interface::UseServerTime", value); _UseServerTime = value; CEF.Menu.UpdateToggle("sett-time", value); CEF.HUD.SetTime(value); } }
+            public static bool UseServerTime { get => _UseServerTime; set { if (value != _UseServerTime) Additional.Storage.SetData("Settings::Interface::UseServerTime", value); _UseServerTime = value; CEF.Menu.UpdateToggle("sett-time", value); CEF.HUD.UpdateTime(); } }
             public static bool HideHints { get => _HideHints; set { if (value != _HideHints) Additional.Storage.SetData("Settings::Interface::HideHints", value); _HideHints = value; CEF.Menu.UpdateToggle("sett-help", value); CEF.HUD.ToggleHints(!value); CEF.Inventory.SwitchHint(!value); } }
             public static bool HideNames { get => _HideNames; set { if (value != _HideNames) Additional.Storage.SetData("Settings::Interface::HideNames", value); _HideNames = value; CEF.Menu.UpdateToggle("sett-names", value); NameTags.Enabled = !value; } }
             public static bool HideCID { get => _HideCID; set { if (value != _HideCID) Additional.Storage.SetData("Settings::Interface::HideCID", value); _HideCID = value; CEF.Menu.UpdateToggle("sett-cid", value); } }

@@ -324,6 +324,8 @@ namespace BCRPClient.CEF
                 else if (actionId == 2) // cancel edit/add
                 {
                     Player.LocalPlayer.ResetData("MenuFrac::News::Edit::CurrentId");
+
+                    CEF.Browser.Window.ExecuteJs("MenuFrac.editNews", false);
                 }
                 else if (actionId == 1) // add/edit news
                 {
@@ -514,7 +516,7 @@ namespace BCRPClient.CEF
             });
         }
 
-        public static async void Show(Types type, NewsData newsData, Dictionary<uint, MemberData> members, Dictionary<uint, VehicleData> vehs, ulong balance, byte myRank)
+        public static async void Show(Types type, NewsData newsData, Dictionary<uint, MemberData> members, Dictionary<uint, VehicleData> vehs, decimal balance, byte myRank)
         {
             if (IsActive)
                 return;

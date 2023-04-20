@@ -40,6 +40,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.FractionLockerRoomInteract, "чтобы переодеться" },
 
                 { Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract, "чтобы выбрать категорию и пройти тест" },
+
+                { Additional.ExtraColshape.InteractionTypes.EstateAgencyInteract, "чтобы посмотреть список предложений" },
             };
         }
     }

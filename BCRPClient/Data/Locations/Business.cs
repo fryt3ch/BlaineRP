@@ -574,7 +574,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public FurnitureShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, List<Vector3> PositionsInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
+            public FurnitureShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
             {
                 this.Blip = new Blip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 

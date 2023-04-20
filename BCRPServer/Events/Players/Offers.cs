@@ -32,7 +32,7 @@ namespace BCRPServer.Events.Players
 
             var oType = (Types)type;
 
-            ReturnTypes res = ((Func<ReturnTypes>)(() =>
+            var res = ((Func<ReturnTypes>)(() =>
             {
                 if (!pData.Player.AreEntitiesNearby(tData.Player, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                     return ReturnTypes.Error;

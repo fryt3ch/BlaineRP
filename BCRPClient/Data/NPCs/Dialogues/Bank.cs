@@ -61,6 +61,9 @@ namespace BCRPClient.Data.NPCs.Dialogues
                     if (pData.OwnedBusinesses.FirstOrDefault() is Data.Locations.Business biz)
                         btns.Add(new Button("[Счет бизнеса]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_business", false, new object[] { biz }); }));
 
+                    if (pData.CurrentFraction is Data.Fractions.Fraction fraction)
+                        btns.Add(new Button("[Счет фракции]", () => { NPC.CurrentNPC?.ShowDialogue("bank_preprocess_fraction", false, new object[] { fraction }); }));
+
                     btns.Add(Button.DefaultExitButton);
 
                     var dg = AllDialogues[hasAccount ? "bank_has_account" : "bank_no_account_0"];
@@ -590,6 +593,112 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                 });
 
+            new Dialogue("bank_preprocess_fraction", null,
+
+                async (args) =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (NPC.CurrentNPC == null)
+                        return;
+
+                    var fData = (Data.Fractions.Fraction)args[0];
+
+                    var data = ((string)await Events.CallRemoteProc("Bank::GFA", (int)fData.Type))?.Split('_');
+
+                    if (NPC.CurrentNPC == null)
+                        return;
+
+                    if (data == null)
+                        CloseCurrentDialogue();
+
+                    var balance = ulong.Parse(data[0]);
+
+                    var btns = new List<Button>();
+
+                    btns.Add(new Button("[Пополнить счет]", async () =>
+                    {
+                        if (NPC.CurrentNPC == null)
+                            return;
+
+                        var nBalance = pData.Cash > pData.BankBalance ? pData.Cash : pData.BankBalance;
+
+                        if (nBalance == 0)
+                        {
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+
+                            return;
+                        }
+
+                        var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                        if (bank == null)
+                            return;
+
+                        NPC.CurrentNPC.SwitchDialogue(false);
+
+                        await CEF.ActionBox.ShowRange
+                        (
+                            "FractionBalanceChange", Locale.Actions.FractionBalanceDeposit, 0, nBalance, nBalance / 2, 1, ActionBox.RangeSubTypes.MoneyRange,
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            (rType, amountD) => FractionBalanceChangeRangeActionBoxAction(rType, amountD, fData, bank, true),
+
+                            null
+                        );
+                    }));
+
+                    if (balance > 0)
+                    {
+                        btns.Add(new Button("[Снять со счета]", async () =>
+                        {
+                            if (NPC.CurrentNPC == null)
+                                return;
+
+                            if (balance <= 0)
+                            {
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NoBalanceHouse);
+
+                                return;
+                            }
+
+                            var nBalance = balance;
+
+                            var bank = NPC.CurrentNPC.Data as Data.Locations.Bank;
+
+                            if (bank == null)
+                                return;
+
+                            NPC.CurrentNPC.SwitchDialogue(false);
+
+                            await CEF.ActionBox.ShowRange
+                            (
+                                "FractionBalanceChange", Locale.Actions.FractionBalanceWithdraw, 0, nBalance, nBalance, 1, ActionBox.RangeSubTypes.MoneyRange,
+
+                                CEF.ActionBox.DefaultBindAction,
+
+                                (rType, amountD) => FractionBalanceChangeRangeActionBoxAction(rType, amountD, fData, bank, false),
+
+                                null
+                            );
+                        }));
+                    }
+
+                    btns.Add(Button.DefaultBackButton);
+                    btns.Add(Button.DefaultExitButton);
+
+                    var dg = AllDialogues["bank_fraction_0"];
+
+                    dg.Buttons = btns;
+
+                    NPC.CurrentNPC.ShowDialogue(dg.Id, true, null, Utils.GetPriceString(balance));
+
+                });
+
             new Dialogue("bank_has_account", "Здравствуйте, могу ли я Вам чем-нибудь помочь?", null);
 
             new Dialogue("bank_no_account_0", "Здравствуйте, могу ли я Вам чем-нибудь помочь?", null);
@@ -620,6 +729,8 @@ namespace BCRPClient.Data.NPCs.Dialogues
             new Dialogue("bank_garage_0", "Баланс на счете Вашего гаража составляет {0}, налог в час - {1}.\n{2}", null);
 
             new Dialogue("bank_business_0", "Баланс на счете Вашего бизнеса составляет {0}, стоимость аренды помещения в час - {1}.\n{2}", null);
+
+            new Dialogue("bank_fraction_0", "Баланс на счете Вашей фракции составляет {0}.", null);
         }
 
         private static async void HouseBalanceChangeRangeActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal amountD, Data.Locations.HouseBase house, Data.Locations.Bank bank, bool add)
@@ -681,6 +792,28 @@ namespace BCRPClient.Data.NPCs.Dialogues
             var useCash = rType == CEF.ActionBox.ReplyTypes.OK;
 
             var resObj = await Events.CallRemoteProc("Bank::BBC", biz.Id, bank.Id, amount, useCash, add);
+
+            if (resObj == null)
+                return;
+
+            CEF.ActionBox.Close(true);
+        }
+
+        private static async void FractionBalanceChangeRangeActionBoxAction(CEF.ActionBox.ReplyTypes rType, decimal amountD, Data.Fractions.Fraction fData, Data.Locations.Bank bank, bool add)
+        {
+            if (CEF.ActionBox.LastSent.IsSpam(1000, false, true))
+                return;
+
+            int amount;
+
+            if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                return;
+
+            CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+            var useCash = rType == CEF.ActionBox.ReplyTypes.OK;
+
+            var resObj = await Events.CallRemoteProc("Bank::FBC", (int)fData.Type, bank.Id, amount, useCash, add);
 
             if (resObj == null)
                 return;

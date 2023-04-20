@@ -98,20 +98,7 @@ namespace BCRPServer.Game.Businesses
             new TattooShop(35, new Vector3(-286.4024f, 6199.159f, 30.45244f), new Utils.Vector4(-292.0363f, 6199.72f, 31.48712f, 222.5584f), new Utils.Vector4(-293.9031f, 6200.241f, 31.48711f, 186.6973f));
             new TattooShop(36, new Vector3(-3165.543f, 1075.181f, 20.84793f), new Utils.Vector4(-3170.584f, 1073.112f, 20.82918f, 335.5721f), new Utils.Vector4(-3169.231f, 1077.034f, 20.82918f, 194.2503f));
 
-            new FurnitureShop(37, null, new Utils.Vector4(2750.236f, 3472.052f, 55.68909f, 244.4632f), new List<Vector3>()
-            {
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-                new Vector3(2750.236f, 3472.052f, 55.68909f),
-            });
+            new FurnitureShop(37, null, new Utils.Vector4(2738.052f, 3461.774f, 55.69563f, 336.6192f));
 
             new Farm(38, new Vector3(2036.85f, 4984.79f, 40.43526f), new Utils.Vector4(2020.814f, 4970.569f, 41.30896f, 266.771f))
             {

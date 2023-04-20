@@ -422,6 +422,8 @@ namespace BCRPClient.Additional
             FractionLockerRoomInteract,
 
             DrivingSchoolInteract,
+
+            EstateAgencyInteract,
         }
 
         public enum ActionTypes
@@ -463,6 +465,7 @@ namespace BCRPClient.Additional
             FractionInteract,
 
             DrivingSchoolInteract,
+            EstateAgencyInteract,
         }
 
         public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
@@ -579,6 +582,36 @@ namespace BCRPClient.Additional
         public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
             {
+                InteractionTypes.EstateAgencyInteract, async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var estAgencyIds = Player.LocalPlayer.GetData<string>("EXED::DriveSchoolId")?.Split('_');
+
+                    if (estAgencyIds == null)
+                        return;
+
+                    var id = int.Parse(estAgencyIds[0]);
+                    var posId = int.Parse(estAgencyIds[1]);
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = ((string)await Events.CallRemoteProc("EstAgency::GD", id, posId))?.Split('_');
+
+                    if (res == null)
+                        return;
+
+                    await CEF.EstateAgency.Show(id, posId, decimal.Parse(res[0]), 0, 0);
+                }
+            },
+
+            {
                 InteractionTypes.DrivingSchoolInteract, async () =>
                 {
                     var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -639,17 +672,19 @@ namespace BCRPClient.Additional
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    if (!Player.LocalPlayer.HasData("EXED::CFractionId"))
+                    var fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
+
+                    if (fTypeS == null)
                         return;
 
-                    var fType = Player.LocalPlayer.GetData<Data.Fractions.Types>("EXED::CFractionId");
-
-                    var fData = BCRPClient.Data.Fractions.Fraction.Get(fType);
+                    var fData = BCRPClient.Data.Fractions.Fraction.Get((BCRPClient.Data.Fractions.Types)int.Parse(fTypeS[0]));
 
                     var fDataUnif = fData as BCRPClient.Data.Fractions.IUniformable;
 
                     if (fDataUnif == null)
                         return;
+
+                    var lockerIdx = byte.Parse(fTypeS[1]);
 
                     if (pData.CurrentFraction != fData)
                     {
@@ -658,7 +693,7 @@ namespace BCRPClient.Additional
                         return;
                     }
 
-                    var res = (int)await Events.CallRemoteProc("Fraction::UNIFS", (int)fType);
+                    var res = (int)await Events.CallRemoteProc("Fraction::UNIFS", (int)fData.Type, lockerIdx);
 
                     if (res == int.MinValue)
                         return;
@@ -686,7 +721,7 @@ namespace BCRPClient.Additional
                         {
                             if (rType == CEF.ActionBox.ReplyTypes.OK)
                             {
-                                Events.CallRemote("Fraction::UNIFC", (int)fType, id);
+                                Events.CallRemote("Fraction::UNIFC", (int)fData.Type, lockerIdx, id);
 
                                 CEF.ActionBox.Close(true);
                             }
@@ -714,15 +749,17 @@ namespace BCRPClient.Additional
                     if (LastSent.IsSpam(1000, false, true))
                         return;
 
-                    if (!Player.LocalPlayer.HasData("EXED::CFractionId"))
+                    var fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
+
+                    if (fTypeS == null)
                         return;
 
-                    var fType = Player.LocalPlayer.GetData<Data.Fractions.Types>("EXED::CFractionId");
+                    var fData = BCRPClient.Data.Fractions.Fraction.Get((BCRPClient.Data.Fractions.Types)int.Parse(fTypeS[0]));
 
-                    var fData = BCRPClient.Data.Fractions.Fraction.Get(fType);
-
-                    if (fData.CreationWorkbenchPrices.Count == 0)
+                    if (fData == null)
                         return;
+
+                    var wbIdx = byte.Parse(fTypeS[1]);
 
                     if (pData.CurrentFraction != fData)
                     {
@@ -730,17 +767,24 @@ namespace BCRPClient.Additional
 
                         return;
                     }
+                    
+                    if (fData.CreationWorkbenchPrices.Count == 0)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "На данный момент здесь нельзя создать ни один предмет!");
+
+                        return;
+                    }
 
                     LastSent = Sync.World.ServerTime;
 
-                    var res = (int)await Events.CallRemoteProc("Fraction::CWBS", (int)fType);
+                    var res = (int)await Events.CallRemoteProc("Fraction::CWBS", (int)fData.Type, wbIdx);
 
                     if (res == byte.MaxValue)
                     {
                         if (Utils.IsAnyCefActive(true))
                             return;
 
-                        CEF.MaterialWorkbench.Show(MaterialWorkbench.Types.Fraction, fData.CreationWorkbenchPrices, fData.Materials);
+                        CEF.MaterialWorkbench.Show(MaterialWorkbench.Types.Fraction, fData.CreationWorkbenchPrices, fData.Materials, fData.Type, wbIdx);
                     }
                 }
             },
@@ -1075,7 +1119,7 @@ namespace BCRPClient.Additional
                     if (aRoot == null)
                         return;
 
-                    var curFloor = aRoot.GetCurrentFloor();
+                    var curFloor = aRoot.GetFloor(Player.LocalPlayer.Position);
 
                     if (curFloor is int floor)
                     {
@@ -1104,6 +1148,32 @@ namespace BCRPClient.Additional
 
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
         {
+            {
+                ActionTypes.EstateAgencyInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is string id)
+                                Player.LocalPlayer.SetData("EXED::DriveSchoolId", id);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::DriveSchoolId");
+                        }
+                    }
+                }
+            },
+
             {
                 ActionTypes.DrivingSchoolInteract,
 
@@ -1140,8 +1210,8 @@ namespace BCRPClient.Additional
 
                         (cs) =>
                         {
-                            if (cs.Data is Data.Fractions.Types fType)
-                                Player.LocalPlayer.SetData("EXED::CFractionId", fType);
+                            if (cs.Data is string str)
+                                Player.LocalPlayer.SetData("EXED::CFractionId", str);
                         }
                     },
 

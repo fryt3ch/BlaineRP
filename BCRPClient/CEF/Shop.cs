@@ -2711,7 +2711,7 @@ namespace BCRPClient.CEF
 
             AllowedCameraStates = null;
 
-            Additional.Camera.Disable(750);
+            Additional.Camera.Disable(0);
 
             GameEvents.DisableAllControls(false);
 

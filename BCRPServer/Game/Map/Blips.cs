@@ -64,30 +64,12 @@ namespace BCRPServer.Game.Map
             BlipList.Add(NAPI.Blip.CreateBlip(728, new Vector3(2049.33f, 3436.35f, 20f), 1, 19, name: "Рынок автомобилей", shortRange: true));
             #endregion
 
-            #region Unique Shops
-            //BlipList.Add(NAPI.Blip.CreateBlip(779, new Vector3(2717.83f, 3488.86f, 20f), 1, 19, name: "Магазин мебели", shortRange: true));
-            #endregion
-
-            #region Grapeseed
-            BlipList.Add(NAPI.Blip.CreateBlip(66, new Vector3(2144.74f, 4652.8f, 20f), 1, 4, name: "Загадочное место", shortRange: true));
-            #endregion
-
             #region Paleto Bay
-            BlipList.Add(NAPI.Blip.CreateBlip(419, new Vector3(-148f, 6301.3f, 20f), 1, 4, name: "Администрация федерации", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(436, new Vector3(-371.8f, 6121.9f, 20f), 1, 1, name: "Пожарная станция", shortRange: true));
-            BlipList.Add(NAPI.Blip.CreateBlip(305, new Vector3(-322.3f, 6164.9f, 20f), 1, 5, name: "Церковь", shortRange: true));
             #endregion
 
             #region Sandy Shores
-            BlipList.Add(NAPI.Blip.CreateBlip(60, new Vector3(1855f, 3684f, 35f), 1, 29, name: "Полиция", shortRange: true));
-            BlipList.Add(NAPI.Blip.CreateBlip(61, new Vector3(1826f, 3693f, 35f), 1, 1, name: "Больница", shortRange: true));
             BlipList.Add(NAPI.Blip.CreateBlip(436, new Vector3(1697f, 3586f, 20f), 1, 1, name: "Пожарная станция", shortRange: true));
-            BlipList.Add(NAPI.Blip.CreateBlip(305, new Vector3(-329f, 2821f, 60f), 1, 5, name: "Церковь", shortRange: true));
-            #endregion
-
-            #region Federals
-            BlipList.Add(NAPI.Blip.CreateBlip(768, new Vector3(1800f, 2607.3f, 20f), 1, 29, name: "Федеральная тюрьма", shortRange: true));
-            BlipList.Add(NAPI.Blip.CreateBlip(758, new Vector3(-2277.5f, 3365f, 20f), 1, 5, name: "Военная база", shortRange: true));
             #endregion
 
             return BlipList.Count;

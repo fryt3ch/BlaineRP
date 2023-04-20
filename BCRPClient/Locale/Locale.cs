@@ -27,6 +27,22 @@ namespace BCRPClient
             public static string PhoneOutgoingCall = "Исходящий вызов";
             public static string PhoneIncomingCall = "Входящий вызов";
 
+            public static Dictionary<byte, string> PoliceTabletCallTypes = new Dictionary<byte, string>()
+            {
+                { 0, "КОД-0" },
+                { 1, "КОД-1" },
+                { 2, "КОД-2" },
+
+                { 255, "Вызов" },
+            };
+
+            public static Dictionary<byte, string> PoliceTabletCallMessages = new Dictionary<byte, string>()
+            {
+                { 0, "Требуется немедленная поддержка! Всем департаментам!" },
+                { 1, "Требуется небольшая помощь!" },
+                { 2, "Требуется помощь!" },
+            };
+
             public static class PhoneCamera
             {
                 public const string On = "вкл.";

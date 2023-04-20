@@ -62,7 +62,7 @@ namespace BCRPClient.Additional
             Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}");
         }
 
-        public static ExtraBlip CreateGPS(Vector3 pos, uint dim, bool drawRoute)
+        public static ExtraBlip CreateGPS(Vector3 pos, uint dim, bool drawRoute, string notificationAddText = null)
         {
             var blip = new ExtraBlip(162, pos, "", 1f, 3, 255, 0f, false, 0, 0f, dim, ExtraBlip.Types.GPS);
 
@@ -77,7 +77,7 @@ namespace BCRPClient.Additional
 
             }
 
-            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.TypesText.GetValueOrDefault(ExtraBlip.Types.GPS) ?? "null");
+            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Blip.Header, (Locale.Notifications.Blip.TypesText.GetValueOrDefault(ExtraBlip.Types.GPS) ?? "null") + (notificationAddText == null ? string.Empty : notificationAddText));
 
             return blip;
         }

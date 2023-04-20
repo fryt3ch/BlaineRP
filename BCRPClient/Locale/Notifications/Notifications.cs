@@ -322,6 +322,7 @@ namespace BCRPClient
                 public static string MaximalBalanceNear = "На этот счет еще можно положить не более {0}!";
 
                 public static string MinimalBalanceHouse = "На этом счете должно оставаться минимум {0}, Вы не можете снять этот остаток средств частично или целиком!";
+                public static string NoBalanceHouse = "На этом счете нет средств!";
 
                 public static string AdmitToBuy = "Вы уверены? Нажмите еще раз,\nчтобы совершить покупку";
 

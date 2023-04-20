@@ -87,6 +87,8 @@ namespace BCRPClient.CEF
 
             { "ACMD::NA", new Instance(Types.Error, "Для использования данной команды необходим более высокий уровень администрирования!", Locale.Notifications.ErrorHeader) },
 
+            { "Str::NM", new Instance(Types.Error, "Введенная строка содержит недопустимые символы либо длиннее/короче, чем должна быть!", Locale.Notifications.ErrorHeader) },
+
             { "ASTUFF::PIAMT", new Instance(Types.Error, "Данный игрок уже имеет активный мут!", Locale.Notifications.ErrorHeader) },
             { "ASTUFF::PINMT", new Instance(Types.Error, "У данного игрока нет активного мута!", Locale.Notifications.ErrorHeader) },
             { "ASTUFF::PIAJL", new Instance(Types.Error, "Данный игрок уже сидит в NonRP-тюрьме!", Locale.Notifications.ErrorHeader) },
@@ -345,6 +347,18 @@ namespace BCRPClient.CEF
             { "Fraction::NEWSDE", new Instance(Types.Error, "Новость не существует!", Locale.Notifications.ErrorHeader) },
 
             { "Fraction::JJ", new Instance(Types.Information, "Теперь Вы состоите во фракции {0}!", Locale.Notifications.DefHeader) },
+
+            { "Fraction::NEMB", new Instance(Types.Error, "На счёте фракции недостаточно средств!\nТекущий баланс: ${0}", Locale.Notifications.ErrorHeader) },
+            { "Fraction::NEMA", new Instance(Types.Error, "На складе фракции недостаточно материалов!\nМатериалов имеется: {0} ед.", Locale.Notifications.ErrorHeader) },
+
+            { "Police::DBS::PNF0", new Instance(Types.Error, "Человек с таким номером телефона не найден!", Locale.Notifications.ErrorHeader) },
+            { "Police::DBS::PNF3", new Instance(Types.Error, "Человек с таким CID/ID не найден!", Locale.Notifications.ErrorHeader) },
+            { "Police::DBS::PNF1", new Instance(Types.Error, "Человек с таким именем и фамилией не найден!", Locale.Notifications.ErrorHeader) },
+            { "Police::DBS::PNF2", new Instance(Types.Error, "Человек, который владеет транспортом с таким гос. номером, не найден!", Locale.Notifications.ErrorHeader) },
+            { "Police::DBS::PAF", new Instance(Types.Error, "Вы сейчас и так просматриваете сведения об этом человеке!", Locale.Notifications.ErrorHeader) },
+
+            { "Police::APB::NYD", new Instance(Types.Error, "Вы не можете исполнить (удалить) эту ориентировку, т.к. она была создана сотрудником другого департамента!", Locale.Notifications.ErrorHeader) },
+            { "Police::GPSTR::NYD", new Instance(Types.Error, "Вы не можете отключить этот GPS-трекер, т.к. он был активирован сотрудником другого департамента!", Locale.Notifications.ErrorHeader) },
 
             { "DriveS::NPTT", new Instance(Types.Error, "Вы не проходили теоритический тест для этого типа транспорта, чтобы сдавать практический!", Locale.Notifications.ErrorHeader) },
             { "DriveS::AHPT", new Instance(Types.Error, "Вы уже сдали теоретическую часть одного теста, завершите его практическую часть, чтобы начать сдавать другой!", Locale.Notifications.ErrorHeader) },

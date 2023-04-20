@@ -3,6 +3,8 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace BCRPClient.CEF
 {
@@ -10,13 +12,13 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.Estate);
 
-        private static DateTime LastSent;
+        public static DateTime LastSent;
 
         public static Types? CurrentType { get; set; }
 
         public static Sync.Players.PropertyTypes? CurrentPropertyType { get; set; }
 
-        private static List<int> TempBinds { get; set; }
+        private static int EscBindIdx { get; set; } = -1;
 
         private static Additional.ExtraColshape CloseColshape { get; set; }
 
@@ -31,10 +33,6 @@ namespace BCRPClient.CEF
 
         public Estate()
         {
-            LastSent = DateTime.MinValue;
-
-            TempBinds = new List<int>();
-
             Events.Add("Estate::Action", async (object[] args) =>
             {
                 if (!IsActive)
@@ -287,7 +285,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowHouseBaseInfo(Data.Locations.HouseBase houseBase, bool showCursor = true)
@@ -331,7 +329,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowBusinessInfo(Data.Locations.Business business, bool showCursor = true)
@@ -368,7 +366,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowSellEstate(Player targetPlayer, bool showCursor = true)
@@ -428,7 +426,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, int price, bool showCursor = true)
@@ -462,7 +460,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, int price, bool showCursor = true)
@@ -489,7 +487,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowSellVehicle(Player targetPlayer, bool showCursor = true)
@@ -528,7 +526,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferVehicle(Data.Vehicles.Vehicle vData, Player targetPlayer, int price, uint vid, string plate, bool showCursor = true)
@@ -555,7 +553,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowSellBusiness(Player targetPlayer, bool showCursor = true)
@@ -594,7 +592,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static async System.Threading.Tasks.Task ShowOfferBusiness(Data.Locations.Business business, Player targetPlayer, int price, bool showCursor = true)
@@ -621,7 +619,7 @@ namespace BCRPClient.CEF
             if (showCursor)
                 CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(true)));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -643,10 +641,9 @@ namespace BCRPClient.CEF
             CurrentType = null;
             CurrentPropertyType = null;
 
-            foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+            KeyBinds.Unbind(EscBindIdx);
 
-            TempBinds.Clear();
+            EscBindIdx = -1;
 
             Player.LocalPlayer.ResetData("Estate::CurrentData");
         }
@@ -656,19 +653,85 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive => CEF.Browser.IsActive(Browser.IntTypes.EstateAgency);
 
-        private static bool WasShowed { get; set; }
+        private static int EscBindIdx { get; set; } = int.MinValue;
+
+        public static bool WasShowed => EscBindIdx != int.MinValue;
+
+        private static int AgencyId { get; set; }
+        private static int PosId { get; set; }
+
+        private static Additional.ExtraColshape CloseColshape { get; set; }
 
         public EstateAgency()
         {
-            Events.Add("EstAgency::Close", (object[] args) => Close(false));
+            Events.Add("EstAgency::Close", (args) => Close(false));
 
-            /*            KeyBinds.NewBind(RAGE.Ui.VirtualKeys.X, true, () =>
-                        {
-                            Show();
-                        });*/
+            Events.Add("EstAgency::GPS", async (args) =>
+            {
+                var idS = ((string)args[0])?.Split('_');
+
+                if (idS == null || idS.Length < 2)
+                    return;
+
+                if (idS[0] == "h")
+                {
+                    var houseId = uint.Parse(idS[1]);
+
+                    var houseData = Data.Locations.House.All[houseId];
+
+                    if (houseData.OwnerName != null)
+                    {
+                        CEF.Notification.Show("House::AB");
+
+                        return;
+                    }
+
+                    if (Estate.LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    Estate.LastSent = Sync.World.ServerTime;
+
+                    var res = (bool)await Events.CallRemoteProc("EstAgency::GPS", AgencyId, PosId, (byte)0);
+
+                    if (res)
+                    {
+                        Additional.ExtraBlips.CreateGPS(houseData.Position, Settings.MAIN_DIMENSION, true);
+                    }
+                }
+                else if (idS[0] == "a")
+                {
+                    var apsId = uint.Parse(idS[1]);
+
+                    var apsData = Data.Locations.Apartments.All[apsId];
+
+                    if (apsData.OwnerName != null)
+                    {
+                        CEF.Notification.Show("House::AB");
+
+                        return;
+                    }
+
+                    Additional.ExtraBlips.CreateGPS(Data.Locations.ApartmentsRoot.All[apsData.RootType].PositionEnter, Settings.MAIN_DIMENSION, true, $"\n\nЭтаж: {Data.Locations.ApartmentsRoot.All[apsData.RootType].GetFloor(apsData.Position) ?? -1}, кв. {apsData.NumberInRoot + 1}");
+                }
+                else if (idS[0] == "g")
+                {
+                    var garageId = uint.Parse(idS[1]);
+
+                    var garageData = Data.Locations.Garage.All[garageId];
+
+                    if (garageData.OwnerName != null)
+                    {
+                        CEF.Notification.Show("House::AB");
+
+                        return;
+                    }
+
+                    Additional.ExtraBlips.CreateGPS(Data.Locations.GarageRoot.All[garageData.RootType].EnterColshape.Position, Settings.MAIN_DIMENSION, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
+                }
+            });
         }
 
-        public static async System.Threading.Tasks.Task Show()
+        public static async System.Threading.Tasks.Task Show(int agencyId, int posId, decimal houseGpsPrice, decimal apsGpsPrice, decimal garageGpsPrice)
         {
             if (IsActive)
                 return;
@@ -677,34 +740,50 @@ namespace BCRPClient.CEF
             var houses = Data.Locations.House.All.Where(x => x.Value.OwnerName == null).Select(x => new object[] { $"h_{x.Key}", $"{Utils.GetStreetName(x.Value.Position)} [#{x.Key}]", x.Value.Price, x.Value.Tax, (int)x.Value.RoomType, x.Value.GarageType == null ? 0 : (int)x.Value.GarageType });
 
             // id, name, price, tax, rooms
-            List<object> apartments = new List<object>();
+            var apartments = new List<object>();
 
             foreach (var x in Data.Locations.ApartmentsRoot.All.Values)
             {
                 var arName = x.Name;
 
-                int counter = 0;
+                uint counter = 1;
 
                 foreach (var y in x.AllApartments)
                 {
                     if (y.OwnerName == null)
-                        apartments.Add(new object[] { $"a_{y.Id}", string.Format(Locale.General.Blip.ApartmentsOwnedBlip, arName, counter + 1), y.Price, y.Tax, (int)y.RoomType });
+                        apartments.Add(new object[] { $"a_{y.Id}", string.Format(Locale.General.Blip.ApartmentsOwnedBlip, arName, counter), y.Price, y.Tax, (uint)y.RoomType });
 
                     counter++;
                 }
             }
 
-            // id, name, price, tax, garage capacity
-            var garages = new object[] { };
+            // id, name, price, tax, garage capacity, complex num
+            var garages = new List<object>();
+
+            uint gCounter = 1;
+
+            foreach (var x in Data.Locations.GarageRoot.All.Values)
+            {
+                uint counter = 1;
+
+                foreach (var y in x.AllGarages)
+                {
+                    if (y.OwnerName == null)
+                        garages.Add(new object[] { $"g_{y.Id}", string.Format(Locale.General.Blip.GarageOwnedBlip, gCounter, counter), y.Price, y.Tax, (uint)y.Type, gCounter });
+                }
+
+                gCounter++;
+            }
 
             await CEF.Browser.Render(Browser.IntTypes.EstateAgency, true, true);
 
-            CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages, new object[] { 25, 50, 100 } } });
+            AgencyId = agencyId;
+            PosId = posId;
+
+            CEF.Browser.Window.ExecuteJs("EstAgency.draw", new object[] { new object[] { houses, apartments, garages, new object[] { houseGpsPrice, apsGpsPrice, garageGpsPrice } } });
 
             if (!WasShowed)
             {
-                WasShowed = true;
-
                 CEF.Browser.Window.ExecuteCachedJs("EstAgency.selectOption", "-info", 0);
             }
             else
@@ -713,6 +792,17 @@ namespace BCRPClient.CEF
             }
 
             CEF.Cursor.Show(true, true);
+
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+
+            CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnExit = (cancel) =>
+                {
+                    if (CloseColshape?.Exists == true)
+                        Close(false);
+                }
+            };
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -720,9 +810,17 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
+            CloseColshape?.Destroy();
+
+            CloseColshape = null;
+
             CEF.Browser.Render(Browser.IntTypes.EstateAgency, false);
 
             CEF.Cursor.Show(false, false);
+
+            KeyBinds.Unbind(EscBindIdx);
+
+            EscBindIdx = -1;
         }
     }
 }

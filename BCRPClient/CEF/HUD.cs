@@ -176,9 +176,6 @@ namespace BCRPClient.CEF
         public static int LastAmmo { get; private set; }
         public static int LastSpeed { get; private set; }
 
-        public static GameEvents.UpdateHandler Update;
-        private static AsyncTask Loop;
-
         public static Action InteractionAction = null;
         private static int InteractionBind = -1;
 
@@ -221,9 +218,6 @@ namespace BCRPClient.CEF
             SpeedometerMustBeEnabled = false;
             LastAmmo = int.MinValue;
             LastSpeed = -1;
-
-            Loop = new AsyncTask(() => Update?.Invoke(), 5000, true);
-            Loop.Run();
         }
 
         public static void ShowHUD(bool value)
@@ -285,12 +279,11 @@ namespace BCRPClient.CEF
             Browser.Switch(Browser.IntTypes.HUD_Help, state);
         }
 
-        /// <summary>Переключить время</summary>
-        /// <param name="state">true - серверное время, false - локальное время</param>
-        public static void SetTime(bool state)
+        public static void UpdateTime()
         {
+            var time = Settings.Interface.UseServerTime ? Sync.World.ServerTime : Sync.World.LocalTime;
 
-            Browser.Window.ExecuteJs("Hud.setTime", state);
+            Browser.Window.ExecuteJs("Hud.setTime", Settings.Interface.UseServerTime, time.ToString("HH:mm"), time.ToString("dd.MM.yyyy"));
         }
 
         /// <summary>Переключить иконку микрофона</summary>

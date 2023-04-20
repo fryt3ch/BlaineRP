@@ -1,7 +1,10 @@
 ﻿using BCRPServer.Game.Data;
 using GTANetworkAPI;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace BCRPServer.Game.Fractions
@@ -13,7 +16,7 @@ namespace BCRPServer.Game.Fractions
 
         }
 
-        public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, {ContainerPosition.ToCSharpStr()}, {CreationWorkbenchPosition.ToCSharpStr()}, {Ranks.Count - 1}, {LockerRoomPosition.ToCSharpStr()}, \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", \"{ArrestCellsPositions.SerializeToJson().Replace('"', '\'')}\", {ArrestMenuPosition.ToCSharpStr()}";
+        public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", \"{ArrestCellsPositions.SerializeToJson().Replace('"', '\'')}\", {ArrestMenuPosition.ToCSharpStr()}";
 
         public static Dictionary<string, uint[]> NumberplatePrices { get; private set; } = new Dictionary<string, uint[]>()
         {
@@ -66,9 +69,23 @@ namespace BCRPServer.Game.Fractions
         public static uint VehicleNumberplateRegPrice { get; set; } = 1_000;
         public static uint VehicleNumberplateUnRegPrice { get; set; } = 500;
 
+        private static Dictionary<ushort, CallInfo> Calls { get; set; } = new Dictionary<ushort, CallInfo>();
+
+        private static Dictionary<ushort, NotificationInfo> Notifications { get; set; } = new Dictionary<ushort, NotificationInfo>();
+
+        private static Dictionary<uint, GPSTrackerInfo> GPSTrackers { get; set; } = new Dictionary<uint, GPSTrackerInfo>();
+
+        public static UidHandlerUInt32 APBUidHandler { get; set; } = new UidHandlerUInt32(1);
+        public static UidHandlerUInt32 GPSTrackerUidHandler { get; set; } = new UidHandlerUInt32(0);
+        public static UidHandlerUInt16 NotificationUidHandler { get; set; } = new UidHandlerUInt16(0);
+
+        private static Dictionary<uint, APBInfo> APBs { get; set; } = new Dictionary<uint, APBInfo>();
+
+        private List<FineInfo> Fines { get; set; } = new List<FineInfo>();
+
         public List<Customization.UniformTypes> UniformTypes { get; set; }
 
-        public Vector3 LockerRoomPosition { get; set; }
+        public Vector3[] LockerRoomPositions { get; set; }
 
         public Utils.Vector4[] ArrestCellsPositions { get; set; }
 
@@ -110,6 +127,327 @@ namespace BCRPServer.Game.Fractions
             var pos = new Utils.Vector4(ArrestFreePosition.X, ArrestFreePosition.Y, ArrestFreePosition.Z, ArrestFreePosition.RotationZ);
 
             pData.Player.Teleport(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, false);
+        }
+
+        public static CallInfo GetCallByCaller(ushort rid) => Calls.GetValueOrDefault(rid);
+
+        public static GPSTrackerInfo GetGPSTrackerById(uint id) => GPSTrackers.GetValueOrDefault(id);
+
+        public static void AddGPSTracker(GPSTrackerInfo info)
+        {
+            var id = GPSTrackerUidHandler.MoveNextUid();
+
+            GPSTrackers.Add(id, info);
+
+            var listAll = new List<Player>();
+
+            foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+            Player[] membersToTrigger = listAll.ToArray();
+
+            if (membersToTrigger.Length > 0)
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::GPSTC", id, info.InstallerStr, info.VehicleStr);
+            }
+        }
+
+        public static void RemoveGPSTracker(uint id, GPSTrackerInfo info)
+        {
+            if (GPSTrackers.Remove(id))
+            {
+                GPSTrackerUidHandler.SetUidAsFree(id);
+
+                var listAll = new List<Player>();
+
+                foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                    listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                Player[] membersToTrigger = listAll.ToArray();
+
+                if (membersToTrigger.Length > 0)
+                {
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::GPSTC", id);
+                }
+            }
+        }
+
+        public static void RemoveNotification(ushort id, NotificationInfo info)
+        {
+            if (Notifications.Remove(id))
+            {
+                Player[] membersToTrigger;
+
+                if (info.FractionType == Types.None)
+                {
+                    var listAll = new List<Player>();
+
+                    foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                        listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                    membersToTrigger = listAll.ToArray();
+                }
+                else
+                {
+                    membersToTrigger = Fraction.Get(info.FractionType).AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
+                }
+
+                if (membersToTrigger.Length > 0)
+                {
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::NOTIFC", id);
+                }
+            }
+        }
+
+        public static void AddNotificationTracker(NotificationInfo info)
+        {
+            var id = NotificationUidHandler.MoveNextUid();
+
+            Notifications.Add(id, info);
+
+            Player[] membersToTrigger;
+
+            if (info.FractionType == Types.None)
+            {
+                var listAll = new List<Player>();
+
+                foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                    listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                membersToTrigger = listAll.ToArray();
+            }
+            else
+            {
+                membersToTrigger = Fraction.Get(info.FractionType).AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
+            }
+
+            if (membersToTrigger.Length > 0)
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::NOTIFC", id, info.Text, info.Position);
+            }
+        }
+
+        public static void AddCall(ushort rid, CallInfo cInfo)
+        {
+            Calls.Add(rid, cInfo);
+
+            Player[] membersToTrigger;
+
+            if (cInfo.FractionType == Types.None)
+            {
+                var listAll = new List<Player>();
+
+                foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                    listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                membersToTrigger = listAll.ToArray();
+            }
+            else
+            {
+                membersToTrigger = Fraction.Get(cInfo.FractionType).AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
+            }
+
+            if (membersToTrigger.Length > 0)
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::CC", rid, cInfo.Type, cInfo.Message, cInfo.Position);
+            }
+        }
+
+        public static void RemoveCall(ushort rid, CallInfo cInfo, byte reason, PlayerData initData)
+        {
+            if (Calls.Remove(rid))
+            {
+                Player[] membersToTrigger;
+
+                if (cInfo.FractionType == Types.None)
+                {
+                    var listAll = new List<Player>();
+
+                    foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                        listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                    membersToTrigger = listAll.ToArray();
+                }
+                else
+                {
+                    membersToTrigger = Fraction.Get(cInfo.FractionType).AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
+                }
+
+                if (membersToTrigger.Length > 0)
+                {
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::CC", rid);
+                }
+            }
+        }
+
+        public static void AddAPBOnLoad(uint id, APBInfo apbInfo)
+        {
+            APBs.Add(id, apbInfo);
+
+            APBUidHandler.TryUpdateLastAddedMaxUid(id);
+        }
+
+        public static void RemoveAPBOnLoad(uint id)
+        {
+            APBs.Remove(id);
+
+            APBUidHandler.SetUidAsFree(id);
+        }
+
+        public static APBInfo GetAPB(uint id) => APBs.GetValueOrDefault(id);
+
+        public static void RemoveAPB(uint id)
+        {
+            if (APBs.Remove(id))
+            {
+                var listAll = new List<Player>();
+
+                foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                    listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+                Player[] membersToTrigger = listAll.ToArray();
+
+                if (membersToTrigger.Length > 0)
+                {
+                    NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::APBC", id);
+                }
+
+                APBUidHandler.SetUidAsFree(id);
+
+                MySQL.PoliceAPBDelete(id);
+            }
+        }
+
+        public static void AddAPB(APBInfo apbInfo)
+        {
+            var id = APBUidHandler.MoveNextUid();
+
+            APBs.Add(id, apbInfo);
+
+            var listAll = new List<Player>();
+
+            foreach (var x in Fraction.All.Values.Where(x => x is Police).ToList())
+                listAll.AddRange(x.AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player));
+
+            Player[] membersToTrigger = listAll.ToArray();
+
+            if (membersToTrigger.Length > 0)
+            {
+                NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::APBC", id, apbInfo.TargetName, apbInfo.Member, apbInfo.Details);
+            }
+
+            MySQL.PoliceAPBAdd(id, apbInfo);
+        }
+
+        protected override void FractionDataTriggerEvent(PlayerData pData)
+        {
+            var callsObj = Calls.Where(x => x.Value.FractionType == Types.None || x.Value.FractionType == Type).Select(x => $"{x.Value.Type}_{x.Key}_{x.Value.Message}_{x.Value.Time.GetUnixTimestamp()}_{x.Value.Position.X}_{x.Value.Position.Y}_{x.Value.Position.Z}").ToList();
+            var finesObj = Fines.Select(x => $"{x.Member}_{x.Target}_{x.Time.GetUnixTimestamp()}_{x.Amount}_{x.Reason}").ToList();
+            var apbsObj = APBs.Select(x => $"{x.Key}_{x.Value.Time.GetUnixTimestamp()}_{x.Value.TargetName}_{x.Value.Member}_{x.Value.Details}").ToList();
+            var notificationsObj = Notifications.Select(x => $"{x.Key}_{x.Value.Time.GetUnixTimestamp()}_{x.Value.Text}_{(x.Value.Position == null ? string.Empty : $"{x.Value.Position.X}_{x.Value.Position.Y}_{x.Value.Position.Z}")}").ToList();
+            var gpsTrackersObj = GPSTrackers.Select(x => $"{x.Key}_{x.Value.InstallerStr}_{x.Value.VehicleStr}").ToList();
+
+            var arrestsAmount = GetPlayerArrestAmount(pData.Info);
+
+            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}").ToList(), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}").ToList(), callsObj, finesObj, apbsObj, notificationsObj, gpsTrackersObj, arrestsAmount);
+        }
+
+        public static ushort GetPlayerArrestAmount(PlayerData.PlayerInfo pInfo) => pInfo.GetTempData<ushort>("Police::Arrests", 0);
+        public static void SetPlayerArrestAmount(PlayerData.PlayerInfo pInfo, ushort amount) => pInfo.SetTempData("Police::Arrests", amount);
+        public static bool ResetPlayerArrestAmount(PlayerData.PlayerInfo pInfo) => pInfo.ResetTempData("Police::Arrests");
+
+        public class CallInfo
+        {
+            public byte Type { get; set; }
+
+            public Vector3 Position { get; set; }
+
+            public string Message { get; set; }
+
+            public DateTime Time { get; set; }
+
+            public Types FractionType { get; set; }
+
+            public CallInfo()
+            {
+
+            }
+        }
+
+        public class FineInfo
+        {
+            public string Member { get; set; }
+
+            public string Target { get; set; }
+
+            public uint Amount { get; set; }
+
+            public string Reason { get; set; }
+
+            public DateTime Time { get; set; }
+
+            public FineInfo()
+            {
+
+            }
+        }
+
+        public class APBInfo
+        {
+            [JsonProperty(PropertyName = "TN")]
+            public string TargetName { get; set; }
+
+            [JsonProperty(PropertyName = "D")]
+            public string Details { get; set; }
+
+            [JsonProperty(PropertyName = "LD")]
+            public string LargeDetails { get; set; }
+
+            [JsonProperty(PropertyName = "M")]
+            public string Member { get; set; }
+
+            [JsonProperty(PropertyName = "F")]
+            public Types FractionType { get; set; }
+
+            [JsonProperty(PropertyName = "T")]
+            public DateTime Time { get; set; }
+
+            public APBInfo()
+            {
+
+            }
+        }
+
+        public class NotificationInfo
+        {
+            public string Text { get; set; }
+
+            public Vector3 Position { get; set; }
+
+            public DateTime Time { get; set; }
+
+            public Types FractionType { get; set; }
+
+            public NotificationInfo()
+            {
+
+            }
+        }
+
+        public class GPSTrackerInfo
+        {
+            public uint VID { get; set; }
+
+            public string VehicleStr { get; set; }
+
+            public string InstallerStr { get; set; }
+
+            public Types FractionType { get; set; }
+
+            public GPSTrackerInfo()
+            {
+
+            }
         }
     }
 }

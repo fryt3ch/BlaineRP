@@ -1,14 +1,11 @@
-﻿using BCRPClient.Sync;
-using Newtonsoft.Json;
+﻿using BCRPClient.Sync; using Newtonsoft.Json;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient
 {
@@ -74,9 +71,9 @@ namespace BCRPClient
                     this.Alpha = 255;
             }
 
-            public Color ToSystemColour() => Color.FromArgb(Alpha, Red, Green, Blue);
+            public System.Drawing.Color ToSystemColour() => System.Drawing.Color.FromArgb(Alpha, Red, Green, Blue);
 
-            public static Colour FromSystemColour(Color colour) => new Colour(colour.R, colour.G, colour.B, colour.A);
+            public static Colour FromSystemColour(System.Drawing.Color colour) => new Colour(colour.R, colour.G, colour.B, colour.A);
         }
 
         public static Colour WhiteColor = new Colour(255, 255, 255);
@@ -392,7 +389,7 @@ namespace BCRPClient
             {
                 for (int j = 1; j < c; j++)
                 {
-                    var endPos = GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
+                    var endPos = Additional.Camera.GetFrontOf(startPos, heading + angleRotation * i, offsetStep * j);
 
                     endPos.Z += offsetZ;
 
@@ -528,9 +525,20 @@ namespace BCRPClient
         public static bool IsPasswordValid(string str) => PasswordPattern.IsMatch(str);
         public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
 
+        public static void DisableFlightMusic()
+        {
+            RAGE.Game.Audio.SetAudioFlag("DisableFlightMusic", true);
+        }
+
         public static async System.Threading.Tasks.Task PrepareAlarm(string alarmName)
         {
             while (!RAGE.Game.Audio.PrepareAlarm(alarmName))
+                await RAGE.Game.Invoker.WaitAsync(5);
+        }
+
+        public static async System.Threading.Tasks.Task RequestScriptAudioBank(string name, bool p1 = false, int p2 = -1)
+        {
+            while (!RAGE.Game.Audio.RequestScriptAudioBank(name, p1, p2))
                 await RAGE.Game.Invoker.WaitAsync(5);
         }
 

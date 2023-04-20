@@ -98,5 +98,42 @@ namespace BCRPServer
 
             PushQuery(cmd);
         }
+
+        public static void PoliceAPBAdd(uint id, Game.Fractions.Police.APBInfo apbInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "INSERT INTO police_apbs (ID, Data) VALUES (@ID, @D);";
+
+            cmd.Parameters.AddWithValue("@ID", id);
+
+            cmd.Parameters.AddWithValue("@D", apbInfo.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void PoliceAPBDelete(uint id)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "DELETE FROM police_apbs WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", id);
+
+            PushQuery(cmd);
+        }
+
+        public static void PoliceAPBUpdate(uint id, Game.Fractions.Police.APBInfo apbInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE police_apbs SET Data=@D WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", id);
+
+            cmd.Parameters.AddWithValue("@D", apbInfo.SerializeToJson());
+
+            PushQuery(cmd);
+        }
     }
 }

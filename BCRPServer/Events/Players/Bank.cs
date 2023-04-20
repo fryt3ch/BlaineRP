@@ -1,4 +1,5 @@
 ﻿using GTANetworkAPI;
+using Org.BouncyCastle.Asn1.Tsp;
 using System;
 using static BCRPServer.Game.Bank;
 
@@ -357,6 +358,139 @@ namespace BCRPServer.Events.Players
                 return null;
 
             return $"{business.Bank}_{Settings.MAX_PAID_HOURS_BUSINESS}_{Settings.MIN_PAID_HOURS_BUSINESS}";
+        }
+
+        [RemoteProc("Bank::GFA")]
+        private static string GetFractionAccountData(Player player, int fractionTypeNum)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+
+            if (fData == null)
+                return null;
+
+            if (!Game.Fractions.Fraction.IsMember(pData, fData.Type, true))
+                return null;
+
+            return $"{fData.Balance}";
+        }
+
+        [RemoteProc("Bank::FBC")]
+        private static ulong? FractionBalanceChange(Player player, int fractionTypeNum, int bankId, int amountI, bool useCash, bool add)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
+            if (amountI <= 0)
+                return null;
+
+            var amount = (ulong)amountI;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
+
+            if (fData == null)
+                return null;
+
+            if (!Game.Fractions.Fraction.IsMember(pData, fData.Type, true))
+                return null;
+
+            if (bankId >= 0)
+            {
+                if (!IsPlayerNearBank(player, bankId))
+                    return null;
+            }
+            else
+            {
+                return null;
+            }
+
+            if (add)
+            {
+                ulong newBalance;
+
+                if (!fData.TryAddMoney(amount, out newBalance, true))
+                    return null;
+
+                if (useCash)
+                {
+                    ulong newCash;
+
+                    if (!pData.TryRemoveCash(amount, out newCash, true))
+                        return null;
+
+                    pData.SetCash(newCash);
+                }
+                else
+                {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBankBalance, true))
+                        return null;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
+                }
+
+                fData.SetBalance(newBalance, true);
+            }
+            else
+            {
+                if (!fData.IsLeaderOrWarden(pData.Info, true))
+                    return null;
+
+                ulong newBalance;
+
+                if (!fData.TryRemoveMoney(amount, out newBalance, true))
+                    return null;
+
+                if (useCash)
+                {
+                    ulong newCash;
+
+                    if (!pData.TryAddCash(amount, out newCash, true))
+                        return null;
+
+                    pData.SetCash(newCash);
+                }
+                else
+                {
+                    if (!pData.HasBankAccount(true))
+                        return null;
+
+                    ulong newBankBalance;
+
+                    if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBankBalance, true))
+                        return null;
+
+                    pData.BankAccount.SetDebitBalance(newBankBalance, null);
+                }
+
+                fData.SetBalance(newBalance, true);
+
+                fData.TriggerEventToMembers("Chat::ShowServerMessage", $"[FRACTION] {pData.Player.Name} ({pData.Player.Id}) #{pData.CID} снял ${amount} со счёта фракции.");
+            }
+            return fData.Balance;
         }
 
         [RemoteProc("Bank::BBC")]

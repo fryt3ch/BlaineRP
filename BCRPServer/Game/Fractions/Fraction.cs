@@ -12,14 +12,22 @@ namespace BCRPServer.Game.Fractions
     {
         None = 0,
 
-        PolicePaleto,
+        BCPD,
+        LSPD,
+
+        WZLN,
+
+        BCEMS,
+        LSEMS,
+
+        LSADM,
     }
 
     public interface IUniformable
     {
         public List<Game.Data.Customization.UniformTypes> UniformTypes { get; set; }
 
-        public Vector3 LockerRoomPosition { get; set; }
+        public Vector3[] LockerRoomPositions { get; set; }
 
         public bool IsPlayerInAnyUniform(PlayerData pData);
     }
@@ -66,7 +74,7 @@ namespace BCRPServer.Game.Fractions
 
         public string Name { get; set; }
 
-        public uint Materials { get; set; }
+        public uint Materials { get => Convert.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}")); set => Sync.World.SetSharedData($"FRAC::M_{(int)Type}", value); }
 
         public ulong Balance { get; set; }
 
@@ -78,9 +86,9 @@ namespace BCRPServer.Game.Fractions
 
         public Game.Items.Container Container => Game.Items.Container.Get(ContainerId);
 
-        public Utils.Vector4 ContainerPosition { get; set; }
+        public Utils.Vector4[] ContainerPositions { get; set; }
 
-        public Utils.Vector4 CreationWorkbenchPosition { get; set; }
+        public Utils.Vector4[] CreationWorkbenchPositions { get; set; }
 
         public Dictionary<string, uint> CreationWorkbenchPrices { get; set; }
 
@@ -98,23 +106,38 @@ namespace BCRPServer.Game.Fractions
 
         public List<uint> Salary { get; set; }
 
-        public Utils.Vector4 SpawnPosition { get; set; }
+        public Utils.Vector4[] SpawnPositions { get; set; }
 
         public abstract string ClientData { get; }
+
+        public string ItemTag { get; set; }
 
         public static int InitializeAll()
         {
             Game.Items.Container.AllSIDs.Add("f_storage", new Items.Container.Data(125, 100_000f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Storage));
 
-            new Police(Types.PolicePaleto, "Полиция Палето-Бэй")
+            new Police(Types.BCPD, "Полиция Округа Блэйн")
             {
-                SpawnPosition = new Utils.Vector4(-438.325f, 5990.785f, 31.71619f, 310.7526f),
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-438.325f, 5990.785f, 31.71619f, 310.7526f),
+                    new Utils.Vector4(1853.851f, 3686.156f, 34.26704f, 212.9599f),
+                },
 
-                ContainerPosition = new Utils.Vector4(-441.8761f, 5987.493f, 30.7162f, 2.5f),
+                ContainerPositions = new Utils.Vector4[]
+                {
+                     new Utils.Vector4(-441.8761f, 5987.493f, 30.7162f, 2.5f),
+                },
 
-                CreationWorkbenchPosition = new Utils.Vector4(-437.8557f, 5988.477f, 30.71618f, 1f),
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-437.8557f, 5988.477f, 30.71618f, 1f),
+                },
 
-                LockerRoomPosition = new Vector3(-439.1087f, 5993.017f, 30.71619f),
+                LockerRoomPositions = new Vector3[]
+                {
+                    new Vector3(-439.1087f, 5993.017f, 30.71619f),
+                },
 
                 UniformTypes = new List<Data.Customization.UniformTypes>()
                 {
@@ -142,10 +165,229 @@ namespace BCRPServer.Game.Fractions
                 {
                     1_000,
                     2_000,
-                }
+                },
+
+                ItemTag = "BCPD",
             };
 
-            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.PolicePaleto}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
+            new Police(Types.LSPD, "Полиция Лос-Сантоса")
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(455.8622f, -991.1062f, 30.68932f, 88.41425f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(477.5417f, -989.4244f, 23.91471f, 2.5f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(472.8697f, -989.4165f, 23.91472f, 1f),
+                },
+
+                LockerRoomPositions = new Vector3[]
+                {
+                    new Vector3(451.3782f, -992.9793f, 29.68934f),
+                },
+
+                UniformTypes = new List<Data.Customization.UniformTypes>()
+                {
+                    Data.Customization.UniformTypes.FractionPaletoPolice_0,
+                    Data.Customization.UniformTypes.FractionPaletoPolice_1,
+                    Data.Customization.UniformTypes.FractionPaletoPolice_2,
+                },
+
+                ArrestCellsPositions = new Utils.Vector4[]
+                {
+
+                },
+
+                ArrestFreePosition = new Utils.Vector4(433.1303f, -981.7498f, 30.71028f, 86.3075f),
+
+                ArrestMenuPosition = new Vector3(0f, 0f, 0f),
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+                    { "w_pistol", 100 },
+                },
+
+                Salary = new List<uint>()
+                {
+                    1_000,
+                    2_000,
+                },
+
+                ItemTag = "LSPD",
+            };
+
+            new WeazelNews(Types.WZLN, "Weazel News")
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-594.6252f, -930.1151f, 28.15707f, 266.3295f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-578.9703f, -915.7086f, 27.15708f, 1.5f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-601.053f, -917.2875f, 27.15707f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                Salary = new List<uint>()
+                {
+                    1_000,
+                    2_000,
+                },
+
+                ItemTag = "WZLN",
+            };
+
+            new EMS(Types.BCEMS, "Больница Округа Блэйн")
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-258.9563f, 6330.19f, 32.42728f, 218.3881f),
+                    new Utils.Vector4(1842.196f, 3679.172f, 34.27489f, 118.615f),
+                },
+
+                LockerRoomPositions = new Vector3[]
+                {
+                    new Vector3(-256.1902f, 6327.726f, 31.42725f),
+                },
+
+                UniformTypes = new List<Data.Customization.UniformTypes>()
+                {
+                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-264.9498f, 6321.589f, 31.4273f, 1.5f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-262.7031f, 6319.312f, 31.4273f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                Salary = new List<uint>()
+                {
+                    1_000,
+                    2_000,
+                },
+
+                ItemTag = "BCEMS",
+
+                BedPositions = new Vector3()
+                {
+
+                },
+            };
+
+            new EMS(Types.LSEMS, "Больница Лос-Сантоса")
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(306.8656f, -572.422f, 43.28408f, 161.3542f),
+                },
+
+                LockerRoomPositions = new Vector3[]
+                {
+                    new Vector3(302.8677f, -572.0403f, 42.28407f),
+                },
+
+                UniformTypes = new List<Data.Customization.UniformTypes>()
+                {
+                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(338.8343f, -595.1829f, 42.2841f, 1.5f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(341.1305f, -588.7886f, 42.2841f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                Salary = new List<uint>()
+                {
+                    1_000,
+                    2_000,
+                },
+
+                ItemTag = "LSEMS",
+
+                BedPositions = new Vector3()
+                {
+
+                },
+            };
+
+            new Government(Types.LSADM, "Правительство Лос-Сантоса")
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-540.1923f, -197.8367f, 47.42305f, 0.4962777f),
+                },
+
+                LockerRoomPositions = new Vector3[]
+                {
+                    new Vector3(-541.5637f, -192.8628f, 46.42308f),
+                },
+
+                UniformTypes = new List<Data.Customization.UniformTypes>()
+                {
+                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-549.821f, -202.9997f, 46.41494f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-543.8552f, -198.2676f, 46.41494f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                Salary = new List<uint>()
+                {
+                    1_000,
+                    2_000,
+                },
+
+                ItemTag = "LSGOV",
+            };
+
+            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.BCPD}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
 
             foreach (var x in All.Values)
             {
@@ -212,6 +454,72 @@ namespace BCRPServer.Game.Fractions
             }
         }
 
+        public bool TryAddMoney(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Balance.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveMoney(ulong amount, out ulong newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Balance.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Fraction::NEMB", Balance);
+                    }
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryAddMaterials(uint amount, out uint newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Materials.TryAdd(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveMaterials(uint amount, out uint newBalance, bool notifyOnFault = true, PlayerData tData = null)
+        {
+            if (!Materials.TrySubtract(amount, out newBalance))
+            {
+                if (notifyOnFault)
+                {
+                    if (tData != null)
+                    {
+                        tData.Player.Notify("Fraction::NEMA", Materials);
+                    }
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
         public void SetMaterials(uint value, bool updateDb)
         {
             Materials = value;
@@ -264,7 +572,7 @@ namespace BCRPServer.Game.Fractions
 
         public void TriggerEventToMembers(string eventName, params object[] args)
         {
-            var t = PlayerData.All.Where(x => x.Value.Fraction == Type).Select(x => x.Key).ToArray();
+            var t = AllMembers.Where(x => x.PlayerData != null).Select(x => x.PlayerData.Player).ToArray();
 
             if (t.Length == 0)
                 return;
@@ -274,7 +582,7 @@ namespace BCRPServer.Game.Fractions
 
         public bool HasMemberPermission(PlayerData.PlayerInfo pInfo, uint permissionId, bool notify)
         {
-            if (Ranks[pInfo.FractionRank].Permissions[permissionId] != 1)
+            if (Ranks[pInfo.FractionRank].Permissions.GetValueOrDefault(permissionId) == 0)
             {
                 if (notify)
                 {
@@ -330,7 +638,7 @@ namespace BCRPServer.Game.Fractions
         {
             TriggerEventToMembers("Fraction::UMO", pData.CID, true, GetMemberStatus(pData.Info));
 
-            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}"), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}"));
+            FractionDataTriggerEvent(pData);
         }
 
         public virtual void OnMemberDisconnect(PlayerData pData)
@@ -352,13 +660,18 @@ namespace BCRPServer.Game.Fractions
             MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
 
+        protected virtual void FractionDataTriggerEvent(PlayerData pData)
+        {
+            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}").ToList(), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}").ToList());
+        }
+
         public virtual void SetPlayerFraction(PlayerData.PlayerInfo pInfo, byte rank)
         {
             if (pInfo.PlayerData != null)
             {
                 pInfo.PlayerData.Fraction = Type;
 
-                pInfo.PlayerData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}"), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}"));
+                FractionDataTriggerEvent(pInfo.PlayerData);
             }
             else
             {
@@ -512,5 +825,11 @@ namespace BCRPServer.Game.Fractions
 
             return status;
         }
+
+        public Utils.Vector4 GetSpawnPosition(byte idx) => idx >= SpawnPositions.Length ? null : SpawnPositions[idx];
+        public Utils.Vector4 GetCreationWorkbenchPosition(byte idx) => idx >= CreationWorkbenchPositions.Length ? null : CreationWorkbenchPositions[idx];
+        public Utils.Vector4 GetContainerPosition(byte idx) => idx >= ContainerPositions.Length ? null : ContainerPositions[idx];
+
+        public static bool IsFractionGov(Types type) => type >= Types.BCPD;
     }
 }

@@ -88,6 +88,54 @@ namespace BCRPClient.Sync
                 RAGE.Game.Interior.RefreshInterior(pillboxIntId);
             }
 
+            RAGE.Game.Streaming.RequestIpl("hei_dlc_windows_casino");
+            RAGE.Game.Streaming.RequestIpl("hei_dlc_casino_door");
+
+/*            var casPos = new Vector3(963.41960000f, 47.85423000f, 74.31705000f);
+
+            AsyncTask casTask = null;
+
+            new Additional.Sphere(casPos, 200f, false, Utils.RedColor, uint.MaxValue, null)
+            {
+                OnEnter = async (cancel) =>
+                {
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL");
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01");
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02");
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03");
+
+                    casTask = new AsyncTask(() =>
+                    {
+                        if (!RAGE.Game.Audio.IsStreamPlaying() && RAGE.Game.Audio.LoadStream("casino_walla", "DLC_VW_Casino_Interior_Sounds"))
+                        {
+                            Utils.ConsoleOutput("strm");
+                            RAGE.Game.Audio.PlayStreamFromPosition(casPos.X, casPos.Y, casPos.Z);
+                        }
+
+                        if (RAGE.Game.Audio.IsStreamPlaying() && !RAGE.Game.Audio.IsAudioSceneActive("DLC_VW_Casino_General"))
+                        {
+                            Utils.ConsoleOutput("scn");
+                            RAGE.Game.Audio.StartAudioScene("DLC_VW_Casino_General");
+                        }
+
+                        Utils.ConsoleOutput("task");
+                    }, 1000, true, 0);
+
+                    casTask.Run();
+                },
+
+                OnExit = async (cancel) =>
+                {
+                    casTask?.Cancel();
+
+                    if (RAGE.Game.Audio.IsStreamPlaying())
+                        RAGE.Game.Audio.StopStream();
+
+                    if (RAGE.Game.Audio.IsAudioSceneActive("DLC_VW_Casino_General"))
+                        RAGE.Game.Audio.StopAudioScene("DLC_VW_Casino_General");
+                },
+            };*/
+
             //RAGE.Game.Streaming.RequestIpl("ch1_02_closed");
             //RAGE.Game.Streaming.RequestIpl("dt1_05_hc_remove");
 

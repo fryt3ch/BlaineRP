@@ -18,7 +18,7 @@ namespace BCRPClient.CEF
 
         public static DateTime LastSent;
 
-        private static List<int> TempBinds { get; set; } = new List<int>();
+        private static int EscBindIdx { get; set; } = -1;
 
         public enum AppTypes
         {
@@ -886,17 +886,26 @@ namespace BCRPClient.CEF
             if (CEF.Browser.IsActive(Browser.IntTypes.HUD_Help))
                 CEF.Browser.Switch(Browser.IntTypes.HUD_Help, false);
 
+            CEF.Browser.SwitchTemp(Browser.IntTypes.Phone, true);
+
             CEF.Browser.Window.ExecuteCachedJs("Phone.showPhone", true);
 
             CEF.Cursor.Show(true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
             {
                 if (CEF.Chat.InputVisible)
                     return;
 
+                if (CEF.ActionBox.CurrentContextStr != null && (CEF.ActionBox.CurrentContextStr == "PhonePoliceCallInput" || CEF.ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || CEF.ActionBox.CurrentContextStr == "Phone911Select"))
+                {
+                    CEF.ActionBox.Close(false);
+
+                    return;
+                }
+
                 Sync.Phone.Toggle();
-            }));
+            });
         }
 
         public static void Close()
@@ -921,11 +930,16 @@ namespace BCRPClient.CEF
             if (CEF.HUD.IsActive && !Settings.Interface.HideHints)
                 CEF.Browser.Switch(Browser.IntTypes.HUD_Help, true);
 
+            if (CEF.ActionBox.CurrentContextStr != null && (CEF.ActionBox.CurrentContextStr == "PhonePoliceCallInput" || CEF.ActionBox.CurrentContextStr == "PhoneMedicalCallInput" || CEF.ActionBox.CurrentContextStr == "Phone911Select"))
+            {
+                CEF.ActionBox.Close();
+            }
+
             CEF.Cursor.Show(false, false);
 
-            TempBinds.ForEach(x => KeyBinds.Unbind(x));
+            KeyBinds.Unbind(EscBindIdx);
 
-            TempBinds.Clear();
+            EscBindIdx = -1;
 
             Player.LocalPlayer.ResetData("Bank::LastCID");
             Player.LocalPlayer.ResetData("Bank::LastAmount");
@@ -938,6 +952,11 @@ namespace BCRPClient.CEF
             SetWallpaper(Settings.Other.PhoneWallpaperNum);
 
             CEF.Browser.Window.ExecuteJs("Phone.setDisturb", Settings.Other.PhoneNotDisturb);
+        }
+
+        public static void UpdateTime()
+        {
+            CEF.Browser.Window.ExecuteJs("Phone.setTime", Sync.World.ServerTime.ToString("HH:mm dd.MM.yyyy"));
         }
 
         public static void SetWallpaper(int num)

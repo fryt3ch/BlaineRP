@@ -56,6 +56,10 @@ namespace BCRPClient.CEF
             MinigameOrangePicking, MinigameLockPicking,
 
             Note,
+
+            PoliceTabletPC,
+
+            MenuArrest, MenuCriminalRecords,
         }
 
         private static Dictionary<IntTypes, string> IntNames = new Dictionary<IntTypes, string>()
@@ -102,6 +106,10 @@ namespace BCRPClient.CEF
 
             { IntTypes.Note, "note" },
 
+            { IntTypes.PoliceTabletPC, "police_tablet" },
+            { IntTypes.MenuArrest, "menu_arrest" },
+            { IntTypes.MenuCriminalRecords, "criminal_records" },
+
             { IntTypes.BlipsMenu, "blips" },
 
             { IntTypes.Notifications, "notifications" },
@@ -143,7 +151,13 @@ namespace BCRPClient.CEF
 
                 Window.ExecuteJs("Hud.setTop", new object[] { new object[] { CurrentServer, Player.LocalPlayer.RemoteId, Entities.Players.Count, true } });
 
-                CEF.HUD.Update += CEF.HUD.UpdateHUD;
+                var hudUpdateTask = new AsyncTask(() =>
+                {
+                    CEF.HUD.UpdateHUD();
+
+                }, 2_500, true);
+
+                hudUpdateTask.Run();
 
                 //GameEvents.ScreenResolutionChange += (x, y) => Window.ExecuteCachedJs("resizeAll();");
 

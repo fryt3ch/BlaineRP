@@ -656,6 +656,14 @@ namespace BCRPClient.Sync
 
                 GameEvents.DisableAllControls(false);
 
+                var timeUpdateTask = new AsyncTask(() =>
+                {
+                    CEF.HUD.UpdateTime();
+                    CEF.Phone.UpdateTime();
+                }, 1_000, true, 0);
+
+                timeUpdateTask.Run();
+
                 CEF.HUD.ShowHUD(!Settings.Interface.HideHUD);
 
                 Interaction.Enabled = true;
@@ -2089,6 +2097,8 @@ namespace BCRPClient.Sync
 
             RAGE.Game.Ui.SetPauseMenuActive(false);
 
+            CEF.ActionBox.Close(true);
+
             if (pData != null)
                 Sync.Phone.CallChangeState(pData, Phone.PhoneStateTypes.Off);
 
@@ -2098,7 +2108,6 @@ namespace BCRPClient.Sync
             CEF.Menu.Close();
             CEF.Death.Close();
             CEF.Animations.Close();
-            CEF.ActionBox.Close(true);
             CEF.Shop.Close(true, true);
             CEF.Gas.Close(true);
 
@@ -2114,6 +2123,9 @@ namespace BCRPClient.Sync
             CEF.GarageMenu.Close();
             CEF.HouseMenu.Close(true);
             CEF.BusinessMenu.Close(true);
+
+            CEF.FractionMenu.Close();
+            CEF.PoliceTabletPC.Close();
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 

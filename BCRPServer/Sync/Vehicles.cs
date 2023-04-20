@@ -89,6 +89,8 @@ namespace BCRPServer.Sync
             }
             else if (vInfo.VehicleData?.Vehicle?.Exists != true)
             {
+                pData.Player.Notify("Vehicle::KENS");
+
                 return false;
             }
             else if (vInfo.VehicleData.Vehicle.Dimension != pData.Player.Dimension)
@@ -113,6 +115,8 @@ namespace BCRPServer.Sync
 
                         if (garage == null)
                         {
+                            pData.Player.Notify("Vehicle::KENS");
+
                             return false;
                         }
                         else

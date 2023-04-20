@@ -44,11 +44,13 @@ namespace BCRPClient
             public static string ApartmentsBalanceDeposit = "Пополнение счета квартиры";
             public static string GarageBalanceDeposit = "Пополнение счета гаража";
             public static string BusinessBalanceDeposit = "Пополнение счета бизнеса";
+            public static string FractionBalanceDeposit = "Пополнение счета фракции";
 
             public static string HouseBalanceWithdraw = "Снятие со счета дома";
             public static string ApartmentsBalanceWithdraw = "Снятие со счета квартиры";
             public static string GarageBalanceWithdraw = "Снятие со счета гаража";
             public static string BusinessBalanceWithdraw = "Снятие со счета бизнеса";
+            public static string FractionBalanceWithdraw = "Снятие со счета фракции";
 
             public static string PlacedItemOnGroundSelectHeader = "Выберите действие с предметом";
 

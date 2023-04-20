@@ -155,7 +155,7 @@ namespace BCRPServer.Game.Items
             }
             else
             {
-                return PermissionCheckFuncs.GetValueOrDefault(SID)?.Invoke(this, pData) ?? false;
+                return PermissionCheckFuncs.GetValueOrDefault(SID)?.Invoke(this, pData, null) ?? false;
             }
         }
 
@@ -170,7 +170,7 @@ namespace BCRPServer.Game.Items
             }
             else
             {
-                return NearnessCheckFuncs.GetValueOrDefault(SID)?.Invoke(this, pData) ?? false;
+                return NearnessCheckFuncs.GetValueOrDefault(SID)?.Invoke(this, pData, null) ?? false;
             }
         }
 

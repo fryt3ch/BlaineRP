@@ -287,7 +287,7 @@ namespace BCRPServer.Events.Players
         #endregion
 
         [RemoteProc("Auth::StartPlace")]
-        private static bool StartPlaceSelect(Player player, bool start, int type)
+        private static bool StartPlaceSelect(Player player, bool start, byte type)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -329,7 +329,7 @@ namespace BCRPServer.Events.Players
 
                     player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                 }
-                else if (sType == TempData.StartPlaceTypes.Spawn)
+                else if (sType == TempData.StartPlaceTypes.SpawnBlaineCounty)
                 {
                     tData.PositionToSpawn = new Utils.Vector4(Utils.DefaultSpawnPosition.X, Utils.DefaultSpawnPosition.Y, Utils.DefaultSpawnPosition.Z, Utils.DefaultSpawnHeading);
                     tData.DimensionToSpawn = Utils.Dimensions.Main;
@@ -342,11 +342,37 @@ namespace BCRPServer.Events.Players
                     {
                         var fData = Game.Fractions.Fraction.Get(tData.PlayerData.Fraction);
 
-                        tData.PositionToSpawn = new Utils.Vector4(fData.SpawnPosition.X, fData.SpawnPosition.Y, fData.SpawnPosition.Z, fData.SpawnPosition.RotationZ);
+                        var pos = fData.GetSpawnPosition(0);
+
+                        if (pos == null)
+                            return false;
+
+                        tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
                         tData.DimensionToSpawn = Utils.Dimensions.Main;
 
                         player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
                     }
+                    else
+                        return false;
+                }
+                else if (sType == TempData.StartPlaceTypes.FractionBranch)
+                {
+                    if (tData.PlayerData.Fraction != Game.Fractions.Types.None)
+                    {
+                        var fData = Game.Fractions.Fraction.Get(tData.PlayerData.Fraction);
+
+                        var pos = fData.GetSpawnPosition(1);
+
+                        if (pos == null)
+                            return false;
+
+                        tData.PositionToSpawn = new Utils.Vector4(pos.X, pos.Y, pos.Z, pos.RotationZ);
+                        tData.DimensionToSpawn = Utils.Dimensions.Main;
+
+                        player.Teleport(tData.PositionToSpawn.Position, true, Utils.GetPrivateDimension(player));
+                    }
+                    else
+                        return false;
                 }
                 else if (sType == TempData.StartPlaceTypes.House)
                 {

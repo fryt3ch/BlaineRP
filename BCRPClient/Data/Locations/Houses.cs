@@ -292,19 +292,17 @@ namespace BCRPClient.Data
 
             public float GetFloorZ(int floor) => FloorPosition.Z + (floor - StartFloor) * FloorDistZ;
 
-            public int? GetCurrentFloor()
+            public int? GetFloor(Vector3 pos)
             {
                 if (FloorsAmount <= 0)
                     return null;
-
-                var posZ = Utils.GetGroundZCoord(Player.LocalPlayer.Position, false);
 
                 var minDistZ = 10f;
                 int? minFloor = null;
 
                 for (int i = StartFloor; i < StartFloor + FloorsAmount; i++)
                 {
-                    var distZ = Math.Abs(posZ - GetFloorZ(i));
+                    var distZ = Math.Abs(pos.Z - GetFloorZ(i));
 
                     if (distZ < minDistZ)
                     {

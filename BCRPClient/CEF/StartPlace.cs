@@ -13,12 +13,12 @@ namespace BCRPClient.CEF
 
         public static DateTime LastSent;
 
-        public enum Types
+        public enum Types : byte
         {
             /// <summary>Последнее место на сервере</summary>
             Last = 0,
-            /// <summary>Спавн</summary>
-            Spawn,
+            /// <summary>Спавн (Округ Блэйн)</summary>
+            SpawnBlaineCounty,
             /// <summary>Дом</summary>
             House,
             /// <summary>Квартира</summary>
@@ -27,6 +27,10 @@ namespace BCRPClient.CEF
             Fraction,
             /// <summary>Организация</summary>
             Organisation,
+            /// <summary>Спавн (Лос-Сантос)</summary>
+            SpawnLosSantos,
+            /// <summary>Фракция (филиал)</summary>
+            FractionBranch,
         }
 
         private static Types[] CurrentTypes { get; set; }
@@ -44,7 +48,7 @@ namespace BCRPClient.CEF
 
                 LastType = CurrentTypes.Contains(Types.Last) ? Types.Last : CurrentTypes.First();
 
-                Events.CallRemoteProc("Auth::StartPlace", false, LastType);
+                Events.CallRemoteProc("Auth::StartPlace", false, (byte)LastType);
 
                 LastSent = Sync.World.ServerTime;
             });
@@ -60,7 +64,7 @@ namespace BCRPClient.CEF
                 {
                     LastSent = Sync.World.ServerTime;
 
-                    if ((bool)await Events.CallRemoteProc("Auth::StartPlace", false, (int)type))
+                    if ((bool)await Events.CallRemoteProc("Auth::StartPlace", false, (byte)type))
                     {
                         LastType = type;
 

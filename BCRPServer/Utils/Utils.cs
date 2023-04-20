@@ -852,6 +852,8 @@ namespace BCRPServer
         private static Regex NamePattern = new Regex(@"^[A-Z]{1}[a-zA-Z]{1,9}$", RegexOptions.Compiled);
         private static Regex PasswordPattern = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,64}$", RegexOptions.Compiled);
 
+        public static Regex NumberplatePattern { get; } = new Regex(@"^[A-Z0-9]{1,8}$", RegexOptions.Compiled);
+
         /// <summary>Является ли имя верным (см. Utils.NamePattern)</summary>
         /// <param name="str">Имя</param>
         public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
@@ -1334,5 +1336,7 @@ namespace BCRPServer
         }
 
         public static void SendGPSTracker(this Player player, int type, float x, float y, Entity entity) => player.TriggerEvent("Blip::Tracker", type, x, y, entity);
+
+        public static Vector3 GetLockerPosition(this Game.Fractions.IUniformable unif, byte idx) => idx >= unif.LockerRoomPositions.Length ? null : unif.LockerRoomPositions[idx];
     }
 }

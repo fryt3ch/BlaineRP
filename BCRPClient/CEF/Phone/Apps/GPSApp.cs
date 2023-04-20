@@ -46,10 +46,30 @@ namespace BCRPClient.CEF.PhoneApps
             },
         };
 
+        private static AsyncTask RouteUpdateTask { get; set; }
+
         private static Additional.ExtraBlip CurrentRouteBlip { get; set; }
 
         public GPSApp()
         {
+            Events.Add("Phone::ClearRoute", (args) =>
+            {
+                if (CurrentRouteBlip != null)
+                {
+                    if (RouteUpdateTask != null)
+                    {
+                        RouteUpdateTask.Cancel();
+
+                        RouteUpdateTask = null;
+                    }
+
+                    if (CEF.Phone.CurrentApp == Phone.AppTypes.Navigator && CEF.Phone.CurrentAppTab == -1)
+                        CEF.Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+
+                    CurrentRouteBlip.Destroy();
+                }
+            });
+
             Events.Add("Phone::ShowRoute", (args) =>
             {
                 var routeId = (string)args[0];
@@ -173,7 +193,37 @@ namespace BCRPClient.CEF.PhoneApps
                 }
             }
 
-            CEF.Browser.Window.ExecuteJs("Phone.drawGpsApp", curRouteId == null ? null : new object[] { CurrentRouteBlip.Blip.GetData<string>("GPSRouteName") ?? "null", $"({Player.LocalPlayer.Position.DistanceIgnoreZ(CurrentRouteBlip.Position).ToString("0.000")} m.)" }, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+            RouteUpdateTask?.Cancel();
+
+            if (curRouteId == null)
+            {
+                RouteUpdateTask = null;
+
+                CEF.Browser.Window.ExecuteJs("Phone.drawGpsApp", null, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+            }
+            else
+            {
+                CEF.Browser.Window.ExecuteJs("Phone.drawGpsApp", new object[] { "asd", "asd1" }, AllPositions.Select(x => new object[] { Locale.GPSApp.Names.GetValueOrDefault(x.Key) ?? x.Key, x.Value.Select(y => new object[] { y.Key, Locale.GPSApp.Names.GetValueOrDefault(y.Key) ?? y.Key }) }));
+
+                RouteUpdateTask = new AsyncTask(() =>
+                {
+                    if (Phone.CurrentApp == Phone.AppTypes.Navigator && Phone.CurrentAppTab == -1)
+                    {
+                        if (CurrentRouteBlip?.Exists != true)
+                        {
+                            CurrentRouteBlip = null;
+
+                            CEF.Browser.Window.ExecuteJs("Phone.removeCurRoute();");
+                        }
+                        else
+                        {
+                            CEF.Browser.Window.ExecuteJs("Phone.updateCurRoute", new List<object>() { CurrentRouteBlip.Blip.GetData<string>("GPSRouteName") ?? "null", $"({Player.LocalPlayer.Position.DistanceIgnoreZ(CurrentRouteBlip.Position).ToString("0.000")} m.)" });
+                        }
+                    }
+                }, 1000, true, 0);
+
+                RouteUpdateTask.Run();
+            }
         }
 
         public static void ShowTab(string sectionId)
@@ -184,6 +234,13 @@ namespace BCRPClient.CEF.PhoneApps
                 return;
 
             Phone.CurrentAppTab = 1;
+
+            if (RouteUpdateTask != null)
+            {
+                RouteUpdateTask.Cancel();
+
+                RouteUpdateTask = null;
+            }
 
             CEF.Browser.Window.ExecuteJs("Phone.fillGpsRoutes", new object[] { new object[] { Locale.GPSApp.Names.GetValueOrDefault(sectionId) ?? sectionId, subSections.Select(x => { var data = x.Key.Split('&'); var name = Locale.GPSApp.Names.GetValueOrDefault(data[1]) ?? data[1]; return new object[] { data[0], data.Length == 3 ? $"{name}{data[2]}" : name }; }) } }, true);
         }

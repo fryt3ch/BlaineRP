@@ -1,9 +1,5 @@
 ﻿#define DEBUGGING
-
-using RAGE;
-using RAGE.Elements;
-using System;
-using System.Globalization;
+using RAGE; using RAGE.Elements; using System;
 
 namespace BCRPClient
 {
@@ -46,9 +42,9 @@ namespace BCRPClient
 
         public GameEvents()
         {
-            CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
-            CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
-            CultureInfo.CurrentCulture = Settings.CultureInfo;
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
+            System.Globalization.CultureInfo.CurrentCulture = Settings.CultureInfo;
 
             RAGE.Ui.Console.Clear();
             RAGE.Ui.Console.Reset();
@@ -76,6 +72,13 @@ namespace BCRPClient
             RAGE.Game.Misc.IgnoreNextRestart(true);
 
             RAGE.Game.Invoker.Invoke(0xE6C0C80B8C867537, true); // SetEnableVehicleSlipstreaming
+
+            if (RAGE.Game.Audio.IsStreamPlaying())
+                RAGE.Game.Audio.StopStream();
+
+            RAGE.Game.Audio.StopAudioScenes();
+
+            Utils.DisableFlightMusic();
 
             LoadHUD();
 

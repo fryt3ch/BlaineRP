@@ -15,13 +15,13 @@ namespace BCRPServer.Game.Items
             {
                 None = 0,
 
-                Read = 1 << 1,
+                Read = 1 << 0,
 
-                Write = 1 << 2,
+                Write = 1 << 1,
 
-                WriteTextNullOnly = 1 << 3,
+                WriteTextNullOnly = 1 << 2,
 
-                DefaultTextIsStatic = 1 << 4,
+                DefaultTextIsStatic = 1 << 3,
             }
 
             public override string ClientData => $"\"{Name}\", {Weight}f";

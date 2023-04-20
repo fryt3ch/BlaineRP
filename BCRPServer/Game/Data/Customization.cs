@@ -59,6 +59,8 @@ namespace BCRPServer.Game.Data
             FractionPaletoPolice_0,
             FractionPaletoPolice_1,
             FractionPaletoPolice_2,
+
+            FractionPaletoEMS_0,
         }
 
         // if >= 1000 -> prop

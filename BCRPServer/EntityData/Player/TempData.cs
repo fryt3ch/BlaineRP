@@ -22,12 +22,12 @@ namespace BCRPServer
             StartPlace,
         }
 
-        public enum StartPlaceTypes
+        public enum StartPlaceTypes : byte
         {
             /// <summary>Последнее место на сервере</summary>
             Last = 0,
-            /// <summary>Спавн</summary>
-            Spawn,
+            /// <summary>Спавн (Округ Блэйн)</summary>
+            SpawnBlaineCounty,
             /// <summary>Дом</summary>
             House,
             /// <summary>Квартира</summary>
@@ -36,6 +36,10 @@ namespace BCRPServer
             Fraction,
             /// <summary>Организация</summary>
             Organisation,
+            /// <summary>Спавн (Лос-Сантос)</summary>
+            SpawnLosSantos,
+            /// <summary>Фракция (филиал)</summary>
+            FractionBranch,
         }
 
         /// <summary>Получить TempData игрока</summary>
@@ -144,7 +148,12 @@ namespace BCRPServer
             if (PlayerData == null)
                 return;
 
-            var sTypes = new List<StartPlaceTypes>() { StartPlaceTypes.Spawn };
+            var sTypes = new HashSet<StartPlaceTypes>() { StartPlaceTypes.SpawnBlaineCounty };
+
+            if (PlayerData.Info.LosSantosAllowed)
+            {
+                sTypes.Add(StartPlaceTypes.SpawnLosSantos);
+            }
 
             if (PlayerData.LastData.Dimension != Utils.Dimensions.Main)
             {
@@ -176,7 +185,14 @@ namespace BCRPServer
                 var fData = Game.Fractions.Fraction.Get(PlayerData.Fraction);
 
                 if (fData != null)
+                {
                     sTypes.Add(StartPlaceTypes.Fraction);
+
+                    if (fData.SpawnPositions.Length > 1)
+                    {
+                        sTypes.Add(StartPlaceTypes.FractionBranch);
+                    }
+                }
             }
 
             Player.TriggerEvent("Auth::StartPlace::Load", sTypes);

@@ -1091,6 +1091,23 @@ namespace BCRPServer
 
                         data.AllMembers.Add(x.Value);
                     }
+
+                    cmd.CommandText = "SELECT * FROM police_apbs;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var id = Convert.ToUInt32(reader["ID"]);
+
+                                var data = ((string)reader["Data"]).DeserializeFromJson<Game.Fractions.Police.APBInfo>();
+
+                                Game.Fractions.Police.AddAPBOnLoad(id, data);
+                            }
+                        }
+                    }
                 }
 
                 UpdateFreeUIDs();
@@ -1099,6 +1116,8 @@ namespace BCRPServer
 
         private static void UpdateFreeUIDs()
         {
+            var curTime = Utils.GetCurrentTime();
+
             var usedItems = new List<Game.Items.Item>();
 
             usedItems.AddRange(Game.Items.Container.All.Values.SelectMany(x => x.Items));
@@ -1191,6 +1210,38 @@ namespace BCRPServer
             {
                 if (Game.Estates.Furniture.Get(i) == null)
                     Game.Estates.Furniture.UidHandler.SetUidAsFree(i);
+            }
+
+            var apbsToDel = new List<uint>();
+
+            for (uint i = 1; i <= Game.Fractions.Police.APBUidHandler.LastAddedMaxUid; i++)
+            {
+                var apbInfo = Game.Fractions.Police.GetAPB(i);
+
+                if (apbInfo == null)
+                {
+                    Game.Fractions.Police.APBUidHandler.SetUidAsFree(i);
+                }
+                else if (curTime.Subtract(apbInfo.Time).TotalHours >= 24)
+                {
+                    Game.Fractions.Police.RemoveAPBOnLoad(i);
+
+                    apbsToDel.Add(i);
+
+                    Game.Fractions.Police.APBUidHandler.SetUidAsFree(i);
+                }
+            }
+
+            if (apbsToDel.Count > 0)
+            {
+                var apbUpdCmd = new MySqlCommand();
+
+                if (toDel.Count > 1)
+                    apbUpdCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', apbsToDel)});";
+                else
+                    apbUpdCmd.CommandText = $"DELETE FROM Items WHERE ID={apbsToDel[0]};";
+
+                PushQuery(apbUpdCmd);
             }
 
             //Console.WriteLine(Game.Items.Item.UidHandler.HandlerStr);

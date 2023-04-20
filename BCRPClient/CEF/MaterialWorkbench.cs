@@ -22,9 +22,11 @@ namespace BCRPClient.CEF
 
         private static int EscBindIdx { get; set; } = -1;
 
+        private static object[] TempData { get; set; }
+
         public MaterialWorkbench()
         {
-            Events.Add("Shop::Create", (args) =>
+            Events.Add("Shop::Create", async (args) =>
             {
                 var itemId = (string)args[0];
 
@@ -45,19 +47,24 @@ namespace BCRPClient.CEF
 
                 if (CurrentType == Types.Fraction)
                 {
+                    if (TempData == null)
+                        return;
+
                     Shop.LastSent = Sync.World.ServerTime;
 
-                    Events.CallRemote("Fraction::CWBC", itemId, amount);
+                    var res = await Events.CallRemoteProc("Fraction::CWBC", TempData[0], TempData[1], itemId, amount);
                 }
             });
         }
 
-        public static async void Show(Types type, Dictionary<string, uint> prices, decimal materialsAmount)
+        public static async void Show(Types type, Dictionary<string, uint> prices, decimal materialsAmount, params object[] tempData)
         {
             if (IsActive)
                 return;
 
             await CEF.Browser.Render(Browser.IntTypes.Retail, true, true);
+
+            TempData = tempData;
 
             CurrentType = type;
 
@@ -72,6 +79,8 @@ namespace BCRPClient.CEF
         {
             if (!IsActive)
                 return;
+
+            TempData = null;
 
             if (EscBindIdx >= 0)
                 KeyBinds.Unbind(EscBindIdx);

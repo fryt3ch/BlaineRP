@@ -6,7 +6,7 @@ namespace BCRPClient.CEF
     {
         private static bool ShouldBlockEscMenu()
         {
-            return IsActive || CEF.Browser.IsAnyCEFActive;
+            return IsActive || Utils.IsAnyCefActive(true);
         }
 
         public static bool IsActive { get; private set; }

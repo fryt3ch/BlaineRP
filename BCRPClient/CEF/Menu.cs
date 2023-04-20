@@ -505,11 +505,11 @@ namespace BCRPClient.CEF
         {
             if (player == Player.LocalPlayer)
             {
-                Browser.Window.ExecuteJs("Menu.newHelpMessage", false, $" ({time.ToString("HH:mm")})", "Вы", text);
+                Browser.Window.ExecuteJs("Menu.newHelpMessage", false, time.ToString("HH:mm"), "Вы", text);
             }
             else
             {
-                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, $" ({time.ToString("HH:mm")})", $"{player.Name} [#{player.GetSharedData<object>("CID", 0).ToDecimal()}]", text);
+                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, time.ToString("HH:mm"), $"{player.Name} [#{player.GetSharedData<object>("CID", 0).ToDecimal()}]", text);
             }
         }
 
