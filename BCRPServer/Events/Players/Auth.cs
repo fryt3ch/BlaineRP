@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events.Players
@@ -202,7 +203,7 @@ namespace BCRPServer.Events.Players
 
         #region Character Choose Attempt
         [RemoteEvent("Auth::OnCharacterChooseAttempt")]
-        private static async Task OnCharacterChooseAttempt(Player player, int num)
+        private static async Task OnCharacterChooseAttempt(Player player, byte charNum)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -213,8 +214,6 @@ namespace BCRPServer.Events.Players
 
             if ((tData.StepType != TempData.StepTypes.CharacterSelection) || tData.AccountData == null)
                 return;
-
-            int charNum = num - 1;
 
             if (charNum < 0 || charNum > 2)
                 return;
@@ -239,7 +238,7 @@ namespace BCRPServer.Events.Players
 
                 MySQL.CharacterUpdateOnEnter(data);
 
-                player.TriggerEvent("Auth::SaveLastCharacter", num);
+                player.TriggerEvent("Auth::SaveLastCharacter", charNum);
 
                 if (activePunishment != null)
                 {
@@ -252,7 +251,9 @@ namespace BCRPServer.Events.Players
                     }
                     else if (activePunishment.Type == Sync.Punishment.Types.Arrest)
                     {
-                        var fData = Game.Fractions.Fraction.Get(activePunishment.AdditionalData.DeserializeFromJson<Game.Fractions.Types>()) as Game.Fractions.Police;
+                        var aData = activePunishment.AdditionalData.Split('_');
+
+                        var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(aData[1])) as Game.Fractions.Police;
 
                         if (fData == null)
                             return;

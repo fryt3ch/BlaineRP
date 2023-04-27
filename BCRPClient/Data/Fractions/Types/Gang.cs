@@ -1,0 +1,126 @@
+﻿using Newtonsoft.Json.Linq;
+using RAGE;
+using RAGE.Elements;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace BCRPClient.Data.Fractions
+{
+    public class Gang : Fraction
+    {
+        public Gang(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string CreationWorkbenchPricesJs) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
+        {
+
+        }
+
+        public override void OnStartMembership(params object[] args)
+        {
+            base.OnStartMembership(args);
+        }
+
+        public override void OnEndMembership()
+        {
+            base.OnEndMembership();
+        }
+
+        public class GangZone
+        {
+            public static List<GangZone> All { get; set; } = new List<GangZone>();
+
+            public ushort Id { get; set; }
+
+            public Blip Blip { get; set; }
+
+            public Types OwnerType => (Types)Sync.World.GetSharedData<int>($"GZONE_{Id}_O", 0);
+
+            public int BlipFlashInterval => Sync.World.GetSharedData<int>($"GZONE_{Id}_FI", 0);
+
+            public static void AddZone(ushort id, float posX, float posY)
+            {
+                var gZone = new GangZone();
+
+                gZone.Blip = new Blip(5, new Vector3(posX, posY, 0f), "", 1f, 0, 120, 0f, true, 90, 50f, Settings.MAIN_DIMENSION);
+                gZone.Id = id;
+
+                All.Add(gZone);
+
+                Sync.World.AddDataHandler($"GZONE_{id}_O", GangZoneOwnerDataHandler);
+            }
+
+            private static void GangZoneOwnerDataHandler(string key, object value, object oldValue)
+            {
+                var keyD = key.Split('_');
+
+                var id = ushort.Parse(keyD[1]);
+
+                var zoneInfo = GetById(id);
+
+                if (zoneInfo == null)
+                    return;
+
+                var owner = (Types)Convert.ToInt32(value ?? 0);
+
+                zoneInfo.OnOwnerUpdate(owner);
+            }
+
+            private static void GangZoneBlipFlashDataHandler(string key, object value, object oldValue)
+            {
+                var keyD = key.Split('_');
+
+                var id = ushort.Parse(keyD[1]);
+
+                var zoneInfo = GetById(id);
+
+                if (zoneInfo == null)
+                    return;
+
+                var interval = Convert.ToInt32(value ?? 0);
+
+                zoneInfo.OnBlipFlashUpdate(interval);
+            }
+
+            public void OnOwnerUpdate(Types type)
+            {
+                var color = type == Types.GANG_VAGS ? 5 : type == Types.GANG_BALS ? 27 : type == Types.GANG_FAMS ? 2 : type == Types.GANG_MARA ? 3 : 0;
+
+                Blip.SetColour(color);
+            }
+
+            public void OnBlipFlashUpdate(int interval)
+            {
+                if (interval <= 0)
+                {
+                    Blip.SetFlashes(false);
+                }
+                else
+                {
+                    Blip.SetFlashes(true);
+
+                    Blip.SetFlashInterval(interval);
+                }
+            }
+
+            public static void PostInitialize()
+            {
+                foreach (var x in All)
+                {
+                    x.OnOwnerUpdate(x.OwnerType);
+
+                    x.OnBlipFlashUpdate(x.BlipFlashInterval);
+                }
+            }
+
+            public static GangZone GetById(ushort id) => All.Where(x => x.Id == id).FirstOrDefault();
+        }
+    }
+
+    public class GangEvents : Events.Script
+    {
+        public GangEvents()
+        {
+
+        }
+    }
+}

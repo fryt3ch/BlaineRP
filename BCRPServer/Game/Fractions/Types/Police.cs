@@ -16,7 +16,7 @@ namespace BCRPServer.Game.Fractions
 
         }
 
-        public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", \"{ArrestCellsPositions.SerializeToJson().Replace('"', '\'')}\", {ArrestMenuPosition.ToCSharpStr()}";
+        public override string ClientData => $"Fractions.Types.{Type}, \"{Name}\", {ContainerId}, \"{ContainerPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPositions.SerializeToJson().Replace('\"', '\'')}\", {Ranks.Count - 1}, \"{LockerRoomPositions.SerializeToJson().Replace('\"', '\'')}\", \"{CreationWorkbenchPrices.SerializeToJson().Replace('"', '\'')}\", \"{ArrestCellsPositions.Select(x => x.Position).SerializeToJson().Replace('"', '\'')}\", \"{ArrestMenuPositions.SerializeToJson().Replace('\"', '\'')}\"";
 
         public static Dictionary<string, uint[]> NumberplatePrices { get; private set; } = new Dictionary<string, uint[]>()
         {
@@ -75,6 +75,8 @@ namespace BCRPServer.Game.Fractions
 
         private static Dictionary<uint, GPSTrackerInfo> GPSTrackers { get; set; } = new Dictionary<uint, GPSTrackerInfo>();
 
+        private Dictionary<uint, ArrestInfo> ActiveArrests { get; set; } = new Dictionary<uint, ArrestInfo>();
+
         public static UidHandlerUInt32 APBUidHandler { get; set; } = new UidHandlerUInt32(1);
         public static UidHandlerUInt32 GPSTrackerUidHandler { get; set; } = new UidHandlerUInt32(0);
         public static UidHandlerUInt16 NotificationUidHandler { get; set; } = new UidHandlerUInt16(0);
@@ -89,7 +91,7 @@ namespace BCRPServer.Game.Fractions
 
         public Utils.Vector4[] ArrestCellsPositions { get; set; }
 
-        public Vector3 ArrestMenuPosition { get; set; }
+        public Vector3[] ArrestMenuPositions { get; set; }
 
         public Utils.Vector4 ArrestFreePosition { get; set; }
 
@@ -347,14 +349,48 @@ namespace BCRPServer.Game.Fractions
             var notificationsObj = Notifications.Select(x => $"{x.Key}_{x.Value.Time.GetUnixTimestamp()}_{x.Value.Text}_{(x.Value.Position == null ? string.Empty : $"{x.Value.Position.X}_{x.Value.Position.Y}_{x.Value.Position.Z}")}").ToList();
             var gpsTrackersObj = GPSTrackers.Select(x => $"{x.Key}_{x.Value.InstallerStr}_{x.Value.VehicleStr}").ToList();
 
+            var arrestsObj = ActiveArrests.Select(x => $"{x.Key}_{x.Value.TargetName}_{x.Value.MemberName}_{x.Value.PunishmentData.StartDate.GetUnixTimestamp()}").ToList();
+
             var arrestsAmount = GetPlayerArrestAmount(pData.Info);
 
-            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}").ToList(), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}").ToList(), callsObj, finesObj, apbsObj, notificationsObj, gpsTrackersObj, arrestsAmount);
+            pData.Player.TriggerEvent("Player::SCF", (int)Type, News.SerializeToJson(), AllVehicles.Select(x => $"{x.Key.VID}&{x.Key.VID}&{x.Value.MinimalRank}").ToList(), AllMembers.Select(x => $"{x.CID}&{x.Name} {x.Surname}&{x.FractionRank}&{(x.IsOnline ? 1 : 0)}&{GetMemberStatus(x)}&{x.LastJoinDate.GetUnixTimestamp()}").ToList(), callsObj, finesObj, apbsObj, notificationsObj, gpsTrackersObj, arrestsObj, arrestsAmount);
         }
 
         public static ushort GetPlayerArrestAmount(PlayerData.PlayerInfo pInfo) => pInfo.GetTempData<ushort>("Police::Arrests", 0);
         public static void SetPlayerArrestAmount(PlayerData.PlayerInfo pInfo, ushort amount) => pInfo.SetTempData("Police::Arrests", amount);
         public static bool ResetPlayerArrestAmount(PlayerData.PlayerInfo pInfo) => pInfo.ResetTempData("Police::Arrests");
+
+        public override void PostInitialize()
+        {
+            base.PostInitialize();
+
+            var allPunishments = PlayerData.PlayerInfo.All.Values.ToDictionary(x => x, x => x.Punishments.Where(x => x.Type == Sync.Punishment.Types.Arrest)).ToList();
+
+            foreach (var y in allPunishments)
+            {
+                foreach (var x in y.Value)
+                {
+                    var dataS = x.AdditionalData?.Split('_');
+
+                    if (dataS == null)
+                        continue;
+
+                    var fractionType = (Types)int.Parse(dataS[1]);
+
+                    if (fractionType != Type)
+                        continue;
+
+                    var memberInfo = PlayerData.PlayerInfo.Get(x.PunisherID);
+                    var targetInfo = y.Key;
+
+                    ActiveArrests.Add(x.Id, new ArrestInfo() { TargetCID = y.Key.CID, PunishmentData = x, MemberName = memberInfo == null ? "null" : $"{memberInfo.Name} {memberInfo.Surname}", TargetName = $"{targetInfo.Name} {targetInfo.Surname}" });
+                }
+            }
+        }
+
+        public Vector3 GetArrestMenuPosition(byte idx) => idx >= ArrestMenuPositions.Length ? null : ArrestMenuPositions[idx];
+
+        public ArrestInfo GetArrestInfoById(uint id) => ActiveArrests.GetValueOrDefault(id);
 
         public class CallInfo
         {
@@ -445,6 +481,22 @@ namespace BCRPServer.Game.Fractions
             public Types FractionType { get; set; }
 
             public GPSTrackerInfo()
+            {
+
+            }
+        }
+
+        public class ArrestInfo
+        {
+            public string TargetName { get; set; }
+
+            public string MemberName { get; set; }
+
+            public Sync.Punishment PunishmentData { get; set; }
+
+            public uint TargetCID { get; set; }
+
+            public ArrestInfo()
             {
 
             }

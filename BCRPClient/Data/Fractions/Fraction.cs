@@ -13,15 +13,20 @@ namespace BCRPClient.Data.Fractions
     {
         None = 0,
 
-        BCPD,
-        LSPD,
+        COP_BLAINE = 1,
+        COP_LS = 2,
 
-        WZLN,
+        MEDIA_LS = 10,
 
-        BCEMS,
-        LSEMS,
+        EMS_BLAINE = 20,
+        EMS_LS = 21,
 
-        LSADM,
+        GOV_LS = 30,
+
+        GANG_MARA = 41,
+        GANG_FAMS = 42,
+        GANG_VAGS = 43,
+        GANG_BALS = 44,
     }
 
     public class MemberData
@@ -441,7 +446,7 @@ namespace BCRPClient.Data.Fractions
 
         public T GetCurrentData<T>(string key)
         {
-            var data = CurrentData.GetValueOrDefault(key);
+            var data = CurrentData?.GetValueOrDefault(key);
 
             if (data is T dataT)
                 return dataT;

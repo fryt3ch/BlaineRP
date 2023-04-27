@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1.Tsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events.Players
@@ -128,6 +129,8 @@ namespace BCRPServer.Events.Players
 
                 if (pData == null)
                     return;
+
+                pData.StopUpdateTimer();
 
                 if (pData.CurrentBusiness != null)
                     Sync.Players.ExitFromBuiness(pData, false);
@@ -297,41 +300,86 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.IsKnocked)
+            pData.StopAllAnims();
+
+            player.DetachAllObjectsInHand();
+
+            pData.StopUseCurrentItem();
+
+            foreach (var x in pData.Punishments)
             {
-                pData.StopAllAnims();
-
-                player.DetachAllObjectsInHand();
-
-                pData.StopUseCurrentItem();
-
-                player.SetHealth(10);
-
-                pData.IsKnocked = false;
-
-                if (pData.Player.Dimension == Utils.Dimensions.Demorgan)
+                if (x.Type == Punishment.Types.NRPPrison)
                 {
+                    if (!x.IsActive())
+                        continue;
+
+                    if (pData.IsKnocked)
+                        pData.IsKnocked = false;
+
                     var pos = Utils.Demorgan.GetNextPos();
 
                     player.Teleport(pos, false, null, null, false);
 
                     NAPI.Player.SpawnPlayer(player, pos, player.Heading);
-                }
-                else
-                {
-                    player.Teleport(null, false, null, null, false);
 
-                    NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
+                    player.SetHealth(50);
+
+                    return;
                 }
+                else if (x.Type == Punishment.Types.Arrest)
+                {
+                    if (!x.IsActive())
+                        continue;
+
+                    if (pData.IsKnocked)
+                        pData.IsKnocked = false;
+
+                    var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(x.AdditionalData.Split('_')[1])) as Game.Fractions.Police;
+
+                    if (fData != null)
+                    {
+                        var pos = fData.GetNextArrestCellPosition();
+
+                        player.Teleport(pos, false, null, null, false);
+
+                        NAPI.Player.SpawnPlayer(player, pos, player.Heading);
+
+                        player.SetHealth(50);
+                    }
+
+                    return;
+                }
+                else if (x.Type == Punishment.Types.FederalPrison)
+                {
+                    if (!x.IsActive())
+                        continue;
+
+                    if (pData.IsKnocked)
+                        pData.IsKnocked = false;
+
+                    return;
+                }
+            }
+
+            if (pData.IsKnocked)
+            {
+                pData.IsKnocked = false;
+
+                Game.Fractions.EMS emsFraction;
+                int posIdx;
+
+                Game.Fractions.EMS.GetClosestAfterDeathFractionAndPosIdx(player.Position, out emsFraction, out posIdx);
+
+                var pos = emsFraction.AfterDeathSpawnPositions[posIdx];
+
+                player.Teleport(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, false);
+
+                NAPI.Player.SpawnPlayer(player, pos.Position, pos.RotationZ);
+
+                player.SetHealth(10);
             }
             else
             {
-                pData.StopAllAnims();
-
-                player.DetachAllObjectsInHand();
-
-                pData.StopUseCurrentItem();
-
                 player.Teleport(null, false, null, null, false);
 
                 pData.ActiveCall?.Cancel(Sync.Phone.Call.CancelTypes.ServerAuto);
@@ -395,6 +443,8 @@ namespace BCRPServer.Events.Players
 
             if (!player.ResetData("CharacterNotReady"))
                 return false;
+
+            pData.ResetUpdateTimer();
 
             if (!Enum.IsDefined(typeof(Sync.Animations.EmotionTypes), emotion))
                 emotion = -1;
@@ -715,36 +765,6 @@ namespace BCRPServer.Events.Players
         }
         #endregion
 
-        [RemoteEvent("Player::UpdateTime")]
-        private static void UpdateTime(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            var currentTime = Utils.GetCurrentTime();
-
-            if (currentTime.Subtract(pData.LastJoinDate).TotalSeconds < 60)
-                return;
-
-            pData.LastJoinDate = currentTime;
-
-            pData.TimePlayed += 1;
-            pData.LastData.SessionTime += 60;
-
-            if (pData.TimePlayed % 2 == 0)
-            {
-                if (pData.Satiety > 0)
-                    pData.Satiety--;
-
-                if (pData.Mood > 0)
-                    pData.Mood--;
-            }
-        }
-
         [RemoteEvent("Players::SetIsInvalid")]
         private static void SetIsInvalid(Player player, bool state)
         {
@@ -902,23 +922,6 @@ namespace BCRPServer.Events.Players
                 pData.IsMuted = false;
 
                 player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
-
-                punishment.AmnestyInfo = new Punishment.Amnesty();
-
-                MySQL.UpdatePunishmentAmnesty(punishment);
-            }
-            else if (punishment.Type == Punishment.Types.NRPPrison)
-            {
-                player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, ushort.MaxValue, -2, null);
-
-                Utils.Demorgan.SetFromDemorgan(pData);
-
-                if (pData.Info.Fraction != Game.Fractions.Types.None)
-                {
-                    var fData = Game.Fractions.Fraction.Get(pData.Info.Fraction);
-
-                    fData.OnMemberStatusChange(pData.Info, fData.GetMemberStatus(pData.Info));
-                }
 
                 punishment.AmnestyInfo = new Punishment.Amnesty();
 

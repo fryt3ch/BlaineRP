@@ -238,7 +238,7 @@ namespace BCRPServer.Events.Commands
 
             var curTime = Utils.GetCurrentTime();
 
-            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.NRPPrison, reason, curTime, curTime.AddMinutes(mins), pData.CID);
+            var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.NRPPrison, reason, curTime, DateTimeOffset.FromUnixTimeSeconds(mins * 60).DateTime, pData.CID) {  AdditionalData = "0" };
 
             if (allJails.Count >= Settings.MAX_PUNISHMENTS_PER_TYPE_HISTORY)
             {
@@ -260,7 +260,7 @@ namespace BCRPServer.Events.Commands
 
             if (tInfo.PlayerData != null)
             {
-                tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason);
+                tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason, punishment.AdditionalData);
 
                 Sync.Chat.SendGlobal(Sync.Chat.Types.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
 

@@ -12,7 +12,7 @@ namespace BCRPClient.Data.Fractions
     {
         public WeazelNews(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string CreationWorkbenchPricesJs) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
         {
-            if (Type == Types.WZLN)
+            if (Type == Types.MEDIA_LS)
             {
 
             }

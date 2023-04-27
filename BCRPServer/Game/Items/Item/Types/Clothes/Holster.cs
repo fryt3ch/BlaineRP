@@ -20,8 +20,11 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "hl_m_0", new ItemData("Кобура на ногу", true, 148, new int[] { 0 }, 146, null) },
-            { "hl_m_1", new ItemData("Кобура простая", true, 149, new int[] { 0 }, 147, null) },
+            { "hl_m_0", new ItemData("Кобура на ногу", true, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 2, new int[] { 0 }, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 0, "hl_f_0") },
+            { "hl_m_1", new ItemData("Кобура простая", true, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 3, new int[] { 0 }, Game.Data.Customization.DECLS_10_MALE_COMP_IDX_BASE_OFFSET + 1, "hl_f_1") },
+
+            { "hl_f_0", new ItemData("Кобура на ногу", false, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 2, new int[] { 0 }, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 0, "hl_m_0") },
+            { "hl_f_1", new ItemData("Кобура простая", false, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 3, new int[] { 0 }, Game.Data.Customization.DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET + 1, "hl_m_1") },
         };
 
         [JsonIgnore]

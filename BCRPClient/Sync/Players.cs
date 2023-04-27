@@ -628,7 +628,7 @@ namespace BCRPClient.Sync
 
                 (new AsyncTask(() =>
                 {
-                    Events.CallRemote("Player::UpdateTime");
+                    //Events.CallRemote("Player::UpdateTime");
 
                     CEF.Menu.TimePlayed += 1;
                 }, 60_000, true, 60_000)).Run();
@@ -695,6 +695,8 @@ namespace BCRPClient.Sync
                 {
                     x.Initialize();
                 }
+
+                Data.Fractions.Gang.GangZone.PostInitialize();
             });
             #endregion
 

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPServer
 {
@@ -18,6 +19,8 @@ namespace BCRPServer
 
         /// <summary>Дата последнего захода игрока на сервер</summary>
         public DateTime LastJoinDate { get => Info.LastJoinDate; set => Info.LastJoinDate = value; }
+
+        private Timer UpdateTimer { get; set; }
 
         /// <summary>Текущее оружие</summary>
         /// <value>Объект класса Game.Items.Weapon, null - если ничего</value>

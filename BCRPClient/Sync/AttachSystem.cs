@@ -88,6 +88,8 @@ namespace BCRPClient.Sync
             FarmOrangeBoxCarry,
 
             FarmMilkBucketCarry,
+
+            EmsHealingBedFakeAttach,
             #endregion
 
             #endregion
@@ -462,6 +464,8 @@ namespace BCRPClient.Sync
             { Types.Cuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
             { Types.CableCuffs, new AttachmentData(60309, new Vector3(-0.055f, 0.06f, 0.04f), new Vector3(265f, 155f, 80f), false, false, false, 0, true) },
 
+            { Types.EmsHealingBedFakeAttach, new AttachmentData(int.MinValue, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
+
             { Types.PoliceEscort, new AttachmentData(11816, new Vector3(0.4f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
             {
@@ -742,11 +746,11 @@ namespace BCRPClient.Sync
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
-                TargetAction(type, entity);
+                TargetAction(type, entity, true);
             }
             else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
             {
-                RootAction(type, gTarget);
+                RootAction(type, gTarget, true);
             }
         }
 
@@ -784,11 +788,11 @@ namespace BCRPClient.Sync
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
-                TargetAction(item.Type, null);
+                TargetAction(item.Type, null, false);
             }
             else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
             {
-                RootAction(item.Type, null);
+                RootAction(item.Type, null, false);
             }
         }
         #endregion
@@ -796,7 +800,7 @@ namespace BCRPClient.Sync
         #region Object Methods
         public static async System.Threading.Tasks.Task AttachObject(uint hash, Entity target, Types type, string syncData)
         {
-            await Utils.RequestModel(hash);
+            var res = await Utils.RequestModel(hash);
 
             var gTarget = Utils.GetGameEntity(target);
 
@@ -868,11 +872,11 @@ namespace BCRPClient.Sync
             }
             else
             {
-                gEntity = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+                if (res)
+                {
+                    gEntity = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+                }
             }
-
-            if (gEntity == null)
-                return;
 
             AttachmentData props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
@@ -886,33 +890,40 @@ namespace BCRPClient.Sync
                 {
                     if (type == Types.ItemFishG)
                     {
-                        var pos = syncData.Split('&');
+                        if (gEntity != null)
+                        {
+                            var pos = syncData.Split('&');
 
-                        RAGE.Game.Entity.SetEntityCoordsNoOffset(gEntity.Handle, float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]), false, false, false);
+                            RAGE.Game.Entity.SetEntityCoordsNoOffset(gEntity.Handle, float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]), false, false, false);
 
-                        RAGE.Game.Entity.SetEntityVisible(gEntity.Handle, false, true);
+                            RAGE.Game.Entity.SetEntityVisible(gEntity.Handle, false, true);
+                        }
                     }
                 }
                 else
                 {
-                    if (type == Types.TrailerObjOnBoat)
+                    if (gEntity != null)
                     {
-                        AddLocalAttachment(gTarget.Handle, gEntity.Handle);
+                        if (type == Types.TrailerObjOnBoat)
+                        {
+                            AddLocalAttachment(gTarget.Handle, gEntity.Handle);
 
-                        RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
-                    }
-                    else
-                    {
-                        RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+                            RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+                        }
+                        else
+                        {
+                            RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+                        }
                     }
                 }
 
-                props.EntityAction?.Invoke(new object[] { gEntity });
+                if (gEntity != null)
+                    props.EntityAction?.Invoke(new object[] { gEntity });
             }
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
-                RootAction(type, gEntity);
+                RootAction(type, gEntity, true);
             }
         }
 
@@ -929,43 +940,44 @@ namespace BCRPClient.Sync
                 return;
 
             var gEntity = item.Object;
-            var gTarget = Utils.GetGameEntity(target);
+            var gTarget = target as GameEntity;
 
-            if (gTarget == null || gEntity == null)
+            if (gTarget == null)
                 return;
 
-            AttachmentData props = ModelDependentAttachments.GetValueOrDefault(item.Model)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
+            var props = ModelDependentAttachments.GetValueOrDefault(item.Model)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
-            if (gEntity.HasData("PtfxHandle"))
+            if (gEntity != null)
             {
-                RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
-            }
-
-            if (type == Types.TrailerObjOnBoat)
-            {
-                RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
-
-                RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props?.Collision ?? false);
-
-                gEntity.Destroy();
-            }
-            else
-            {
-                if (gEntity.IsLocal)
+                if (gEntity.HasData("PtfxHandle"))
                 {
-                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
+                    RAGE.Game.Graphics.StopParticleFxLooped(gEntity.GetData<int>("PtfxHandle"), false);
+                }
 
-                    RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+                if (type == Types.TrailerObjOnBoat)
+                {
+                    RemoveLocalAttachment(gTarget.Handle, gEntity.Handle);
+
+                    RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props?.Collision ?? false);
 
                     gEntity.Destroy();
                 }
                 else
                 {
-                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
+                    if (gEntity.IsLocal)
+                    {
+                        RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
+
+                        RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+
+                        gEntity.Destroy();
+                    }
+                    else
+                    {
+                        RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
+                    }
                 }
             }
-
-            gEntity = null;
 
             list.Remove(item);
 
@@ -973,7 +985,7 @@ namespace BCRPClient.Sync
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
-                RootAction(item.Type, null);
+                RootAction(item.Type, null, false);
             }
         }
 
@@ -1477,6 +1489,39 @@ namespace BCRPClient.Sync
                     })
                 )
             },
+
+            {
+                Types.EmsHealingBedFakeAttach,
+
+                (
+                    null,
+                
+                    () =>
+                    {
+                        Additional.ExtraColshape.All.Values.Where(x => x.Name == "ems_healing_bed").ToList().ForEach(x => x.Destroy());
+                    },
+
+                    new Action(() =>
+                    {
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        Utils.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+
+                        if (Utils.CanShowCEF(true, true))
+                        {
+                            if (bind.IsPressed)
+                            {
+                                if (!Sync.Animations.LastSent.IsSpam(500, false, false))
+                                {
+                                    Sync.Animations.LastSent = Sync.World.ServerTime;
+
+                                    Events.CallRemote("EMS::BedFree");
+                                }
+                            }
+                        }
+                    })
+                )
+            },
         };
 
         private static (Action On, Action Off, Action Loop)? GetTargetActions(Types type)
@@ -1513,7 +1558,7 @@ namespace BCRPClient.Sync
             return action;
         }
 
-        public static void TargetAction(Types type, Entity root)
+        public static void TargetAction(Types type, Entity root, bool attach)
         {
             var data = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -1527,15 +1572,10 @@ namespace BCRPClient.Sync
             if (actions == null)
                 return;
 
-            if (root == null)
+            if (attach)
             {
-                if (actions.Value.Loop != null)
-                    GameEvents.Update -= actions.Value.Loop.Invoke;
+                data.IsAttachedTo = root;
 
-                actions.Value.Off?.Invoke();
-            }
-            else
-            {
                 actions.Value.On?.Invoke();
 
                 if (actions.Value.Loop != null)
@@ -1544,9 +1584,18 @@ namespace BCRPClient.Sync
                     GameEvents.Update += actions.Value.Loop.Invoke;
                 }
             }
+            else
+            {
+                data.IsAttachedTo = null;
+
+                if (actions.Value.Loop != null)
+                    GameEvents.Update -= actions.Value.Loop.Invoke;
+
+                actions.Value.Off?.Invoke();
+            }
         }
 
-        public static void RootAction(Types type, Entity target)
+        public static void RootAction(Types type, Entity target, bool attach)
         {
             var data = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -1558,14 +1607,7 @@ namespace BCRPClient.Sync
             if (actions == null)
                 return;
 
-            if (target == null)
-            {
-                if (actions.Value.Loop != null)
-                    GameEvents.Update -= actions.Value.Loop.Invoke;
-
-                actions.Value.Off?.Invoke();
-            }
-            else
+            if (attach)
             {
                 actions.Value.On?.Invoke();
 
@@ -1574,6 +1616,13 @@ namespace BCRPClient.Sync
                     GameEvents.Update -= actions.Value.Loop.Invoke;
                     GameEvents.Update += actions.Value.Loop.Invoke;
                 }
+            }
+            else
+            {
+                if (actions.Value.Loop != null)
+                    GameEvents.Update -= actions.Value.Loop.Invoke;
+
+                actions.Value.Off?.Invoke();
             }
         }
         #endregion

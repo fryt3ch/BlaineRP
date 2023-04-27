@@ -517,6 +517,114 @@ namespace BCRPServer.Events.Fractions
             }
         }
 
+        [RemoteProc("Police::ARGI")]
+        private static object PoliceArrestGetInfo(Player player, int fractionTypeNum, byte menuPosIdx, uint punishmentId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+                return null;
+
+            if (player.Dimension != Utils.Dimensions.Main)
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            var menuPos = fData.GetArrestMenuPosition(menuPosIdx);
+
+            if (menuPos == null || menuPos.DistanceTo(player.Position) > 5f)
+                return null;
+
+            var arrestInfo = fData.GetArrestInfoById(punishmentId);
+
+            if (arrestInfo == null)
+                return null;
+
+            return $"{arrestInfo.PunishmentData.StartDate.GetUnixTimestamp()}_{arrestInfo.PunishmentData.EndDate.GetUnixTimestamp()}_{arrestInfo.TargetName}_{arrestInfo.TargetCID}_{arrestInfo.MemberName}_{arrestInfo.PunishmentData.Reason}";
+        }
+
+        [RemoteProc("Police::ARF")]
+        private static bool PoliceArrestFree(Player player, int fractionTypeNum, byte menuPosIdx, uint punishmentId, string reason)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+                return false;
+
+            if (player.Dimension != Utils.Dimensions.Main || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
+
+            if (fData == null)
+                return false;
+
+            var menuPos = fData.GetArrestMenuPosition(menuPosIdx);
+
+            if (menuPos == null || menuPos.DistanceTo(player.Position) > 5f)
+                return false;
+
+            var arrestInfo = fData.GetArrestInfoById(punishmentId);
+
+            if (arrestInfo == null)
+                return false;
+
+            if (reason == null)
+                return true;
+
+            return true;
+        }
+
+        [RemoteProc("Police::ARCT")]
+        private static bool PoliceArrestChangeTime(Player player, int fractionTypeNum, byte menuPosIdx, uint punishmentId, ushort timeChange, string reason)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
+                return false;
+
+            if (player.Dimension != Utils.Dimensions.Main || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
+
+            if (fData == null)
+                return false;
+
+            var menuPos = fData.GetArrestMenuPosition(menuPosIdx);
+
+            if (menuPos == null || menuPos.DistanceTo(player.Position) > 5f)
+                return false;
+
+            var arrestInfo = fData.GetArrestInfoById(punishmentId);
+
+            if (arrestInfo == null)
+                return false;
+
+            if (reason == null)
+                return true;
+
+            return true;
+        }
+
         [RemoteProc("Police::Call")]
         private static bool PoliceCall(Player player, string message)
         {

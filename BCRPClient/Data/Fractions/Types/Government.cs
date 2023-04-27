@@ -33,7 +33,7 @@ namespace BCRPClient.Data.Fractions
                 };
             }
 
-            if (Type == Types.LSADM)
+            if (Type == Types.GOV_LS)
             {
                 UniformNames = new List<string>()
                 {

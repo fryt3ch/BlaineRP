@@ -1,5 +1,6 @@
 ﻿#define DEBUGGING
 using RAGE; using RAGE.Elements; using System;
+using System.Linq;
 
 namespace BCRPClient
 {
@@ -149,6 +150,12 @@ namespace BCRPClient
                 Player.LocalPlayer.SetFlashLightEnabled(true);
 
                 Additional.ExtraColshape.UpdateStreamed();
+
+                Additional.ExtraColshape.Streamed.Where(x => x.IsInside && x.Name.StartsWith("REAS")).ToList().ForEach(x =>
+                {
+                    x.OnExit?.Invoke(null);
+                    x.OnEnter?.Invoke(null);
+                });
             };
 
             Events.OnPlayerQuit += async (Player player) =>

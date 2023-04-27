@@ -188,6 +188,34 @@ namespace BCRPServer.Events.Players
             Utils.Demorgan.SetToDemorgan(pData, true);
         }
 
+        [RemoteEvent("Player::COPAR::TPME")]
+        public static void PoliceArrestTeleportMe(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsFrozen)
+                return;
+
+            var punishment = pData.Punishments.Where(x => x.Type == Sync.Punishment.Types.Arrest && x.IsActive()).FirstOrDefault();
+
+            if (punishment == null)
+                return;
+
+            var dataS = punishment.AdditionalData.Split('_');
+
+            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(dataS[1])) as Game.Fractions.Police;
+
+            if (fData == null)
+                return;
+
+            fData.SetPlayerToPrison(pData, true);
+        }
+
         [RemoteProc("EstAgency::GD")]
         public static string EstateAgencyGetData(Player player, int estAgencyId, int posId)
         {

@@ -4,7 +4,6 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 
 namespace BCRPServer.Game.Fractions
 {
@@ -12,15 +11,20 @@ namespace BCRPServer.Game.Fractions
     {
         None = 0,
 
-        BCPD,
-        LSPD,
+        COP_BLAINE = 1,
+        COP_LS = 2,
 
-        WZLN,
+        MEDIA_LS = 10,
 
-        BCEMS,
-        LSEMS,
+        EMS_BLAINE = 20,
+        EMS_LS = 21,
 
-        LSADM,
+        GOV_LS = 30,
+
+        GANG_MARA = 41,
+        GANG_FAMS = 42,
+        GANG_VAGS = 43,
+        GANG_BALS = 44,
     }
 
     public interface IUniformable
@@ -116,7 +120,7 @@ namespace BCRPServer.Game.Fractions
         {
             Game.Items.Container.AllSIDs.Add("f_storage", new Items.Container.Data(125, 100_000f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Storage));
 
-            new Police(Types.BCPD, "Полиция Округа Блэйн")
+            new Police(Types.COP_BLAINE, "Полиция Округа Блэйн")
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -127,16 +131,22 @@ namespace BCRPServer.Game.Fractions
                 ContainerPositions = new Utils.Vector4[]
                 {
                      new Utils.Vector4(-441.8761f, 5987.493f, 30.7162f, 2.5f),
+
+                     new Utils.Vector4(1848.793f, 3689.671f, 33.26704f, 1.5f),
                 },
 
                 CreationWorkbenchPositions = new Utils.Vector4[]
                 {
                     new Utils.Vector4(-437.8557f, 5988.477f, 30.71618f, 1f),
+
+                    new Utils.Vector4(1851.802f, 3691.445f, 33.26705f, 1f),
                 },
 
                 LockerRoomPositions = new Vector3[]
                 {
                     new Vector3(-439.1087f, 5993.017f, 30.71619f),
+
+                    new Vector3(1857.349f, 3689.408f, 33.26704f),
                 },
 
                 UniformTypes = new List<Data.Customization.UniformTypes>()
@@ -154,7 +164,10 @@ namespace BCRPServer.Game.Fractions
 
                 ArrestFreePosition = new Utils.Vector4(-442.0793f, 6017.475f, 31.67867f, 314.3072f),
 
-                ArrestMenuPosition = new Vector3(-435.4453f, 5997.362f, 31.71618f),
+                ArrestMenuPositions = new Vector3[]
+                {
+                    new Vector3(-435.4453f, 5997.362f, 31.71618f),
+                },
 
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
@@ -170,7 +183,7 @@ namespace BCRPServer.Game.Fractions
                 ItemTag = "BCPD",
             };
 
-            new Police(Types.LSPD, "Полиция Лос-Сантоса")
+            new Police(Types.COP_LS, "Полиция Лос-Сантоса")
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -201,12 +214,22 @@ namespace BCRPServer.Game.Fractions
 
                 ArrestCellsPositions = new Utils.Vector4[]
                 {
+                    new Utils.Vector4(459.9757f, -994.5201f, 24.91471f, 269.2255f),
+                    new Utils.Vector4(459.4457f, -997.96f, 24.91471f, 269.2255f),
+                    new Utils.Vector4(459.7129f, -1001.613f, 24.91471f, 269.2255f),
 
+                    new Utils.Vector4(467.5764f, -994.4102f, 24.91471f, 275f),
+                    new Utils.Vector4(472.0844f, -994.6555f, 24.91471f, 275f),
+                    new Utils.Vector4(476.5382f, -994.5233f, 24.91471f, 275f),
+                    new Utils.Vector4(480.6288f, -994.2647f, 24.91471f, 275f),
                 },
 
                 ArrestFreePosition = new Utils.Vector4(433.1303f, -981.7498f, 30.71028f, 86.3075f),
 
-                ArrestMenuPosition = new Vector3(0f, 0f, 0f),
+                ArrestMenuPositions = new Vector3[]
+                {
+
+                },
 
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
@@ -222,7 +245,7 @@ namespace BCRPServer.Game.Fractions
                 ItemTag = "LSPD",
             };
 
-            new WeazelNews(Types.WZLN, "Weazel News")
+            new WeazelNews(Types.MEDIA_LS, "Weazel News")
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -253,32 +276,41 @@ namespace BCRPServer.Game.Fractions
                 ItemTag = "WZLN",
             };
 
-            new EMS(Types.BCEMS, "Больница Округа Блэйн")
+            new EMS(Types.EMS_BLAINE, "Больница Округа Блэйн")
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
                     new Utils.Vector4(-258.9563f, 6330.19f, 32.42728f, 218.3881f),
+
                     new Utils.Vector4(1842.196f, 3679.172f, 34.27489f, 118.615f),
                 },
 
                 LockerRoomPositions = new Vector3[]
                 {
                     new Vector3(-256.1902f, 6327.726f, 31.42725f),
+
+                    new Vector3(1836.598f, 3685.146f, 33.27487f),
                 },
 
                 UniformTypes = new List<Data.Customization.UniformTypes>()
                 {
                     Data.Customization.UniformTypes.FractionPaletoEMS_0,
+                    Data.Customization.UniformTypes.FractionPaletoEMS_2,
+                    Data.Customization.UniformTypes.FractionPaletoEMS_1,
                 },
 
                 ContainerPositions = new Utils.Vector4[]
                 {
                     new Utils.Vector4(-264.9498f, 6321.589f, 31.4273f, 1.5f),
+
+                    new Utils.Vector4(1842.006f, 3684.026f, 33.27487f, 1.5f),
                 },
 
                 CreationWorkbenchPositions = new Utils.Vector4[]
                 {
                     new Utils.Vector4(-262.7031f, 6319.312f, 31.4273f, 1f),
+
+                    new Utils.Vector4(1839.462f, 3682.543f, 33.27487f, 1f),
                 },
 
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
@@ -294,13 +326,15 @@ namespace BCRPServer.Game.Fractions
 
                 ItemTag = "BCEMS",
 
-                BedPositions = new Vector3()
+                AfterDeathSpawnPositions = new Utils.Vector4[]
                 {
+                    new Utils.Vector4(-249.0699f, 6314.924f, 32.42727f, 39.13411f),
 
+                    new Utils.Vector4(1819.797f, 3675.556f, 34.27489f, 298.6678f),
                 },
             };
 
-            new EMS(Types.LSEMS, "Больница Лос-Сантоса")
+            new EMS(Types.EMS_LS, "Больница Лос-Сантоса")
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -340,13 +374,13 @@ namespace BCRPServer.Game.Fractions
 
                 ItemTag = "LSEMS",
 
-                BedPositions = new Vector3()
+                AfterDeathSpawnPositions = new Utils.Vector4[]
                 {
-
+                    new Utils.Vector4(321.2299f, -584.1389f, 43.28405f, 66.56934f),
                 },
             };
 
-            new Government(Types.LSADM, "Правительство Лос-Сантоса")
+            new Government(Types.GOV_LS, "Правительство Лос-Сантоса")
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -387,12 +421,14 @@ namespace BCRPServer.Game.Fractions
                 ItemTag = "LSGOV",
             };
 
-            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.BCPD}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
+            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.COP_BLAINE}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
 
             foreach (var x in All.Values)
             {
                 x.Initialize();
             }
+
+            Gang.GangZone.Initialize();
 
             return All.Count;
         }
@@ -408,6 +444,13 @@ namespace BCRPServer.Game.Fractions
                 x.PostInitialize();
 
                 lines.Add($"new Fractions.{x.GetType().Name}({x.ClientData});");
+            }
+
+            foreach (var x in Gang.GangZone.All)
+            {
+                x.UpdateOwner(false);
+
+                lines.Add($"Fractions.Gang.GangZone.AddZone({x.Id}, {x.Position.X}f, {x.Position.Y}f);");
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "FRACTIONS_TO_REPLACE", lines);
@@ -542,6 +585,16 @@ namespace BCRPServer.Game.Fractions
 
             if (updateDb)
                 MySQL.FractionUpdateLockStates(this);
+
+            if (state)
+            {
+                var cont = Game.Items.Container.Get(ContainerId);
+
+                if (cont != null)
+                {
+                    cont.ClearAllObservers(x => !HasMemberPermission(x.Info, 0, false));
+                }
+            }
         }
 
         public void SetCreationWorkbenchLocked(bool state, bool updateDb)
@@ -667,6 +720,14 @@ namespace BCRPServer.Game.Fractions
 
         public virtual void SetPlayerFraction(PlayerData.PlayerInfo pInfo, byte rank)
         {
+            pInfo.FractionRank = rank;
+
+            AllMembers.Add(pInfo);
+
+            MySQL.CharacterFractionAndRankUpdate(pInfo);
+
+            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
+
             if (pInfo.PlayerData != null)
             {
                 pInfo.PlayerData.Fraction = Type;
@@ -677,14 +738,6 @@ namespace BCRPServer.Game.Fractions
             {
                 pInfo.Fraction = Type;
             }
-
-            pInfo.FractionRank = rank;
-
-            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
-
-            AllMembers.Add(pInfo);
-
-            MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
 
         public virtual void SetPlayerNoFraction(PlayerData.PlayerInfo pInfo)
@@ -704,9 +757,9 @@ namespace BCRPServer.Game.Fractions
 
             AllMembers.Remove(pInfo);
 
-            TriggerEventToMembers("Fraction::MC", pInfo.CID);
-
             MySQL.CharacterFractionAndRankUpdate(pInfo);
+
+            TriggerEventToMembers("Fraction::MC", pInfo.CID);
         }
 
         public void AddNews(string text, bool updateDb)
@@ -830,6 +883,6 @@ namespace BCRPServer.Game.Fractions
         public Utils.Vector4 GetCreationWorkbenchPosition(byte idx) => idx >= CreationWorkbenchPositions.Length ? null : CreationWorkbenchPositions[idx];
         public Utils.Vector4 GetContainerPosition(byte idx) => idx >= ContainerPositions.Length ? null : ContainerPositions[idx];
 
-        public static bool IsFractionGov(Types type) => type >= Types.BCPD;
+        public static bool IsFractionGov(Types type) => type >= Types.COP_BLAINE;
     }
 }

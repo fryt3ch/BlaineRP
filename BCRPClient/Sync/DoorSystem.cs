@@ -51,6 +51,15 @@ namespace BCRPClient.Sync
             // Paleto Police Cells
             ToggleLock("v_ilev_ph_cellgate", -431.1921f, 5999.741f, 31.87312f, true);
             ToggleLock("v_ilev_ph_cellgate", -428.0646f, 5996.672f, 31.87312f, true);
+
+            // Mission Row Police Cells
+            ToggleLock("v_ilev_ph_cellgate", 461.8065f, -994.4086f, 25.06443f, true);
+            ToggleLock("v_ilev_ph_cellgate", 461.8065f, -997.6584f, 25.06443f, true);
+            ToggleLock("v_ilev_ph_cellgate", 461.8065f, -1001.302f, 25.06443f, true);
+            ToggleLock("v_ilev_gtdoor", 467.1922f, -996.4594f, 25.00599f, true);
+            ToggleLock("v_ilev_gtdoor", 471.4755f, -996.4594f, 25.00599f, true);
+            ToggleLock("v_ilev_gtdoor", 475.7543f, -996.4594f, 25.00599f, true);
+            ToggleLock("v_ilev_gtdoor", 480.0301f, -996.4594f, 25.00599f, true);
         }
 
         public static void ToggleLock(DoorInfo doorInfo, bool state) => ToggleLock(doorInfo.Model, doorInfo.Position, state);

@@ -251,21 +251,35 @@ namespace BCRPServer.Game.Items
         }
 
         /// <summary>Метод для очистки всех игроков, смотрящих контейнер</summary>
-        public void ClearAllObservers()
+        public void ClearAllObservers(Func<PlayerData, bool> checkFunc = null)
         {
             if (PlayersObserving.Count == 0)
                 return;
 
             var players = new List<Player>();
 
-            PlayersObserving.ForEach(x =>
+            if (checkFunc == null)
             {
-                x.CurrentContainer = null;
+                PlayersObserving.ForEach(x =>
+                {
+                    x.CurrentContainer = null;
 
-                players.Add(x.Player);
-            });
+                    players.Add(x.Player);
+                });
 
-            PlayersObserving.Clear();
+                PlayersObserving.Clear();
+            }
+            else
+            {
+                PlayersObserving.Where(checkFunc).ToList().ForEach(x =>
+                {
+                    x.CurrentContainer = null;
+
+                    players.Add(x.Player);
+
+                    PlayersObserving.Remove(x);
+                });
+            }
 
             if (players.Count > 0)
                 NAPI.ClientEvent.TriggerClientEventToPlayers(players.ToArray(), "Inventory::Close");

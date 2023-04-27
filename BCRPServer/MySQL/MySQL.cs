@@ -569,15 +569,15 @@ namespace BCRPServer
 
                                 var amnestyObj = reader["Amnesty"];
 
+                                var dataObj = reader["Data"];
+
+                                if (dataObj != DBNull.Value)
+                                    obj.AdditionalData = ((string)dataObj).DeserializeFromJson<string>();
+
                                 if (amnestyObj != DBNull.Value)
                                     obj.AmnestyInfo = ((string)amnestyObj).DeserializeFromJson<Sync.Punishment.Amnesty>();
                                 else if (!obj.IsActive())
                                     obj.AmnestyInfo = new Sync.Punishment.Amnesty();
-
-                                var dataObj = reader["Data"];
-
-                                if (dataObj != DBNull.Value)
-                                    obj.AdditionalData = (string)dataObj;
 
                                 allPunishments.Add(obj, cid);
 
@@ -1105,6 +1105,28 @@ namespace BCRPServer
                                 var data = ((string)reader["Data"]).DeserializeFromJson<Game.Fractions.Police.APBInfo>();
 
                                 Game.Fractions.Police.AddAPBOnLoad(id, data);
+                            }
+                        }
+                    }
+
+                    cmd.CommandText = "SELECT * FROM gang_zones;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var id = Convert.ToUInt16(reader["ID"]);
+                                var ownerType = (Game.Fractions.Types)Convert.ToUInt32(reader["Owner"]);
+                                var date = (DateTime)reader["Date"];
+
+                                var gangZoneInfo = Game.Fractions.Gang.GangZone.GetZoneById(id);
+
+                                if (gangZoneInfo == null)
+                                    continue;
+
+                                gangZoneInfo.OwnerType = ownerType;
                             }
                         }
                     }

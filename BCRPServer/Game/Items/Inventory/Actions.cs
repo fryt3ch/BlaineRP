@@ -426,6 +426,8 @@ namespace BCRPServer.Game.Items
 
                         (pData, item, group, slot, args) =>
                         {
+                            var clothes = (Game.Items.Clothes)item;
+
                             var player = pData.Player;
 
                             if (group == Groups.Items || group == Groups.Bag)
@@ -445,6 +447,9 @@ namespace BCRPServer.Game.Items
                             {
                                 if (item is Game.Items.Clothes.IToggleable tItem)
                                 {
+                                    if (Game.Data.Customization.IsUniformElementActive(pData, clothes is Game.Items.Clothes.IProp ? 1000 + clothes.Slot : clothes.Slot, true))
+                                        return Results.Error;
+
                                     tItem.Action(pData);
                                 }
 

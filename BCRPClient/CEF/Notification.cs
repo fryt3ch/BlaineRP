@@ -377,6 +377,8 @@ namespace BCRPClient.CEF
             { "DriveS::PEF5", new Instance(Types.Error, "Вы провалили практическую часть экзамена!\nПричина: закончилось топливо\nЕсли хотите повторить попытку, придется заново оплатить и сдать теорию!", Locale.Notifications.DefHeader) },
 
             { "DriveS::PES", new Instance(Types.Success, "Вы успешно сдали экзамен и получаете права категории {0}!\nНе нарушайте ПДД, за серьезные нарушения Вы можете лишиться прав!", Locale.Notifications.DefHeader) },
+
+            { "EMS::HBEDS", new Instance(Types.Success, "Вы завершили процесс лечения!", Locale.Notifications.DefHeader) },
         };
 
         public Notification()

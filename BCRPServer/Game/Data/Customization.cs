@@ -7,6 +7,39 @@ namespace BCRPServer.Game.Data
 {
     public class Customization
     {
+        public const int MASKS_1_MALE_COMP_IDX_BASE_OFFSET = 216;
+        public const int MASKS_1_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int HAIRS_2_MALE_COMP_IDX_BASE_OFFSET = 0;
+        public const int HAIRS_2_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int TORSOS_3_MALE_COMP_IDX_BASE_OFFSET = 0;
+        public const int TORSOS_3_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int LEGS_4_MALE_COMP_IDX_BASE_OFFSET = 0;
+        public const int LEGS_4_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int BAGS_5_MALE_COMP_IDX_BASE_OFFSET = 111;
+        public const int BAGS_5_FEMALE_COMP_IDX_BASE_OFFSET = 111;
+
+        public const int SHOES_6_MALE_COMP_IDX_BASE_OFFSET = 126;
+        public const int SHOES_6_FEMALE_COMP_IDX_BASE_OFFSET = 130;
+
+        public const int ACCS_7_MALE_COMP_IDX_BASE_OFFSET = 167;
+        public const int ACCS_7_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int UNDERS_8_MALE_COMP_IDX_BASE_OFFSET = 0;
+        public const int UNDERS_8_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int ARMOURS_9_MALE_COMP_IDX_BASE_OFFSET = 0;
+        public const int ARMOURS_9_FEMALE_COMP_IDX_BASE_OFFSET = 0;
+
+        public const int DECLS_10_MALE_COMP_IDX_BASE_OFFSET = 146;
+        public const int DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET = 158;
+
+        public const int TOPS_11_MALE_COMP_IDX_BASE_OFFSET = 442;
+        public const int TOPS_11_FEMALE_COMP_IDX_BASE_OFFSET = 473;
+
         public enum ClothesTypes
         {
             Top = 11,
@@ -61,6 +94,8 @@ namespace BCRPServer.Game.Data
             FractionPaletoPolice_2,
 
             FractionPaletoEMS_0,
+            FractionPaletoEMS_1,
+            FractionPaletoEMS_2,
         }
 
         // if >= 1000 -> prop
@@ -123,6 +158,44 @@ namespace BCRPServer.Game.Data
                     { 6, new Tuple<int, int>[] { new Tuple<int, int>(20, 0), new Tuple<int, int>(0, 0) } },
                     { 3, new Tuple<int, int>[] { new Tuple<int, int>(11, 0), new Tuple<int, int>(0, 0) } },
                     { 7, new Tuple<int, int>[] { new Tuple<int, int>(24, 2), new Tuple<int, int>(0, 0) } },
+                }
+            },
+
+            {
+                UniformTypes.FractionPaletoEMS_0,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(TOPS_11_MALE_COMP_IDX_BASE_OFFSET + 0, 0), new Tuple<int, int>(0, 0) } },
+                    { 4, new Tuple<int, int>[] { new Tuple<int, int>(28, 8), new Tuple<int, int>(0, 0) } },
+                    { 8, new Tuple<int, int>[] { new Tuple<int, int>(11, 7), new Tuple<int, int>(0, 0) } },
+                    { 6, new Tuple<int, int>[] { new Tuple<int, int>(7, 0), new Tuple<int, int>(0, 0) } },
+                    { 3, new Tuple<int, int>[] { new Tuple<int, int>(1, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(ACCS_7_MALE_COMP_IDX_BASE_OFFSET + 0, 0), new Tuple<int, int>(0, 0) } },
+                }
+            },
+
+            {
+                UniformTypes.FractionPaletoEMS_1,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(319, 0), new Tuple<int, int>(0, 0) } },
+                    { 4, new Tuple<int, int>[] { new Tuple<int, int>(35, 0), new Tuple<int, int>(0, 0) } },
+                    { 8, new Tuple<int, int>[] { new Tuple<int, int>(154, 0), new Tuple<int, int>(0, 0) } },
+                    { 6, new Tuple<int, int>[] { new Tuple<int, int>(15, 0), new Tuple<int, int>(0, 0) } },
+                    { 3, new Tuple<int, int>[] { new Tuple<int, int>(92, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(126, 0), new Tuple<int, int>(0, 0) } },
+                }
+            },
+
+            {
+                UniformTypes.FractionPaletoEMS_2,
+
+                new Dictionary<int, Tuple<int, int>[]>()
+                {
+                    { 11, new Tuple<int, int>[] { new Tuple<int, int>(TOPS_11_MALE_COMP_IDX_BASE_OFFSET + 0, 0), new Tuple<int, int>(0, 0) } },
+                    { 7, new Tuple<int, int>[] { new Tuple<int, int>(ACCS_7_MALE_COMP_IDX_BASE_OFFSET + 0, 0), new Tuple<int, int>(0, 0) } },
                 }
             },
         };

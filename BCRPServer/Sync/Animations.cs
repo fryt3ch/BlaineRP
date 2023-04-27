@@ -78,6 +78,8 @@ namespace BCRPServer.Sync
             MilkCow0,
 
             PoliceEscort0,
+
+            BedLie0,
         }
 
         public enum OtherTypes

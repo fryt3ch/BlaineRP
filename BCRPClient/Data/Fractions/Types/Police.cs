@@ -10,7 +10,7 @@ namespace BCRPClient.Data.Fractions
 {
     public class Police : Fraction, IUniformable
     {
-        public Police(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string LockerRoomPositionsStr, string CreationWorkbenchPricesJs, string ArrestCellsPositionsJs, Vector3 ArrestMenuPosition) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
+        public Police(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string LockerRoomPositionsStr, string CreationWorkbenchPricesJs, string ArrestCellsPositionsJs, string ArrestMenuPositionsStr) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
         {
             var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(LockerRoomPositionsStr);
 
@@ -33,7 +33,30 @@ namespace BCRPClient.Data.Fractions
                 };
             }
 
-            if (Type == Types.BCPD)
+            var arrestMenuPoses = RAGE.Util.Json.Deserialize<Vector3[]>(ArrestMenuPositionsStr);
+
+            for (int i = 0; i < arrestMenuPoses.Length; i++)
+            {
+                var pos = arrestMenuPoses[i];
+
+                pos.Z -= 1f;
+
+                var arrestMenuCs = new Additional.Cylinder(pos, 1f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                {
+                    InteractionType = Additional.ExtraColshape.InteractionTypes.FractionPoliceArrestMenuInteract,
+
+                    ActionType = Additional.ExtraColshape.ActionTypes.FractionInteract,
+
+                    Data = $"{(int)Type}_{i}",
+                };
+
+                var arrestMenuText = new TextLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Управление задержанными\nв СИЗО", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                {
+                    Font = 0,
+                };
+            }
+
+            if (Type == Types.COP_LS)
             {
                 UniformNames = new List<string>()
                 {
@@ -43,12 +66,12 @@ namespace BCRPClient.Data.Fractions
                 };
             }
 
-            this.ArrestCellsPositions = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(ArrestCellsPositionsJs);
+            this.ArrestCellsPositions = RAGE.Util.Json.Deserialize<Vector3[]>(ArrestCellsPositionsJs);
         }
 
         public static Dictionary<string, uint[]> NumberplatePrices { get; set; }
 
-        public Utils.Vector4[] ArrestCellsPositions { get; set; }
+        public Vector3[] ArrestCellsPositions { get; set; }
 
         public List<string> UniformNames { get; set; }
 
@@ -66,13 +89,57 @@ namespace BCRPClient.Data.Fractions
 
             SetCurrentData("GPSTrackers", ((JArray)args[7]).ToObject<List<string>>().Select(x => { var d = x.Split('_'); return new GPSTrackerInfo() { Id = uint.Parse(d[0]), InstallerStr = d[1], VehicleStr = d[2] }; }).ToList());
 
-            SetCurrentData("ArrestsAmount", Convert.ToUInt32(args[8]));
+            SetCurrentData("Arrests", ((JArray)args[8]).ToObject<List<string>>().Select(x => { var d = x.Split('_'); return new ArrestInfo() { Id = uint.Parse(d[0]), TargetName = d[1], MemberName = d[2], Time = DateTimeOffset.FromUnixTimeSeconds(long.Parse(d[3])).DateTime, }; }).ToList());
+
+            SetCurrentData("ArrestsAmount", Convert.ToUInt32(args[9]));
 
             CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
             KeyBinds.CurrentExtraAction0 = () => CuffPlayer(null, null);
 
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
+
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 10, "fraction_invite");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 11, "police_search");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 12, "cuffs");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 13, "police_escort");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 14, "prison");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 15, "fine");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 0, "take_license");
+
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "gps_tracker");
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "police_search");
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 18, "player_to_veh");
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 19, "player_to_trunk");
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 0, "player_from_veh");
+
             SetCurrentData("LastCuffed", DateTime.MinValue);
+
+            var arrestCs = new List<Additional.ExtraColshape>();
+
+            if (Type == Types.COP_BLAINE)
+            {
+                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null));
+            }
+            else if (Type == Types.COP_LS)
+            {
+                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null));
+            }
+
+            foreach (var x in arrestCs)
+            {
+                x.Name = "FRAC_COP_ARREST_CS";
+
+                x.OnEnter = (cancel) =>
+                {
+                    Utils.ConsoleOutput("CAN ARREST");
+                };
+
+                x.OnExit = (cancel) =>
+                {
+                    Utils.ConsoleOutput("CAN NOT ARREST");
+                };
+            }
         }
 
         public override void OnEndMembership()
@@ -80,6 +147,8 @@ namespace BCRPClient.Data.Fractions
             CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
             KeyBinds.CurrentExtraAction0 = null;
+
+            Additional.ExtraColshape.All.Values.Where(x => x.Name == "FRAC_COP_ARREST_CS").ToList().ForEach(x => x.Destroy());
 
             base.OnEndMembership();
         }
@@ -249,6 +318,21 @@ namespace BCRPClient.Data.Fractions
             public string InstallerStr { get; set; }
 
             public GPSTrackerInfo()
+            {
+
+            }
+        }
+
+        public class ArrestInfo
+        {
+            public uint Id { get; set; }
+
+            public DateTime Time { get; set; }
+
+            public string TargetName { get; set; }
+            public string MemberName { get; set; }
+
+            public ArrestInfo()
             {
 
             }

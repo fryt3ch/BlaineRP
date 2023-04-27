@@ -3,6 +3,7 @@ using RAGE;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace BCRPClient.Sync
@@ -60,6 +61,13 @@ namespace BCRPClient.Sync
             }
             else if (Type == Types.NRPPrison)
             {
+                var strData = AdditionalData?.Split('_');
+
+                if (strData == null)
+                    return;
+
+                timeLeft = TimeSpan.FromSeconds(EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
+
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Вы не можете сделать это сейчас!\nВы находитесь в NonRP-тюрьме, до выхода осталось {timeLeft.GetBeautyString()}");
             }
             else if (Type == Types.Warn)
@@ -76,10 +84,24 @@ namespace BCRPClient.Sync
             }
             else if (Type == Types.Arrest)
             {
+                var strData = AdditionalData?.Split('_');
+
+                if (strData == null)
+                    return;
+
+                timeLeft = TimeSpan.FromSeconds(EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
+
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Вы не можете сделать это сейчас!\nВы арестованы и находитесь в СИЗО, до выхода осталось {timeLeft.GetBeautyString()}");
             }
             else if (Type == Types.FederalPrison)
             {
+                var strData = AdditionalData?.Split('_');
+
+                if (strData == null)
+                    return;
+
+                timeLeft = TimeSpan.FromSeconds(EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
+
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Вы не можете сделать это сейчас!\nВы арестованы и находитесь в Федеральной тюрьме, до выхода осталось {timeLeft.GetBeautyString()}");
             }
         }
@@ -94,17 +116,43 @@ namespace BCRPClient.Sync
 
                 foreach (var x in All)
                 {
-                    var timeLeft = x.EndDate.Subtract(curTime);
-
-                    var secs = timeLeft.TotalSeconds;
-
-                    if (secs < 0)
+                    if (x.Type != Types.NRPPrison && x.Type != Types.FederalPrison && x.Type != Types.Arrest)
                     {
-                        Events.CallRemote("Player::UnpunishMe", x.Id);
+                        var timeLeft = x.EndDate.Subtract(curTime);
+
+                        var secs = timeLeft.TotalSeconds;
+
+                        if (secs < 0)
+                        {
+                            Events.CallRemote("Player::UnpunishMe", x.Id);
+                        }
+                        else
+                        {
+
+                        }
                     }
                     else
                     {
+                        var dataS = x.AdditionalData?.Split('_');
 
+                        if (dataS != null)
+                        {
+                            var time = long.Parse(dataS[0]) + 1;
+
+                            dataS[0] = time.ToString();
+
+                            x.AdditionalData = string.Join('_', dataS);
+                        }
+
+                        if (x.Type == Types.Arrest)
+                        {
+                            var cs = Additional.ExtraColshape.All.Values.Where(x => x.Name == "CopArrestCell").ToList();
+
+                            if (!cs.Where(x => x.IsInside == true).Any())
+                            {
+                                Events.CallRemote("Player::COPAR::TPME");
+                            }
+                        }
                     }
                 }
             }, 1000, true, 0);
@@ -138,6 +186,23 @@ namespace BCRPClient.Sync
             {
                 GameEvents.Render -= ArrestRender;
                 GameEvents.Render += ArrestRender;
+
+                var dataS = data.AdditionalData.Split('_');
+
+                var fData = Data.Fractions.Fraction.Get((Data.Fractions.Types)int.Parse(dataS[1])) as Data.Fractions.Police;
+
+                if (fData != null)
+                {
+                    foreach (var x in fData.ArrestCellsPositions)
+                    {
+                        Additional.ExtraColshape cs = null;
+
+                        cs = new Additional.Sphere(new Vector3(x.X, x.Y, x.Z), 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                        {
+                            Name = "CopArrestCell",
+                        };
+                    }
+                }
             }
             else if (data.Type == Types.FederalPrison)
             {
@@ -160,6 +225,8 @@ namespace BCRPClient.Sync
             else if (data.Type == Types.Arrest)
             {
                 GameEvents.Render -= ArrestRender;
+
+                Additional.ExtraColshape.All.Values.Where(x => x.Name == "CopArrestCell").ToList().ForEach(x => x.Destroy());
             }
             else if (data.Type == Types.FederalPrison)
             {
@@ -174,7 +241,12 @@ namespace BCRPClient.Sync
             if (jailData == null)
                 return;
 
-            var timeLeft = jailData.EndDate.Subtract(Sync.World.ServerTime);
+            var strData = jailData.AdditionalData?.Split('_');
+
+            if (strData == null)
+                return;
+
+            var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
             Utils.DrawText($"ВЫ НАХОДИТЕСЬ В NONRP-ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
 
@@ -188,7 +260,12 @@ namespace BCRPClient.Sync
             if (jailData == null)
                 return;
 
-            var timeLeft = jailData.EndDate.Subtract(Sync.World.ServerTime);
+            var strData = jailData.AdditionalData?.Split('_');
+
+            if (strData == null)
+                return;
+
+            var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
             Utils.DrawText($"ВЫ НАХОДИТЕСЬ В СИЗО", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
 
@@ -202,7 +279,12 @@ namespace BCRPClient.Sync
             if (jailData == null)
                 return;
 
-            var timeLeft = jailData.EndDate.Subtract(Sync.World.ServerTime);
+            var strData = jailData.AdditionalData?.Split('_');
+
+            if (strData == null)
+                return;
+
+            var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
             Utils.DrawText($"ВЫ НАХОДИТЕСЬ В ФЕДЕРАЛЬНОЙ ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
 
@@ -227,11 +309,13 @@ namespace BCRPClient.Sync
 
                 var reason = (string)args[4];
 
+                var addData = args.Length > 5 ? (string)args[5] : null;
+
                 if (endDateL >= 0)
                 {
                     var endDate = DateTimeOffset.FromUnixTimeSeconds(endDateL).DateTime;
 
-                    var mData = new Sync.Punishment() { Type = type, EndDate = endDate, Id = id };
+                    var mData = new Sync.Punishment() { Type = type, EndDate = endDate, Id = id, AdditionalData = addData };
 
                     Sync.Punishment.AddPunishment(mData);
 
@@ -243,6 +327,13 @@ namespace BCRPClient.Sync
                     }
                     else if (type == Punishment.Types.NRPPrison)
                     {
+                        var strData = mData.AdditionalData?.Split('_');
+
+                        if (strData == null)
+                            return;
+
+                        timeStr = TimeSpan.FromSeconds(EndDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
                         CEF.Notification.Show(Notification.Types.Jail1, "NonRP-тюрьма", admin == null ? $"Вы были посажены в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}");
                     }
                     else if (type == Punishment.Types.Warn)
@@ -259,10 +350,24 @@ namespace BCRPClient.Sync
                     }
                     else if (type == Punishment.Types.Arrest)
                     {
+                        var strData = mData.AdditionalData?.Split('_');
+
+                        if (strData == null)
+                            return;
+
+                        timeStr = TimeSpan.FromSeconds(EndDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
                         CEF.Notification.Show(Notification.Types.Mute, "Арест (СИЗО)", admin == null ? $"Вы были арестованы и посажены в СИЗО на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в СИЗО на {timeStr}\n\nПричина: {reason}");
                     }
                     else if (type == Punishment.Types.FederalPrison)
                     {
+                        var strData = mData.AdditionalData?.Split('_');
+
+                        if (strData == null)
+                            return;
+
+                        timeStr = TimeSpan.FromSeconds(EndDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
                         CEF.Notification.Show(Notification.Types.Mute, "Арест (Федеральная тюрьма)", admin == null ? $"Вы были арестованы и посажены в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}");
                     }
                 }

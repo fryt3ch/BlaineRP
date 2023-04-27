@@ -89,6 +89,8 @@ namespace BCRPServer.Sync
             FarmOrangeBoxCarry,
 
             FarmMilkBucketCarry,
+
+            EmsHealingBedFakeAttach,
             #endregion
 
             #endregion
@@ -806,6 +808,38 @@ namespace BCRPServer.Sync
 
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentCowInfo(pData, out idx))
                                     Game.Jobs.Farmer.ResetPlayerCurrentCowInfo(pData);
+
+                                pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
+
+            {
+                Types.EmsHealingBedFakeAttach,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                Game.Fractions.EMS ems;
+                                int bedIdx;
+
+                                if (Game.Fractions.EMS.TryGetCurrentPlayerBed(pData, out ems, out bedIdx))
+                                {
+                                    ems.SetBedAsFree(bedIdx);
+                                }
 
                                 pData.StopGeneralAnim();
                             }

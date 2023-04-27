@@ -30,7 +30,7 @@ namespace BCRPClient.CEF
 
             #region Events
 
-            Events.Add("Auth::SaveLastCharacter", (object[] args) => Additional.Storage.SetData("Auth::LastCharacter", (int)args[0]));
+            Events.Add("Auth::SaveLastCharacter", (object[] args) => Additional.Storage.SetData("Auth::LastCharacter", (int)args[0] + 1));
 
             #region Showers
             Events.Add("Auth::ShowLoginPage", async (object[] args) =>
@@ -193,7 +193,7 @@ namespace BCRPClient.CEF
                 RAGE.Events.CallRemote("Auth::OnRegistrationAttempt", login, mail, pass1);
             });
 
-            Events.Add("Auth::LoginAttempt", (object[] args) =>
+            Events.Add("Auth::LoginAttempt", (args) =>
             {
                 if (LastTime.IsSpam(500, false, false))
                     return;
@@ -209,14 +209,16 @@ namespace BCRPClient.CEF
                 RAGE.Events.CallRemote("Auth::OnLoginAttempt", login, pass);
             });
 
-            Events.Add("Auth::CharacterChooseAttempt", (object[] args) =>
+            Events.Add("Auth::CharacterChooseAttempt", (args) =>
             {
                 if (LastTime.IsSpam(500, false, false))
                     return;
 
+                var charNum = (int)args[0] - 1;
+
                 LastTime = Sync.World.ServerTime;
 
-                RAGE.Events.CallRemote("Auth::OnCharacterChooseAttempt", args);
+                RAGE.Events.CallRemote("Auth::OnCharacterChooseAttempt", (byte)charNum);
             });
             #endregion
             #endregion

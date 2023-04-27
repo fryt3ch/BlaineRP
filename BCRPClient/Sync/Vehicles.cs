@@ -2156,5 +2156,17 @@ namespace BCRPClient.Sync
 
             CEF.Estate.ShowVehicleInfo(vDataData.ID, vData.VID, veh.GetMod(11), vData.HasTurboTuning, true);
         }
+
+        public static void FixVehicle(Vehicle vehicle)
+        {
+            if (!vehicle.IsDamaged() && vehicle.GetEngineHealth() >= 1000f && vehicle.GetBodyHealth() >= 1000f)
+            {
+                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.Vehicles.VehicleIsNotDamagedFixError);
+            }
+            else
+            {
+                Events.CallRemote("Vehicles::Fix", vehicle);
+            }
+        }
     }
 }

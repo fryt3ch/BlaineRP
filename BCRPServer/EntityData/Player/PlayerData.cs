@@ -739,5 +739,86 @@ namespace BCRPServer
 
             return true;
         }
+
+        public void ResetUpdateTimer()
+        {
+            if (UpdateTimer != null)
+            {
+                UpdateTimer.Dispose();
+            }
+
+            UpdateTimer = new Timer((_) =>
+            {
+                NAPI.Task.Run(() =>
+                {
+                    if (Player?.Exists != true)
+                        return;
+
+                    TimePlayed += 1;
+                    LastData.SessionTime += 60;
+
+                    if (TimePlayed % 2 == 0)
+                    {
+                        if (Satiety > 0)
+                            Satiety--;
+
+                        if (Mood > 0)
+                            Mood--;
+                    }
+
+                    foreach (var x in Punishments)
+                    {
+                        if (x.Type == Sync.Punishment.Types.NRPPrison || x.Type == Sync.Punishment.Types.Arrest || x.Type == Sync.Punishment.Types.FederalPrison)
+                        {
+                            if (!x.IsActive())
+                                continue;
+
+                            var strD = x.AdditionalData.Split('_');
+
+                            var time = long.Parse(strD[0]) + 60;
+
+                            if (time >= x.EndDate.GetUnixTimestamp())
+                            {
+                                if (x.Type == Sync.Punishment.Types.NRPPrison)
+                                {
+                                    Player.TriggerEvent("Player::Punish", x.Id, (int)x.Type, ushort.MaxValue, -2, null);
+
+                                    Utils.Demorgan.SetFromDemorgan(this);
+
+                                    if (Info.Fraction != Game.Fractions.Types.None)
+                                    {
+                                        var fData = Game.Fractions.Fraction.Get(Info.Fraction);
+
+                                        fData.OnMemberStatusChange(Info, fData.GetMemberStatus(Info));
+                                    }
+
+                                    x.AmnestyInfo = new Sync.Punishment.Amnesty();
+
+                                    MySQL.UpdatePunishmentAmnesty(x);
+                                }
+                            }
+                            else
+                            {
+                                strD[0] = (long.Parse(strD[0]) + 60).ToString();
+
+                                x.AdditionalData = string.Join('_', strD);
+
+                                MySQL.UpdatePunishmentAdditionalData(x);
+                            }
+                        }
+                    }
+                });
+            }, null, 60_000, 60_000);
+        }
+
+        public void StopUpdateTimer()
+        {
+            if (UpdateTimer != null)
+            {
+                UpdateTimer.Dispose();
+
+                UpdateTimer = null;
+            }
+        }
     }
 }

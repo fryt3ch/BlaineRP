@@ -40,7 +40,7 @@ namespace BCRPClient.CEF
         {
             LastSent = DateTime.MinValue;
 
-            Events.Add("Auth::StartPlace::Load", async (object[] args) =>
+            Events.Add("Auth::StartPlace::Load", async (args) =>
             {
                 CEF.Auth.CloseAll(true);
 
@@ -48,9 +48,9 @@ namespace BCRPClient.CEF
 
                 LastType = CurrentTypes.Contains(Types.Last) ? Types.Last : CurrentTypes.First();
 
-                Events.CallRemoteProc("Auth::StartPlace", false, (byte)LastType);
-
                 LastSent = Sync.World.ServerTime;
+
+                await Events.CallRemoteProc("Auth::StartPlace", false, (byte)LastType);
             });
 
             Events.Add("Auth::StartPlace::Select", async (object[] args) =>

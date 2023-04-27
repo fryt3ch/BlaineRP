@@ -2,290 +2,332 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Net.WebSockets;
+using System.Security.Cryptography.X509Certificates;
 
 namespace BCRPClient.CEF
 {
     class Interaction : Events.Script
     {
-        private static DateTime LastSwitched;
-
-        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Interaction_Character, Browser.IntTypes.Interaction_Vehicle_In, Browser.IntTypes.Interaction_Vehicle_Out, Browser.IntTypes.Interaction_Passengers); }
-
-        private static Types CurrentType = Types.None;
+        public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Interaction, Browser.IntTypes.Interaction_Passengers); }
 
         private static List<int> TempBinds { get; set; }
 
-        #region Enums
-        private enum Types
+        public class InteractionInfo
         {
-            None = -1, PlayerMenu, InVehicle, OutVehicle
+            private static Dictionary<string, Dictionary<string, Dictionary<string, Action<Entity>>>> Actions { get; set; } = new Dictionary<string, Dictionary<string, Dictionary<string, Action<Entity>>>>();
+
+            public string MainType { get; private set; }
+
+            public List<string> MainLabels { get; set; }
+
+            public List<List<string>> ExtraLabels { get; set; }
+
+            public List<List<string>> ExtraLabelsTemp { get; set; }
+
+            public InteractionInfo(string MainType)
+            {
+                this.MainType = MainType;
+            }
+
+            public static void AddAction(string mainType, string subType, string type, Action<Entity> action)
+            {
+                var dict = Actions.GetValueOrDefault(mainType);
+
+                if (dict == null)
+                {
+                    dict = new Dictionary<string, Dictionary<string, Action<Entity>>>();
+
+                    Actions.Add(mainType, dict);
+                }
+
+                var subDict = dict.GetValueOrDefault(subType);
+
+                if (subDict == null)
+                {
+                    subDict = new Dictionary<string, Action<Entity>>();
+
+                    dict.Add(subType, subDict);
+                }
+
+                subDict.TryAdd(type, action);
+            }
+
+            public void AddAction(string subType, string type, Action<Entity> action) => AddAction(MainType, subType, type, action);
+
+            public static Action<Entity> GetAction(string mainType, string subType, string type) => Actions.GetValueOrDefault(mainType)?.GetValueOrDefault(subType)?.GetValueOrDefault(type);
+
+            public Action<Entity> GetAction(string subType, string type) => GetAction(MainType, subType, type);
+
+            public void ReplaceExtraLabel(string subType, int pIdx, string type)
+            {
+                var mIdx = MainLabels.IndexOf(subType);
+
+                if (mIdx < 0)
+                    return;
+
+                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
+                    return;
+
+                var eLabels = ExtraLabels[mIdx];
+
+                eLabels[pIdx] = type;
+            }
+
+            public void ReplaceExtraLabelTemp(string subType, int pIdx, string type)
+            {
+                var mIdx = MainLabels.IndexOf(subType);
+
+                if (mIdx < 0)
+                    return;
+
+                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
+                    return;
+
+                if (ExtraLabelsTemp == null)
+                {
+                    ExtraLabelsTemp = new List<List<string>>();
+
+                    foreach (var x in ExtraLabels)
+                    {
+                        var t = new List<string>();
+
+                        t.AddRange(x);
+
+                        ExtraLabelsTemp.Add(t);
+                    }
+                }
+
+                var eLabels = ExtraLabelsTemp[mIdx];
+
+                eLabels[pIdx] = type;
+            }
         }
 
-        public enum PlayerActions
+        public static InteractionInfo CharacterInteractionInfo { get; set; } = new InteractionInfo("char")
         {
-            Interact = 0, Carry, Coin, Handshake, Kiss,
-            Trade,
-            Property, SellHouse, SellVehicle, SellBuisiness, Settle,
-            Money, Money_50, Money_150, Money_300, Money_1000,
-            Heal, HealFirst, HealBandage, HealCure,
-            Job,
-            Documents, DocumentsVehicle, DocumentsMedical, DocumentsLicenses, DocumentsPassport,
-            Close
-        }
+            MainLabels = new List<string>()
+            {
+                "interact", "trade", "property", "money", "heal", "char_job", "documents",
+            },
 
-        public enum InVehicleActions
-        {
-            Doors = 0, DoorsOpen, DoorsClose,
-            Seat, SeatOne, SeatTwo, SeatThree, SeatFour, SeatTrunk,
-            Trunk, TrunkLook, TrunkOpen, TrunkClose,
-            Hood, HoodLook, HoodOpen, HoodClose,
-            Music,
-            Passengers,
-            Park,
-            VehDocuments,
-            Job,
-            Gas,
-            Close
-        }
+            ExtraLabels = new List<List<string>>()
+            {
+                new List<string>() { "carry", "coin", null, null, null, null, null, null, null, null, null, null, null, null, "handshake", "kiss", },
 
-        public enum OutVehicleActions
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, "sell_house", "sell_car", "sell_buis", "settle", null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, "money_50", "money_150", "money_300", "money_1000", null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, null, null, "pulse", "bandage", "cure", null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, "char_veh", "medbook", "resume", "license", "passport", },
+            },
+        };
+
+        public static InteractionInfo InVehicleInteractionInfo { get; set; } = new InteractionInfo("in_veh")
         {
-            Doors = 0, DoorsOpen, DoorsClose,
-            Seat, SeatOne, SeatTwo, SeatThree, SeatFour, SeatTrunk,
-            Trunk, TrunkLook, TrunkOpen, TrunkClose,
-            Hood, HoodLook, HoodOpen, HoodClose,
-            Push,
-            Other, Fix, SetNumberplate, RemoveNumberplate, Junkyard,
-            Park,
-            VehDocuments,
-            Job,
-            Gas,
-            Close
-        }
+            MainLabels = new List<string>()
+            {
+                "doors", "seat", "trunk", "hood", "music", "passengers", "park", "vehdoc", "job", "other_down",
+            },
+
+            ExtraLabels = new List<List<string>>()
+            {
+                new List<string>() { "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, "s_one", "s_two", "s_three", "s_four", "s_trunk", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+            },
+        };
+
+        public static InteractionInfo OutVehicleInteractionInfo { get; set; } = new InteractionInfo("out_veh")
+        {
+            MainLabels = new List<string>()
+            {
+                "doors", "seat", "trunk", "hood", "push", "other", "park", "vehdoc", "job", "gas",
+            },
+
+            ExtraLabels = new List<List<string>>()
+            {
+                new List<string>() { "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, "s_one", "s_two", "s_three", "s_four", "s_trunk", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, "look", "open", "close", null, null, null, null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, "look", "open", "close", null, null, null, null, null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, "junkyard", "remove_np", "put_np", "fix", null, null, null, null, null, null, null, },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+
+                new List<string>() { null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null },
+            },
+        };
 
         public enum PassengersMenuActions
         {
             Interact = 0, Kick,
         }
-        #endregion
 
         public Interaction()
         {
             TempBinds = new List<int>();
 
-            CurrentType = Types.None;
-
-            LastSwitched = Sync.World.ServerTime;
-
-            #region Events
-            #region OutVehicle Select
-            Events.Add("Interaction::OutVehicleSelect", (object[] args) =>
+            Events.Add("Interaction::Select", (args) =>
             {
-                OutVehicleActions action = (OutVehicleActions)(int)args[0];
+                if (args == null)
+                    return;
+
+                var mainType = args.Length < 1 ? null : (string)args[0];
+
+                var subType = args.Length > 1 ? (string)args[1] : null;
+
+                var type = args.Length > 2 ? (string)args[2] : null;
+
+                if (mainType == null)
+                    return;
+
+                if (subType == null)
+                    return;
+
+                var action = InteractionInfo.GetAction(mainType, subType, type ?? string.Empty);
+
+                if (action == null)
+                    return;
 
                 CloseMenu();
 
-                var vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle;
-
-                if (vehicle == null)
-                    return;
-
-                switch (action)
-                {
-                    case OutVehicleActions.Doors:
-                        Sync.Vehicles.Lock(null, vehicle);
-                        break;
-
-                    case OutVehicleActions.DoorsOpen:
-                        Sync.Vehicles.Lock(false, vehicle);
-                        break;
-
-                    case OutVehicleActions.DoorsClose:
-                        Sync.Vehicles.Lock(true, vehicle);
-                        break;
-
-                    case OutVehicleActions.Push:
-                        Sync.PushVehicle.Toggle(vehicle);
-                        break;
-
-                    case OutVehicleActions.Trunk:
-                        Sync.Vehicles.ShowContainer(vehicle);
-                        break;
-
-                    case OutVehicleActions.TrunkOpen:
-                        Sync.Vehicles.ToggleTrunkLock(false, vehicle);
-                        break;
-
-                    case OutVehicleActions.TrunkLook:
-                        Sync.Vehicles.ShowContainer(vehicle);
-                        break;
-
-                    case OutVehicleActions.TrunkClose:
-                        Sync.Vehicles.ToggleTrunkLock(true, vehicle);
-                        break;
-
-                    case OutVehicleActions.HoodOpen:
-                        Sync.Vehicles.ToggleHoodLock(false, vehicle);
-                        break;
-
-                    case OutVehicleActions.HoodLook:
-                        Sync.Vehicles.LookHood(vehicle);
-                        break;
-
-                    case OutVehicleActions.HoodClose:
-                        Sync.Vehicles.ToggleHoodLock(true, vehicle);
-                        break;
-
-                    case OutVehicleActions.SeatOne:
-                        Sync.Vehicles.SeatTo(0, vehicle);
-                        break;
-
-                    case OutVehicleActions.SeatTwo:
-                        Sync.Vehicles.SeatTo(1, vehicle);
-                        break;
-
-                    case OutVehicleActions.SeatThree:
-                        Sync.Vehicles.SeatTo(2, vehicle);
-                        break;
-
-                    case OutVehicleActions.SeatFour:
-                        Sync.Vehicles.SeatTo(3, vehicle);
-                        break;
-
-                    case OutVehicleActions.SeatTrunk:
-                        Sync.Vehicles.SeatTo(int.MaxValue, vehicle);
-                        break;
-
-                    case OutVehicleActions.Gas:
-                        CEF.Gas.RequestShow(vehicle);
-                        break;
-
-                    case OutVehicleActions.Park:
-                        Sync.Vehicles.Park(vehicle);
-                        break;
-
-                    case OutVehicleActions.RemoveNumberplate:
-                        Sync.Vehicles.TakePlate(vehicle);
-                        break;
-
-                    case OutVehicleActions.SetNumberplate:
-                        Sync.Vehicles.SetupPlate(vehicle);
-                        break;
-
-                    case OutVehicleActions.VehDocuments:
-                        Events.CallRemote("Vehicles::ShowPass", vehicle);
-                        break;
-
-                    case OutVehicleActions.Fix:
-                        if (!vehicle.IsDamaged() && vehicle.GetEngineHealth() >= 1000f && vehicle.GetBodyHealth() >= 1000f)
-                        {
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.Vehicles.VehicleIsNotDamagedFixError);
-                        }
-                        else
-                        {
-                            Events.CallRemote("Vehicles::Fix", vehicle);
-                        }
-                        break;
-
-                    case OutVehicleActions.Junkyard:
-                        Data.Locations.VehicleDestruction.VehicleDestruct(vehicle);
-                        break;
-                }
+                action.Invoke(BCRPClient.Interaction.CurrentEntity);
             });
+
+            Events.Add("Interaction::Close", (args) => CloseMenu());
+
+            #region Out Vehicle Actions
+            OutVehicleInteractionInfo.AddAction("doors", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(false, veh); });
+            OutVehicleInteractionInfo.AddAction("doors", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("doors", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Lock(null, veh); });
+
+            OutVehicleInteractionInfo.AddAction("push", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.PushVehicle.Toggle(veh); });
+
+            OutVehicleInteractionInfo.AddAction("trunk", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ShowContainer(veh); });
+            OutVehicleInteractionInfo.AddAction("trunk", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleTrunkLock(false, veh); });
+            OutVehicleInteractionInfo.AddAction("trunk", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleTrunkLock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("trunk", "", OutVehicleInteractionInfo.GetAction("trunk", "look"));
+
+            OutVehicleInteractionInfo.AddAction("hood", "look", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.LookHood(veh); });
+            OutVehicleInteractionInfo.AddAction("hood", "open", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleHoodLock(false, veh); });
+            OutVehicleInteractionInfo.AddAction("hood", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleHoodLock(true, veh); });
+            OutVehicleInteractionInfo.AddAction("hood", "", OutVehicleInteractionInfo.GetAction("hood", "look"));
+
+            OutVehicleInteractionInfo.AddAction("seat", "s_one", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(0, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_two", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(1, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_three", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(2, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_four", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(3, veh); });
+            OutVehicleInteractionInfo.AddAction("seat", "s_trunk", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(int.MaxValue, veh); });
+
+            OutVehicleInteractionInfo.AddAction("gas", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; CEF.Gas.RequestShow(veh); });
+
+            OutVehicleInteractionInfo.AddAction("park", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.Park(veh); });
+
+            OutVehicleInteractionInfo.AddAction("other", "remove_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.TakePlate(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "put_np", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SetupPlate(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "fix", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.FixVehicle(veh); });
+            OutVehicleInteractionInfo.AddAction("other", "junkyard", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Data.Locations.VehicleDestruction.VehicleDestruct(veh); });
+
+            OutVehicleInteractionInfo.AddAction("vehdoc", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Events.CallRemote("Vehicles::ShowPass", veh); });
+
+            OutVehicleInteractionInfo.AddAction("other", "trailer", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.BoatFromTrailerToWater(veh); });
+
             #endregion
 
-            #region InVehicle Select
-            Events.Add("Interaction::InVehicleSelect", (object[] args) =>
-            {
-                InVehicleActions action = (InVehicleActions)(int)args[0];
+            #region In Vehicle Actions
 
-                if (action != InVehicleActions.Passengers)
-                    CloseMenu();
+            InVehicleInteractionInfo.AddAction("doors", "open", OutVehicleInteractionInfo.GetAction("doors", "open"));
+            InVehicleInteractionInfo.AddAction("doors", "close", OutVehicleInteractionInfo.GetAction("doors", "close"));
+            InVehicleInteractionInfo.AddAction("doors", "", OutVehicleInteractionInfo.GetAction("doors", ""));
 
-                var vehicle = BCRPClient.Interaction.CurrentEntity as Vehicle;
+            InVehicleInteractionInfo.AddAction("trunk", "open", OutVehicleInteractionInfo.GetAction("trunk", "open"));
+            InVehicleInteractionInfo.AddAction("trunk", "close", OutVehicleInteractionInfo.GetAction("trunk", "close"));
 
-                if (vehicle == null)
-                    return;
+            InVehicleInteractionInfo.AddAction("hood", "open", OutVehicleInteractionInfo.GetAction("hood", "open"));
+            InVehicleInteractionInfo.AddAction("hood", "close", OutVehicleInteractionInfo.GetAction("hood", "close"));
 
-                switch (action)
-                {
-                    case InVehicleActions.VehDocuments:
-                        Events.CallRemote("Vehicles::ShowPass", vehicle);
-                        break;
+            InVehicleInteractionInfo.AddAction("seat", "s_one", OutVehicleInteractionInfo.GetAction("seat", "s_one"));
+            InVehicleInteractionInfo.AddAction("seat", "s_two", OutVehicleInteractionInfo.GetAction("seat", "s_two"));
+            InVehicleInteractionInfo.AddAction("seat", "s_three", OutVehicleInteractionInfo.GetAction("seat", "s_three"));
+            InVehicleInteractionInfo.AddAction("seat", "s_four", OutVehicleInteractionInfo.GetAction("seat", "s_four"));
 
-                    case InVehicleActions.Doors:
-                        Sync.Vehicles.Lock(null, vehicle);
-                        break;
+            InVehicleInteractionInfo.AddAction("passengers", "", (entity) => { var veh = entity as Vehicle; if (veh == null) return; ShowPassengers(); });
 
-                    case InVehicleActions.DoorsOpen:
-                        Sync.Vehicles.Lock(false, vehicle);
-                        break;
+            InVehicleInteractionInfo.AddAction("vehdoc", "", OutVehicleInteractionInfo.GetAction("vehdoc", ""));
 
-                    case InVehicleActions.DoorsClose:
-                        Sync.Vehicles.Lock(true, vehicle);
-                        break;
+            InVehicleInteractionInfo.AddAction("park", "", OutVehicleInteractionInfo.GetAction("park", ""));
 
-                    case InVehicleActions.HoodLook:
-                        Sync.Vehicles.LookHood(vehicle);
-                        break;
+            //InVehicleInteractionInfo.AddAction("other_down", "", OutVehicleInteractionInfo.GetAction("gas", ""));
 
-                    case InVehicleActions.TrunkOpen:
-                        Sync.Vehicles.ToggleTrunkLock(false, vehicle);
-                        break;
-
-                    case InVehicleActions.TrunkClose:
-                        Sync.Vehicles.ToggleTrunkLock(true, vehicle);
-                        break;
-
-                    case InVehicleActions.HoodOpen:
-                        Sync.Vehicles.ToggleHoodLock(false, vehicle);
-                        break;
-
-                    case InVehicleActions.HoodClose:
-                        Sync.Vehicles.ToggleHoodLock(true, vehicle);
-                        break;
-
-                    case InVehicleActions.SeatOne:
-                        Sync.Vehicles.SeatTo(0, vehicle);
-                        break;
-
-                    case InVehicleActions.SeatTwo:
-                        Sync.Vehicles.SeatTo(1, vehicle);
-                        break;
-
-                    case InVehicleActions.SeatThree:
-                        Sync.Vehicles.SeatTo(2, vehicle);
-                        break;
-
-                    case InVehicleActions.SeatFour:
-                        Sync.Vehicles.SeatTo(3, vehicle);
-                        break;
-
-                    case InVehicleActions.Passengers:
-                        ShowPassengers();
-                        break;
-
-                    case InVehicleActions.Park:
-                        Sync.Vehicles.Park(vehicle);
-                        break;
-
-                    case InVehicleActions.Gas:
-                        CEF.Gas.RequestShow(vehicle);
-                        break;
-                }
-            });
             #endregion
 
-            #region PassangersMenu Select
+            #region Player Actions
+
+            CharacterInteractionInfo.AddAction("interact", "coin", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.HeadsOrTails); });
+            CharacterInteractionInfo.AddAction("interact", "handshake", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Handshake); });
+            CharacterInteractionInfo.AddAction("interact", "carry", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Carry); });
+
+            CharacterInteractionInfo.AddAction("money", "money_50", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 50); });
+            CharacterInteractionInfo.AddAction("money", "money_150", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 150); });
+            CharacterInteractionInfo.AddAction("money", "money_300", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 300); });
+            CharacterInteractionInfo.AddAction("money", "money_1000", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 1000); });
+            CharacterInteractionInfo.AddAction("money", "", (entity) => { var player = entity as Player; if (player == null) return; PlayerCashRequest(player, 0); });
+
+            CharacterInteractionInfo.AddAction("trade", "", (entity) => { var player = entity as Player; if (player == null) return; Sync.Offers.Request(player, Sync.Offers.Types.Exchange); });
+
+            CharacterInteractionInfo.AddAction("property", "settle", (entity) => { var player = entity as Player; if (player == null) return; PlayerSettleRequest(player); });
+            CharacterInteractionInfo.AddAction("property", "sell_house", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 2); });
+            CharacterInteractionInfo.AddAction("property", "sell_car", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 0); });
+            CharacterInteractionInfo.AddAction("property", "sell_buis", (entity) => { var player = entity as Player; if (player == null) return; PlayerSellPropertyRequest(player, 1); });
+
+            CharacterInteractionInfo.AddAction("documents", "medbook", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 0); });
+            CharacterInteractionInfo.AddAction("documents", "passport", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 1); });
+            CharacterInteractionInfo.AddAction("documents", "char_veh", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 2); });
+            CharacterInteractionInfo.AddAction("documents", "license", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocumentsRequest(player, 3); });
+
+            #endregion
+
             Events.Add("Interaction::PassengersMenuSelect", (object[] args) =>
             {
-                PassengersMenuActions action = (PassengersMenuActions)(int)args[0];
-                int id = (int)args[1];
+                var action = (PassengersMenuActions)(int)args[0];
+                var id = (int)args[1];
 
                 CloseMenu();
-
-                CurrentType = Types.InVehicle;
 
                 if (action == PassengersMenuActions.Interact)
                 {
@@ -296,271 +338,19 @@ namespace BCRPClient.CEF
                     PlayerKick(id);
                 }
                 else
-                    return;
-            });
-            #endregion
-
-            #region PlayerMenu Select
-            Events.Add("Interaction::PlayerMenuSelect", async (object[] args) =>
-            {
-                PlayerActions action = (PlayerActions)(int)args[0];
-
-                CloseMenu();
-
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                if (pData == null)
-                    return;
-
-                var player = BCRPClient.Interaction.CurrentEntity as Player;
-
-                if (player == null)
-                    return;
-
-                switch (action)
                 {
-                    case PlayerActions.Settle:
-                        var currentHouse = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
-
-                        if (currentHouse == null)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotInAnyHouseOrApartments);
-
-                            return;
-                        }
-
-                        if (!pData.OwnedHouses.Contains(currentHouse))
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotAllowed);
-
-                            return;
-                        }
-
-                        Sync.Offers.Request(player, Sync.Offers.Types.Settle);
-                        break;
-
-                    case PlayerActions.SellVehicle:
-                        if (pData.OwnedVehicles.Count == 0)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoOwnedVehicles);
-
-                            return;
-                        }
-
-                        CEF.Estate.ShowSellVehicle(player, true);
-                        break;
-
-                    case PlayerActions.SellBuisiness:
-                        if (pData.OwnedBusinesses.Count == 0)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedBusiness);
-
-                            return;
-                        }
-
-                        CEF.Estate.ShowSellBusiness(player, true);
-                        break;
-
-                    case PlayerActions.SellHouse:
-                        if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedEstate);
-
-                            return;
-                        }
-
-                        CEF.Estate.ShowSellEstate(player, true);
-                        break;
-
-                    case PlayerActions.Coin:
-                        Sync.Offers.Request(player, Sync.Offers.Types.HeadsOrTails);
-                        break;
-
-                    case PlayerActions.DocumentsMedical:
-                        if (pData.MedicalCard == null)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoMedicalCard);
-
-                            return;
-                        }
-
-                        Sync.Offers.Request(player, Sync.Offers.Types.ShowMedicalCard);
-                        break;
-
-                    case PlayerActions.DocumentsPassport:
-                        Sync.Offers.Request(player, Sync.Offers.Types.ShowPassport);
-                        break;
-
-                    case PlayerActions.DocumentsVehicle:
-                        var allVehs = pData.OwnedVehicles;
-
-                        if (allVehs.Count == 0)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoOwnedVehicles);
-
-                            return;
-                        }
-
-                        if (allVehs.Count == 1)
-                        {
-                            Sync.Offers.Show(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
-
-                            return;
-                        }
-
-                        var t = 0;
-
-                        CEF.ActionBox.ShowSelect
-                        (
-                            "VehiclePassportSelect", Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => ((decimal)t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(), null, null,
-
-                            CEF.ActionBox.DefaultBindAction,
-
-                            (rType, idD) =>
-                            {
-                                var id = (int)idD;
-
-                                if (rType == CEF.ActionBox.ReplyTypes.OK)
-                                {
-                                    var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                                    if (pData == null)
-                                        return;
-
-                                    var allVehs = pData.OwnedVehicles;
-
-                                    if (allVehs.Count <= id)
-                                    {
-                                        CEF.ActionBox.Close(true);
-
-                                        return;
-                                    }
-
-                                    CEF.ActionBox.Close(true);
-
-                                    Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[id].VID);
-                                }
-                                else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
-                                {
-                                    CEF.ActionBox.Close(true);
-                                }
-                                else
-                                    return;
-                            },
-
-                            null
-                        );
-                        break;
-
-                    case PlayerActions.DocumentsLicenses:
-                        Sync.Offers.Request(player, Sync.Offers.Types.ShowLicenses);
-                        break;
-
-                    case PlayerActions.Handshake:
-                        Sync.Offers.Request(player, Sync.Offers.Types.Handshake);
-                        break;
-
-                    case PlayerActions.Trade:
-                        Sync.Offers.Request(player, Sync.Offers.Types.Exchange);
-                        break;
-
-                    case PlayerActions.Carry:
-                        Sync.Offers.Request(player, Sync.Offers.Types.Carry);
-                        break;
-
-                    case PlayerActions.Money:
-                        if (pData.Cash == 0)
-                        {
-                            CEF.Notification.Show("Trade::NotEnoughMoney");
-
-                            return;
-                        }
-
-                        await CEF.ActionBox.ShowRange
-                        (
-                            "GiveCash", string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default,
-
-                            CEF.ActionBox.DefaultBindAction,
-
-                            (rType, amountD) =>
-                            {
-                                int amount;
-
-                                if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
-                                    return;
-
-                                CEF.ActionBox.Close(true);
-
-                                if (rType == CEF.ActionBox.ReplyTypes.OK)
-                                {
-                                    if (player is Player targetPlayer)
-                                        Sync.Offers.Request(targetPlayer, Sync.Offers.Types.Cash, amount);
-                                }
-                            },
-
-                            null
-                        );
-                        break;
-
-                    case PlayerActions.Money_50:
-                        if (pData.Cash < 50)
-                        {
-                            CEF.Notification.Show("Trade::NotEnoughMoney");
-
-                            return;
-                        }
-
-                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 50);
-                        break;
-
-                    case PlayerActions.Money_150:
-                        if (pData.Cash < 150)
-                        {
-                            CEF.Notification.Show("Trade::NotEnoughMoney");
-
-                            return;
-                        }
-
-                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 150);
-                        break;
-
-                    case PlayerActions.Money_300:
-                        if (pData.Cash < 300)
-                        {
-                            CEF.Notification.Show("Trade::NotEnoughMoney");
-
-                            return;
-                        }
-
-                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 300);
-                        break;
-
-                    case PlayerActions.Money_1000:
-                        if (pData.Cash < 1000)
-                        {
-                            CEF.Notification.Show("Trade::NotEnoughMoney");
-
-                            return;
-                        }
-
-                        Sync.Offers.Request(player, Sync.Offers.Types.Cash, 1000);
-                        break;
+                    return;
                 }
             });
-            #endregion
-            #endregion
         }
 
         #region Showers
-        public static bool TryShowMenu(bool ignoreTimeout = false)
+        public static bool TryShowMenu()
         {
-            if (BCRPClient.Interaction.CurrentEntity == null || CurrentType != Types.None || IsActive)
+            if (BCRPClient.Interaction.CurrentEntity == null || IsActive)
                 return false;
 
-            if (!ignoreTimeout && LastSwitched.IsSpam(500, false, false))
-                return false;
-
-            Entity entity = BCRPClient.Interaction.CurrentEntity;
+            var entity = BCRPClient.Interaction.CurrentEntity;
 
             if (Utils.IsAnyCefActive())
                 return false;
@@ -571,11 +361,19 @@ namespace BCRPClient.CEF
 
             if (entity is Vehicle vehicle)
             {
-                // out veh menu
                 if (RAGE.Elements.Player.LocalPlayer.Vehicle == null)
-                    ShowOutVehicleMenu();
+                {
+                    if (Data.Vehicles.GetByModel(vehicle.Model)?.Type == Data.Vehicles.Vehicle.Types.Boat)
+                    {
+                        OutVehicleInteractionInfo.ReplaceExtraLabelTemp("other", 8, "trailer");
+                    }
+
+                    ShowMenu(OutVehicleInteractionInfo);
+                }
                 else
-                    ShowInVehicleMenu();
+                {
+                    ShowMenu(InVehicleInteractionInfo);
+                }
 
                 GameEvents.Render -= CheckEntityDistance;
                 GameEvents.Render += CheckEntityDistance;
@@ -584,7 +382,7 @@ namespace BCRPClient.CEF
             }
             else if (entity is Player player)
             {
-                ShowPlayerMenu();
+                ShowMenu(CharacterInteractionInfo);
 
                 GameEvents.Render -= CheckEntityDistance;
                 GameEvents.Render += CheckEntityDistance;
@@ -663,52 +461,20 @@ namespace BCRPClient.CEF
             return false;
         }
 
-        public static void ShowOutVehicleMenu()
+        public static void ShowMenu(InteractionInfo info)
         {
-            if (CurrentType != Types.None)
-                return;
+            Browser.Switch(Browser.IntTypes.Interaction, true);
 
-            LastSwitched = Sync.World.ServerTime;
+            var extraLabels = info.ExtraLabels;
 
-            CurrentType = Types.OutVehicle;
+            if (info.ExtraLabelsTemp != null)
+            {
+                extraLabels = info.ExtraLabelsTemp;
 
-            Browser.Switch(Browser.IntTypes.Interaction_Vehicle_Out, true);
+                info.ExtraLabelsTemp = null;
+            }
 
-            KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
-
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
-
-            Cursor.Show(true, true);
-        }
-
-        public static void ShowPlayerMenu()
-        {
-            if (CurrentType != Types.None)
-                return;
-
-            LastSwitched = Sync.World.ServerTime;
-
-            CurrentType = Types.PlayerMenu;
-
-            Browser.Switch(Browser.IntTypes.Interaction_Character, true);
-
-            KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
-
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
-
-            Cursor.Show(true, true);
-        }
-
-        public static void ShowInVehicleMenu()
-        {
-            if (CurrentType != Types.None)
-                return;
-
-            LastSwitched = Sync.World.ServerTime;
-
-            CurrentType = Types.InVehicle;
-
-            Browser.Switch(Browser.IntTypes.Interaction_Vehicle_In, true);
+            Browser.Window.ExecuteJs("Interaction.draw", info.MainType, info.MainLabels, extraLabels.Select(x => x == null ? x : x.Select(x => x == null ? "none" : x).ToList()));
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
 
@@ -719,12 +485,12 @@ namespace BCRPClient.CEF
 
         private static void ShowPassengers()
         {
-            if (!IsActive || CurrentType != Types.InVehicle)
+            if (!IsActive)
                 return;
 
-            Browser.Switch(Browser.IntTypes.Interaction_Vehicle_In, false);
+            Browser.SwitchTemp(Browser.IntTypes.Interaction, false);
 
-            Vehicle veh = Player.LocalPlayer.Vehicle;
+            var veh = Player.LocalPlayer.Vehicle;
 
             if (veh == null)
             {
@@ -742,7 +508,7 @@ namespace BCRPClient.CEF
                 return;
             }
 
-            List<object> players = new List<object>();
+            var players = new List<object>();
 
             foreach (var x in Sync.Vehicles.GetPlayersInVehicle(veh))
             {
@@ -778,9 +544,6 @@ namespace BCRPClient.CEF
         #region PassangersMenu Select
         public static void PlayerInteraction(int id)
         {
-            if (CurrentType != Types.InVehicle)
-                return;
-
             if (Player.LocalPlayer.Vehicle == null)
                 return;
 
@@ -794,15 +557,10 @@ namespace BCRPClient.CEF
             BCRPClient.Interaction.Enabled = false;
 
             BCRPClient.Interaction.CurrentEntity = player;
-
-            TryShowMenu(true);
         }
 
         public static void PlayerKick(int id)
         {
-            if (CurrentType != Types.InVehicle)
-                return;
-
             if (Player.LocalPlayer.Vehicle == null)
                 return;
 
@@ -819,30 +577,13 @@ namespace BCRPClient.CEF
 
         public static void CloseMenu()
         {
-            if (CurrentType == Types.None)
+            if (!IsActive)
                 return;
 
-            switch (CurrentType)
-            {
-                case Types.OutVehicle:
-                    Browser.Switch(Browser.IntTypes.Interaction_Vehicle_Out, false);
-                    break;
-
-                case Types.InVehicle:
-                    Browser.Switch(Browser.IntTypes.Interaction_Vehicle_In, false);
-                    Browser.Switch(Browser.IntTypes.Interaction_Passengers, false);
-                    break;
-
-                case Types.PlayerMenu:
-                    Browser.Switch(Browser.IntTypes.Interaction_Character, false);
-                    break;
-            }
+            Browser.Switch(Browser.IntTypes.Interaction, false);
+            Browser.Switch(Browser.IntTypes.Interaction_Passengers, false);
 
             GameEvents.Render -= CheckEntityDistance;
-
-            LastSwitched = Sync.World.ServerTime;
-
-            CurrentType = Types.None;
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Enable();
 
@@ -867,5 +608,219 @@ namespace BCRPClient.CEF
             }
         }
         #endregion
+
+        public static async void PlayerCashRequest(Player player, int amount)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (amount < 0)
+                return;
+
+            if (amount == 0)
+            {
+                if (pData.Cash <= 0)
+                {
+                    CEF.Notification.Show("Trade::NotEnoughMoney");
+
+                    return;
+                }
+
+                await CEF.ActionBox.ShowRange
+                (
+                    "GiveCash", string.Format(Locale.Actions.GiveCash, player.GetName(true, false, true)), 1, pData.Cash, pData.Cash / 2, -1, ActionBox.RangeSubTypes.Default,
+
+                    CEF.ActionBox.DefaultBindAction,
+
+                    (rType, amountD) =>
+                    {
+                        int amount;
+
+                        if (!amountD.IsNumberValid(1, int.MaxValue, out amount, true))
+                            return;
+
+                        CEF.ActionBox.Close(true);
+
+                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            if (player is Player targetPlayer)
+                                Sync.Offers.Request(targetPlayer, Sync.Offers.Types.Cash, amount);
+                        }
+                    },
+
+                    null
+                );
+            }
+            else
+            {
+                if (pData.Cash <= (ulong)amount)
+                {
+                    CEF.Notification.Show("Trade::NotEnoughMoney");
+
+                    return;
+                }
+
+                Sync.Offers.Request(player, Sync.Offers.Types.Cash, amount);
+            }
+        }
+
+        public static void PlayerSettleRequest(Player player)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            var currentHouse = Player.LocalPlayer.GetData<Data.Locations.HouseBase>("House::CurrentHouse");
+
+            if (currentHouse == null)
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotInAnyHouseOrApartments);
+
+                return;
+            }
+
+            if (!pData.OwnedHouses.Contains(currentHouse))
+            {
+                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotAllowed);
+
+                return;
+            }
+
+            Sync.Offers.Request(player, Sync.Offers.Types.Settle);
+        }
+
+        public static void PlayerSellPropertyRequest(Player player, byte type)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (type == 0)
+            {
+                if (pData.OwnedVehicles.Count == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoOwnedVehicles);
+
+                    return;
+                }
+
+                CEF.Estate.ShowSellVehicle(player, true);
+            }
+            else if (type == 1)
+            {
+                if (pData.OwnedBusinesses.Count == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedBusiness);
+
+                    return;
+                }
+
+                CEF.Estate.ShowSellBusiness(player, true);
+            }
+            else if (type == 2)
+            {
+                if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedEstate);
+
+                    return;
+                }
+
+                CEF.Estate.ShowSellEstate(player, true);
+            }
+        }
+
+        public static void PlayerShowDocumentsRequest(Player player, byte type)
+        {
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            if (type == 0)
+            {
+                if (pData.MedicalCard == null)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoMedicalCard);
+
+                    return;
+                }
+
+                Sync.Offers.Request(player, Sync.Offers.Types.ShowMedicalCard);
+            }
+            else if (type == 1)
+            {
+                Sync.Offers.Request(player, Sync.Offers.Types.ShowPassport);
+            }
+            else if (type == 2)
+            {
+                var allVehs = pData.OwnedVehicles;
+
+                if (allVehs.Count == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoOwnedVehicles);
+
+                    return;
+                }
+
+                if (allVehs.Count == 1)
+                {
+                    Sync.Offers.Show(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
+
+                    return;
+                }
+
+                var t = 0;
+
+                CEF.ActionBox.ShowSelect
+                (
+                    "VehiclePassportSelect", Locale.Actions.VehiclePassportSelectHeader, allVehs.Select(x => ((decimal)t++, $"{x.Data.SubName} [#{x.VID}]")).ToArray(), null, null,
+
+                    CEF.ActionBox.DefaultBindAction,
+
+                    (rType, idD) =>
+                    {
+                        var id = (int)idD;
+
+                        if (rType == CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                            if (pData == null)
+                                return;
+
+                            var allVehs = pData.OwnedVehicles;
+
+                            if (allVehs.Count <= id)
+                            {
+                                CEF.ActionBox.Close(true);
+
+                                return;
+                            }
+
+                            CEF.ActionBox.Close(true);
+
+                            Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[id].VID);
+                        }
+                        else if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                        else
+                            return;
+                    },
+
+                    null
+                );
+            }
+            else if (type == 3)
+            {
+                Sync.Offers.Request(player, Sync.Offers.Types.ShowLicenses);
+            }
+        }
     }
 }

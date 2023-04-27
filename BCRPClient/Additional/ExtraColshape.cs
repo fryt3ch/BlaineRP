@@ -3,6 +3,7 @@ using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace BCRPClient.Additional
@@ -285,7 +286,7 @@ namespace BCRPClient.Additional
 
                     CEF.HUD.InteractionAction = func;
 
-                    CEF.HUD.SwitchInteractionText(true, string.Format(Locale.Interaction.Names.GetValueOrDefault(data.InteractionType) ?? "null", FormatArgsLastIntColshape));
+                    CEF.HUD.SwitchInteractionText(true, string.Format(Locale.Interaction.Names.GetValueOrDefault(data.InteractionType) ?? Locale.Interaction.Names.GetValueOrDefault(Additional.ExtraColshape.InteractionTypes.Interact) ?? "null", FormatArgsLastIntColshape));
                 }
 
                 data.OnEnter?.Invoke(null);
@@ -301,11 +302,16 @@ namespace BCRPClient.Additional
                 if (data == null)
                     return;
 
+                if (cs.GetData<bool>("PendingDeletion"))
+                {
+                    ExtraColshape.All.Remove(cs);
+                }
+
                 if (data.IsInteraction)
                 {
                     CEF.HUD.InteractionAction = null;
 
-                    CEF.HUD.SwitchInteractionText(false, Locale.Interaction.Names[data.InteractionType]);
+                    CEF.HUD.SwitchInteractionText(false, string.Empty);
                 }
 
                 if (data.ActionType != ExtraColshape.ActionTypes.None)
@@ -424,6 +430,8 @@ namespace BCRPClient.Additional
             DrivingSchoolInteract,
 
             EstateAgencyInteract,
+
+            FractionPoliceArrestMenuInteract,
         }
 
         public enum ActionTypes
@@ -581,6 +589,42 @@ namespace BCRPClient.Additional
 
         public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
+            {
+                InteractionTypes.FractionPoliceArrestMenuInteract, async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var fTypeS = Player.LocalPlayer.GetData<string>("EXED::CFractionId")?.Split('_');
+
+                    if (fTypeS == null)
+                        return;
+
+                    var fData = BCRPClient.Data.Fractions.Fraction.Get((BCRPClient.Data.Fractions.Types)int.Parse(fTypeS[0]));
+
+                    if (pData.CurrentFraction != fData)
+                    {
+                        CEF.Notification.Show("Fraction::NM");
+
+                        return;
+                    }
+
+                    var menuIdx = byte.Parse(fTypeS[1]);
+
+                    var arrestsData = fData?.GetCurrentData<List<BCRPClient.Data.Fractions.Police.ArrestInfo>>("Arrests");
+
+                    if (arrestsData == null)
+                        return;
+
+                    await CEF.ArrestsMenu.Show(fData.Type, menuIdx, arrestsData);
+                }
+            },
+
             {
                 InteractionTypes.EstateAgencyInteract, async () =>
                 {
@@ -916,7 +960,7 @@ namespace BCRPClient.Additional
                     {
                         await CEF.ActionBox.ShowSelect
                         (
-                            "HouseExit", Locale.Actions.HouseExitActionBoxHeader, new (decimal, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToGarage) }, null, null,
+                            "HouseExit", Locale.Actions.HouseExitActionBoxHeader, new (decimal, string)[] { (0, Locale.Actions.HouseExitActionBoxOutside), (1, Locale.Actions.HouseExitActionBoxToHouse) }, null, null,
 
                             CEF.ActionBox.DefaultBindAction,
 
@@ -935,7 +979,7 @@ namespace BCRPClient.Additional
                                         Events.CallRemote("House::Exit");
                                     }
                                     // garage -> house
-                                    else if (id == 2)
+                                    else if (id == 1)
                                     {
                                         Events.CallRemote("House::Garage", false);
                                     }
@@ -1705,15 +1749,25 @@ namespace BCRPClient.Additional
 
         public void Destroy()
         {
+            if (!Exists)
+                return;
+
             Streamed.Remove(this);
 
             if (Colshape != null)
             {
-                All.Remove(Colshape);
-
                 if (IsInside)
                 {
+                    Colshape.SetData("PendingDeletion", true);
+
                     Events.OnPlayerExitColshape?.Invoke(Colshape, null);
+
+                    if (Exists)
+                        All.Remove(Colshape);
+                }
+                else
+                {
+                    All.Remove(Colshape);
                 }
 
                 Colshape.ResetData();

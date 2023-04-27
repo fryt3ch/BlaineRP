@@ -88,15 +88,37 @@ namespace BCRPServer.Sync
         {
             var curTime = Utils.GetCurrentTime();
 
-            if (curTime >= EndDate)
-                return 0;
+            if (Type == Types.NRPPrison || Type == Types.Arrest || Type == Types.FederalPrison)
+            {
+                var timeEnd = EndDate.GetUnixTimestamp();
 
-            var t = EndDate.Subtract(curTime).TotalSeconds;
+                var timePassed = long.Parse(AdditionalData.Split('_')[0]);
 
-            return (ulong)t;
+                if (timePassed >= timeEnd)
+                    return 0;
+
+                var t = TimeSpan.FromSeconds(timeEnd - timePassed).TotalSeconds;
+
+                return (ulong)t;
+            }
+            else
+            {
+                if (curTime >= EndDate)
+                    return 0;
+
+                var t = EndDate.Subtract(curTime).TotalSeconds;
+
+                return (ulong)t;
+            }
         }
 
-        public bool IsActive() => AmnestyInfo == null && GetSecondsLeft() > 0;
+        public bool IsActive()
+        {
+            if (AmnestyInfo != null)
+                return false;
+
+            return GetSecondsLeft() > 0;
+        }
 
         public static uint GetNextId() => Sync.Punishment.MaxAddedId += 1;
     }

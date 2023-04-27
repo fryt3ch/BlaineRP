@@ -24,7 +24,7 @@ namespace BCRPClient.Data
                 DefaultDialogueId = "vrent_s_preprocess",
             };
 
-            new NPC($"cop0_{(int)Fractions.Types.BCPD}", "Майкл", NPC.Types.Talkable, "csb_cop", new Vector3(-448.2888f, 6012.634f, 31.71635f), 313.2359f, Settings.MAIN_DIMENSION)
+            new NPC($"cop0_{(int)Fractions.Types.COP_BLAINE}", "Майкл", NPC.Types.Talkable, "csb_cop", new Vector3(-448.2888f, 6012.634f, 31.71635f), 313.2359f, Settings.MAIN_DIMENSION)
             {
                 DefaultDialogueId = "cop_0_g",
             };

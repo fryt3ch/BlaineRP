@@ -38,7 +38,7 @@ namespace BCRPClient.CEF
             Animations,
             Documents,
             NPC,
-            Interaction, Interaction_Character, Interaction_Vehicle_In, Interaction_Vehicle_Out, Interaction_Passengers,
+            Interaction, Interaction_Passengers,
             Shop, Retail, Tuning, Salon, TattooSalon,
             VehicleMisc,
             Death,
@@ -80,7 +80,7 @@ namespace BCRPClient.CEF
 
             { IntTypes.NPC, "npc" },
 
-            { IntTypes.Interaction, "interaction" }, { IntTypes.Interaction_Character, "char_interaction" }, { IntTypes.Interaction_Vehicle_In, "iv_interaction" }, { IntTypes.Interaction_Vehicle_Out, "ov_interaction" }, { IntTypes.Interaction_Passengers, "pass_interaction"},
+            { IntTypes.Interaction, "interaction" }, { IntTypes.Interaction_Passengers, "passengers"},
 
             { IntTypes.Shop, "shop" }, { IntTypes.Retail, "retail" }, { IntTypes.Tuning, "tuning" }, { IntTypes.Salon, "salon" }, { IntTypes.TattooSalon, "tattoo_salon" },
 
@@ -121,7 +121,7 @@ namespace BCRPClient.CEF
         {
             { IntTypes.CratesInventory, IntTypes.Inventory_Full }, { IntTypes.Inventory, IntTypes.Inventory_Full }, { IntTypes.Trade, IntTypes.Inventory_Full }, { IntTypes.Workbench, IntTypes.Inventory_Full },
 
-            { IntTypes.Interaction_Character, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_In, IntTypes.Interaction }, { IntTypes.Interaction_Vehicle_Out, IntTypes.Interaction }, { IntTypes.Interaction_Passengers, IntTypes.Interaction },
+            { IntTypes.Interaction_Passengers, IntTypes.Interaction },
 
             { IntTypes.HUD_Top, IntTypes.HUD }, { IntTypes.HUD_Quest, IntTypes.HUD }, { IntTypes.HUD_Help, IntTypes.HUD }, { IntTypes.HUD_Speedometer, IntTypes.HUD }, { IntTypes.HUD_Interact, IntTypes.HUD }, { IntTypes.HUD_Menu, IntTypes.HUD }, { IntTypes.HUD_Left, IntTypes.HUD },
         };
