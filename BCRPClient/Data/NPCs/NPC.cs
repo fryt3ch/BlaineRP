@@ -74,7 +74,7 @@ namespace BCRPClient.Data
 
         public bool IsStreamed => RAGE.Elements.Entities.Peds.Streamed.Contains(Ped);
 
-        public Blip Blip { get => Ped.GetData<Blip>("Blip"); set { if (value == null) Ped.ResetData("Blip"); else Ped.SetData("Blip", value); } }
+        public Additional.ExtraBlip Blip { get => Ped.GetData<Additional.ExtraBlip>("Blip"); set { if (value == null) Ped.ResetData("Blip"); else Ped.SetData("Blip", value); } }
 
         public object Data { get; set; }
 

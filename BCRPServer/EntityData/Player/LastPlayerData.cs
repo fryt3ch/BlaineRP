@@ -28,6 +28,13 @@ namespace BCRPServer
 
             [JsonProperty(PropertyName = "M")]
             public int Mood { get; set; }
+
+            public void UpdatePosition(Utils.Vector4 position, uint dimension, bool updateDb)
+            {
+                Position = position;
+
+                Dimension = dimension;
+            }
         }
     }
 }

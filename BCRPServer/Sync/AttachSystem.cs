@@ -160,12 +160,12 @@ namespace BCRPServer.Sync
             public EntityType EntityType { get; set; }
 
             [JsonProperty(PropertyName = "I")]
-            public int Id { get; set; }
+            public ushort Id { get; set; }
 
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
-            public AttachmentEntityNet(int Id, EntityType EntityType, Types Type)
+            public AttachmentEntityNet(ushort Id, EntityType EntityType, Types Type)
             {
                 this.Id = Id;
                 this.EntityType = EntityType;

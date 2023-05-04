@@ -30,6 +30,7 @@ namespace BCRPServer
         public const string DIR_CLIENT_FURNITURE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Furniture.cs";
         public const string DIR_CLIENT_SHOP_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\CEF\Shop.cs";
         public const string DIR_CLIENT_LOCATIONS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Locations\Locations.cs";
+        public const string DIR_CLIENT_DOOR_SYSTEM_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\DoorSystem.cs";
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;

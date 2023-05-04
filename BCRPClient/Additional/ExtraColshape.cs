@@ -304,7 +304,7 @@ namespace BCRPClient.Additional
 
                 if (cs.GetData<bool>("PendingDeletion"))
                 {
-                    ExtraColshape.All.Remove(cs);
+                    ExtraColshape.All.Remove(data);
                 }
 
                 if (data.IsInteraction)
@@ -339,19 +339,21 @@ namespace BCRPClient.Additional
         public static DateTime LastSent;
 
         /// <summary>Словарь всех колшэйпов</summary>
-        public static Dictionary<Colshape, ExtraColshape> All { get; private set; } = new Dictionary<Colshape, ExtraColshape>();
+        public static List<ExtraColshape> All { get; private set; } = new List<ExtraColshape>();
 
         /// <summary>Список колшэйпов, находящихся в зоне стрима игрока</summary>
         public static List<ExtraColshape> Streamed { get; private set; } = new List<ExtraColshape>();
 
         /// <summary>Получить колшейп по айди (локальный)</summary>
-        public static ExtraColshape GetById(int id) => All.Where(x => x.Key?.Id == id).Select(x => x.Value).FirstOrDefault();
+        public static ExtraColshape GetById(int id) => All.Where(x => x?.Colshape?.Id == id).FirstOrDefault();
 
         /// <summary>Получить колшейп по айди (серверный)</summary>
-        public static ExtraColshape GetByRemoteId(int id) => All.Where(x => x.Key?.RemoteId == id).Select(x => x.Value).FirstOrDefault();
+        public static ExtraColshape GetByRemoteId(int id) => All.Where(x => x?.Colshape?.RemoteId == id).FirstOrDefault();
 
         /// <summary>Получить колшейп по его держателю</summary>
-        public static ExtraColshape Get(Colshape colshape) => All.GetValueOrDefault(colshape);
+        public static ExtraColshape Get(Colshape colshape) => colshape == null ? null : All.Where(x => x.Colshape == colshape).FirstOrDefault();
+
+        public static List<ExtraColshape> GetAllByName(string name) => All.Where(x => x.Name == name).ToList();
 
         public static Action<ExtraColshape> GetEnterAction(ActionTypes aType) => Actions.GetValueOrDefault(aType)?.GetValueOrDefault(true);
 
@@ -432,6 +434,10 @@ namespace BCRPClient.Additional
             EstateAgencyInteract,
 
             FractionPoliceArrestMenuInteract,
+
+            ElevatorInteract,
+
+            CasinoRouletteInteract,
         }
 
         public enum ActionTypes
@@ -474,6 +480,10 @@ namespace BCRPClient.Additional
 
             DrivingSchoolInteract,
             EstateAgencyInteract,
+
+            ElevatorInteract,
+
+            CasinoRouletteInteract,
         }
 
         public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
@@ -589,6 +599,77 @@ namespace BCRPClient.Additional
 
         public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
+            {
+                InteractionTypes.CasinoRouletteInteract, async () =>
+                {
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+
+                    if (casinoStrData == null)
+                        return;
+
+                    var casinoId = int.Parse(casinoStrData[0]);
+                    var rouletteId = int.Parse(casinoStrData[1]);
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId);
+                }
+            },
+
+            {
+                InteractionTypes.ElevatorInteract, async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var elevatorId = Player.LocalPlayer.GetData<uint>("EXED::ElevatorId");
+
+                    var elevatorData = BCRPClient.Data.Locations.Elevator.Get(elevatorId);
+
+                    if (elevatorData == null)
+                        return;
+
+                    await CEF.ActionBox.ShowSelect
+                    (
+                        "ElevatorSelect", "Выбор места перемещения", elevatorData.LinkedElevators.Select(x => ((decimal)x, BCRPClient.Data.Locations.Elevator.GetName(x))).ToArray(), null, null,
+
+                        CEF.ActionBox.DefaultBindAction,
+
+                        async (rType, idD) =>
+                        {
+                            var toId = (uint)idD;
+
+                            if (rType == ActionBox.ReplyTypes.OK)
+                            {
+                                if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
+                                    return;
+
+                                CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+                                var res = (bool)await Events.CallRemoteProc("Elevator::TP", elevatorId, toId);
+
+                                if (res)
+                                    CEF.ActionBox.Close();
+                            }
+                            else
+                            {
+                                CEF.ActionBox.Close();
+                            }
+                        },
+
+                        null
+                    );
+                }
+            },
+
             {
                 InteractionTypes.FractionPoliceArrestMenuInteract, async () =>
                 {
@@ -1193,6 +1274,67 @@ namespace BCRPClient.Additional
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
         {
             {
+                ActionTypes.CasinoRouletteInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is string str)
+                            {
+                                var d = str.Split('_');
+
+                                var casino = BCRPClient.Data.Locations.Casino.GetById(int.Parse(d[0]));
+                                var roulette = casino.GetRouletteById(int.Parse(d[1]));
+
+                                ExtraColshapes.FormatArgsLastIntColshape = new object[] { roulette.MinBet };
+
+                                Player.LocalPlayer.SetData("CurrentCasinoGameData", str);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentCasinoGameData");
+                        }
+                    },
+                }
+            },
+
+            {
+                ActionTypes.ElevatorInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is uint id)
+                                Player.LocalPlayer.SetData("EXED::ElevatorId", id);
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("EXED::ElevatorId");
+                        }
+                    }
+                }
+            },
+
+            {
                 ActionTypes.EstateAgencyInteract,
 
                 new Dictionary<bool, Action<ExtraColshape>>()
@@ -1686,7 +1828,7 @@ namespace BCRPClient.Additional
 
         public abstract string ShortData { get; }
 
-        public bool Exists => All.ContainsValue(this);
+        public bool Exists => All.Contains(this);
 
         /// <summary>Сущность-держатель колшейпа, не имеет функциональности</summary>
         public Colshape Colshape { get; set; }
@@ -1762,12 +1904,11 @@ namespace BCRPClient.Additional
 
                     Events.OnPlayerExitColshape?.Invoke(Colshape, null);
 
-                    if (Exists)
-                        All.Remove(Colshape);
+                    All.Remove(this);
                 }
                 else
                 {
-                    All.Remove(Colshape);
+                    All.Remove(this);
                 }
 
                 Colshape.ResetData();
@@ -1790,7 +1931,7 @@ namespace BCRPClient.Additional
 
             this.ApproveType = ApproveTypes.OnlyByFoot;
 
-            All.Add(this.Colshape, this);
+            All.Add(this);
         }
 
         public static void Render()
@@ -1813,19 +1954,17 @@ namespace BCRPClient.Additional
 
         public static void UpdateStreamed()
         {
-            foreach (var x in All.Keys.ToList())
+            All.ForEach(cs =>
             {
-                var cs = All.GetValueOrDefault(x);
-
                 var state = cs?.IsStreamed();
 
                 if (state == null)
-                    continue;
+                    return;
 
                 if (state == true)
                 {
                     if (Streamed.Contains(cs))
-                        continue;
+                        return;
 
                     Streamed.Add(cs);
                 }
@@ -1841,7 +1980,7 @@ namespace BCRPClient.Additional
                         }
                     }
                 }
-            }
+            });
         }
 
         public static void UpdateInside()

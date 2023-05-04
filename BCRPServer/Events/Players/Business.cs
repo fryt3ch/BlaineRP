@@ -93,6 +93,8 @@ namespace BCRPServer.Events.Players
             if (!ws.TryBuyShootingRange(pData))
                 return;
 
+            pData.Info.LastData.UpdatePosition(new Utils.Vector4(player.Position, player.Heading), player.Dimension, false);
+
             var pDim = Utils.GetPrivateDimension(player);
 
             pData.StopUseCurrentItem();
@@ -615,6 +617,8 @@ namespace BCRPServer.Events.Players
 
             if (business is Game.Businesses.IEnterable enterable)
             {
+                pData.Info.LastData.UpdatePosition(new Utils.Vector4(player.Position, player.Heading), player.Dimension, false);
+
                 pData.StopUseCurrentItem();
                 player.DetachAllObjectsInHand();
                 pData.StopAllAnims();

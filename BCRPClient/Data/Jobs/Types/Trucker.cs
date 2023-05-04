@@ -43,7 +43,7 @@ namespace BCRPClient.Data.Jobs
 
             JobGiver.DefaultDialogueId = "job_trucker_g_0";
 
-            Blip = new Blip(477, Position.Position, "Грузоперевозки", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            var blip = new Additional.ExtraBlip(477, Position.Position, "Грузоперевозки", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
         }
 
         public override void OnStartJob(object[] data)

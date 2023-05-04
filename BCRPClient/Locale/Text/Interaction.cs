@@ -32,6 +32,7 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootEnter, "чтобы войти" },
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootExit, "чтобы выйти на улицу" },
                 { Additional.ExtraColshape.InteractionTypes.ApartmentsRootElevator, "чтобы воспользоваться лифтом" },
+                { Additional.ExtraColshape.InteractionTypes.ElevatorInteract, "чтобы воспользоваться лифтом" },
 
                 { Additional.ExtraColshape.InteractionTypes.GarageRootEnter, "для взаимодействия" },
 
@@ -42,6 +43,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.DrivingSchoolInteract, "чтобы выбрать категорию и пройти тест" },
 
                 { Additional.ExtraColshape.InteractionTypes.EstateAgencyInteract, "чтобы посмотреть список предложений" },
+
+                { Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract, "чтобы встать за стол [ставки от {0} фишек]" },
             };
         }
     }

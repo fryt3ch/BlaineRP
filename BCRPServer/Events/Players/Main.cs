@@ -253,9 +253,7 @@ namespace BCRPServer.Events.Players
                 if (pData.Info.LastData.Health < 0 || pData.IsKnocked)
                     pData.Info.LastData.Health = 0;
 
-                pData.Info.LastData.Position.Position = player.Position;
-                pData.Info.LastData.Dimension = player.Dimension;
-                pData.Info.LastData.Position.RotationZ = player.Heading;
+                pData.Info.LastData.UpdatePosition(new Utils.Vector4(player.Position, player.Heading), player.Dimension, false);
 
                 MySQL.CharacterSaveOnExit(pData.Info);
 
@@ -361,22 +359,52 @@ namespace BCRPServer.Events.Players
                 }
             }
 
+            var pDim = player.Dimension;
+
+/*            if (pDim == Utils.GetPrivateDimension(player))
+            {
+                Game.Fractions.EMS.SetPlayerToEmsAfterDeath(pData, pData.LastData.Position.Position);
+
+                return;
+            }*/
+
             if (pData.IsKnocked)
             {
-                pData.IsKnocked = false;
+                var pos = player.Position;
 
-                Game.Fractions.EMS emsFraction;
-                int posIdx;
+                if (pDim >= Utils.HouseDimBase)
+                {
+                    if (pDim < Utils.ApartmentsDimBase)
+                    {
+                        var house = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.House;
 
-                Game.Fractions.EMS.GetClosestAfterDeathFractionAndPosIdx(player.Position, out emsFraction, out posIdx);
+                        if (house != null)
+                            pos = house.PositionParams.Position;
+                    }
+                    else if (pDim < Utils.ApartmentsRootDimBase)
+                    {
+                        var aps = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.Apartments;
 
-                var pos = emsFraction.AfterDeathSpawnPositions[posIdx];
+                        if (aps != null)
+                            pos = aps.Root.EnterParams.Position;
+                    }
+                    else if (pDim < Utils.GarageDimBase)
+                    {
+                        var apsRoot = Utils.GetApartmentsRootByDimension(pDim);
 
-                player.Teleport(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, false);
+                        if (apsRoot != null)
+                            pos = apsRoot.EnterParams.Position;
+                    }
+                    else
+                    {
+                        var garage = Utils.GetGarageByDimension(pDim);
 
-                NAPI.Player.SpawnPlayer(player, pos.Position, pos.RotationZ);
+                        if (garage != null)
+                            pos = garage.Root.EnterPosition.Position;
+                    }
+                }
 
-                player.SetHealth(10);
+                Game.Fractions.EMS.SetPlayerToEmsAfterDeath(pData, pos);
             }
             else
             {
@@ -456,8 +484,6 @@ namespace BCRPServer.Events.Players
             pData.Emotion = (Sync.Animations.EmotionTypes)emotion;
             pData.Walkstyle = (Sync.Animations.WalkstyleTypes)walkstyle;
 
-            //player.Dimension = Utils.Dimensions.Main;
-
             pData.UpdateWeapons();
 
             if (pData.RentedJobVehicle is VehicleData jobVehicle)
@@ -471,6 +497,16 @@ namespace BCRPServer.Events.Players
 
                 fData?.OnMemberJoined(pData);
             }
+
+            var ped = new PedData((uint)PedHash.Hooker03SFY, new Utils.Vector4(player.Position, player.Heading), player.Dimension, null);
+
+            ped.IsInvincible = true;
+
+            //ped.AttachObject(Sync.AttachSystem.Models.Cuffs, AttachSystem.Types.Cuffs, -1, null);
+
+            //player.AttachEntity(ped.Ped, AttachSystem.Types.PoliceEscort);
+
+            //player.AttachEntity(ped, AttachSystem.Types.Carry);
 
             return true;
         }
@@ -866,7 +902,7 @@ namespace BCRPServer.Events.Players
             pData.PlayAnim((Animations.OtherTypes)anim);
         }
 
-        [RemoteEvent("atsdme")]
+/*        [RemoteEvent("atsdme")]
         private static void AttachSystemDetachMe(Player player)
         {
             var sRes = player.CheckSpamAttack();
@@ -881,7 +917,7 @@ namespace BCRPServer.Events.Players
                 if (!entity.Exists || !entity.AreEntitiesNearby(player, 150f))
                     entity.DetachEntity(player);
             }
-        }
+        }*/
 
         [RemoteEvent("dmswme")]
         private static void DamageSystemWoundMe(Player player)

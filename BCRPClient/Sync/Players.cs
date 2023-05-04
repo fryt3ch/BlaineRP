@@ -695,8 +695,6 @@ namespace BCRPClient.Sync
                 {
                     x.Initialize();
                 }
-
-                Data.Fractions.Gang.GangZone.PostInitialize();
             });
             #endregion
 
@@ -2128,6 +2126,8 @@ namespace BCRPClient.Sync
 
             CEF.FractionMenu.Close();
             CEF.PoliceTabletPC.Close();
+
+            Data.Minigames.ShootingRange.Finish();
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 

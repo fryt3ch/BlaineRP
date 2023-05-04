@@ -11,7 +11,7 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.BlipsMenu); }
 
-        private static Blip TempBlip { get; set; }
+        private static Additional.ExtraBlip TempBlip { get; set; }
 
         private static int LastEdited { get; set; }
 
@@ -24,13 +24,13 @@ namespace BCRPClient.CEF
         public class LocalBlip
         {
             [JsonIgnore]
-            public RAGE.Elements.Blip Blip { get; set; }
+            public Additional.ExtraBlip Blip { get; set; }
 
             public int Sprite { get; set; }
 
             public string Name { get; set; }
 
-            public int Colour { get; set; }
+            public byte Colour { get; set; }
 
             public float Scale { get; set; }
 
@@ -42,7 +42,7 @@ namespace BCRPClient.CEF
 
             public bool ShortRange { get; set; }
 
-            public LocalBlip(int Sprite, string Name, int Colour, float Scale, float Alpha, Vector3 Position, bool ShortRange = false, bool Enabled = true)
+            public LocalBlip(int Sprite, string Name, byte Colour, float Scale, float Alpha, Vector3 Position, bool ShortRange = false, bool Enabled = true)
             {
                 this.Sprite = Sprite;
                 this.Name = Name;
@@ -63,7 +63,7 @@ namespace BCRPClient.CEF
 
                 if (state)
                 {
-                    Blip = new RAGE.Elements.Blip((uint)Sprite, Position, Name, Scale, Colour, (int)Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
+                    Blip = new Additional.ExtraBlip((uint)Sprite, Position, Name, Scale, Colour, (int)Math.Floor(Alpha * 255), 0f, ShortRange, 0, 0f, uint.MaxValue);
                 }
                 else
                 {
@@ -78,7 +78,7 @@ namespace BCRPClient.CEF
 
         private static int CurrentSprite { get; set; } = 1;
 
-        private static int CurrentColour { get; set; } = 0;
+        private static byte CurrentColour { get; set; } = 0;
 
         private static float CurrentAlpha { get; set; } = 1f;
 
@@ -218,7 +218,7 @@ namespace BCRPClient.CEF
 
                             CurrentShortRange = !state;
 
-                            TempBlip.SetAsShortRange(CurrentShortRange);
+                            TempBlip.IsShortRange = CurrentShortRange;
                         }
                         else
                         {
@@ -261,7 +261,7 @@ namespace BCRPClient.CEF
 
                     if (TempBlip == null)
                     {
-                        TempBlip = new Blip(0, Player.LocalPlayer.Position, "", 0f, 0, 0, 0f, false, 0, 0f, uint.MaxValue);
+                        TempBlip = new Additional.ExtraBlip(0, Player.LocalPlayer.Position, "", 0f, 0, 0, 0f, false, 0, 0f, uint.MaxValue);
 
                         CurrentUsePos = true;
                     }
@@ -283,13 +283,13 @@ namespace BCRPClient.CEF
 
                         CurrentShortRange = Settings.Other.LocalBlips[idx].ShortRange;
 
-                        TempBlip = new Blip(0, Settings.Other.LocalBlips[idx].Position, "", 0f, 0, 0, 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                        TempBlip = new Additional.ExtraBlip(0, Settings.Other.LocalBlips[idx].Position, "", 0f, 0, 0, 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
                     }
                 }
 
                 if (aId == "color")
                 {
-                    CurrentColour = (int)args[2];
+                    CurrentColour = Convert.ToByte(args[2]);
                 }
                 else if (aId == "icon")
                 {
@@ -304,7 +304,7 @@ namespace BCRPClient.CEF
                     CurrentAlpha = args[2] is int ? (float)(int)args[2] : (float)args[2];
                 }
 
-                var blip = new Blip((uint)CurrentSprite, TempBlip.GetInfoIdCoord(), "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, TempBlip.IsShortRange(), 0, 0f, uint.MaxValue);
+                var blip = new Additional.ExtraBlip((uint)CurrentSprite, TempBlip.Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, TempBlip.IsShortRange, 0, 0f, uint.MaxValue);
 
                 TempBlip.Destroy();
 
@@ -336,11 +336,11 @@ namespace BCRPClient.CEF
 
             if (WasCreating)
             {
-                TempBlip = new Blip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
+                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, false, 0, 0f, uint.MaxValue);
             }
             else if (LastEdited != -1)
             {
-                TempBlip = new Blip((uint)CurrentSprite, Settings.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
+                TempBlip = new Additional.ExtraBlip((uint)CurrentSprite, Settings.Other.LocalBlips[LastEdited].Position, "", CurrentScale, CurrentColour, (int)Math.Floor(CurrentAlpha * 255), 0f, CurrentShortRange, 0, 0f, uint.MaxValue);
             }
 
             CEF.Cursor.Show(true, true);

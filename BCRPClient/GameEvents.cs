@@ -25,7 +25,7 @@ namespace BCRPClient
         public static event UpdateHandler Render;
 
         public static event OnMouseClick MouseClicked;
-        public static event OnMouseClickCef MouseClickedCef;
+        public static event OnMouseClickCef MouseClickedWithRaycast;
 
         public static event WaypointCreatedHandler WaypointCreated;
         public static event WaypointDeletedHandler WaypointDeleted;
@@ -89,10 +89,10 @@ namespace BCRPClient
 
             GameEvents.DisableAllControls(true);
 
-            Events.OnClick += (x, y, up, right) => MouseClicked?.Invoke(x, y, up, right);
-            Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClickedCef?.Invoke(x, y, up, right, relX, relY, worldPos, eHandle);
+            Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClicked?.Invoke(x, y, up, right);
+            Events.OnClickWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) => MouseClickedWithRaycast?.Invoke(x, y, up, right, relX, relY, worldPos, eHandle);
 
-            MouseClickedCef += (x, y, up, right, relX, relY, worldPos, eHandle) =>
+            MouseClickedWithRaycast += (x, y, up, right, relX, relY, worldPos, eHandle) =>
             {
                 if (right)
                 {
@@ -151,12 +151,12 @@ namespace BCRPClient
 
                 Additional.ExtraColshape.UpdateStreamed();
 
-                Additional.ExtraColshape.Streamed.Where(x => x.IsInside && x.Name.StartsWith("REAS")).ToList().ForEach(x =>
-                {
-                    x.OnExit?.Invoke(null);
-                    x.OnEnter?.Invoke(null);
-                });
+                Additional.ExtraBlip.RefreshAllBlips();
+
+                Sync.House.UpdateAllLights();
             };
+
+            //KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () => Player.LocalPlayer.SetRealHealth(0));
 
             Events.OnPlayerQuit += async (Player player) =>
             {
@@ -206,7 +206,7 @@ namespace BCRPClient
                 }
                 else if (entity is Ped ped)
                 {
-                    await Data.NPC.OnPedStreamIn(ped);
+                    await Sync.Peds.OnPedStreamIn(ped);
                 }
                 else if (entity is MapObject obj)
                 {
@@ -232,7 +232,7 @@ namespace BCRPClient
                 }
                 else if (entity is Ped ped)
                 {
-                    await Data.NPC.OnPedStreamOut(ped);
+                    await Sync.Peds.OnPedStreamOut(ped);
                 }
                 else if (entity is MapObject obj)
                 {

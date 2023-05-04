@@ -62,7 +62,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 },
                             };
 
-                            var blip = new Blip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
                             blip.SetRoute(true);
 
@@ -179,7 +179,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 }
                             };
 
-                            var blip = new Blip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                             blip.SetRoute(true);
 
@@ -244,7 +244,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 },
                             };
 
-                            var blip = new Blip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                            var blip = new Additional.ExtraBlip(162, destPos, "", 0f, 2, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
                             blip.SetRoute(true);
 

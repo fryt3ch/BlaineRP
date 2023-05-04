@@ -43,7 +43,7 @@ namespace BCRPClient.Data
 
             public RAGE.Elements.TextLabel InfoText { get; set; }
 
-            public abstract Blip OwnerBlip { get; set; }
+            public abstract Additional.ExtraBlip OwnerBlip { get; set; }
 
             public HouseBase(Sync.House.HouseTypes Type, uint Id, uint Price, Vector3 Position, Sync.House.Style.RoomTypes RoomType, ClassTypes Class, uint Tax)
             {
@@ -70,7 +70,7 @@ namespace BCRPClient.Data
 
             public override string OwnerName => Sync.World.GetSharedData<string>($"Apartments::{Id}::OName");
 
-            public override Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"Apartments::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Apartments::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Apartments::{Id}::OBlip", value); } }
+            public override Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Apartments::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Apartments::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Apartments::{Id}::OBlip", value); } }
 
             public ApartmentsRoot.Types RootType { get; set; }
 
@@ -99,13 +99,13 @@ namespace BCRPClient.Data
                     {
                         //aRoot.Blip.SetDisplay(0);
 
-                        OwnerBlip = new Blip(475, aRoot.PositionEnter, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                        OwnerBlip = new Additional.ExtraBlip(475, aRoot.PositionEnter, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
                     }
                     else if (curARoot.Type == aRoot.Type)
                     {
                         //aRoot.Blip.SetDisplay(2);
 
-                        OwnerBlip = new Blip(475, Position, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Player.LocalPlayer.Dimension);
+                        OwnerBlip = new Additional.ExtraBlip(475, Position, string.Format(Locale.General.Blip.ApartmentsOwnedBlip, aRoot.Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Player.LocalPlayer.Dimension);
                     }
                 }
                 else
@@ -139,11 +139,11 @@ namespace BCRPClient.Data
 
             public Vector3 GaragePosition { get; set; }
 
-            public override Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
+            public override Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"House::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OBlip", value); } }
 
             public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"House::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGCS"); else Player.LocalPlayer.SetData($"House::{Id}::OGCS", value); } }
 
-            public Blip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Blip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
+            public Additional.ExtraBlip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"House::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"House::{Id}::OGBlip"); else Player.LocalPlayer.SetData($"House::{Id}::OGBlip", value); } }
 
             public House(uint Id, Vector3 Position, Sync.House.Style.RoomTypes RoomType, Garage.Types? GarageType, Vector3 GaragePosition, uint Price, ClassTypes Class, uint Tax) : base(Sync.House.HouseTypes.House, Id, Price, Position, RoomType, Class, Tax)
             {
@@ -187,11 +187,11 @@ namespace BCRPClient.Data
                 {
                     if (GarageType == null)
                     {
-                        OwnerBlip = new Blip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                        OwnerBlip = new Additional.ExtraBlip(40, Position, $"Дом #{Id}", 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
                     }
                     else
                     {
-                        OwnerBlip = new Blip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                        OwnerBlip = new Additional.ExtraBlip(492, Position, $"Дом #{Id}", 1.2f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
                     }
 
                     if (GaragePosition != null)
@@ -205,7 +205,7 @@ namespace BCRPClient.Data
                             Data = this,
                         };
 
-                        OwnerGarageBlip = new Blip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
+                        OwnerGarageBlip = new Additional.ExtraBlip(9, GaragePosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
                     }
                 }
                 else
@@ -246,7 +246,7 @@ namespace BCRPClient.Data
 
             public TextLabel InfoText { get; set; }
 
-            public Blip Blip { get; set; }
+            public Additional.ExtraBlip Blip { get; set; }
 
             public string Name => Locale.Property.ApartmentsRootNames.GetValueOrDefault(Type) ?? "null";
 
@@ -287,7 +287,7 @@ namespace BCRPClient.Data
 
                 InfoText = new TextLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z + 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
-                Blip = new Blip(475, PositionEnter, Name, 1f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Additional.ExtraBlip(475, PositionEnter, Name, 1f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
 
             public float GetFloorZ(int floor) => FloorPosition.Z + (floor - StartFloor) * FloorDistZ;

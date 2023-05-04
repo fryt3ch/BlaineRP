@@ -58,9 +58,9 @@ namespace BCRPClient.Data
 
             public string OwnerName => Sync.World.GetSharedData<string>($"Business::{Id}::OName");
 
-            public Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"Business::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Business::{Id}::OBlip"); Player.LocalPlayer.SetData($"Business::{Id}::OBlip", value); } }
+            public Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Business::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Business::{Id}::OBlip"); Player.LocalPlayer.SetData($"Business::{Id}::OBlip", value); } }
 
-            public Blip Blip { get; set; }
+            public Additional.ExtraBlip Blip { get; set; }
 
             public TextLabel InfoText { get; set; }
 
@@ -114,17 +114,17 @@ namespace BCRPClient.Data
             {
                 if (state)
                 {
-                    Blip.SetDisplay(0);
+                    Blip.Display = 0;
 
                     var oBlip = OwnerBlip;
 
                     oBlip?.Destroy();
 
-                    OwnerBlip = new Blip(207, InfoColshape.Position, Name, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    OwnerBlip = new Additional.ExtraBlip(207, InfoColshape.Position, Name, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
                 }
                 else
                 {
-                    Blip.SetDisplay(2);
+                    Blip.Display = 2;
 
                     var oBlip = OwnerBlip;
 
@@ -147,7 +147,7 @@ namespace BCRPClient.Data
 
             public ClothesShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop1, Price, Rent, Tax)
             {
-                this.Blip = new Blip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -171,7 +171,7 @@ namespace BCRPClient.Data
 
             public ClothesShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop2, Price, Rent, Tax)
             {
-                this.Blip = new Blip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -195,7 +195,7 @@ namespace BCRPClient.Data
 
             public ClothesShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
             {
-                this.Blip = new Blip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -219,7 +219,7 @@ namespace BCRPClient.Data
 
             public BagShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BagShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(377, PositionInteract.Position, Name, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(377, PositionInteract.Position, Name, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -243,7 +243,7 @@ namespace BCRPClient.Data
 
             public MaskShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MaskShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(362, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(362, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -268,7 +268,7 @@ namespace BCRPClient.Data
 
             public JewelleryShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.JewelleryShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -293,7 +293,7 @@ namespace BCRPClient.Data
 
             public TattooShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TattooShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -315,7 +315,7 @@ namespace BCRPClient.Data
 
             public BarberShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BarberShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -337,7 +337,7 @@ namespace BCRPClient.Data
 
             public Market(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.Market, Price, Rent, Tax)
             {
-                this.Blip = new Blip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -356,7 +356,7 @@ namespace BCRPClient.Data
         {
             public GasStation(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Vector3 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
             {
-                this.Blip = new Blip(361, PositionGas, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(361, PositionGas, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var cs = new Additional.Sphere(PositionGas, 5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
                 {
@@ -384,7 +384,7 @@ namespace BCRPClient.Data
 
             public CarShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop1, Price, Rent, Tax)
             {
-                this.Blip = new Blip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -406,7 +406,7 @@ namespace BCRPClient.Data
 
             public CarShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop2, Price, Rent, Tax)
             {
-                this.Blip = new Blip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -428,7 +428,7 @@ namespace BCRPClient.Data
 
             public CarShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop3, Price, Rent, Tax)
             {
-                this.Blip = new Blip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -450,7 +450,7 @@ namespace BCRPClient.Data
 
             public MotoShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MotoShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -472,7 +472,7 @@ namespace BCRPClient.Data
 
             public BoatShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BoatShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -494,7 +494,7 @@ namespace BCRPClient.Data
 
             public AeroShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.AeroShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -513,7 +513,7 @@ namespace BCRPClient.Data
 
             public TuningShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TuningShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.EnteranceColshape = new Additional.Sphere(PositionInteract.Position, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
                 {
@@ -542,7 +542,7 @@ namespace BCRPClient.Data
 
             public WeaponShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 
@@ -576,7 +576,7 @@ namespace BCRPClient.Data
 
             public FurnitureShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
             {
-                this.Blip = new Blip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
 

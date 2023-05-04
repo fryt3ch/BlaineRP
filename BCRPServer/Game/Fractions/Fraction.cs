@@ -14,6 +14,8 @@ namespace BCRPServer.Game.Fractions
         COP_BLAINE = 1,
         COP_LS = 2,
 
+        FIB_LS = 5,
+
         MEDIA_LS = 10,
 
         EMS_BLAINE = 20,
@@ -21,10 +23,18 @@ namespace BCRPServer.Game.Fractions
 
         GOV_LS = 30,
 
-        GANG_MARA = 41,
-        GANG_FAMS = 42,
+        GANG_MARA = 40,
+        GANG_FAMS = 41,
+        GANG_BALS = 42,
         GANG_VAGS = 43,
-        GANG_BALS = 44,
+
+        MAFIA_RUSSIA = 60,
+        MAFIA_ITALY = 61,
+        MAFIA_JAPAN = 62,
+
+        ARMY_FZ = 80,
+
+        PRISON_BB = 90,
     }
 
     public interface IUniformable
@@ -68,7 +78,7 @@ namespace BCRPServer.Game.Fractions
         public Queue<int> FreeIdxes { get; set; } = new Queue<int>();
     }
 
-    public abstract class Fraction
+    public abstract partial class Fraction
     {
         public static Dictionary<Types, Fraction> All { get; set; } = new Dictionary<Types, Fraction>();
 
@@ -115,346 +125,6 @@ namespace BCRPServer.Game.Fractions
         public abstract string ClientData { get; }
 
         public string ItemTag { get; set; }
-
-        public static int InitializeAll()
-        {
-            Game.Items.Container.AllSIDs.Add("f_storage", new Items.Container.Data(125, 100_000f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Storage));
-
-            new Police(Types.COP_BLAINE, "Полиция Округа Блэйн")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-438.325f, 5990.785f, 31.71619f, 310.7526f),
-                    new Utils.Vector4(1853.851f, 3686.156f, 34.26704f, 212.9599f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                     new Utils.Vector4(-441.8761f, 5987.493f, 30.7162f, 2.5f),
-
-                     new Utils.Vector4(1848.793f, 3689.671f, 33.26704f, 1.5f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-437.8557f, 5988.477f, 30.71618f, 1f),
-
-                    new Utils.Vector4(1851.802f, 3691.445f, 33.26705f, 1f),
-                },
-
-                LockerRoomPositions = new Vector3[]
-                {
-                    new Vector3(-439.1087f, 5993.017f, 30.71619f),
-
-                    new Vector3(1857.349f, 3689.408f, 33.26704f),
-                },
-
-                UniformTypes = new List<Data.Customization.UniformTypes>()
-                {
-                    Data.Customization.UniformTypes.FractionPaletoPolice_0,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_1,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_2,
-                },
-
-                ArrestCellsPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-429.6015f, 6001.549f, 31.71618f, 3f),
-                    new Utils.Vector4(-426.6064f, 5998.16f, 31.71618f, 3f),
-                },
-
-                ArrestFreePosition = new Utils.Vector4(-442.0793f, 6017.475f, 31.67867f, 314.3072f),
-
-                ArrestMenuPositions = new Vector3[]
-                {
-                    new Vector3(-435.4453f, 5997.362f, 31.71618f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-                    { "w_pistol", 100 },
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
-                ItemTag = "BCPD",
-            };
-
-            new Police(Types.COP_LS, "Полиция Лос-Сантоса")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(455.8622f, -991.1062f, 30.68932f, 88.41425f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(477.5417f, -989.4244f, 23.91471f, 2.5f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(472.8697f, -989.4165f, 23.91472f, 1f),
-                },
-
-                LockerRoomPositions = new Vector3[]
-                {
-                    new Vector3(451.3782f, -992.9793f, 29.68934f),
-                },
-
-                UniformTypes = new List<Data.Customization.UniformTypes>()
-                {
-                    Data.Customization.UniformTypes.FractionPaletoPolice_0,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_1,
-                    Data.Customization.UniformTypes.FractionPaletoPolice_2,
-                },
-
-                ArrestCellsPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(459.9757f, -994.5201f, 24.91471f, 269.2255f),
-                    new Utils.Vector4(459.4457f, -997.96f, 24.91471f, 269.2255f),
-                    new Utils.Vector4(459.7129f, -1001.613f, 24.91471f, 269.2255f),
-
-                    new Utils.Vector4(467.5764f, -994.4102f, 24.91471f, 275f),
-                    new Utils.Vector4(472.0844f, -994.6555f, 24.91471f, 275f),
-                    new Utils.Vector4(476.5382f, -994.5233f, 24.91471f, 275f),
-                    new Utils.Vector4(480.6288f, -994.2647f, 24.91471f, 275f),
-                },
-
-                ArrestFreePosition = new Utils.Vector4(433.1303f, -981.7498f, 30.71028f, 86.3075f),
-
-                ArrestMenuPositions = new Vector3[]
-                {
-
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-                    { "w_pistol", 100 },
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
-                ItemTag = "LSPD",
-            };
-
-            new WeazelNews(Types.MEDIA_LS, "Weazel News")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-594.6252f, -930.1151f, 28.15707f, 266.3295f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-578.9703f, -915.7086f, 27.15708f, 1.5f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-601.053f, -917.2875f, 27.15707f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
-                ItemTag = "WZLN",
-            };
-
-            new EMS(Types.EMS_BLAINE, "Больница Округа Блэйн")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-258.9563f, 6330.19f, 32.42728f, 218.3881f),
-
-                    new Utils.Vector4(1842.196f, 3679.172f, 34.27489f, 118.615f),
-                },
-
-                LockerRoomPositions = new Vector3[]
-                {
-                    new Vector3(-256.1902f, 6327.726f, 31.42725f),
-
-                    new Vector3(1836.598f, 3685.146f, 33.27487f),
-                },
-
-                UniformTypes = new List<Data.Customization.UniformTypes>()
-                {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
-                    Data.Customization.UniformTypes.FractionPaletoEMS_2,
-                    Data.Customization.UniformTypes.FractionPaletoEMS_1,
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-264.9498f, 6321.589f, 31.4273f, 1.5f),
-
-                    new Utils.Vector4(1842.006f, 3684.026f, 33.27487f, 1.5f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-262.7031f, 6319.312f, 31.4273f, 1f),
-
-                    new Utils.Vector4(1839.462f, 3682.543f, 33.27487f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
-                ItemTag = "BCEMS",
-
-                AfterDeathSpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-249.0699f, 6314.924f, 32.42727f, 39.13411f),
-
-                    new Utils.Vector4(1819.797f, 3675.556f, 34.27489f, 298.6678f),
-                },
-            };
-
-            new EMS(Types.EMS_LS, "Больница Лос-Сантоса")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(306.8656f, -572.422f, 43.28408f, 161.3542f),
-                },
-
-                LockerRoomPositions = new Vector3[]
-                {
-                    new Vector3(302.8677f, -572.0403f, 42.28407f),
-                },
-
-                UniformTypes = new List<Data.Customization.UniformTypes>()
-                {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(338.8343f, -595.1829f, 42.2841f, 1.5f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(341.1305f, -588.7886f, 42.2841f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
-                ItemTag = "LSEMS",
-
-                AfterDeathSpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(321.2299f, -584.1389f, 43.28405f, 66.56934f),
-                },
-            };
-
-            new Government(Types.GOV_LS, "Правительство Лос-Сантоса")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-540.1923f, -197.8367f, 47.42305f, 0.4962777f),
-                },
-
-                LockerRoomPositions = new Vector3[]
-                {
-                    new Vector3(-541.5637f, -192.8628f, 46.42308f),
-                },
-
-                UniformTypes = new List<Data.Customization.UniformTypes>()
-                {
-                    Data.Customization.UniformTypes.FractionPaletoEMS_0,
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-549.821f, -202.9997f, 46.41494f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-543.8552f, -198.2676f, 46.41494f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
-                ItemTag = "LSGOV",
-            };
-
-            Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.COP_BLAINE}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1
-
-            foreach (var x in All.Values)
-            {
-                x.Initialize();
-            }
-
-            Gang.GangZone.Initialize();
-
-            return All.Count;
-        }
-
-        public static void PostInitializeAll()
-        {
-            var lines = new List<string>();
-
-            lines.Add($"Fractions.Police.NumberplatePrices = RAGE.Util.Json.Deserialize<Dictionary<string, uint[]>>(\"{Police.NumberplatePrices.SerializeToJson().Replace('"', '\'')}\");");
-
-            foreach (var x in All.Values)
-            {
-                x.PostInitialize();
-
-                lines.Add($"new Fractions.{x.GetType().Name}({x.ClientData});");
-            }
-
-            foreach (var x in Gang.GangZone.All)
-            {
-                x.UpdateOwner(false);
-
-                lines.Add($"Fractions.Gang.GangZone.AddZone({x.Id}, {x.Position.X}f, {x.Position.Y}f);");
-            }
-
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "FRACTIONS_TO_REPLACE", lines);
-        }
 
         public void SetRankName(byte rank, string rankName, bool updateDb)
         {

@@ -1,21 +1,37 @@
 ﻿using RAGE;
+using RAGE.Elements;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPClient.Sync
 {
     class DoorSystem : Events.Script
     {
-        public class DoorInfo
+        private static Dictionary<HashSet<uint>, string> Names { get; set; } = new Dictionary<HashSet<uint>, string>()
         {
+            { new HashSet<uint>() { 1 }, "Центр управления" },
+        };
+
+        public static List<Door> AllDoors { get; set; } = new List<Door>();
+
+        public static DateTime LastSent;
+
+        public class Door
+        {
+            private MapObject DoorObject { get; set; }
+
             public uint Model { get; set; }
 
             public Vector3 Position { get; set; }
 
-            public string Name { get; set; }
+            public string Name => Names.Where(x => x.Key.Contains(Id)).Select(x => x.Value).FirstOrDefault();
 
-            public string Id { get; set; }
+            public uint Id { get; set; }
 
-            public DoorInfo(string Id, uint Model, Vector3 Position, bool DefaultState = true)
+            public bool IsLocked => Sync.World.GetSharedData<bool>($"DOORS_{Id}_L", false);
+
+            public Door(uint Id, uint Model, Vector3 Position, uint Dimension)
             {
                 this.Id = Id;
 
@@ -24,18 +40,119 @@ namespace BCRPClient.Sync
 
                 All.Add(this);
 
-                ToggleLock(DefaultState);
+                var cs = new Additional.Sphere(new Vector3(Position.X, Position.Y, Position.Z), 5f, false, Utils.RedColor, Dimension, null)
+                {
+                    Name = $"DoorSys_{Id}",
+
+                    OnEnter = OnEnterColshape,
+                    OnExit = OnExitColshape,
+                };
+
+                Sync.World.AddDataHandler($"DOORS_{Id}_L", OnLockStateChange);
             }
 
-            public DoorInfo(string Id, string Model, Vector3 Position, bool DefaultState = true) : this(Id, RAGE.Util.Joaat.Hash(Model), Position, DefaultState) { }
+            public Door(uint Id, string Model, Vector3 Position, uint Dimension) : this(Id, RAGE.Util.Joaat.Hash(Model), Position, Dimension) { }
 
             public void ToggleLock(bool state) => DoorSystem.ToggleLock(this, state);
+
+            private async void OnEnterColshape(RAGE.Events.CancelEventArgs cancel)
+            {
+                var id = $"DoorSys_{Id}";
+
+                var cs = Additional.ExtraColshape.All.Where(x => x.Name == id).FirstOrDefault();
+
+                if (cs == null)
+                    return;
+
+                int handle = 0;
+
+                while (handle <= 0)
+                {
+                    handle = RAGE.Game.Object.GetClosestObjectOfType(Position.X, Position.Y, Position.Z, 1f, Model, false, true, true);
+
+                    if (handle <= 0)
+                    {
+                        await RAGE.Game.Invoker.WaitAsync(25);
+
+                        if (!cs.IsInside)
+                            return;
+                    }
+                }
+
+                DoorObject = new MapObject(handle);
+
+                var name = Name;
+
+                DoorObject.SetData("Interactive", true);
+
+                DoorObject.SetData("CustomText", (Action<float, float>)((x, y) =>
+                {
+                    Utils.DrawText(name == null ? "Дверь" : $"Дверь - {name}", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+
+                    var isLocked = IsLocked;
+
+                    if (isLocked)
+                        Utils.DrawText($"[Закрыта]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    else
+                        Utils.DrawText($"[Открыта]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                }));
+
+                DoorObject.SetData("CustomAction", (Action<MapObject>)(async (obj) =>
+                {
+                    if (LastSent.IsSpam(500, false, true))
+                        return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = await Events.CallRemoteProc("Door::Lock", Id, !IsLocked);
+                }));
+            }
+
+            private void OnExitColshape(RAGE.Events.CancelEventArgs cancel)
+            {
+                var id = $"DoorSys_{Id}";
+
+                var cs = Additional.ExtraColshape.All.Where(x => x.Name == id).FirstOrDefault();
+
+                if (cs == null)
+                    return;
+
+                DoorObject?.Destroy();
+            }
+
+            private static void OnLockStateChange(string key, object value, object oldBalue)
+            {
+                var dataD = key.Split('_');
+
+                var id = uint.Parse(dataD[1]);
+
+                var door = GetDoorById(id);
+
+                if (door == null)
+                    return;
+
+                door.ToggleLock((bool?)value ?? false);
+            }
+
+            public static void PostInitializeAll()
+            {
+                foreach (var x in All)
+                {
+                    x.ToggleLock(x.IsLocked);
+                }
+            }
         }
 
-        private static List<DoorInfo> All { get; set; } = new List<DoorInfo>();
+        public static List<Door> All { get; set; } = new List<Door>();
+
+        public static Door GetDoorById(uint id) => All.Where(x => x.Id == id).FirstOrDefault();
 
         public DoorSystem()
         {
+            #region DOORS_TO_REPLACE
+
+            #endregion
+
             // Garages
             ToggleLock("v_ilev_rc_door2", 179.6684f, -1004.762f, -98.85f, true);
             ToggleLock("v_ilev_rc_door2", 207.7825f, -999.6905f, -98.85f, true);
@@ -62,7 +179,7 @@ namespace BCRPClient.Sync
             ToggleLock("v_ilev_gtdoor", 480.0301f, -996.4594f, 25.00599f, true);
         }
 
-        public static void ToggleLock(DoorInfo doorInfo, bool state) => ToggleLock(doorInfo.Model, doorInfo.Position, state);
+        public static void ToggleLock(Door doorInfo, bool state) => ToggleLock(doorInfo.Model, doorInfo.Position, state);
 
         public static void ToggleLock(string model, float x, float y, float z, bool state) => ToggleLock(RAGE.Util.Joaat.Hash(model), x, y, z, state);
 

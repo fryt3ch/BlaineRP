@@ -1,4 +1,5 @@
 ﻿using RAGE;
+using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -40,9 +41,9 @@ namespace BCRPClient.Data
                     Data = id,
                 };
 
-                var marker = new RAGE.Elements.Marker(32, new Vector3(Position.X, Position.Y, Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
+                var marker = new Marker(32, new Vector3(Position.X, Position.Y, Position.Z + 1f), 1f, Vector3.Zero, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
 
-                var blip = new RAGE.Elements.Blip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(545, Position, "Автошкола", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 if (id == 1)
                 {

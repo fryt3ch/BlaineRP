@@ -122,9 +122,9 @@ namespace BCRPClient.Data
 
             public int NumberInRoot => Garage.All.Values.Where(x => x.RootType == RootType).ToList().FindIndex(x => x == this);
 
-            public Blip OwnerBlip { get => Player.LocalPlayer.GetData<Blip>($"Garage::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Garage::{Id}::OBlip", value); } }
+            public Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Garage::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Garage::{Id}::OBlip", value); } }
 
-            public Blip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Blip>($"Garage::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Garage::{Id}::OGBlip", value); } }
+            public Additional.ExtraBlip OwnerGarageBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Garage::{Id}::OGBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Garage::{Id}::OGBlip", value); } }
 
             public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"Garage::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OGCS"); else Player.LocalPlayer.SetData($"Garage::{Id}::OGCS", value); } }
 
@@ -164,9 +164,9 @@ namespace BCRPClient.Data
                 {
                     //gRoot.Blip.SetDisplay(0);
 
-                    OwnerBlip = new Blip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootType].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    OwnerBlip = new Additional.ExtraBlip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootType].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
-                    OwnerGarageBlip = new Blip(9, gRoot.VehicleEnterPosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
+                    OwnerGarageBlip = new Additional.ExtraBlip(9, gRoot.VehicleEnterPosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
 
                     OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                     {
@@ -204,7 +204,7 @@ namespace BCRPClient.Data
 
             public Types Type { get; set; }
 
-            public Blip Blip { get; set; }
+            public Additional.ExtraBlip Blip { get; set; }
 
             public Additional.ExtraColshape EnterColshape { get; set; }
 
@@ -230,7 +230,7 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                this.Blip = new Blip(50, EnterPosition, Locale.Property.GarageRootNameDef, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(50, EnterPosition, Locale.Property.GarageRootNameDef, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 All.Add(Type, this);
             }

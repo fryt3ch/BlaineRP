@@ -93,7 +93,7 @@ namespace BCRPClient
             public static string NoOwner = "Государство";
 
             public static string BankNameDef = "Банковское отделение";
-            public static string AtmNameDef = "Банковское отделение";
+            public static string AtmNameDef = "Банкомат";
 
             public static string GarageRootNameDef = "Гаражный комплекс";
             public static string GarageRootName = "Гаражный комплекс #{0}";

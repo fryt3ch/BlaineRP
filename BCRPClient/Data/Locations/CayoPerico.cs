@@ -7,8 +7,6 @@ namespace BCRPClient.Data
     {
         public static class CayoPerico
         {
-            public static Blip MainBlip { get; set; }
-
             public static bool IslandLoaded { get; set; }
 
             public static Additional.ExtraColshape MainColshape { get; set; }
@@ -46,7 +44,7 @@ namespace BCRPClient.Data
 
                 ToggleCayoPericoIsland(false, false);
 
-                MainBlip = new Blip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var mainBlip = new Additional.ExtraBlip(836, new Vector3(4900.16f, -5192.03f, 2.44f), "Cayo Perico", 1.1f, 49, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
 
             public static void ToggleCayoPericoIsland(bool state, bool updateCustomWeather)

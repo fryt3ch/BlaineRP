@@ -1955,7 +1955,7 @@ namespace BCRPClient.Sync
                 var blip = new Additional.ExtraBlip(162, pos, null, 1f, 2, 255, 0f, false, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.AutoPilot);
 
                 blip.SetAsReachable(7.5f);
-                blip.ToggleRouting(true);
+                blip.SetRoute(true);
 
                 Player.LocalPlayer.SetData("AutoPilot::Blip", blip);
 

@@ -135,6 +135,25 @@ namespace BCRPServer.Game.Fractions
             }
         }
 
+        public static void SetPlayerToEmsAfterDeath(PlayerData pData, Vector3 curPos)
+        {
+            if (pData.IsKnocked)
+                pData.IsKnocked = false;
+
+            Game.Fractions.EMS emsFraction;
+            int posIdx;
+
+            Game.Fractions.EMS.GetClosestAfterDeathFractionAndPosIdx(curPos, out emsFraction, out posIdx);
+
+            var pos = emsFraction.AfterDeathSpawnPositions[posIdx];
+
+            pData.Player.Teleport(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, false);
+
+            NAPI.Player.SpawnPlayer(pData.Player, pos.Position, pos.RotationZ);
+
+            pData.Player.SetHealth(10);
+        }
+
         public static CallInfo GetCallByRID(ushort rid) => AllCalls.GetValueOrDefault(rid);
 
         public static void AddCall(ushort rid, CallInfo call)

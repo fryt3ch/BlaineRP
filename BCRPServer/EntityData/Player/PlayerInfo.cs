@@ -225,7 +225,7 @@ namespace BCRPServer
                 if (!Cooldowns.TryGetValue(cdType, out dt))
                     dt = DateTime.MinValue;
 
-                return Utils.GetCurrentTime().Subtract(dt);
+                return dt.Subtract(Utils.GetCurrentTime());
             }
 
             public void SetCooldown(Sync.Cooldowns.Types cdType, int secs)

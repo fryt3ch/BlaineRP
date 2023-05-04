@@ -262,6 +262,51 @@ namespace BCRPServer.Additional
             Utils.GetGarageByDimension(dim)?.SetPlayersInside(false, players);
         }
 
+        public static void TeleportPeds(Vector3 pos, bool toGround, uint? dimension = null, float? heading = null, uint? lastDim = null, params Ped[] peds)
+        {
+            for (int i = 0; i < peds.Length; i++)
+            {
+                var ped = peds[i];
+
+                if (ped.Controller is Player controller)
+                {
+                    if (dimension is uint dim)
+                    {
+                        ped.Dimension = dim;
+                    }
+
+                    if (pos != null)
+                    {
+                        ped.Position = pos;
+                    }
+
+                    if (heading is float headingF)
+                    {
+                        ped.Rotation = new Vector3(0f, 0f, headingF);
+                    }
+
+                    //controller.TriggerEvent("AC::Ped::TP", ped.Id, pos, heading);
+                }
+                else
+                {
+                    if (dimension is uint dim)
+                    {
+                        ped.Dimension = dim;
+                    }
+                    
+                    if (pos != null)
+                    {
+                        ped.Position = pos;
+                    }
+
+                    if (heading is float headingF)
+                    {
+                        ped.Rotation = new Vector3(0f, 0f, headingF);
+                    }
+                }
+            }
+        }
+
         /// <summary>Установить здоровье игрока</summary>
         /// <param name="player">Сущность игрока</param>
         /// <param name="value">Новое здоровье</param>

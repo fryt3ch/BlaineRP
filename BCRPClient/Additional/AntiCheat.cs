@@ -63,6 +63,30 @@ namespace BCRPClient.Additional
 
             #region Events
             #region Teleport
+
+            Events.Add("AC::Ped::TP", async (args) =>
+            {
+                var remoteId = Convert.ToUInt16(args[0]);
+
+                var ped = RAGE.Elements.Entities.Peds.GetAtRemote(remoteId);
+
+                if (ped == null || ped.Controller != Player.LocalPlayer)
+                    return;
+
+                var pos = (Vector3)args[1];
+                var heading = args[2] == null ? (float?)null : Convert.ToSingle(args[2]);
+
+                if (pos != null)
+                {
+                    ped.SetCoordsNoOffset(pos.X, pos.Y, pos.Z, false, false, false);
+                }
+
+                if (heading is float headingF)
+                {
+                    ped.SetHeading(headingF);
+                }
+            });
+
             Events.Add("AC::State::TP", async (object[] args) =>
             {
                 var dim = (int)args[0] < 0 ? Player.LocalPlayer.Dimension : (uint)(int)args[0];

@@ -120,6 +120,8 @@ namespace BCRPClient.Additional
             BackVehicleUpAngle,
 
             NpcTalk,
+
+            CasinoRouletteGame,
         }
 
         public static Dictionary<StateTypes, State> States = new Dictionary<StateTypes, State>()
@@ -259,6 +261,8 @@ namespace BCRPClient.Additional
             { StateTypes.LeftVehicle, new State(new Vector3(0, 0, 0), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { -90f, 3.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
             { StateTypes.TopVehicle, new State(new Vector3(0, 0, 4f), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
+
+            { StateTypes.CasinoRouletteGame, new State(new Vector3(0f, 0f, 2f), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.None, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.None, ShakeAmplitude = 0f, } },
         };
 
         /// <summary>Минимально возможный FOV</summary>
@@ -274,7 +278,7 @@ namespace BCRPClient.Additional
         public static Vector3 Position { get => RAGE.Game.Cam.GetCamCoord(Id); set { RAGE.Game.Cam.SetCamCoord(Id, value.X, value.Y, value.Z); } }
 
         /// <summary>Поворот текущей камеры</summary>
-        public static Vector3 Rotation { get => RAGE.Game.Cam.GetCamRot(Id, 5); set { RAGE.Game.Cam.SetCamRot(Id, value.X, value.Y, value.Z, 5); } }
+        public static Vector3 Rotation { get => RAGE.Game.Cam.GetCamRot(Id, 2); set { RAGE.Game.Cam.SetCamRot(Id, value.X, value.Y, value.Z, 2); } }
 
         /// <summary>Поле обзора</summary>
         public static float Fov { get => RAGE.Game.Cam.GetCamFov(Id); set { if (value > MaxFov) return; if (value < MinFov) return; RAGE.Game.Cam.SetCamFov(Id, value); } }
@@ -472,7 +476,7 @@ namespace BCRPClient.Additional
         {
             if (type == RenderTypes.None)
             {
-                Vector3 pos = position;
+                var pos = position;
 
                 if (entity != null)
                 {
@@ -491,17 +495,17 @@ namespace BCRPClient.Additional
                     {
                         pos = (Utils.GetBonePositionOfEntity(entity, args) ?? RAGE.Game.Entity.GetEntityCoords(entity.Handle, false)) + position;
                     }
-                }
 
-                if (isSource)
-                    Position = pos;
-                else
-                    PointAtPos(pos);
+                    if (isSource)
+                        Position = pos;
+                    else
+                        PointAtPos(pos);
+                }
             }
             else
             {
                 Vector3 LastPosition = null;
-                float LastHeading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
+                var LastHeading = RAGE.Game.Entity.GetEntityHeading(entity.Handle);
 
                 var task = new AsyncTask(() =>
                 {

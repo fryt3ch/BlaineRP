@@ -14,8 +14,6 @@ namespace BCRPClient.Data
 
             public List<NPC> Workers { get; set; }
 
-            public Blip Blip { get; set; }
-
             public Bank(int Id, Utils.Vector4[] NPCs)
             {
                 this.Id = Id;
@@ -40,7 +38,7 @@ namespace BCRPClient.Data
 
                 var pos = posBlip / NPCs.Length;
 
-                Blip = new Blip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(605, pos, Locale.Property.BankNameDef, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 CEF.PhoneApps.GPSApp.AddPosition("money", "banks", $"bank_{Id}", $"bank& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(pos.X, pos.Y));
             }
@@ -53,8 +51,6 @@ namespace BCRPClient.Data
             public int Id { get; set; }
 
             public Additional.ExtraColshape Colshape { get; set; }
-
-            public Blip Blip { get; set; }
 
             public ATM(int Id, Utils.Vector4 PositionParams)
             {
@@ -72,7 +68,7 @@ namespace BCRPClient.Data
                     Name = $"atm_{Id}",
                 };
 
-                Blip = new Blip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(108, PositionParams.Position, Locale.Property.AtmNameDef, 0.4f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 CEF.PhoneApps.GPSApp.AddPosition("money", "atms", $"atm_{Id}", $"atm& #{Id + 1}", new RAGE.Ui.Cursor.Vector2(PositionParams.Position.X, PositionParams.Position.Y));
             }

@@ -241,7 +241,7 @@ namespace BCRPClient.Sync
             public RAGE.Elements.Type EntityType { get; set; }
 
             [JsonProperty(PropertyName = "I")]
-            public int Id { get; set; }
+            public ushort Id { get; set; }
 
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
@@ -284,13 +284,15 @@ namespace BCRPClient.Sync
 
         public class AttachmentEntity
         {
-            public int RemoteID { get; set; }
+            public ushort RemoteID { get; set; }
 
             public RAGE.Elements.Type EntityType { get; set; }
 
             public Types Type { get; set; }
 
-            public AttachmentEntity(int RemoteID, RAGE.Elements.Type EntityType, Types Type)
+            public bool WasAttached { get; set; }
+
+            public AttachmentEntity(ushort RemoteID, RAGE.Elements.Type EntityType, Types Type)
             {
                 this.RemoteID = RemoteID;
                 this.EntityType = EntityType;
@@ -466,7 +468,7 @@ namespace BCRPClient.Sync
 
             { Types.EmsHealingBedFakeAttach, new AttachmentData(int.MinValue, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
 
-            { Types.PoliceEscort, new AttachmentData(11816, new Vector3(0.4f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
+            { Types.PoliceEscort, new AttachmentData(1_000_000 + 11816, new Vector3(0.30f, 0.35f, 0f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
             {
                 Types.FarmPlantSmallShovel, new AttachmentData(28422, new Vector3(0f, 0.01f, -0.03f), new Vector3(0f, 0f, 0f), false, false, false, 2, true, async (args) =>
@@ -527,6 +529,8 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task OnEntityStreamOut(Entity entity)
         {
+            var gEntity = entity as GameEntity;
+
             if (entity is Vehicle veh)
             {
                 veh.DetachFromTrailer();
@@ -535,8 +539,6 @@ namespace BCRPClient.Sync
 
             if (entity.IsLocal)
             {
-                var gEntity = entity as GameEntity;
-
                 if (gEntity != null)
                     DetachAllFromLocalEntity(gEntity.Handle);
 
@@ -544,7 +546,12 @@ namespace BCRPClient.Sync
             }
             else
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                if (gEntity != null)
+                {
+                    RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
+                }
+
+/*                var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                 if (pData != null)
                 {
@@ -555,7 +562,7 @@ namespace BCRPClient.Sync
                             Events.CallRemote("atsdme");
                         }, 2500);
                     }
-                }
+                }*/
             }
 
             var listObjects = entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
@@ -572,7 +579,7 @@ namespace BCRPClient.Sync
             var listEntities = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
 
             foreach (var obj in listEntities.ToList())
-                DetachEntity(entity, obj.RemoteID, obj.EntityType);
+                DetachEntity(entity, obj.Type, obj.RemoteID, obj.EntityType);
 
             listEntities.Clear();
             entity.ResetData(AttachedEntitiesKey);
@@ -582,43 +589,6 @@ namespace BCRPClient.Sync
         {
             Player.LocalPlayer.SetData(AttachedObjectsKey, new List<AttachmentObject>());
             Player.LocalPlayer.SetData(AttachedEntitiesKey, new List<AttachmentEntity>());
-
-/*            Entity tttVeh = null;
-
-            KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
-            {
-                var gTarget = RAGE.Elements.Entities.Vehicles.GetAtRemote(58) as GameEntity;
-
-                var target = gTarget as Entity;
-
-                var rot = RAGE.Game.Entity.GetEntityRotation(gTarget.Handle, 2);
-
-                var pos = target.Position;
-
-                var veh = new Vehicle(0x1F3D44B5, new Vector3(pos.X, pos.Y, pos.Z + 1f), rot.Z, "", 255, true, 0, 0, target.Dimension);
-
-                veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
-
-                AsyncTask.RunSlim(() =>
-                {
-                    Utils.ConsoleOutput("CREATED");
-
-                    var gEntity = veh as GameEntity;
-
-                    tttVeh = veh;
-
-                    RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, 0, 0f, 0f, 0f, 0f, 0f, 0f, false, false, true, false, 0, true);
-                }, 1000);
-            });
-
-            KeyBinds.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
-            {
-                var gTarget = RAGE.Elements.Entities.Vehicles.GetAtRemote(58) as GameEntity;
-
-                RAGE.Game.Entity.DetachEntity(gTarget.Handle, false, true);
-
-                tttVeh?.Destroy();
-            });*/
 
             #region Events
             Events.AddDataHandler(AttachedEntitiesKey, (Entity entity, object value, object oldValue) =>
@@ -642,7 +612,7 @@ namespace BCRPClient.Sync
                             AttachEntity(entity, x.Type, x.Id, x.EntityType);
                     }
                     else
-                        DetachEntity(entity, x.Id, x.EntityType);
+                        DetachEntity(entity, x.Type, x.Id, x.EntityType);
                 }
             });
 
@@ -676,15 +646,41 @@ namespace BCRPClient.Sync
         }
 
         #region Entity Methods
-        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, int remoteId, RAGE.Elements.Type eType)
+        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType)
         {
-            GameEntity gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
-            GameEntity gEntity = Utils.GetGameEntity(entity);
+            GameEntity gTarget = null;
+            var gEntity = Utils.GetGameEntity(entity);
 
-            if (gEntity == null || gTarget == null)
+            if (gEntity == null)
                 return;
 
-            Vector3 positionBase = Vector3.Zero;
+            var list = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
+
+            if (list == null)
+                return;
+
+            var aObj = new AttachmentEntity(remoteId, eType, type);
+
+            list.Add(aObj);
+
+            while (true)
+            {
+                if (gEntity?.Exists != true || entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey)?.Contains(aObj) != true)
+                    return;
+
+                gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
+
+                if (gTarget?.Exists != true)
+                {
+                    await RAGE.Game.Invoker.WaitAsync(50);
+
+                    continue;
+                }
+
+                break;
+            }
+
+            var positionBase = Vector3.Zero;
 
             if (entity is Vehicle veh)
             {
@@ -716,12 +712,7 @@ namespace BCRPClient.Sync
                 }
             }
 
-            AttachmentData props = Attachments.GetValueOrDefault(type);
-
-            var list = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
-
-            if (list == null)
-                return;
+            var props = Attachments.GetValueOrDefault(type);
 
             if (props != null)
                 RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
@@ -740,9 +731,7 @@ namespace BCRPClient.Sync
                 }
             }
 
-            list.Add(new AttachmentEntity(remoteId, eType, type));
-
-            entity.SetData(AttachedEntitiesKey, list);
+            aObj.WasAttached = true;
 
             if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
             {
@@ -754,45 +743,59 @@ namespace BCRPClient.Sync
             }
         }
 
-        public static void DetachEntity(Entity entity, int remoteId, RAGE.Elements.Type eType)
+        public static void DetachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType)
         {
+            Utils.ConsoleOutput("DETACH 1");
+            var gEntity = Utils.GetGameEntity(entity);
+
+            if (gEntity == null)
+                return;
+
             var list = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
+
+            Utils.ConsoleOutput("DETACH 2");
 
             if (list == null)
                 return;
 
-            var item = list.Where(x => x.EntityType == eType && x.RemoteID == remoteId).FirstOrDefault();
+            var aObj = list.Where(x => x.RemoteID == remoteId && x.EntityType == eType && x.Type == type).FirstOrDefault();
 
-            if (item == null)
+            Utils.ConsoleOutput("DETACH 3");
+
+            if (aObj == null)
                 return;
 
-            GameEntity gEntity = Utils.GetGameEntity(entity);
-            GameEntity gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
+            list.Remove(aObj);
 
-            AttachmentData props = Attachments.GetValueOrDefault(item.Type);
+            var gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
 
-            list.Remove(item);
+            Utils.ConsoleOutput("DETACH 4");
 
-            entity.SetData(AttachedEntitiesKey, list);
-
-            if (gTarget == null || gEntity == null)
-                return;
-
-            if (props != null)
-                RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props.Collision);
-
-            if (item.Type == Types.VehicleTrailer || item.Type == Types.VehicleTrailerObjBoat)
+            if (gTarget?.Exists == true)
             {
-                RAGE.Game.Vehicle.DetachVehicleFromTrailer(gTarget.Handle);
+                Utils.ConsoleOutput("DETACH 5");
+
+                var props = Attachments.GetValueOrDefault(aObj.Type);
+
+                if (props != null)
+                    RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props.Collision);
+
+                if (aObj.Type == Types.VehicleTrailer || aObj.Type == Types.VehicleTrailerObjBoat)
+                {
+                    RAGE.Game.Vehicle.DetachVehicleFromTrailer(gTarget.Handle);
+                }
             }
 
-            if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
+            if (aObj.WasAttached)
             {
-                TargetAction(item.Type, null, false);
-            }
-            else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
-            {
-                RootAction(item.Type, null, false);
+                if (gTarget is Player tPlayer && tPlayer.Handle == Player.LocalPlayer.Handle)
+                {
+                    TargetAction(aObj.Type, null, false);
+                }
+                else if (gEntity is Player ePlayer && ePlayer.Handle == Player.LocalPlayer.Handle)
+                {
+                    RootAction(aObj.Type, null, false);
+                }
             }
         }
         #endregion
@@ -878,7 +881,7 @@ namespace BCRPClient.Sync
                 }
             }
 
-            AttachmentData props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
+            var props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
             list.Add(new AttachmentObject(gEntity, type, hash, syncData));
 
@@ -1088,7 +1091,10 @@ namespace BCRPClient.Sync
 
                         if (veh?.Exists != true || Utils.AnyOnFootMovingControlPressed() || !Utils.CanDoSomething(false, Sync.PushVehicle.ActionsToCheckLoop) || veh.GetIsEngineRunning() || veh.HasCollidedWithAnything() || Vector3.Distance(Player.LocalPlayer.Position, veh.GetCoords(false)) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
-                            GameEvents.Update -= GetTargetActions(Types.PushVehicleFront).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Sync.PushVehicle.Off(false);
                         }
@@ -1122,7 +1128,10 @@ namespace BCRPClient.Sync
 
                         if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
-                            GameEvents.Update -= GetTargetActions(Types.VehicleTrunk).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Players::StopInTrunk");
                         }
@@ -1156,7 +1165,10 @@ namespace BCRPClient.Sync
 
                         if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
-                            GameEvents.Update -= GetTargetActions(Types.Carry).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Players::StopCarry");
                         }
@@ -1193,7 +1205,10 @@ namespace BCRPClient.Sync
 
                         if (target?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, target.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                         {
-                            GameEvents.Update -= GetRootActions(Types.Carry).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Players::StopCarry");
                         }
@@ -1234,13 +1249,15 @@ namespace BCRPClient.Sync
 
                         if (bind.IsPressed || Player.LocalPlayer.IsInWater() || puffs == 0)
                         {
-                            GameEvents.Update -= GetRootActions(Types.ItemCigHand).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Players::Smoke::Stop");
                         }
                         else
                         {
-
                             var lastSent = Player.LocalPlayer.GetData<DateTime>("Temp::Smoke::LastSent");
 
                             // lmb - do puff
@@ -1292,7 +1309,10 @@ namespace BCRPClient.Sync
 
                         if (bind.IsPressed || Player.LocalPlayer.IsInWater())
                         {
-                            GameEvents.Update -= GetRootActions(Types.ItemCigMouth).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Players::Smoke::Stop");
                         }
@@ -1336,7 +1356,10 @@ namespace BCRPClient.Sync
 
                         if (bind.IsPressed)
                         {
-                            GameEvents.Update -= GetRootActions(Types.FarmPlantSmallShovel).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Job::FARM::SCP");
                         }
@@ -1362,7 +1385,10 @@ namespace BCRPClient.Sync
 
                         if (bind.IsPressed)
                         {
-                            GameEvents.Update -= GetRootActions(Types.FarmWateringCan).Value.Loop.Invoke;
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
+
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
 
                             Events.CallRemote("Job::FARM::SOTP");
                         }
@@ -1394,8 +1420,7 @@ namespace BCRPClient.Sync
 
                         var closestOrangeBoxPos = farmBusiness.OrangeTreeBoxPositions.Select(x => x.Item1).OrderBy(x => x.DistanceTo(Player.LocalPlayer.Position)).FirstOrDefault();
 
-
-                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Blip(478, closestOrangeBoxPos, "Коробки с апельсинами", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Коробки с апельсинами", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
 
                         CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Отнесите коробку с апельсинами в место, отмеченное на карте");
@@ -1422,9 +1447,12 @@ namespace BCRPClient.Sync
                     {
                         if (!Utils.CanDoSomething(false, Utils.Actions.Ragdoll, Utils.Actions.Falling, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Crawl, Utils.Actions.InVehicle, Utils.Actions.Reloading, Utils.Actions.Shooting, Utils.Actions.MeleeCombat))
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили коробку с апельсинами!");
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
 
-                            GameEvents.Update -= GetRootActions(Types.FarmOrangeBoxCarry).Value.Loop.Invoke;
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
+
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили коробку с апельсинами!");
 
                             Events.CallRemote("Job::FARM::SOTP");
                         }
@@ -1453,7 +1481,7 @@ namespace BCRPClient.Sync
                         var closestOrangeBoxPos = farmBusiness.CowBucketPositions.Select(x => x.Item1).OrderBy(x => x.DistanceTo(Player.LocalPlayer.Position)).FirstOrDefault();
 
 
-                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Blip(478, closestOrangeBoxPos, "Вёдра с молоком", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
+                        Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Вёдра с молоком", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
 
                         CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Отнесите ведро с молоком в место, отмеченное на карте");
@@ -1480,9 +1508,12 @@ namespace BCRPClient.Sync
                     {
                         if (!Utils.CanDoSomething(false, Utils.Actions.Ragdoll, Utils.Actions.Falling, Utils.Actions.IsSwimming, Utils.Actions.Climbing, Utils.Actions.Crawl, Utils.Actions.InVehicle, Utils.Actions.Reloading, Utils.Actions.Shooting, Utils.Actions.MeleeCombat))
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили ведро с молоком!");
+                            if (Sync.Animations.LastSent.IsSpam(500, false, false))
+                                return;
 
-                            GameEvents.Update -= GetRootActions(Types.FarmMilkBucketCarry).Value.Loop.Invoke;
+                            Sync.Animations.LastSent = Sync.World.ServerTime;
+
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили ведро с молоком!");
 
                             Events.CallRemote("Job::FARM::SCOWP");
                         }
@@ -1498,7 +1529,7 @@ namespace BCRPClient.Sync
                 
                     () =>
                     {
-                        Additional.ExtraColshape.All.Values.Where(x => x.Name == "ems_healing_bed").ToList().ForEach(x => x.Destroy());
+                        Additional.ExtraColshape.All.Where(x => x.Name == "ems_healing_bed").ToList().ForEach(x => x.Destroy());
                     },
 
                     new Action(() =>

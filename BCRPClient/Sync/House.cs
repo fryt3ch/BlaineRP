@@ -4,12 +4,13 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.Sync
 {
     public class House : Events.Script
     {
-        public static Utils.Colour DefaultLightColour = new Utils.Colour(255, 187, 96, 255);
+        public static Utils.Colour DefaultLightColour => new Utils.Colour(255, 187, 96, 255);
 
         /// <summary>Типы домов</summary>
         public enum HouseTypes
@@ -345,35 +346,6 @@ namespace BCRPClient.Sync
 
                     Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
-                    var exitCs = new Additional.Cylinder(style.EnterancePos, 1f, 2f, false, Utils.RedColor, dimension);
-
-                    exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
-
-                    TempColshapes.Add(exitCs);
-
-                    if (house is Data.Locations.House rHouse)
-                    {
-                        if (rHouse.GarageType is Data.Locations.Garage.Types grType)
-                        {
-                            var gData = Data.Locations.Garage.Style.Get(grType, 0);
-
-                            var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, dimension, null)
-                            {
-                                InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
-                            };
-
-                            TempColshapes.Add(gExitCs);
-                        }
-
-                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
-                    }
-                    else if (house is Data.Locations.Apartments rApartments)
-                    {
-                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_Apartments);
-                    }
-
-                    TempBlips.Add(new Additional.ExtraBlip(40, style.EnterancePos, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, dimension));
-
                     await RAGE.Game.Invoker.WaitAsync(1000);
 
                     if (!Utils.IsTaskStillPending("House::Enter", task))
@@ -388,7 +360,10 @@ namespace BCRPClient.Sync
                         if (handle <= 0)
                             continue;
 
-                        var t = new MapObject(handle);
+                        var t = new MapObject(handle)
+                        {
+                            Dimension = uint.MaxValue,
+                        };
 
                         Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), doors[i]);
 
@@ -433,7 +408,10 @@ namespace BCRPClient.Sync
                         if (handle <= 0)
                             continue;
 
-                        var t = new MapObject(handle);
+                        var t = new MapObject(handle)
+                        {
+                            Dimension = uint.MaxValue,
+                        };
 
                         var rgb = lights[i]["C"].ToObject<Utils.Colour>();
 
@@ -446,6 +424,35 @@ namespace BCRPClient.Sync
 
                         t.SetLightColour(rgb);
                     }
+
+                    var exitCs = new Additional.Cylinder(style.EnterancePos, 1f, 2f, false, Utils.RedColor, dimension);
+
+                    exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
+
+                    TempColshapes.Add(exitCs);
+
+                    if (house is Data.Locations.House rHouse)
+                    {
+                        if (rHouse.GarageType is Data.Locations.Garage.Types grType)
+                        {
+                            var gData = Data.Locations.Garage.Style.Get(grType, 0);
+
+                            var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, dimension, null)
+                            {
+                                InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
+                            };
+
+                            TempColshapes.Add(gExitCs);
+                        }
+
+                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_House);
+                    }
+                    else if (house is Data.Locations.Apartments rApartments)
+                    {
+                        CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_Apartments);
+                    }
+
+                    TempBlips.Add(new Additional.ExtraBlip(40, style.EnterancePos, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
                     Utils.CancelPendingTask("House::Enter");
 
@@ -648,6 +655,50 @@ namespace BCRPClient.Sync
 
             CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_House);
             CEF.HUD.Menu.UpdateCurrentTypes(false, CEF.HUD.Menu.Types.Menu_Apartments);
+        }
+
+        public static void UpdateAllLights()
+        {
+            var style = Player.LocalPlayer.GetData<Style>("House::CurrentHouse::Style");
+
+            if (style == null)
+                return;
+
+            for (int i = 0; i < style.Lights.Length; i++)
+            {
+                var t = Lights.GetValueOrDefault(i);
+
+                if (t == null)
+                    continue;
+
+                var lInfo = style.Lights[i];
+
+                var coords = lInfo.Position;
+
+                var handle = RAGE.Game.Object.GetClosestObjectOfType(coords.X, coords.Y, coords.Z, 1f, RAGE.Util.Joaat.Hash(lInfo.Model), false, true, true);
+
+                if (handle <= 0)
+                    continue;
+
+                var x = new RAGE.Elements.MapObject(handle)
+                {
+                    Dimension = uint.MaxValue,
+                };
+
+                x.SetData("State", t.GetData<bool>("State"));
+                x.SetData("RGB", t.GetData<Utils.Colour>("RGB"));
+
+                t.Destroy();
+
+                Lights[i] = x;
+
+                RAGE.Game.Entity.SetEntityLights(x.Handle, !x.GetData<bool>("State"));
+
+                var rgb = x.GetData<Utils.Colour>("RGB");
+
+                if (rgb != null)
+                    x.SetLightColour(rgb);
+            }
         }
     }
 }

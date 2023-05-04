@@ -13,7 +13,7 @@ namespace BCRPClient.Data
         {
             public VehicleDestruction(int id, Vector3 Position)
             {
-                var blip = new Blip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(380, Position, "Свалка транспорта", 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 var cs = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z), 7.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                 {

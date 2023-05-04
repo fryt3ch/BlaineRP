@@ -1,7 +1,7 @@
 ﻿using GTANetworkAPI;
 using System.Linq;
 
-namespace BCRPServer.Events.Players
+namespace BCRPServer.Events.Players.Minigames
 {
     class Minigames : Script
     {

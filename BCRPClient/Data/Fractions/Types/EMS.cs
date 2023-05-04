@@ -71,7 +71,7 @@ namespace BCRPClient.Data.Fractions
 
                 cs = new Additional.Circle(x.Position, x.RotationZ, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                 {
-                    Name = $"REAS_EMS_{(int)Type}",
+                    Name = $"EMS_{(int)Type}",
 
                     ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
@@ -103,7 +103,10 @@ namespace BCRPClient.Data.Fractions
                                 if (bedHandle <= 0)
                                     continue;
 
-                                bedObj = new MapObject(bedHandle);
+                                bedObj = new MapObject(bedHandle)
+                                {
+                                    Dimension = uint.MaxValue,
+                                };
 
                                 break;
                             }

@@ -13,6 +13,10 @@ namespace BCRPClient.Data
 
             Garage.Style.LoadAll();
 
+            #region ELEVATORS_TO_REPLACE
+
+            #endregion
+
             #region BIZS_TO_REPLACE
 
             #endregion
@@ -66,6 +70,10 @@ namespace BCRPClient.Data
             #endregion
 
             #region ESTAGENCIES_TO_REPLACE
+
+            #endregion
+
+            #region CASINOS_TO_REPLACE
 
             #endregion
 

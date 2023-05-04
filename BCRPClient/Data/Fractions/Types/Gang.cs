@@ -31,7 +31,7 @@ namespace BCRPClient.Data.Fractions
 
             public ushort Id { get; set; }
 
-            public Blip Blip { get; set; }
+            public Additional.ExtraBlip Blip { get; set; }
 
             public Types OwnerType => (Types)Sync.World.GetSharedData<int>($"GZONE_{Id}_O", 0);
 
@@ -41,7 +41,7 @@ namespace BCRPClient.Data.Fractions
             {
                 var gZone = new GangZone();
 
-                gZone.Blip = new Blip(5, new Vector3(posX, posY, 0f), "", 1f, 0, 120, 0f, true, 90, 50f, Settings.MAIN_DIMENSION);
+                gZone.Blip = new Additional.ExtraBlip(5, new Vector3(posX, posY, 0f), "", 1f, 0, 120, 0f, true, 90, 50f, Settings.MAIN_DIMENSION);
                 gZone.Id = id;
 
                 All.Add(gZone);
@@ -85,21 +85,17 @@ namespace BCRPClient.Data.Fractions
             {
                 var color = type == Types.GANG_VAGS ? 5 : type == Types.GANG_BALS ? 27 : type == Types.GANG_FAMS ? 2 : type == Types.GANG_MARA ? 3 : 0;
 
-                Blip.SetColour(color);
+                if (color == 0)
+                    Blip.Display = 0;
+                else
+                    Blip.Display = 2;
+
+                Blip.Colour = (byte)color;
             }
 
             public void OnBlipFlashUpdate(int interval)
             {
-                if (interval <= 0)
-                {
-                    Blip.SetFlashes(false);
-                }
-                else
-                {
-                    Blip.SetFlashes(true);
-
-                    Blip.SetFlashInterval(interval);
-                }
+                Blip.FlashInterval = interval;
             }
 
             public static void PostInitialize()

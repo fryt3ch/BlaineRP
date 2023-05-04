@@ -60,6 +60,8 @@ namespace BCRPClient.CEF
             PoliceTabletPC,
 
             MenuArrest, MenuCriminalRecords,
+
+            CasinoRoulette,
         }
 
         private static Dictionary<IntTypes, string> IntNames = new Dictionary<IntTypes, string>()
@@ -115,6 +117,8 @@ namespace BCRPClient.CEF
             { IntTypes.Notifications, "notifications" },
 
             { IntTypes.MinigameOrangePicking, "orange_picking" }, { IntTypes.MinigameLockPicking, "lock_picking" },
+
+            { IntTypes.CasinoRoulette, "casino" },
         };
 
         private static Dictionary<IntTypes, IntTypes> RenderDependencies = new Dictionary<IntTypes, IntTypes>()

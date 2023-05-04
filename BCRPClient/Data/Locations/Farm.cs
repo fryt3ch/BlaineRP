@@ -606,7 +606,7 @@ namespace BCRPClient.Data
                                 }
                             };
 
-                            //var blip = new Blip(1, pos, "", 0.35f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                            //var blip = new Additional.ExtraBlip(1, pos, "", 0.35f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                             //prop.SetData("BP", blip);
                         }
@@ -1247,7 +1247,7 @@ namespace BCRPClient.Data
                     };
                 }
 
-                Blip = new Blip(569, PositionInteract.Position, "Ферма", 1f, 9, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                Blip = new Additional.ExtraBlip(569, PositionInteract.Position, "Ферма", 1f, 9, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 this.Seller = new NPC($"farmer_{Id}", "Райнер", NPC.Types.Talkable, "a_m_m_hillbilly_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
@@ -1499,8 +1499,8 @@ namespace BCRPClient.Data
 
                                     var pos = new Vector3(x, y, z);
 
-                                    var marker = new RAGE.Elements.Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
-                                    var blip = new RAGE.Elements.Blip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                                    var marker = new Marker(27, pos, 2.5f, new Vector3(0f, 0f, 0f), Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION);
+                                    var blip = new Additional.ExtraBlip(469, pos, CropTypesData[CropFields[i].Type].Name, 0.5f, 36, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                                     var cs = new Additional.Cylinder(pos, 2.5f, 5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                                     {
@@ -1594,7 +1594,7 @@ namespace BCRPClient.Data
 
                                 var pos = CropFields[i].IrrigationPoints[j];
 
-                                var blip = new RAGE.Elements.Blip(441, pos, "Чекпоинт", 0.5f, 3, 255, 0f, false, 180, 0f, Settings.MAIN_DIMENSION);
+                                var blip = new Additional.ExtraBlip(441, pos, "Чекпоинт", 0.5f, 3, 255, 0f, false, 180, 0f, Settings.MAIN_DIMENSION);
 
                                 var checkpoint = new Checkpoint(40, pos, 5f, Vector3.Zero, new RGBA(255, 255, 255, 255), true, Settings.MAIN_DIMENSION)
                                 {

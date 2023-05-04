@@ -347,7 +347,7 @@ namespace BCRPServer
         /// <param name="id">Remote ID</param>
         /// <returns>Объект класса Vehicle, если транспорт найден на сервере, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Vehicle GetVehicleByID(int id) => NAPI.Pools.GetAllVehicles().Where(x => x?.Id == id).FirstOrDefault();
+        public static Vehicle GetVehicleByID(int id) => NAPI.Pools.GetAllVehicles().Where(x => x.Id == id).FirstOrDefault();
 
         /// <summary>Метод для получения сущности транспорта, который существует</summary>
         /// <param name="vid">VID или RemoteID</param>
@@ -418,13 +418,19 @@ namespace BCRPServer
 
         public static bool AreEntitiesNearbyDiffDims(this Entity entity, Entity target, float radius) => (Vector3.Distance(entity.Position, target.Position) <= radius);
 
-        public static Entity GetEntityById(EntityType eType, int id)
+        public static Entity GetEntityById(EntityType eType, ushort id)
         {
             if (eType == EntityType.Player)
-                return GetPlayerByID(id);
+                return NAPI.Pools.GetAllPlayers().Where(x => x.Id == id).FirstOrDefault();
 
             if (eType == EntityType.Vehicle)
-                return GetVehicleByID(id);
+                return NAPI.Pools.GetAllVehicles().Where(x => x.Id == id).FirstOrDefault();
+
+            if (eType == EntityType.Ped)
+                return NAPI.Pools.GetAllPeds().Where(x => x.Id == id).FirstOrDefault();
+
+            if (eType == EntityType.Object)
+                return NAPI.Pools.GetAllObjects().Where(x => x.Id == id).FirstOrDefault();
 
             return null;
         }
@@ -467,7 +473,7 @@ namespace BCRPServer
         /// <param name="id">Remote ID</param>
         /// <returns>Объект класса Player, если игрок найден на сервере, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player GetPlayerByID(int id) => NAPI.Pools.GetAllPlayers().Where(x => x?.Id == id).FirstOrDefault();
+        public static Player GetPlayerByID(ushort id) => NAPI.Pools.GetAllPlayers().Where(x => x.Id == id).FirstOrDefault();
 
         /// <summary>Получить сущность игрока по CID</summary>
         /// <param name="cid">Character ID</param>

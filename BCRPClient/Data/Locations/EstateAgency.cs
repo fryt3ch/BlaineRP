@@ -36,7 +36,7 @@ namespace BCRPClient.Data
 
                 centerPos /= poses.Count;
 
-                var blip = new RAGE.Elements.Blip(837, centerPos, "Агенство недвижимости", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Additional.ExtraBlip(837, centerPos, "Агенство недвижимости", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
         }
     }

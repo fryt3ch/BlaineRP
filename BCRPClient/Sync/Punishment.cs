@@ -146,7 +146,7 @@ namespace BCRPClient.Sync
 
                         if (x.Type == Types.Arrest)
                         {
-                            var cs = Additional.ExtraColshape.All.Values.Where(x => x.Name == "CopArrestCell").ToList();
+                            var cs = Additional.ExtraColshape.All.Where(x => x.Name == "CopArrestCell").ToList();
 
                             if (!cs.Where(x => x.IsInside == true).Any())
                             {
@@ -226,7 +226,7 @@ namespace BCRPClient.Sync
             {
                 GameEvents.Render -= ArrestRender;
 
-                Additional.ExtraColshape.All.Values.Where(x => x.Name == "CopArrestCell").ToList().ForEach(x => x.Destroy());
+                Additional.ExtraColshape.All.Where(x => x.Name == "CopArrestCell").ToList().ForEach(x => x.Destroy());
             }
             else if (data.Type == Types.FederalPrison)
             {

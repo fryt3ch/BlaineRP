@@ -148,7 +148,7 @@ namespace BCRPClient.Data.Fractions
 
             KeyBinds.CurrentExtraAction0 = null;
 
-            Additional.ExtraColshape.All.Values.Where(x => x.Name == "FRAC_COP_ARREST_CS").ToList().ForEach(x => x.Destroy());
+            Additional.ExtraColshape.All.Where(x => x.Name == "FRAC_COP_ARREST_CS").ToList().ForEach(x => x.Destroy());
 
             base.OnEndMembership();
         }

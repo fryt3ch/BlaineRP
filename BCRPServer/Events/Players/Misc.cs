@@ -22,17 +22,17 @@ namespace BCRPServer.Events.Players
 
             if (atPlayer?.Exists != true)
             {
-                var aData = pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.Carry && x.EntityType == EntityType.Player && x.Id >= 0).FirstOrDefault();
+                var aData = pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.Carry).FirstOrDefault();
 
                 if (aData == null)
                     return;
 
-                var target = Utils.FindReadyPlayerOnline((uint)aData.Id);
+                var target = Utils.GetEntityById(aData.EntityType, aData.Id);
 
-                if (target?.Player?.Exists != true)
+                if (target?.Exists != true)
                     return;
 
-                player.DetachEntity(target.Player);
+                player.DetachEntity(target);
             }
             else
             {
@@ -276,6 +276,75 @@ namespace BCRPServer.Events.Players
             {
                 return false;
             }
+        }
+
+        [RemoteProc("Elevator::TP")]
+        public static bool ElevatorTeleport(Player player, uint elevatorIdFrom, uint elevatorIdTo)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn())
+                return false;
+
+            var elevatorFrom = Game.Misc.Elevator.Get(elevatorIdFrom);
+
+            if (elevatorFrom == null)
+                return false;
+
+            if (!elevatorFrom.LinkedElevators.Contains(elevatorIdTo))
+                return false;
+
+            var elevatorTo = Game.Misc.Elevator.Get(elevatorIdTo);
+
+            if (elevatorTo == null)
+                return false;
+
+            if (player.Dimension != elevatorFrom.Dimension || player.Position.DistanceTo(elevatorFrom.Position.Position) > 5f)
+                return false;
+
+            if (!elevatorTo.GetCheckFunctionResult(pData, true))
+                return false;
+
+            Game.Misc.Elevator.Teleport(pData, elevatorFrom, elevatorTo, true);
+
+            return true;
+        }
+
+        [RemoteProc("Door::Lock")]
+        public static bool DoorLock(Player player, uint doorId, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
+            var door = Sync.DoorSystem.GetDoorById(doorId);
+
+            if (door == null)
+                return false;
+
+            if (door.Dimension != player.Dimension || player.Position.DistanceTo(door.Position) > 5f)
+                return false;
+
+            if (Sync.DoorSystem.Door.GetLockState(doorId) == state)
+                return false;
+
+            if (!door.GetCheckFunctionResult(pData))
+                return false;
+
+            Sync.DoorSystem.Door.SetLockState(doorId, state, true);
+
+            return true;
         }
     }
 }

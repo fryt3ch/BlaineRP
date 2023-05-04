@@ -447,11 +447,9 @@ namespace BCRPClient.CEF
 
                     await Utils.RequestModel(furnData.Model);
 
-                    var mapObj = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(furnData.Model, 2770.449f, 3469.131f, 55.53225f, false, false, false));
+                    var mapObj = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(furnData.Model, 2770.449f, 3469.131f, 75.53225f, false, false, false));
 
                     mapObj.FreezePosition(true);
-
-                    mapObj.PlaceOnGroundProperly();
 
                     StartRetailPreview(mapObj, 250f, Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.TopVehicle);
                 }

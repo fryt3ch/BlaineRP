@@ -172,6 +172,12 @@ namespace BCRPServer.Events
             Game.Misc.VehicleDestruction.InitializeAll();
             Game.Misc.EstateAgency.InitializeAll();
 
+            Game.Misc.Elevator.InitializeAll();
+
+            Sync.DoorSystem.InitializeAll();
+
+            Game.Casino.Casino.InitializeAll();
+
             /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
 
                         var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);

@@ -321,6 +321,10 @@ namespace BCRPClient.Sync
                 InvokeHandler($"Garages::{id}::OName", obj.OwnerName, null);
             }
 
+            Data.Fractions.Gang.GangZone.PostInitialize();
+
+            Sync.DoorSystem.Door.PostInitializeAll();
+
             foreach (var x in Data.Fractions.Fraction.All)
             {
                 Data.Fractions.Fraction.OnStorageLockedChanged($"FRAC::SL_{(int)x.Key}", x.Value.StorageLocked, null);

@@ -16,6 +16,8 @@ namespace BCRPClient.Data.Fractions
         COP_BLAINE = 1,
         COP_LS = 2,
 
+        FIB_LS = 5,
+
         MEDIA_LS = 10,
 
         EMS_BLAINE = 20,
@@ -23,10 +25,18 @@ namespace BCRPClient.Data.Fractions
 
         GOV_LS = 30,
 
-        GANG_MARA = 41,
-        GANG_FAMS = 42,
+        GANG_MARA = 40,
+        GANG_FAMS = 41,
+        GANG_BALS = 42,
         GANG_VAGS = 43,
-        GANG_BALS = 44,
+
+        MAFIA_RUSSIA = 60,
+        MAFIA_ITALY = 61,
+        MAFIA_JAPAN = 62,
+
+        ARMY_FZ = 80,
+
+        PRISON_BB = 90,
     }
 
     public class MemberData

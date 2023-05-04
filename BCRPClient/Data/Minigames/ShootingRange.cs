@@ -317,10 +317,10 @@ namespace BCRPClient.Data.Minigames
             Utils.SetTaskAsPending("SRange::Start::D", task);
         }
 
-        public static void Stop()
+        public static bool Stop()
         {
             if (CurrentType == null)
-                return;
+                return false;
 
             GameEvents.Render -= Render;
 
@@ -344,6 +344,8 @@ namespace BCRPClient.Data.Minigames
             Utils.SetActionAsPending("ShootingRange", false);
 
             RAGE.Game.Audio.PlaySoundFrontend(-1, "SHOOTING_RANGE_ROUND_OVER", "HUD_AWARDS", true);
+
+            return true;
         }
 
         private static void Render()
@@ -510,9 +512,10 @@ namespace BCRPClient.Data.Minigames
 
         private static void ShotHandler(Vector3 pos, Player target, RAGE.Events.CancelEventArgs cancel) => CurrentTotalShots++;
 
-        private static void Finish()
+        public static void Finish()
         {
-            Stop();
+            if (!Stop())
+                return;
 
             var accuracy = Math.Round((CurrentScore / (float)(CurrentLooseScore + CurrentTotalShots)) * 100f, 2);
 

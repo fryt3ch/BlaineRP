@@ -193,8 +193,6 @@ namespace BCRPClient.Data.Jobs
 
         public string Name => Locale.Property.JobNames.GetValueOrDefault(Type) ?? "null";
 
-        public Blip Blip { get; set; }
-
         public NPC JobGiver { get; set; }
 
         private Dictionary<string, object> CurrentData { get; set; }

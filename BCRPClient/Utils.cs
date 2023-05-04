@@ -1435,14 +1435,14 @@ namespace BCRPClient
 
         public static void SetName(this Blip blip, string name)
         {
-            if (blip == null)
+            if (blip == null || !blip.DoesExist())
                 return;
 
-            blip.SetData("Name", name);
+            RAGE.Game.Gxt.Add("BRP_AEBLIPN", name);
 
-            RAGE.Game.Ui.BeginTextCommandSetBlipName("STRING");
+            RAGE.Game.Ui.BeginTextCommandSetBlipName("BRP_AEBLIPN");
 
-            RAGE.Game.Ui.AddTextComponentSubstringPlayerName(name);
+            //RAGE.Game.Ui.AddTextComponentSubstringPlayerName("");
 
             RAGE.Game.Ui.EndTextCommandSetBlipName(blip.Handle);
         }
@@ -1769,5 +1769,9 @@ namespace BCRPClient
                 obj.SetInvincible(false);
             }
         }
+
+        public static void SetVoiceGroup(this PedBase ped, uint voiceGroupHash) => RAGE.Game.Invoker.Invoke(0x7CDC8C3B89F661B3, ped.Handle, voiceGroupHash);
+
+        public static void PlaySpeech(this PedBase ped, string speechName, string speechParam = "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", int p3 = 1) => ped.PlayAmbientSpeech1(speechName, speechParam, p3);
     }
 }
