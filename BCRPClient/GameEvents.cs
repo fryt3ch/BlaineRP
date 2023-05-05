@@ -74,6 +74,13 @@ namespace BCRPClient
 
             RAGE.Game.Invoker.Invoke(0xE6C0C80B8C867537, true); // SetEnableVehicleSlipstreaming
 
+            RAGE.Game.Graphics.SetTvChannel(-1);
+            RAGE.Game.Graphics.SetTvAudioFrontend(false);
+
+            Utils.ClearTvChannelPlaylist(-1);
+            Utils.ClearTvChannelPlaylist(0);
+            Utils.ClearTvChannelPlaylist(1);
+
             if (RAGE.Game.Audio.IsStreamPlaying())
                 RAGE.Game.Audio.StopStream();
 

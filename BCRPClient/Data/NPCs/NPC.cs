@@ -104,8 +104,6 @@ namespace BCRPClient.Data
                 };
             }
 
-            this.SubName = Locale.General.NPC.TypeNames.GetValueOrDefault(Id.Split('_')[0]);
-
             AllNPCs.Add(Ped, this);
         }
 
@@ -140,6 +138,9 @@ namespace BCRPClient.Data
             {
                 Sync.Animations.Play(ped, curAnim, -1);
             }
+
+            if (data.SubName == null)
+                data.SubName = Locale.General.NPC.TypeNames.GetValueOrDefault(data.Id.Split('_')[0]);
         }
 
         public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
@@ -349,6 +350,24 @@ namespace BCRPClient.Data
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => NPC.CurrentNPC?.SwitchDialogue(false));
 
             return true;
+        }
+
+        public void Destroy()
+        {
+            if (Ped == null)
+                return;
+
+            if (AllNPCs.Remove(Ped))
+            {
+                Ped.Destroy();
+
+                Ped = null;
+
+                if (CurrentNPC == this)
+                {
+                    SwitchDialogue(false);
+                }
+            }
         }
     }
 }

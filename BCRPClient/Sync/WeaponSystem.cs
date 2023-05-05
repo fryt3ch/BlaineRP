@@ -582,7 +582,7 @@ namespace BCRPClient.Sync
                 Player.LocalPlayer.SetResetFlag(200, true);
             };
 
-            GameEvents.Update += () =>
+            GameEvents.Update += async () =>
             {
                 if (Player.LocalPlayer.HasWeapon() && RAGE.Game.Cam.IsAimCamActive())
                 {
@@ -595,19 +595,15 @@ namespace BCRPClient.Sync
                     {
                         var scale = 3f * Settings.Aim.Scale;
 
-                        if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
+                        if (await Utils.RequestStreamedTextureDict("shared"))
                             RAGE.Game.Graphics.DrawSprite("shared", "menuplus_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
-                        else
-                            RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
                     else if (Settings.Aim.Type == Settings.Aim.Types.Dot)
                     {
                         var scale = 1f * Settings.Aim.Scale;
 
-                        if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded("shared"))
+                        if (await Utils.RequestStreamedTextureDict("shared"))
                             RAGE.Game.Graphics.DrawSprite("shared", "medaldot_32", 0.5f, 0.5f, scale * 32 / GameEvents.ScreenResolution.X, scale * 32 / GameEvents.ScreenResolution.Y, 0f, Settings.Aim.Color.Red, Settings.Aim.Color.Green, Settings.Aim.Color.Blue, (int)Math.Floor(Settings.Aim.Alpha * 255), 0);
-                        else
-                            RAGE.Game.Graphics.RequestStreamedTextureDict("shared", true);
                     }
                 }
             };

@@ -107,7 +107,8 @@ namespace BCRPClient.CEF.PhoneApps
 
             CEF.Phone.Close();
 
-            CEF.HUD.ShowHUD(false);
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(false);
 
             CEF.Chat.Show(false);
 

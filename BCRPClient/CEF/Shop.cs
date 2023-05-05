@@ -1567,7 +1567,9 @@ namespace BCRPClient.CEF
 
                     DefaultHeading = (float)heading;
 
-                    CEF.HUD.ShowHUD(false);
+                    if (!Settings.Interface.HideHUD)
+                        CEF.HUD.ShowHUD(false);
+
                     CEF.Chat.Show(false);
 
                     BCRPClient.Interaction.Enabled = false;

@@ -29,7 +29,24 @@ namespace BCRPClient.Data.Minigames.Casino
 
             CEF.Browser.Window.ExecuteJs($"Casino.draw", new object[] { }, "Ожидание ставок", 0, roulette.MaxBet);
 
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(false);
+
+            CEF.Chat.Show(false);
+
+            CEF.Cursor.Show(true, true);
+
+            GameEvents.DisableAllControls(true);
+
+            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOff, KeyBinds.Types.MicrophoneOn);
+
             roulette.StartGame();
+
+            if (roulette.LastBets != null)
+            {
+                foreach (var x in roulette.LastBets)
+                    AddLastBet(x);
+            }
         }
 
         public static void Close()
@@ -40,6 +57,15 @@ namespace BCRPClient.Data.Minigames.Casino
             CEF.Browser.Render(CEF.Browser.IntTypes.CasinoRoulette, false);
 
             Data.Locations.Casino.Roulette.CurrentRoulette?.StopGame();
+
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(true);
+
+            CEF.Chat.Show(true);
+
+            GameEvents.DisableAllControls(false);
+
+            KeyBinds.EnableAll();
         }
 
         public static void AddLastBet(Data.Locations.Casino.Roulette.BetTypes betType)

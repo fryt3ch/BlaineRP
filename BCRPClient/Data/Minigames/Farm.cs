@@ -85,7 +85,8 @@ namespace BCRPClient.Data.Minigames
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.MinigameOrangePicking, true, true);
 
-            CEF.HUD.ShowHUD(false);
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(false);
 
             CEF.Chat.Show(false);
 

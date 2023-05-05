@@ -591,6 +591,19 @@ namespace BCRPClient
             return true;
         }
 
+        public static async System.Threading.Tasks.Task<bool> RequestStreamedTextureDict(string dictName)
+        {
+            if (RAGE.Game.Graphics.HasStreamedTextureDictLoaded(dictName))
+                return true;
+
+            RAGE.Game.Graphics.RequestStreamedTextureDict(dictName, true);
+
+            while (!RAGE.Game.Graphics.HasStreamedTextureDictLoaded(dictName))
+                await RAGE.Game.Invoker.WaitAsync(5);
+
+            return true;
+        }
+
         public static async System.Threading.Tasks.Task RequestPtfx(string name)
         {
             if (RAGE.Game.Streaming.HasNamedPtfxAssetLoaded(name))
@@ -1218,6 +1231,33 @@ namespace BCRPClient
         public static void DebugServerSaveText(string text) => Events.CallRemote("debug_save", text);
 
         public static bool IsCoordInCountrysideV(float x, float y, float z) => RAGE.Game.Zone.GetHashOfMapAreaAtCoords(x, y, z) == 2072609373;
+
+        public static void SetTvChannelPlaylist(int tvChannel, string playlistName, bool restart) => RAGE.Game.Invoker.Invoke(0xF7B38B8305F1FE8B, tvChannel, playlistName, restart);
+
+        public static void ClearTvChannelPlaylist(int tvChannel) => RAGE.Game.Invoker.Invoke(0xBEB3D46BB7F043C0, tvChannel);
+
+        public static int CreateNamedRenderTargetForModel(string name, uint modelHash)
+        {
+            if (name == null)
+                return 0;
+
+            if (RAGE.Game.Ui.IsNamedRendertargetRegistered(name))
+            {
+                var handle = RAGE.Game.Ui.GetNamedRendertargetRenderId(name);
+
+                RAGE.Game.Ui.ReleaseNamedRendertarget(ref handle);
+            }
+
+            RAGE.Game.Ui.RegisterNamedRendertarget(name, false);
+
+            if (!RAGE.Game.Ui.IsNamedRendertargetLinked(modelHash))
+                RAGE.Game.Ui.LinkNamedRendertarget(modelHash);
+
+            if (RAGE.Game.Ui.IsNamedRendertargetRegistered(name))
+                return RAGE.Game.Ui.GetNamedRendertargetRenderId(name);
+
+            return 0;
+        }
     }
 
     public static class Extensions

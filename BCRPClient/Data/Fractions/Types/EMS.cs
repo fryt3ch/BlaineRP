@@ -77,69 +77,82 @@ namespace BCRPClient.Data.Fractions
 
                     OnEnter = async (cancel) =>
                     {
-                        await RAGE.Game.Invoker.WaitAsync(1500);
+                        var taskKey = "EMS_LOAD";
 
-                        if (!cs.IsInside)
-                            return;
+                        AsyncTask task = null;
 
-                        TempObjects = new List<MapObject>();
-
-                        var bedHashes = new List<string>()
+                        task = new AsyncTask(async () =>
                         {
-                            "v_med_bed2",
-                            "v_med_bed1",
-                        }.Select(x => RAGE.Util.Joaat.Hash(x)).ToList();
+                            await RAGE.Game.Invoker.WaitAsync(1500);
 
-                        for (int i = 0; i < bedPositions.Length; i++)
-                        {
-                            var bedPos = bedPositions[i];
+                            if (!Utils.IsTaskStillPending(taskKey, task))
+                                return;
 
-                            MapObject bedObj = null;
+                            TempObjects = new List<MapObject>();
 
-                            foreach (var x in bedHashes)
+                            var bedHashes = new List<string>()
                             {
-                                var bedHandle = RAGE.Game.Object.GetClosestObjectOfType(bedPos.X, bedPos.Y, bedPos.Z, 1f, x, false, true, true);
+                                "v_med_bed2",
+                                "v_med_bed1",
+                            }.Select(x => RAGE.Util.Joaat.Hash(x)).ToList();
 
-                                if (bedHandle <= 0)
+                            for (int i = 0; i < bedPositions.Length; i++)
+                            {
+                                var bedPos = bedPositions[i];
+
+                                MapObject bedObj = null;
+
+                                foreach (var x in bedHashes)
+                                {
+                                    var bedHandle = RAGE.Game.Object.GetClosestObjectOfType(bedPos.X, bedPos.Y, bedPos.Z, 1f, x, false, true, true);
+
+                                    if (bedHandle <= 0)
+                                        continue;
+
+                                    bedObj = new MapObject(bedHandle)
+                                    {
+                                        Dimension = uint.MaxValue,
+                                    };
+
+                                    break;
+                                }
+
+                                if (bedObj == null)
                                     continue;
 
-                                bedObj = new MapObject(bedHandle)
-                                {
-                                    Dimension = uint.MaxValue,
-                                };
+                                TempObjects.Add(bedObj);
 
-                                break;
+                                var bedIdx = i;
+
+                                bedObj.SetData("EmsBedId", $"{(int)Type}_{bedIdx}");
+
+                                bedObj.SetData("Interactive", true);
+
+                                bedObj.SetData("CustomText", (Action<float, float>)((x, y) =>
+                                {
+                                    Utils.DrawText($"Больничная койка", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+
+                                    var isOccupied = IsBedOccupied(bedIdx);
+
+                                    if (isOccupied)
+                                        Utils.DrawText($"[Занята]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                    else
+                                        Utils.DrawText($"[Свободна]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                }));
+
+                                bedObj.SetData("CustomAction", (Action<MapObject>)OnHealingBedPress);
                             }
 
-                            if (bedObj == null)
-                                continue;
+                            Utils.CancelPendingTask(taskKey);
+                        }, 0, false, 0);
 
-                            TempObjects.Add(bedObj);
-
-                            var bedIdx = i;
-
-                            bedObj.SetData("EmsBedId", $"{(int)Type}_{bedIdx}");
-
-                            bedObj.SetData("Interactive", true);
-
-                            bedObj.SetData("CustomText", (Action<float, float>)((x, y) =>
-                            {
-                                Utils.DrawText($"Больничная койка", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-
-                                var isOccupied = IsBedOccupied(bedIdx);
-
-                                if (isOccupied)
-                                    Utils.DrawText($"[Занята]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                                else
-                                    Utils.DrawText($"[Свободна]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                            }));
-
-                            bedObj.SetData("CustomAction", (Action<MapObject>)OnHealingBedPress);
-                        }
+                        Utils.SetTaskAsPending("EMS_LOAD", task);
                     },
 
                     OnExit = (cancel) =>
                     {
+                        Utils.CancelPendingTask("EMS_LOAD");
+
                         if (TempObjects != null)
                         {
                             foreach (var x in TempObjects)

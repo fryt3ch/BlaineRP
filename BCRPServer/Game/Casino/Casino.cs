@@ -7,13 +7,29 @@ using System.Text;
 
 namespace BCRPServer.Game.Casino
 {
+    public enum WallScreenTypes : byte
+    {
+        None = 0,
+
+        CASINO_DIA_PL,
+        CASINO_DIA_SLW_PL,
+        CASINO_HLW_PL,
+        CASINO_SNWFLK_PL,
+        CASINO_WIN_PL,
+        CASINO_WIN_SLW_PL,
+    }
+
     public class Casino
     {
+        public const WallScreenTypes DEFAULT_WALLSCREEN_TYPE = WallScreenTypes.CASINO_DIA_PL;
+
         private static List<Casino> All { get; set; }
 
         public static Casino GetById(int id) => id < 0 || id >= All.Count ? null : All[id];
 
         public int Id => All.IndexOf(this);
+
+        public WallScreenTypes CurrentWallScreenType { get => (WallScreenTypes)Convert.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST")); set => Sync.World.SetSharedData($"CASINO_{Id}_WST", (byte)value); }
 
         public Roulette[] Roulettes { get; set; }
 
@@ -62,6 +78,8 @@ namespace BCRPServer.Game.Casino
                     },
                 },
             };
+
+            mainCasino.CurrentWallScreenType = DEFAULT_WALLSCREEN_TYPE;
 
             var lines = new List<string>();
 

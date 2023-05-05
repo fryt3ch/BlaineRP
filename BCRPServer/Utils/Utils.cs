@@ -403,10 +403,22 @@ namespace BCRPServer
         public static void TriggerEventToStreamed(this Entity entity, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, Settings.STREAM_DISTANCE, eventName, args);
 
         public static void TriggerEventInDistance(this Entity entity, float distance, string eventName, params object[] args) => TriggerEventInDistance(entity.Position, entity.Dimension, distance, eventName, args);
+        
+        public static void TriggerEventInDistance2d(this Entity entity, float distance, string eventName, params object[] args) => TriggerEventInDistance2d(entity.Position, entity.Dimension, distance, eventName, args);
 
         public static void TriggerEventInDistance(this Vector3 pos, uint dimension, float distance, string eventName, params object[] args)
         {
             var pArr = PlayerData.All.Keys.Where(x => x.Dimension == dimension && x.Position.DistanceTo(pos) <= distance).ToArray();
+
+            if (pArr.Length == 0)
+                return;
+
+            NAPI.ClientEvent.TriggerClientEventToPlayers(pArr, eventName, args);
+        }
+
+        public static void TriggerEventInDistance2d(this Vector3 pos, uint dimension, float distance, string eventName, params object[] args)
+        {
+            var pArr = PlayerData.All.Keys.Where(x => x.Dimension == dimension && x.Position.DistanceIgnoreZ(pos) <= distance).ToArray();
 
             if (pArr.Length == 0)
                 return;

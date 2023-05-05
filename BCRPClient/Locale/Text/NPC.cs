@@ -25,14 +25,14 @@ namespace BCRPClient
                     { "vpound", "Работник штрафстоянки" },
                     { "vrent", "Арендодатель транспорта" },
 
-                    { "job_trucker", "Глава дальнобойщиков" },
+                    { "job@trucker", "Глава дальнобойщиков" },
 
                     { "farmer", "Фермер" },
 
                     { "cop0", "Дежурный полиции" },
                     { "drivingschool", "Менеджер автошколы" },
 
-                    { "Casino_Roulette", "Крупье (рулетка)" },
+                    { "Casino@Roulette", "Крупье" },
                 };
 
                 public static Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>>()

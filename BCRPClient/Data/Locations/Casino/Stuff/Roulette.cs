@@ -86,6 +86,10 @@ namespace BCRPClient.Data
                 public uint MinBet { get; set; }
                 public uint MaxBet { get; set; }
 
+                public List<BetTypes> LastBets { get; set; }
+
+                public TextLabel TextLabel { get; set; }
+
                 public Roulette(int CasinoId, int Id, string Model, float PosX, float PosY, float PosZ, float RotZ)
                 {
                     TableObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(RAGE.Util.Joaat.Hash(Model), PosX, PosY, PosZ, false, false, false))
@@ -95,18 +99,18 @@ namespace BCRPClient.Data
 
                     TableObject.SetHeading(RotZ);
 
-                    NPC = new NPC($"Casino_Roulette_{CasinoId}_{Id}", "Элизабет", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION);
+                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "Элизабет", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION);
 
                     NPC.Ped.SetData<Action<Entity>>("ECA_SI", OnPedStreamIn);
+                }
 
-                    var cs = new Additional.Cylinder(new Vector3(PosX, PosY, PosZ - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
-                    {
-                        InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract,
+                public void TextLabelUpdate()
+                {
+                    if (TextLabel == null)
+                        return;
 
-                        ActionType = Additional.ExtraColshape.ActionTypes.CasinoRouletteInteract,
+                    TextLabel.Text = $"Минимальная ставка: {Utils.ToStringWithWhitespace(MinBet.ToString())} фишек\nМаксимальная ставка: {Utils.ToStringWithWhitespace(MaxBet.ToString())} фишек\n\n{"Выпало число 00!"}";
 
-                        Data = $"{CasinoId}_{Id}",
-                    };
                 }
 
                 private static void OnPedStreamIn(Entity entity)

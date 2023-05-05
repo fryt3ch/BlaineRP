@@ -1290,8 +1290,6 @@ namespace BCRPClient.Additional
                                 var casino = BCRPClient.Data.Locations.Casino.GetById(int.Parse(d[0]));
                                 var roulette = casino.GetRouletteById(int.Parse(d[1]));
 
-                                ExtraColshapes.FormatArgsLastIntColshape = new object[] { roulette.MinBet };
-
                                 Player.LocalPlayer.SetData("CurrentCasinoGameData", str);
                             }
                         }
