@@ -40,7 +40,7 @@ namespace BCRPClient.CEF
         {
             LastSent = DateTime.MinValue;
 
-            Events.Add("Auth::StartPlace::Load", async (args) =>
+            Events.Add("Auth::StartPlace::Load", async (object[] args) =>
             {
                 CEF.Auth.CloseAll(true);
 

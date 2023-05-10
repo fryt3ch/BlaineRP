@@ -7,37 +7,6 @@ namespace BCRPServer.Events.Commands
 {
     partial class Commands
     {
-        [Command("frac_obs", 1)]
-        private static void FractionObserve(PlayerData pData, params string[] args)
-        {
-            if (args.Length != 1)
-                return;
-
-            int fractionTypeNum;
-
-            if (!int.TryParse(args[0], out fractionTypeNum) || !Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
-                return;
-
-            var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum);
-
-            if (fData == null)
-                return;
-
-            if (fData.Type == pData.Fraction)
-            {
-                return;
-            }
-
-            var fTData = Game.Fractions.Fraction.Get(pData.Fraction);
-
-            if (fTData != null)
-            {
-                fTData.SetPlayerNoFraction(pData.Info);
-            }
-
-            fData.SetPlayerFraction(pData.Info, (byte)(fData.Ranks.Count - 1));
-        }
-
         [Command("frac_setmats", 1)]
         private static void FractionSetMaterials(PlayerData pData, params string[] args)
         {

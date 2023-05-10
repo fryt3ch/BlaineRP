@@ -160,7 +160,7 @@ namespace BCRPServer.Game.Items
         {
             if (Type == Types.Item)
             {
-                return pData.GiveItem(out _,GID, Variation, Amount);
+                return pData.GiveItem(out _, GID, Variation, Amount);
             }
             else if (Type == Types.Vehicle)
             {

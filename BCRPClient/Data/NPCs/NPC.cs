@@ -95,7 +95,7 @@ namespace BCRPClient.Data
 
             if (Type == Types.Talkable)
             {
-                this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                this.Colshape = new Additional.Cylinder(new Vector3(Position.X, Position.Y, Position.Z - 1f), 2f, 2f, false, new Utils.Colour(255, 0, 0, 255), Dimension, null)
                 {
                     ActionType = Additional.ExtraColshape.ActionTypes.NpcDialogue,
                     InteractionType = Additional.ExtraColshape.InteractionTypes.NpcDialogue,
@@ -245,7 +245,7 @@ namespace BCRPClient.Data
 
                 LastDialogues = new List<Dialogue.LastInfo>();
 
-                CEF.Notification.ClearAll();
+                CEF.Notification.SetOnTop(true);
 
                 CurrentNPC = this;
 
@@ -259,7 +259,7 @@ namespace BCRPClient.Data
 
                 Player.LocalPlayer.SetVisible(false, false);
 
-                Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1);
+                Additional.Camera.Enable(Additional.Camera.StateTypes.NpcTalk, Ped, Ped, -1, null, null, new Vector3(0f, 0f, Ped.GetBoneCoords(31086, 0f, 0f, 0f).Z - pedPos.Z));
 
                 var playerHeadCoord = Additional.Camera.Position;
 
@@ -273,6 +273,8 @@ namespace BCRPClient.Data
             {
                 if (CurrentNPC == null)
                     return;
+
+                CEF.Notification.SetOnTop(false);
 
                 if (LastDialogues is List<Dialogue.LastInfo> lastDialogues)
                 {

@@ -671,6 +671,8 @@ namespace BCRPClient.Sync
 
                 CEF.Chat.Show(true);
 
+                Additional.ExtraLabel.Initialize();
+
                 Additional.ExtraColshape.Activate();
 
                 Additional.Discord.SetDefault();

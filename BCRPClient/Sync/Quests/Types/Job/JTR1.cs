@@ -116,7 +116,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                             quest.SetActualData("E_BP_M", blip);
                             quest.SetActualData("CS_0", colshape);
 
-                            quest.SetActualData("E_TXL_0", new TextLabel(new Vector3(destPos.X, destPos.Y, destPos.Z + 2f), Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.MAIN_DIMENSION) { Font = 4, LOS = false });
+                            quest.SetActualData("E_TXL_0", new Additional.ExtraLabel(new Vector3(destPos.X, destPos.Y, destPos.Z + 2f), Locale.General.Blip.JobTruckerPointAText, new RGBA(255, 255, 255, 255), 25f, 0, true, Settings.MAIN_DIMENSION) { Font = 4, LOS = false });
                         },
 
                         EndAction = (pData, quest) =>

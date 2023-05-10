@@ -29,6 +29,8 @@ namespace BCRPServer.Events.NPC
             { "vpound_w_0", new Vector3(485.6506f, -54.18661f, 78.30058f) },
 
             { "vrent_s_0", new Vector3(-718.6724f, 5821.765f, 17.21804f) },
+
+            { "Casino@Cashier_0_0", new Vector3(978.074f, 38.62385f, 74.88191f) },
         };
 
         private static Dictionary<string, Tuple<string[], Delegate>> Actions;

@@ -31,7 +31,7 @@ namespace BCRPClient.Data.Fractions
                     Data = $"{(int)Type}_{i}",
                 };
 
-                var lockerRoomText = new TextLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var lockerRoomText = new Additional.ExtraLabel(new Vector3(pos.X, pos.Y, pos.Z + 1f), "Раздевалка", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
                 {
                     Font = 0,
                 };

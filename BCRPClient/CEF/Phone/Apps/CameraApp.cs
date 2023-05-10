@@ -103,12 +103,11 @@ namespace BCRPClient.CEF.PhoneApps
 
             LastSwitched = Sync.World.ServerTime;
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn);
+            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
 
             CEF.Phone.Close();
 
-            if (!Settings.Interface.HideHUD)
-                CEF.HUD.ShowHUD(false);
+            CEF.HUD.ShowHUD(false);
 
             CEF.Chat.Show(false);
 

@@ -45,7 +45,7 @@ namespace BCRPClient.Data
 
                 private static List<MapObject> HoverObjects { get; set; }
 
-                public static HashSet<BetData> ActiveBets { get; set; }
+                public List<BetData> ActiveBets { get; set; }
 
                 public static BetTypes HoveredBet { get; set; }
 
@@ -77,6 +77,8 @@ namespace BCRPClient.Data
                     }
                 }
 
+                public int GetIdInCasino(int casino) => Casino.GetById(casino)?.Roulettes is Roulette[] t ? Array.IndexOf(t, this) : -1;
+
                 public MapObject TableObject { get; set; }
 
                 public MapObject BallObject { get; set; }
@@ -88,29 +90,166 @@ namespace BCRPClient.Data
 
                 public List<BetTypes> LastBets { get; set; }
 
-                public TextLabel TextLabel { get; set; }
+                public Additional.ExtraLabel TextLabel { get; set; }
 
                 public Roulette(int CasinoId, int Id, string Model, float PosX, float PosY, float PosZ, float RotZ)
                 {
-                    TableObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(RAGE.Util.Joaat.Hash(Model), PosX, PosY, PosZ, false, false, false))
+                    TableObject = new MapObject(RAGE.Util.Joaat.Hash(Model), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, RotZ), 255, Settings.MAIN_DIMENSION)
                     {
-                        Dimension = Settings.MAIN_DIMENSION,
-                    };
 
-                    TableObject.SetHeading(RotZ);
+                    };
 
                     NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "Элизабет", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION);
 
-                    NPC.Ped.SetData<Action<Entity>>("ECA_SI", OnPedStreamIn);
+                    NPC.Ped.SetStreamInCustomAction(OnPedStreamIn);
+
+                    Sync.World.AddDataHandler($"CASINO_{CasinoId}_RLTS_{Id}", OnCurrentStateDataUpdated);
                 }
 
-                public void TextLabelUpdate()
+                public static string GetCurrentStateData(int casinoId, int rouletteId) => Sync.World.GetSharedData<string>($"CASINO_{casinoId}_RLTS_{rouletteId}");
+
+                public string GetCurrestStateString()
+                {
+                    if (TextLabel == null || TextLabel.Text == null)
+                        return null;
+
+                    var indexStr = TextLabel.Text.IndexOf("\n\n");
+
+                    if (indexStr < 0)
+                        return null;
+
+                    return TextLabel.Text.Substring(indexStr + 2);
+                }
+
+                public static void OnCurrentStateDataUpdated(string key, object value, object oldValue)
+                {
+                    var keyD = key.Split('_');
+
+                    var casinoId = int.Parse(keyD[1]);
+
+                    var casino = Casino.GetById(casinoId);
+
+                    if (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null))
+                        return;
+
+                    var rouletteId = int.Parse(keyD[3]);
+
+                    var roulette = casino.GetRouletteById(rouletteId);
+
+                    if (roulette.TextLabel == null)
+                        return;
+
+                    var stateTask = roulette.TextLabel.GetData<AsyncTask>("StateTask");
+
+                    if (stateTask != null)
+                    {
+                        stateTask.Cancel();
+
+                        roulette.TextLabel.ResetData("StateTask");
+                    }
+
+                    var calledOnLoad = oldValue as string == "ON_LOAD";
+
+                    if (value is string str)
+                    {
+                        if (str[0] == 'I')
+                        {
+                            var defText = "Ожидание первой ставки...";
+
+                            if (str.Length > 1)
+                            {
+                                var lastBallRes = byte.Parse(str.Substring(1));
+
+                                var betType = (BetTypes)lastBallRes;
+
+                                if (!calledOnLoad)
+                                {
+                                    updateFunc($"Выпало число {betType.ToString().Replace("_", "")}!");
+
+                                    var updTask = new AsyncTask(() =>
+                                    {
+                                        updateFunc(defText);
+                                    }, 2_500, false, 0);
+
+                                    roulette.TextLabel.SetData("StateTask", updTask);
+
+                                    updTask.Run();
+
+                                    roulette.LastBets?.Add((BetTypes)lastBallRes);
+
+                                    if (CurrentRoulette == roulette)
+                                    {
+                                        Data.Minigames.Casino.Roulette.AddLastBet(betType);
+                                    }
+
+                                    if (roulette.ActiveBets != null)
+                                    {
+                                        foreach (var x in roulette.ActiveBets)
+                                        {
+                                            x.MapObject?.Destroy();
+                                        }
+
+                                        roulette.ActiveBets.Clear();
+
+                                        roulette.ActiveBets = null;
+                                    }
+                                }
+                                else
+                                {
+                                    updateFunc(defText);
+                                }
+                            }
+                            else
+                            {
+                                updateFunc(defText);
+                            }
+                        }
+                        if (str[0] == 'R')
+                        {
+                            var ballRes = byte.Parse(str.Substring(1));
+
+                            if (!calledOnLoad)
+                            {
+                                roulette.Spin(ballRes);
+                            }
+
+                            updateFunc("Ожидание результата игры...");
+                        }
+                        else if (str[0] == 'S')
+                        {
+                            var time = long.Parse(str.Substring(1));
+
+                            var updTask = new AsyncTask(() =>
+                            {
+                                updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}");
+                            }, 800, true, 0);
+
+                            roulette.TextLabel.SetData("StateTask", updTask);
+
+                            updTask.Run();
+                        }
+                    }
+
+                    void updateFunc(string str)
+                    {
+                        if (str.Length > 0)
+                        {
+                            roulette.TextLabelUpdate(str);
+
+                            if (CurrentRoulette == roulette)
+                            {
+                                Data.Minigames.Casino.Roulette.UpdateStatus(str);
+                            }
+                        }
+                    }
+                }
+
+                public void TextLabelUpdate(string currentStateStr)
                 {
                     if (TextLabel == null)
                         return;
 
-                    TextLabel.Text = $"Минимальная ставка: {Utils.ToStringWithWhitespace(MinBet.ToString())} фишек\nМаксимальная ставка: {Utils.ToStringWithWhitespace(MaxBet.ToString())} фишек\n\n{"Выпало число 00!"}";
-
+                    TextLabel.Text = $"Мин. ставка: {Utils.ToStringWithWhitespace(MinBet.ToString())} фишек\nМакс. ставка: {Utils.ToStringWithWhitespace(MaxBet.ToString())} фишек\n\n{currentStateStr}";
                 }
 
                 private static void OnPedStreamIn(Entity entity)
@@ -120,7 +259,7 @@ namespace BCRPClient.Data
                     if (ped == null)
                         return;
 
-                    ped.SetVoiceGroup(RAGE.Util.Joaat.Hash("S_M_Y_Casino_01_WHITE_01"));
+                    //ped.SetVoiceGroup(RAGE.Util.Joaat.Hash("s_f_y_casino_01_asian_02"));
 
                     var randomClothesNumber = Utils.Random.Next(0, 5);
 
@@ -186,6 +325,17 @@ namespace BCRPClient.Data
 
                 public async void Spin(byte targetNumber)
                 {
+                    var ballHash = RAGE.Util.Joaat.Hash("vw_prop_roulette_ball");
+
+                    await Utils.RequestModel(ballHash);
+
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+
+                    await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@roulette@table");
+
+                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        return;
+
                     NPC.Ped.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
                     var wheelPos = TableObject.GetWorldPositionOfBone(TableObject.GetBoneIndexByName("Roulette_Wheel"));
@@ -194,11 +344,18 @@ namespace BCRPClient.Data
 
                     await RAGE.Game.Invoker.WaitAsync(1_500);
 
+                    BallObject?.Destroy();
+
                     Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
-                    await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@roulette@table");
-
                     await RAGE.Game.Invoker.WaitAsync(3_000);
+
+                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        return;
+
+                    var rouletteSoundId = RAGE.Game.Audio.GetSoundId();
+
+                    RAGE.Game.Audio.PlaySoundFromEntity(rouletteSoundId, "DLC_VW_ROULETTE_BALL_LOOP", TableObject.Handle, "dlc_vw_table_games_sounds", true, 0);
 
                     var ballIdx = new Dictionary<byte, byte>()
                     {
@@ -242,9 +399,7 @@ namespace BCRPClient.Data
                         { 38, 1 },
                     }.GetValueOrDefault(targetNumber);
 
-                    BallObject?.Destroy();
-
-                    BallObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(RAGE.Util.Joaat.Hash("vw_prop_roulette_ball"), wheelPos.X, wheelPos.Y, wheelPos.Z, false, false, false))
+                    BallObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(ballHash, wheelPos.X, wheelPos.Y, wheelPos.Z, false, false, false))
                     {
                         Dimension = uint.MaxValue,
                     };
@@ -262,31 +417,48 @@ namespace BCRPClient.Data
                     BallObject.PlayAnim($"exit_{ballIdx}_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
                     TableObject.PlayAnim($"exit_{ballIdx}_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0f, 136704);
 
-                    await RAGE.Game.Invoker.WaitAsync(11_000);
+                    await RAGE.Game.Invoker.WaitAsync(7_000);
+
+                    RAGE.Game.Audio.StopSound(rouletteSoundId);
+                    RAGE.Game.Audio.ReleaseSoundId(rouletteSoundId);
+
+                    await RAGE.Game.Invoker.WaitAsync(3_000);
+
+                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        return;
+
+                    NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
                     Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
                     await RAGE.Game.Invoker.WaitAsync(1_500);
 
+                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                        return;
+
+                    NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+
                     Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
-
-/*                    if (BallObject != null)
-                    {
-                        BallObject.Destroy();
-
-                        BallObject = null;
-                    }*/
                 }
 
                 public async void StartGame()
                 {
+                    if (TextLabel != null)
+                    {
+                        var color = TextLabel.Color;
+
+                        color.Alpha = 0;
+
+                        TextLabel.Color = color;
+                    }
+
                     CurrentRoulette = this;
 
                     NPC.Ped.PlaySpeech("MINIGAME_DEALER_GREET", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
                     var tableHeading = TableObject.GetHeading();
 
-                    Additional.Camera.Enable(Additional.Camera.StateTypes.CasinoRouletteGame, TableObject, null, 750, null, null, null);
+                    Additional.Camera.Enable(Additional.Camera.StateTypes.CasinoRouletteGame, TableObject, null, 500, null, null, null);
 
                     Additional.Camera.Rotation = new Vector3(270f, -90f, tableHeading + 270f);
 
@@ -468,6 +640,17 @@ namespace BCRPClient.Data
 
                 public void StopGame()
                 {
+                    if (TextLabel != null)
+                    {
+                        var color = TextLabel.Color;
+
+                        color.Alpha = 255;
+
+                        TextLabel.Color = color;
+                    }
+
+                    Additional.Camera.Disable(750);
+
                     CurrentRoulette = null;
 
                     HoveredBet = BetTypes.None;
@@ -529,17 +712,44 @@ namespace BCRPClient.Data
                     }
                 }
 
-                private static void OnMouseClick(int x, int y, bool up, bool right)
+                private static async void OnMouseClick(int x, int y, bool up, bool right)
                 {
                     if (!up || right)
                         return;
 
-                    if (!CEF.Cursor.IsVisible || HoveredBet == BetTypes.None)
+                    var betType = HoveredBet;
+
+                    if (!CEF.Cursor.IsVisible || betType == BetTypes.None)
                         return;
 
-                    if (ActiveBets != null)
+                    var roulette = CurrentRoulette;
+
+                    if (roulette == null)
+                        return;
+
+                    var casino = Casino.All.Where(x => x.Roulettes.Contains(roulette)).FirstOrDefault();
+
+                    if (casino == null)
+                        return;
+
+                    var casinoIdx = casino.Id;
+
+                    var rouletteIdx = CurrentRoulette.GetIdInCasino(casinoIdx);
+
+                    var stateData = Roulette.GetCurrentStateData(casinoIdx, rouletteIdx);
+
+                    if (stateData == null || !(stateData[0] == 'S' || stateData[0] == 'I'))
                     {
-                        var sameBet = ActiveBets.Where(x => x.BetType == HoveredBet).FirstOrDefault();
+                        CEF.Notification.Show("Casino::CSB");
+
+                        return;
+                    }
+
+                    var bet = Data.Minigames.Casino.Roulette.CurrentBet;
+
+                    if (roulette.ActiveBets != null)
+                    {
+                        var sameBet = roulette.ActiveBets.Where(x => x.BetType == betType).FirstOrDefault();
 
                         if (sameBet != null)
                         {
@@ -548,11 +758,35 @@ namespace BCRPClient.Data
                             return;
                         }
                     }
+
+                    if (bet < roulette.MinBet || bet > roulette.MaxBet)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"На этом столе разрешены ставки от {Utils.ToStringWithWhitespace(CurrentRoulette.MinBet.ToString())} до {Utils.ToStringWithWhitespace(CurrentRoulette.MaxBet.ToString())} фишек!", -1);
+
+                        return;
+                    }
+
+                    if (Casino.LastSent.IsSpam(500, false, false))
+                        return;
+
+                    Casino.LastSent = Sync.World.ServerTime;
+
+                    var res = (bool)await Events.CallRemoteProc("Casino::RLTSB", casinoIdx, rouletteIdx, (byte)betType, bet);
+
+                    if (!res)
+                        return;
+
+                    if (roulette.ActiveBets == null)
+                        roulette.ActiveBets = new List<BetData>();
+
+                    roulette.ActiveBets.Add(new BetData() { BetType = betType, Amount = bet, });
+
+                    roulette.UpdateActiveBets();
                 }
 
                 private static void Render()
                 {
-                    if (CurrentRoulette == null)
+                    if (CurrentRoulette == null || CurrentRoulette.TableObject?.Exists != true)
                         return;
 
                     var screenRes = new RAGE.Ui.Cursor.Vector2(GameEvents.ScreenResolution.X, GameEvents.ScreenResolution.Y);
@@ -561,9 +795,9 @@ namespace BCRPClient.Data
 
                     var detectTolerance = 25f; var betType = BetTypes.None;
 
-                    if (ActiveBets != null)
+                    if (CurrentRoulette.ActiveBets != null)
                     {
-                        foreach (var x in ActiveBets)
+                        foreach (var x in CurrentRoulette.ActiveBets)
                         {
                             var hData = HoverDatas[x.BetType];
 

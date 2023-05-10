@@ -168,6 +168,18 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void CharacterCasinoChipsUpdate(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE characters SET CasinoChips=@CC WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@CC", pInfo.CasinoChips);
+
+            PushQuery(cmd);
+        }
+
         public static void CharacterPhoneBalanceUpdate(PlayerData.PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();

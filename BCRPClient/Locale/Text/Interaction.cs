@@ -45,6 +45,7 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.EstateAgencyInteract, "чтобы посмотреть список предложений" },
 
                 { Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract, "чтобы встать за стол" },
+                { Additional.ExtraColshape.InteractionTypes.CasinoLuckyWheelInteract, "чтобы прокрутить колесо удачи" },
             };
         }
     }

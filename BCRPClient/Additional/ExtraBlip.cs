@@ -265,7 +265,7 @@ namespace BCRPClient.Additional
 
         public static void RefreshAllBlips()
         {
-            foreach (var x in All.Values)
+            foreach (var x in All.Values.ToList())
             {
                 x.SetName(x.Name);
 

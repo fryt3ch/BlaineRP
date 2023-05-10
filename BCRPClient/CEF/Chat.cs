@@ -70,7 +70,7 @@ namespace BCRPClient.CEF
 
         private static void AddToQueue(string command, params object[] args) => Queue.Enqueue((command, args));
 
-        private static int EscBindIdx { get; set; } = -1;
+        private static List<int> TempBinds { get; set; } = new List<int>();
 
         public Chat()
         {
@@ -425,7 +425,7 @@ namespace BCRPClient.CEF
         #region Stuff
         public static void ShowInput(bool value)
         {
-            if (!IsActive || value == InputVisible)
+            if (!IsActive)
                 return;
 
             if (value && Utils.IsAnyCefActive(true) && !CEF.Death.IsActive && !CEF.Phone.IsActive)
@@ -433,11 +433,9 @@ namespace BCRPClient.CEF
 
             Browser.Window.ExecuteJs("Chat.switchInput", value);
 
-            InputVisible = value;
-
             if (value)
             {
-                EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => ShowInput(false));
+                TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => ShowInput(false)));
 
                 KeyBinds.Get(KeyBinds.Types.ChatInput).Disable();
             }
@@ -445,12 +443,15 @@ namespace BCRPClient.CEF
             {
                 KeyBinds.Get(KeyBinds.Types.ChatInput).Enable();
 
-                KeyBinds.Unbind(EscBindIdx);
+                foreach (var x in TempBinds.ToList())
+                    KeyBinds.Unbind(x);
 
-                EscBindIdx = -1;
+                TempBinds.Clear();
             }
 
             Cursor.Show(value, value);
+
+            InputVisible = value;
         }
 
         public static void SetHeight(int height)

@@ -27,7 +27,7 @@ namespace BCRPClient.Data
 
                 var id = Id;
 
-                var blip = new Additional.ExtraBlip(762, Position.Position, "Скупщик рыбы", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                var blip = new Blip(762, Position.Position, "Скупщик рыбы", 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
                 if (id == 0)
                 {

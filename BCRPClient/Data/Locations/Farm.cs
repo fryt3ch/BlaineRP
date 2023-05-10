@@ -83,7 +83,7 @@ namespace BCRPClient.Data
 
                     public Additional.ExtraColshape Colshape { get; set; }
 
-                    public static TextLabel TextLabel { get; set; }
+                    public static Additional.ExtraLabel TextLabel { get; set; }
 
                     public static AsyncTask Task { get; set; }
 
@@ -375,8 +375,8 @@ namespace BCRPClient.Data
                     Cow,
                 }
 
-                public static TextLabel MainLabel { get; set; }
-                public static TextLabel InfoLabel { get; set; }
+                public static Additional.ExtraLabel MainLabel { get; set; }
+                public static Additional.ExtraLabel InfoLabel { get; set; }
 
                 public static AsyncTask LabelTask { get; set; }
 
@@ -532,11 +532,11 @@ namespace BCRPClient.Data
                 {
                     var posCs = new Vector3(Colshape.Position.X, Colshape.Position.Y, Colshape.Position.Z - 20f);
 
-                    MainLabel = new TextLabel(posCs, $"Поле #{farm.CropFields.IndexOf(this) + 1}", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 7, LOS = false };
+                    MainLabel = new Additional.ExtraLabel(posCs, $"Поле #{farm.CropFields.IndexOf(this) + 1}", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 7, LOS = false };
 
                     posCs.Z -= 0.5f;
 
-                    InfoLabel = new TextLabel(posCs, "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+                    InfoLabel = new Additional.ExtraLabel(posCs, "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
 
                     UpdateLabels(farm, fieldIdx);
 
@@ -576,7 +576,7 @@ namespace BCRPClient.Data
 
                                     CropData.TextLabel?.Destroy();
 
-                                    CropData.TextLabel = new TextLabel(new Vector3(x, y, z + 0.5f), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+                                    CropData.TextLabel = new Additional.ExtraLabel(new Vector3(x, y, z + 0.5f), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
 
                                     fieldData.CropsData[col][row].GrowTimeChanged(farm, fieldIdx, col, row, CropData.GetGrowTime(farm, fieldIdx, col, row));
                                 },
@@ -940,7 +940,7 @@ namespace BCRPClient.Data
 
                 public static AsyncTask Task { get; set; }
 
-                public static TextLabel TextLabel { get; set; }
+                public static Additional.ExtraLabel TextLabel { get; set; }
 
                 public static int BindIdx { get; set; }
 
@@ -1124,7 +1124,7 @@ namespace BCRPClient.Data
 
                     cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.MAIN_DIMENSION);
 
-                    cow.Ped.SetData<Action<Entity>>("ECA_SI", CowStreamInAction);
+                    cow.Ped.SetStreamInCustomAction(CowStreamInAction);
 
                     cow.Ped.SetData("LGT", GetGrowTime(farm, idx));
 
@@ -1136,7 +1136,7 @@ namespace BCRPClient.Data
                         {
                             TextLabel?.Destroy();
 
-                            TextLabel = new TextLabel(cow.Ped.GetCoords(false), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
+                            TextLabel = new Additional.ExtraLabel(cow.Ped.GetCoords(false), "", new RGBA(255, 255, 255, 255), 300f, 0, false, Settings.MAIN_DIMENSION) { Font = 4, LOS = false };
 
                             cow.GrowTimeChanged(farm, idx, GetGrowTime(farm, idx));
                         },

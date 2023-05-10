@@ -41,7 +41,7 @@ namespace BCRPClient.Data
 
             public Additional.ExtraColshape Colshape { get; set; }
 
-            public RAGE.Elements.TextLabel InfoText { get; set; }
+            public Additional.ExtraLabel InfoText { get; set; }
 
             public abstract Additional.ExtraBlip OwnerBlip { get; set; }
 
@@ -159,7 +159,7 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                InfoText = new TextLabel(new Vector3(Position.X, Position.Y, Position.Z + 0.5f), "", Utils.WhiteColourRGBA, 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                InfoText = new Additional.ExtraLabel(new Vector3(Position.X, Position.Y, Position.Z + 0.5f), "", Utils.WhiteColourRGBA, 25f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
                 All.Add(Id, this);
             }
@@ -244,7 +244,7 @@ namespace BCRPClient.Data
 
             public Additional.ExtraColshape Colshape { get; set; }
 
-            public TextLabel InfoText { get; set; }
+            public Additional.ExtraLabel InfoText { get; set; }
 
             public Additional.ExtraBlip Blip { get; set; }
 
@@ -254,7 +254,7 @@ namespace BCRPClient.Data
 
             public List<Additional.ExtraColshape> LoadedColshapes { get => Player.LocalPlayer.GetData<List<Additional.ExtraColshape>>("ApartmentsRoot::LoadedColshapes"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedColshapes"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedColshapes", value); } }
 
-            public List<TextLabel> LoadedTextLabels { get => Player.LocalPlayer.GetData<List<TextLabel>>("ApartmentsRoot::LoadedTextLabels"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedTextLabels"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedTextLabels", value); } }
+            public List<Additional.ExtraLabel> LoadedTextLabels { get => Player.LocalPlayer.GetData<List<Additional.ExtraLabel>>("ApartmentsRoot::LoadedTextLabels"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedTextLabels"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedTextLabels", value); } }
 
             public List<Blip> LoadedBlips { get => Player.LocalPlayer.GetData<List<Blip>>("ApartmentsRoot::LoadedBlips"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedBlips"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedBlips", value); } }
 
@@ -285,7 +285,7 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                InfoText = new TextLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z + 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                InfoText = new Additional.ExtraLabel(new Vector3(PositionEnter.X, PositionEnter.Y, PositionEnter.Z + 0.5f), "", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
 
                 Blip = new Additional.ExtraBlip(475, PositionEnter, Name, 1f, 25, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
             }
@@ -319,7 +319,7 @@ namespace BCRPClient.Data
                 var aps = AllApartments;
 
                 var loadedColshapes = new List<Additional.ExtraColshape>();
-                var loadedTextLabels = new List<TextLabel>();
+                var loadedTextLabels = new List<Additional.ExtraLabel>();
 
                 for (int i = 0; i < aps.Count; i++)
                 {
@@ -335,7 +335,7 @@ namespace BCRPClient.Data
 
                     loadedColshapes.Add(enterCs);
 
-                    ap.InfoText = new TextLabel(new Vector3(ap.Position.X, ap.Position.Y, ap.Position.Z + 0.5f), string.Format(Locale.Property.ApartmentsTextLabel, i + 1, ap.OwnerName ?? Locale.Property.NoOwner), Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension);
+                    ap.InfoText = new Additional.ExtraLabel(new Vector3(ap.Position.X, ap.Position.Y, ap.Position.Z + 0.5f), string.Format(Locale.Property.ApartmentsTextLabel, i + 1, ap.OwnerName ?? Locale.Property.NoOwner), Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension);
                 }
 
                 for (int i = StartFloor; i < StartFloor + FloorsAmount; i++)
@@ -350,7 +350,7 @@ namespace BCRPClient.Data
                         Data = this,
                     };
 
-                    loadedTextLabels.Add(new TextLabel(new Vector3(floorPos.X, floorPos.Y, floorPos.Z + 0.5f), string.Format(Locale.Property.ApartmentsRootElevatorTextLabel, i), Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
+                    loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(floorPos.X, floorPos.Y, floorPos.Z + 0.5f), string.Format(Locale.Property.ApartmentsRootElevatorTextLabel, i), Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
 
                     loadedColshapes.Add(elevatorCs);
                 }
@@ -365,7 +365,7 @@ namespace BCRPClient.Data
 
                 loadedColshapes.Add(exitCs);
 
-                loadedTextLabels.Add(new TextLabel(new Vector3(PositionExit.X, PositionExit.Y, PositionExit.Z + 0.5f), Locale.Property.ApartmentsRootExitTextLabel, Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
+                loadedTextLabels.Add(new Additional.ExtraLabel(new Vector3(PositionExit.X, PositionExit.Y, PositionExit.Z + 0.5f), Locale.Property.ApartmentsRootExitTextLabel, Utils.WhiteColourRGBA, 5f, 0, false, Player.LocalPlayer.Dimension) { Font = 0 });
 
                 LoadedColshapes = loadedColshapes;
                 LoadedTextLabels = loadedTextLabels;

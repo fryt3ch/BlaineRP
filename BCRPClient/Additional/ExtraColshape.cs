@@ -438,6 +438,7 @@ namespace BCRPClient.Additional
             ElevatorInteract,
 
             CasinoRouletteInteract,
+            CasinoLuckyWheelInteract,
         }
 
         public enum ActionTypes
@@ -483,7 +484,7 @@ namespace BCRPClient.Additional
 
             ElevatorInteract,
 
-            CasinoRouletteInteract,
+            CasinoInteract,
         }
 
         public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
@@ -600,6 +601,37 @@ namespace BCRPClient.Additional
         public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
             {
+                InteractionTypes.CasinoLuckyWheelInteract, async () =>
+                {
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+
+                    if (casinoStrData == null)
+                        return;
+
+                    var casinoId = int.Parse(casinoStrData[0]);
+                    var luckyWheelId = int.Parse(casinoStrData[1]);
+
+                    var casino = BCRPClient.Data.Locations.Casino.GetById(casinoId);
+
+                    var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
+
+                    luckyWheel.Spin(Player.LocalPlayer, 1);
+
+                    return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = ((string)await Events.CallRemoteProc("Casino::LCWS", casinoId, luckyWheelId))?.Split('_');
+
+                    if (res == null)
+                        return;
+                }
+            },
+
+            {
                 InteractionTypes.CasinoRouletteInteract, async () =>
                 {
                     if (LastSent.IsSpam(1000, false, true))
@@ -615,7 +647,21 @@ namespace BCRPClient.Additional
 
                     LastSent = Sync.World.ServerTime;
 
-                    var res = await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId);
+                    var res = ((string)await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId))?.Split('_');
+
+                    if (res == null)
+                        return;
+
+                    var chipsBalance = decimal.Parse(res[0]);
+
+                    var casino = BCRPClient.Data.Locations.Casino.GetById(casinoId);
+
+                    var roulette = casino.GetRouletteById(rouletteId);
+
+                    if (roulette.TextLabel == null)
+                        return;
+
+                    BCRPClient.Data.Minigames.Casino.Roulette.Show(casino, roulette, chipsBalance);
                 }
             },
 
@@ -1274,7 +1320,7 @@ namespace BCRPClient.Additional
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
         {
             {
-                ActionTypes.CasinoRouletteInteract,
+                ActionTypes.CasinoInteract,
 
                 new Dictionary<bool, Action<ExtraColshape>>()
                 {
@@ -1952,17 +1998,19 @@ namespace BCRPClient.Additional
 
         public static void UpdateStreamed()
         {
-            All.ForEach(cs =>
+            for (int i = 0; i < All.Count; i++)
             {
+                var cs = All[i];
+
                 var state = cs?.IsStreamed();
 
                 if (state == null)
-                    return;
+                    continue;
 
                 if (state == true)
                 {
                     if (Streamed.Contains(cs))
-                        return;
+                        continue;
 
                     Streamed.Add(cs);
                 }
@@ -1978,7 +2026,7 @@ namespace BCRPClient.Additional
                         }
                     }
                 }
-            });
+            }
         }
 
         public static void UpdateInside()

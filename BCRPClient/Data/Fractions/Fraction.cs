@@ -6,6 +6,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static BCRPClient.Locale.Notifications.Vehicles;
 
 namespace BCRPClient.Data.Fractions
 {
@@ -136,8 +137,8 @@ namespace BCRPClient.Data.Fractions
         public bool StorageLocked => Sync.World.GetSharedData<bool>($"FRAC::SL_{(int)Type}", false);
         public bool CreationWorkbenchLocked => Sync.World.GetSharedData<bool>($"FRAC::CWL_{(int)Type}", false);
 
-        public TextLabel[] StorageTextInfos { get; set; }
-        public TextLabel[] CreationWorkbenchTextInfos { get; set; }
+        public Additional.ExtraLabel[] StorageTextInfos { get; set; }
+        public Additional.ExtraLabel[] CreationWorkbenchTextInfos { get; set; }
 
         public Types Type { get; set; }
 
@@ -162,8 +163,8 @@ namespace BCRPClient.Data.Fractions
             var contPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(ContainerPositionsStr);
             var wbPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(CreationWorkbenchPositionsStr);
 
-            var contTextInfos = new List<TextLabel>();
-            var wbTextInfos = new List<TextLabel>();
+            var contTextInfos = new List<Additional.ExtraLabel>();
+            var wbTextInfos = new List<Additional.ExtraLabel>();
 
             for (int i = 0; i < contPoses.Length; i++)
             {
@@ -178,12 +179,12 @@ namespace BCRPClient.Data.Fractions
                     Data = StorageContainerId,
                 };
 
-                var containerTextLabel = new TextLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var containerTextLabel = new Additional.ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 1f), "Склад", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
                 {
                     Font = 0,
                 };
 
-                var containerInfoTextLabel = new TextLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var containerInfoTextLabel = new Additional.ExtraLabel(new Vector3(contPos.X, contPos.Y, contPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
                 {
                     Font = 0,
                 };
@@ -206,12 +207,12 @@ namespace BCRPClient.Data.Fractions
                     Data = $"{(int)Type}_{i}",
                 };
 
-                var creationWorkbenchTextLabel = new TextLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var creationWorkbenchTextLabel = new Additional.ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 1f), "Создание предметов", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
                 {
                     Font = 0,
                 };
 
-                var wbTextInfoLabel = new TextLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
+                var wbTextInfoLabel = new Additional.ExtraLabel(new Vector3(wbPos.X, wbPos.Y, wbPos.Z + 0.8f), "", new RGBA(255, 255, 255, 255), 5f, 0, false, Settings.MAIN_DIMENSION)
                 {
                     Font = 0,
                 };

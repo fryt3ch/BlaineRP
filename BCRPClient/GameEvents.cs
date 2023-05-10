@@ -1,6 +1,7 @@
 ﻿#define DEBUGGING
 using RAGE; using RAGE.Elements; using System;
 using System.Linq;
+using System.Text;
 
 namespace BCRPClient
 {
@@ -43,6 +44,9 @@ namespace BCRPClient
 
         public GameEvents()
         {
+            RAGE.Game.Gxt.Add("BRP_AEBLIPN", "~a~");
+            RAGE.Game.Gxt.Add("BRP_AELBLT", "~a~");
+
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
             System.Globalization.CultureInfo.CurrentCulture = Settings.CultureInfo;
@@ -85,6 +89,8 @@ namespace BCRPClient
                 RAGE.Game.Audio.StopStream();
 
             RAGE.Game.Audio.StopAudioScenes();
+
+            RAGE.Game.Audio.SetAudioFlag("LoadMPData", true);
 
             Utils.DisableFlightMusic();
 
@@ -139,10 +145,8 @@ namespace BCRPClient
                 }
             };
 
-            Events.OnPlayerSpawn += (RAGE.Events.CancelEventArgs cancel) =>
+            Events.OnPlayerSpawn += (cancel) =>
             {
-                var pos = Player.LocalPlayer.Position;
-
                 Additional.SkyCamera.WrongFadeCheck();
 
                 Player.LocalPlayer.SetInfiniteAmmoClip(true);
@@ -165,7 +169,7 @@ namespace BCRPClient
 
             //KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () => Player.LocalPlayer.SetRealHealth(0));
 
-            Events.OnPlayerQuit += async (Player player) =>
+            Events.OnPlayerQuit += async (player) =>
             {
                 if (player == null || player.Handle == Player.LocalPlayer.Handle || player.Dimension != Player.LocalPlayer.Dimension)
                     return;
@@ -182,7 +186,7 @@ namespace BCRPClient
 
                 var curTime = Sync.World.ServerTime;
 
-                var text = new TextLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
+                var text = new Additional.ExtraLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
 
                 pos.Z -= 1f;
 
@@ -222,7 +226,7 @@ namespace BCRPClient
 
                 CEF.Audio.OnEntityStreamIn(gEntity);
 
-                entity.GetData<Action<Entity>>("ECA_SI")?.Invoke(entity);
+                entity.GetStreamInCustomAction()?.Invoke(entity);
             };
 
             Events.OnEntityStreamOut += async (entity) =>
@@ -251,7 +255,7 @@ namespace BCRPClient
                     CEF.Audio.OnEntityStreamOut(gEntity);
                 }
 
-                entity.GetData<Action<Entity>>("ECA_SO")?.Invoke(entity);
+                entity.GetStreamOutCustomAction()?.Invoke(entity);
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);
@@ -336,43 +340,6 @@ namespace BCRPClient
 
                 WaypointPosition = null;
             };
-
-            /*            var dict = new Dictionary<int, bool>();
-
-                        KeyBinds.NewBind(RAGE.Ui.VirtualKeys.L, true, () =>
-                        {
-                            var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
-
-                            Utils.ConsoleOutput(ent);
-
-                            if (ent <= 0)
-                                return;
-
-                            var state = true;
-
-                            if (dict.ContainsKey(ent))
-                            {
-                                state = !dict[ent];
-
-                                dict[ent] = state;
-                            }
-                            else
-                                dict.Add(ent, state);
-
-                            RAGE.Game.Entity.SetEntityLights(ent, state);
-                        });
-
-                        KeyBinds.NewBind(RAGE.Ui.VirtualKeys.B, true, () =>
-                        {
-                            var ent = RAGE.Game.Object.GetClosestObjectOfType(Player.LocalPlayer.Position.X, Player.LocalPlayer.Position.Y, Player.LocalPlayer.Position.Z, 10f, RAGE.Util.Joaat.Hash("brp_p_light_3_1"), false, true, true);
-
-                            Utils.ConsoleOutput(ent);
-
-                            if (ent <= 0)
-                                return;
-
-                            RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, ent, true, 255, 0, 0);
-                        });*/
         }
 
         #region Renders

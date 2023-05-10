@@ -291,7 +291,7 @@ namespace BCRPClient.Sync
 
                 if (x.StartsWith("E_"))
                 {
-                    (value as Entity)?.Destroy();
+                    ((dynamic)value)?.Destroy();
                 }
                 else if (x.StartsWith("CS_"))
                 {

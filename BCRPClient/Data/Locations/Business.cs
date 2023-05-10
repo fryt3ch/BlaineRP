@@ -62,7 +62,7 @@ namespace BCRPClient.Data
 
             public Additional.ExtraBlip Blip { get; set; }
 
-            public TextLabel InfoText { get; set; }
+            public Additional.ExtraLabel InfoText { get; set; }
 
             public Additional.ExtraColshape InfoColshape { get; set; }
 
@@ -98,7 +98,7 @@ namespace BCRPClient.Data
                         Data = this,
                     };
 
-                    InfoText = new TextLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                    InfoText = new Additional.ExtraLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
                 }
 
                 All.Add(Id, this);
@@ -561,7 +561,7 @@ namespace BCRPClient.Data
                     InteractionType = Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter,
                 };
 
-                var shootingRangeText = new TextLabel(new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z + 0.5f), Locale.General.Business.ShootingRangeTitle, new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
+                var shootingRangeText = new Additional.ExtraLabel(new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z + 0.5f), Locale.General.Business.ShootingRangeTitle, new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
 
                 CEF.PhoneApps.GPSApp.AddPosition("bizother", "weapon", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }

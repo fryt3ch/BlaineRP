@@ -243,6 +243,9 @@ namespace BCRPClient.CEF
             {
                 var userVolume = Settings.Audio.SoundVolume / 100f;
 
+                if (!Utils.IsGameWindowFocused && Settings.Native.Audio_MuteAudioOnFocusLoss)
+                    userVolume = 0f;
+
                 for (int i = 0; i < AllAudios.Count; i++)
                 {
                     var audio = AllAudios[i];

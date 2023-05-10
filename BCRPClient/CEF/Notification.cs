@@ -14,6 +14,8 @@ namespace BCRPClient.CEF
 
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Notifications); }
 
+        public static bool IsOnTop { get; private set; } = false;
+
         public enum Types
         {
             /// <summary>Информация (синий)</summary>
@@ -378,7 +380,13 @@ namespace BCRPClient.CEF
 
             { "DriveS::PES", new Instance(Types.Success, "Вы успешно сдали экзамен и получаете права категории {0}!\nНе нарушайте ПДД, за серьезные нарушения Вы можете лишиться прав!", Locale.Notifications.DefHeader) },
 
-            { "EMS::HBEDS", new Instance(Types.Success, "Вы завершили процесс лечения!", Locale.Notifications.DefHeader) },
+            { "Casino::NEC", new Instance(Types.Error, "Недостаточно фишек!\nВаш баланс: {0}", Locale.Notifications.ErrorHeader) },
+            { "Casino::RLTMP", new Instance(Types.Error, "За этим столом уже играет максимальное кол-во человек - {0}!", Locale.Notifications.ErrorHeader) },
+            { "Casino::RLTMB", new Instance(Types.Error, "Вы сделали максимальное кол-во ставок на этом столе!", Locale.Notifications.ErrorHeader) },
+
+            { "Casino::BLMT", new Instance(Types.Error, "Сегодня Вы можете поставить еще не более {0} фишек!", Locale.Notifications.ErrorHeader) },
+
+            { "Casino::CSB", new Instance(Types.Error, "Вы не можете сделать ставку в данный момент!", Locale.Notifications.ErrorHeader) },
         };
 
         public Notification()
@@ -549,6 +557,16 @@ namespace BCRPClient.CEF
             RAGE.Game.Ui.SetNotificationMessage4(imageDict, imageName, false, iconType, label, subject, durationCoef);
 
             RAGE.Game.Ui.DrawNotification(false, false);
+        }
+
+        public static void SetOnTop(bool state)
+        {
+            if (!CEF.Browser.IsRendered(Browser.IntTypes.Notifications))
+                return;
+
+            IsOnTop = state;
+
+            CEF.Browser.Window.ExecuteJs("Notific.switchPos", state);
         }
     }
 }

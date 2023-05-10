@@ -38,16 +38,6 @@ namespace BCRPServer.Game.Casino
             _2to1_3 = 142,
         }
 
-        public enum StateTypes : byte
-        {
-            /// <summary>В простое, ожидание первой ставки</summary>
-            Idle = 0,
-            /// <summary>Игроки делают следующие ставки, идет обратный отсчёт</summary>
-            Bets,
-            /// <summary>Результат уже известен, идет проигрывание анимаций на клиенте и ожидание на сервере (вращение колеса)</summary>
-            Spinning,
-        }
-
         private static Dictionary<BetTypes, decimal> WinCoefs = new Dictionary<BetTypes, decimal>()
         {
             { BetTypes._1, 36m },
@@ -105,8 +95,48 @@ namespace BCRPServer.Game.Casino
             { BetTypes._2to1_3, 3m },
         };
 
-        private static Dictionary<BetTypes, byte[]> Numbers = new Dictionary<BetTypes, byte[]>()
+        private static Dictionary<byte, BetTypes[]> Numbers = new Dictionary<BetTypes, byte[]>()
         {
+            { BetTypes._1, new byte[] { 1, } },
+            { BetTypes._2, new byte[] { 2, } },
+            { BetTypes._3, new byte[] { 3, } },
+            { BetTypes._4, new byte[] { 4, } },
+            { BetTypes._5, new byte[] { 5, } },
+            { BetTypes._6, new byte[] { 6, } },
+            { BetTypes._7, new byte[] { 7, } },
+            { BetTypes._8, new byte[] { 8, } },
+            { BetTypes._9, new byte[] { 9, } },
+            { BetTypes._10, new byte[] { 10, } },
+            { BetTypes._11, new byte[] { 11, } },
+            { BetTypes._12, new byte[] { 12, } },
+            { BetTypes._13, new byte[] { 13, } },
+            { BetTypes._14, new byte[] { 14, } },
+            { BetTypes._15, new byte[] { 15, } },
+            { BetTypes._16, new byte[] { 16, } },
+            { BetTypes._17, new byte[] { 17, } },
+            { BetTypes._18, new byte[] { 18, } },
+            { BetTypes._19, new byte[] { 19, } },
+            { BetTypes._20, new byte[] { 20, } },
+            { BetTypes._21, new byte[] { 21, } },
+            { BetTypes._22, new byte[] { 22, } },
+            { BetTypes._23, new byte[] { 23, } },
+            { BetTypes._24, new byte[] { 24, } },
+            { BetTypes._25, new byte[] { 25, } },
+            { BetTypes._26, new byte[] { 26, } },
+            { BetTypes._27, new byte[] { 27, } },
+            { BetTypes._28, new byte[] { 28, } },
+            { BetTypes._29, new byte[] { 29, } },
+            { BetTypes._30, new byte[] { 30, } },
+            { BetTypes._31, new byte[] { 31, } },
+            { BetTypes._32, new byte[] { 32, } },
+            { BetTypes._33, new byte[] { 33, } },
+            { BetTypes._34, new byte[] { 34, } },
+            { BetTypes._35, new byte[] { 35, } },
+            { BetTypes._36, new byte[] { 36, } },
+
+            { BetTypes._0, new byte[] { 37, } },
+            { BetTypes._00, new byte[] { 38, } },
+
             { BetTypes.Red, new byte[] { 1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36, } },
             { BetTypes.Black, new byte[] { 2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35, } },
             { BetTypes.Even, new byte[] { 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, } },
@@ -119,11 +149,16 @@ namespace BCRPServer.Game.Casino
             { BetTypes._2to1_1, new byte[] { 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, } },
             { BetTypes._2to1_2, new byte[] { 2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, } },
             { BetTypes._2to1_3, new byte[] { 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, } },
+        }.SelectMany(x => x.Value.Select(y => new { Num = y, BetType = x.Key })).GroupBy(x => x.Num).ToDictionary(x => x.Key, x => x.Select(y => y.BetType).ToArray());
+
+        private static Dictionary<byte, BetTypes[]> Numbers1 = new Dictionary<byte, BetTypes[]>()
+        {
+            { 1, new BetTypes[] { BetTypes._1, BetTypes.Red, BetTypes.Odd,  } },
         };
 
         public static decimal GetWinCoefByBetType(BetTypes betType) => WinCoefs.GetValueOrDefault(betType);
 
-        public static byte[] GetNumbersForBetType(BetTypes betType) => betType <= BetTypes._00 ? new byte[] { (byte)betType } : Numbers.GetValueOrDefault(betType);
+        public static BetTypes[] GetBetTypesForNumber(byte number) => Numbers.GetValueOrDefault(number);
 
         public class BetData
         {
@@ -137,8 +172,6 @@ namespace BCRPServer.Game.Casino
             public Bet[] Bets { get; set; } = new Bet[MAX_BETS];
         }
 
-        public StateTypes CurrentStateType { get; set; }
-
         public Timer Timer { get; set; }
 
         public Vector3 Position { get; set; }
@@ -149,16 +182,44 @@ namespace BCRPServer.Game.Casino
 
         public uint MaxBet { get; set; }
 
+        public readonly byte CasinoId;
+
+        public readonly byte Id;
+
         public Dictionary<uint, BetData> CurrentPlayers { get; set; } = new Dictionary<uint, BetData>();
 
-        public Roulette(float PosX, float PosY, float PosZ)
+        public Roulette(byte CasinoId, byte Id, float PosX, float PosY, float PosZ)
         {
             this.Position = new Vector3(PosX, PosY, PosZ);
+
+            this.CasinoId = CasinoId;
+            this.Id = Id;
         }
 
-        public void AddPlayer(PlayerData pData)
+        public void SetCurrentStateData(string value)
         {
-            CurrentPlayers.Add(pData.CID, new BetData() { });
+            var dataKey = $"CASINO_{CasinoId}_RLTS_{Id}";
+
+            if (value == null)
+                Sync.World.ResetSharedData(dataKey);
+            else
+                Sync.World.SetSharedData(dataKey, value);
+        }
+
+        public string GetCurrentStateData()
+        {
+            var dataKey = $"CASINO_{CasinoId}_RLTS_{Id}";
+
+            return Sync.World.GetSharedData<string>(dataKey);
+        }
+
+        public BetData AddPlayer(PlayerData pData)
+        {
+            var betData = new BetData() { };
+
+            CurrentPlayers.Add(pData.CID, betData);
+
+            return betData;
         }
 
         public bool RemovePlayer(uint cid)
@@ -171,28 +232,107 @@ namespace BCRPServer.Game.Casino
             return false;
         }
 
-        public void SetSpinningState()
+        public bool CanPlaceBet()
         {
-            CurrentStateType = StateTypes.Spinning;
+            var state = GetCurrentStateData();
 
+            if (state == null || !(state[0] == 'I' || state[0] == 'S'))
+                return false;
+
+            return true;
+        }
+
+        public void StartGame()
+        {
             Timer?.Dispose();
+
+            var startDate = Utils.GetCurrentTime().AddMilliseconds(30_000);
+
+            SetCurrentStateData($"S{startDate.GetUnixTimestamp()}");
 
             Timer = new Timer((obj) =>
             {
+                NAPI.Task.Run(() =>
+                {
+                    Timer?.Dispose();
 
-            }, null, 17_100, Timeout.Infinite);
+                    var resultNumber = GetNextResultNumber();
+
+                    SetCurrentStateData($"R{resultNumber}");
+
+                    Timer = new Timer((obj) =>
+                    {
+                        NAPI.Task.Run(() =>
+                        {
+                            Timer?.Dispose();
+
+                            Timer = null;
+
+                            SetCurrentStateData($"I{resultNumber}");
+
+                            OnFinishGame(resultNumber);
+
+                            CurrentPlayers.Clear();
+                        });
+                    }, null, 15_000, Timeout.Infinite);
+                });
+            }, null, 30_000, Timeout.Infinite);
         }
 
-        public void CalculateAll(byte resultNum)
+        public byte GetNextResultNumber()
         {
+            return (byte)Utils.Randoms.Chat.Next(1, 38 + 1);
+        }
+
+        private void OnFinishGame(byte resultNum)
+        {
+            var betTypes = GetBetTypesForNumber(resultNum);
+
+            if (betTypes == null)
+                return;
+
             foreach (var x in CurrentPlayers)
             {
+                if (x.Value.Bets == null)
+                    continue;
+
+                var pInfo = PlayerData.PlayerInfo.Get(x.Key);
+
+                if (pInfo == null)
+                    continue;
+
+                uint totalWin = 0;
+
                 for (int i = 0; i < x.Value.Bets.Length; i++)
                 {
                     var bet = x.Value.Bets[i];
 
                     if (bet == null)
                         continue;
+
+                    if (Array.IndexOf(betTypes, bet.Type) >= 0)
+                    {
+                        var coef = GetWinCoefByBetType(bet.Type);
+
+                        try
+                        {
+                            totalWin += (uint)Math.Floor(bet.Amount * coef);
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    }
+                }
+
+                if (totalWin > 0)
+                {
+                    uint newBalance;
+
+                    if (Casino.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
+                    {
+                        Casino.SetCasinoChips(pInfo, newBalance, null);
+                    }
                 }
             }
         }

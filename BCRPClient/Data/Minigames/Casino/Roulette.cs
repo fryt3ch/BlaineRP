@@ -1,6 +1,7 @@
 ﻿using RAGE;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -12,6 +13,8 @@ namespace BCRPClient.Data.Minigames.Casino
 
         public static uint CurrentBet { get; set; }
 
+        private static int EscBindIdx { get; set; } = -1;
+
         public Roulette()
         {
             Events.Add("CasinoRoulette::SetBet", (args) =>
@@ -20,14 +23,18 @@ namespace BCRPClient.Data.Minigames.Casino
             });
         }
 
-        public static async void Show(Data.Locations.Casino.Roulette roulette)
+        public static async void Show(Data.Locations.Casino casino, Data.Locations.Casino.Roulette roulette, decimal chipsBalance)
         {
             if (IsActive)
                 return;
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.CasinoRoulette, true, true);
 
-            CEF.Browser.Window.ExecuteJs($"Casino.draw", new object[] { }, "Ожидание ставок", 0, roulette.MaxBet);
+            CEF.Browser.Window.ExecuteJs($"Casino.draw", 0, roulette.GetCurrestStateString() ?? "null", chipsBalance, roulette.MaxBet, CurrentBet < roulette.MinBet || CurrentBet > roulette.MaxBet ? roulette.MinBet : CurrentBet, new object[] { });
+
+            //CEF.Notification.ClearAll();
+
+            CEF.Notification.SetOnTop(true);
 
             if (!Settings.Interface.HideHUD)
                 CEF.HUD.ShowHUD(false);
@@ -38,7 +45,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             GameEvents.DisableAllControls(true);
 
-            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOff, KeyBinds.Types.MicrophoneOn);
+            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOff, KeyBinds.Types.MicrophoneOn, KeyBinds.Types.Cursor);
 
             roulette.StartGame();
 
@@ -47,6 +54,10 @@ namespace BCRPClient.Data.Minigames.Casino
                 foreach (var x in roulette.LastBets)
                     AddLastBet(x);
             }
+
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
+
+            CurrentBet = roulette.MinBet;
         }
 
         public static void Close()
@@ -55,6 +66,12 @@ namespace BCRPClient.Data.Minigames.Casino
                 return;
 
             CEF.Browser.Render(CEF.Browser.IntTypes.CasinoRoulette, false);
+
+            //CEF.Notification.ClearAll();
+
+            CEF.Notification.SetOnTop(false);
+
+            CEF.Cursor.Show(false, false);
 
             Data.Locations.Casino.Roulette.CurrentRoulette?.StopGame();
 
@@ -66,6 +83,10 @@ namespace BCRPClient.Data.Minigames.Casino
             GameEvents.DisableAllControls(false);
 
             KeyBinds.EnableAll();
+
+            KeyBinds.Unbind(EscBindIdx);
+
+            EscBindIdx = -1;
         }
 
         public static void AddLastBet(Data.Locations.Casino.Roulette.BetTypes betType)
@@ -94,6 +115,22 @@ namespace BCRPClient.Data.Minigames.Casino
             }
 
             CEF.Browser.Window.ExecuteJs("Casino.addLastNum", new List<object> { colourNum, betType.ToString().Replace("_", "") });
+        }
+
+        public static void UpdateStatus(string status)
+        {
+            if (!IsActive)
+                return;
+
+            CEF.Browser.Window.ExecuteJs("Casino.updateGameStatus", status);
+        }
+
+        public static void UpdateBalance(decimal balance)
+        {
+            if (!IsActive)
+                return;
+
+            CEF.Browser.Window.ExecuteJs("Casino.updateCurBal", balance);
         }
     }
 }

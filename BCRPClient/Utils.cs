@@ -977,23 +977,22 @@ namespace BCRPClient
         /// <param name="outline">Обводка</param>
         public static void DrawText(string text, float x, float y, byte red = 255, byte green = 255, byte blue = 255, byte alpha = 255, float scale = 0.4f, ScreenTextFontTypes fontType = ScreenTextFontTypes.CharletComprimeColonge, bool outline = true, bool center = true)
         {
-            RAGE.Game.Ui.SetTextFont((int)fontType);
-            RAGE.Game.Ui.SetTextCentre(center);
-            RAGE.Game.Ui.SetTextColour(red, green, blue, alpha);
-            RAGE.Game.Ui.SetTextScale(scale, scale);
-            RAGE.Game.Ui.SetTextWrap(0f, 1f);
-
-            if (outline)
-                RAGE.Game.Ui.SetTextOutline();
-
             RAGE.Game.Ui.BeginTextCommandDisplayText("STRING");
 
             RAGE.Game.Ui.AddTextComponentSubstringPlayerName(text);
 
+            RAGE.Game.Ui.SetTextFont((int)fontType);
+            RAGE.Game.Ui.SetTextCentre(center);
+            RAGE.Game.Ui.SetTextColour(red, green, blue, alpha);
+            RAGE.Game.Ui.SetTextScale(scale, scale);
+
+            //RAGE.Game.Ui.SetTextWrap(0f, 1f);
+
+            if (outline)
+                RAGE.Game.Ui.SetTextOutline();
+
             RAGE.Game.Ui.EndTextCommandDisplayText(x, y, 0);
         }
-
-        //public static void DrawText(string text, float x, float y, byte red = 255, byte green = 255, byte blue = 255, byte alpha = 255, float scale = 0.4f, ScreenTextFontTypes fontType = ScreenTextFontTypes.Pricedown, bool outline = true) => JsEval($"mp.game.graphics.drawText('{text}', [{x.ToString(Settings.CultureInfo)}, {y.ToString(Settings.CultureInfo)}], {{ font: {(int)fontType}, color: [{red}, {green}, {blue}, {alpha}], scale: [{scale.ToString(Settings.CultureInfo)}, {scale.ToString(Settings.CultureInfo)}], outline: {(outline ? "true" : "false")} }});");
 
         /// <summary>Метод для перезагрузки голосового чата со стороны RAGE</summary>
         public static void ReloadVoiceChat() => JsEval("try { mp.voiceChat.cleanupAndReload(true, false, false) } catch {} try { mp.voiceChat.cleanupAndReload(false, false, true) } catch {} try { mp.voiceChat.cleanupAndReload(true, true, true) } catch {}");
@@ -1225,6 +1224,8 @@ namespace BCRPClient
 
         public static bool IsInteriorEntitySetActive(int intId, string entitySetName) => RAGE.Game.Invoker.Invoke<bool>(0x35F7DD45E8C0A16D, intId, entitySetName);
         public static void SetInteriorEntitySetColour(int intId, string entitySetName, int colour) => RAGE.Game.Invoker.Invoke(0xC1F1920BAF281317, intId, entitySetName, colour);
+
+        public static void LinkStaticEmitterToEntity(string emitterName, int entityHandle) => RAGE.Game.Invoker.Invoke(0x651D3228960D08AF, emitterName, entityHandle);
 
         public static float GetLimitedValue(float curValue, float minValue, float maxValue) => Math.Min(maxValue, Math.Max(minValue, curValue));
 
@@ -1478,11 +1479,9 @@ namespace BCRPClient
             if (blip == null || !blip.DoesExist())
                 return;
 
-            RAGE.Game.Gxt.Add("BRP_AEBLIPN", name);
-
             RAGE.Game.Ui.BeginTextCommandSetBlipName("BRP_AEBLIPN");
 
-            //RAGE.Game.Ui.AddTextComponentSubstringPlayerName("");
+            RAGE.Game.Ui.AddTextComponentSubstringPlayerName(name);
 
             RAGE.Game.Ui.EndTextCommandSetBlipName(blip.Handle);
         }
@@ -1523,7 +1522,9 @@ namespace BCRPClient
 
         public static decimal ToDecimal(this object obj) => Convert.ToDecimal(obj);
 
-        public static void SetLightColour(this MapObject mObj, Utils.Colour rgb) => RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, mObj.Handle, true, rgb.Red, rgb.Green, rgb.Blue);
+        public static void SetLightColour(this MapObject mObj, Utils.Colour rgb) => SetLightColour(mObj, rgb.Red, rgb.Green, rgb.Blue);
+
+        public static void SetLightColour(this MapObject mObj, byte r, byte g, byte b) => RAGE.Game.Invoker.Invoke(0x5F048334B4A4E774, mObj.Handle, true, r, g, b);
 
         public static Utils.Colour GetNeonColour(this Vehicle veh)
         {
@@ -1812,6 +1813,40 @@ namespace BCRPClient
 
         public static void SetVoiceGroup(this PedBase ped, uint voiceGroupHash) => RAGE.Game.Invoker.Invoke(0x7CDC8C3B89F661B3, ped.Handle, voiceGroupHash);
 
-        public static void PlaySpeech(this PedBase ped, string speechName, string speechParam = "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", int p3 = 1) => ped.PlayAmbientSpeech1(speechName, speechParam, p3);
+        public static void PlaySpeech(this PedBase ped, string speechName, string speechParam = "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", int p3 = 1, bool stopCurrentSpeech = true)
+        {
+            if (stopCurrentSpeech)
+                ped.StopCurrentPlayingAmbientSpeech();
+
+            ped.PlayAmbientSpeech1(speechName, speechParam, p3);
+        }
+
+        public static void SetStreamInCustomAction(this Entity entity, Action<Entity> action)
+        {
+            if (action == null)
+            {
+                entity.ResetData("ECA_SI");
+            }
+            else
+            {
+                entity.SetData("ECA_SI", action);
+            }
+        }
+
+        public static void SetStreamOutCustomAction(this Entity entity, Action<Entity> action)
+        {
+            if (action == null)
+            {
+                entity.ResetData("ECA_SO");
+            }
+            else
+            {
+                entity.SetData("ECA_SO", action);
+            }
+        }
+
+        public static Action<Entity> GetStreamInCustomAction(this Entity entity) => entity.GetData<Action<Entity>>("ECA_SI");
+
+        public static Action<Entity> GetStreamOutCustomAction(this Entity entity) => entity.GetData<Action<Entity>>("ECA_SO");
     }
 }
