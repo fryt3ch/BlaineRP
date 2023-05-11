@@ -37,24 +37,30 @@ namespace BCRPClient.Data
 
         public class Button
         {
-            public static Button DefaultExitButton { get; private set; } = new Button("[Выйти]", CloseCurrentDialogue);
+            public static Button DefaultExitButton { get; } = new Button("[Выйти]", CloseCurrentDialogue);
 
-            public static Button DefaultBackButton { get; private set; } = new Button("[Назад]", () =>
+            public static Button DefaultBackButton { get; } = new Button("[Назад]", () =>
             {
                 if (NPC.CurrentNPC?.LastDialogues is List<Dialogue.LastInfo> lastDialogues)
                 {
                     if (lastDialogues.Count > 1)
                     {
                         var targetDialogueInfo = lastDialogues[lastDialogues.Count - 2];
+                        var lastDialogueInfo = lastDialogues[lastDialogues.Count - 1];
 
                         lastDialogues.Remove(targetDialogueInfo);
 
-                        NPC.CurrentNPC?.ShowDialogue(targetDialogueInfo.Dialogue.Id, targetDialogueInfo.SaveAsLast, targetDialogueInfo.Args, targetDialogueInfo.TextArgs);
+                        if (NPC.CurrentNPC.CurrentDialogue == lastDialogueInfo.Dialogue)
+                        {
+                            lastDialogues.Remove(lastDialogueInfo);
+
+                            NPC.CurrentNPC.ShowDialogue(targetDialogueInfo.Dialogue.Id, targetDialogueInfo.SaveAsLast, targetDialogueInfo.Args, targetDialogueInfo.TextArgs);
+                        }
                     }
                 }
             });
 
-            public static Button DefaultShopEnterButton { get; private set; } = new Button("[Перейти к товарам]", () => NPC.CurrentNPC?.SellerNpcRequestEnterBusiness());
+            public static Button DefaultShopEnterButton { get; } = new Button("[Перейти к товарам]", () => NPC.CurrentNPC?.SellerNpcRequestEnterBusiness());
 
             /// <summary>Текст</summary>
             public string Text { get; set; }

@@ -215,11 +215,11 @@ namespace BCRPClient.Sync
 
                 if (route)
                 {
-                    var mBlip = GetActualData<Blip>("E_BP_M");
+                    var mBlip = GetActualData<Additional.ExtraBlip>("E_BP_M");
 
                     if (mBlip != null)
                     {
-                        var coords = mBlip.GetInfoIdCoord();
+                        var coords = mBlip.Position;
 
                         Utils.SetWaypoint(coords.X, coords.Y);
                     }

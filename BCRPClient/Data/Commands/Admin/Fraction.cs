@@ -6,6 +6,35 @@ namespace BCRPClient.Data
 {
     partial class Commands
     {
+        [Command("fraction_observe", true, "Удалить все выброшенные предметы")]
+        public static void FractionObserve(string fractionType)
+        {
+            if (LastSent.IsSpam(1000, false, true))
+                return;
+
+            var fractionTypes = Enum.GetValues(typeof(Data.Fractions.Types)).Cast<Data.Fractions.Types>().ToList();
+
+            int fractionTypeNum;
+
+            if (!int.TryParse(fractionType, out fractionTypeNum))
+            {
+                var fractionTypeStrLow = fractionType.ToLower();
+
+                fractionTypeNum = (int)fractionTypes.Where(x => x.ToString().ToLower() == fractionTypeStrLow).FirstOrDefault();
+            }
+
+            if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+
+                return;
+            }
+
+            CallRemote("frac_obs", fractionTypeNum);
+
+            LastSent = Sync.World.ServerTime;
+        }
+
         [Command("fraction_setmaterials", true, "Удалить все выброшенные предметы")]
         public static void FractionSetMaterials(string fractionType, uint mats)
         {

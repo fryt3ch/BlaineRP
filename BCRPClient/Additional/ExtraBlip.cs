@@ -27,13 +27,13 @@ namespace BCRPClient.Additional
 
                 var entity = (Entity)args[3] as GameEntity;
 
-                Blip blip = null;
+                Additional.ExtraBlip blip = null;
 
                 string key = null;
 
                 if (type == 0) // taxi
                 {
-                    blip = new Blip(198, new Vector3(x, y, 0), "Водитель такси", 1f, 5, 255, 0f, false, 0, 0f, uint.MaxValue);
+                    blip = new Additional.ExtraBlip(198, new Vector3(x, y, 0), "Водитель такси", 1f, 5, 255, 0f, false, 0, 0f, uint.MaxValue);
 
                     key = "Taxi";
                 }
@@ -41,10 +41,10 @@ namespace BCRPClient.Additional
                 if (key == null || blip == null)
                     return;
 
-                Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy();
+                Player.LocalPlayer.GetData<Additional.ExtraBlip>($"TrackerBlip::{key}")?.Destroy();
                 Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel();
 
-                var task = entity?.Exists == true ? new AsyncTask(() => { if (!entity.Exists) return; var coords = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false); blip.SetCoords(coords.X, coords.Y, coords.Z); }, 250, true, 0) : new AsyncTask(() => { Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy(); Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel(); Player.LocalPlayer.ResetData($"TrackerBlip::{key}"); Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}"); }, 5000, false, 0);
+                var task = entity?.Exists == true ? new AsyncTask(() => { if (!entity.Exists) return; var coords = RAGE.Game.Entity.GetEntityCoords(entity.Handle, false); blip.SetCoords(coords.X, coords.Y, coords.Z); }, 250, true, 0) : new AsyncTask(() => { Player.LocalPlayer.GetData<Additional.ExtraBlip>($"TrackerBlip::{key}")?.Destroy(); Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel(); Player.LocalPlayer.ResetData($"TrackerBlip::{key}"); Player.LocalPlayer.ResetData($"TrackerBlip::Task::{key}"); }, 5000, false, 0);
 
                 Player.LocalPlayer.SetData($"TrackerBlip::Task::{key}", task);
                 Player.LocalPlayer.SetData($"TrackerBlip::{key}", blip);
@@ -55,7 +55,7 @@ namespace BCRPClient.Additional
 
         public static void DestroyTrackerBlipByKey(string key)
         {
-            Player.LocalPlayer.GetData<Blip>($"TrackerBlip::{key}")?.Destroy();
+            Player.LocalPlayer.GetData<Additional.ExtraBlip>($"TrackerBlip::{key}")?.Destroy();
             Player.LocalPlayer.GetData<AsyncTask>($"TrackerBlip::Task::{key}")?.Cancel();
 
             Player.LocalPlayer.ResetData($"TrackerBlip::{key}");
@@ -255,6 +255,13 @@ namespace BCRPClient.Additional
             _Name = name;
 
             Blip.SetName(name);
+        }
+
+        public void SetCoords(float x, float y, float z)
+        {
+            this.Position = new Vector3(x, y, z);
+
+            Blip.SetCoords(x, y, z);
         }
 
         public void SetData<T>(string key, T value) => Blip.SetData(key, value);

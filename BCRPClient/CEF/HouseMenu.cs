@@ -118,7 +118,7 @@ namespace BCRPClient.CEF
                                 furn.SetVisible(false, false);
                                 furn.SetCollision(false, false);
 
-                                furn.GetData<Blip>("Blip")?.Destroy();
+                                furn.GetData<Additional.ExtraBlip>("Blip")?.Destroy();
 
                                 furn = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(model, pos.X, pos.Y, pos.Z, false, false, false));
 

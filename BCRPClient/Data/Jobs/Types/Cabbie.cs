@@ -24,7 +24,7 @@ namespace BCRPClient.Data.Jobs
 
         public Cabbie(int Id, Utils.Vector4 Position) : base(Id, Types.Cabbie)
         {
-            Blip = new Blip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+            Blip = new Additional.ExtraBlip(198, Position.Position, "Таксопарк", 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
         }
 
         public async void ShowOrderSelection(List<OrderInfo> activeOrders)
@@ -101,7 +101,7 @@ namespace BCRPClient.Data.Jobs
 
                                 pos.Z -= 1f;
 
-                                var blip = new Blip(280, pos, Locale.General.Blip.JobTaxiTargetPlayer, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                                var blip = new Additional.ExtraBlip(280, pos, Locale.General.Blip.JobTaxiTargetPlayer, 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
                                 blip.SetRoute(true);
 
@@ -184,7 +184,7 @@ namespace BCRPClient.Data.Jobs
 
         public override void OnEndJob()
         {
-            GetCurrentData<Blip>("Blip")?.Destroy();
+            GetCurrentData<Additional.ExtraBlip>("Blip")?.Destroy();
             GetCurrentData<Additional.ExtraColshape>("CS")?.Destroy();
 
             base.OnEndJob();

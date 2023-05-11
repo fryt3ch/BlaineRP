@@ -1428,7 +1428,7 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
-                        Player.LocalPlayer.GetData<Blip>("JOBATFARM::FOBC::B")?.Destroy();
+                        Player.LocalPlayer.GetData<Additional.ExtraBlip>("JOBATFARM::FOBC::B")?.Destroy();
 
                         Player.LocalPlayer.ResetData("JOBATFARM::FOBC::B");
 
@@ -1489,7 +1489,7 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
-                        Player.LocalPlayer.GetData<Blip>("JOBATFARM::FOBC::B")?.Destroy();
+                        Player.LocalPlayer.GetData<Additional.ExtraBlip>("JOBATFARM::FOBC::B")?.Destroy();
 
                         Player.LocalPlayer.ResetData("JOBATFARM::FOBC::B");
 

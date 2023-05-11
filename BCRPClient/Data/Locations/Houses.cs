@@ -256,7 +256,7 @@ namespace BCRPClient.Data
 
             public List<Additional.ExtraLabel> LoadedTextLabels { get => Player.LocalPlayer.GetData<List<Additional.ExtraLabel>>("ApartmentsRoot::LoadedTextLabels"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedTextLabels"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedTextLabels", value); } }
 
-            public List<Blip> LoadedBlips { get => Player.LocalPlayer.GetData<List<Blip>>("ApartmentsRoot::LoadedBlips"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedBlips"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedBlips", value); } }
+            public List<Additional.ExtraBlip> LoadedBlips { get => Player.LocalPlayer.GetData<List<Additional.ExtraBlip>>("ApartmentsRoot::LoadedBlips"); set { if (value == null) Player.LocalPlayer.ResetData("ApartmentsRoot::LoadedBlips"); else Player.LocalPlayer.SetData("ApartmentsRoot::LoadedBlips", value); } }
 
             public ApartmentsRoot(Types Type, Vector3 PositionEnter, Vector3 PositionExit, int FloorsAmount, Vector3 FloorPosition, float FloorDistZ, int StartFloor)
             {

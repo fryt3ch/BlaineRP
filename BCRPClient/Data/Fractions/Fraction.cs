@@ -6,7 +6,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BCRPClient.Locale.Notifications.Vehicles;
 
 namespace BCRPClient.Data.Fractions
 {

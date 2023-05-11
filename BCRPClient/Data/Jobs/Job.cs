@@ -193,7 +193,7 @@ namespace BCRPClient.Data.Jobs
 
         public string Name => Locale.Property.JobNames.GetValueOrDefault(Type) ?? "null";
 
-        public Blip Blip { get; set; }
+        public Additional.ExtraBlip Blip { get; set; }
 
         public NPC JobGiver { get; set; }
 
@@ -478,7 +478,7 @@ namespace BCRPClient.Data.Jobs
                     {
                         if (job.GetCurrentData<Cabbie.OrderInfo>("CO")?.Id == id)
                         {
-                            job.GetCurrentData<Blip>("Blip")?.Destroy();
+                            job.GetCurrentData<Additional.ExtraBlip>("Blip")?.Destroy();
                             job.GetCurrentData<Additional.ExtraColshape>("CS")?.Destroy();
 
                             job.ResetCurrentData("CO");
