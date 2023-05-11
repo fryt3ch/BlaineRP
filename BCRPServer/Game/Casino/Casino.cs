@@ -31,6 +31,8 @@ namespace BCRPServer.Game.Casino
 
         public LuckyWheel[] LuckyWheels { get; set; }
 
+        public SlotMachine[] SlotMachines { get; set; }
+
         public ushort BuyChipPrice { get; set; }
         public ushort SellChipPrice { get; set; }
 
@@ -42,6 +44,10 @@ namespace BCRPServer.Game.Casino
         }
 
         public Roulette GetRouletteById(int id) => id < 0 || id >= Roulettes.Length ? null : Roulettes[id];
+
+        public LuckyWheel GetLuckyWheelById(int id) => id < 0 || id >= LuckyWheels.Length ? null : LuckyWheels[id];
+
+        public SlotMachine GetSlotMachineById(int id) => id < 0 || id >= SlotMachines.Length ? null : SlotMachines[id];
 
         public static void InitializeAll()
         {

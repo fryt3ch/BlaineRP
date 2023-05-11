@@ -58,6 +58,8 @@ namespace BCRPServer.Game.Items
             }
 
             public static Prototype CreateAchievement(Types Type, string GID, int Variation, int Amount) => new Prototype(Type, SourceTypes.Achievement, GID, Variation, Amount);
+
+            public static Prototype CreateCasino(Types Type, string GID, int Variation, int Amount) => new Prototype(Type, SourceTypes.Casino, GID, Variation, Amount);
         }
 
         public enum Types
@@ -67,7 +69,8 @@ namespace BCRPServer.Game.Items
             /// <summary>Транспорт</summary>
             Vehicle,
             /// <summary>Деньги</summary>
-            Money
+            Money,
+            CasinoChips,
         }
 
         public enum SourceTypes
@@ -78,6 +81,7 @@ namespace BCRPServer.Game.Items
             Shop,
             /// <summary>Выполненное достижение</summary>
             Achievement,
+            Casino,
         }
 
         /// <summary>ID подарка</summary>
@@ -177,6 +181,20 @@ namespace BCRPServer.Game.Items
                     return false;
 
                 pData.SetCash(newCash);
+
+                return true;
+            }
+            else if (Type == Types.CasinoChips)
+            {
+                if (Amount < 0)
+                    return false;
+
+                uint newBalance;
+
+                if (!Game.Casino.Casino.TryAddCasinoChips(pData.Info, (uint)Amount, out newBalance, true, null))
+                    return false;
+
+                Game.Casino.Casino.SetCasinoChips(pData.Info, newBalance, null);
 
                 return true;
             }

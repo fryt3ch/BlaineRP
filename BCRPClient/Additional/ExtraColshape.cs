@@ -439,6 +439,7 @@ namespace BCRPClient.Additional
 
             CasinoRouletteInteract,
             CasinoLuckyWheelInteract,
+            CasinoSlotMachineInteract,
         }
 
         public enum ActionTypes
@@ -601,9 +602,56 @@ namespace BCRPClient.Additional
         public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
             {
-                InteractionTypes.CasinoLuckyWheelInteract, async () =>
+                InteractionTypes.CasinoSlotMachineInteract, async () =>
                 {
                     if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+
+                    if (casinoStrData == null)
+                        return;
+
+                    var casinoId = int.Parse(casinoStrData[0]);
+                    var slotMachineId = int.Parse(casinoStrData[1]);
+
+                    var casino = BCRPClient.Data.Locations.Casino.GetById(casinoId);
+
+                    var slotMachine = casino.GetSlotMachineById(slotMachineId);
+
+                    var seatPos = slotMachine.MachineObj.GetWorldPositionOfBone(slotMachine.MachineObj.GetBoneIndexByName("Chair_Seat_01"));
+
+                    seatPos.Z += 0.1f;
+
+                    var heading = slotMachine.MachineObj.GetHeading();
+
+                    Player.LocalPlayer.FreezePosition(true);
+                    Player.LocalPlayer.SetCollision(false, true);
+
+                    Player.LocalPlayer.Position = seatPos;
+                    Player.LocalPlayer.SetHeading(heading);
+
+                    await Utils.RequestAnimDict("amb@code_human_in_bus_passenger_idles@male@sit@base");
+
+                    Player.LocalPlayer.TaskPlayAnim("amb@code_human_in_bus_passenger_idles@male@sit@base", "base", 1f, 0f, -1, 1, 1f, false, false, false);
+
+                    slotMachine.Spin(0, 1, 7);
+
+                    return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = ((string)await Events.CallRemoteProc("Casino::LCWS", casinoId, slotMachineId))?.Split('_');
+
+                    if (res == null)
+                        return;
+                }
+            },
+
+            {
+                InteractionTypes.CasinoLuckyWheelInteract, async () =>
+                {
+                    if (LastSent.IsSpam(2000, false, true))
                         return;
 
                     var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
@@ -618,16 +666,9 @@ namespace BCRPClient.Additional
 
                     var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
 
-                    luckyWheel.Spin(Player.LocalPlayer, 1);
-
-                    return;
-
                     LastSent = Sync.World.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("Casino::LCWS", casinoId, luckyWheelId))?.Split('_');
-
-                    if (res == null)
-                        return;
+                    Events.CallRemote("Casino::LCWS", casinoId, luckyWheelId);
                 }
             },
 

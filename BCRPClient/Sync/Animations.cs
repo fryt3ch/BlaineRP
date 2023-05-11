@@ -84,6 +84,8 @@ namespace BCRPClient.Sync
 
             ItemBandage,
             ItemMedKit,
+
+            FakeAnim,
         }
 
         public enum GeneralTypes
@@ -923,7 +925,9 @@ namespace BCRPClient.Sync
                     }
                 }
 
-                Play(player, FastAnimsList[type]);
+                var data = FastAnimsList.GetValueOrDefault(type);
+
+                Play(player, data);
             });
 
             Events.Add("Players::FAST", (object[] args) =>
@@ -1045,6 +1049,9 @@ namespace BCRPClient.Sync
 
                 Sync.Phone.DestroyLocalPhone();
             }
+
+            if (anim == null)
+                return;
 
             await Utils.RequestAnimDict(anim.Dict);
 

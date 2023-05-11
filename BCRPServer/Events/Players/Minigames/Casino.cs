@@ -146,5 +146,40 @@ namespace BCRPServer.Events.Players
 
             return true;
         }
+
+        [RemoteEvent("Casino::LCWS")]
+        private static void CasinoLuckyWheelSpin(Player player, int casinoId, int luckyWheelId) // Casino::LCWAS
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
+            var casino = Game.Casino.Casino.GetById(casinoId);
+
+            if (casino == null)
+                return;
+
+            var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
+
+            if (luckyWheel == null)
+                return;
+
+            if (!luckyWheel.IsAvailableNow())
+            {
+                player.Notify("Casino::LCWAS");
+
+                return;
+            }
+
+            // add check if can spin wheel
+
+            luckyWheel.Spin(casinoId, luckyWheelId, pData);
+        }
     }
 }

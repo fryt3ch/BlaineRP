@@ -1008,7 +1008,7 @@ namespace BCRPServer
         public static void PlayAnim(this PlayerData pData, Sync.Animations.GeneralTypes type) => Sync.Animations.Play(pData, type);
 
         /// <inheritdoc cref="Sync.Animations.Play(Player, Sync.Animations.FastTypes)"/>
-        public static void PlayAnim(this PlayerData pData, Sync.Animations.FastTypes type) => Sync.Animations.Play(pData, type);
+        public static void PlayAnim(this PlayerData pData, Sync.Animations.FastTypes type, int customTimeout = -1) => Sync.Animations.Play(pData, type, customTimeout);
 
         /// <inheritdoc cref="Sync.Animations.Play(Player, Sync.Animations.OtherTypes)"/>
         public static void PlayAnim(this PlayerData pData, Sync.Animations.OtherTypes type) => Sync.Animations.Play(pData, type);

@@ -361,6 +361,7 @@ namespace BCRPClient
                     { CEF.Menu.GiftSourceTypes.Server, "Сервер" },
                     { CEF.Menu.GiftSourceTypes.Shop, "Магазин" },
                     { CEF.Menu.GiftSourceTypes.Achievement, "Достижение" },
+                    { CEF.Menu.GiftSourceTypes.Casino, "Казино" },
                 };
             }
 

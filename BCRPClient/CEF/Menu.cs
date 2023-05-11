@@ -20,7 +20,8 @@ namespace BCRPClient.CEF
             /// <summary>Транспорт</summary>
             Vehicle,
             /// <summary>Деньги</summary>
-            Money
+            Money,
+            CasinoChips,
         }
 
         public enum GiftSourceTypes
@@ -30,6 +31,7 @@ namespace BCRPClient.CEF
             /// <summary>Магазин</summary>
             Shop,
             Achievement,
+            Casino,
         }
 
         public enum SectionTypes
@@ -406,7 +408,10 @@ namespace BCRPClient.CEF
                 return Data.Vehicles.GetById(gid)?.Name ?? "null";
 
             if (type == GiftTypes.Money)
-                return Locale.Notifications.Money.Header + $" {amount}$";
+                return $"${amount}";
+
+            if (type == GiftTypes.CasinoChips)
+                return $"{amount} фишек";
 
             return "null";
         }
@@ -447,7 +452,7 @@ namespace BCRPClient.CEF
             if (gifts.Count > 0)
             {
                 foreach (var x in gifts)
-                    Gifts.Add(x.Key, (Locale.Notifications.Gifts.SourceNames[(GiftSourceTypes)(int)x.Value.Reason], GetGiftName((GiftTypes)x.Value.Type, x.Value.GID, x.Value.Amount)));
+                    Gifts.Add(x.Key, (Locale.Notifications.Gifts.SourceNames.GetValueOrDefault((GiftSourceTypes)x.Value.Reason) ?? "null", GetGiftName((GiftTypes)x.Value.Type, x.Value.GID, x.Value.Amount)));
 
                 Browser.Window.ExecuteJs("Menu.drawGifts", new object[] { Gifts.Select(x => new object[] { x.Key, x.Value.Reason, x.Value.Name }) });
             }

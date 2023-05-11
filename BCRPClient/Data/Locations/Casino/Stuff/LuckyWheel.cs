@@ -12,6 +12,30 @@ namespace BCRPClient.Data
         {
             public class LuckyWheel
             {
+                public enum ZoneTypes : byte
+                {
+                    Cash_0 = 0,
+                    Vehicle_0 = 1,
+                    Mystery_0 = 2,
+                    Clothes_0 = 3,
+                    Chips_0 = 4,
+                    Cash_1 = 5,
+                    Mystery_1 = 6,
+                    Clothes_1 = 7,
+                    Mystery_2 = 8,
+                    Chips_1 = 9,
+                    Mystery_3 = 10,
+                    Clothes_2 = 11,
+                    Chips_3 = 12,
+                    Cash_2 = 13,
+                    Mystery_4 = 14,
+                    Donate_0 = 15,
+                    Chips_4 = 16,
+                    Cash_3 = 17,
+                    Mystery_5 = 18,
+                    Clothes_3 = 19,
+                }
+
                 public MapObject WheelObj { get; set; }
                 public MapObject BaseObj { get; set; }
                 public MapObject ArrowObj { get; set; }
@@ -57,11 +81,11 @@ namespace BCRPClient.Data
                     mObj.SetLightColour(255, 0, 0);
                 }
 
-                public async void Spin(Player player, byte targetZone)
+                public async void Spin(Player player, ZoneTypes targetZoneType, float? resultOffset = null)
                 {
                     var basePos = BaseObj.GetCoords(false);
 
-                    var wheelRotation = WheelObj.GetRotation(2);
+                    var wheelRotation = WheelObj.GetRotation(0);
 
                     var targetPos = RAGE.Game.Object.GetObjectOffsetFromCoords(basePos.X, basePos.Y, basePos.Z, wheelRotation.Z, -0.9f, -0.8f, 1f);
 
@@ -93,13 +117,13 @@ namespace BCRPClient.Data
 
                     RAGE.Game.Audio.PlaySoundFromEntity(-1, "Spin_Start", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);
 
-                    float j = 360;
+                    var j = 360f;
 
-                    var win = (targetZone - 1) * 18;
+                    var win = ((byte)targetZoneType - 1) * 18;
 
                     for (int i = 0; i < 1100; i++)
                     {
-                        WheelObj.SetRotation(wheelRotation.X, j, wheelRotation.Z, 2, false);
+                        WheelObj.SetRotation(wheelRotation.X, j, wheelRotation.Z, 0, false);
 
                         if (i < 50)
                             j -= 1.5f;
@@ -130,10 +154,13 @@ namespace BCRPClient.Data
 
                         if (i == 850)
                         {
-                            j = (float)Utils.Random.Next(win - 4, win + 10);
+                            if (resultOffset is float f)
+                                j = f;
+                            else
+                                j = (float)Utils.Random.Next(win - 4, win + 10);
                         }
 
-                        await RAGE.Game.Invoker.WaitAsync(0);
+                        await RAGE.Game.Invoker.WaitAsync(10);
                     }
 
                     RAGE.Game.Audio.PlaySoundFromEntity(-1, "Win", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);

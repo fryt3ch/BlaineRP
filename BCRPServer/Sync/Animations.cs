@@ -40,6 +40,8 @@ namespace BCRPServer.Sync
 
             ItemBandage,
             ItemMedKit,
+
+            FakeAnim,
         }
 
         public enum GeneralTypes
@@ -339,7 +341,7 @@ namespace BCRPServer.Sync
         /// <remarks>Быстрая анимация НЕ проигрывается у игроков, которые вошли в зону стрима данного игрока после того, как она была запущена</remarks>
         /// <param name="pData">Сущность игрока</param>
         /// <param name="type">Тип анимации</param>
-        public static void Play(PlayerData pData, FastTypes type)
+        public static void Play(PlayerData pData, FastTypes type, int customTimeout = -1)
         {
             var player = pData.Player;
 
@@ -360,7 +362,7 @@ namespace BCRPServer.Sync
 
             pData.FastAnim = type;
 
-            int timeout = FastTimeouts.GetValueOrDefault(type);
+            var timeout = customTimeout < 0 ? FastTimeouts.GetValueOrDefault(type) : customTimeout;
 
             if (timeout > 0)
             {

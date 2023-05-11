@@ -386,6 +386,8 @@ namespace BCRPClient.CEF
             { "Casino::RLTMP", new Instance(Types.Error, "За этим столом уже играет максимальное кол-во человек - {0}!", Locale.Notifications.ErrorHeader) },
             { "Casino::RLTMB", new Instance(Types.Error, "Вы сделали максимальное кол-во ставок на этом столе!", Locale.Notifications.ErrorHeader) },
 
+            { "Casino::LCWAS", new Instance(Types.Error, "Кто-то крутит это колесо удачи прямо сейчас!", Locale.Notifications.ErrorHeader) },
+
             { "Casino::BLMT", new Instance(Types.Error, "Сегодня Вы можете поставить еще не более {0} фишек!", Locale.Notifications.ErrorHeader) },
 
             { "Casino::CSB", new Instance(Types.Error, "Вы не можете сделать ставку в данный момент!", Locale.Notifications.ErrorHeader) },

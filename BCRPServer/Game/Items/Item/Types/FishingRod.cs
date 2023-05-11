@@ -42,21 +42,21 @@ namespace BCRPServer.Game.Items
                 }
             }
 
-            private static Dictionary<float, List<RandomItem>> AllRandomItems = new Dictionary<float, List<RandomItem>>()
+            private static Dictionary<decimal, RandomItem[]> AllRandomItems = new Dictionary<decimal, RandomItem[]>()
             {
                 {
-                    0.05f,
+                    0.05m,
 
-                    new List<RandomItem>()
+                    new RandomItem[]
                     {
                         new RandomItem("am_5.56", 10, 50),
                     }
                 },
 
                 {
-                    0.30f,
+                    0.30m,
 
-                    new List<RandomItem>()
+                    new RandomItem[]
                     {
                         new RandomItem("f_acod", 1, 1),
                     }
@@ -65,11 +65,11 @@ namespace BCRPServer.Game.Items
 
             public static (string Id, int Amount) GetRandomItem()
             {
-                var rProb = Utils.Randoms.Chat.NextDouble();
+                var rProb = (decimal)Utils.Randoms.Chat.NextDouble();
 
                 var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
 
-                var rItem = rItems.Value[Utils.Randoms.Chat.Next(0, rItems.Value.Count)];
+                var rItem = rItems.Value[Utils.Randoms.Chat.Next(0, rItems.Value.Length)];
 
                 if (rItem.MinAmount != rItem.MaxAmount)
                 {

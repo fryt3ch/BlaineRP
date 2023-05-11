@@ -46,6 +46,7 @@ namespace BCRPClient
 
                 { Additional.ExtraColshape.InteractionTypes.CasinoRouletteInteract, "чтобы встать за стол" },
                 { Additional.ExtraColshape.InteractionTypes.CasinoLuckyWheelInteract, "чтобы прокрутить колесо удачи" },
+                { Additional.ExtraColshape.InteractionTypes.CasinoSlotMachineInteract, "чтобы сесть за автомат" },
             };
         }
     }

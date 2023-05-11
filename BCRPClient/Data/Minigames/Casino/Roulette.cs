@@ -30,7 +30,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.CasinoRoulette, true, true);
 
-            CEF.Browser.Window.ExecuteJs($"Casino.draw", 0, roulette.GetCurrestStateString() ?? "null", chipsBalance, roulette.MaxBet, CurrentBet < roulette.MinBet || CurrentBet > roulette.MaxBet ? roulette.MinBet : CurrentBet, new object[] { });
+            CEF.Browser.Window.ExecuteJs($"Casino.draw", 0, roulette.GetCurrestStateString() ?? "null", chipsBalance, roulette.MaxBet, CurrentBet < roulette.MinBet || CurrentBet > roulette.MaxBet ? CurrentBet = roulette.MinBet : CurrentBet, new object[] { });
 
             //CEF.Notification.ClearAll();
 
@@ -56,8 +56,6 @@ namespace BCRPClient.Data.Minigames.Casino
             }
 
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
-
-            CurrentBet = roulette.MinBet;
         }
 
         public static void Close()
