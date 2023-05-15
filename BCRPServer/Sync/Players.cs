@@ -24,7 +24,7 @@ namespace BCRPServer.Sync
         {
             while (true)
             {
-                var num = (uint)Utils.Randoms.Chat.Next(100_000, 999_999_999);
+                var num = (uint)SRandom.NextInt32(100_000, 999_999_999);
 
                 if (!UsedPhoneNumbers.Contains(num))
                 {

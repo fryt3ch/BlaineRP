@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -1186,7 +1187,18 @@ namespace BCRPClient
             return false;
         }
 
-        public static bool IsTaskStillPending(string key, AsyncTask aTask) => Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}") == aTask && aTask?.IsCancelled == false;
+        public static bool IsTaskStillPending(string key, AsyncTask aTask)
+        {
+            var task = Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}");
+
+            if (task?.IsCancelled != false)
+                return false;
+
+            if (aTask == null || task == aTask)
+                return true;
+
+            return false;
+        }
 
         public static decimal GetGovSellPrice(decimal price) => Math.Floor(price / 2m);
 
@@ -1818,7 +1830,7 @@ namespace BCRPClient
             if (stopCurrentSpeech)
                 ped.StopCurrentPlayingAmbientSpeech();
 
-            ped.PlayAmbientSpeech1(speechName, speechParam, p3);
+            ped.PlayAmbientSpeech2(speechName, speechParam, p3);
         }
 
         public static void SetStreamInCustomAction(this Entity entity, Action<Entity> action)
@@ -1848,5 +1860,7 @@ namespace BCRPClient
         public static Action<Entity> GetStreamInCustomAction(this Entity entity) => entity.GetData<Action<Entity>>("ECA_SI");
 
         public static Action<Entity> GetStreamOutCustomAction(this Entity entity) => entity.GetData<Action<Entity>>("ECA_SO");
+
+        public static Vector3 GetWorldRotationOfBone(this GameEntityBase gEntity, int boneIdx) => RAGE.Game.Invoker.Invoke<Vector3>(0xCE6294A232D03786, gEntity.Handle, boneIdx);
     }
 }

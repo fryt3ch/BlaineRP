@@ -33,6 +33,7 @@ namespace BCRPClient
                     { "drivingschool", "Менеджер автошколы" },
 
                     { "Casino@Roulette", "Крупье" },
+                    { "Casino@Blackjack", "Крупье" },
                     { "Casino@Cashier", "Кассир" },
                 };
 

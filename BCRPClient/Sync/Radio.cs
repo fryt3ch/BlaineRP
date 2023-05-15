@@ -3,6 +3,7 @@ using RAGE.Elements;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPClient.Sync
 {
@@ -131,6 +132,8 @@ namespace BCRPClient.Sync
 
         public static CEF.Audio.Data LocalPlayerStreamRadioAudioData => CEF.Audio.AllAudios.Where(x => x.Id == "PLAYER_LOCAL_RADIO").FirstOrDefault();
 
+        private static Timer updateTimer { get; set; }
+
         public Radio()
         {
             SetRadioStationName(StationTypes.MP_BRP, "Radio Blaine RP");
@@ -149,8 +152,10 @@ namespace BCRPClient.Sync
 
             ToggleMobilePhoneRadio(false);
 
-            (new AsyncTask(() =>
+            updateTimer = new Timer(async (obj) =>
             {
+                await RAGE.Game.Invoker.WaitAsync(1000);
+
                 var sType = GetCurrentStationType();
 
                 var stationChanged = CurrentStationType != sType;
@@ -189,7 +194,7 @@ namespace BCRPClient.Sync
                 }
 
                 CEF.PhoneApps.RadioApp.UpdateRadioStation(CurrentStationType == StationTypes.Off ? StationTypes.NSPFM : CurrentStationType);
-            }, 1000, true, 1000)).Run();
+            }, null, 1000, 1000);
         }
 
         public static StationTypes GetCurrentStationType() => StationIds.Where(x => x.Value == RAGE.Game.Audio.GetPlayerRadioStationName()).FirstOrDefault().Key;

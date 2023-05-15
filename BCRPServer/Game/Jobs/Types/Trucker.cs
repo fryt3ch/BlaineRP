@@ -64,7 +64,7 @@ namespace BCRPServer.Game.Jobs
 
             ActiveOrders.Add(id, orderInfo);
 
-            orderInfo.Reward = (uint)Utils.Randoms.Chat.Next(MinimalRewardX, MaximalRewardX);
+            orderInfo.Reward = (uint)SRandom.NextInt32(MinimalRewardX, MaximalRewardX);
 
             orderInfo.MPIdx = GetFarthestMaterialsPositionIdx(business.PositionInfo);
 
@@ -81,7 +81,7 @@ namespace BCRPServer.Game.Jobs
 
             ActiveOrders.Add(id, orderInfo);
 
-            orderInfo.Reward = (uint)Utils.Randoms.Chat.Next(MinimalRewardA, MaximalRewardA);
+            orderInfo.Reward = (uint)SRandom.NextInt32(MinimalRewardA, MaximalRewardA);
 
             orderInfo.MPIdx = GetFarthestMaterialsPositionIdx(business.PositionInfo);
 
@@ -106,7 +106,7 @@ namespace BCRPServer.Game.Jobs
             if (businesses.Count == 0)
                 return false;
 
-            var business = businesses[Utils.Randoms.Chat.Next(0, businesses.Count)];
+            var business = businesses[SRandom.NextInt32(0, businesses.Count)];
 
             AddDefaultOrder(business);
 

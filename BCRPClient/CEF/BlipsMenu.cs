@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPClient.CEF
 {
@@ -19,7 +20,7 @@ namespace BCRPClient.CEF
 
         private static bool FirstOpen { get; set; }
 
-        private static AsyncTask Task { get; set; }
+        private static Timer Timer { get; set; }
 
         public class LocalBlip
         {
@@ -356,17 +357,17 @@ namespace BCRPClient.CEF
             if (RAGE.Game.Ui.DoesBlipExist(waypointBlip))
                 RAGE.Game.Ui.SetBlipDisplay(waypointBlip, 0);
 
-            Task?.Cancel();
+            Timer?.Dispose();
 
-            Task = new AsyncTask(() =>
+            Timer = new Timer(async (obj) =>
             {
+                await RAGE.Game.Invoker.WaitAsync(0);
+
                 if (TempBlip != null && LastEdited == -1)
                 {
                     TempBlip.Position = CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position;
                 }
-            }, 500, true, 0);
-
-            Task.Run();
+            }, null, 0, 500);
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -408,9 +409,12 @@ namespace BCRPClient.CEF
             if (RAGE.Game.Ui.DoesBlipExist(waypointBlip))
                 RAGE.Game.Ui.SetBlipDisplay(waypointBlip, 2);
 
-            Task?.Cancel();
+            if (Timer != null)
+            {
+                Timer.Dispose();
 
-            Task = null;
+                Timer = null;
+            }
         }
     }
 }

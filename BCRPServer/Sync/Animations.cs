@@ -82,6 +82,9 @@ namespace BCRPServer.Sync
             PoliceEscort0,
 
             BedLie0,
+
+            CasinoSlotMachineIdle0,
+            CasinoBlackjackIdle0,
         }
 
         public enum OtherTypes
@@ -385,7 +388,7 @@ namespace BCRPServer.Sync
             {
                 pData.FastAnim = FastTypes.None;
 
-                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Id);
             }
             else if (pData.OtherAnim != OtherTypes.None)
             {
@@ -410,7 +413,7 @@ namespace BCRPServer.Sync
             {
                 pData.FastAnim = FastTypes.None;
 
-                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Id);
             }
             else if (pData.GeneralAnim != GeneralTypes.None)
             {
@@ -426,7 +429,7 @@ namespace BCRPServer.Sync
             {
                 pData.FastAnim = FastTypes.None;
 
-                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Id);
 
                 return true;
             }
@@ -482,7 +485,7 @@ namespace BCRPServer.Sync
             {
                 pData.FastAnim = FastTypes.None;
 
-                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Handle);
+                pData.Player.TriggerEventToStreamed("Players::StopAnim", pData.Player.Id);
             }
             else if (pData.GeneralAnim != GeneralTypes.None)
             {

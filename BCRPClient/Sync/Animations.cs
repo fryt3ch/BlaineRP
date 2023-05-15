@@ -41,6 +41,9 @@ namespace BCRPClient.Sync
             /// <summary>Название для первого лица</summary>
             public string NameFP { get; set; }
 
+            public Action<Entity, Animation> StartAction { get; set; }
+            public Action<Entity, Animation> StopAction { get; set; }
+
             public Animation(string Dict, string Name, float BlendInSpeed = 8f, float BlendOutSpeed = 1f, int Duration = -1, int Flag = 0, float StartOffset = 0f, bool BlockX = false, bool BlockY = false, bool BlockZ = false)
             {
                 this.Dict = Dict;
@@ -126,6 +129,9 @@ namespace BCRPClient.Sync
             PoliceEscort0,
 
             BedLie0,
+
+            CasinoSlotMachineIdle0,
+            CasinoBlackjackIdle0,
         }
 
         public enum OtherTypes
@@ -895,6 +901,10 @@ namespace BCRPClient.Sync
             { GeneralTypes.PoliceEscort0, new Animation("amb@world_human_drinking@coffee@female@base", "base", 8f, -8f, -1, 49, 0f, false, false, false) },
 
             { GeneralTypes.BedLie0, new Animation("amb@world_human_bum_slumped@male@laying_on_left_side@base", "base", 8f, -8f, -1, 1, 0, false, false, false) },
+
+            { GeneralTypes.CasinoSlotMachineIdle0, new Animation("amb@code_human_in_bus_passenger_idles@male@sit@base", "base", 8f, -8f, -1, 1, 1f, false, false, false) },
+
+            { GeneralTypes.CasinoBlackjackIdle0, new Animation("anim_casino_b@amb@casino@games@shared@player@", "idle_a", 8f, -8f, -1, 1, 1f, false, false, false) },
         };
         #endregion
 
@@ -958,7 +968,7 @@ namespace BCRPClient.Sync
 
             Events.Add("Players::StopAnim", (object[] args) =>
             {
-                Player player = (Player)args[0];
+                var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[0]));
 
                 if (player == null)
                     return;
@@ -1017,7 +1027,7 @@ namespace BCRPClient.Sync
             if (player == null)
                 return;
 
-            Animation anim = GeneralAnimsList.GetValueOrDefault(type);
+            var anim = GeneralAnimsList.GetValueOrDefault(type);
 
             if (anim == null)
                 return;
@@ -1030,7 +1040,7 @@ namespace BCRPClient.Sync
             if (player == null)
                 return;
 
-            Animation anim = OtherAnimsList.GetValueOrDefault(type);
+            var anim = OtherAnimsList.GetValueOrDefault(type);
 
             if (anim == null)
                 return;
@@ -1057,6 +1067,8 @@ namespace BCRPClient.Sync
 
             ped.ClearTasks();
 
+            anim.StartAction?.Invoke(ped, anim);
+
             if (ped.Handle != Player.LocalPlayer.Handle)
                 ped.TaskPlayAnim(anim.Dict, anim.Name, anim.BlendInSpeed, anim.BlendOutSpeed, customTime == -1 ? anim.Duration : customTime, anim.Flag, anim.StartOffset, anim.BlockX, anim.BlockY, anim.BlockZ);
             else
@@ -1074,6 +1086,13 @@ namespace BCRPClient.Sync
             }
 
             ped.ClearTasks();
+
+            var actualAnim = ped.GetData<Animation>("ActualAnim");
+
+            if (actualAnim != null)
+            {
+                actualAnim.StopAction?.Invoke(ped, actualAnim);
+            }
         }
 
         public static void PlayFastSync(FastTypes fastType, int delay = 1000)

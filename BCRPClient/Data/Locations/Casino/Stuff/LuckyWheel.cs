@@ -81,107 +81,147 @@ namespace BCRPClient.Data
                     mObj.SetLightColour(255, 0, 0);
                 }
 
-                public async void Spin(Player player, ZoneTypes targetZoneType, float? resultOffset = null)
+                public void Spin(int casinoId, int wheelId, Player player, ZoneTypes targetZoneType, float? resultOffset = null)
                 {
-                    var basePos = BaseObj.GetCoords(false);
+                    var taskKey = $"CASINO_LUCKYWHEEL_{casinoId}_{wheelId}";
 
-                    var wheelRotation = WheelObj.GetRotation(0);
+                    Utils.CancelPendingTask(taskKey);
 
-                    var targetPos = RAGE.Game.Object.GetObjectOffsetFromCoords(basePos.X, basePos.Y, basePos.Z, wheelRotation.Z, -0.9f, -0.8f, 1f);
+                    AsyncTask task = null;
 
-                    Player.LocalPlayer.Position = RAGE.Game.Object.GetObjectOffsetFromCoords(basePos.X, basePos.Y, basePos.Z, wheelRotation.Z, 0f, -2f, 1f);
-                    Player.LocalPlayer.SetHeading(wheelRotation.Z);
-
-                    player.TaskGoStraightToCoord(targetPos.X, targetPos.Y, targetPos.Z, 1f, -1, wheelRotation.Z, 0f);
-
-                    await Utils.RequestAnimDict("anim_casino_a@amb@casino@games@lucky7wheel@male");
-
-                    await RAGE.Game.Invoker.WaitAsync(2000);
-
-                    Player.LocalPlayer.Position = targetPos;
-                    Player.LocalPlayer.SetHeading(wheelRotation.Z);
-
-                    player.TaskPlayAnim("anim_casino_a@amb@casino@games@lucky7wheel@male", "enter_to_armraisedidle", 1f, 1f, 2000, 2, 0f, true, true, true);
-
-                    await RAGE.Game.Invoker.WaitAsync(2000);
-
-                    player.TaskPlayAnim("anim_casino_a@amb@casino@games@lucky7wheel@male", "armraisedidle_to_spinningidle_high", 1f, 1f, 2000, 1, 0f, true, true, true);
-
-                    await RAGE.Game.Invoker.WaitAsync(250);
-
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
-
-                    // 0-19, 1-vehicle
-                    if (WheelObj?.Exists != true)
-                        return;
-
-                    RAGE.Game.Audio.PlaySoundFromEntity(-1, "Spin_Start", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);
-
-                    var j = 360f;
-
-                    var win = ((byte)targetZoneType - 1) * 18;
-
-                    for (int i = 0; i < 1100; i++)
+                    task = new AsyncTask(async () =>
                     {
-                        WheelObj.SetRotation(wheelRotation.X, j, wheelRotation.Z, 0, false);
+                        var startDate = Sync.World.ServerTime;
 
-                        if (i < 50)
-                            j -= 1.5f;
-                        else if (i < 100)
-                            j -= 2f;
-                        else if (i < 150)
-                            j -= 2.5f;
-                        else if (i > 1060)
-                            j -= 0.3f;
-                        else if (i > 1030)
-                            j -= 0.6f;
-                        else if (i > 1000)
-                            j -= 0.9f;
-                        else if (i > 970)
-                            j -= 1.2f;
-                        else if (i > 940)
-                            j -= 1.5f;
-                        else if (i > 910)
-                            j -= 1.8f;
-                        else if (i > 880)
-                            j -= 2.1f;
-                        else if (i > 850)
-                            j -= 2.4f;
-                        else if (i > 820)
-                            j -= 2.7f;
-                        else
-                            j -= 3f;
+                        var basePos = BaseObj.GetCoords(false);
 
-                        if (i == 850)
+                        var wheelRotation = WheelObj.GetRotation(0);
+
+                        var targetPos = RAGE.Game.Object.GetObjectOffsetFromCoords(basePos.X, basePos.Y, basePos.Z, wheelRotation.Z, -0.9f, -0.8f, 1f);
+
+                        if (player?.Exists == true)
                         {
-                            if (resultOffset is float f)
-                                j = f;
-                            else
-                                j = (float)Utils.Random.Next(win - 4, win + 10);
+                            player.Position = RAGE.Game.Object.GetObjectOffsetFromCoords(basePos.X, basePos.Y, basePos.Z, wheelRotation.Z, 0f, -2f, 1f);
+                            player.SetHeading(wheelRotation.Z);
+
+                            player.TaskGoStraightToCoord(targetPos.X, targetPos.Y, targetPos.Z, 1f, -1, wheelRotation.Z, 0f);
                         }
 
-                        await RAGE.Game.Invoker.WaitAsync(10);
-                    }
+                        await Utils.RequestAnimDict("anim_casino_a@amb@casino@games@lucky7wheel@male");
 
-                    RAGE.Game.Audio.PlaySoundFromEntity(-1, "Win", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);
+                        await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    for (int i = 0; i < 4; i++)
-                    {
-                        LightsObj.SetLightColour(0, 255, 0);
-                        ArrowObj.SetLightColour(0, 255, 0);
+                        if (!Utils.IsTaskStillPending(taskKey, task))
+                            return;
 
-                        await RAGE.Game.Invoker.WaitAsync(500);
+                        if (player?.Exists == true)
+                        {
+                            player.Position = targetPos;
+                            player.SetHeading(wheelRotation.Z);
 
-                        LightsObj.SetLightColour(0, 0, 255);
-                        ArrowObj.SetLightColour(0, 0, 255);
+                            player.TaskPlayAnim("anim_casino_a@amb@casino@games@lucky7wheel@male", "enter_to_armraisedidle", 1f, 1f, 2000, 2, 0f, true, true, true);
+                        }
 
-                        await RAGE.Game.Invoker.WaitAsync(500);
+                        await RAGE.Game.Invoker.WaitAsync(2000);
 
-                        LightsObj.SetLightColour(255, 0, 0);
-                        ArrowObj.SetLightColour(255, 0, 0);
+                        if (!Utils.IsTaskStillPending(taskKey, task))
+                            return;
 
-                        await RAGE.Game.Invoker.WaitAsync(500);
-                    }
+                        if (player?.Exists == true)
+                        {
+                            player.TaskPlayAnim("anim_casino_a@amb@casino@games@lucky7wheel@male", "armraisedidle_to_spinningidle_high", 1f, 1f, 2000, 1, 0f, true, true, true);
+                        }
+
+                        await RAGE.Game.Invoker.WaitAsync(250);
+
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+
+                        if (!Utils.IsTaskStillPending(taskKey, task) || WheelObj?.Exists != true)
+                            return;
+
+                        RAGE.Game.Audio.PlaySoundFromEntity(-1, "Spin_Start", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);
+
+                        var j = 360f;
+
+                        var win = ((byte)targetZoneType - 1) * 18;
+
+                        var timeout = false;
+
+                        for (int i = 0; i < 1100; i++)
+                        {
+                            WheelObj.SetRotation(wheelRotation.X, j, wheelRotation.Z, 0, false);
+
+                            if (i < 50)
+                                j -= 1.5f;
+                            else if (i < 100)
+                                j -= 2f;
+                            else if (i < 150)
+                                j -= 2.5f;
+                            else if (i > 1060)
+                                j -= 0.3f;
+                            else if (i > 1030)
+                                j -= 0.6f;
+                            else if (i > 1000)
+                                j -= 0.9f;
+                            else if (i > 970)
+                                j -= 1.2f;
+                            else if (i > 940)
+                                j -= 1.5f;
+                            else if (i > 910)
+                                j -= 1.8f;
+                            else if (i > 880)
+                                j -= 2.1f;
+                            else if (i > 850)
+                                j -= 2.4f;
+                            else if (i > 820)
+                                j -= 2.7f;
+                            else
+                                j -= 3f;
+
+                            if (i == 850)
+                            {
+                                if (resultOffset is float f)
+                                    j = f;
+                                else
+                                    j = (float)Utils.Random.Next(win - 4, win + 10);
+                            }
+
+                            if (!timeout)
+                            {
+                                if (Sync.World.ServerTime.Subtract(startDate).TotalMilliseconds > 22_000)
+                                    timeout = true;
+                                else
+                                    await RAGE.Game.Invoker.WaitAsync(10);
+                            }
+
+                            if (!Utils.IsTaskStillPending(taskKey, task) || WheelObj?.Exists != true)
+                                return;
+                        }
+
+                        RAGE.Game.Audio.PlaySoundFromEntity(-1, "Win", WheelObj.Handle, "dlc_vw_casino_lucky_wheel_sounds", true, 1);
+
+                        /*                    for (int i = 0; i < 4; i++)
+                                            {
+                                                LightsObj.SetLightColour(0, 255, 0);
+                                                ArrowObj.SetLightColour(0, 255, 0);
+
+                                                await RAGE.Game.Invoker.WaitAsync(500);
+
+                                                LightsObj.SetLightColour(0, 0, 255);
+                                                ArrowObj.SetLightColour(0, 0, 255);
+
+                                                await RAGE.Game.Invoker.WaitAsync(500);
+
+                                                LightsObj.SetLightColour(255, 0, 0);
+                                                ArrowObj.SetLightColour(255, 0, 0);
+
+                                                await RAGE.Game.Invoker.WaitAsync(500);
+                                            }*/
+
+                        Utils.CancelPendingTask(taskKey);
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending(taskKey, task);
                 }
             }
         }

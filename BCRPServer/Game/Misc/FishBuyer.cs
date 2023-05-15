@@ -32,7 +32,7 @@ namespace BCRPServer.Game.Misc
 
         public decimal SetRandomPriceCoef()
         {
-            var coef = PossibleCoefs[Utils.Randoms.Chat.Next(0, PossibleCoefs.Length)];
+            var coef = PossibleCoefs[SRandom.NextInt32(0, PossibleCoefs.Length)];
 
             CurrentPriceCoef = coef;
 

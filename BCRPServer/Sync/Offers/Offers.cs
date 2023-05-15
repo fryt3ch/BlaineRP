@@ -119,7 +119,7 @@ namespace BCRPServer.Sync
                             Sync.Chat.SendLocal(Chat.Types.Me, sPlayer, Locale.Chat.Player.HeadsOrTails1);
                             Sync.Chat.SendLocal(Chat.Types.Me, tPlayer, Locale.Chat.Player.HeadsOrTails1);
 
-                            var res = Utils.Randoms.Chat.Next(0, 2) == 0;
+                            var res = SRandom.NextInt32(0, 2) == 0;
 
                             Sync.Chat.SendLocal(Chat.Types.Do, sPlayer, res ? Locale.Chat.Player.HeadsOrTails2 : Locale.Chat.Player.HeadsOrTails3);
                         }

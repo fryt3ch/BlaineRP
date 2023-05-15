@@ -447,6 +447,7 @@ namespace BCRPClient
             RAGE.Game.Pad.DisableAllControlActions(0);
             RAGE.Game.Pad.DisableAllControlActions(2);
 
+            RAGE.Game.Pad.EnableControlAction(0, 0, true);
             RAGE.Game.Pad.EnableControlAction(0, 1, true);
             RAGE.Game.Pad.EnableControlAction(0, 2, true);
         }

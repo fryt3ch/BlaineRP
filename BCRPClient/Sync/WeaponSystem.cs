@@ -667,7 +667,7 @@ namespace BCRPClient.Sync
             };
 
             #region Events
-            Events.Add("Weapon::TaskReload", (object[] args) =>
+            Events.Add("Weapon::TaskReload", async (object[] args) =>
             {
                 if (Reloading)
                     return;
@@ -680,10 +680,9 @@ namespace BCRPClient.Sync
                 Player.LocalPlayer.SetAmmoInClip(weapon, 0);
                 Player.LocalPlayer.SetAmmo(weapon, ammo, 1);
 
-                (new AsyncTask(() =>
-                {
-                    Reloading = false;
-                }, 2000, false, 0)).Run();
+                await RAGE.Game.Invoker.WaitAsync(2000);
+
+                Reloading = false;
             });
             #endregion
         }

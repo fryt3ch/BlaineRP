@@ -64,11 +64,6 @@ namespace BCRPServer
             }
         }
 
-        public static class Randoms
-        {
-            public static Random Chat { get; private set; } = new Random(DateTime.Now.Ticks.GetHashCode());
-        }
-
         public enum WeatherTypes : byte
         {
             BLIZZARD = 0,

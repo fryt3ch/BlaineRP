@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPClient.Data
 {
@@ -92,21 +93,19 @@ namespace BCRPClient.Data
 
                 public Additional.ExtraLabel TextLabel { get; set; }
 
+                public string CurrentStateData { get; set; }
+
                 public Roulette(int CasinoId, int Id, string Model, float PosX, float PosY, float PosZ, float RotZ)
                 {
                     TableObject = new MapObject(RAGE.Util.Joaat.Hash(Model), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, RotZ), 255, Settings.MAIN_DIMENSION)
                     {
-
+                        NotifyStreaming = true,
                     };
 
-                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "Элизабет", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION);
+                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION);
 
                     NPC.Ped.SetStreamInCustomAction(OnPedStreamIn);
-
-                    Sync.World.AddDataHandler($"CASINO_{CasinoId}_RLTS_{Id}", OnCurrentStateDataUpdated);
                 }
-
-                public static string GetCurrentStateData(int casinoId, int rouletteId) => Sync.World.GetSharedData<string>($"CASINO_{casinoId}_RLTS_{rouletteId}");
 
                 public string GetCurrestStateString()
                 {
@@ -121,36 +120,30 @@ namespace BCRPClient.Data
                     return TextLabel.Text.Substring(indexStr + 2);
                 }
 
-                public static void OnCurrentStateDataUpdated(string key, object value, object oldValue)
+                public static void OnCurrentStateDataUpdated(int casinoId, int rouletteId, string stateData, bool onLoad)
                 {
-                    var keyD = key.Split('_');
-
-                    var casinoId = int.Parse(keyD[1]);
-
                     var casino = Casino.GetById(casinoId);
 
-                    if (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null))
+                    if (!onLoad && (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null)))
                         return;
 
-                    var rouletteId = int.Parse(keyD[3]);
-
                     var roulette = casino.GetRouletteById(rouletteId);
+
+                    roulette.CurrentStateData = stateData;
 
                     if (roulette.TextLabel == null)
                         return;
 
-                    var stateTask = roulette.TextLabel.GetData<AsyncTask>("StateTask");
+                    var stateTask = roulette.TextLabel.GetData<Timer>("StateTask");
 
                     if (stateTask != null)
                     {
-                        stateTask.Cancel();
+                        stateTask.Dispose();
 
                         roulette.TextLabel.ResetData("StateTask");
                     }
 
-                    var calledOnLoad = oldValue as string == "ON_LOAD";
-
-                    if (value is string str)
+                    if (stateData is string str)
                     {
                         if (str[0] == 'I')
                         {
@@ -162,24 +155,24 @@ namespace BCRPClient.Data
 
                                 var betType = (BetTypes)lastBallRes;
 
-                                if (!calledOnLoad)
+                                if (!onLoad)
                                 {
                                     updateFunc($"Выпало число {betType.ToString().Replace("_", "")}!");
 
-                                    var updTask = new AsyncTask(() =>
+                                    var timer = new Timer(async (obj) =>
                                     {
+                                        await RAGE.Game.Invoker.WaitAsync(0);
+
                                         updateFunc(defText);
-                                    }, 2_500, false, 0);
+                                    }, null, 2_500, -1);
 
-                                    roulette.TextLabel.SetData("StateTask", updTask);
-
-                                    updTask.Run();
+                                    roulette.TextLabel.SetData("StateTask", timer);
 
                                     roulette.LastBets?.Add((BetTypes)lastBallRes);
 
                                     if (CurrentRoulette == roulette)
                                     {
-                                        Data.Minigames.Casino.Roulette.AddLastBet(betType);
+                                        Data.Minigames.Casino.Casino.AddLastBet(betType);
                                     }
 
                                     if (roulette.ActiveBets != null)
@@ -208,9 +201,9 @@ namespace BCRPClient.Data
                         {
                             var ballRes = byte.Parse(str.Substring(1));
 
-                            if (!calledOnLoad)
+                            if (!onLoad)
                             {
-                                roulette.Spin(ballRes);
+                                roulette.Spin(casinoId, rouletteId, ballRes);
                             }
 
                             updateFunc("Ожидание результата игры...");
@@ -219,37 +212,36 @@ namespace BCRPClient.Data
                         {
                             var time = long.Parse(str.Substring(1));
 
-                            var updTask = new AsyncTask(() =>
+                            var timer = new Timer(async (obj) =>
                             {
+                                await RAGE.Game.Invoker.WaitAsync(0);
+
                                 updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}");
-                            }, 800, true, 0);
+                            }, null, 0, 1000);
 
-                            roulette.TextLabel.SetData("StateTask", updTask);
-
-                            updTask.Run();
+                            roulette.TextLabel.SetData("StateTask", timer);
                         }
+                    }
+                    else
+                    {
+                        updateFunc("");
                     }
 
                     void updateFunc(string str)
                     {
-                        if (str.Length > 0)
-                        {
-                            roulette.TextLabelUpdate(str);
+                        if (str == null)
+                            str = "";
 
-                            if (CurrentRoulette == roulette)
-                            {
-                                Data.Minigames.Casino.Roulette.UpdateStatus(str);
-                            }
+                        if (roulette.TextLabel != null)
+                        {
+                            roulette.TextLabel.Text = $"Мин. ставка: {Utils.ToStringWithWhitespace(roulette.MinBet.ToString())} фишек\nМакс. ставка: {Utils.ToStringWithWhitespace(roulette.MaxBet.ToString())} фишек\n\n{str}";
+                        }
+
+                        if (CurrentRoulette == roulette)
+                        {
+                            Data.Minigames.Casino.Casino.UpdateStatus(str);
                         }
                     }
-                }
-
-                public void TextLabelUpdate(string currentStateStr)
-                {
-                    if (TextLabel == null)
-                        return;
-
-                    TextLabel.Text = $"Мин. ставка: {Utils.ToStringWithWhitespace(MinBet.ToString())} фишек\nМакс. ставка: {Utils.ToStringWithWhitespace(MaxBet.ToString())} фишек\n\n{currentStateStr}";
                 }
 
                 private static void OnPedStreamIn(Entity entity)
@@ -259,9 +251,9 @@ namespace BCRPClient.Data
                     if (ped == null)
                         return;
 
-                    //ped.SetVoiceGroup(RAGE.Util.Joaat.Hash("s_f_y_casino_01_asian_02"));
+                    ped.SetDefaultComponentVariation();
 
-                    var randomClothesNumber = Utils.Random.Next(0, 5);
+                    var randomClothesNumber = Utils.Random.Next(0, 7);
 
                     if (randomClothesNumber == 0)
                     {
@@ -319,129 +311,179 @@ namespace BCRPClient.Data
                         ped.SetComponentVariation(10, 0, 0, 0);
                         ped.SetComponentVariation(11, 0, 0, 0);
                     }
+                    else if (randomClothesNumber == 4)
+                    {
+                        ped.SetComponentVariation(0, 2, 0, 0);
+                        ped.SetComponentVariation(1, 0, 0, 0);
+                        ped.SetComponentVariation(2, 2, 0, 0);
+                        ped.SetComponentVariation(3, 2, 3, 0);
+                        ped.SetComponentVariation(4, 0, 0, 0);
+                        ped.SetComponentVariation(6, 0, 0, 0);
+                        ped.SetComponentVariation(7, 0, 0, 0);
+                        ped.SetComponentVariation(8, 2, 0, 0);
+                        ped.SetComponentVariation(10, 0, 0, 0);
+                        ped.SetComponentVariation(11, 0, 0, 0);
+                    }
+                    else if (randomClothesNumber == 5)
+                    {
+                        ped.SetComponentVariation(0, 1, 1, 0);
+                        ped.SetComponentVariation(1, 0, 0, 0);
+                        ped.SetComponentVariation(2, 1, 1, 0);
+                        ped.SetComponentVariation(3, 1, 3, 0);
+                        ped.SetComponentVariation(4, 0, 0, 0);
+                        ped.SetComponentVariation(6, 0, 0, 0);
+                        ped.SetComponentVariation(7, 2, 0, 0);
+                        ped.SetComponentVariation(8, 1, 0, 0);
+                        ped.SetComponentVariation(10, 0, 0, 0);
+                        ped.SetComponentVariation(11, 0, 0, 0);
+                    }
+                    else if (randomClothesNumber == 6)
+                    {
+                        ped.SetComponentVariation(0, 1, 1, 0);
+                        ped.SetComponentVariation(1, 0, 0, 0);
+                        ped.SetComponentVariation(2, 1, 0, 0);
+                        ped.SetComponentVariation(3, 0, 3, 0);
+                        ped.SetComponentVariation(4, 0, 0, 0);
+                        ped.SetComponentVariation(6, 0, 0, 0);
+                        ped.SetComponentVariation(7, 0, 0, 0);
+                        ped.SetComponentVariation(8, 0, 0, 0);
+                        ped.SetComponentVariation(10, 0, 0, 0);
+                        ped.SetComponentVariation(11, 0, 0, 0);
+                    }
 
                     Sync.Animations.Play(ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
                 }
 
-                public async void Spin(byte targetNumber)
+                public void Spin(int casinoId, int rouletteId, byte targetNumber)
                 {
-                    var ballHash = RAGE.Util.Joaat.Hash("vw_prop_roulette_ball");
+                    var taskKey = $"CASINO_ROULETTE_{casinoId}_{rouletteId}";
 
-                    await Utils.RequestModel(ballHash);
+                    AsyncTask task = null;
 
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
-
-                    await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@roulette@table");
-
-                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
-                        return;
-
-                    NPC.Ped.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-
-                    var wheelPos = TableObject.GetWorldPositionOfBone(TableObject.GetBoneIndexByName("Roulette_Wheel"));
-
-                    Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
-
-                    await RAGE.Game.Invoker.WaitAsync(1_500);
-
-                    BallObject?.Destroy();
-
-                    Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
-
-                    await RAGE.Game.Invoker.WaitAsync(3_000);
-
-                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
-                        return;
-
-                    var rouletteSoundId = RAGE.Game.Audio.GetSoundId();
-
-                    RAGE.Game.Audio.PlaySoundFromEntity(rouletteSoundId, "DLC_VW_ROULETTE_BALL_LOOP", TableObject.Handle, "dlc_vw_table_games_sounds", true, 0);
-
-                    var ballIdx = new Dictionary<byte, byte>()
+                    task = new AsyncTask(async () =>
                     {
-                        { 1, 38 },
-                        { 2, 19 },
-                        { 3, 34 },
-                        { 4, 15 },
-                        { 5, 30 },
-                        { 6, 11 },
-                        { 7, 26 },
-                        { 8, 7 },
-                        { 9, 22 },
-                        { 10, 3 },
-                        { 11, 25 },
-                        { 12, 6 },
-                        { 13, 37 },
-                        { 14, 18 },
-                        { 15, 33 },
-                        { 16, 14 },
-                        { 17, 29 },
-                        { 18, 10 },
-                        { 19, 8 },
-                        { 20, 27 },
-                        { 21, 12 },
-                        { 22, 31 },
-                        { 23, 16 },
-                        { 24, 35 },
-                        { 25, 4 },
-                        { 26, 23 },
-                        { 27, 2 },
-                        { 28, 21 },
-                        { 29, 5 },
-                        { 30, 24 },
-                        { 31, 9 },
-                        { 32, 28 },
-                        { 33, 13 },
-                        { 34, 32 },
-                        { 35, 17 },
-                        { 36, 36 },
-                        { 37, 20 },
-                        { 38, 1 },
-                    }.GetValueOrDefault(targetNumber);
+                        var ballHash = RAGE.Util.Joaat.Hash("vw_prop_roulette_ball");
 
-                    BallObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(ballHash, wheelPos.X, wheelPos.Y, wheelPos.Z, false, false, false))
-                    {
-                        Dimension = uint.MaxValue,
-                    };
+                        await Utils.RequestModel(ballHash);
 
-                    var ballRotation = new Vector3(0f, 0f, TableObject.GetHeading() + 90f);
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
 
-                    BallObject.SetRotation(ballRotation.X, ballRotation.Y, ballRotation.Z, 2, false);
+                        await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@roulette@table");
 
-                    BallObject.PlayAnim("intro_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, true, 0, 136704);
-                    BallObject.PlayAnim("loop_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
+                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                            return;
 
-                    TableObject.PlayAnim("intro_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, true, 0, 136704);
-                    TableObject.PlayAnim("loop_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
+                        NPC.Ped.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
 
-                    BallObject.PlayAnim($"exit_{ballIdx}_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
-                    TableObject.PlayAnim($"exit_{ballIdx}_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0f, 136704);
+                        var wheelPos = TableObject.GetWorldPositionOfBone(TableObject.GetBoneIndexByName("Roulette_Wheel"));
 
-                    await RAGE.Game.Invoker.WaitAsync(7_000);
+                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "no_more_bets", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
-                    RAGE.Game.Audio.StopSound(rouletteSoundId);
-                    RAGE.Game.Audio.ReleaseSoundId(rouletteSoundId);
+                        await RAGE.Game.Invoker.WaitAsync(1_500);
 
-                    await RAGE.Game.Invoker.WaitAsync(3_000);
+                        BallObject?.Destroy();
 
-                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
-                        return;
+                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "spin_wheel", 8f, 0f, -1, 0, 0f, true, true, true), -1);
 
-                    NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+                        await RAGE.Game.Invoker.WaitAsync(3_000);
 
-                    Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                            return;
 
-                    await RAGE.Game.Invoker.WaitAsync(1_500);
+                        var rouletteSoundId = RAGE.Game.Audio.GetSoundId();
 
-                    if (TableObject?.Exists != true || NPC.Ped?.Exists != true)
-                        return;
+                        RAGE.Game.Audio.PlaySoundFromEntity(rouletteSoundId, "DLC_VW_ROULETTE_BALL_LOOP", TableObject.Handle, "dlc_vw_table_games_sounds", true, 0);
 
-                    NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+                        var ballIdx = new Dictionary<byte, byte>()
+                        {
+                            { 1, 38 },
+                            { 2, 19 },
+                            { 3, 34 },
+                            { 4, 15 },
+                            { 5, 30 },
+                            { 6, 11 },
+                            { 7, 26 },
+                            { 8, 7 },
+                            { 9, 22 },
+                            { 10, 3 },
+                            { 11, 25 },
+                            { 12, 6 },
+                            { 13, 37 },
+                            { 14, 18 },
+                            { 15, 33 },
+                            { 16, 14 },
+                            { 17, 29 },
+                            { 18, 10 },
+                            { 19, 8 },
+                            { 20, 27 },
+                            { 21, 12 },
+                            { 22, 31 },
+                            { 23, 16 },
+                            { 24, 35 },
+                            { 25, 4 },
+                            { 26, 23 },
+                            { 27, 2 },
+                            { 28, 21 },
+                            { 29, 5 },
+                            { 30, 24 },
+                            { 31, 9 },
+                            { 32, 28 },
+                            { 33, 13 },
+                            { 34, 32 },
+                            { 35, 17 },
+                            { 36, 36 },
+                            { 37, 20 },
+                            { 38, 1 },
+                        }.GetValueOrDefault(targetNumber);
 
-                    Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+                        BallObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(ballHash, wheelPos.X, wheelPos.Y, wheelPos.Z, false, false, false))
+                        {
+                            Dimension = uint.MaxValue,
+                        };
+
+                        var ballRotation = new Vector3(0f, 0f, TableObject.GetHeading() + 90f);
+
+                        BallObject.SetRotation(ballRotation.X, ballRotation.Y, ballRotation.Z, 2, false);
+
+                        BallObject.PlayAnim("intro_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, true, 0, 136704);
+                        BallObject.PlayAnim("loop_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
+
+                        TableObject.PlayAnim("intro_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, true, 0, 136704);
+                        TableObject.PlayAnim("loop_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
+
+                        BallObject.PlayAnim($"exit_{ballIdx}_ball", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0, 136704);
+                        TableObject.PlayAnim($"exit_{ballIdx}_wheel", "anim_casino_b@amb@casino@games@roulette@table", 1000f, false, true, false, 0f, 136704);
+
+                        await RAGE.Game.Invoker.WaitAsync(7_000);
+
+                        RAGE.Game.Audio.StopSound(rouletteSoundId);
+                        RAGE.Game.Audio.ReleaseSoundId(rouletteSoundId);
+
+                        await RAGE.Game.Invoker.WaitAsync(3_000);
+
+                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                            return;
+
+                        NPC.Ped.PlaySpeech($"MINIGAME_ROULETTE_BALL_{(targetNumber == (byte)BetTypes._0 ? "0" : targetNumber == (byte)BetTypes._00 ? "00" : targetNumber.ToString())}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+
+                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "clear_chips_zone2", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+
+                        await RAGE.Game.Invoker.WaitAsync(1_500);
+
+                        if (!Utils.IsTaskStillPending(taskKey, task) || TableObject?.Exists != true || NPC.Ped?.Exists != true)
+                            return;
+
+                        NPC.Ped.PlaySpeech("MINIGAME_DEALER_PLACE_BET_01", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+
+                        Sync.Animations.Play(NPC.Ped, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@roulette@dealer_female", "idle", 8f, 0f, -1, 0, 0f, true, true, true), -1);
+
+                        Utils.CancelPendingTask(taskKey);
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending(taskKey, task);
                 }
 
-                public async void StartGame()
+                public void StartGame()
                 {
                     if (TextLabel != null)
                     {
@@ -695,13 +737,13 @@ namespace BCRPClient.Data
 
                     var tableHeading = TableObject.GetHeading();
 
-                    var chipModel = RAGE.Util.Joaat.Hash("vw_prop_chip_100dollar_x1");
-
                     foreach (var x in ActiveBets)
                     {
                         var data = HoverDatas[x.BetType];
 
                         x.MapObject?.Destroy();
+
+                        var chipModel = RAGE.Util.Joaat.Hash(Casino.GetChipPropByAmount(x.Amount));
 
                         x.MapObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(chipModel, data.ObjectPosition.X, data.ObjectPosition.Y, data.ObjectPosition.Z, false, false, false))
                         {
@@ -736,7 +778,7 @@ namespace BCRPClient.Data
 
                     var rouletteIdx = CurrentRoulette.GetIdInCasino(casinoIdx);
 
-                    var stateData = Roulette.GetCurrentStateData(casinoIdx, rouletteIdx);
+                    var stateData = roulette.CurrentStateData;
 
                     if (stateData == null || !(stateData[0] == 'S' || stateData[0] == 'I'))
                     {
@@ -745,7 +787,7 @@ namespace BCRPClient.Data
                         return;
                     }
 
-                    var bet = Data.Minigames.Casino.Roulette.CurrentBet;
+                    var bet = Data.Minigames.Casino.Casino.CurrentBet;
 
                     if (roulette.ActiveBets != null)
                     {
@@ -782,6 +824,8 @@ namespace BCRPClient.Data
                     roulette.ActiveBets.Add(new BetData() { BetType = betType, Amount = bet, });
 
                     roulette.UpdateActiveBets();
+
+                    roulette.NPC?.Ped?.PlaySpeech("MINIGAME_DEALER_PLACE_CHIPS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1, true);
                 }
 
                 private static void Render()

@@ -78,7 +78,7 @@ namespace BCRPServer.Game.Items
             while (true)
             {
                 for (int i = 0; i < length; i++)
-                    strBuilder.Append(Chars[Utils.Randoms.Chat.Next(0, Chars.Length)]);
+                    strBuilder.Append(Chars[SRandom.NextInt32(0, Chars.Length)]);
 
                 var retStr = strBuilder.ToString();
 

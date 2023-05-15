@@ -105,7 +105,7 @@ namespace BCRPServer.Sync
             }
             else
             {
-                var result = Utils.Randoms.Chat.Next(0, 2) != 0;
+                var result = SRandom.NextInt32(0, 2) != 0;
 
                 if (target != null)
                     sender.TriggerEventInDistance(range, "Chat::SCM", sender.Id, (int)type, message + $"*{(result ? 1 : 0)}", target.Id);

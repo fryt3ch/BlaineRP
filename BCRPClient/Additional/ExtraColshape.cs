@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPClient.Additional
 {
@@ -440,6 +441,8 @@ namespace BCRPClient.Additional
             CasinoRouletteInteract,
             CasinoLuckyWheelInteract,
             CasinoSlotMachineInteract,
+            CasinoBlackjackInteract,
+            CasinoPockerInteract,
         }
 
         public enum ActionTypes
@@ -602,6 +605,47 @@ namespace BCRPClient.Additional
         public static Dictionary<InteractionTypes, Action> InteractionActions = new Dictionary<InteractionTypes, Action>()
         {
             {
+                InteractionTypes.CasinoBlackjackInteract, async () =>
+                {
+                    if (LastSent.IsSpam(1000, false, true))
+                        return;
+
+                    var casinoStrData = Player.LocalPlayer.GetData<string>("CurrentCasinoGameData")?.Split('_');
+
+                    if (casinoStrData == null)
+                        return;
+
+                    var casinoId = int.Parse(casinoStrData[0]);
+                    var tableId = int.Parse(casinoStrData[1]);
+
+                    var casino = BCRPClient.Data.Locations.Casino.GetById(casinoId);
+
+                    var table = casino.GetBlackjackById(tableId);
+
+                    LastSent = Sync.World.ServerTime;
+
+                    var res = ((string)await Events.CallRemoteProc("Casino::BLJE", casinoId, tableId))?.Split('^');
+
+                    if (res == null)
+                        return;
+
+                    if (table?.TableObject?.Exists != true)
+                        return;
+
+                    var balance = decimal.Parse(res[0]);
+                    var seatIdx = byte.Parse(res[1]);
+                    var stateData = (string)res[2];
+
+                    if (table.CurrentStateData != stateData)
+                    {
+                        BCRPClient.Data.Locations.Casino.Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, true);
+                    }
+
+                    BCRPClient.Data.Minigames.Casino.Casino.ShowBlackjack(casino, table, seatIdx, balance);
+                }
+            },
+
+            {
                 InteractionTypes.CasinoSlotMachineInteract, async () =>
                 {
                     if (LastSent.IsSpam(1000, false, true))
@@ -619,37 +663,25 @@ namespace BCRPClient.Additional
 
                     var slotMachine = casino.GetSlotMachineById(slotMachineId);
 
-                    var seatPos = slotMachine.MachineObj.GetWorldPositionOfBone(slotMachine.MachineObj.GetBoneIndexByName("Chair_Seat_01"));
-
-                    seatPos.Z += 0.1f;
-
-                    var heading = slotMachine.MachineObj.GetHeading();
-
-                    Player.LocalPlayer.FreezePosition(true);
-                    Player.LocalPlayer.SetCollision(false, true);
-
-                    Player.LocalPlayer.Position = seatPos;
-                    Player.LocalPlayer.SetHeading(heading);
-
-                    await Utils.RequestAnimDict("amb@code_human_in_bus_passenger_idles@male@sit@base");
-
-                    Player.LocalPlayer.TaskPlayAnim("amb@code_human_in_bus_passenger_idles@male@sit@base", "base", 1f, 0f, -1, 1, 1f, false, false, false);
-
-                    slotMachine.Spin(0, 1, 7);
-
-                    return;
-
                     LastSent = Sync.World.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("Casino::LCWS", casinoId, slotMachineId))?.Split('_');
+                    var res = ((string)await Events.CallRemoteProc("Casino::SLME", casinoId, slotMachineId))?.Split('^');
 
                     if (res == null)
                         return;
+
+                    if (slotMachine?.MachineObj?.Exists != true)
+                        return;
+
+                    var balance = decimal.Parse(res[0]);
+                    var jackpot = decimal.Parse(res[1]);
+
+                    BCRPClient.Data.Minigames.Casino.Casino.ShowSlotMachine(casino, slotMachine, balance, jackpot);
                 }
             },
 
             {
-                InteractionTypes.CasinoLuckyWheelInteract, async () =>
+                InteractionTypes.CasinoLuckyWheelInteract, () =>
                 {
                     if (LastSent.IsSpam(2000, false, true))
                         return;
@@ -688,12 +720,13 @@ namespace BCRPClient.Additional
 
                     LastSent = Sync.World.ServerTime;
 
-                    var res = ((string)await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId))?.Split('_');
+                    var res = ((string)await Events.CallRemoteProc("Casino::RLTJ", casinoId, rouletteId))?.Split('^');
 
                     if (res == null)
                         return;
 
                     var chipsBalance = decimal.Parse(res[0]);
+                    var stateData = (string)res[1];
 
                     var casino = BCRPClient.Data.Locations.Casino.GetById(casinoId);
 
@@ -702,7 +735,12 @@ namespace BCRPClient.Additional
                     if (roulette.TextLabel == null)
                         return;
 
-                    BCRPClient.Data.Minigames.Casino.Roulette.Show(casino, roulette, chipsBalance);
+                    if (roulette.CurrentStateData != stateData)
+                    {
+                        BCRPClient.Data.Locations.Casino.Roulette.OnCurrentStateDataUpdated(casinoId, rouletteId, stateData, true);
+                    }
+
+                    BCRPClient.Data.Minigames.Casino.Casino.ShowRoulette(casino, roulette, chipsBalance);
                 }
             },
 
@@ -2030,11 +2068,24 @@ namespace BCRPClient.Additional
             }
         }
 
+        private static Timer streamUpdateTimer { get; set; }
+        private static Timer updateTimer { get; set; }
+
         public static void Activate()
         {
-            (new AsyncTask(() => UpdateInside(), 200, true, 0)).Run();
+            streamUpdateTimer = new Timer(async (obj) =>
+            {
+                await RAGE.Game.Invoker.WaitAsync(0);
 
-            (new AsyncTask(() => UpdateStreamed(), 1000, true, 0)).Run();
+                UpdateInside();
+            }, null, 0, 200);
+
+            updateTimer = new Timer(async (obj) =>
+            {
+                await RAGE.Game.Invoker.WaitAsync(0);
+
+                UpdateStreamed();
+            }, null, 0, 1000);
         }
 
         public static void UpdateStreamed()

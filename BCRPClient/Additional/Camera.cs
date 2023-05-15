@@ -122,6 +122,8 @@ namespace BCRPClient.Additional
             NpcTalk,
 
             CasinoRouletteGame,
+
+            Empty,
         }
 
         public static Dictionary<StateTypes, State> States = new Dictionary<StateTypes, State>()
@@ -263,6 +265,8 @@ namespace BCRPClient.Additional
             { StateTypes.TopVehicle, new State(new Vector3(0, 0, 4f), new Vector3(0f, 0f, 0f), 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 10 } },
 
             { StateTypes.CasinoRouletteGame, new State(new Vector3(0f, 0f, 2f), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.None, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.None, ShakeAmplitude = 0f, } },
+
+            { StateTypes.Empty, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 0, new Vector3(0f, 0f, 0f), 0, State.RenderTypes.None, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.None, TargetBehaviourType = BehaviourTypes.None, ShakeAmplitude = 0f, MinFov = 0f, MaxFov = 180f, } },
         };
 
         /// <summary>Минимально возможный FOV</summary>

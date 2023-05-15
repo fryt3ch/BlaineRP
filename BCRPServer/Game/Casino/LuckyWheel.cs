@@ -56,11 +56,11 @@ namespace BCRPServer.Game.Casino
 
         public static Items.Gift.Prototype GetRandomItem()
         {
-            var rProb = (decimal)Utils.Randoms.Chat.NextDouble();
+            var rProb = (decimal)SRandom.NextDoubleS();
 
             var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
 
-            var rItem = rItems.Value.Length == 1 ? rItems.Value[0] : rItems.Value[Utils.Randoms.Chat.Next(0, rItems.Value.Length)];
+            var rItem = rItems.Value.Length == 1 ? rItems.Value[0] : rItems.Value[SRandom.NextInt32S(0, rItems.Value.Length)];
 
             return rItem;
         }
@@ -71,7 +71,7 @@ namespace BCRPServer.Game.Casino
 
         private Timer Timer { get; set; }
 
-        public LuckyWheel(float PosX, float PosY, float PosZ)
+        public LuckyWheel(int CasinoId, int Id, float PosX, float PosY, float PosZ)
         {
             this.Position = new Vector3(PosX, PosY, PosZ);
         }
@@ -102,11 +102,11 @@ namespace BCRPServer.Game.Casino
                 zones = zoneTypesList.Where(x => x.ToString().StartsWith("Vehicle")).ToList();
             }
 
-            var zoneType = zones[Utils.Randoms.Chat.Next(0, zones.Count)];
+            var zoneType = zones[SRandom.NextInt32(0, zones.Count)];
 
             var spinParam = ((byte)zoneType - 1) * 18;
 
-            var spinOffset = (float)Utils.Randoms.Chat.Next(spinParam - 4, spinParam + 10);
+            var spinOffset = (float)SRandom.NextInt32(spinParam - 4, spinParam + 10);
 
             CurrentCID = pData.CID;
 
@@ -130,6 +130,8 @@ namespace BCRPServer.Game.Casino
                     }
 
                     Items.Gift.Give(pInfo, itemPrototype, true);
+
+                    CurrentCID = 0;
                 });
             }, null, 22_000, Timeout.Infinite);
         }

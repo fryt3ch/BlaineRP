@@ -12,6 +12,8 @@ namespace BCRPServer.Game.Casino
     {
         public const byte MAX_BETS = 3;
 
+        public const int BET_WAIT_TIME = 20_000;
+
         public enum BetTypes : byte
         {
             None = 0,
@@ -186,6 +188,8 @@ namespace BCRPServer.Game.Casino
 
         public readonly byte Id;
 
+        private string CurrentStateData { get; set; }
+
         public Dictionary<uint, BetData> CurrentPlayers { get; set; } = new Dictionary<uint, BetData>();
 
         public Roulette(byte CasinoId, byte Id, float PosX, float PosY, float PosZ)
@@ -198,19 +202,14 @@ namespace BCRPServer.Game.Casino
 
         public void SetCurrentStateData(string value)
         {
-            var dataKey = $"CASINO_{CasinoId}_RLTS_{Id}";
+            CurrentStateData = value;
 
-            if (value == null)
-                Sync.World.ResetSharedData(dataKey);
-            else
-                Sync.World.SetSharedData(dataKey, value);
+            Utils.TriggerEventInDistance(Position, Utils.Dimensions.Main, 50f, "Casino::RLTS", CasinoId, Id, value);
         }
 
         public string GetCurrentStateData()
         {
-            var dataKey = $"CASINO_{CasinoId}_RLTS_{Id}";
-
-            return Sync.World.GetSharedData<string>(dataKey);
+            return CurrentStateData;
         }
 
         public BetData AddPlayer(PlayerData pData)
@@ -246,7 +245,7 @@ namespace BCRPServer.Game.Casino
         {
             Timer?.Dispose();
 
-            var startDate = Utils.GetCurrentTime().AddMilliseconds(30_000);
+            var startDate = Utils.GetCurrentTime().AddMilliseconds(BET_WAIT_TIME);
 
             SetCurrentStateData($"S{startDate.GetUnixTimestamp()}");
 
@@ -264,9 +263,12 @@ namespace BCRPServer.Game.Casino
                     {
                         NAPI.Task.Run(() =>
                         {
-                            Timer?.Dispose();
+                            if (Timer != null)
+                            {
+                                Timer.Dispose();
 
-                            Timer = null;
+                                Timer = null;
+                            }
 
                             SetCurrentStateData($"I{resultNumber}");
 
@@ -276,12 +278,12 @@ namespace BCRPServer.Game.Casino
                         });
                     }, null, 15_000, Timeout.Infinite);
                 });
-            }, null, 30_000, Timeout.Infinite);
+            }, null, BET_WAIT_TIME, Timeout.Infinite);
         }
 
         public byte GetNextResultNumber()
         {
-            return (byte)Utils.Randoms.Chat.Next(1, 38 + 1);
+            return (byte)SRandom.NextInt32S(1, 38 + 1);
         }
 
         private void OnFinishGame(byte resultNum)

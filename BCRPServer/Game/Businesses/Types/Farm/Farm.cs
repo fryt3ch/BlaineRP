@@ -285,7 +285,7 @@ namespace BCRPServer.Game.Businesses
                             Timer = null;
                         }
 
-                        OrangesAmount = (byte)Utils.Randoms.Chat.Next(Game.Jobs.Farmer.ORANGES_ON_TREE_MIN_AMOUNT, Game.Jobs.Farmer.ORANGES_ON_TREE_MAX_AMOUNT + 1);
+                        OrangesAmount = (byte)SRandom.NextInt32(Game.Jobs.Farmer.ORANGES_ON_TREE_MIN_AMOUNT, Game.Jobs.Farmer.ORANGES_ON_TREE_MAX_AMOUNT + 1);
                     }
                     else
                     {
@@ -302,7 +302,7 @@ namespace BCRPServer.Game.Businesses
 
                             value = 0;
 
-                            OrangesAmount = (byte)Utils.Randoms.Chat.Next(Game.Jobs.Farmer.ORANGES_ON_TREE_MIN_AMOUNT, Game.Jobs.Farmer.ORANGES_ON_TREE_MAX_AMOUNT + 1);
+                            OrangesAmount = (byte)SRandom.NextInt32(Game.Jobs.Farmer.ORANGES_ON_TREE_MIN_AMOUNT, Game.Jobs.Farmer.ORANGES_ON_TREE_MAX_AMOUNT + 1);
                         }
                         else
                         {

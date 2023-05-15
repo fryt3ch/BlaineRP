@@ -3,6 +3,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPClient.Sync
 {
@@ -383,6 +384,8 @@ namespace BCRPClient.Sync
             obj.ResetData();
         }
 
+        private static Timer closestIogTimer { get; set; }
+
         public World()
         {
             ItemOnGround.LastShowed = Sync.World.ServerTime;
@@ -405,8 +408,10 @@ namespace BCRPClient.Sync
                 }
             });
 
-            (new AsyncTask(() =>
+            closestIogTimer = new Timer(async (obj) =>
             {
+                await RAGE.Game.Invoker.WaitAsync(0);
+
                 var minDist = float.MaxValue;
                 var minIdx = -1;
 
@@ -431,7 +436,7 @@ namespace BCRPClient.Sync
                     ClosestItemOnGround = null;
                 else
                     ClosestItemOnGround = ItemsOnGround[minIdx];
-            }, 1000, true, 2500)).Run();
+            }, null, 2500, 1000);
             #endregion
         }
 

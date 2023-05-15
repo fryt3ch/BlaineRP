@@ -1,5 +1,6 @@
 ﻿using RAGE;
 using RAGE.Elements;
+using RAGE.NUI;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -35,6 +36,11 @@ namespace BCRPClient.Data
                     Superstar = 13,
                 }
 
+                public static uint MinBet { get; set; }
+                public static uint MaxBet { get; set; }
+
+                public static SlotMachine CurrentMachine { get; set; }
+
                 public ModelTypes ModelType { get; set; }
 
                 public Vector3 Position { get; set; }
@@ -43,6 +49,8 @@ namespace BCRPClient.Data
 
                 public MapObject[] Reels { get; set; }
 
+                public static int SoundId { get; set; } = -1;
+
                 public SlotMachine(int CasinoId, int Id, ModelTypes ModelType, float PosX, float PosY, float PosZ, float Heading)
                 {
                     this.ModelType = ModelType;
@@ -50,99 +58,149 @@ namespace BCRPClient.Data
                     this.Position = new Vector3(PosX, PosY, PosZ);
                 }
 
-                public async void Spin(byte resultA, byte resultB, byte resultC)
+                public async void Spin(int casinoId, int machineId, ReelIconTypes resultA, ReelIconTypes resultB, ReelIconTypes resultC)
                 {
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+                    var taskKey = $"CASINO_SLOTMACHINE_{casinoId}_{machineId}";
 
-                    if (MachineObj?.Exists != true)
-                        return;
+                    AsyncTask task = null;
 
-                    if (Reels != null)
+                    task = new AsyncTask(async () =>
                     {
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+
+                        var rModelStr = ModelType.ToString();
+
+                        var reelsModel = RAGE.Util.Joaat.Hash($"{rModelStr}_reels");
+                        var reelsModelB = RAGE.Util.Joaat.Hash(rModelStr.Substring(0, rModelStr.Length - 1) + "b_reels");
+
+                        await Utils.RequestModel(reelsModel);
+                        await Utils.RequestModel(reelsModelB);
+
+                        if (MachineObj?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        var machineObjHandle = MachineObj.Handle;
+
+                        if (Reels != null)
+                        {
+                            for (int i = 0; i < Reels.Length; i++)
+                            {
+                                Reels[i]?.Destroy();
+
+                                Reels[i] = null;
+                            }
+                        }
+
+                        Reels = new MapObject[3];
+
+                        var machinePos = MachineObj.GetCoords(false);
+                        var machineHeading = MachineObj.GetHeading();
+
+                        var rotation = new Vector3(0f, 0f, machineHeading);
+
                         for (int i = 0; i < Reels.Length; i++)
                         {
-                            Reels[i]?.Destroy();
+                            var pos = RAGE.Game.Object.GetObjectOffsetFromCoords(machinePos.X, machinePos.Y, machinePos.Z, machineHeading, i == 0 ? -0.115f : i == 1 ? 0f : 0.125f, 0.04f, 1.1f);
 
-                            Reels[i] = null;
+                            Reels[i] = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(reelsModelB, pos.X, pos.Y, pos.Z, false, false, false))
+                            {
+                                Dimension = uint.MaxValue,
+                            };
+
+                            Reels[i].SetRotation(rotation.X + Utils.Random.Next(0, 360) - 180f, rotation.Y, rotation.Z, 0, false);
                         }
-                    }
 
-                    Reels = new MapObject[3];
+                        var soundSetName = GetSoundSetName(ModelType);
 
-                    var machinePos = MachineObj.GetCoords(false);
-                    var machineHeading = MachineObj.GetHeading();
+                        //RAGE.Game.Audio.PlaySoundFromEntity(-1, "place_bet", machineObjHandle, soundSetName, true, 0);
 
-                    var rotation = new Vector3(0f, 0f, machineHeading);
+                        /*                    var animDict0 = Player.LocalPlayer.IsMale() ? "anim_casino_a@amb@casino@games@slots@male" : "anim_casino_a@amb@casino@games@slots@female";
 
-                    var rModelStr = ModelType.ToString();
+                                            await Utils.RequestAnimDict(animDict0);
 
-                    var reelsModel = RAGE.Util.Joaat.Hash($"{rModelStr}_reels");
-                    var reelsModelB = RAGE.Util.Joaat.Hash(rModelStr.Substring(0, rModelStr.Length - 1) + "b_reels");
+                                            Player.LocalPlayer.TaskPlayAnim(animDict0, "press_spin_b", 8f, 0f, -1, 16, 0f, false, false, false);*/
 
-                    await Utils.RequestModel(reelsModel);
-                    await Utils.RequestModel(reelsModelB);
-
-                    for (int i = 0; i < Reels.Length; i++)
-                    {
-                        var pos = RAGE.Game.Object.GetObjectOffsetFromCoords(machinePos.X, machinePos.Y, machinePos.Z, machineHeading, i == 0 ? -0.115f : i == 1 ? 0f : 0.125f, 0.04f, 1.1f);
-
-                        Reels[i] = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(reelsModelB, pos.X, pos.Y, pos.Z, false, false, false))
+                        if (Data.Minigames.Casino.Casino.SoundOn)
                         {
-                            Dimension = uint.MaxValue,
-                        };
+                            RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "start_spin", machineObjHandle, soundSetName, true, 0);
+                            RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "spinning", machineObjHandle, soundSetName, true, 0);
+                        }
 
-                        Reels[i].SetRotation(rotation.X + Utils.Random.Next(0, 360) - 180f, rotation.Y, rotation.Z, 0, false);
-                    }
+                        var checkPoints = new int[] { 180, 240, 300 };
+                        var results = new byte[] { (byte)resultA, (byte)resultB, (byte)resultC };
 
-                    var soundSetName = GetSoundSetName(ModelType);
+                        var startDate = Sync.World.ServerTime;
+                        var endDate = Sync.World.ServerTime.AddMilliseconds(5_500);
 
-/*                    var animDict0 = Player.LocalPlayer.IsMale() ? "anim_casino_a@amb@casino@games@slots@male" : "anim_casino_a@amb@casino@games@slots@female";
-
-                    await Utils.RequestAnimDict(animDict0);
-
-                    Player.LocalPlayer.TaskPlayAnim(animDict0, "press_spin_b", 8f, 0f, -1, 16, 0f, false, false, false);*/
-
-                    RAGE.Game.Audio.PlaySoundFromEntity(-1, "start_spin", MachineObj.Handle, soundSetName, true, 20);
-                    RAGE.Game.Audio.PlaySoundFromEntity(-1, "spinning", MachineObj.Handle, soundSetName, true, 20);
-
-                    var checkPoints = new int[] { 180, 240, 300 };
-                    var results = new byte[] { resultA, resultB, resultC };
-
-                    for (int i = 1; i < 300 + 1; i++)
-                    {
-                        for (int j = 0; j < Reels.Length; j++)
+                        for (int i = 1; i < 300 + 1; i++)
                         {
-                            var rot = Reels[j].GetRotation(0);
-
-                            var checkPoint = checkPoints[j];
-
-                            if (i < checkPoint)
+                            for (int j = 0; j < Reels.Length; j++)
                             {
-                                Reels[j].SetRotation(rot.X + Utils.Random.Next(40, 100) / 10, rotation.Y, rotation.Z, 0, false);
-                            }
-                            else if (i == checkPoint)
-                            {
-                                var pos = Reels[j].GetCoords(false);
+                                var rot = Reels[j].GetRotation(0);
 
-                                Reels[j].Destroy();
+                                var checkPoint = checkPoints[j];
 
-                                Reels[j] = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(reelsModel, pos.X, pos.Y, pos.Z, false, false, false))
+                                if (i < checkPoint)
                                 {
-                                    Dimension = uint.MaxValue,
-                                };
+                                    Reels[j].SetRotation(rot.X + Utils.Random.Next(40, 100) / 10, rotation.Y, rotation.Z, 0, false);
+                                }
+                                else if (i == checkPoint)
+                                {
+                                    var pos = Reels[j].GetCoords(false);
 
-                                Reels[j].SetRotation(results[j] * 22.5f - 180f, rotation.Y, rotation.Z, 0, false);
+                                    Reels[j].Destroy();
 
-                                Utils.ConsoleOutput(RAGE.Util.Json.Serialize(Reels[j].GetRotation(0)));
+                                    Reels[j] = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(reelsModel, pos.X, pos.Y, pos.Z, false, false, false))
+                                    {
+                                        Dimension = uint.MaxValue,
+                                    };
 
-                                RAGE.Game.Audio.PlaySoundFrontend(-1, "wheel_stop_clunk", soundSetName, false);
+                                    Reels[j].SetRotation(results[j] * 22.5f - 180f, rotation.Y, rotation.Z, 0, false);
+
+                                    if (Data.Minigames.Casino.Casino.SoundOn)
+                                        RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "wheel_stop_clunk", machineObjHandle, soundSetName, true, 0);
+                                }
+                            }
+
+                            if (Sync.World.ServerTime <= endDate)
+                            {
+                                await RAGE.Game.Invoker.WaitAsync(13);
+
+                                if (MachineObj?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
                             }
                         }
 
-                        await RAGE.Game.Invoker.WaitAsync(13);
-                    }
+                        if (resultA == resultB && resultA == resultC)
+                        {
+                            if (resultA == ReelIconTypes.Seven)
+                            {
+                                if (Data.Minigames.Casino.Casino.SoundOn)
+                                    RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "jackpot", machineObjHandle, soundSetName, true, 0);
+                            }
+                            if (resultA == ReelIconTypes.Grape || resultA == ReelIconTypes.Cherry || resultA == ReelIconTypes.Watermelon)
+                            {
+                                if (Data.Minigames.Casino.Casino.SoundOn)
+                                    RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "small_win", machineObjHandle, soundSetName, true, 0);
+                            }
+                            else
+                            {
+                                if (Data.Minigames.Casino.Casino.SoundOn)
+                                    RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "big_win", machineObjHandle, soundSetName, true, 0);
+                            }
+                        }
+                        else
+                        {
+                            if (Data.Minigames.Casino.Casino.SoundOn)
+                                RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "no_win", machineObjHandle, soundSetName, true, 0);
+                        }
+
+                        Utils.CancelPendingTask(taskKey);
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending(taskKey, task);
                 }
 
                 private static string GetSoundSetName(ModelTypes modelType)
@@ -163,6 +221,18 @@ namespace BCRPClient.Data
                         return "dlc_vw_casino_slot_machine_td_npc_sounds";
 
                     return "dlc_vw_casino_slot_machine_hz_npc_sounds";
+                }
+
+                public async void PlayGreetingSound()
+                {
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_01", false, -1);
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_02", false, -1);
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_SLOT_MACHINES_03", false, -1);
+
+                    if (MachineObj?.Exists == true)
+                    {
+                        RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "welcome_stinger", MachineObj.Handle, GetSoundSetName(ModelType), true, 0);
+                    }
                 }
             }
         }

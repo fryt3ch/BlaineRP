@@ -39,15 +39,15 @@ namespace BCRPServer.Game.Items
 
             public static (string Id, int Amount) GetRandomItem()
             {
-                var rProb = Utils.Randoms.Chat.NextDouble();
+                var rProb = SRandom.NextDouble();
 
                 var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
 
-                var rItem = rItems.Value[Utils.Randoms.Chat.Next(0, rItems.Value.Count)];
+                var rItem = rItems.Value[SRandom.NextInt32(0, rItems.Value.Count)];
 
                 if (rItem.MinAmount != rItem.MaxAmount)
                 {
-                    return (rItem.Id, Utils.Randoms.Chat.Next(rItem.MinAmount, rItem.MaxAmount + 1));
+                    return (rItem.Id, SRandom.NextInt32(rItem.MinAmount, rItem.MaxAmount + 1));
                 }
                 else
                 {

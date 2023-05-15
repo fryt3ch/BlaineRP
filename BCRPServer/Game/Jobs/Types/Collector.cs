@@ -55,7 +55,7 @@ namespace BCRPServer.Game.Jobs
 
             ActiveOrders.Add(id, orderInfo);
 
-            orderInfo.Reward = (uint)Math.Floor((business.PositionInfo.DistanceTo(Position.Position) / 1000f) * Utils.Randoms.Chat.Next(MinimalReward, MaximalReward));
+            orderInfo.Reward = (uint)Math.Floor((business.PositionInfo.DistanceTo(Position.Position) / 1000f) * SRandom.NextInt32(MinimalReward, MaximalReward));
 
             TriggerEventToWorkers("Job::CL::OC", $"{id}_{business.ID}_{orderInfo.Reward}");
         }
@@ -78,7 +78,7 @@ namespace BCRPServer.Game.Jobs
             if (businesses.Count == 0)
                 return false;
 
-            var business = businesses[Utils.Randoms.Chat.Next(0, businesses.Count)];
+            var business = businesses[SRandom.NextInt32(0, businesses.Count)];
 
             AddDefaultOrder(business);
 

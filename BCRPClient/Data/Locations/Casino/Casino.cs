@@ -4,8 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml.Linq;
+using System.Threading;
 
 namespace BCRPClient.Data
 {
@@ -36,6 +35,7 @@ namespace BCRPClient.Data
             public Roulette[] Roulettes { get; set; }
             public LuckyWheel[] LuckyWheels { get; set; }
             public SlotMachine[] SlotMachines { get; set; }
+            public Blackjack[] Blackjacks { get; set; }
 
             public Additional.ExtraColshape MainColshape { get; set; }
 
@@ -44,13 +44,14 @@ namespace BCRPClient.Data
             public Roulette GetRouletteById(int id) => id < 0 || id >= Roulettes.Length ? null : Roulettes[id];
             public LuckyWheel GetLuckyWheelById(int id) => id < 0 || id >= LuckyWheels.Length ? null : LuckyWheels[id];
             public SlotMachine GetSlotMachineById(int id) => id < 0 || id >= SlotMachines.Length ? null : SlotMachines[id];
+            public Blackjack GetBlackjackById(int id) => id < 0 || id >= Blackjacks.Length ? null : Blackjacks[id];
 
             public Vehicle Vehicle { get; set; }
 
             public ushort BuyChipPrice { get; set; }
             public ushort SellChipPrice { get; set; }
 
-            public Casino(int Id, ushort BuyChipPrice, ushort SellChipPrice, string RoulettesDataJs)
+            public Casino(int Id, ushort BuyChipPrice, ushort SellChipPrice, string RoulettesDataJs, string BlackjacksDataJs)
             {
                 All.Add(this);
 
@@ -58,6 +59,7 @@ namespace BCRPClient.Data
                 this.SellChipPrice = SellChipPrice;
 
                 var roulettesData = RAGE.Util.Json.Deserialize<object[]>(RoulettesDataJs);
+                var blackjacksData = RAGE.Util.Json.Deserialize<object[]>(BlackjacksDataJs);
 
                 if (Id == 0)
                 {
@@ -73,6 +75,15 @@ namespace BCRPClient.Data
 
                         new Roulette(Id, 2, "brp_p_casino_roulette_0", 1031.199f, 64.15562f, 71.4761f, 314.69f - 32.01f + 90f),
                         new Roulette(Id, 3, "brp_p_casino_roulette_0", 1032.156f, 60.01989f, 71.4761f, 134.69f - 32.01f + 90f),
+                    };
+
+                    Blackjacks = new Blackjack[]
+                    {
+                        new Blackjack(Id, 0, "vw_prop_casino_blckjack_01", 1010.524f, 67.42336f, 72.27832f, 45f - 32.01f + 90f),
+                        new Blackjack(Id, 1, "vw_prop_casino_blckjack_01", 1013.893f, 65.31736f, 72.27832f, 135f - 32.01f + 90f),
+
+                        new Blackjack(Id, 2, "vw_prop_casino_blckjack_01b", 1013.794f, 72.33979f, 72.27832f, -45f - 32.01f + 90f),
+                        new Blackjack(Id, 3, "vw_prop_casino_blckjack_01b", 1017.087f, 70.42752f, 72.27832f, -135f - 32.01f + 90f),
                     };
 
                     LuckyWheels = new LuckyWheel[]
@@ -230,6 +241,14 @@ namespace BCRPClient.Data
                         {
                             var x = Roulettes[i];
 
+                            while (x.TableObject?.Exists != true)
+                            {
+                                await RAGE.Game.Invoker.WaitAsync(5);
+
+                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
+
                             var coords = x.TableObject.GetCoords(false);
 
                             var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
@@ -251,14 +270,58 @@ namespace BCRPClient.Data
 
                             x.TextLabel.SetData("Info", new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2.25f), $"Рулетка #{i + 1}", new RGBA(255, 255, 255, 255), 15f, 0, false, x.TableObject.Dimension) { LOS = false, Font = 7, });
 
-                            Roulette.OnCurrentStateDataUpdated($"CASINO_{Id}_RLTS_{i}", Roulette.GetCurrentStateData(Id, i), "ON_LOAD");
+                            Roulette.OnCurrentStateDataUpdated(Id, i, x.CurrentStateData, true);
 
                             x.LastBets = new List<Roulette.BetTypes>();
+                        }
+
+                        for (int i = 0; i < Blackjacks.Length; i++)
+                        {
+                            var x = Blackjacks[i];
+
+                            while (x.TableObject?.Exists != true)
+                            {
+                                await RAGE.Game.Invoker.WaitAsync(5);
+
+                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
+
+                            var coords = x.TableObject.GetCoords(false);
+
+                            var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z - 1f), 2f, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                            {
+                                InteractionType = Additional.ExtraColshape.InteractionTypes.CasinoBlackjackInteract,
+
+                                ActionType = Additional.ExtraColshape.ActionTypes.CasinoInteract,
+
+                                Data = $"{Id}_{i}",
+
+                                Name = csName,
+                            };
+
+                            x.TextLabel = new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2f), "", new RGBA(255, 255, 255, 255), 5f, 90, false, x.TableObject.Dimension)
+                            {
+                                LOS = false,
+                                Font = 4,
+                            };
+
+                            x.TextLabel.SetData("Info", new Additional.ExtraLabel(new Vector3(coords.X, coords.Y, coords.Z + 2.25f), $"Блэкджек #{i + 1}", new RGBA(255, 255, 255, 255), 15f, 0, false, x.TableObject.Dimension) { LOS = false, Font = 7, });
+
+                            Blackjack.OnCurrentStateDataUpdated(Id, i, x.CurrentStateData, true);
                         }
 
                         for (int i = 0; i < LuckyWheels.Length; i++)
                         {
                             var x = LuckyWheels[i];
+
+                            while (x.BaseObj?.Exists != true)
+                            {
+                                await RAGE.Game.Invoker.WaitAsync(5);
+
+                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
 
                             var coords = x.BaseObj.GetCoords(false);
 
@@ -278,10 +341,15 @@ namespace BCRPClient.Data
                         {
                             var x = SlotMachines[i];
 
-                            var objHandle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.ModelType.ToString()), false, true, true);
+                            int objHandle = 0;
 
-                            if (objHandle <= 0)
-                                continue;
+                            while ((objHandle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.ModelType.ToString()), false, true, true)) <= 0)
+                            {
+                                await RAGE.Game.Invoker.WaitAsync(5);
+
+                                if (!Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
 
                             var obj = new MapObject(objHandle)
                             {
@@ -303,6 +371,41 @@ namespace BCRPClient.Data
                                 Name = csName,
                             };
                         }
+
+                        SlotMachine.SoundId = RAGE.Game.Audio.GetSoundId();
+
+/*                        KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, async () =>
+                        {
+                            var table = Blackjacks[0];
+
+                            for (int i = 0; i < Blackjack.CardOffsets.Length; i++)
+                            {
+                                for (int j = 0; j < Blackjack.CardOffsets[i].Length; j++)
+                                {
+                                    var x = Blackjack.CardOffsets[i][j];
+
+                                    var coords = table.TableObject.GetOffsetFromInWorldCoords(x.X, x.Y, x.Z);
+
+                                    var model = RAGE.Util.Joaat.Hash(Blackjack.GetCardModelByType(Blackjack.CardTypes.Club_Ace));
+
+                                    await Utils.RequestModel(model);
+
+                                    var obj = new MapObject(model, coords, new Vector3(0f, 0f, table.TableObject.GetHeading() + x.RotationZ), 255)
+                                    {
+                                        Dimension = 0,
+                                    };
+
+                                    if (i > 0)
+                                    {
+                                        await table.DealerGiveCard(i - 1, obj);
+                                    }
+                                    else
+                                    {
+                                        await table.DealerGiveSelfCard((byte)j, obj);
+                                    }
+                                }
+                            }
+                        });*/
 
                         Utils.CancelPendingTask("CASINO_TASK");
                     }, 0, false, 0);
@@ -327,11 +430,15 @@ namespace BCRPClient.Data
 
                     Additional.ExtraColshape.GetAllByName($"CASINO_G_{Id}").ForEach(x => x.Destroy());
 
-                    foreach (var x in Roulettes)
+                    for (int i = 0; i < Roulettes.Length; i++)
                     {
+                        var x = Roulettes[i];
+
+                        Utils.CancelPendingTask($"CASINO_ROULETTE_{Id}_{i}");
+
                         if (x.TextLabel != null)
                         {
-                            x.TextLabel.GetData<AsyncTask>("StateTask")?.Cancel();
+                            x.TextLabel.GetData<Timer>("StateTask")?.Dispose();
 
                             x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
 
@@ -365,6 +472,98 @@ namespace BCRPClient.Data
 
                             x.BallObject = null;
                         }
+
+                        x.CurrentStateData = null;
+                    }
+
+                    for (int i = 0; i < Blackjacks.Length; i++)
+                    {
+                        var x = Blackjacks[i];
+
+                        Utils.CancelPendingTask($"CASINO_BLACKJACK_{Id}_{i}");
+
+                        if (x.TextLabel != null)
+                        {
+                            x.TextLabel.GetData<Timer>("StateTask")?.Dispose();
+
+                            x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
+
+                            x.TextLabel.Destroy();
+
+                            x.TextLabel = null;
+                        }
+
+                        var dealerHand = x.NPC.Ped.GetData<List<Blackjack.CardData>>("DHand");
+
+                        if (dealerHand != null)
+                        {
+                            foreach (var h in dealerHand)
+                            {
+                                h.MapObject?.Destroy();
+                            }
+
+                            dealerHand.Clear();
+
+                            x.NPC.Ped.ResetData("DHand");
+                        }
+
+                        for (int j = 0; j < 4; j++)
+                        {
+                            var key = $"PHand{j}";
+
+                            var playerHand = x.NPC.Ped.GetData<List<Blackjack.CardData>>(key);
+
+                            if (playerHand != null)
+                            {
+                                foreach (var h in dealerHand)
+                                {
+                                    h.MapObject?.Destroy();
+                                }
+
+                                playerHand.Clear();
+
+                                x.NPC.Ped.ResetData(key);
+                            }
+                        }
+
+                        x.CurrentStateData = null;
+                    }
+
+                    for (int i = 0; i < LuckyWheels.Length; i++)
+                    {
+                        var x = LuckyWheels[i];
+
+                        Utils.CancelPendingTask($"CASINO_LUCKYWHEEL_{Id}_{i}");
+                    }
+
+                    for (int i = 0; i < SlotMachines.Length; i++)
+                    {
+                        var x = SlotMachines[i];
+
+                        Utils.CancelPendingTask($"CASINO_SLOTMACHINE_{Id}_{i}");
+
+                        if (x.Reels != null)
+                        {
+                            for (int j = 0; j < x.Reels.Length; j++)
+                                x.Reels[j]?.Destroy();
+
+                            x.Reels = null;
+                        }
+
+                        if (x.MachineObj != null)
+                        {
+                            x.MachineObj.Destroy();
+
+                            x.MachineObj = null;
+                        }
+                    }
+
+                    if (SlotMachine.SoundId > -1)
+                    {
+                        RAGE.Game.Audio.StopSound(SlotMachine.SoundId);
+                        RAGE.Game.Audio.ReleaseSoundId(SlotMachine.SoundId);
+
+                        SlotMachine.SoundId = -1;
                     }
                 };
 
@@ -376,17 +575,19 @@ namespace BCRPClient.Data
                     Roulettes[i].MaxBet = Convert.ToUInt32(data[1]);
                 }
 
-                KeyBinds.Bind(RAGE.Ui.VirtualKeys.Z, true, () =>
+                for (int i = 0; i < blackjacksData.Length; i++)
                 {
-                    /*                    Roulette.ActiveBets = new HashSet<Roulette.BetData>()
-                                        {
-                                            new Roulette.BetData() { BetType = Roulette.BetTypes._00, Amount = 5_124, },
-                                        };
+                    var data = ((JArray)blackjacksData[i]).ToObject<object[]>();
 
-                                        Roulettes[0].StartGame();*/
+                    Blackjacks[i].MinBet = Convert.ToUInt32(data[0]);
+                    Blackjacks[i].MaxBet = Convert.ToUInt32(data[1]);
+                }
 
-                    Roulette.CurrentRoulette?.Spin((byte)Utils.Random.Next(0, 38 + 1));
-                });
+                Roulettes[1].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(2));
+                Roulettes[0].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(3));
+
+                Blackjacks[1].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(2));
+                Blackjacks[0].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(3));
             }
 
             private void CasinoWallsRender()
@@ -431,6 +632,26 @@ namespace BCRPClient.Data
 
                 UpdateCasinoWalls(newType);
             }
+
+            public static string GetChipPropByAmount(decimal amount)
+            {
+                if (amount < 10)
+                    return "vw_prop_vw_coin_01a";
+                else if (amount < 50)
+                    return "vw_prop_chip_10dollar_x1";
+                else if (amount < 100)
+                    return "vw_prop_chip_50dollar_x1";
+                else if (amount < 500)
+                    return "vw_prop_chip_100dollar_x1";
+                else if (amount < 1000)
+                    return "vw_prop_chip_500dollar_x1";
+                else if (amount < 5000)
+                    return "vw_prop_chip_1kdollar_x1";
+                else if (amount < 10000)
+                    return "vw_prop_chip_5kdollar_x1";
+
+                return "vw_prop_chip_10kdollar_x1";
+            }
         }
 
         public class CasinoEvents : Events.Script
@@ -441,14 +662,32 @@ namespace BCRPClient.Data
                 {
                     var newBalance = Convert.ToUInt32(args[0]);
 
-                    if (Data.Minigames.Casino.Roulette.IsActive)
+                    if (Data.Minigames.Casino.Casino.IsActive)
                     {
-                        Data.Minigames.Casino.Roulette.UpdateBalance(newBalance);
+                        Data.Minigames.Casino.Casino.UpdateBalance(newBalance);
                     }
                     else
                     {
 
                     }
+                });
+
+                Events.Add("Casino::RLTS", (args) =>
+                {
+                    var casinoId = (int)args[0];
+                    var rouletteId = (int)args[1];
+                    var stateData = (string)args[2];
+
+                    Casino.Roulette.OnCurrentStateDataUpdated(casinoId, rouletteId, stateData, false);
+                });
+
+                Events.Add("Casino::BLJS", (args) =>
+                {
+                    var casinoId = (int)args[0];
+                    var tableId = (int)args[1];
+                    var stateData = (string)args[2];
+
+                    Casino.Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, false);
                 });
 
                 Events.Add("Casino::LCWS", (args) =>
@@ -469,8 +708,35 @@ namespace BCRPClient.Data
 
                     var resultOffset = Convert.ToSingle(args[4]);
 
-                    luckyWheel.Spin(player, targetZoneType, resultOffset);
+                    luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
                 });
+
+                var casinoSlotMachineIdle0Anim = Sync.Animations.GeneralAnimsList.GetValueOrDefault(Sync.Animations.GeneralTypes.CasinoSlotMachineIdle0);
+
+                if (casinoSlotMachineIdle0Anim != null)
+                {
+                    casinoSlotMachineIdle0Anim.StartAction = (entity, anim) =>
+                    {
+                        var ped = entity as PedBase;
+
+                        if (ped?.Exists != true)
+                            return;
+
+                        ped.FreezePosition(true);
+                        ped.SetCollision(false, true);
+                    };
+
+                    casinoSlotMachineIdle0Anim.StopAction = (entity, anim) =>
+                    {
+                        var ped = entity as PedBase;
+
+                        if (ped?.Exists != true)
+                            return;
+
+                        ped.FreezePosition(false);
+                        ped.SetCollision(true, false);
+                    };
+                }
             }
         }
     }
