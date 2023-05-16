@@ -11,6 +11,10 @@ namespace BCRPServer.Game.Casino
     {
         public const int BET_WAIT_TIME = 5_000;
         public const int DECISION_WAIT_TIME = 15_000;
+        private const int CARD_GIVE_TIME = 1_750;
+
+        private const decimal BLACKJACK_COEF = 3m;
+        private const decimal WIN_COEF = 2m;
 
         public enum CardTypes : byte
         {
@@ -146,7 +150,7 @@ namespace BCRPServer.Game.Casino
             }
         }
 
-        public class PlayerData
+        public class SeatData
         {
             public uint CID { get; set; }
 
@@ -154,13 +158,13 @@ namespace BCRPServer.Game.Casino
 
             public List<CardData> Hand { get; set; }
 
-            public PlayerData()
+            public SeatData()
             {
 
             }
         }
 
-        public PlayerData[] CurrentPlayers { get; set; }
+        public SeatData[] CurrentPlayers { get; set; }
 
         public uint MinBet { get; set; }
 
@@ -174,6 +178,12 @@ namespace BCRPServer.Game.Casino
 
         private List<CardData> DealerHand { get; set; }
 
+        //private List<CardTypes> CurrentDeck { get; set; }
+
+        private static List<CardTypes> UnlimitedDeck { get; } = ((CardTypes[])Enum.GetValues(typeof(CardTypes))).ToList();
+
+        private CardData DealerHiddenCard { get; set; }
+
         public readonly byte CasinoId;
         public readonly byte Id;
 
@@ -181,7 +191,7 @@ namespace BCRPServer.Game.Casino
         {
             this.Position = new Vector3(PosX, PosY, PosZ);
 
-            this.CurrentPlayers = new PlayerData[MaxPlayers];
+            this.CurrentPlayers = new SeatData[MaxPlayers];
 
             this.CasinoId = CasinoId;
             this.Id = Id;
@@ -190,6 +200,8 @@ namespace BCRPServer.Game.Casino
         public void SetCurrentStateData(string value)
         {
             CurrentStateData = value;
+
+            Console.WriteLine(value);
 
             Utils.TriggerEventInDistance(Position, Utils.Dimensions.Main, 50f, "Casino::BLJS", CasinoId, Id, value);
         }
@@ -207,9 +219,7 @@ namespace BCRPServer.Game.Casino
 
             SetCurrentStateData($"S{startDate.GetUnixTimestamp()}*{string.Join('*', CurrentPlayers.Select(x => x?.Bet ?? 0).ToList())}");
 
-            var allCards = ((CardTypes[])Enum.GetValues(typeof(CardTypes))).ToList();
-
-            allCards.Remove(CardTypes.None);
+            //CurrentDeck = ((CardTypes[])Enum.GetValues(typeof(CardTypes))).ToList();
 
             DealerHand = new List<CardData>();
 
@@ -225,7 +235,7 @@ namespace BCRPServer.Game.Casino
 
                     for (int i = 0; i < 2; i++)
                     {
-                        var cardType = allCards[SRandom.GetInt32S(0, allCards.Count)];
+                        var cardType = UnlimitedDeck[SRandom.GetInt32S(1, UnlimitedDeck.Count)];
 
                         var value = CardValues.GetValueOrDefault(cardType);
 
@@ -234,10 +244,14 @@ namespace BCRPServer.Game.Casino
 
                         DealerHand.Add(new CardData() { CardType = cardType, Value = value});
 
-                        allCards.Remove(cardType);
+                        UnlimitedDeck.Remove(cardType);
+
+                        dealerHandSum += value;
                     }
 
                     var dealerBlackjack = dealerHandSum == 21;
+
+                    var dealerCheckCard = false;
 
                     string dealerStr = null;
 
@@ -249,7 +263,13 @@ namespace BCRPServer.Game.Casino
                     {
                         dealerStr = $"{(byte)DealerHand[0].CardType}-{DealerHand[0].Value}!0-0";
 
-                        DealerHand.RemoveAt(1);
+                        DealerHiddenCard = new CardData() { CardType = DealerHand[1].CardType, Value = DealerHand[1].Value };
+
+                        DealerHand[1].CardType = CardTypes.None;
+                        DealerHand[1].Value = 0;
+
+                        if (DealerHand[0].Value == 10 || DealerHand[0].Value == 11)
+                            dealerCheckCard = true;
                     }
 
                     strBuilder.Append(dealerStr);
@@ -277,7 +297,7 @@ namespace BCRPServer.Game.Casino
 
                         for (int i = 0; i < 2; i++)
                         {
-                            var cardType = allCards[SRandom.GetInt32S(0, allCards.Count)];
+                            var cardType = UnlimitedDeck[SRandom.GetInt32S(1, UnlimitedDeck.Count)];
 
                             var value = CardValues.GetValueOrDefault(cardType);
 
@@ -288,7 +308,7 @@ namespace BCRPServer.Game.Casino
 
                             handSum += value;
 
-                            allCards.Remove(cardType);
+                            //CurrentDeck.Remove(cardType);
                         }
 
                         if (handSum == 21)
@@ -309,19 +329,72 @@ namespace BCRPServer.Game.Casino
                         {
                             Timer?.Dispose();
 
-                            for (int i = 0; i < CurrentPlayers.Length; i++)
+                            if (dealerBlackjack)
                             {
-                                var x = CurrentPlayers[i];
+                                foreach (var x in blackjackPlayers)
+                                {
+                                    var pInfo = PlayerData.PlayerInfo.Get(CurrentPlayers[x].CID);
 
-                                if (x == null)
-                                    continue;
+                                    if (pInfo == null)
+                                        continue;
 
-                                SetPlayerToDecisionState((byte)i);
+                                    uint chipBalance;
 
-                                return;
+                                    if (Casino.TryAddCasinoChips(pInfo, CurrentPlayers[x].Bet, out chipBalance, true, null))
+                                    {
+                                        Casino.SetCasinoChips(pInfo, chipBalance, null);
+                                    }
+                                }
+
+                                for (int i = 0; i < CurrentPlayers.Length; i++)
+                                {
+                                    var x = CurrentPlayers[i];
+
+                                    if (x == null)
+                                        continue;
+
+                                    CurrentPlayers[i].Bet = 0;
+                                    CurrentPlayers[i].Hand = null;
+                                }
+
+                                SetCurrentStateData("I*D");
+                            }
+                            else
+                            {
+                                foreach (var x in blackjackPlayers)
+                                {
+                                    var pInfo = PlayerData.PlayerInfo.Get(CurrentPlayers[x].CID);
+
+                                    if (pInfo == null)
+                                        continue;
+
+                                    uint chipBalance;
+
+                                    if (Casino.TryAddCasinoChips(pInfo, (uint)Math.Floor(CurrentPlayers[x].Bet * BLACKJACK_COEF), out chipBalance, true, null))
+                                    {
+                                        Casino.SetCasinoChips(pInfo, chipBalance, null);
+                                    }
+
+                                    CurrentPlayers[x].Bet = 0;
+                                    CurrentPlayers[x].Hand = null;
+                                }
+
+                                for (int i = 0; i < CurrentPlayers.Length; i++)
+                                {
+                                    var x = CurrentPlayers[i];
+
+                                    if (x == null || x.Hand == null)
+                                        continue;
+
+                                    SetPlayerToDecisionState((byte)i);
+
+                                    return;
+                                }
+
+                                SetPlayerToDecisionState(byte.MaxValue);
                             }
                         });
-                    }, null, 1500 * 2 + playersCount * 1500 * 2, Timeout.Infinite);
+                    }, null, 500 + CARD_GIVE_TIME * 2 + playersCount * CARD_GIVE_TIME * 2, Timeout.Infinite);
                 });
             }, null, BET_WAIT_TIME, Timeout.Infinite);
         }
@@ -330,11 +403,25 @@ namespace BCRPServer.Game.Casino
         {
             Timer?.Dispose();
 
-            var startDate = Utils.GetCurrentTime().AddMilliseconds(BET_WAIT_TIME);
+            if (seatIdx >= CurrentPlayers.Length)
+            {
+                FinishGame();
+
+                return;
+            }
+            
+            if (CurrentPlayers[seatIdx] == null)
+            {
+                SetPlayerToDecisionState((byte)(seatIdx + 1));
+
+                return;
+            }
+
+            var startDate = Utils.GetCurrentTime().AddMilliseconds(DECISION_WAIT_TIME);
 
             var curCardsStrBuilder = GetCurrentCardsStrBuilder();
 
-            curCardsStrBuilder.Insert(0, $"D*{seatIdx}*{startDate.GetUnixTimestamp()}*");
+            curCardsStrBuilder.Insert(0, $"D*{seatIdx}*{startDate.GetUnixTimestamp()}");
 
             SetCurrentStateData(curCardsStrBuilder.ToString());
 
@@ -344,22 +431,192 @@ namespace BCRPServer.Game.Casino
                 {
                     Timer?.Dispose();
 
-                    for (int i = seatIdx; i < CurrentPlayers.Length; i++)
-                    {
-                        if (CurrentPlayers[i] == null)
-                            continue;
-
-                        SetPlayerToDecisionState((byte)i);
-
-                        return;
-                    }
+                    SetPlayerToDecisionState((byte)(seatIdx + 1));
                 });
             }, null, DECISION_WAIT_TIME, Timeout.Infinite);
         }
 
-        public void OnPlayerChooseAnother()
+        private void FinishGame()
         {
             Timer?.Dispose();
+
+            DealerHand[1] = DealerHiddenCard;
+
+            var handSum = DealerHand[0].Value + DealerHand[1].Value;
+
+            var anyPlayerLeft = false;
+
+            for (int i = 0; i < CurrentPlayers.Length; i++)
+            {
+                if (CurrentPlayers[i] != null && CurrentPlayers[i].Hand != null)
+                {
+                    anyPlayerLeft = true;
+
+                    break;
+                }
+            }
+
+            if (anyPlayerLeft)
+            {
+                while (handSum < 17)
+                {
+                    var cardType = UnlimitedDeck[SRandom.GetInt32S(1, UnlimitedDeck.Count)];
+
+                    var value = CardValues.GetValueOrDefault(cardType);
+
+                    DealerHand.Add(new CardData() { CardType = cardType, Value = value });
+
+                    //CurrentDeck.Remove(cardType);
+
+                    handSum += value;
+                }
+            }
+
+            var curCardsStrBuilder = GetCurrentCardsStrBuilder();
+
+            curCardsStrBuilder.Insert(0, $"F");
+
+            SetCurrentStateData(curCardsStrBuilder.ToString());
+
+            var cardsAdded = DealerHand.Count - 2;
+
+            Timer = new Timer((obj) =>
+            {
+                NAPI.Task.Run(() =>
+                {
+                    Timer?.Dispose();
+
+                    var totalBetted = 0m;
+                    var totalPayed = 0m;
+
+                    for (int i = 0; i < CurrentPlayers.Length; i++)
+                    {
+                        var x = CurrentPlayers[i];
+
+                        if (x == null)
+                            continue;
+
+                        var pInfo = PlayerData.PlayerInfo.Get(x.CID);
+
+                        if (pInfo == null)
+                            continue;
+
+                        if (x.Bet > 0)
+                        {
+                            totalBetted += x.Bet;
+
+                            var pHandsum = x.Hand.Select(x => (int)x.Value).Sum();
+
+                            uint totalWin = 0;
+
+                            if (handSum <= 21)
+                            {
+                                if (pHandsum > handSum)
+                                {
+                                    totalWin = (uint)Math.Floor(x.Bet * WIN_COEF);
+                                }
+                                else if (pHandsum == handSum)
+                                {
+                                    totalWin = x.Bet;
+                                }
+                                else
+                                {
+
+                                }
+                            }
+                            else
+                            {
+                                totalWin = (uint)Math.Floor(x.Bet * WIN_COEF);
+                            }
+
+                            if (totalWin > 0)
+                            {
+                                uint newBalance;
+
+                                if (Casino.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
+                                {
+                                    Casino.SetCasinoChips(pInfo, newBalance, null);
+                                }
+
+                                totalPayed += totalWin;
+                            }
+                        }
+
+                        x.Bet = 0;
+                        x.Hand = null;
+                    }
+
+                    SetCurrentStateData($"I*{(totalPayed < totalBetted ? 'D' : totalBetted == totalPayed ? 'N' : 'P')}");
+                });
+            }, null, cardsAdded * CARD_GIVE_TIME + 4000, -1);
+        }
+
+        public void OnPlayerChooseAnother(byte seatIdx)
+        {
+            Timer?.Dispose();
+
+            var handSum = CurrentPlayers[seatIdx].Hand.Select(x => (int)x.Value).Sum();
+
+            var cardType = UnlimitedDeck[SRandom.GetInt32S(1, UnlimitedDeck.Count)];
+
+            var value = CardValues.GetValueOrDefault(cardType);
+
+            if (handSum + value > 21 && IsCardTypeAce(cardType))
+            {
+                value = 1;
+            }
+
+            var cardData = new CardData() { CardType = cardType, Value = value };
+
+            CurrentPlayers[seatIdx].Hand.Add(cardData);
+
+            handSum += value;
+
+            //CurrentDeck.Remove(cardType);
+
+            var curCardsStrBuilder = GetCurrentCardsStrBuilder();
+
+            curCardsStrBuilder.Insert(0, $"H*{seatIdx}*0");
+
+            SetCurrentStateData(curCardsStrBuilder.ToString());
+
+            Timer = new Timer((obj) =>
+            {
+                NAPI.Task.Run(() =>
+                {
+                    Timer?.Dispose();
+
+                    if (handSum > 21) // loose
+                    {
+                        CurrentPlayers[seatIdx].Bet = 0;
+                        CurrentPlayers[seatIdx].Hand = null;
+
+                        curCardsStrBuilder = GetCurrentCardsStrBuilder();
+
+                        curCardsStrBuilder.Insert(0, $"L*{seatIdx}*0");
+
+                        SetCurrentStateData(curCardsStrBuilder.ToString());
+
+                        Timer = new Timer((obj) =>
+                        {
+                            NAPI.Task.Run(() =>
+                            {
+                                Timer?.Dispose();
+
+                                SetPlayerToDecisionState((byte)(seatIdx + 1));
+                            });
+                        }, null, 2_500, -1);
+                    }
+                    else if (handSum == 21)
+                    {
+                        SetPlayerToDecisionState((byte)(seatIdx + 1));
+                    }
+                    else
+                    {
+                        SetPlayerToDecisionState(seatIdx);
+                    }
+                });
+            }, null, CARD_GIVE_TIME + 500, Timeout.Infinite);
         }
 
         public StringBuilder GetCurrentCardsStrBuilder()
@@ -378,7 +635,7 @@ namespace BCRPServer.Game.Casino
             {
                 var x = CurrentPlayers[i];
 
-                if (x == null)
+                if (x == null || x.Hand == null)
                 {
                     strBuilder.Append('*');
 

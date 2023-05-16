@@ -20,7 +20,7 @@ namespace BCRPClient.CEF
 
         private static bool FirstOpen { get; set; }
 
-        private static Timer Timer { get; set; }
+        private static Additional.ExtraTimer Timer { get; set; }
 
         public class LocalBlip
         {
@@ -359,7 +359,7 @@ namespace BCRPClient.CEF
 
             Timer?.Dispose();
 
-            Timer = new Timer(async (obj) =>
+            Timer = new Additional.ExtraTimer(async (obj) =>
             {
                 await RAGE.Game.Invoker.WaitAsync(0);
 

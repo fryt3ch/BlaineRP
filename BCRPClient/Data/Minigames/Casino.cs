@@ -188,6 +188,11 @@ namespace BCRPClient.Data.Minigames.Casino
                             return;
                         }
 
+                        if (Data.Locations.Casino.LastSent.IsSpam(500, false, true))
+                            return;
+
+                        Data.Locations.Casino.LastSent = Sync.World.ServerTime;
+
                         var res = (bool)await Events.CallRemoteProc("Casino::BLJSB", casinoId, tableId, bet);
 
                         if (!res)
@@ -195,7 +200,12 @@ namespace BCRPClient.Data.Minigames.Casino
                     }
                     else if (btnIdx == 0 || btnIdx == 1)
                     {
+                        if (Data.Locations.Casino.LastSent.IsSpam(500, false, true))
+                            return;
 
+                        Data.Locations.Casino.LastSent = Sync.World.ServerTime;
+
+                        Events.CallRemote("Casino::BLJD", casinoId, tableId, btnIdx == 0 ? 1 : 0);
                     }
                 }
             });
@@ -325,6 +335,15 @@ namespace BCRPClient.Data.Minigames.Casino
 
             await CEF.Browser.Render(CEF.Browser.IntTypes.CasinoMinigames, true, true);
 
+            Player.LocalPlayer.SetVisible(false, false);
+
+            Additional.Camera.Enable(Additional.Camera.StateTypes.Empty, Player.LocalPlayer, Player.LocalPlayer, 750, null, null, null);
+
+            Additional.Camera.Position = new Vector3(seatPos.X, seatPos.Y, seatPos.Z + 0.75f);
+            //Additional.Camera.PointAtPos(blackJack.TableObject.GetOffsetFromInWorldCoords(-0.2246f, 0.21305f, 0.957f));
+            Additional.Camera.PointAtPos(blackJack.NPC.Ped.GetOffsetFromInWorldCoords(0.25f, 0.35f, -0.15f));
+            Additional.Camera.Fov = 70;
+
             blackJack.StartGame(seatIdx);
 
             CurrentType = Types.Blackjack;
@@ -451,7 +470,7 @@ namespace BCRPClient.Data.Minigames.Casino
                 if (!(bool)await Events.CallRemoteProc("Casino::BLJL", casinoId, tableId))
                     return;
 
-                Additional.Camera.Disable(0);
+                Additional.Camera.Disable(750);
 
                 Player.LocalPlayer.SetVisible(true, true);
 

@@ -134,7 +134,7 @@ namespace BCRPClient.Data
                     if (roulette.TextLabel == null)
                         return;
 
-                    var stateTask = roulette.TextLabel.GetData<Timer>("StateTask");
+                    var stateTask = roulette.TextLabel.GetData<Additional.ExtraTimer>("StateTask");
 
                     if (stateTask != null)
                     {
@@ -159,7 +159,7 @@ namespace BCRPClient.Data
                                 {
                                     updateFunc($"Выпало число {betType.ToString().Replace("_", "")}!");
 
-                                    var timer = new Timer(async (obj) =>
+                                    var timer = new Additional.ExtraTimer(async (obj) =>
                                     {
                                         await RAGE.Game.Invoker.WaitAsync(0);
 
@@ -212,7 +212,7 @@ namespace BCRPClient.Data
                         {
                             var time = long.Parse(str.Substring(1));
 
-                            var timer = new Timer(async (obj) =>
+                            var timer = new Additional.ExtraTimer(async (obj) =>
                             {
                                 await RAGE.Game.Invoker.WaitAsync(0);
 

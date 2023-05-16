@@ -370,7 +370,7 @@ namespace BCRPServer.Events.Players
 
             if (pTableData == null)
             {
-                table.CurrentPlayers[freeIdx] = new Game.Casino.Blackjack.PlayerData()
+                table.CurrentPlayers[freeIdx] = new Game.Casino.Blackjack.SeatData()
                 {
                     CID = pData.CID,
                 };
@@ -502,7 +502,73 @@ namespace BCRPServer.Events.Players
                 table.StartGame();
             }
 
+            Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 0, 0, player.Id);
+
             return true;
+        }
+
+        [RemoteEvent("Casino::BLJD")]
+        private static void CasinoBlackjackDecide(Player player, int casinoId, int tableId, byte decision)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return;
+
+            var casino = Game.Casino.Casino.GetById(casinoId);
+
+            if (casino == null)
+                return;
+
+            var table = casino.GetBlackjackById(tableId);
+
+            if (table == null)
+                return;
+
+            if (player.Dimension != Utils.Dimensions.Main || table.Position.DistanceTo(player.Position) > 5f)
+                return;
+
+            int tableIdx = -1;
+
+            for (int i = 0; i < table.CurrentPlayers.Length; i++)
+            {
+                if (table.CurrentPlayers[i] != null && table.CurrentPlayers[i].CID > 0 && table.CurrentPlayers[i].CID == pData.CID)
+                {
+                    tableIdx = i;
+
+                    break;
+                }
+            }
+
+            if (tableIdx < 0)
+                return;
+
+            var pTableData = table.CurrentPlayers[tableIdx];
+
+            var curState = table.GetCurrentStateData()?.Split('*');
+
+            if (curState == null || curState[0] != "D" || byte.Parse(curState[1]) != tableIdx)
+                return;
+
+            if (decision == 0)
+            {
+                table.Timer?.Dispose();
+
+                table.SetPlayerToDecisionState((byte)(tableIdx + 1));
+
+                Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 0, 1, player.Id);
+            }
+            else if (decision == 1)
+            {
+                table.OnPlayerChooseAnother((byte)tableIdx);
+
+                Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 0, 2, player.Id);
+            }
         }
     }
 }

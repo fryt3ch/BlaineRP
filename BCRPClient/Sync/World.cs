@@ -384,7 +384,7 @@ namespace BCRPClient.Sync
             obj.ResetData();
         }
 
-        private static Timer closestIogTimer { get; set; }
+        private static Additional.ExtraTimer closestIogTimer { get; set; }
 
         public World()
         {
@@ -408,7 +408,7 @@ namespace BCRPClient.Sync
                 }
             });
 
-            closestIogTimer = new Timer(async (obj) =>
+            closestIogTimer = new Additional.ExtraTimer(async (obj) =>
             {
                 await RAGE.Game.Invoker.WaitAsync(0);
 

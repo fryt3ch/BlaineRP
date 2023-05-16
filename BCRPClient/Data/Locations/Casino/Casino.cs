@@ -438,7 +438,7 @@ namespace BCRPClient.Data
 
                         if (x.TextLabel != null)
                         {
-                            x.TextLabel.GetData<Timer>("StateTask")?.Dispose();
+                            x.TextLabel.GetData<Additional.ExtraTimer>("StateTask")?.Dispose();
 
                             x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
 
@@ -484,13 +484,27 @@ namespace BCRPClient.Data
 
                         if (x.TextLabel != null)
                         {
-                            x.TextLabel.GetData<Timer>("StateTask")?.Dispose();
+                            x.TextLabel.GetData<Additional.ExtraTimer>("StateTask")?.Dispose();
 
                             x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
 
                             x.TextLabel.Destroy();
 
                             x.TextLabel = null;
+                        }
+
+                        var bets = x.NPC.Ped.GetData<List<Blackjack.BetData>>("Bets");
+
+                        if (bets != null)
+                        {
+                            foreach (var b in bets)
+                            {
+                                b.MapObject?.Destroy();
+                            }
+
+                            bets.Clear();
+
+                            x.NPC.Ped.ResetData("Bets");
                         }
 
                         var dealerHand = x.NPC.Ped.GetData<List<Blackjack.CardData>>("DHand");
@@ -688,6 +702,38 @@ namespace BCRPClient.Data
                     var stateData = (string)args[2];
 
                     Casino.Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, false);
+                });
+
+                Events.Add("Casino::BLJM", (args) =>
+                {
+                    var type = Convert.ToByte(args[0]);
+
+                    if (type == 0) // player anim
+                    {
+                        var animType = Convert.ToByte(args[1]);
+
+                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[2]));
+
+                        if (player?.Exists != true)
+                            return;
+
+                        if (animType == 0)
+                        {
+                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                        }
+                        else if (animType == 1)
+                        {
+                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                        }
+                        else if (animType == 2)
+                        {
+                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                        }
+                    }
+                    else if (type == 1) // dealer hit card
+                    {
+                        var seatIdx = Convert.ToByte(args[1]);
+                    }
                 });
 
                 Events.Add("Casino::LCWS", (args) =>

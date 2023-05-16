@@ -2068,19 +2068,19 @@ namespace BCRPClient.Additional
             }
         }
 
-        private static Timer streamUpdateTimer { get; set; }
-        private static Timer updateTimer { get; set; }
+        private static Additional.ExtraTimer streamUpdateTimer { get; set; }
+        private static Additional.ExtraTimer updateTimer { get; set; }
 
         public static void Activate()
         {
-            streamUpdateTimer = new Timer(async (obj) =>
+            streamUpdateTimer = new Additional.ExtraTimer(async (obj) =>
             {
                 await RAGE.Game.Invoker.WaitAsync(0);
 
                 UpdateInside();
             }, null, 0, 200);
 
-            updateTimer = new Timer(async (obj) =>
+            updateTimer = new Additional.ExtraTimer(async (obj) =>
             {
                 await RAGE.Game.Invoker.WaitAsync(0);
 

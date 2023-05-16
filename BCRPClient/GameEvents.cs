@@ -2,6 +2,7 @@
 using RAGE; using RAGE.Elements; using System;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace BCRPClient
 {
@@ -44,6 +45,8 @@ namespace BCRPClient
 
         public GameEvents()
         {
+            System.GC.Collect();
+
             RAGE.Game.Gxt.Add("BRP_AEBLIPN", "~a~");
             RAGE.Game.Gxt.Add("BRP_AELBLT", "~a~");
 

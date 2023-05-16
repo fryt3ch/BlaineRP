@@ -132,7 +132,7 @@ namespace BCRPClient.Sync
 
         public static CEF.Audio.Data LocalPlayerStreamRadioAudioData => CEF.Audio.AllAudios.Where(x => x.Id == "PLAYER_LOCAL_RADIO").FirstOrDefault();
 
-        private static Timer updateTimer { get; set; }
+        private static Additional.ExtraTimer updateTimer { get; set; }
 
         public Radio()
         {
@@ -152,7 +152,7 @@ namespace BCRPClient.Sync
 
             ToggleMobilePhoneRadio(false);
 
-            updateTimer = new Timer(async (obj) =>
+            updateTimer = new Additional.ExtraTimer(async (obj) =>
             {
                 await RAGE.Game.Invoker.WaitAsync(1000);
 
