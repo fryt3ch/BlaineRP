@@ -93,6 +93,8 @@ namespace BCRPServer
 
                             for (int i = 0; i < house.LightsStates.Length; i++)
                             {
+                                house.LightsStates[i] = new Game.Estates.HouseBase.Light();
+
                                 house.LightsStates[i].Colour = Game.Estates.HouseBase.DefaultLightColour;
                                 house.LightsStates[i].State = true;
                             }

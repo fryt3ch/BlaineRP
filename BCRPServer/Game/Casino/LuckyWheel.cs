@@ -33,37 +33,11 @@ namespace BCRPServer.Game.Casino
             Clothes_3 = 19,
         }
 
-        private static Dictionary<decimal, Items.Gift.Prototype[]> AllRandomItems = new Dictionary<decimal, Items.Gift.Prototype[]>()
-        {
-            {
-                0.05m,
-
-                new Items.Gift.Prototype[]
-                {
-                    Items.Gift.Prototype.CreateCasino(Items.Gift.Types.Money, null, 0, 50_000),
-                }
-            },
-
-            {
-                0.30m,
-
-                new Items.Gift.Prototype[]
-                {
-                    Items.Gift.Prototype.CreateCasino(Items.Gift.Types.CasinoChips, null, 0, 100),
-                }
-            },
-        };
-
-        public static Items.Gift.Prototype GetRandomItem()
-        {
-            var rProb = (decimal)SRandom.NextDoubleS();
-
-            var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
-
-            var rItem = rItems.Value.Length == 1 ? rItems.Value[0] : rItems.Value[SRandom.NextInt32S(0, rItems.Value.Length)];
-
-            return rItem;
-        }
+        private static ChancePicker<Items.Gift.Prototype> ChancePicker { get; set; } = new ChancePicker<Items.Gift.Prototype>
+        (
+            new ChancePicker<Items.Gift.Prototype>.Item<Items.Gift.Prototype>(0.90d, Items.Gift.Prototype.CreateCasino(Items.Gift.Types.CasinoChips, null, 0, 100)),
+            new ChancePicker<Items.Gift.Prototype>.Item<Items.Gift.Prototype>(0.10d, Items.Gift.Prototype.CreateCasino(Items.Gift.Types.Money, null, 0, 50_000))
+        );
 
         public Vector3 Position { get; set; }
 
@@ -85,7 +59,9 @@ namespace BCRPServer.Game.Casino
 
             var zoneTypesList = Enum.GetValues(typeof(ZoneTypes)).Cast<ZoneTypes>().ToList();
 
-            var itemPrototype = GetRandomItem();
+            double chance;
+
+            var itemPrototype = ChancePicker.GetNextItem(out chance);
 
             List<ZoneTypes> zones = null;
 

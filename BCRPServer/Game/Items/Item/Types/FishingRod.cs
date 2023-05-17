@@ -42,34 +42,17 @@ namespace BCRPServer.Game.Items
                 }
             }
 
-            private static Dictionary<decimal, RandomItem[]> AllRandomItems = new Dictionary<decimal, RandomItem[]>()
-            {
-                {
-                    0.05m,
-
-                    new RandomItem[]
-                    {
-                        new RandomItem("am_5.56", 10, 50),
-                    }
-                },
-
-                {
-                    0.30m,
-
-                    new RandomItem[]
-                    {
-                        new RandomItem("f_acod", 1, 1),
-                    }
-                },
-            };
+            private static ChancePicker<RandomItem> ChancePicker { get; set; } = new ChancePicker<RandomItem>
+            (
+                new ChancePicker<RandomItem>.Item<RandomItem>(0.70d, new RandomItem("f_acod", 1, 1)),
+                new ChancePicker<RandomItem>.Item<RandomItem>(0.30d, new RandomItem("am_5.56", 10, 50))
+            );
 
             public static (string Id, int Amount) GetRandomItem()
             {
                 var rProb = (decimal)SRandom.NextDouble();
 
-                var rItems = AllRandomItems.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
-
-                var rItem = rItems.Value[SRandom.NextInt32S(0, rItems.Value.Length)];
+                var rItem = ChancePicker.GetNextItem(out _);
 
                 if (rItem.MinAmount != rItem.MaxAmount)
                 {

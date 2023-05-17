@@ -82,12 +82,14 @@ namespace BCRPClient.Data.Minigames.Casino
 
                     Data.Locations.Casino.LastSent = Sync.World.ServerTime;
 
-                    var res = await Events.CallRemoteProc("Casino::SLMB", casinoId, machineId, bet);
+                    var res = ((string)await Events.CallRemoteProc("Casino::SLMB", casinoId, machineId, bet))?.Split('^');
 
                     if (res == null)
                         return;
 
-                    var resultTypeN = Convert.ToByte(res);
+                    var resultTypeN = byte.Parse(res[0]);
+
+                    var jackpot = decimal.Parse(res[1]);
 
                     var resA = Data.Locations.Casino.SlotMachine.ReelIconTypes.Seven;
                     var resB = Data.Locations.Casino.SlotMachine.ReelIconTypes.Seven;
@@ -112,7 +114,7 @@ namespace BCRPClient.Data.Minigames.Casino
                         resC = resA;
                     }
 
-                    curMachine.Spin(casinoId, machineId, resA, resB, resC);
+                    curMachine.Spin(casinoId, machineId, resA, resB, resC, jackpot);
                 }
             });
 
@@ -280,7 +282,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
             CurrentType = Types.SlotMachine;
 
-            CEF.Browser.Window.ExecuteJs($"Casino.draw", (int)CurrentType, Utils.ToStringWithWhitespace(jackpot.ToString()), chipsBalance, Data.Locations.Casino.SlotMachine.MaxBet, CurrentBet < Data.Locations.Casino.SlotMachine.MinBet || CurrentBet > Data.Locations.Casino.SlotMachine.MaxBet ? CurrentBet = Data.Locations.Casino.SlotMachine.MinBet : CurrentBet);
+            CEF.Browser.Window.ExecuteJs($"Casino.draw", (int)CurrentType, Data.Locations.Casino.SlotMachine.GetJackpotString(jackpot), chipsBalance, Data.Locations.Casino.SlotMachine.MaxBet, CurrentBet < Data.Locations.Casino.SlotMachine.MinBet || CurrentBet > Data.Locations.Casino.SlotMachine.MaxBet ? CurrentBet = Data.Locations.Casino.SlotMachine.MinBet : CurrentBet);
 
             CEF.Browser.Window.ExecuteJs("Casino.switchSound", SoundOn);
 
@@ -373,9 +375,7 @@ namespace BCRPClient.Data.Minigames.Casino
                 {
                     if (stateData[0] == 'S')
                     {
-                        var subData = stateData.Split('*');
-
-                        var myBet = decimal.Parse(subData[1 + seatIdx]);
+                        var myBet = blackJack.NPC.Ped?.GetData<List<Data.Locations.Casino.Blackjack.BetData>>("Bets")?[seatIdx]?.Amount ?? 0;
 
                         if (myBet <= 0)
                         {
@@ -430,7 +430,9 @@ namespace BCRPClient.Data.Minigames.Casino
                     return;
 
                 if (!(bool)await Events.CallRemoteProc("Casino::SLML", casinoId, machineId))
-                    return;
+                {
+
+                }
 
                 Additional.Camera.Disable(0);
 
@@ -468,7 +470,9 @@ namespace BCRPClient.Data.Minigames.Casino
                     return;
 
                 if (!(bool)await Events.CallRemoteProc("Casino::BLJL", casinoId, tableId))
-                    return;
+                {
+
+                }
 
                 Additional.Camera.Disable(750);
 
@@ -476,7 +480,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                 if (curTable.TableObject?.Exists == true)
                 {
-                    //Player.LocalPlayer.Position = curMachine.MachineObj.GetOffsetFromInWorldCoords(0f, -1f, 0.5f);
+
                 }
 
                 GameEvents.DisableMove(false);

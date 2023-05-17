@@ -745,7 +745,6 @@ namespace BCRPClient.Sync
 
         public static void DetachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType)
         {
-            Utils.ConsoleOutput("DETACH 1");
             var gEntity = Utils.GetGameEntity(entity);
 
             if (gEntity == null)
@@ -753,14 +752,10 @@ namespace BCRPClient.Sync
 
             var list = entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
 
-            Utils.ConsoleOutput("DETACH 2");
-
             if (list == null)
                 return;
 
             var aObj = list.Where(x => x.RemoteID == remoteId && x.EntityType == eType && x.Type == type).FirstOrDefault();
-
-            Utils.ConsoleOutput("DETACH 3");
 
             if (aObj == null)
                 return;
@@ -769,12 +764,8 @@ namespace BCRPClient.Sync
 
             var gTarget = Utils.GetGameEntityAtRemoteId(eType, remoteId);
 
-            Utils.ConsoleOutput("DETACH 4");
-
             if (gTarget?.Exists == true)
             {
-                Utils.ConsoleOutput("DETACH 5");
-
                 var props = Attachments.GetValueOrDefault(aObj.Type);
 
                 if (props != null)
@@ -844,20 +835,25 @@ namespace BCRPClient.Sync
 
                 var veh = new Vehicle(hash, pos, rot.Z, "", 255, true, 0, 0, target.Dimension);
 
-                veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
-
                 var targetVeh = target as Vehicle;
 
                 var targetData = Sync.Vehicles.GetData(targetVeh);
 
                 if (targetData != null)
                 {
-                    if (targetData.IsFrozen)
-                        veh.FreezePosition(true);
-
                     if (targetData.Data.ID.StartsWith("seashark"))
                         positionBase.Z -= 0.5f;
                 }
+
+                veh.SetStreamInCustomAction((entity) =>
+                {
+                    var eVeh = entity as Vehicle;
+
+                    eVeh.SetCanBeDamaged(false); eVeh.SetCanBeVisiblyDamaged(false); eVeh.SetCanBreak(false); eVeh.SetDirtLevel(0f); eVeh.SetDisablePetrolTankDamage(true); eVeh.SetDisablePetrolTankFires(true); eVeh.SetInvincible(true);
+
+                    if (Sync.Vehicles.GetData(targetVeh)?.IsFrozen == true)
+                        eVeh.FreezePosition(true);
+                });
 
                 gEntity = veh;
 
@@ -867,9 +863,14 @@ namespace BCRPClient.Sync
             {
                 var veh = new Vehicle(hash, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
 
-                (gTarget as Vehicle)?.SetAutomaticallyAttaches(0, 0);
+                veh.SetStreamInCustomAction((entity) =>
+                {
+                    var eVeh = entity as Vehicle;
 
-                veh.SetCanBeDamaged(false); veh.SetCanBeVisiblyDamaged(false); veh.SetCanBreak(false); veh.SetDirtLevel(0f); veh.SetDisablePetrolTankDamage(true); veh.SetDisablePetrolTankFires(true); veh.SetInvincible(true);
+                    eVeh.SetAutomaticallyAttaches(0, 0);
+
+                    eVeh.SetCanBeDamaged(false); eVeh.SetCanBeVisiblyDamaged(false); eVeh.SetCanBreak(false); eVeh.SetDirtLevel(0f); eVeh.SetDisablePetrolTankDamage(true); eVeh.SetDisablePetrolTankFires(true); eVeh.SetInvincible(true);
+                });
 
                 gEntity = veh;
             }
@@ -1679,7 +1680,7 @@ namespace BCRPClient.Sync
             }
             else
             {
-                gEntity = new MapObject(RAGE.Game.Object.CreateObject(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+                gEntity = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
             }
 
             if (gEntity == null)
@@ -1690,11 +1691,6 @@ namespace BCRPClient.Sync
             if (props != null)
             {
                 RAGE.Game.Entity.AttachEntityToEntity(gEntity.Handle, gTarget.Handle, RAGE.Game.Ped.GetPedBoneIndex(gTarget.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
-
-                if (gEntity is MapObject mObj)
-                {
-                    mObj.Hidden = false;
-                }
 
                 props.EntityAction?.Invoke(new object[] { gEntity });
             }

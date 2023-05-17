@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace BCRPClient
@@ -8,6 +9,8 @@ namespace BCRPClient
         /*
             Async Tasks Manager by frytech
          */
+
+        public static Dictionary<string, AsyncTask> PendingTasksDict { get; set; } = new Dictionary<string, AsyncTask>();
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
 

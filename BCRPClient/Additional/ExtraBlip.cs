@@ -252,6 +252,9 @@ namespace BCRPClient.Additional
             if (name == null)
                 name = string.Empty;
 
+            if (name == _Name)
+                return;
+
             _Name = name;
 
             Blip.SetName(name);
@@ -274,7 +277,7 @@ namespace BCRPClient.Additional
         {
             foreach (var x in All.Values.ToList())
             {
-                x.SetName(x.Name);
+                //x.SetName(x.Name);
 
                 x.SetColour(x.Colour);
 

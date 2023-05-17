@@ -137,5 +137,27 @@ namespace BCRPClient.Data
 
             Events.CallLocal("Chat::ShowServerMessage", string.Format(Locale.Notifications.Commands.Position, pos.X, pos.Y, pos.Z, Player.LocalPlayer.Vehicle.GetHeading()));
         }
+
+        [Command("pos_s", true, "Получить текущую позицию", "position_save")]
+        public static void PositionSave(bool onGround = false, string info = "")
+        {
+            var pos = Player.LocalPlayer.Position;
+
+            if (onGround)
+                pos.Z -= 1f;
+
+            Utils.DebugServerSaveText($"POS_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.GetHeading()}f)");
+        }
+
+        [Command("posv_s", true, "Получить текущую позицию", "position_save")]
+        public static void PositionVehicleSave(string info = "")
+        {
+            var pos = Player.LocalPlayer.Vehicle?.Position;
+
+            if (pos == null)
+                return;
+
+            Utils.DebugServerSaveText($"POSV_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.Vehicle.GetHeading()}f)");
+        }
     }
 }

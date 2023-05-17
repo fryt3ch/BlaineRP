@@ -1,5 +1,6 @@
 ﻿#define DEBUGGING
 using RAGE; using RAGE.Elements; using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -47,7 +48,7 @@ namespace BCRPClient
         {
             System.GC.Collect();
 
-            RAGE.Game.Gxt.Add("BRP_AEBLIPN", "~a~");
+            RAGE.Game.Gxt.Add("BRP_AEBLPT", "~a~");
             RAGE.Game.Gxt.Add("BRP_AELBLT", "~a~");
 
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;

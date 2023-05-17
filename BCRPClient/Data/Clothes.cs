@@ -118,7 +118,9 @@ namespace BCRPClient.Data
                     {
                         if (pData.WearedRing is Sync.AttachSystem.AttachmentObject atObj && atObj.Object?.Exists == true)
                         {
-                            RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, false, false);
+                            RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, true, false);
+
+                            RAGE.Game.Entity.SetEntityAsMissionEntity(atObj.Object.Handle, false, false); // fix for entity not actually deleted AFTER destroy
 
                             atObj.Object.Destroy();
                         }
@@ -318,7 +320,9 @@ namespace BCRPClient.Data
                     {
                         if (pData.WearedRing is Sync.AttachSystem.AttachmentObject atObj && atObj.Object?.Exists == true)
                         {
-                            RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, false, false);
+                            RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, true, false);
+
+                            RAGE.Game.Entity.SetEntityAsMissionEntity(atObj.Object.Handle, false, false); // fix for entity not actually deleted AFTER destroy
 
                             atObj.Object.Destroy();
                         }
@@ -513,7 +517,9 @@ namespace BCRPClient.Data
                 {
                     if (Player.LocalPlayer.GetData<GameEntity>("TempClothes::Ring") is GameEntity gEntity)
                     {
-                        RAGE.Game.Entity.DetachEntity(gEntity.Handle, false, false);
+                        RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
+
+                        RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
 
                         gEntity.Destroy();
 

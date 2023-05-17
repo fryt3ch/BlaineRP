@@ -619,6 +619,9 @@ namespace BCRPServer.Game.Fractions
 
             foreach (var x in Gang.GangZone.All)
             {
+                if (x.OwnerType == Types.None)
+                    continue;
+
                 x.UpdateOwner(false);
 
                 lines.Add($"Fractions.Gang.GangZone.AddZone({x.Id}, {x.Position.X}f, {x.Position.Y}f);");

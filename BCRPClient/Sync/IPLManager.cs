@@ -72,8 +72,6 @@ namespace BCRPClient.Sync
                 new IPLInfo(null, new Vector3(2495.55f, 3157.45f, 0f), 100f, uint.MaxValue, "gr_case2_bunkerclosed"),
             };
 
-            RAGE.Game.Streaming.RequestIpl("atriumglstatic");
-
             RAGE.Game.Streaming.RequestIpl("gabz_pillbox_milo_");
 
             var pillboxIntId = RAGE.Game.Interior.GetInteriorAtCoords(311.2546f, -592.4204f, 42.32737f);
@@ -89,6 +87,10 @@ namespace BCRPClient.Sync
                 RAGE.Game.Interior.LoadInterior(pillboxIntId);
                 RAGE.Game.Interior.RefreshInterior(pillboxIntId);
             }
+
+            RAGE.Game.Streaming.RequestIpl("atriumglstatic");
+
+            RAGE.Game.Streaming.RequestIpl("TrevorsTrailerTidy");
 
             RAGE.Game.Streaming.RequestIpl("hei_dlc_windows_casino");
             RAGE.Game.Streaming.RequestIpl("hei_dlc_casino_door");

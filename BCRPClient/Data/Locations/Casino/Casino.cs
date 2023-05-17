@@ -214,6 +214,8 @@ namespace BCRPClient.Data
 
                         await Utils.RequestStreamedTextureDict("Prop_Screen_Vinewood");
 
+                        Blackjack.LoadAllRequired();
+
                         if (!Utils.IsTaskStillPending(taskKey, task))
                             return;
 
@@ -480,7 +482,9 @@ namespace BCRPClient.Data
                     {
                         var x = Blackjacks[i];
 
-                        Utils.CancelPendingTask($"CASINO_BLACKJACK_{Id}_{i}");
+                        Utils.CancelPendingTask($"CASINO_BLJ_S_{Id}_{i}");
+                        Utils.CancelPendingTask($"CASINO_BLJ_F_{Id}_{i}");
+                        Utils.CancelPendingTask($"CASINO_BLJ_P_{Id}_{i}");
 
                         if (x.TextLabel != null)
                         {
@@ -502,8 +506,6 @@ namespace BCRPClient.Data
                                 b.MapObject?.Destroy();
                             }
 
-                            bets.Clear();
-
                             x.NPC.Ped.ResetData("Bets");
                         }
 
@@ -515,8 +517,6 @@ namespace BCRPClient.Data
                             {
                                 h.MapObject?.Destroy();
                             }
-
-                            dealerHand.Clear();
 
                             x.NPC.Ped.ResetData("DHand");
                         }
@@ -533,8 +533,6 @@ namespace BCRPClient.Data
                                 {
                                     h.MapObject?.Destroy();
                                 }
-
-                                playerHand.Clear();
 
                                 x.NPC.Ped.ResetData(key);
                             }
@@ -704,7 +702,7 @@ namespace BCRPClient.Data
                     Casino.Blackjack.OnCurrentStateDataUpdated(casinoId, tableId, stateData, false);
                 });
 
-                Events.Add("Casino::BLJM", (args) =>
+                Events.Add("Casino::BLJM", async (args) =>
                 {
                     var type = Convert.ToByte(args[0]);
 
@@ -717,11 +715,7 @@ namespace BCRPClient.Data
                         if (player?.Exists != true)
                             return;
 
-                        if (animType == 0)
-                        {
-                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
-                        }
-                        else if (animType == 1)
+                        if (animType == 1)
                         {
                             Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "decline_card_001", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
@@ -730,9 +724,76 @@ namespace BCRPClient.Data
                             Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "request_card", 8f, 1f, -1, 32, 0f, false, false, false), -1);
                         }
                     }
-                    else if (type == 1) // dealer hit card
+                    else if (type == 1) // chip add
                     {
-                        var seatIdx = Convert.ToByte(args[1]);
+                        var casinoId = (int)args[1];
+                        var tableId = (int)args[2];
+
+                        var casino = Casino.GetById(casinoId);
+
+                        var table = casino.GetBlackjackById(tableId);
+
+                        var ped = table?.NPC?.Ped;
+
+                        if (ped?.Exists != true || table.TableObject?.Exists != true)
+                            return;
+
+                        var seatIdx = Convert.ToByte(args[3]);
+
+                        var amount = Convert.ToUInt32(args[4]);
+
+                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[5]));
+
+                        if (player?.Exists == true)
+                        {
+                            Sync.Animations.Play(player, new Sync.Animations.Animation("anim_casino_b@amb@casino@games@blackjack@player", "place_bet_small", 8f, 1f, -1, 32, 0f, false, false, false), -1);
+                        }
+
+                        if (Casino.Blackjack.CurrentTable == table && Casino.Blackjack.CurrentSeatIdx == seatIdx)
+                        {
+                            if (Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
+                            {
+                                Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
+                                Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
+
+                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, amount <= 0);
+                            }
+                        }
+
+                        var oBets = ped.GetData<List<Casino.Blackjack.BetData>>("Bets");
+
+                        if (oBets == null)
+                        {
+                            oBets = new List<Casino.Blackjack.BetData>() { new Casino.Blackjack.BetData(), new Casino.Blackjack.BetData(), new Casino.Blackjack.BetData(), new Casino.Blackjack.BetData() };
+
+                            ped.SetData("Bets", oBets);
+                        }
+
+                        oBets[seatIdx].Amount = amount;
+
+                        if (amount <= 0)
+                            return;
+
+                        var tableHeading = table.TableObject.GetHeading();
+
+                        var offsetInfo = Casino.Blackjack.BetOffsets[seatIdx][0];
+
+                        var objModelStr = Casino.GetChipPropByAmount(amount);
+
+                        var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
+
+                        Utils.RequestModelNow(objModelhash);
+
+                        var coords = table.TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
+
+                        oBets[seatIdx].MapObject?.Destroy();
+
+                        oBets[seatIdx].MapObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(objModelhash, coords.X, coords.Y, coords.Z, false, false, false))
+                        {
+                            Dimension = uint.MaxValue,
+                        };
+
+                        oBets[seatIdx].MapObject.SetRotation(0f, 0f, tableHeading + offsetInfo.RotationZ, 0, false);
                     }
                 });
 

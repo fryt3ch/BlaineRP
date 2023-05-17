@@ -144,7 +144,7 @@ namespace BCRPClient
             [JsonIgnore]
             public float Z => Position.Z;
 
-            public Vector4(float X, float Y, float Z, float RotationZ)
+            public Vector4(float X, float Y, float Z, float RotationZ = 0f)
             {
                 this.Position = new Vector3(X, Y, Z);
 
@@ -588,6 +588,22 @@ namespace BCRPClient
 
             while (!RAGE.Game.Streaming.HasModelLoaded(hash))
                 await RAGE.Game.Invoker.WaitAsync(5);
+
+            return true;
+        }
+
+        public static bool RequestModelNow(uint hash)
+        {
+            if (!RAGE.Game.Streaming.IsModelValid(hash))
+                return false;
+
+            if (RAGE.Game.Streaming.HasModelLoaded(hash))
+                return true;
+
+            RAGE.Game.Streaming.RequestModel(hash);
+
+            while (!RAGE.Game.Streaming.HasModelLoaded(hash))
+                RAGE.Game.Invoker.Wait(0);
 
             return true;
         }
@@ -1166,20 +1182,21 @@ namespace BCRPClient
 
         public static void SetTaskAsPending(string key, AsyncTask aTask)
         {
-            Player.LocalPlayer.SetData($"PendingTask::{key}", aTask);
+            if (!AsyncTask.PendingTasksDict.TryAdd(key, aTask))
+            {
+                AsyncTask.PendingTasksDict[key] = aTask;
+            }
 
             aTask.Run();
         }
 
         public static bool CancelPendingTask(string key)
         {
-            var aTask = Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}");
+            AsyncTask aTask;
 
-            if (aTask != null)
+            if (AsyncTask.PendingTasksDict.Remove(key, out aTask))
             {
                 aTask.Cancel();
-
-                Player.LocalPlayer.ResetData($"PendingTask::{key}");
 
                 return true;
             }
@@ -1189,7 +1206,7 @@ namespace BCRPClient
 
         public static bool IsTaskStillPending(string key, AsyncTask aTask)
         {
-            var task = Player.LocalPlayer.GetData<AsyncTask>($"PendingTask::{key}");
+            var task = AsyncTask.PendingTasksDict.GetValueOrDefault(key);
 
             if (task?.IsCancelled != false)
                 return false;
@@ -1491,7 +1508,7 @@ namespace BCRPClient
             if (blip == null || !blip.DoesExist())
                 return;
 
-            RAGE.Game.Ui.BeginTextCommandSetBlipName("BRP_AEBLIPN");
+            RAGE.Game.Ui.BeginTextCommandSetBlipName("BRP_AEBLPT");
 
             RAGE.Game.Ui.AddTextComponentSubstringPlayerName(name);
 

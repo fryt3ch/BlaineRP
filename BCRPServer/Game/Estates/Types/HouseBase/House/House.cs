@@ -19,11 +19,11 @@ namespace BCRPServer.Game.Estates
             this.Price = Price;
             this.Dimension = (uint)(HID + Utils.HouseDimBase);
 
-            this.GarageOutside = GarageOutside;
-
             if (GarageType is Garage.Types gType)
             {
                 this.GarageData = Garage.Style.Get(gType, 0);
+
+                this.GarageOutside = GarageOutside;
             }
 
             All.Add(HID, this);

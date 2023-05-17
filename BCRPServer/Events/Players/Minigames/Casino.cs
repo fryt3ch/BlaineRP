@@ -220,14 +220,27 @@ namespace BCRPServer.Events.Players
             if (slotMachine == null)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main || slotMachine.Position.DistanceTo(player.Position) > 5f)
+            if (!slotMachine.IsPlayerNear(player))
                 return null;
 
             if (!slotMachine.IsAvailableNow())
             {
-                player.Notify("Casino::SLMAS");
+                var tInfo = PlayerData.PlayerInfo.Get(slotMachine.CurrentCID);
 
-                return null;
+                var tData = tInfo?.PlayerData;
+
+                if (tData == null || !slotMachine.IsPlayerNear(tData.Player))
+                {
+                    slotMachine.CurrentCID = 0;
+
+                    tData?.Player.CloseAll(true);
+                }
+                else
+                {
+                    player.Notify("Casino::SLMAS");
+
+                    return null;
+                }
             }
 
             foreach (var x in Game.Casino.Casino.All)
@@ -273,7 +286,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteProc("Casino::SLMB")]
-        private static byte? CasinoSlotMachineBet(Player player, int casinoId, int slotMachineId, uint bet)
+        private static object CasinoSlotMachineBet(Player player, int casinoId, int slotMachineId, uint bet)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -301,9 +314,6 @@ namespace BCRPServer.Events.Players
             if (!slotMachine.CanSpinNow())
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main || slotMachine.Position.DistanceTo(player.Position) > 5f)
-                return null;
-
             if (bet < Game.Casino.SlotMachine.MinBet || bet > Game.Casino.SlotMachine.MaxBet)
                 return null; 
 
@@ -316,7 +326,7 @@ namespace BCRPServer.Events.Players
 
             var res = slotMachine.Spin(pData, bet);
 
-            return (byte)res;
+            return $"{(byte)res}^{slotMachine.Jackpot}";
         }
 
         [RemoteProc("Casino::BLJE")]
@@ -342,7 +352,7 @@ namespace BCRPServer.Events.Players
             if (table == null)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main || table.Position.DistanceTo(player.Position) > 5f)
+            if (!table.IsPlayerNearTable(player))
                 return null;
 
             int freeIdx = -1;
@@ -354,6 +364,23 @@ namespace BCRPServer.Events.Players
                     freeIdx = i;
 
                     break;
+                }
+                else if (table.CurrentPlayers[i].CID > 0 && table.CurrentPlayers[i].Bet <= 0)
+                {
+                    var tInfo = PlayerData.PlayerInfo.Get(table.CurrentPlayers[i].CID);
+
+                    var tData = tInfo?.PlayerData;
+
+                    if (tData == null || !table.IsPlayerNearTable(tData.Player))
+                    {
+                        table.CurrentPlayers[i] = null;
+
+                        freeIdx = i;
+
+                        tData?.Player.CloseAll(true);
+
+                        break;
+                    }
                 }
             }
 
@@ -452,7 +479,7 @@ namespace BCRPServer.Events.Players
             if (table == null)
                 return false;
 
-            if (player.Dimension != Utils.Dimensions.Main || table.Position.DistanceTo(player.Position) > 5f)
+            if (!table.IsPlayerNearTable(player))
                 return false;
 
             int tableIdx = -1;
@@ -502,7 +529,7 @@ namespace BCRPServer.Events.Players
                 table.StartGame();
             }
 
-            Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 0, 0, player.Id);
+            Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 1, casinoId, tableId, tableIdx, amount, player.Id);
 
             return true;
         }
@@ -530,7 +557,7 @@ namespace BCRPServer.Events.Players
             if (table == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || table.Position.DistanceTo(player.Position) > 5f)
+            if (!table.IsPlayerNearTable(player))
                 return;
 
             int tableIdx = -1;

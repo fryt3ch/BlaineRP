@@ -9,6 +9,12 @@ namespace BCRPServer.Game.Casino
 {
     public class SlotMachine
     {
+        public const uint JACKPOT_MIN_VALUE = 2_500;
+
+        public const uint JACKPOT_MAX_VALUE = 10_000;
+
+        public const ReelIconTypes JACKPOT_REPLACE_TYPE = ReelIconTypes.Grape;
+
         public enum ReelIconTypes : byte
         {
             Seven = 0,
@@ -24,28 +30,28 @@ namespace BCRPServer.Game.Casino
 
         private static Dictionary<ReelIconTypes, decimal> BetCoefs = new Dictionary<ReelIconTypes, decimal>()
         {
-            { ReelIconTypes.Grape, 2m },
-            { ReelIconTypes.Cherry, 3m },
-            { ReelIconTypes.Watermelon, 5m },
-            { ReelIconTypes.Microphone, 9m },
-            { ReelIconTypes.Superstar, 15m },
-            { ReelIconTypes.Bell, 25m },
+            { ReelIconTypes.Grape, 3m },
+            { ReelIconTypes.Cherry, 4m },
+            { ReelIconTypes.Watermelon, 6m },
+            { ReelIconTypes.Microphone, 10m },
+            { ReelIconTypes.Superstar, 16m },
+            { ReelIconTypes.Bell, 26m },
         };
 
-        private static Dictionary<decimal, ReelIconTypes> BetChances = new Dictionary<decimal, ReelIconTypes>()
-        {
-            { 0.001m, ReelIconTypes.Bell },
-            { 0.004m, ReelIconTypes.Superstar },
-            { 0.005m, ReelIconTypes.Microphone },
+        private static ChancePicker<ReelIconTypes> ChancePicker = new ChancePicker<ReelIconTypes>
+        (
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.001d, ReelIconTypes.Bell),
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.004d, ReelIconTypes.Superstar),
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.005d, ReelIconTypes.Microphone),
 
-            { 0.01m, ReelIconTypes.Watermelon },
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.01d, ReelIconTypes.Watermelon),
 
-            { 0.03m, ReelIconTypes.Cherry },
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.02d, ReelIconTypes.Cherry),
 
-            { 0.05m, ReelIconTypes.Grape },
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.11d, ReelIconTypes.Grape),
 
-            { 0.90m, ReelIconTypes.Loose },
-        };
+            new ChancePicker<ReelIconTypes>.Item<ReelIconTypes>(0.85d, ReelIconTypes.Loose)
+        );
 
         public static uint MinBet { get; set; } = 5;
         public static uint MaxBet { get; set; } = 1000;
@@ -90,7 +96,37 @@ namespace BCRPServer.Game.Casino
 
             var rProb = (decimal)SRandom.NextDoubleS();
 
-            var rItems = BetChances.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
+            double chance;
+
+            var rItem = ChancePicker.GetNextItem(out chance);
+
+            var cid = pData.CID;
+
+            var jackpot = Jackpot;
+
+            if (rItem == ReelIconTypes.Loose)
+            {
+                if (Jackpot < JACKPOT_MAX_VALUE)
+                {
+                    if (Jackpot + bet > JACKPOT_MAX_VALUE)
+                        Jackpot = JACKPOT_MAX_VALUE;
+                    else
+                        Jackpot += bet;
+                }
+            }
+            else if (rItem == JACKPOT_REPLACE_TYPE && jackpot >= JACKPOT_MIN_VALUE)
+            {
+                rItem = ReelIconTypes.Seven;
+
+                Jackpot = 0;
+            }
+            else
+            {
+                if (bet > Jackpot)
+                    Jackpot = 0;
+                else
+                    Jackpot -= bet;
+            }
 
             Timer = new Timer((obj) =>
             {
@@ -103,43 +139,44 @@ namespace BCRPServer.Game.Casino
                         Timer = null;
                     }
 
-                    if (rItems.Value == ReelIconTypes.Loose)
-                        return;
+                    var pInfo = PlayerData.PlayerInfo.Get(cid);
 
-                    if (rItems.Value == ReelIconTypes.Seven)
+                    if (pInfo == null)
                     {
 
                     }
                     else
                     {
-                        var totalWin = (uint)Math.Floor(bet * BetCoefs.GetValueOrDefault(rItems.Value)) + bet;
+                        if (rItem == ReelIconTypes.Loose)
+                        {
+                            return;
+                        }
 
-                        uint newBalance;
+                        uint totalWin = 0;
+
+                        if (rItem == ReelIconTypes.Seven)
+                        {
+                            totalWin = jackpot + bet;
+                        }
+                        else
+                        {
+                            totalWin = (uint)Math.Floor(bet * BetCoefs.GetValueOrDefault(rItem));
+                        }
 
                         if (totalWin > 0)
                         {
-                            if (Casino.TryAddCasinoChips(pData.Info, totalWin, out newBalance, true, null))
-                                Casino.SetCasinoChips(pData.Info, newBalance, null);
+                            uint newBalance;
+
+                            if (Casino.TryAddCasinoChips(pInfo, totalWin, out newBalance, true, null))
+                                Casino.SetCasinoChips(pInfo, newBalance, null);
                         }
                     }
                 });
             }, null, 5_500, Timeout.Infinite);
 
-            return rItems.Value;
+            return rItem;
         }
 
-        public ReelIconTypes GetResult()
-        {
-            var rProb = (decimal)SRandom.NextDoubleS();
-
-            var rItems = BetChances.OrderBy(x => Math.Abs(rProb - x.Key)).ThenByDescending(x => x).First();
-
-            return rItems.Value;
-        }
-
-        public void DoPayment(PlayerData.PlayerInfo pInfo, ReelIconTypes rType)
-        {
-
-        }
+        public bool IsPlayerNear(Player player) => player.Dimension == Utils.Dimensions.Main && player.Position.DistanceTo(Position) <= 5f;
     }
 }

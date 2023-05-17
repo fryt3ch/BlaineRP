@@ -180,6 +180,8 @@ namespace BCRPServer.Game.Casino
 
             var lines = new List<string>();
 
+            lines.Add($"Casino.SlotMachine.JackpotMinValue = {SlotMachine.JACKPOT_MIN_VALUE};");
+
             lines.Add($"Casino.SlotMachine.MinBet = {SlotMachine.MinBet};");
             lines.Add($"Casino.SlotMachine.MaxBet = {SlotMachine.MaxBet};");
 

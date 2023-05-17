@@ -697,6 +697,11 @@ namespace BCRPClient.Sync
                 {
                     x.Initialize();
                 }
+
+/*                foreach (var x in Data.Locations.House.All)
+                {
+                    new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
+                }*/
             });
             #endregion
 
@@ -712,7 +717,7 @@ namespace BCRPClient.Sync
                 {
                     var playedTime = args[0].ToDecimal();
 
-                    Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как Вы наиграли {playedTime / 60} минут из {1000} необходимых!");
+                    Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как за этот час Вы наиграли {playedTime / 60} минут из {10} необходимых!");
                 }
                 else
                 {
@@ -2130,6 +2135,8 @@ namespace BCRPClient.Sync
             CEF.PoliceTabletPC.Close();
 
             Data.Minigames.ShootingRange.Finish();
+
+            Data.Minigames.Casino.Casino.Close();
 
             Data.NPC.CurrentNPC?.SwitchDialogue(false);
 

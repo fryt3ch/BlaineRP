@@ -39,6 +39,8 @@ namespace BCRPClient.Data
                 public static uint MinBet { get; set; }
                 public static uint MaxBet { get; set; }
 
+                public static uint JackpotMinValue { get; set; }
+
                 public static SlotMachine CurrentMachine { get; set; }
 
                 public ModelTypes ModelType { get; set; }
@@ -58,7 +60,7 @@ namespace BCRPClient.Data
                     this.Position = new Vector3(PosX, PosY, PosZ);
                 }
 
-                public async void Spin(int casinoId, int machineId, ReelIconTypes resultA, ReelIconTypes resultB, ReelIconTypes resultC)
+                public void Spin(int casinoId, int machineId, ReelIconTypes resultA, ReelIconTypes resultB, ReelIconTypes resultC, decimal jackpot)
                 {
                     var taskKey = $"CASINO_SLOTMACHINE_{casinoId}_{machineId}";
 
@@ -197,6 +199,11 @@ namespace BCRPClient.Data
                                 RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "no_win", machineObjHandle, soundSetName, true, 0);
                         }
 
+                        if (CurrentMachine == this && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.SlotMachine)
+                        {
+                            Data.Minigames.Casino.Casino.UpdateStatus(GetJackpotString(jackpot));
+                        }
+
                         Utils.CancelPendingTask(taskKey);
                     }, 0, false, 0);
 
@@ -233,6 +240,16 @@ namespace BCRPClient.Data
                     {
                         RAGE.Game.Audio.PlaySoundFromEntity(SoundId, "welcome_stinger", MachineObj.Handle, GetSoundSetName(ModelType), true, 0);
                     }
+                }
+
+                public static string GetJackpotString(decimal currentJackpot)
+                {
+                    var baseStr = Utils.ToStringWithWhitespace(currentJackpot.ToString());
+
+                    if (currentJackpot < JackpotMinValue)
+                        return $"&#9940; {baseStr}";
+                    else
+                        return $"&#9989; {baseStr}";
                 }
             }
         }

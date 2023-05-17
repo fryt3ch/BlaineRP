@@ -13,6 +13,14 @@ namespace BCRPClient.Data
         {
             public class Blackjack
             {
+                /// <summary>Сумма значений карт, при достижении которой дилер перестает брать новые по завершению игры</summary>
+                private const byte DEALER_STOPS_ON = 17;
+                /// <summary>Сумма значений карт, при превышении которой следует проигрыш</summary>
+                private const byte LOOSE_AFTER = 21;
+                /// <summary>Сумма значений карт, дающей блэкджек</summary>
+                /// <remarks>Имеет значение только при раздаче карт</remarks>
+                private const byte BLACKJACK_ON = 21;
+
                 public class CardData
                 {
                     public CardTypes CardType { get; set; }
@@ -90,7 +98,7 @@ namespace BCRPClient.Data
                     Spd_King,
                 }
 
-                public static Utils.Vector4[][] CardOffsets = new Utils.Vector4[][]
+                private static Utils.Vector4[][] CardOffsets = new Utils.Vector4[][] // after 7 for players - split offsets
                 {
                     new Utils.Vector4[]
                     {
@@ -115,6 +123,14 @@ namespace BCRPClient.Data
                         new Utils.Vector4(-0.509475f, 0.20535f, 0.9519f, -63.72f),
                         new Utils.Vector4(-0.491775f, 0.204075f, 0.952825f, -68.4f),
                         new Utils.Vector4(-0.4752f, 0.197525f, 0.9543f, -64.44f),
+
+                        new Utils.Vector4(-0.5205f, 0.1122f, 0.9478f, -67.03f),
+                        new Utils.Vector4(-0.503175f, 0.108525f, 0.94865f, -67.6f),
+                        new Utils.Vector4(-0.485125f, 0.10475f, 0.949175f, -69.4f),
+                        new Utils.Vector4(-0.468275f, 0.099175f, 0.94995f, -69.04f),
+                        new Utils.Vector4(-0.45155f, 0.09435f, 0.95085f, -68.68f),
+                        new Utils.Vector4(-0.434475f, 0.089725f, 0.95145f, -66.16f),
+                        new Utils.Vector4(-0.415875f, 0.0846f, 0.9523f, -63.28f),
                     },
 
                     new Utils.Vector4[]
@@ -126,6 +142,14 @@ namespace BCRPClient.Data
                         new Utils.Vector4(-0.1776f, -0.072f, 0.951025f, -21.24f),
                         new Utils.Vector4(-0.165f, -0.060025f, 0.951825f, -23.76f),
                         new Utils.Vector4(-0.14895f, -0.05155f, 0.95255f, -19.44f),
+
+                        new Utils.Vector4(-0.116f, -0.1501f, 0.947875f, -14.04f),
+                        new Utils.Vector4(-0.102725f, -0.13795f, 0.948525f, -15.48f),
+                        new Utils.Vector4(-0.08975f, -0.12665f, 0.949175f, -16.56f),
+                        new Utils.Vector4(-0.075025f, -0.1159f, 0.949875f, -15.84f),
+                        new Utils.Vector4(-0.0614f, -0.104775f, 0.9507f, -16.92f),
+                        new Utils.Vector4(-0.046275f, -0.095025f, 0.9516f, -14.4f),
+                        new Utils.Vector4(-0.031425f, -0.0846f, 0.952675f, -14.28f),
                     },
 
                     new Utils.Vector4[]
@@ -137,6 +161,14 @@ namespace BCRPClient.Data
                         new Utils.Vector4(0.249675f, -0.041475f, 0.95205f, 19.44f),
                         new Utils.Vector4(0.257575f, -0.0256f, 0.9532f, 26.28f),
                         new Utils.Vector4(0.2601f, -0.008175f, 0.954375f, 22.68f),
+
+                        new Utils.Vector4(0.3431f, -0.0527f, 0.94855f, 22.11f),
+                        new Utils.Vector4(0.348575f, -0.0348f, 0.949425f, 22.0f),
+                        new Utils.Vector4(0.35465f, -0.018825f, 0.9502f, 24.44f),
+                        new Utils.Vector4(0.3581f, -0.001625f, 0.95115f, 21.08f),
+                        new Utils.Vector4(0.36515f, 0.015275f, 0.952075f, 25.96f),
+                        new Utils.Vector4(0.368525f, 0.032475f, 0.95335f, 26.16f),
+                        new Utils.Vector4(0.373275f, 0.0506f, 0.9543f, 28.76f),
                     },
 
                     new Utils.Vector4[]
@@ -148,8 +180,45 @@ namespace BCRPClient.Data
                         new Utils.Vector4(0.536125f, 0.29645f, 0.95085f, 70.84f),
                         new Utils.Vector4(0.524975f, 0.30975f, 0.9516f, 67.88f),
                         new Utils.Vector4(0.515775f, 0.325325f, 0.95235f, 69.56f),
+
+                        new Utils.Vector4(0.6083f, 0.3523f, 0.94795f, 68.57f),
+                        new Utils.Vector4(0.598475f, 0.366475f, 0.948925f, 67.52f),
+                        new Utils.Vector4(0.589525f, 0.3807f, 0.94975f, 67.76f),
+                        new Utils.Vector4(0.58045f, 0.39435f, 0.950375f, 67.04f),
+                        new Utils.Vector4(0.571975f, 0.4092f, 0.951075f, 68.84f),
+                        new Utils.Vector4(0.5614f, 0.4237f, 0.951775f, 65.96f),
+                        new Utils.Vector4(0.554325f, 0.4402f, 0.952525f, 67.76f),
                     },
                 };
+
+                public static Utils.Vector4 GetCardOffset(byte seatIdx, byte type, byte idx)
+                {
+                    if (type == 0) // basic row
+                    {
+                        var maxNum = seatIdx == 0 ? CardOffsets[seatIdx].Length : 7;
+
+                        if (idx > maxNum)
+                            return new Utils.Vector4(CardOffsets[seatIdx][maxNum].X, CardOffsets[seatIdx][maxNum].Y, CardOffsets[seatIdx][maxNum].Z + (idx - maxNum) * 0.0007f, CardOffsets[seatIdx][maxNum].RotationZ);
+
+                        return CardOffsets[seatIdx][idx];
+                    }
+                    else if (type == 1) // split row
+                    {
+                        if (seatIdx == 0)
+                            return CardOffsets[seatIdx][0];
+
+                        var maxNum = CardOffsets[seatIdx].Length;
+
+                        idx += 7;
+
+                        if (idx > maxNum)
+                            return new Utils.Vector4(CardOffsets[seatIdx][maxNum].X, CardOffsets[seatIdx][maxNum].Y, CardOffsets[seatIdx][maxNum].Z + (idx - maxNum) * 0.0007f, CardOffsets[seatIdx][maxNum].RotationZ);
+
+                        return CardOffsets[seatIdx][idx];
+                    }
+
+                    return new Utils.Vector4(0f, 0f, 0f, 0f);
+                }
 
                 public static Utils.Vector4[][] BetOffsets = new Utils.Vector4[][]
                 {
@@ -374,8 +443,6 @@ namespace BCRPClient.Data
                                         x.MapObject?.Destroy();
                                     }
 
-                                    bets.Clear();
-
                                     table.NPC.Ped.ResetData("Bets");
                                 }
 
@@ -387,8 +454,6 @@ namespace BCRPClient.Data
                                     {
                                         x.MapObject?.Destroy();
                                     }
-
-                                    dealerHand.Clear();
 
                                     table.NPC.Ped.ResetData("DHand");
                                 }
@@ -405,8 +470,6 @@ namespace BCRPClient.Data
                                         {
                                             x.MapObject?.Destroy();
                                         }
-
-                                        hand.Clear();
 
                                         table.NPC.Ped.ResetData(key);
                                     }
@@ -425,7 +488,7 @@ namespace BCRPClient.Data
                                 Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
                             }
 
-                            table.StartCardGiving(str, onLoad);
+                            table.StartCardGiving(casinoId, tableId, str, onLoad);
                         }
                         else if (str[0] == 'F')
                         {
@@ -439,7 +502,7 @@ namespace BCRPClient.Data
                                 Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
                             }
 
-                            table.FinishGame(str, onLoad);
+                            table.FinishGame(casinoId, tableId, str, onLoad);
                         }
                         else if (str[0] == 'D')
                         {
@@ -487,7 +550,7 @@ namespace BCRPClient.Data
                                 table.TextLabel.SetData("StateTask", timer);
                             }
 
-                            table.StartDecisionPlayer(str, onLoad, 0);
+                            table.NextStagePlayer(casinoId, tableId, str, onLoad, 0);
                         }
                         else if (str[0] == 'H')
                         {
@@ -520,7 +583,7 @@ namespace BCRPClient.Data
                                 updateFunc($"Игрок #{seatIdx + 1} берёт еще одну карту...");
                             }
 
-                            table.StartDecisionPlayer(str, onLoad, 1);
+                            table.NextStagePlayer(casinoId, tableId, str, onLoad, 1);
                         }
                         else if (str[0] == 'L')
                         {
@@ -555,7 +618,7 @@ namespace BCRPClient.Data
                                 bets[seatIdx].Amount = 0;
                             }
 
-                            table.StartDecisionPlayer(str, onLoad, 2);
+                            table.NextStagePlayer(casinoId, tableId, str, onLoad, 2);
                         }
                         else if (str[0] == 'S')
                         {
@@ -570,28 +633,14 @@ namespace BCRPClient.Data
 
                             table.TextLabel.SetData("StateTask", timer);
 
-                            var oBets = table.NPC.Ped.GetData<List<BetData>>("Bets");
-
-                            if (oBets != null)
-                            {
-                                foreach (var x in oBets)
-                                    x.MapObject?.Destroy();
-                            }
-
-                            var subData = str.Split('*');
-
-                            var bets = subData.Skip(1).Select(x => new BetData() { Amount = decimal.Parse(x) }).ToList();
-
-                            table.SpawnAllBets(bets);
-
-                            table.NPC.Ped.SetData("Bets", bets);
-
                             if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
                             {
+                                var oBets = table.NPC.Ped.GetData<List<BetData>>("Bets");
+
                                 Data.Minigames.Casino.Casino.ShowBlackjackButton(0, false);
                                 Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
 
-                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, bets[CurrentSeatIdx].Amount <= 0);
+                                Data.Minigames.Casino.Casino.ShowBlackjackButton(2, (oBets?[CurrentSeatIdx]?.Amount ?? 0) <= 0);
                             }
                         }
                     }
@@ -676,381 +725,417 @@ namespace BCRPClient.Data
                     GameEvents.Render -= OnGameRender;
                 }
 
-                private async void FinishGame(string resStr, bool onLoad)
+                private void FinishGame(int casinoId, int id, string resStr, bool onLoad)
                 {
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+                    var taskKey = $"CASINO_BLJ_F_{casinoId}_{id}";
 
-                    var npc = NPC?.Ped;
+                    AsyncTask task = null;
 
-                    if (TableObject?.Exists != true || npc?.Exists != true)
-                        return;
-
-                    var strD = resStr.Split('*');
-
-                    var dealerHand = strD[1].Split('!').Select(x => { var t = x.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList();
-
-                    var playersHands = strD.Skip(2).Select(x => { return x.Length == 0 ? null : x.Split('!').Select(y => { var t = y.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList(); }).ToList();
-
-                    var rDealerHand = npc.GetData<List<CardData>>("DHand");
-
-                    var dealerNewCards = new List<int>();
-
-                    dealerNewCards.AddRange(Enumerable.Range(0, dealerHand.Count));
-
-                    if (rDealerHand != null)
+                    task = new AsyncTask(async () =>
                     {
-                        for (int i = 0; i <  rDealerHand.Count; i++)
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+
+                        var npc = NPC?.Ped;
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        var strD = resStr.Split('*');
+
+                        var dealerHand = strD[1].Split('!').Select(x => { var t = x.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList();
+
+                        var playersHands = strD.Skip(2).Select(x => { return x.Length == 0 ? null : x.Split('!').Select(y => { var t = y.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList(); }).ToList();
+
+                        var rDealerHand = npc.GetData<List<CardData>>("DHand");
+
+                        var dealerNewCards = new List<int>();
+
+                        dealerNewCards.AddRange(Enumerable.Range(0, dealerHand.Count));
+
+                        if (rDealerHand != null)
                         {
-                            var x = rDealerHand[i];
-
-                            x.MapObject?.Destroy();
-
-                            x.MapObject = null;
-
-                            dealerNewCards.Remove(i);
-                        }
-
-                        rDealerHand.Clear();
-                    }
-
-                    npc.SetData("DHand", dealerHand);
-
-                    for (int i = 0; i < 4; i++)
-                    {
-                        var key = $"PHand{i}";
-
-                        var rPlayerHand = npc.GetData<List<CardData>>(key);
-
-                        if (rPlayerHand != null)
-                        {
-                            for (int j = 0; j < rPlayerHand.Count; j++)
+                            for (int i = 0; i < rDealerHand.Count; i++)
                             {
-                                var x = rPlayerHand[j];
-
-                                x.MapObject?.Destroy();
-
-                                x.MapObject = null;
-                            }
-
-                            rPlayerHand.Clear();
-                        }
-
-                        if (playersHands[i] != null)
-                            npc.SetData(key, playersHands[i]);
-                        else
-                            npc.ResetData(key);
-                    }
-
-                    await SpawnAllCards(dealerHand, playersHands, byte.MaxValue);
-
-                    var cardRot = dealerHand[1].MapObject.GetRotation(0);
-
-                    dealerHand[1].MapObject.SetRotation(180f, cardRot.Y, cardRot.Z, 0, false);
-
-                    dealerHand[1].MapObject.SetData("IsFlipped", true);
-
-                    if (onLoad)
-                        return;
-
-                    foreach (var x in dealerNewCards)
-                    {
-                        if (dealerHand[x].MapObject?.Exists == true)
-                        {
-                            dealerHand[x].MapObject.SetAlpha(0, false);
-                        }
-                    }
-
-                    npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "check_and_turn_card", 3f, 1f, -1, 2, 0f, false, false, false);
-
-                    npc.PlayFacialAnim("check_and_turn_card", "anim_casino_b@amb@casino@games@blackjack@dealer");
-
-                    await RAGE.Game.Invoker.WaitAsync(500);
-
-                    dealerHand[1].MapObject.SetRotation(0f, cardRot.Y, cardRot.Z, 0, false);
-
-                    dealerHand[1].MapObject.ResetData("IsFlipped");
-
-                    foreach (var x in dealerNewCards)
-                    {
-                        if (dealerHand[x].MapObject?.Exists == true)
-                        {
-                            await DealerGiveSelfCard((byte)x, dealerHand[x].MapObject);
-                        }
-                    }
-
-                    await RAGE.Game.Invoker.WaitAsync(2000); // anim_casino_b@amb@casino@games@shared@player@
-
-                    npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "female_retrieve_all_cards", 3f, 1f, -1, 2, 0f, false, false, false);
-
-                    npc.PlayFacialAnim("female_retrieve_all_cards", "anim_casino_b@amb@casino@games@blackjack@dealer");
-                }
-
-                private async void StartDecisionPlayer(string resStr, bool onLoad, byte type)
-                {
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
-
-                    var npc = NPC?.Ped;
-
-                    if (TableObject?.Exists != true || npc?.Exists != true)
-                        return;
-
-                    var strD = resStr.Split('*');
-
-                    var seatIdx = byte.Parse(strD[1]);
-
-                    if (type == 0)
-                    {
-                        DealerFocusTo(seatIdx, onLoad);
-                    }
-                    else if (type == 1)
-                    {
-
-                    }
-                    else if (type == 2)
-                    {
-                        var anim = $"retrieve_cards_player_0{GetAnimSeatIdx(seatIdx)}";
-
-                        npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", anim, 3f, 1f, -1, 2, 0f, false, false, false);
-
-                        npc.PlayFacialAnim(anim, "anim_casino_b@amb@casino@games@blackjack@dealer");
-                    }
-
-                    var dealerHand = strD[3].Split('!').Select(x => { var t = x.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList();
-
-                    var playersHands = strD.Skip(4).Select(x => { return x.Length == 0 ? null : x.Split('!').Select(y => { var t = y.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList(); }).ToList();
-
-                    var rDealerHand = npc.GetData<List<CardData>>("DHand");
-
-                    var curPlayerNewCards = new List<int>();
-
-                    if (playersHands[seatIdx] != null)
-                        curPlayerNewCards.AddRange(Enumerable.Range(0, playersHands[seatIdx].Count));
-
-                    if (rDealerHand != null)
-                    {
-                        foreach (var x in rDealerHand)
-                        {
-                            x.MapObject?.Destroy();
-
-                            x.MapObject = null;
-                        }
-
-                        rDealerHand.Clear();
-                    }
-
-                    npc.SetData("DHand", dealerHand);
-
-                    for (int i = 0; i < 4; i++)
-                    {
-                        var key = $"PHand{i}";
-
-                        var rPlayerHand = npc.GetData<List<CardData>>(key);
-
-                        if (rPlayerHand != null)
-                        {
-                            for (int j = 0; j < rPlayerHand.Count; j++)
-                            {
-                                var x = rPlayerHand[j];
+                                var x = rDealerHand[i];
 
                                 x.MapObject?.Destroy();
 
                                 x.MapObject = null;
 
-                                if (i == seatIdx)
-                                    curPlayerNewCards.Remove(j);
+                                dealerNewCards.Remove(i);
                             }
-
-                            rPlayerHand.Clear();
                         }
 
-                        if (playersHands[i] != null)
-                            npc.SetData(key, playersHands[i]);
-                        else
-                            npc.ResetData(key);
-                    }
+                        npc.SetData("DHand", dealerHand);
 
-                    await SpawnAllCards(dealerHand, playersHands, byte.MaxValue);
-
-                    if (dealerHand[1].MapObject?.Exists == true)
-                    {
-                        var rot = dealerHand[1].MapObject.GetRotation(0);
-
-                        dealerHand[1].MapObject.SetRotation(180f, rot.Y, rot.Z, 0, false);
-
-                        dealerHand[1].MapObject.SetData("IsFlipped", true);
-                    }
-
-                    if (onLoad)
-                        return;
-
-                    if (type == 0)
-                        npc.PlaySpeech("MINIGAME_BJACK_DEALER_ANOTHER_CARD", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-
-                    var hand = playersHands[seatIdx];
-
-                    if (hand != null)
-                    {
-                        foreach (var x in curPlayerNewCards)
+                        for (int i = 0; i < 4; i++)
                         {
-                            if (hand[x].MapObject?.Exists == true)
+                            var key = $"PHand{i}";
+
+                            var rPlayerHand = npc.GetData<List<CardData>>(key);
+
+                            if (rPlayerHand != null)
                             {
-                                hand[x].MapObject.SetAlpha(0, false);
+                                for (int j = 0; j < rPlayerHand.Count; j++)
+                                {
+                                    var x = rPlayerHand[j];
 
-                                await DealerGiveCard(seatIdx, hand[x].MapObject);
+                                    x.MapObject?.Destroy();
+
+                                    x.MapObject = null;
+                                }
                             }
-                        }
-                    }
-                }
 
-                private async void StartCardGiving(string resStr, bool onLoad)
-                {
-                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
-
-                    var npc = NPC?.Ped;
-
-                    if (TableObject?.Exists != true || npc?.Exists != true)
-                        return;
-
-                    npc.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-
-                    var strD = resStr.Split('*');
-
-                    var dealerHand = strD[1].Split('!').Select(x => { var t = x.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList();
-
-                    var playersHands = strD.Skip(2).Select(x => { return x.Length == 0 ? null : x.Split('!').Select(y => { var t = y.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList(); }).ToList();
-
-                    npc.SetData("DHand", dealerHand);
-
-                    for (int i = 0; i < playersHands.Count; i++)
-                        npc.SetData($"PHand{i}", playersHands[i]);
-
-                    await SpawnAllCards(dealerHand, playersHands, onLoad ? byte.MaxValue : byte.MinValue);
-
-                    if (dealerHand[1].MapObject?.Exists == true)
-                    {
-                        var rot = dealerHand[1].MapObject.GetRotation(0);
-
-                        dealerHand[1].MapObject.SetRotation(180f, rot.Y, rot.Z, 0, false);
-
-                        dealerHand[1].MapObject.SetData("IsFlipped", true);
-                    }
-
-                    byte dealerHandSum = 0;
-
-                    for (int i = 0; i < dealerHand.Count; i++)
-                    {
-                        dealerHandSum += dealerHand[i].Value;
-
-                        if (onLoad)
-                            continue;
-
-                        if (i == 0)
-                        {
-                            await DealerGiveSelfCard(1, dealerHand[i].MapObject);
-
-                            npc.PlaySpeech($"MINIGAME_BJACK_DEALER_{dealerHand[i].Value}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-                        }
-                        else
-                        {
-                            await DealerGiveSelfCard(0, dealerHand[i].MapObject);
-                        }
-                    }
-
-                    for (int j = 0; j < playersHands.Count; j++)
-                    {
-                        if (playersHands[j] == null)
-                            continue;
-
-                        byte handSum = 0;
-
-                        for (int i = 0; i < playersHands[j].Count; i++)
-                        {
-                            handSum += playersHands[j][i].Value;
-
-                            if (onLoad)
-                                continue;
-
-                            await DealerGiveCard((byte)j, playersHands[j][i].MapObject);
+                            if (playersHands[i] != null)
+                                npc.SetData(key, playersHands[i]);
+                            else
+                                npc.ResetData(key);
                         }
 
-                        if (onLoad)
-                            continue;
+                        await SpawnAllCards(taskKey, task, dealerHand, playersHands, byte.MaxValue);
 
-                        if (handSum > 0 && handSum < 21)
-                        {
-                            npc.PlaySpeech($"MINIGAME_BJACK_DEALER_{handSum}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-                        }
-                        else if (handSum == 21)
-                        {
-                            npc.PlaySpeech("MINIGAME_BJACK_DEALER_BLACKJACK", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-                        }
-                    }
-
-                    if (dealerHandSum == 21)
-                    {
-                        if (!onLoad)
-                        {
-                            npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "check_and_turn_card", 3f, 1f, -1, 2, 0f, false, false, false);
-
-                            npc.PlayFacialAnim("check_and_turn_card", "anim_casino_b@amb@casino@games@blackjack@dealer");
-
-                            await RAGE.Game.Invoker.WaitAsync(500);
-                        }
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
 
                         var cardRot = dealerHand[1].MapObject.GetRotation(0);
+
+                        dealerHand[1].MapObject.SetRotation(180f, cardRot.Y, cardRot.Z, 0, false);
+
+                        dealerHand[1].MapObject.SetData("IsFlipped", true);
+
+                        if (onLoad)
+                            return;
+
+                        foreach (var x in dealerNewCards)
+                        {
+                            if (dealerHand[x].MapObject?.Exists == true)
+                            {
+                                dealerHand[x].MapObject.SetAlpha(0, false);
+                            }
+                        }
+
+                        npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "check_and_turn_card", 3f, 1f, -1, 2, 0f, false, false, false);
+
+                        npc.PlayFacialAnim("check_and_turn_card", "anim_casino_b@amb@casino@games@blackjack@dealer");
+
+                        await RAGE.Game.Invoker.WaitAsync(500);
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
 
                         dealerHand[1].MapObject.SetRotation(0f, cardRot.Y, cardRot.Z, 0, false);
 
                         dealerHand[1].MapObject.ResetData("IsFlipped");
 
-                        npc.PlaySpeech("MINIGAME_BJACK_DEALER_BLACKJACK", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
-                    }
-                    else if (dealerHand[0].Value == 10 || dealerHand[0].Value == 11)
-                    {
-                        npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "check_card", 3f, 1f, -1, 2, 0f, false, false, false);
-
-                        npc.PlayFacialAnim("check_card", "anim_casino_b@amb@casino@games@blackjack@dealer");
-                    }
-                }
-
-                public async void SpawnAllBets(List<BetData> bets)
-                {
-                    var npc = NPC?.Ped;
-
-                    if (TableObject?.Exists != true || npc?.Exists != true)
-                        return;
-
-                    var tableHeading = TableObject.GetHeading();
-
-                    for (int i = 0; i < bets.Count; i++)
-                    {
-                        var x = bets[i];
-
-                        if (x.Amount <= 0)
-                            continue;
-
-                        var offsetInfo = BetOffsets[i][0];
-
-                        var objModelStr = Casino.GetChipPropByAmount(x.Amount);
-
-                        var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
-
-                        await Utils.RequestModel(objModelhash);
-
-                        var coords = TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
-
-                        x.MapObject?.Destroy();
-
-                        x.MapObject = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(objModelhash, coords.X, coords.Y, coords.Z, false, false, false))
+                        foreach (var x in dealerNewCards)
                         {
-                            Dimension = uint.MaxValue,
-                        };
+                            if (dealerHand[x].MapObject?.Exists == true)
+                            {
+                                await DealerGiveSelfCard((byte)x, dealerHand[x].MapObject);
 
-                        x.MapObject.SetRotation(0f, 0f, tableHeading + offsetInfo.RotationZ, 0, false);
-                    }
+                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
+                        }
+
+                        await RAGE.Game.Invoker.WaitAsync(2000);
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "female_retrieve_all_cards", 3f, 1f, -1, 2, 0f, false, false, false);
+
+                        npc.PlayFacialAnim("female_retrieve_all_cards", "anim_casino_b@amb@casino@games@blackjack@dealer");
+
+                        Utils.CancelPendingTask(taskKey);
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending(taskKey, task);
                 }
 
-                public async System.Threading.Tasks.Task SpawnAllCards(List<CardData> dealerHand, List<List<CardData>> playersHands, byte alpha = 255)
+                private void NextStagePlayer(int casinoId, int id, string resStr, bool onLoad, byte type)
+                {
+                    var taskKey = $"CASINO_BLJ_P_{casinoId}_{id}";
+
+                    AsyncTask task = null;
+
+                    task = new AsyncTask(async () =>
+                    {
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+
+                        var npc = NPC?.Ped;
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        var strD = resStr.Split('*');
+
+                        var seatIdx = byte.Parse(strD[1]);
+
+                        if (type == 0)
+                        {
+                            DealerFocusTo(seatIdx, onLoad);
+                        }
+                        else if (type == 1)
+                        {
+
+                        }
+                        else if (type == 2)
+                        {
+                            var anim = $"retrieve_cards_player_0{GetAnimSeatIdx(seatIdx)}";
+
+                            npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", anim, 3f, 1f, -1, 2, 0f, false, false, false);
+
+                            npc.PlayFacialAnim(anim, "anim_casino_b@amb@casino@games@blackjack@dealer");
+                        }
+
+                        var dealerHand = strD[3].Split('!').Select(x => { var t = x.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList();
+
+                        var playersHands = strD.Skip(4).Select(x => { return x.Length == 0 ? null : x.Split('!').Select(y => { var t = y.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList(); }).ToList();
+
+                        var rDealerHand = npc.GetData<List<CardData>>("DHand");
+
+                        var curPlayerNewCards = new List<int>();
+
+                        if (playersHands[seatIdx] != null)
+                            curPlayerNewCards.AddRange(Enumerable.Range(0, playersHands[seatIdx].Count));
+
+                        if (rDealerHand != null)
+                        {
+                            foreach (var x in rDealerHand)
+                            {
+                                x.MapObject?.Destroy();
+
+                                x.MapObject = null;
+                            }
+                        }
+
+                        npc.SetData("DHand", dealerHand);
+
+                        for (int i = 0; i < 4; i++)
+                        {
+                            var key = $"PHand{i}";
+
+                            var rPlayerHand = npc.GetData<List<CardData>>(key);
+
+                            if (rPlayerHand != null)
+                            {
+                                for (int j = 0; j < rPlayerHand.Count; j++)
+                                {
+                                    var x = rPlayerHand[j];
+
+                                    x.MapObject?.Destroy();
+
+                                    x.MapObject = null;
+
+                                    if (i == seatIdx)
+                                        curPlayerNewCards.Remove(j);
+                                }
+                            }
+
+                            if (playersHands[i] != null)
+                                npc.SetData(key, playersHands[i]);
+                            else
+                                npc.ResetData(key);
+                        }
+
+                        await SpawnAllCards(taskKey, task, dealerHand, playersHands, byte.MaxValue);
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        if (dealerHand[1].MapObject?.Exists == true)
+                        {
+                            var rot = dealerHand[1].MapObject.GetRotation(0);
+
+                            dealerHand[1].MapObject.SetRotation(180f, rot.Y, rot.Z, 0, false);
+
+                            dealerHand[1].MapObject.SetData("IsFlipped", true);
+                        }
+
+                        if (onLoad)
+                            return;
+
+                        if (type == 0)
+                            npc.PlaySpeech("MINIGAME_BJACK_DEALER_ANOTHER_CARD", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+
+                        var hand = playersHands[seatIdx];
+
+                        if (hand != null)
+                        {
+                            foreach (var x in curPlayerNewCards)
+                            {
+                                if (hand[x].MapObject?.Exists == true)
+                                {
+                                    hand[x].MapObject.SetAlpha(0, false);
+
+                                    await DealerGiveCard(seatIdx, hand[x].MapObject);
+
+                                    if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                        return;
+                                }
+                            }
+                        }
+
+                        Utils.CancelPendingTask(taskKey);
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending(taskKey, task);
+                }
+
+                private void StartCardGiving(int casinoId, int id, string resStr, bool onLoad)
+                {
+                    var taskKey = $"CASINO_BLJ_S_{casinoId}_{id}";
+
+                    AsyncTask task = null;
+
+                    task = new AsyncTask(async () =>
+                    {
+                        await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+
+                        var npc = NPC?.Ped;
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        npc.PlaySpeech("MINIGAME_DEALER_CLOSED_BETS", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+
+                        var strD = resStr.Split('*');
+
+                        var dealerHand = strD[1].Split('!').Select(x => { var t = x.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList();
+
+                        var playersHands = strD.Skip(2).Select(x => { return x.Length == 0 ? null : x.Split('!').Select(y => { var t = y.Split('-'); return new CardData() { CardType = (CardTypes)byte.Parse(t[0]), Value = byte.Parse(t[1]) }; }).ToList(); }).ToList();
+
+                        npc.SetData("DHand", dealerHand);
+
+                        for (int i = 0; i < playersHands.Count; i++)
+                            npc.SetData($"PHand{i}", playersHands[i]);
+
+                        await SpawnAllCards(taskKey, task, dealerHand, playersHands, onLoad ? byte.MaxValue : byte.MinValue);
+
+                        if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                            return;
+
+                        if (dealerHand[1].MapObject?.Exists == true)
+                        {
+                            var rot = dealerHand[1].MapObject.GetRotation(0);
+
+                            dealerHand[1].MapObject.SetRotation(180f, rot.Y, rot.Z, 0, false);
+
+                            dealerHand[1].MapObject.SetData("IsFlipped", true);
+                        }
+
+                        byte dealerHandSum = 0;
+
+                        for (int i = 0; i < dealerHand.Count; i++)
+                        {
+                            dealerHandSum += dealerHand[i].Value;
+
+                            if (onLoad)
+                                continue;
+
+                            if (i == 0)
+                            {
+                                await DealerGiveSelfCard(1, dealerHand[i].MapObject);
+
+                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+
+                                npc.PlaySpeech($"MINIGAME_BJACK_DEALER_{dealerHand[i].Value}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+                            }
+                            else
+                            {
+                                await DealerGiveSelfCard(0, dealerHand[i].MapObject);
+
+                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
+                        }
+
+                        for (int j = 0; j < playersHands.Count; j++)
+                        {
+                            if (playersHands[j] == null)
+                                continue;
+
+                            byte handSum = 0;
+
+                            for (int i = 0; i < playersHands[j].Count; i++)
+                            {
+                                handSum += playersHands[j][i].Value;
+
+                                if (onLoad)
+                                    continue;
+
+                                await DealerGiveCard((byte)j, playersHands[j][i].MapObject);
+
+                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
+
+                            if (onLoad)
+                                continue;
+
+                            if (handSum > 0 && handSum < BLACKJACK_ON)
+                            {
+                                npc.PlaySpeech($"MINIGAME_BJACK_DEALER_{handSum}", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+                            }
+                            else if (handSum == BLACKJACK_ON)
+                            {
+                                npc.PlaySpeech("MINIGAME_BJACK_DEALER_BLACKJACK", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+                            }
+                        }
+
+                        if (dealerHandSum == BLACKJACK_ON)
+                        {
+                            if (!onLoad)
+                            {
+                                npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "check_and_turn_card", 3f, 1f, -1, 2, 0f, false, false, false);
+
+                                npc.PlayFacialAnim("check_and_turn_card", "anim_casino_b@amb@casino@games@blackjack@dealer");
+
+                                await RAGE.Game.Invoker.WaitAsync(500);
+
+                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+                            }
+
+                            var cardRot = dealerHand[1].MapObject.GetRotation(0);
+
+                            dealerHand[1].MapObject.SetRotation(0f, cardRot.Y, cardRot.Z, 0, false);
+
+                            dealerHand[1].MapObject.ResetData("IsFlipped");
+
+                            if (!onLoad)
+                            {
+                                npc.PlaySpeech("MINIGAME_BJACK_DEALER_BLACKJACK", "SPEECH_PARAMS_FORCE_NORMAL_CLEAR", 1);
+
+                                await RAGE.Game.Invoker.WaitAsync(750);
+
+                                if (TableObject?.Exists != true || npc?.Exists != true || !Utils.IsTaskStillPending(taskKey, task))
+                                    return;
+
+                                npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "female_retrieve_all_cards", 3f, 1f, -1, 2, 0f, false, false, false);
+
+                                npc.PlayFacialAnim("female_retrieve_all_cards", "anim_casino_b@amb@casino@games@blackjack@dealer");
+                            }
+                        }
+                        else if (dealerHand[0].Value == 10 || dealerHand[0].Value == 11)
+                        {
+                            if (!onLoad)
+                            {
+                                npc.TaskPlayAnim("anim_casino_b@amb@casino@games@blackjack@dealer", "check_card", 3f, 1f, -1, 2, 0f, false, false, false);
+
+                                npc.PlayFacialAnim("check_card", "anim_casino_b@amb@casino@games@blackjack@dealer");
+                            }
+                        }
+
+                        Utils.CancelPendingTask(taskKey);
+                    }, 0, false, 0);
+
+                    Utils.SetTaskAsPending(taskKey, task);
+                }
+
+                public async System.Threading.Tasks.Task SpawnAllCards(string taskKey, AsyncTask task, List<CardData> dealerHand, List<List<CardData>> playersHands, byte alpha = 255)
                 {
                     var npc = NPC?.Ped;
 
@@ -1061,7 +1146,7 @@ namespace BCRPClient.Data
 
                     for (int i = 0; i < dealerHand.Count; i++)
                     {
-                        var offsetInfo = CardOffsets[0][i == 0 ? 1 : i == 1 ? 0 : i];
+                        var offsetInfo = GetCardOffset(0, 0, (byte)(i == 0 ? 1 : i == 1 ? 0 : i));
 
                         var x = dealerHand[i];
 
@@ -1070,6 +1155,9 @@ namespace BCRPClient.Data
                         var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
 
                         await Utils.RequestModel(objModelhash);
+
+                        if (!Utils.IsTaskStillPending(taskKey, task))
+                            return;
 
                         var coords = TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
 
@@ -1096,13 +1184,16 @@ namespace BCRPClient.Data
                         {
                             var y = x[j];
 
-                            var offsetInfo = CardOffsets[i + 1][j];
+                            var offsetInfo = GetCardOffset((byte)(i + 1), 0, (byte)j);
 
                             var objModelStr = GetCardModelByType(y.CardType);
 
                             var objModelhash = RAGE.Util.Joaat.Hash(objModelStr);
 
                             await Utils.RequestModel(objModelhash);
+
+                            if (!Utils.IsTaskStillPending(taskKey, task))
+                                return;
 
                             var coords = TableObject.GetOffsetFromInWorldCoords(offsetInfo.X, offsetInfo.Y, offsetInfo.Z);
 
@@ -1259,9 +1350,9 @@ namespace BCRPClient.Data
                                 {
                                     var text = $"{dealerSum}";
 
-                                    if (dealerSum > 21 || (playerSum > dealerSum && dealerSum >= 17))
+                                    if (dealerSum > LOOSE_AFTER || (playerSum > dealerSum && dealerSum >= DEALER_STOPS_ON))
                                         Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
-                                    else if (dealerSum == 21)
+                                    else if (dealerSum == BLACKJACK_ON)
                                         Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                                     else if (dealerSum > playerSum)
                                         Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
@@ -1282,11 +1373,11 @@ namespace BCRPClient.Data
                             {
                                 var text = $"{playerSum}";
 
-                                if (dealerSum <= 21)
+                                if (dealerSum <= LOOSE_AFTER)
                                 {
-                                    if (playerSum > 21 || (dealerSum > playerSum && dealerSum >= 17 && dealerSum <= 21))
+                                    if (playerSum > LOOSE_AFTER || (dealerSum > playerSum && dealerSum >= DEALER_STOPS_ON && dealerSum <= LOOSE_AFTER))
                                         Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
-                                    else if (playerSum == 21)
+                                    else if (playerSum == BLACKJACK_ON)
                                         Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
                                     else if (playerSum > dealerSum)
                                         Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
@@ -1317,6 +1408,18 @@ namespace BCRPClient.Data
                             }
                         }
                     }
+                }
+
+                public static async System.Threading.Tasks.Task LoadAllRequired()
+                {
+                    await Utils.RequestScriptAudioBank("DLC_VINEWOOD/CASINO_GENERAL", false, -1);
+
+                    await Utils.RequestAnimDict("anim_casino_b@amb@casino@games@blackjack@dealer");
+
+                    var allCards = (CardTypes[])Enum.GetValues(typeof(CardTypes));
+
+                    for (int i = 0; i < allCards.Length; i++)
+                        await Utils.RequestModel(RAGE.Util.Joaat.Hash(GetCardModelByType(allCards[i])));
                 }
             }
         }
