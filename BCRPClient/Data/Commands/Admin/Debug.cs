@@ -1,4 +1,5 @@
-﻿using RAGE;
+﻿using BCRPClient.Sync;
+using RAGE;
 using RAGE.Elements;
 using System.Collections.Generic;
 using System.Linq;
@@ -675,6 +676,93 @@ namespace BCRPClient.Data
             }
 
             Utils.DebugServerSaveText(RAGE.Util.Json.Serialize(t));
+        }
+
+
+        [Command("pos_s", true, "Получить текущую позицию", "position_save")]
+        public static void PositionSave(bool onGround = false, string info = "")
+        {
+            var pos = Player.LocalPlayer.Position;
+
+            if (onGround)
+                pos.Z -= 1f;
+
+            Utils.DebugServerSaveText($"POS_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.GetHeading()}f) - {info}");
+        }
+
+        [Command("posv_s", true, "Получить текущую позицию", "position_save")]
+        public static void PositionVehicleSave(string info = "")
+        {
+            var pos = Player.LocalPlayer.Vehicle?.Position;
+
+            if (pos == null)
+                return;
+
+            Utils.DebugServerSaveText($"POSV_S ({pos.X}f, {pos.Y}f, {pos.Z}f, {Player.LocalPlayer.Vehicle.GetHeading()}f) - {info}");
+        }
+
+        [Command("debug_blip", true, "Получить текущую позицию")]
+        public static void DebugBlip(uint model = 162, byte color = 1, string name = "DEBUG")
+        {
+            var pos = Player.LocalPlayer.Position;
+
+            var blip = new Additional.ExtraBlip(model, pos, name, 1f, color, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.Default);
+        }
+
+        [Command("new_house", true, "Получить текущую позицию")]
+        public static void NewHouse()
+        {
+            var last = Data.Locations.House.All.Last();
+
+            var house = new Data.Locations.House(last.Key + 1, Player.LocalPlayer.Position, Sync.House.Style.RoomTypes.Two, Locations.Garage.Types.Two, new Vector3(0f, 0f, 0f), 0, Locations.HouseBase.ClassTypes.A, 0);
+
+            Player.LocalPlayer.SetData($"House::{house.Id}::RotZ", Player.LocalPlayer.GetHeading());
+
+            house.ToggleOwnerBlip(true);
+        }
+
+        [Command("del_house", true, "")]
+        public static void DelHouse(uint id)
+        {
+            Data.Locations.House house;
+
+            if (Data.Locations.House.All.Remove(id, out house))
+            {
+                house.ToggleOwnerBlip(false);
+
+                house.Colshape?.Destroy();
+                house?.InfoText?.Destroy();
+            }
+        }
+
+        [Command("garage_house", true, "")]
+        public static void GarageHouse(uint id, bool delete = false)
+        {
+            var house = Data.Locations.House.All.GetValueOrDefault(id);
+
+            if (house == null)
+                return;
+
+            if (delete)
+                house.GaragePosition = null;
+            else
+                house.GaragePosition = Player.LocalPlayer.Vehicle?.Position ?? Player.LocalPlayer.Position;
+
+            Player.LocalPlayer.SetData($"House::{house.Id}::GRotZ", Player.LocalPlayer.Vehicle?.GetHeading() ?? Player.LocalPlayer.GetHeading());
+        }
+
+        [Command("save_house", true, "")]
+        public static void SaveHouse(uint id)
+        {
+            var house = Data.Locations.House.All.GetValueOrDefault(id);
+
+            if (house == null)
+                return;
+
+            if (house.GaragePosition == null)
+                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float>($"House::{id}::RotZ")}f), Style.RoomTypes.Two, 50_000, null, null);");
+            else
+                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float>($"House::{id}::RotZ")}f), Style.RoomTypes.Two, 50_000, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float>($"House::{id}::GRotZ")}f));");
         }
     }
 }

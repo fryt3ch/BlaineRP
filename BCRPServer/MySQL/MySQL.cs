@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
@@ -208,6 +209,28 @@ namespace BCRPServer
         public static void LoadAll()
         {
             var currentTime = Utils.GetCurrentTime();
+
+/*            using (var conn = new MySqlConnection($"SERVER={Host}; DATABASE=fiveup_main; UID={User}; PASSWORD={Password}"))
+            {
+                conn.Open();
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT houses.position AS house_position, garages.position AS garage_position, garages.rotation AS garage_rotation FROM houses JOIN garages ON houses.garage = garages.id;";
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            var pos = ((string)reader["house_position"]).DeserializeFromJson<Vector3>();
+                            var garagePos = ((string)reader["garage_position"]).DeserializeFromJson<Vector3>();
+                            var garageRot = ((string)reader["garage_rotation"]).DeserializeFromJson<Vector3>();
+
+                            File.AppendAllText(@"houses_coords.txt", $"new Vector3({pos.X}f, {pos.Y}f, {pos.Z}f),\n");
+                        }
+                    }
+                }
+            }*/
 
             using (var conn = new MySqlConnection(LocalConnectionCredentials))
             {

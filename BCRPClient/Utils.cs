@@ -895,6 +895,23 @@ namespace BCRPClient
             return true;
         }
 
+        public static MapObject CreateObjectNoOffsetImmediately(uint modelHash, float posX, float posY, float posZ)
+        {
+            if (!Utils.RequestModelNow(modelHash))
+                return null;
+
+            var handle = RAGE.Game.Object.CreateObjectNoOffset(modelHash, posX, posY, posZ, false, false, false);
+
+            var mObj = new MapObject(handle)
+            {
+                Dimension = uint.MaxValue,
+            };
+
+            RAGE.Game.Entity.SetEntityAsMissionEntity(handle, false, false);
+
+            return mObj;
+        }
+
         public static void SetWaypoint(float x, float y)
         {
             RAGE.Game.Ui.SetWaypointOff();
