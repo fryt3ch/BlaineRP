@@ -698,11 +698,56 @@ namespace BCRPClient.Sync
                     x.Initialize();
                 }
 
+                var carhash = RAGE.Util.Joaat.Hash("sandking2");
+
                 foreach (var x in Data.Locations.House.All)
                 {
-                    x.Value.ToggleOwnerBlip(true);
-                    //new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
+                    //x.Value.ToggleOwnerBlip(true);
+
+                    var res = ((string)await Events.CallRemoteProc("debug_gethouseinfo", x.Key))?.Split('_');
+
+                    if (res != null)
+                    {
+                        var ped = new Data.NPC($"house_h_{x.Key}", $"{x.Key}", Data.NPC.Types.Static, "u_m_y_abner", new Vector3(x.Value.Position.X, x.Value.Position.Y, x.Value.Position.Z + 1f), float.Parse(res[0]), Settings.MAIN_DIMENSION);
+
+                        if (x.Value.GaragePosition != null)
+                        {
+                            var car = new Vehicle(carhash, x.Value.GaragePosition, float.Parse(res[1]), $"{x.Key}", 255, false, 0, 0, Settings.MAIN_DIMENSION);
+
+                            car.SetData("HOUSE_ID", x.Key);
+                        }
+                    }
+
+                    if (x.Value.GaragePosition != null)
+                        continue;
+
+                    new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
                 }
+
+/*                KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
+                {
+                    var pos = Player.LocalPlayer.Position;
+
+                    var nPos = Vector3.Zero;
+                    var nHeading = 0f;
+
+                    if (RAGE.Game.Pathfind.GetClosestVehicleNodeWithHeading(pos.X, pos.Y, pos.Z, nPos, ref nHeading, 1, 3f, 0))
+                    {
+                        if (true)
+                        {
+                            if (Player.LocalPlayer.Vehicle is Vehicle veh)
+                            {
+                                veh.Position = nPos;
+                                veh.SetHeading(nHeading);
+                            }
+                            else
+                            {
+                                Player.LocalPlayer.Position = nPos;
+                                Player.LocalPlayer.SetHeading(nHeading);
+                            }
+                        }
+                    }
+                });*/
             });
             #endregion
 

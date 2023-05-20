@@ -709,6 +709,40 @@ namespace BCRPClient.Data
             var blip = new Additional.ExtraBlip(model, pos, name, 1f, color, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.Default);
         }
 
+        [Command("tp_house", true, "Получить текущую позицию")]
+        public static async void TpHouse(uint id)
+        {
+            var npc = Data.NPC.GetData($"house_h_{id}");
+
+            if (npc == null)
+                return;
+
+            Player.LocalPlayer.Position = npc.Ped.Position;
+
+            await RAGE.Game.Invoker.WaitAsync(2000);
+
+            Player.LocalPlayer.SetHeading(npc.Ped.GetHeading());
+        }
+
+        [Command("tp_garage", true, "Получить текущую позицию")]
+        public static async void TpGarage(uint id)
+        {
+            var veh = RAGE.Elements.Entities.Vehicles.All.Where(x => x.GetData<uint>("HOUSE_ID") == id).FirstOrDefault();
+
+            if (veh == null)
+                return;
+
+            var pos = veh.Position;
+
+            pos.Z += 100f;
+
+            Player.LocalPlayer.Position = pos;
+
+            await RAGE.Game.Invoker.WaitAsync(3000);
+
+            Player.LocalPlayer.SetIntoVehicle(veh.Handle, -1);
+        }
+
         [Command("new_house", true, "Получить текущую позицию")]
         public static void NewHouse()
         {
@@ -736,33 +770,49 @@ namespace BCRPClient.Data
         }
 
         [Command("garage_house", true, "")]
-        public static void GarageHouse(uint id, bool delete = false)
+        public static void GarageHouse(uint id)
         {
             var house = Data.Locations.House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
 
-            if (delete)
-                house.GaragePosition = null;
-            else
-                house.GaragePosition = Player.LocalPlayer.Vehicle?.Position ?? Player.LocalPlayer.Position;
+            house.GaragePosition = Player.LocalPlayer.Vehicle?.Position ?? Player.LocalPlayer.Position;
 
             Player.LocalPlayer.SetData($"House::{house.Id}::GRotZ", Player.LocalPlayer.Vehicle?.GetHeading() ?? Player.LocalPlayer.GetHeading());
         }
 
-        [Command("save_house", true, "")]
-        public static void SaveHouse(uint id)
+        [Command("enter_house", true, "")]
+        public static void EnterHouse(uint id)
         {
             var house = Data.Locations.House.All.GetValueOrDefault(id);
 
             if (house == null)
                 return;
 
+            var pos = Player.LocalPlayer.Position;
+
+            pos.Z -= 1f;
+
+            house.Position = pos;
+
+            Player.LocalPlayer.SetData($"House::{house.Id}::RotZ", Player.LocalPlayer.GetHeading());
+        }
+
+        [Command("save_house", true, "")]
+        public static async void SaveHouse(uint id)
+        {
+            var house = Data.Locations.House.All.GetValueOrDefault(id);
+
+            if (house == null)
+                return;
+
+            var data = ((string)await Events.CallRemoteProc("debug_gethouseinfo", id))?.Split('_');
+
             if (house.GaragePosition == null)
-                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float>($"House::{id}::RotZ")}f), Style.RoomTypes.Two, 50_000, null, null);");
+                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);");
             else
-                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float>($"House::{id}::RotZ")}f), Style.RoomTypes.Two, 50_000, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float>($"House::{id}::GRotZ")}f));");
+                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));");
         }
     }
 }

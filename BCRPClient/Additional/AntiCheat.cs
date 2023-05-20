@@ -425,13 +425,13 @@ namespace BCRPClient.Additional
 
         private static void Check()
         {
-            if (Player.LocalPlayer.Vehicle is Vehicle fakeVeh && fakeVeh.IsLocal)
+/*            if (Player.LocalPlayer.Vehicle is Vehicle fakeVeh && fakeVeh.IsLocal)
             {
                 if (Player.LocalPlayer.Dimension == Settings.MAIN_DIMENSION)
                 {
                     fakeVeh.Destroy();
                 }
-            }
+            }*/
 
             #region Teleport
             if (!AllowTP.Peek())

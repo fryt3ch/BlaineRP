@@ -409,5 +409,16 @@ namespace BCRPServer.Events
         {
             File.AppendAllText(@"debug-save.txt", str + Environment.NewLine);
         }
+
+        [RemoteProc("debug_gethouseinfo")]
+        private static object DebugGetHouseInfo(Player player, uint houseId)
+        {
+            var h = Game.Estates.House.Get(houseId);
+
+            if (h == null)
+                return null;
+
+            return $"{h.PositionParams.RotationZ}_{h.GarageOutside?.RotationZ ?? 0f}";
+        }
     }
 }

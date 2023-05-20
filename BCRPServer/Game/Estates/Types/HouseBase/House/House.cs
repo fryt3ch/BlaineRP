@@ -22,9 +22,9 @@ namespace BCRPServer.Game.Estates
             if (GarageType is Garage.Types gType)
             {
                 this.GarageData = Garage.Style.Get(gType, 0);
-
-                this.GarageOutside = GarageOutside;
             }
+
+            this.GarageOutside = GarageOutside;
 
             All.Add(HID, this);
         }
