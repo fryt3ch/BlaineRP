@@ -97,6 +97,7 @@ namespace BCRPServer.Game.Businesses
 
             new TattooShop(35, new Vector3(-286.4024f, 6199.159f, 30.45244f), new Utils.Vector4(-292.0363f, 6199.72f, 31.48712f, 222.5584f), new Utils.Vector4(-293.9031f, 6200.241f, 31.48711f, 186.6973f));
             new TattooShop(36, new Vector3(-3165.543f, 1075.181f, 20.84793f), new Utils.Vector4(-3170.584f, 1073.112f, 20.82918f, 335.5721f), new Utils.Vector4(-3169.231f, 1077.034f, 20.82918f, 194.2503f));
+            new TattooShop(39, new Vector3(1857.347f, 3750.072f, 32.07676f), new Utils.Vector4(1862.596f, 3748.521f, 33.03189f, 25.12906f), new Utils.Vector4(1864.448f, 3747.398f, 33.03189f, 11.68702f));
 
             new FurnitureShop(37, null, new Utils.Vector4(2738.052f, 3461.774f, 55.69563f, 336.6192f));
 

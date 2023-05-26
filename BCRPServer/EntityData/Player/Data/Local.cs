@@ -127,7 +127,7 @@ namespace BCRPServer
 
         public Game.Estates.HouseBase CurrentHouseBase => Utils.GetHouseBaseByDimension(Player.Dimension);
 
-        public Game.Estates.Apartments.ApartmentsRoot CurrentApartmentsRoot => Utils.GetApartmentsRootTypeByDimension(Player.Dimension) is Game.Estates.Apartments.ApartmentsRoot.Types arType ? Game.Estates.Apartments.ApartmentsRoot.Get(arType) : null;
+        public Game.Estates.Apartments.ApartmentsRoot CurrentApartmentsRoot => Utils.GetApartmentsRootByDimension(Player.Dimension);
 
         public int VehicleSlots => (Settings.MIN_VEHICLE_SLOTS + OwnedHouses.Where(x => x.GarageData != null).Select(x => x.GarageData.MaxVehicles).Sum() + OwnedGarages.Select(x => x.StyleData.MaxVehicles).Sum()) - OwnedVehicles.Count;
 

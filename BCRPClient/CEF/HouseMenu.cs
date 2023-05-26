@@ -197,7 +197,7 @@ namespace BCRPClient.CEF
                     if (!id2.Contains("hlo_"))
                         return;
 
-                    var layout = (Sync.House.Style.Types)Enum.Parse(typeof(Sync.House.Style.Types), id2.Replace("hlo_", ""));
+                    var layout = ushort.Parse(id2.Replace("hlo_", ""));
                 }
                 else if (id == "expel") // expel settler
                 {
@@ -352,7 +352,7 @@ namespace BCRPClient.CEF
                 info = new object[] { rApartments.NumberInRoot + 1, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, 0, new object[] { doorState, contState } };
             }
 
-            var layouts = new object[] { Sync.House.Style.All[style.HouseType][style.RoomType].Select(x => new object[] { "hlo_" + x.Value.Type.ToString(), x.Value.Name, x.Value.Price }), "hlo_" + style.Type.ToString() };
+            var layouts = new object[] { Sync.House.Style.All.Where(x => x.Value == style || (x.Value.IsHouseTypeSupported(house.Type) && x.Value.IsRoomTypeSupported(house.RoomType))).Select(x => new object[] { $"hlo_{x.Key}", Sync.House.Style.GetName(x.Key), x.Value.Price }), $"hlo_{Sync.House.Style.All.Where(x => x.Value == style).FirstOrDefault().Key}" };
 
             var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
@@ -360,7 +360,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.MenuHome, true, true);
 
-            CEF.Browser.Window.ExecuteJs("MenuHome.draw", style.HouseType == Sync.House.HouseTypes.Apartments ? 1 : 0, new object[] { info, layouts, settlers, furns, lights });
+            CEF.Browser.Window.ExecuteJs("MenuHome.draw", house.Type == Sync.House.HouseTypes.Apartments ? 1 : 0, new object[] { info, layouts, settlers, furns, lights });
 
             CEF.Cursor.Show(true, true);
 
@@ -490,13 +490,13 @@ namespace BCRPClient.CEF
 
         private static int TempEscBind { get; set; }
 
-        private static ContextTypes? CurrentContext { get; set; }
-
-        private static int CurrentFloor { get; set; }
+        private static ContextTypes CurrentContext { get; set; }
 
         public enum ContextTypes
         {
-            ApartmentsRoot = 0,
+            None = 0,
+
+            ApartmentsRoot,
         }
 
         public Elevator()
@@ -510,28 +510,44 @@ namespace BCRPClient.CEF
                 if (HouseMenu.LastSent.IsSpam(500, false, false))
                     return;
 
-                if (CurrentContext is ContextTypes context)
+                if (CurrentContext == ContextTypes.ApartmentsRoot)
                 {
-                    if (context == ContextTypes.ApartmentsRoot)
+                    var aRoot = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current");
+
+                    if (aRoot == null)
+                        return;
+
+                    var shell = aRoot.Shell;
+
+                    int elevI, elevJ;
+
+                    if (!shell.GetClosestElevator(Player.LocalPlayer.Position, out elevI, out elevJ))
+                        return;
+
+                    if (floor < shell.StartFloor)
                     {
-                        if (CurrentFloor == floor)
-                        {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.ElevatorCurrentFloor);
-
-                            return;
-                        }
-
-                        Events.CallRemote("ARoot::Elevator", CurrentFloor, floor);
-
-                        HouseMenu.LastSent = Sync.World.ServerTime;
-
-                        Close();
+                        floor = shell.StartFloor;
                     }
+
+                    var curFloor = elevI + shell.StartFloor;
+
+                    if (curFloor == floor)
+                    {
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.ElevatorCurrentFloor);
+
+                        return;
+                    }
+
+                    Events.CallRemote("ARoot::Elevator", elevI, elevJ, floor - shell.StartFloor);
+
+                    HouseMenu.LastSent = Sync.World.ServerTime;
+
+                    Close();
                 }
             });
         }
 
-        public static async System.Threading.Tasks.Task Show(int maxFloor, int curFloor, ContextTypes contextType)
+        public static async System.Threading.Tasks.Task Show(int maxFloor, int? curFloor, ContextTypes contextType)
         {
             if (IsActive)
                 return;
@@ -542,8 +558,6 @@ namespace BCRPClient.CEF
             await CEF.Browser.Render(Browser.IntTypes.Elevator, true, true);
 
             CurrentContext = contextType;
-
-            CurrentFloor = curFloor;
 
             CEF.Browser.Window.ExecuteJs("Elevator.setMaxFloor", maxFloor);
             CEF.Browser.Window.ExecuteJs("Elevator.setCurrentFloor", curFloor);
@@ -558,7 +572,7 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            CurrentContext = null;
+            CurrentContext = ContextTypes.None;
 
             CEF.Browser.Render(Browser.IntTypes.Elevator, false);
 

@@ -85,11 +85,6 @@ namespace BCRPClient
                 { CEF.Shop.FurnitureSubTypes.Decores, "Декор" },
             };
 
-            public static Dictionary<Data.Locations.ApartmentsRoot.Types, string> ApartmentsRootNames = new Dictionary<Data.Locations.ApartmentsRoot.Types, string>()
-            {
-                { Data.Locations.ApartmentsRoot.Types.Cheap1, "ЖК Paleto" },
-            };
-
             public static string NoOwner = "Государство";
 
             public static string BankNameDef = "Банковское отделение";
@@ -102,7 +97,7 @@ namespace BCRPClient
             public static string ApartmentsTextLabel = "Квартира #{0}\nВладелец: {1}";
             public static string HouseTextLabel = "Дом #{0}\nВладелец: {1}";
 
-            public static string ApartmentsRootElevatorTextLabel = "Лифт [{0} этаж]";
+            public static string ApartmentsRootElevatorTextLabel = "Этаж: {0}\nКвартиры: {1} - {2}";
 
             public static string ApartmentsRootExitTextLabel = "Выход на улицу";
             public static string HouseExitTextLabel = "Выход";

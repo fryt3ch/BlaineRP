@@ -29,8 +29,14 @@ namespace BCRPClient
 
                     { "farmer", "Фермер" },
 
+                    { "priest", "Священник" },
+
                     { "cop0", "Дежурный полиции" },
                     { "drivingschool", "Менеджер автошколы" },
+
+                    { "boatm", "Менеджер доков" },
+                    { "airvm", "Менеджер аэродрома" },
+                    { "groundvm", "Менеджер наземного транспорта" },
 
                     { "Casino@Roulette", "Крупье" },
                     { "Casino@Blackjack", "Крупье" },

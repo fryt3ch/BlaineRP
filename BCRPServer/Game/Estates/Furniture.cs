@@ -113,6 +113,8 @@ namespace BCRPServer.Game.Estates
 
             public static int LoadAll()
             {
+                // v_res_tre_fridge
+
                 new ItemData("furn_91", Types.Chair, "Позднеренессансное кресло", "apa_mp_h_stn_chairarm_01");
                 new ItemData("furn_96", Types.Chair, "Кресло в стиле модерн", "apa_mp_h_stn_chairarm_12");
                 new ItemData("furn_98", Types.Chair, "Раскладное кресло (малиновое)", "apa_mp_h_stn_chairarm_23");
@@ -174,7 +176,7 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_247", Types.Chair, "Стул клубный", "bkr_prop_clubhouse_chair_01");
                 new ItemData("furn_252", Types.Chair, "Стул компьютерный старый", "bkr_prop_clubhouse_offchair_01a");
                 new ItemData("furn_256", Types.Chair, "Стул Магнат", "bkr_prop_weed_chair_01a");
-                new ItemData("furn_259", Types.Chair, "Стул роскошный красный", "cls_h4_int_04_desk_chair");
+                new ItemData("furn_259", Types.Chair, "Стул роскошный красный", "brp_p_furn_h4_int_04_desk_chair");
                 new ItemData("furn_282", Types.Chair, "Стул офисный деловой", "ex_prop_offchair_exec_01");
                 new ItemData("furn_283", Types.Chair, "Стул офисный №2 (черный)", "ex_prop_offchair_exec_03");
                 new ItemData("furn_288", Types.Chair, "Стул кухонный (в полоску)", "gr_dlc_gr_yacht_props_seat_01");
@@ -292,7 +294,7 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_153", Types.Table, "Стол в виде куба", "apa_mp_h_yacht_side_table_01");
                 new ItemData("furn_154", Types.Table, "Стол дизайнерский (круглый)", "apa_mp_h_yacht_side_table_02");
                 new ItemData("furn_246", Types.Table, "Стол на стойке", "bkr_prop_clubhouse_arm_wrestle_02a");
-                new ItemData("furn_266", Types.Table, "Стол письменный Роскошь", "cls_sf_table_1");
+                new ItemData("furn_266", Types.Table, "Стол письменный Роскошь", "brp_p_furn_table_b_1");
                 new ItemData("furn_291", Types.Table, "Стол обтянутый тканью", "gr_dlc_gr_yacht_props_table_01");
                 new ItemData("furn_292", Types.Table, "Стол обтянутый тканью (журнальный)", "gr_dlc_gr_yacht_props_table_02");
                 new ItemData("furn_293", Types.Table, "Стол обтянутый тканью №2", "gr_dlc_gr_yacht_props_table_03");
@@ -324,21 +326,21 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_135", Types.Locker, "Тумба коричневая", "apa_mp_h_str_sideboardm_02");
                 new ItemData("furn_136", Types.Locker, "Тумба белая №2", "apa_mp_h_str_sideboardm_03");
                 new ItemData("furn_137", Types.Locker, "Тумба дизайнерская", "apa_mp_h_str_sideboards_01");
-                new ItemData("furn_196", Types.Locker, "Антресоль темная (L)", "ap_m_cooking_17");
-                new ItemData("furn_199", Types.Locker, "Антресоль белая с боковым шкафом (L)", "ap_m_cooking_2");
-                new ItemData("furn_209", Types.Locker, "Полка деревянная одиночная", "ap_m_prop_10");
-                new ItemData("furn_211", Types.Locker, "Стойка деревянная вытянутая", "ap_m_prop_12");
-                new ItemData("furn_222", Types.Wardrobe, "Гардероб стеллаж Luxe (1)", "ap_m_shelf_1");
-                new ItemData("furn_223", Types.Locker, "Стойка деревянная квадратная", "ap_m_shelf_2");
-                new ItemData("furn_224", Types.Locker, "Полка деревянная двойная темная", "ap_m_shelf_3");
-                new ItemData("furn_225", Types.Wardrobe, "Гардероб деревянный Бизнес", "ap_m_shelf_4");
-                new ItemData("furn_226", Types.Locker, "Шкаф деревянный со светлой отделкой (слева)", "ap_m_shelf_5");
-                new ItemData("furn_227", Types.Wardrobe, "Гардероб стеллаж Luxe (2)", "ap_m_shelf_6");
-                new ItemData("furn_228", Types.Locker, "Шкаф деревянный со светлой отделкой (справа)", "ap_m_shelf_7");
+                new ItemData("furn_196", Types.Locker, "Антресоль темная (L)", "brp_p_furn_kitchen_17");
+                new ItemData("furn_199", Types.Locker, "Антресоль белая с боковым шкафом (L)", "brp_p_furn_kitchen_2");
+                new ItemData("furn_209", Types.Locker, "Полка деревянная одиночная", "brp_p_furn_prop_10");
+                new ItemData("furn_211", Types.Locker, "Стойка деревянная вытянутая", "brp_p_furn_prop_12");
+                new ItemData("furn_222", Types.Wardrobe, "Гардероб стеллаж Luxe (1)", "brp_p_furn_shelf_1");
+                new ItemData("furn_223", Types.Locker, "Стойка деревянная квадратная", "brp_p_furn_shelf_2");
+                new ItemData("furn_224", Types.Locker, "Полка деревянная двойная темная", "brp_p_furn_shelf_3");
+                new ItemData("furn_225", Types.Wardrobe, "Гардероб деревянный Бизнес", "brp_p_furn_shelf_4");
+                new ItemData("furn_226", Types.Locker, "Шкаф деревянный со светлой отделкой (слева)", "brp_p_furn_shelf_5");
+                new ItemData("furn_227", Types.Wardrobe, "Гардероб стеллаж Luxe (2)", "brp_p_furn_shelf_6");
+                new ItemData("furn_228", Types.Locker, "Шкаф деревянный со светлой отделкой (справа)", "brp_p_furn_shelf_7");
                 new ItemData("furn_242", Types.Locker, "Шкаф маленький с одеждой", "bkr_prop_biker_garage_locker_01");
                 new ItemData("furn_244", Types.Locker, "Шкаф открытый", "bkr_prop_biker_safebody_01a");
-                new ItemData("furn_264", Types.Locker, "Книжный шкаф угловой", "cls_sf_shelf_1");
-                new ItemData("furn_265", Types.Locker, "Книжный шкаф прямой", "cls_sf_shelf_2");
+                new ItemData("furn_264", Types.Locker, "Книжный шкаф угловой", "brp_p_furn_shelf_b_1");
+                new ItemData("furn_265", Types.Locker, "Книжный шкаф прямой", "brp_p_furn_shelf_b_2");
                 new ItemData("furn_317", Types.Locker, "Комод классический (кофейный)", "hei_heist_bed_chestdrawer_04");
                 new ItemData("furn_318", Types.Locker, "2 тумбочки (кофейные)", "hei_heist_bed_table_dble_04");
                 new ItemData("furn_340", Types.Locker, "Тумбочка классическая (белая)", "hei_heist_str_sideboardl_02");
@@ -482,7 +484,7 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_660", Types.TV, "ТВ на подставке LCD (XL)", "sm_prop_smug_tv_flat_01");
 
                 new ItemData("furn_28", Types.Electronics, "Телефон ретро", "apa_mp_h_acc_phone_01");
-                new ItemData("furn_210", Types.Electronics, "Бойлер с бытовой химией", "ap_m_prop_11");
+                new ItemData("furn_210", Types.Electronics, "Бойлер с бытовой химией", "brp_p_furn_prop_11");
                 new ItemData("furn_231", Types.Electronics, "Джойстик игровой (темный)", "ba_prop_battle_control_console");
                 new ItemData("furn_248", Types.Electronics, "Музыкальный автомат настенный", "bkr_prop_clubhouse_jukebox_01a");
                 new ItemData("furn_249", Types.Electronics, "Музыкальный автомат 80х", "bkr_prop_clubhouse_jukebox_01b");
@@ -525,29 +527,29 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_22", Types.KitchenStuff, "Чайный набор", "apa_mp_h_acc_drink_tray_02");
                 new ItemData("furn_23", Types.KitchenStuff, "Фруктовая тарелка (яблоки)", "apa_mp_h_acc_fruitbowl_01");
                 new ItemData("furn_24", Types.KitchenStuff, "Фруктовая тарелка (ассорти)", "apa_mp_h_acc_fruitbowl_02");
-                new ItemData("furn_188", Types.KitchenStuff, "Кухонный гарнитур полный Белый прямой", "ap_m_cooking_1");
-                new ItemData("furn_189", Types.KitchenStuff, "Тумбочка с рабочей поверхностью серая 2 отсека", "ap_m_cooking_10");
-                new ItemData("furn_190", Types.KitchenStuff, "Раковина угловая мрамор", "ap_m_cooking_11");
-                new ItemData("furn_191", Types.KitchenStuff, "Кухонный гарнитур полный Черный прямой", "ap_m_cooking_12");
-                new ItemData("furn_192", Types.KitchenStuff, "Остров кухонный профессиональный темный", "ap_m_cooking_13");
-                new ItemData("furn_193", Types.KitchenStuff, "Кухонный гарнитур полный угловой белый с черным", "ap_m_cooking_14");
-                new ItemData("furn_194", Types.KitchenStuff, "Тумбочка с рабочей поверхностью темная 1 отсек", "ap_m_cooking_15");
-                new ItemData("furn_195", Types.KitchenStuff, "Подвесной шкаф темный 4 отсека", "ap_m_cooking_16");
-                new ItemData("furn_197", Types.KitchenStuff, "Раковина угловая с рабочей поверхностью темная", "ap_m_cooking_18");
-                new ItemData("furn_198", Types.KitchenStuff, "Кухонный гарнитур полный Черный прямой с деревом", "ap_m_cooking_19");
-                new ItemData("furn_200", Types.KitchenStuff, "Остров кухонный профессиональный светлый", "ap_m_cooking_20");
-                new ItemData("furn_201", Types.KitchenStuff, "Раковина угловая белая", "ap_m_cooking_3");
+                new ItemData("furn_188", Types.KitchenStuff, "Кухонный гарнитур полный Белый прямой", "brp_p_furn_kitchen_1");
+                new ItemData("furn_189", Types.KitchenStuff, "Тумбочка с рабочей поверхностью серая 2 отсека", "brp_p_furn_kitchen_10");
+                new ItemData("furn_190", Types.KitchenStuff, "Раковина угловая мрамор", "brp_p_furn_kitchen_11");
+                new ItemData("furn_191", Types.KitchenStuff, "Кухонный гарнитур полный Черный прямой", "brp_p_furn_kitchen_12");
+                new ItemData("furn_192", Types.KitchenStuff, "Остров кухонный профессиональный темный", "brp_p_furn_kitchen_13");
+                new ItemData("furn_193", Types.KitchenStuff, "Кухонный гарнитур полный угловой белый с черным", "brp_p_furn_kitchen_14");
+                new ItemData("furn_194", Types.KitchenStuff, "Тумбочка с рабочей поверхностью темная 1 отсек", "brp_p_furn_kitchen_15");
+                new ItemData("furn_195", Types.KitchenStuff, "Подвесной шкаф темный 4 отсека", "brp_p_furn_kitchen_16");
+                new ItemData("furn_197", Types.KitchenStuff, "Раковина угловая с рабочей поверхностью темная", "brp_p_furn_kitchen_18");
+                new ItemData("furn_198", Types.KitchenStuff, "Кухонный гарнитур полный Черный прямой с деревом", "brp_p_furn_kitchen_19");
+                new ItemData("furn_200", Types.KitchenStuff, "Остров кухонный профессиональный светлый", "brp_p_furn_kitchen_20");
+                new ItemData("furn_201", Types.KitchenStuff, "Раковина угловая белая", "brp_p_furn_kitchen_3");
 
-                new ItemData("furn_202", Types.Fridge, "Холодильник Ретро", "ap_m_cooking_4");
+                new ItemData("furn_202", Types.Fridge, "Холодильник Ретро", "brp_p_furn_kitchen_4");
 
-                new ItemData("furn_203", Types.KitchenStuff, "Раковина угловая с рабочей поверхностью белая", "ap_m_cooking_5");
-                new ItemData("furn_204", Types.KitchenStuff, "Тумбочка с рабочей поверхностью 2 отсека", "ap_m_cooking_6");
+                new ItemData("furn_203", Types.KitchenStuff, "Раковина угловая с рабочей поверхностью белая", "brp_p_furn_kitchen_5");
+                new ItemData("furn_204", Types.KitchenStuff, "Тумбочка с рабочей поверхностью 2 отсека", "brp_p_furn_kitchen_6");
 
-                new ItemData("furn_205", Types.KitchenSet, "Газовая плита Стандарт", "ap_m_cooking_7");
+                new ItemData("furn_205", Types.KitchenSet, "Газовая плита Стандарт", "brp_p_furn_kitchen_7");
 
-                new ItemData("furn_206", Types.KitchenStuff, "Подвесной шкаф белый 5 отсеков", "ap_m_cooking_8");
-                new ItemData("furn_207", Types.KitchenStuff, "Подвесной шкаф мрамор 5 отсеков", "ap_m_cooking_9");
-                new ItemData("furn_208", Types.KitchenStuff, "Кухонные принадлежности настенные металл", "ap_m_prop_1");
+                new ItemData("furn_206", Types.KitchenStuff, "Подвесной шкаф белый 5 отсеков", "brp_p_furn_kitchen_8");
+                new ItemData("furn_207", Types.KitchenStuff, "Подвесной шкаф мрамор 5 отсеков", "brp_p_furn_kitchen_9");
+                new ItemData("furn_208", Types.KitchenStuff, "Кухонные принадлежности настенные металл", "brp_p_furn_prop_1");
                 new ItemData("furn_232", Types.KitchenStuff, "Коллекция местного пива", "beerrow_local");
                 new ItemData("furn_233", Types.KitchenStuff, "Коллекция мирового пива", "beerrow_world");
                 new ItemData("furn_254", Types.KitchenStuff, "Дегидратор", "bkr_prop_coke_dehydrator_01");
@@ -600,31 +602,31 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_689", Types.KitchenStuff, "Коллекция вина", "winerow");
 
                 new ItemData("furn_50", Types.Bath, "Ванная белая", "apa_mp_h_bathtub_01");
-                new ItemData("furn_172", Types.Bath, "Ванная с занавеской", "ap_m_bath_1");
-                new ItemData("furn_173", Types.Bath, "Душевая кабина Luxe (L)", "ap_m_bath_10");
-                new ItemData("furn_174", Types.Bath, "Ванная Бизнес", "ap_m_bath_11");
-                new ItemData("furn_175", Types.BathStuff, "Раковина двойная на инсталляции (L)", "ap_m_bath_12");
-                new ItemData("furn_176", Types.Bath, "Ванная Luxe с душем закрытая", "ap_m_bath_13");
-                new ItemData("furn_177", Types.Bath, "Ванная Luxe с душем дерево", "ap_m_bath_14");
-                new ItemData("furn_178", Types.Bath, "Ванная Luxe с душем гранит", "ap_m_bath_15");
-                new ItemData("furn_179", Types.BathStuff, "Раковина двойная на исталляции Luxe (XL)", "ap_m_bath_16");
-                new ItemData("furn_180", Types.BathStuff, "Раковина белая с двумя кранами", "ap_m_bath_2");
-                new ItemData("furn_183", Types.BathStuff, "Раковина камень на деревянной тумбе", "ap_m_bath_5");
-                new ItemData("furn_185", Types.BathStuff, "Раковина на инсталляции (M)", "ap_m_bath_7");
-                new ItemData("furn_186", Types.Bath, "Душевая кабина Luxe (M)", "ap_m_bath_8");
-                new ItemData("furn_187", Types.Bath, "Душевая кабина Стандарт", "ap_m_bath_9");
-                new ItemData("furn_216", Types.BathStuff, "Штанга с полотенцами", "ap_m_prop_4");
-                new ItemData("furn_218", Types.BathStuff, "Сушилка для полотенец", "ap_m_prop_6");
-                new ItemData("furn_219", Types.BathStuff, "Штанга с полотенцами двойная", "ap_m_prop_7");
+                new ItemData("furn_172", Types.Bath, "Ванная с занавеской", "brp_p_furn_bath_1");
+                new ItemData("furn_173", Types.Bath, "Душевая кабина Luxe (L)", "brp_p_furn_bath_10");
+                new ItemData("furn_174", Types.Bath, "Ванная Бизнес", "brp_p_furn_bath_11");
+                new ItemData("furn_175", Types.BathStuff, "Раковина двойная на инсталляции (L)", "brp_p_furn_bath_12");
+                new ItemData("furn_176", Types.Bath, "Ванная Luxe с душем закрытая", "brp_p_furn_bath_13");
+                new ItemData("furn_177", Types.Bath, "Ванная Luxe с душем дерево", "brp_p_furn_bath_14");
+                new ItemData("furn_178", Types.Bath, "Ванная Luxe с душем гранит", "brp_p_furn_bath_15");
+                new ItemData("furn_179", Types.BathStuff, "Раковина двойная на исталляции Luxe (XL)", "brp_p_furn_bath_16");
+                new ItemData("furn_180", Types.BathStuff, "Раковина белая с двумя кранами", "brp_p_furn_bath_2");
+                new ItemData("furn_183", Types.BathStuff, "Раковина камень на деревянной тумбе", "brp_p_furn_bath_5");
+                new ItemData("furn_185", Types.BathStuff, "Раковина на инсталляции (M)", "brp_p_furn_bath_7");
+                new ItemData("furn_186", Types.Bath, "Душевая кабина Luxe (M)", "brp_p_furn_bath_8");
+                new ItemData("furn_187", Types.Bath, "Душевая кабина Стандарт", "brp_p_furn_bath_9");
+                new ItemData("furn_216", Types.BathStuff, "Штанга с полотенцами", "brp_p_furn_prop_4");
+                new ItemData("furn_218", Types.BathStuff, "Сушилка для полотенец", "brp_p_furn_prop_6");
+                new ItemData("furn_219", Types.BathStuff, "Штанга с полотенцами двойная", "brp_p_furn_prop_7");
                 new ItemData("furn_466", Types.Bath, "Джакузи", "prop_hottub2");
                 new ItemData("furn_559", Types.BathStuff, "Раковина под дерево", "prop_sink_02");
                 new ItemData("furn_560", Types.BathStuff, "Раковина со столиком", "prop_sink_04");
                 new ItemData("furn_561", Types.BathStuff, "Раковина белая настенная", "prop_sink_05");
                 new ItemData("furn_562", Types.BathStuff, "Раковина белая напольная", "prop_sink_06");
 
-                new ItemData("furn_181", Types.Toilet, "Унитаз белый с деревянным сидением", "ap_m_bath_3");
-                new ItemData("furn_182", Types.Toilet, "Унитаз с отдельным бачком", "ap_m_bath_4");
-                new ItemData("furn_184", Types.Toilet, "Унитаз современный без бачка", "ap_m_bath_6");
+                new ItemData("furn_181", Types.Toilet, "Унитаз белый с деревянным сидением", "brp_p_furn_bath_3");
+                new ItemData("furn_182", Types.Toilet, "Унитаз с отдельным бачком", "brp_p_furn_bath_4");
+                new ItemData("furn_184", Types.Toilet, "Унитаз современный без бачка", "brp_p_furn_bath_6");
                 new ItemData("furn_484", Types.Toilet, "Унитаз б/у", "prop_ld_toilet_01");
                 new ItemData("furn_591", Types.Toilet, "Унитаз с бачком", "prop_toilet_01");
                 new ItemData("furn_592", Types.Toilet, "Унитаз без бачка", "prop_toilet_02");
@@ -632,7 +634,7 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_594", Types.Toilet, "Рулон бумаги", "prop_toilet_roll_01");
                 new ItemData("furn_595", Types.Toilet, "Держатель для бумаги", "prop_toilet_roll_02");
 
-                new ItemData("furn_212", Types.Washer, "Стиральная машина с вертикальной загрузкой", "ap_m_prop_13");
+                new ItemData("furn_212", Types.Washer, "Стиральная машина с вертикальной загрузкой", "brp_p_furn_prop_13");
                 new ItemData("furn_625", Types.Washer, "Стиральная машина б/у", "prop_washer_01");
                 new ItemData("furn_626", Types.Washer, "Стиральная машина современная", "prop_washer_02");
                 new ItemData("furn_627", Types.Washer, "Стиральная машина старая", "prop_washer_03");
@@ -652,10 +654,10 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_167", Types.Painting, "Картина Пересечение абстракционизм (M)", "apa_p_h_acc_artwallm_04");
                 new ItemData("furn_168", Types.Painting, "Форма чемпиона Larsen#6 в рамке", "apa_p_h_acc_artwalls_03");
                 new ItemData("furn_169", Types.Painting, "Форма чемпиона Palmer#3 в рамке", "apa_p_h_acc_artwalls_04");
-                new ItemData("furn_170", Types.Painting, "Картина Ретро в деревянной рамке", "ap_m_art_1");
-                new ItemData("furn_260", Types.Painting, "Картина в багетной рамке Загадочная Европа", "cls_sf_art_2a");
-                new ItemData("furn_261", Types.Painting, "Картина в багетной рамке Вечерная прогулка", "cls_sf_art_3a");
-                new ItemData("furn_262", Types.Painting, "Картина в багетной рамке Вольфганг", "cls_sf_art_9c");
+                new ItemData("furn_170", Types.Painting, "Картина Ретро в деревянной рамке", "brp_p_furn_art_1");
+                new ItemData("furn_260", Types.Painting, "Картина в багетной рамке Загадочная Европа", "brp_p_furn_art_b_2a");
+                new ItemData("furn_261", Types.Painting, "Картина в багетной рамке Вечерная прогулка", "brp_p_furn_art_b_3a");
+                new ItemData("furn_262", Types.Painting, "Картина в багетной рамке Вольфганг", "brp_p_furn_art_b_9c");
                 new ItemData("furn_277", Types.Painting, "Пара портретов в багетных рамах", "ex_office_swag_paintings01");
                 new ItemData("furn_278", Types.Painting, "Три пейзажа в багетных рамах", "ex_office_swag_paintings02");
                 new ItemData("furn_279", Types.Painting, "Два пейзажа в багетных рамах", "ex_office_swag_paintings03");
@@ -723,18 +725,18 @@ namespace BCRPServer.Game.Estates
                 new ItemData("furn_44", Types.Decor, "Ваза из черного стекла", "apa_mp_h_acc_vase_04");
                 new ItemData("furn_45", Types.Decor, "Ваза капля черная", "apa_mp_h_acc_vase_05");
                 new ItemData("furn_160", Types.Decor, "Беговая дорожка", "apa_p_apdlc_treadmill_s");
-                new ItemData("furn_171", Types.Decor, "Зеркало маленькое", "ap_m_art_2");
-                new ItemData("furn_213", Types.Decor, "Деревянная решетка", "ap_m_prop_14");
-                new ItemData("furn_214", Types.Decor, "Вешалка настенная для прихожей", "ap_m_prop_2");
-                new ItemData("furn_215", Types.Decor, "Коврик плетеный бежевый", "ap_m_prop_3");
-                new ItemData("furn_217", Types.Decor, "Коврик овальный голубой с длинным ворсом", "ap_m_prop_5");
-                new ItemData("furn_220", Types.Decor, "Коврик прямоугольный серый", "ap_m_prop_8");
-                new ItemData("furn_221", Types.Decor, "Коврик овальный голубой с коротким ворсом", "ap_m_prop_9");
+                new ItemData("furn_171", Types.Decor, "Зеркало маленькое", "brp_p_furn_art_2");
+                new ItemData("furn_213", Types.Decor, "Деревянная решетка", "brp_p_furn_prop_14");
+                new ItemData("furn_214", Types.Decor, "Вешалка настенная для прихожей", "brp_p_furn_prop_2");
+                new ItemData("furn_215", Types.Decor, "Коврик плетеный бежевый", "brp_p_furn_prop_3");
+                new ItemData("furn_217", Types.Decor, "Коврик овальный голубой с длинным ворсом", "brp_p_furn_prop_5");
+                new ItemData("furn_220", Types.Decor, "Коврик прямоугольный серый", "brp_p_furn_prop_8");
+                new ItemData("furn_221", Types.Decor, "Коврик овальный голубой с коротким ворсом", "brp_p_furn_prop_9");
                 new ItemData("furn_243", Types.Decor, "Кейс с винтовкой", "bkr_prop_biker_gcase_s");
                 new ItemData("furn_255", Types.Decor, "Игрушка супергероя", "bkr_prop_coke_doll");
                 new ItemData("furn_257", Types.Decor, "Ёлка-модерн", "ch_prop_tree_01a");
-                new ItemData("furn_258", Types.Decor, "Покерный стол", "cls_casino_poker");
-                new ItemData("furn_263", Types.Decor, "Ковер Персидский шик", "cls_sf_rug_1");
+                //new ItemData("furn_258", Types.Decor, "Покерный стол", "cls_casino_poker");
+                new ItemData("furn_263", Types.Decor, "Ковер Персидский шик", "brp_p_furn_rug_b_1");
                 new ItemData("furn_269", Types.Decor, "Скульптура Рог", "ex_office_swag_ivory3");
                 new ItemData("furn_270", Types.Decor, "Шкура животного на мебель", "ex_office_swag_ivory4");
                 new ItemData("furn_271", Types.Decor, "Коллекция часов", "ex_office_swag_jewelwatch");

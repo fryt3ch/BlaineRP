@@ -792,9 +792,9 @@ namespace BCRPClient.Data
 
             var pos = Player.LocalPlayer.Position;
 
-            pos.Z -= 1f;
-
-            house.Position = pos;
+            house.Position.X = pos.X;
+            house.Position.Y = pos.Y;
+            house.Position.Z = pos.Z;
 
             Player.LocalPlayer.SetData($"House::{house.Id}::RotZ", Player.LocalPlayer.GetHeading());
         }
@@ -810,9 +810,9 @@ namespace BCRPClient.Data
             var data = ((string)await Events.CallRemoteProc("debug_gethouseinfo", id))?.Split('_');
 
             if (house.GaragePosition == null)
-                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);");
+                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, null, null);");
             else
-                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z + 1f}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));");
+                Utils.DebugServerSaveText($"new House({id}, new Utils.Vector4({house.Position.X}f, {house.Position.Y}f, {house.Position.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::RotZ") ?? float.Parse(data?[0] ?? "0")}f), Style.RoomTypes.{house.RoomType.ToString()}, {house.Price}, Garage.Types.Two, new Utils.Vector4({house.GaragePosition.X}f, {house.GaragePosition.Y}f, {house.GaragePosition.Z}f, {Player.LocalPlayer.GetData<float?>($"House::{id}::GRotZ") ?? float.Parse(data?[0] ?? "0")}f));");
         }
     }
 }

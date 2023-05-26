@@ -86,9 +86,6 @@ namespace BCRPServer.Events
             NAPI.Server.SetLogCommandParamParserExceptions(false);
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
 
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loadings global dimension blips");
-            Utils.ConsoleOutput($" | ~Red~[{Game.Map.Blips.LoadAll()}]~/~", false);
-
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Setting global dimension weather");
             #endregion
 

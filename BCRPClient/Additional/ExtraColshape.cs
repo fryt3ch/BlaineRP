@@ -474,7 +474,6 @@ namespace BCRPClient.Additional
 
             ApartmentsRootEnter,
             ApartmentsRootExit,
-            ApartmentsRootElevator,
 
             GarageRootEnter,
 
@@ -1334,7 +1333,7 @@ namespace BCRPClient.Additional
                     if (!Player.LocalPlayer.HasData("CurrentApartmentsRoot"))
                         return;
 
-                    Events.CallRemote("ARoot::Enter", (int)Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("CurrentApartmentsRoot").Type);
+                    Events.CallRemote("ARoot::Enter", Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("CurrentApartmentsRoot").Id);
 
                     LastSent = Sync.World.ServerTime;
                 }
@@ -1361,21 +1360,20 @@ namespace BCRPClient.Additional
                     if (LastSent.IsSpam(1000, false, false))
                         return;
 
-                    if (!Player.LocalPlayer.HasData("ApartmentsRoot::Current"))
-                        return;
-
                     var aRoot = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current");
 
                     if (aRoot == null)
                         return;
 
-                    var curFloor = aRoot.GetFloor(Player.LocalPlayer.Position);
+                    int elevI, elevJ;
 
-                    if (curFloor is int floor)
+                    if (aRoot.Shell.GetClosestElevator(Player.LocalPlayer.Position, out elevI, out elevJ))
                     {
-                        CEF.Elevator.Show(aRoot.StartFloor + aRoot.FloorsAmount - 1, floor, Elevator.ContextTypes.ApartmentsRoot);
-
                         LastSent = Sync.World.ServerTime;
+
+                        var shell = aRoot.Shell;
+
+                        CEF.Elevator.Show(shell.StartFloor + shell.FloorsAmount - 1, null, Elevator.ContextTypes.ApartmentsRoot);
                     }
                 }
             },

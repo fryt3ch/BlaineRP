@@ -155,7 +155,7 @@ namespace BCRPClient.Additional
             this._Display = 2;
             this._IsShortRange = ShortRange;
 
-            this.Position = Position;
+            this.Position = new Vector3(Position.X, Position.Y, Position.Z);
             this.Type = Type;
 
             All.Add(this.Blip, this);

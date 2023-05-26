@@ -234,7 +234,7 @@ namespace BCRPClient.CEF
                         losSantosAllowed,
                         phoneNumber,
                         houseData == null ? null : $"#{houseData.Id}, {Utils.GetStreetName(houseData.Position)}",
-                        apsData == null ? null : $"#{apsData.Id}, {Data.Locations.ApartmentsRoot.All[apsData.RootType].Name}",
+                        apsData == null ? null : $"#{apsData.Id}, {Data.Locations.ApartmentsRoot.All[apsData.RootId].Name}",
                         null, // organisation
                         fractionData == null ? null : fractionData.Name, // only gov frac here
                         vehicles.Select(x => new object[] { x.Item1.Name, x.Item2 == null || x.Item2.Length == 0 ? null : x.Item2, x.Item3.HEXNoAlpha })
@@ -476,7 +476,7 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        var aRoot = Data.Locations.ApartmentsRoot.All[apsData.RootType];
+                        var aRoot = Data.Locations.ApartmentsRoot.All[apsData.RootId];
 
                         var pos = Player.LocalPlayer.GetData<Data.Locations.ApartmentsRoot>("ApartmentsRoot::Current") == aRoot ? apsData.Position : aRoot.PositionEnter;
 

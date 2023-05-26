@@ -1434,6 +1434,13 @@ namespace BCRPClient.Data
 
                             x.Ped = null;
                         }
+
+                        if (x.Colshape != null)
+                        {
+                            x.Colshape.Destroy();
+
+                            x.Colshape = null;
+                        }
                     }
                 }
 

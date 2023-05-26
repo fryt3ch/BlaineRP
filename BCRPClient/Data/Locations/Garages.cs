@@ -110,7 +110,7 @@ namespace BCRPClient.Data
 
             public byte Variation { get; set; }
 
-            public GarageRoot.Types RootType { get; set; }
+            public uint RootId { get; set; }
 
             public ClassTypes ClassType { get; set; }
 
@@ -120,7 +120,7 @@ namespace BCRPClient.Data
 
             public string OwnerName => Sync.World.GetSharedData<string>($"Garages::{Id}::OName");
 
-            public int NumberInRoot => Garage.All.Values.Where(x => x.RootType == RootType).ToList().FindIndex(x => x == this);
+            public int NumberInRoot => Garage.All.Values.Where(x => x.RootId == RootId).ToList().FindIndex(x => x == this);
 
             public Additional.ExtraBlip OwnerBlip { get => Player.LocalPlayer.GetData<Additional.ExtraBlip>($"Garage::{Id}::OBlip"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OBlip"); else Player.LocalPlayer.SetData($"Garage::{Id}::OBlip", value); } }
 
@@ -128,11 +128,11 @@ namespace BCRPClient.Data
 
             public Additional.ExtraColshape OwnerGarageColshape { get => Player.LocalPlayer.GetData<Additional.ExtraColshape>($"Garage::{Id}::OGCS"); set { if (value == null) Player.LocalPlayer.ResetData($"Garage::{Id}::OGCS"); else Player.LocalPlayer.SetData($"Garage::{Id}::OGCS", value); } }
 
-            public Garage(uint Id, GarageRoot.Types RootType, Types Type, byte Variation, ClassTypes ClassType, uint Tax, uint Price)
+            public Garage(uint Id, uint RootId, Types Type, byte Variation, ClassTypes ClassType, uint Tax, uint Price)
             {
                 this.Id = Id;
                 this.Type = Type;
-                this.RootType = RootType;
+                this.RootId = RootId;
 
                 this.Variation = Variation;
 
@@ -154,7 +154,7 @@ namespace BCRPClient.Data
 
                 ogBlip?.Destroy();
 
-                var gRoot = GarageRoot.All[RootType];
+                var gRoot = GarageRoot.All[RootId];
 
                 var ogCs = OwnerGarageColshape;
 
@@ -164,11 +164,11 @@ namespace BCRPClient.Data
                 {
                     //gRoot.Blip.SetDisplay(0);
 
-                    OwnerBlip = new Additional.ExtraBlip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootType].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
+                    OwnerBlip = new Additional.ExtraBlip(50, gRoot.EnterColshape.Position, string.Format(Locale.General.Blip.GarageOwnedBlip, GarageRoot.All[RootId].Name, NumberInRoot + 1), 1f, 5, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION);
 
-                    OwnerGarageBlip = new Additional.ExtraBlip(9, gRoot.VehicleEnterPosition, "", 1f, 3, 125, 0f, true, 0, 2.5f, Settings.MAIN_DIMENSION);
+                    OwnerGarageBlip = new Additional.ExtraBlip(9, gRoot.VehicleEnterPosition.Position, "", 1f, 3, 125, 0f, true, 0, gRoot.VehicleEnterPosition.RotationZ, Settings.MAIN_DIMENSION);
 
-                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition, 2.5f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    OwnerGarageColshape = new Additional.Sphere(gRoot.VehicleEnterPosition.Position, gRoot.VehicleEnterPosition.RotationZ, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                     {
                         ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
 
@@ -195,34 +195,31 @@ namespace BCRPClient.Data
 
         public class GarageRoot
         {
-            public static Dictionary<Types, GarageRoot> All { get; set; } = new Dictionary<Types, GarageRoot>();
+            public static Dictionary<uint, GarageRoot> All { get; set; } = new Dictionary<uint, GarageRoot>();
 
-            public enum Types
-            {
-                Complex1 = 0,
-            }
-
-            public Types Type { get; set; }
+            public uint Id { get; }
 
             public Additional.ExtraBlip Blip { get; set; }
 
             public Additional.ExtraColshape EnterColshape { get; set; }
 
-            public Vector3 VehicleEnterPosition { get; set; }
+            public Additional.ExtraLabel TextLabel { get; set; }
 
-            public List<Garage> AllGarages => Garage.All.Values.Where(x => x.RootType == Type).ToList();
+            public Utils.Vector4 VehicleEnterPosition { get; set; }
 
-            public string Name => string.Format(Locale.Property.GarageRootName, (int)Type + 1);
+            public List<Garage> AllGarages => Garage.All.Values.Where(x => x.RootId == Id).ToList();
 
-            public GarageRoot(Types Type, Vector3 EnterPosition, Vector3 VehicleEnterPosition)
+            public string Name { get; }
+
+            public GarageRoot(uint Id, Vector3 EnterPosition, Utils.Vector4 VehicleEnterPosition)
             {
-                this.Type = Type;
+                this.Id = Id;
 
-                EnterPosition.Z -= 1f;
+                this.Name = string.Format(Locale.Property.GarageRootName, Id);
 
                 this.VehicleEnterPosition = VehicleEnterPosition;
 
-                this.EnterColshape = new Additional.Cylinder(EnterPosition, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                this.EnterColshape = new Additional.Cylinder(new Vector3(EnterPosition.X, EnterPosition.Y, EnterPosition.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
                 {
                     ActionType = Additional.ExtraColshape.ActionTypes.GarageRootEnter,
                     InteractionType = Additional.ExtraColshape.InteractionTypes.GarageRootEnter,
@@ -232,7 +229,9 @@ namespace BCRPClient.Data
 
                 this.Blip = new Additional.ExtraBlip(50, EnterPosition, Locale.Property.GarageRootNameDef, 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                All.Add(Type, this);
+                this.TextLabel = new Additional.ExtraLabel(new Vector3(EnterPosition.X, EnterPosition.Y, EnterPosition.Z - 0.5f), Name, new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+
+                All.Add(Id, this);
             }
         }
     }

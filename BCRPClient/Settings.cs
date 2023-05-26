@@ -8,6 +8,8 @@ namespace BCRPClient
 {
     class Settings : Events.Script
     {
+        public const string LANGUAGE = "ru";
+
         /// <summary>Базовый FPS для выравнивания скорости работы некоторых механик</summary>
         /// <remarks>Используется, например, в тире, для обеспечения одинаковой скорости перемещения мишеней у игроков с разным FPS</remarks>
         public const float BASE_FPS = 185f;

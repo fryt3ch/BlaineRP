@@ -20,6 +20,8 @@ namespace BCRPServer.Game.Misc
             All = new List<VehicleDestruction>()
             {
                  new VehicleDestruction(new Vector3(2400.494f, 3108.046f, 47.17492f)),
+                 new VehicleDestruction(new Vector3(-458.2042f, -1715.724f, 17.6409f)),
+                 new VehicleDestruction(new Vector3(1284.828f, -2560.101f, 43.04144f)),
             };
 
             var lines = new List<string>();

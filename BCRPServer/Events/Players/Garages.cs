@@ -175,7 +175,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Garage::SlotsMenu")]
-        private static void GarageSlotsMenu(Player player, Vehicle veh, int gRootTypeNum)
+        private static void GarageSlotsMenu(Player player, Vehicle veh, uint gRootId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -187,9 +187,6 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
-            if (!Enum.IsDefined(typeof(Game.Estates.Garage.GarageRoot.Types), gRootTypeNum))
-                return;
-
             if (veh?.Exists != true)
                 return;
 
@@ -198,7 +195,10 @@ namespace BCRPServer.Events.Players
             if (vData == null)
                 return;
 
-            var gRootType = (Game.Estates.Garage.GarageRoot.Types)gRootTypeNum;
+            var gRoot = Game.Estates.Garage.GarageRoot.Get(gRootId);
+
+            if (gRoot == null)
+                return;
 
             if (player.Dimension != Utils.Dimensions.Main || !vData.IsFullOwner(pData))
                 return;
@@ -206,7 +206,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                 return;
 
-            var garage = pData.OwnedGarages.Where(x => x.Root.Type == gRootType).FirstOrDefault();
+            var garage = pData.OwnedGarages.Where(x => x.Root == gRoot).FirstOrDefault();
 
             if (garage == null)
                 return;
@@ -238,7 +238,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Garage::Vehicle")]
-        private static void GarageVehicle(Player player, int slot, Vehicle veh, int gRootTypeNum)
+        private static void GarageVehicle(Player player, int slot, Vehicle veh, uint gRootId)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -248,9 +248,6 @@ namespace BCRPServer.Events.Players
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                return;
-
-            if (!Enum.IsDefined(typeof(Game.Estates.Garage.GarageRoot.Types), gRootTypeNum))
                 return;
 
             if (veh?.Exists != true)
@@ -264,14 +261,17 @@ namespace BCRPServer.Events.Players
             if (!vData.IsFullOwner(pData))
                 return;
 
-            var gRootType = (Game.Estates.Garage.GarageRoot.Types)gRootTypeNum;
+            var gRoot = Game.Estates.Garage.GarageRoot.Get(gRootId);
+
+            if (gRoot == null)
+                return;
 
             if (slot >= 0)
             {
                 if (player.Dimension != Utils.Dimensions.Main)
                     return;
 
-                var garage = pData.OwnedGarages.Where(x => x.Root.Type == gRootType).FirstOrDefault();
+                var garage = pData.OwnedGarages.Where(x => x.Root == gRoot).FirstOrDefault();
 
                 if (garage == null)
                     return;

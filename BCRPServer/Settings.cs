@@ -15,7 +15,7 @@ namespace BCRPServer
             }
         };
 
-        public const string VERSION = "Alpha 3.0";
+        public const string VERSION = "Beta 1.0";
 
         public const string DIR_BASE_PATH = @"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP";
 
@@ -31,6 +31,7 @@ namespace BCRPServer
         public const string DIR_CLIENT_SHOP_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\CEF\Shop.cs";
         public const string DIR_CLIENT_LOCATIONS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Locations\Locations.cs";
         public const string DIR_CLIENT_DOOR_SYSTEM_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\DoorSystem.cs";
+        public const string DIR_CLIENT_SYNC_HOUSE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\House.cs";
 
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;

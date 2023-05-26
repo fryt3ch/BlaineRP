@@ -700,7 +700,7 @@ namespace BCRPClient.Sync
 
                 var carhash = RAGE.Util.Joaat.Hash("sandking2");
 
-                foreach (var x in Data.Locations.House.All)
+/*                foreach (var x in Data.Locations.House.All)
                 {
                     //x.Value.ToggleOwnerBlip(true);
 
@@ -722,7 +722,7 @@ namespace BCRPClient.Sync
                         continue;
 
                     new Additional.ExtraBlip(40, x.Value.Position, "Дом", 1f, 2, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
-                }
+                }*/
 
 /*                KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
                 {

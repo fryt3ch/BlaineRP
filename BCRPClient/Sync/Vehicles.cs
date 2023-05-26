@@ -1637,11 +1637,11 @@ namespace BCRPClient.Sync
 
                 if (slot < 0)
                 {
-                    Events.CallRemote("Garage::SlotsMenu", vehicle, (int)gRoot.Type);
+                    Events.CallRemote("Garage::SlotsMenu", vehicle, gRoot.Id);
                 }
                 else
                 {
-                    Events.CallRemote("Garage::Vehicle", slot, vehicle, (int)gRoot.Type);
+                    Events.CallRemote("Garage::Vehicle", slot, vehicle, gRoot.Id);
                 }
             }
             else

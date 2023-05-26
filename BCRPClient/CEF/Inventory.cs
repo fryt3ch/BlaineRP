@@ -633,14 +633,14 @@ namespace BCRPClient.CEF
 
                     foreach (var x in pData.OwnedApartments)
                     {
-                        properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[x.RootType].Name, x.NumberInRoot + 1));
+                        properties.Add(string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.NumberInRoot + 1));
 
                         propIds.Add((Sync.Players.PropertyTypes.Apartments, x.Id));
                     }
 
                     foreach (var x in pData.OwnedGarages)
                     {
-                        properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[x.RootType].Name, x.NumberInRoot + 1));
+                        properties.Add(string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[x.RootId].Name, x.NumberInRoot + 1));
 
                         propIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
                     }
@@ -1095,13 +1095,13 @@ namespace BCRPClient.CEF
                             {
                                 var aps = Data.Locations.Apartments.All[propId];
 
-                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
                             }
                             else if (pType == Sync.Players.PropertyTypes.Garage)
                             {
                                 var garage = Data.Locations.Garage.All[propId];
 
-                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
                             }
                             else if (pType == Sync.Players.PropertyTypes.Business)
                             {
@@ -1167,13 +1167,13 @@ namespace BCRPClient.CEF
                             {
                                 var aps = Data.Locations.Apartments.All[propId];
 
-                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootType].Name, aps.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.ApartmentsTradeInfoStr, Data.Locations.ApartmentsRoot.All[aps.RootId].Name, aps.NumberInRoot + 1);
                             }
                             else if (pType == Sync.Players.PropertyTypes.Garage)
                             {
                                 var garage = Data.Locations.Garage.All[propId];
 
-                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootType].Name, garage.NumberInRoot + 1);
+                                text = string.Format(Locale.Property.GarageTradeInfoStr, Data.Locations.GarageRoot.All[garage.RootId].Name, garage.NumberInRoot + 1);
                             }
                             else if (pType == Sync.Players.PropertyTypes.Business)
                             {

@@ -14,8 +14,12 @@ namespace BCRPServer.Game.Estates
         /// <summary>Тип гаража</summary>
         public Garage.Style GarageData { get; private set; }
 
-        public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, PositionParams, Types.House, RoomType)
+        public override Utils.Vector4 PositionParams { get; }
+
+        public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, Types.House, RoomType)
         {
+            this.PositionParams = PositionParams;
+
             this.Price = Price;
             this.Dimension = (uint)(HID + Utils.HouseDimBase);
 

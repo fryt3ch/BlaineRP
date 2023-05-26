@@ -40,7 +40,7 @@ namespace BCRPServer
 
                         house.Balance = Convert.ToUInt64(reader["Balance"]);
 
-                        house.StyleData = Game.Estates.HouseBase.Style.Get(house.Type, house.RoomType, (Game.Estates.HouseBase.Style.Types)(int)reader["StyleType"]);
+                        house.StyleType = Convert.ToUInt16(reader["StyleType"]);
 
                         house.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
 
@@ -80,7 +80,7 @@ namespace BCRPServer
 
                         if (reader["DoorsStates"] == DBNull.Value)
                         {
-                            house.DoorsStates = new bool[house.StyleData.DoorsCount];
+                            house.DoorsStates = new bool[house.StyleData.DoorsAmount];
 
                             cmd.CommandText += $"UPDATE houses SET DoorsStates='{house.DoorsStates.SerializeToJson()}' WHERE ID={house.Id};";
                         }
@@ -89,7 +89,7 @@ namespace BCRPServer
 
                         if (reader["LightsStates"] == DBNull.Value)
                         {
-                            house.LightsStates = new Game.Estates.HouseBase.Light[house.StyleData.LightsCount];
+                            house.LightsStates = new Game.Estates.HouseBase.Light[house.StyleData.LightsAmount];
 
                             for (int i = 0; i < house.LightsStates.Length; i++)
                             {
@@ -145,7 +145,7 @@ namespace BCRPServer
 
                         apartments.Balance = Convert.ToUInt64(reader["Balance"]);
 
-                        apartments.StyleData = Game.Estates.HouseBase.Style.Get(apartments.Type, apartments.RoomType, (Game.Estates.HouseBase.Style.Types)(int)reader["StyleType"]);
+                        apartments.StyleType = Convert.ToUInt16(reader["StyleType"]);
 
                         apartments.Settlers = NAPI.Util.FromJson<Dictionary<uint, bool[]>>((string)reader["Settlers"]).ToDictionary(x => PlayerData.PlayerInfo.Get(x.Key), x => x.Value);
 
@@ -185,7 +185,7 @@ namespace BCRPServer
 
                         if (reader["DoorsStates"] == DBNull.Value)
                         {
-                            apartments.DoorsStates = new bool[apartments.StyleData.DoorsCount];
+                            apartments.DoorsStates = new bool[apartments.StyleData.DoorsAmount];
 
                             cmd.CommandText += $"UPDATE houses SET DoorsStates='{apartments.DoorsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
                         }
@@ -194,7 +194,7 @@ namespace BCRPServer
 
                         if (reader["LightsStates"] == DBNull.Value)
                         {
-                            apartments.LightsStates = new Game.Estates.HouseBase.Light[apartments.StyleData.LightsCount];
+                            apartments.LightsStates = new Game.Estates.HouseBase.Light[apartments.StyleData.LightsAmount];
 
                             for (int i = 0; i < apartments.LightsStates.Length; i++)
                             {

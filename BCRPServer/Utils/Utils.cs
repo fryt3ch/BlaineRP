@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -124,10 +125,12 @@ namespace BCRPServer
 
         public static Game.Estates.Apartments.ApartmentsRoot GetApartmentsRootByDimension(uint dim)
         {
-            if (GetApartmentsRootTypeByDimension(dim) is Game.Estates.Apartments.ApartmentsRoot.Types type)
-                return Game.Estates.Apartments.ApartmentsRoot.Get(type);
+            var rootId = GetApartmentsRootIdByDimension(dim);
 
-            return null;
+            if (rootId <= 0)
+                return null;
+
+            return Game.Estates.Apartments.ApartmentsRoot.Get(rootId);
         }
 
         public static Game.Estates.Garage GetGarageByDimension(uint dim)
@@ -140,7 +143,7 @@ namespace BCRPServer
             return Game.Estates.Garage.Get(gId);
         }
 
-        public static Game.Estates.Apartments.ApartmentsRoot.Types? GetApartmentsRootTypeByDimension(uint dim) => dim < ApartmentsRootDimBase ? null : (Game.Estates.Apartments.ApartmentsRoot.Types?)(dim - ApartmentsRootDimBase);
+        public static uint GetApartmentsRootIdByDimension(uint dim) => dim < ApartmentsRootDimBase ? 0 : dim - ApartmentsRootDimBase;
 
         /// <summary>Стандартная позиция спавна</summary>
         public static Vector3 DefaultSpawnPosition = new Vector3(-749.78f, 5818.21f, 17f);

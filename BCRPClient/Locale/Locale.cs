@@ -4,6 +4,37 @@ namespace BCRPClient
 {
     public static partial class Locale
     {
+        public class Language
+        {
+            private Dictionary<string, string> Texts { get; set; }
+
+            public Language(params (string Key, string Value)[] Texts)
+            {
+                this.Texts = new Dictionary<string, string>();
+
+                for (int i = 0; i < Texts.Length; i++)
+                {
+                    var x = Texts[i];
+
+                    Add(x.Key, x.Value);
+                }
+            }
+
+            public string Get(string key, string otherwise) => Texts.GetValueOrDefault(key, otherwise);
+
+            public void Add(string key, string value)
+            {
+                if (!this.Texts.TryAdd(key, value))
+                    this.Texts[key] = value;
+            }
+        }
+
+        private static Language CurrentLanguage { get; } = Settings.LANGUAGE == "ru" ? RussianLanguage : RussianLanguage;
+
+        public static string Get(string key, string otherwise = null) => CurrentLanguage.Get(key, otherwise);
+
+        public static void Add(string key, string value) => CurrentLanguage.Add(key, value);
+
         #region General
         public static partial class General
         {

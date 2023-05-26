@@ -481,9 +481,9 @@ namespace BCRPClient.CEF
 
             properties.AddRange(pData.OwnedHouses.Select(x => new object[] { "est", Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id }));
 
-            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootType].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedApartments.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Apartments.ToString(), Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 }));
 
-            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootType].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
+            properties.AddRange(pData.OwnedGarages.Select(x => new object[] { "est", Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 }));
 
             Browser.Window.ExecuteJs("Menu.fillProperties", new object[] { properties });
         }

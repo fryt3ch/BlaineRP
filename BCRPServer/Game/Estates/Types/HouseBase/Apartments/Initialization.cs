@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace BCRPServer.Game.Estates
 {
@@ -8,13 +9,33 @@ namespace BCRPServer.Game.Estates
         {
             public static void LoadAll()
             {
-                new ApartmentsRoot(Types.Cheap1, new Utils.Vector4(-150.497f, 6416.68f, 31.9159f, 45f), new Utils.Vector4(696.9186f, 1299.008f, -186.5668f, 92f), 10, new Utils.Vector4(697.21f, 1302.987f, -186.57f, 181.7173f), 3.7f, 1);
+                new ApartmentsRoot(1, ShellTypes.MediumEnd_0, new Utils.Vector4(-150.497f, 6416.68f, 31.9159f, 45f));
+
+                new ApartmentsRoot(2, ShellTypes.HighEnd_0, new Utils.Vector4(-777.3051f, 312.1409f, 85.69813f, 176.3586f));
+                new ApartmentsRoot(3, ShellTypes.HighEnd_0, new Utils.Vector4(-1442.538f, -545.4138f, 34.74182f, 213.3717f));
+                new ApartmentsRoot(4, ShellTypes.HighEnd_0, new Utils.Vector4(-47.95924f, -585.7656f, 37.95282f, 69.66584f));
+                new ApartmentsRoot(5, ShellTypes.HighEnd_0, new Utils.Vector4(-619.2709f, 36.8526f, 43.57647f, 176.5841f));
+
+                new ApartmentsRoot(6, ShellTypes.MediumEnd_0, new Utils.Vector4(-827.6624f, -696.8757f, 28.05656f, 85.35796f));
+
+                new ApartmentsRoot(7, ShellTypes.LowEnd_2_0, new Utils.Vector4(-35.08994f, -1554.494f, 30.67673f, 319.0496f));
+
+                new ApartmentsRoot(8, ShellTypes.LowEnd_2_0, new Utils.Vector4(-1255.122f, -1330.628f, 4.080747f, 291.2249f));
+
+                new ApartmentsRoot(9, ShellTypes.LowEnd_1_0, new Utils.Vector4(1658.132f, 4851.235f, 41.97267f, 277.1076f));
+
+                new ApartmentsRoot(10, ShellTypes.LowEnd_5_0, new Utils.Vector4(278.7079f, -1119.274f, 29.41967f, 176.6636f));
 
                 var lines = new List<string>();
 
+                foreach (var x in ApartmentsRoot.Shells)
+                {
+                    lines.Add($"ApartmentsRoot.AddShell({(byte)x.Key}, {x.Value.StartFloor}, {x.Value.FloorsAmount}, {x.Value.EnterPosition.Position.ToCSharpStr()}, \"{x.Value.ElevatorPositions.Select(x => x.Select(y => y.Position).ToList()).ToList().SerializeToJson().Replace('\"', '\'')}\", \"{x.Value.ApartmentsPositions.Select(x => x.Select(y => y.Position).ToList()).ToList().SerializeToJson().Replace('\"', '\'')}\");");
+                }
+
                 foreach (var x in All.Values)
                 {
-                    lines.Add($"new ApartmentsRoot(ApartmentsRoot.Types.{x.Type.ToString()}, {x.EnterParams.Position.ToCSharpStr()}, {x.ExitParams.Position.ToCSharpStr()}, {x.FloorsAmount}, {x.FloorPosition.Position.ToCSharpStr()}, {x.FloorDistZ}f, {x.StartFloor});");
+                    lines.Add($"new ApartmentsRoot({x.Id}, {(byte)x.ShellType}, {x.EnterParams.Position.ToCSharpStr()});");
                 }
 
                 Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "AROOTS_TO_REPLACE", lines);
@@ -27,7 +48,7 @@ namespace BCRPServer.Game.Estates
         {
             ApartmentsRoot.LoadAll();
 
-            new Apartments(1, new Utils.Vector4(692.4949f, 1293.174f, -186.5667f, 273.5f), ApartmentsRoot.Types.Cheap1, Style.RoomTypes.Two, 50000);
+            new Apartments(1, 1, 0, 0, Style.RoomTypes.Two, 50000);
 
             var lines = new List<string>();
 
@@ -35,7 +56,7 @@ namespace BCRPServer.Game.Estates
             {
                 MySQL.LoadApartments(x);
 
-                lines.Add($"new Apartments({x.Id}, {x.PositionParams.Position.ToCSharpStr()}, ApartmentsRoot.Types.{x.Root.Type.ToString()}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
+                lines.Add($"new Apartments({x.Id}, {x.RootId}, {x.FloorIdx}, {x.SubIdx}, Sync.House.Style.RoomTypes.{x.RoomType.ToString()}, {x.Price}, HouseBase.ClassTypes.{x.Class}, {x.Tax});");
             }
 
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "APARTMENTS_TO_REPLACE", lines);

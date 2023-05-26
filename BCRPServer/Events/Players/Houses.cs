@@ -76,7 +76,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("ARoot::Elevator")]
-        public static void ApartmentsRootElevator(Player player, int curFloor, int destFloor)
+        public static void ApartmentsRootElevator(Player player, ushort curFloor, ushort subIdx, ushort destFloor)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -93,24 +93,26 @@ namespace BCRPServer.Events.Players
             if (aRoot == null)
                 return;
 
-            var curFloorPos = aRoot.GetFloorPosition(curFloor);
+            var shell = aRoot.Shell;
+
+            var curFloorPos = shell.GetFloorPosition(curFloor, subIdx);
 
             if (curFloorPos == null)
                 return;
 
-            if (Vector3.Distance(player.Position, curFloorPos) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(player.Position, curFloorPos.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
-            curFloorPos = aRoot.GetFloorPosition(destFloor);
+            curFloorPos = shell.GetFloorPosition(destFloor, subIdx);
 
             if (curFloorPos == null)
                 return;
 
-            player.Teleport(curFloorPos, false, aRoot.Dimension, null, true);
+            player.Teleport(curFloorPos.Position, false, aRoot.Dimension, curFloorPos.RotationZ, true);
         }
 
         [RemoteEvent("ARoot::Enter")]
-        public static void ApartmentsRootEnter(Player player, int numType)
+        public static void ApartmentsRootEnter(Player player, uint id)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -122,10 +124,10 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
                 return;
 
-            if (!Enum.IsDefined(typeof(Game.Estates.Apartments.ApartmentsRoot.Types), numType))
-                return;
+            var aRoot = Game.Estates.Apartments.ApartmentsRoot.Get(id);
 
-            var aRoot = Game.Estates.Apartments.ApartmentsRoot.Get((Game.Estates.Apartments.ApartmentsRoot.Types)numType);
+            if (aRoot == null)
+                return;
 
             if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, aRoot.EnterParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
@@ -151,7 +153,7 @@ namespace BCRPServer.Events.Players
             if (aRoot == null)
                 return;
 
-            if (Vector3.Distance(player.Position, aRoot.ExitParams.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+            if (Vector3.Distance(player.Position, aRoot.Shell.EnterPosition.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
                 return;
 
             aRoot.SetPlayersOutside(true, player);

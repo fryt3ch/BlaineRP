@@ -402,14 +402,14 @@ namespace BCRPClient.CEF
 
             foreach (var x in pData.OwnedApartments.ToList())
             {
-                estToSell.Add(new object[] { "Flat", Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootType].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 });
+                estToSell.Add(new object[] { "Flat", Locale.General.PropertyApartmentsString, Data.Locations.ApartmentsRoot.All[x.RootId].Name, x.Class.ToString(), x.Price, x.NumberInRoot + 1 });
 
                 estIds.Add((Sync.Players.PropertyTypes.Apartments, x.Id));
             }
 
             foreach (var x in pData.OwnedGarages.ToList())
             {
-                estToSell.Add(new object[] { Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootType].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
+                estToSell.Add(new object[] { Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
 
                 estIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
             }
@@ -482,7 +482,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "garage", garage.NumberInRoot + 1, new object[] { targetPlayer.GetName(true, false, true), price, garage.Price, garage.Tax, (int)garage.RootType + 1, (int)garage.Type });
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "garage", garage.NumberInRoot + 1, new object[] { targetPlayer.GetName(true, false, true), price, garage.Price, garage.Tax, (int)garage.RootId + 1, (int)garage.Type });
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);
@@ -711,7 +711,7 @@ namespace BCRPClient.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(Data.Locations.ApartmentsRoot.All[apsData.RootType].PositionEnter, Settings.MAIN_DIMENSION, true, $"\n\nЭтаж: {Data.Locations.ApartmentsRoot.All[apsData.RootType].GetFloor(apsData.Position) ?? -1}, кв. {apsData.NumberInRoot + 1}");
+                    Additional.ExtraBlips.CreateGPS(Data.Locations.ApartmentsRoot.All[apsData.RootId].PositionEnter, Settings.MAIN_DIMENSION, true, $"\n\nЭтаж: {Data.Locations.ApartmentsRoot.All[apsData.RootId].Shell.StartFloor + apsData.FloorIdx}, кв. {apsData.NumberInRoot + 1}");
                 }
                 else if (idS[0] == "g")
                 {
@@ -726,7 +726,7 @@ namespace BCRPClient.CEF
                         return;
                     }
 
-                    Additional.ExtraBlips.CreateGPS(Data.Locations.GarageRoot.All[garageData.RootType].EnterColshape.Position, Settings.MAIN_DIMENSION, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
+                    Additional.ExtraBlips.CreateGPS(Data.Locations.GarageRoot.All[garageData.RootId].EnterColshape.Position, Settings.MAIN_DIMENSION, true, $"\n\nНомер гаража в комплексе: {garageData.NumberInRoot + 1}");
                 }
             });
         }

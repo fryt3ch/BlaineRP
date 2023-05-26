@@ -103,7 +103,7 @@ namespace BCRPClient.CEF
 
             var isOwnedGarageClosed = false;
 
-            var ownedGarage = pData.OwnedGarages.Where(x => x.RootType == gRoot.Type).FirstOrDefault();
+            var ownedGarage = pData.OwnedGarages.Where(x => x.RootId == gRoot.Id).FirstOrDefault();
 
             if (ownedGarage != null)
                 isOwnedGarageClosed = (bool?)await Events.CallRemoteProc("Garage::GetIsLocked", ownedGarage.Id) ?? false;
@@ -145,7 +145,7 @@ namespace BCRPClient.CEF
                 }
             }
 
-            CEF.Browser.Window.ExecuteJs("MenuGar.draw", new object[] { new object[] { (int)gRoot.Type + 1, gData, ownedNum } });
+            CEF.Browser.Window.ExecuteJs("MenuGar.draw", new object[] { new object[] { gRoot.Id + 1, gData, ownedNum } });
 
             CEF.Cursor.Show(true, true);
 

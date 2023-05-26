@@ -4,7 +4,6 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.Sync
 {
@@ -23,18 +22,34 @@ namespace BCRPClient.Sync
 
         public class Style
         {
-            /// <summary>Типы планировки</summary>
-            public enum Types
+            public class DoorInfo
             {
-                First = 0,
-                Second = 2,
-                Third = 3,
-                Fourth = 4,
-                Fifth = 5,
+                public uint Model { get; set; }
+
+                public Vector3 Position { get; set; }
+
+                public DoorInfo(uint Model, Vector3 Position)
+                {
+                    this.Model = Model;
+                    this.Position = Position;
+                }
+            }
+
+            public class LightInfo
+            {
+                public uint Model { get; set; }
+
+                public Vector3 Position { get; set; }
+
+                public LightInfo(uint Model, Vector3 Position)
+                {
+                    this.Model = Model;
+                    this.Position = Position;
+                }
             }
 
             /// <summary>Типы комнат</summary>
-            public enum RoomTypes
+            public enum RoomTypes : byte
             {
                 One = 1,
                 Two = 2,
@@ -43,137 +58,56 @@ namespace BCRPClient.Sync
                 Five = 5,
             }
 
-            public Types Type { get; private set; }
+            private HashSet<RoomTypes> SupportedRoomTypes { get; }
+            private HashSet<HouseTypes> SupportedHouseTypes { get; }
+            private HashSet<ushort> FamiliarTypes { get; }
 
-            public RoomTypes RoomType { get; private set; }
-
-            public HouseTypes HouseType { get; private set; }
+            public Utils.Vector4 InteriorPosition { get; private set; }
 
             public Vector3 Position { get; private set; }
 
-            public Vector3 EnterancePos { get; private set; }
+            public uint Price { get; private set; }
 
-            public string Name { get; private set; }
-
-            public int Price { get; private set; }
-
-            public (string Model, Vector3 Position)[] Lights { get; set; }
-            public (string Model, Vector3 Position)[] Doors { get; set; }
+            public LightInfo[] Lights { get; set; }
+            public DoorInfo[] Doors { get; set; }
 
             /// <summary>Словарь планировок</summary>
-            public static Dictionary<HouseTypes, Dictionary<RoomTypes, Dictionary<Types, Style>>> All { get; private set; } = new Dictionary<HouseTypes, Dictionary<RoomTypes, Dictionary<Types, Style>>>();
+            public static Dictionary<ushort, Style> All { get; private set; }
 
-            public static Style Get(HouseTypes hType, RoomTypes rType, Types sType) => All.GetValueOrDefault(hType)?.GetValueOrDefault(rType)?.GetValueOrDefault(sType);
+            public static Style Get(ushort sType) => All.GetValueOrDefault(sType);
 
-            public Style(HouseTypes HouseType, RoomTypes RoomType, Types Type, string Name, int Price, Vector3 Position, Vector3 EnterancePos, (string Model, Vector3 Position)[] Lights, (string Model, Vector3 Position)[] Doors)
+            public Style(ushort Type, Vector3 Position, Utils.Vector4 InteriorPosition, uint Price, string DoorsJs, string LightsJs, string SupportedRoomTypesJs, string SupportedHouseTypesJs, string FamiliarTypesJs)
             {
-                this.HouseType = HouseType;
-                this.RoomType = RoomType;
-
-                this.Type = Type;
+                All.Add(Type, this);
 
                 this.Position = Position;
-
-                this.EnterancePos = EnterancePos;
-
+                this.InteriorPosition = InteriorPosition;
                 this.Price = Price;
-                this.Name = Name;
 
-                for (int i = 0; i < Lights.Length; i++)
-                    Lights[i].Position += Position;
+                this.Doors = RAGE.Util.Json.Deserialize<DoorInfo[]>(DoorsJs);
+                this.Lights = RAGE.Util.Json.Deserialize<LightInfo[]>(LightsJs);
 
-                for (int i = 0; i < Doors.Length; i++)
-                    Doors[i].Position += Position;
-
-                this.Lights = Lights;
-                this.Doors = Doors;
-
-                if (!All.ContainsKey(HouseType))
-                    All.Add(HouseType, new Dictionary<RoomTypes, Dictionary<Types, Style>>());
-
-                if (!All[HouseType].ContainsKey(RoomType))
-                    All[HouseType].Add(RoomType, new Dictionary<Types, Style>());
-
-                All[HouseType][RoomType].Add(Type, this);
+                this.SupportedHouseTypes = RAGE.Util.Json.Deserialize<HashSet<HouseTypes>>(SupportedHouseTypesJs);
+                this.SupportedRoomTypes = RAGE.Util.Json.Deserialize<HashSet<RoomTypes>>(SupportedRoomTypesJs);
+                this.FamiliarTypes = RAGE.Util.Json.Deserialize<HashSet<ushort>>(FamiliarTypesJs);
             }
+
+            public static string GetName(ushort type) => Locale.Get($"HOUSE_STYLE_{type}@Name", "null");
+
+            public bool IsHouseTypeSupported(HouseTypes hType) => SupportedHouseTypes.Contains(hType);
+            public bool IsRoomTypeSupported(RoomTypes rType) => SupportedRoomTypes.Contains(rType);
+            public bool IsTypeFamiliar(ushort type) => FamiliarTypes.Contains(type);
 
             public static void LoadAll()
             {
-                new Style(HouseTypes.House, RoomTypes.Two, Types.First, "2 комнаты | Стандартный стиль", 100, new Vector3(70f, 70f, -10f), new Vector3(67.955511f, 70.03592f, -10f),
-                    new (string, Vector3)[]
-                    {
-                        ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(0f, -5.349999f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.400002f, -6.099998f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.641205f, 4.258736f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(3.800003f, -0.75f, 3.976f)),
-                        ("brp_p_light_2_1", new Vector3(6.75f, -0.75f, 3.95f))
-                    },
-                    new (string, Vector3)[]
-                    {
-                        ("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(2.550006f, -5.550001f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.25f, -2.800003f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
-                    });
+                if (All != null)
+                    return;
 
-                new Style(HouseTypes.House, RoomTypes.Two, Types.Second, "2 комнаты | Темный стиль", 100, new Vector3(70f, 70f, -20f), new Vector3(67.955511f, 70.03592f, -20f),
-                    new (string, Vector3)[]
-                    {
-                        ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(0f, -5.349999f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.400002f, -6.099998f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.641205f, 4.258736f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(3.800003f, -0.75f, 3.976f)),
-                        ("brp_p_light_2_1", new Vector3(6.75f, -0.75f, 3.95f))
-                    },
-                    new (string, Vector3)[]
-                    {
-                        ("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(2.550006f, -5.550001f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.25f, -2.800003f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
-                    });
+                All = new Dictionary<ushort, Style>();
 
-                new Style(HouseTypes.Apartments, RoomTypes.Two, Types.First, "2 комнаты | Стандартный стиль", 100, new Vector3(70f, 70f, -10f), new Vector3(67.955511f, 70.03592f, -10f),
-                    new (string, Vector3)[]
-                    {
-                        ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(0f, -5.349999f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.400002f, -6.099998f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.641205f, 4.258736f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(3.800003f, -0.75f, 3.976f)),
-                        ("brp_p_light_2_1", new Vector3(6.75f, -0.75f, 3.95f))
-                    },
-                    new (string, Vector3)[]
-                    {
-                        ("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(2.550006f, -5.550001f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.25f, -2.800003f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
-                    });
+                #region STYLES_TO_REPLACE
 
-                new Style(HouseTypes.Apartments, RoomTypes.Two, Types.Second, "2 комнаты | Темный стиль", 100, new Vector3(70f, 70f, -20f), new Vector3(67.955511f, 70.03592f, -20f),
-                    new (string, Vector3)[]
-                    {
-                        ("brp_p_light_3_1", new Vector3(0f, 0f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(0f, -5.349999f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.400002f, -6.099998f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(5.641205f, 4.258736f, 3.976f)),
-                        ("brp_p_light_3_1", new Vector3(3.800003f, -0.75f, 3.976f)),
-                        ("brp_p_light_2_1", new Vector3(6.75f, -0.75f, 3.95f))
-                    },
-                    new (string, Vector3)[]
-                    {
-                        ("v_ilev_ra_door3", new Vector3(-0.6799995f, -1.300002f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(2.550006f, -5.550001f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.25f, -2.800003f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(4.850007f, -0.2000022f, 1.152f)),
-                        ("v_ilev_ra_door3", new Vector3(3.249999f, 1.3f, 1.152f)),
-                    });
+                #endregion
             }
         }
 
@@ -246,9 +180,9 @@ namespace BCRPClient.Sync
                 if (pData == null)
                     return;
 
-                var arType = (Data.Locations.ApartmentsRoot.Types)(int)args[0];
+                var arId = Convert.ToUInt32(args[0]);
 
-                var aRoot = Data.Locations.ApartmentsRoot.All[arType];
+                var aRoot = Data.Locations.ApartmentsRoot.All[arId];
 
                 Utils.SetActionAsPending("ApartmentsRoot::Load", true);
 
@@ -265,7 +199,7 @@ namespace BCRPClient.Sync
                 Player.LocalPlayer.SetData("ApartmentsRoot::Current", aRoot);
 
                 foreach (var x in pData.OwnedApartments.ToList())
-                    if (x?.RootType == arType)
+                    if (x?.RootId == arId)
                         x.ToggleOwnerBlip(true);
             });
 
@@ -286,7 +220,7 @@ namespace BCRPClient.Sync
                 Player.LocalPlayer.ResetData("ApartmentsRoot::Current");
 
                 foreach (var x in pData.OwnedApartments.ToList())
-                    if (x?.RootType == aRoot.Type)
+                    if (x?.RootId == aRoot.Id)
                         x.ToggleOwnerBlip(true);
             });
 
@@ -317,7 +251,7 @@ namespace BCRPClient.Sync
 
                     var hType = (HouseTypes)(int)data["T"];
 
-                    var sType = (Style.Types)(int)data["S"];
+                    var sType = Convert.ToUInt16(data["S"]);
 
                     var dimension = (uint)data["Dim"];
 
@@ -340,7 +274,7 @@ namespace BCRPClient.Sync
 
                     var house = hType == HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
 
-                    var style = Style.Get(hType, house.RoomType, sType);
+                    var style = Style.Get(sType);
 
                     Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
 
@@ -355,24 +289,30 @@ namespace BCRPClient.Sync
                     {
                         var x = style.Doors[i];
 
-                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
+                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true);
 
                         if (handle <= 0)
                             continue;
+
+                        var state = i >= doors.Length ? false : doors[i];
 
                         var t = new MapObject(handle)
                         {
                             Dimension = uint.MaxValue,
                         };
 
-                        Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), doors[i]);
+                        var coords = t.GetCoords(false);
+
+                        t.SetCoordsNoOffset(coords.X, coords.Y, coords.Z, false, false, false);
+
+                        Sync.DoorSystem.ToggleLock(RAGE.Game.Entity.GetEntityModel(t.Handle), t.GetCoords(false), state);
 
                         Doors.Add(i, t);
 
                         t.SetData("Interactive", true);
 
                         t.SetData("DoorIdx", i);
-                        t.SetData("DoorState", doors[i]);
+                        t.SetData("DoorState", state);
 
                         t.SetData("CustomAction", new Action<MapObject>((obj) =>
                         {
@@ -403,7 +343,7 @@ namespace BCRPClient.Sync
                     {
                         var x = style.Lights[i];
 
-                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.Model), false, true, true);
+                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true);
 
                         if (handle <= 0)
                             continue;
@@ -413,19 +353,21 @@ namespace BCRPClient.Sync
                             Dimension = uint.MaxValue,
                         };
 
-                        var rgb = lights[i]["C"].ToObject<Utils.Colour>();
+                        var rgb = i >= lights.Length ? DefaultLightColour : lights[i]["C"].ToObject<Utils.Colour>();
 
-                        t.SetData("State", (bool)lights[i]["S"]);
+                        var state = i >= lights.Length ? true : (bool)lights[i]["S"];
+
+                        t.SetData("State", state);
                         t.SetData("RGB", rgb);
 
                         Lights.Add(i, t);
 
-                        RAGE.Game.Entity.SetEntityLights(handle, !(bool)lights[i]["S"]);
+                        RAGE.Game.Entity.SetEntityLights(handle, !state);
 
                         t.SetLightColour(rgb);
                     }
 
-                    var exitCs = new Additional.Cylinder(style.EnterancePos, 1f, 2f, false, Utils.RedColor, dimension);
+                    var exitCs = new Additional.Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.RedColor, dimension);
 
                     exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
 
@@ -452,7 +394,7 @@ namespace BCRPClient.Sync
                         CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_Apartments);
                     }
 
-                    TempBlips.Add(new Additional.ExtraBlip(40, style.EnterancePos, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, dimension));
+                    TempBlips.Add(new Additional.ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, dimension));
 
                     Utils.CancelPendingTask("House::Enter");
 
@@ -675,7 +617,7 @@ namespace BCRPClient.Sync
 
                 var coords = lInfo.Position;
 
-                var handle = RAGE.Game.Object.GetClosestObjectOfType(coords.X, coords.Y, coords.Z, 1f, RAGE.Util.Joaat.Hash(lInfo.Model), false, true, true);
+                var handle = RAGE.Game.Object.GetClosestObjectOfType(coords.X, coords.Y, coords.Z, 1f, lInfo.Model, false, true, true);
 
                 if (handle <= 0)
                     continue;
