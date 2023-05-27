@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.Sync
 {
@@ -18,6 +19,20 @@ namespace BCRPClient.Sync
             House = 0,
             /// <summary>Квартира</summary>
             Apartments,
+        }
+
+        public class LightsPack
+        {
+            public bool State { get; set; }
+
+            public Utils.Colour RGB { get; set; }
+
+            public List<MapObject> Objects { get; set; }
+
+            public LightsPack()
+            {
+                Objects = new List<MapObject>();
+            }
         }
 
         public class Style
@@ -68,7 +83,7 @@ namespace BCRPClient.Sync
 
             public uint Price { get; private set; }
 
-            public LightInfo[] Lights { get; set; }
+            public LightInfo[][] Lights { get; set; }
             public DoorInfo[] Doors { get; set; }
 
             /// <summary>Словарь планировок</summary>
@@ -85,7 +100,7 @@ namespace BCRPClient.Sync
                 this.Price = Price;
 
                 this.Doors = RAGE.Util.Json.Deserialize<DoorInfo[]>(DoorsJs);
-                this.Lights = RAGE.Util.Json.Deserialize<LightInfo[]>(LightsJs);
+                this.Lights = RAGE.Util.Json.Deserialize<LightInfo[][]>(LightsJs);
 
                 this.SupportedHouseTypes = RAGE.Util.Json.Deserialize<HashSet<HouseTypes>>(SupportedHouseTypesJs);
                 this.SupportedRoomTypes = RAGE.Util.Json.Deserialize<HashSet<RoomTypes>>(SupportedRoomTypesJs);
@@ -114,7 +129,7 @@ namespace BCRPClient.Sync
         private static List<Additional.ExtraColshape> TempColshapes;
         private static List<Additional.ExtraBlip> TempBlips;
 
-        public static Dictionary<int, MapObject> Lights { get; private set; }
+        public static Dictionary<int, LightsPack> Lights { get; private set; }
         public static Dictionary<int, MapObject> Doors { get; private set; }
 
         public static Dictionary<uint, MapObject> Furniture { get; private set; }
@@ -123,8 +138,6 @@ namespace BCRPClient.Sync
 
         public House()
         {
-            LastSent = DateTime.MinValue;
-
             Data.Furniture.LoadAll();
 
             Style.LoadAll();
@@ -132,7 +145,7 @@ namespace BCRPClient.Sync
             TempColshapes = new List<Additional.ExtraColshape>();
             TempBlips = new List<Additional.ExtraBlip>();
 
-            Lights = new Dictionary<int, MapObject>();
+            Lights = new Dictionary<int, LightsPack>();
             Doors = new Dictionary<int, MapObject>();
 
             Furniture = new Dictionary<uint, MapObject>();
@@ -230,21 +243,15 @@ namespace BCRPClient.Sync
 
                 AsyncTask task = null;
 
+                void onStopTask()
+                {
+                    Additional.SkyCamera.FadeScreen(false, 500, -1);
+
+                    GameEvents.DisableAllControls(false);
+                }
+
                 task = new AsyncTask(async () =>
                 {
-                    while (Additional.SkyCamera.IsFadedOut)
-                        await RAGE.Game.Invoker.WaitAsync(250);
-
-                    if (!Utils.IsTaskStillPending("House::Enter", task))
-                        return;
-
-                    var pData = Sync.Players.GetData(Player.LocalPlayer);
-
-                    if (pData == null)
-                        return;
-
-                    Sync.Players.CloseAll(false);
-
                     var data = RAGE.Util.Json.Deserialize<JObject>((string)args[0]);
 
                     var id = (uint)(int)data["I"];
@@ -253,10 +260,48 @@ namespace BCRPClient.Sync
 
                     var sType = Convert.ToUInt16(data["S"]);
 
-                    var dimension = (uint)data["Dim"];
-
                     var doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
                     var lights = RAGE.Util.Json.Deserialize<JObject[]>((string)data["LS"]);
+
+                    var house = hType == HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
+
+                    var style = Style.Get(sType);
+
+                    while (Additional.SkyCamera.IsFadedOut && Utils.IsTaskStillPending("House::Enter", task))
+                        await RAGE.Game.Invoker.WaitAsync(25);
+
+                    if (!Utils.IsTaskStillPending("House::Enter", task))
+                        return;
+
+                    Additional.SkyCamera.FadeScreen(true, 0, -1);
+
+                    GameEvents.DisableAllControls(true);
+
+                    var interior = RAGE.Game.Interior.GetInteriorAtCoords(style.InteriorPosition.X, style.InteriorPosition.Y, style.InteriorPosition.Z);
+
+                    if (!RAGE.Game.Interior.IsValidInterior(interior))
+                    {
+                        onStopTask();
+
+                        return;
+                    }
+
+                    while (!RAGE.Game.Interior.IsInteriorReady(interior) && Utils.IsTaskStillPending("House::Enter", task))
+                        await RAGE.Game.Invoker.WaitAsync(5);
+
+                    if (!Utils.IsTaskStillPending("House::Enter", task))
+                    {
+                        onStopTask();
+
+                        return;
+                    }
+
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                    if (pData == null)
+                        return;
+
+                    Sync.Players.CloseAll(false);
 
                     Player.LocalPlayer.SetData("House::CurrentHouse::WI", (uint)data["WI"]);
                     Player.LocalPlayer.SetData("House::CurrentHouse::LI", (uint)data["LI"]);
@@ -272,27 +317,28 @@ namespace BCRPClient.Sync
                         CreateObject(fUid, fData, fProps);
                     }
 
-                    var house = hType == HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
-
-                    var style = Style.Get(sType);
-
                     Player.LocalPlayer.SetData("House::CurrentHouse::Style", style);
 
                     Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
-                    await RAGE.Game.Invoker.WaitAsync(1000);
-
-                    if (!Utils.IsTaskStillPending("House::Enter", task))
-                        return;
 
                     for (int i = 0; i < style.Doors.Length; i++)
                     {
                         var x = style.Doors[i];
 
-                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true);
+                        int handle = 0;
 
-                        if (handle <= 0)
-                            continue;
+                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0)
+                        {
+                            await RAGE.Game.Invoker.WaitAsync(5);
+
+                            if (!Utils.IsTaskStillPending("House::Enter", task))
+                            {
+                                onStopTask();
+
+                                return;
+                            }
+                        }
 
                         var state = i >= doors.Length ? false : doors[i];
 
@@ -316,12 +362,12 @@ namespace BCRPClient.Sync
 
                         t.SetData("CustomAction", new Action<MapObject>((obj) =>
                         {
-                            if (LastSent.IsSpam(1000))
+                            if (LastSent.IsSpam(1000, false, true))
                                 return;
 
-                            Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
-
                             LastSent = Sync.World.ServerTime;
+
+                            Events.CallRemote("House::Door", obj.GetData<int>("DoorIdx"), !t.GetData<bool>("DoorState"));
                         }));
 
                         t.SetData("CustomText", new Action<float, float>((x, y) =>
@@ -343,31 +389,47 @@ namespace BCRPClient.Sync
                     {
                         var x = style.Lights[i];
 
-                        var handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true);
+                        var info = new LightsPack();
 
-                        if (handle <= 0)
-                            continue;
+                        info.RGB = i >= lights.Length ? DefaultLightColour : lights[i]["C"].ToObject<Utils.Colour>();
+                        info.State = i >= lights.Length ? true : (bool)lights[i]["S"];
 
-                        var t = new MapObject(handle)
+                        Lights.Add(i, info);
+
+                        for (int j = 0; j < x.Length; j++)
                         {
-                            Dimension = uint.MaxValue,
-                        };
+                            var y = x[j];
 
-                        var rgb = i >= lights.Length ? DefaultLightColour : lights[i]["C"].ToObject<Utils.Colour>();
+                            int handle = 0;
 
-                        var state = i >= lights.Length ? true : (bool)lights[i]["S"];
+                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0)
+                            {
+                                await RAGE.Game.Invoker.WaitAsync(5);
 
-                        t.SetData("State", state);
-                        t.SetData("RGB", rgb);
+                                if (!Utils.IsTaskStillPending("House::Enter", task))
+                                {
+                                    onStopTask();
 
-                        Lights.Add(i, t);
+                                    return;
+                                }
+                            }
 
-                        RAGE.Game.Entity.SetEntityLights(handle, !state);
+                            var t = new MapObject(handle)
+                            {
+                                Dimension = uint.MaxValue,
+                            };
 
-                        t.SetLightColour(rgb);
+                            info.Objects.Add(t);
+
+                            RAGE.Game.Entity.SetEntityLights(handle, !info.State);
+
+                            t.SetLightColour(info.RGB);
+
+                            new TextLabel(y.Position, $"{i}", new RGBA(255, 255, 255, 255), 5f, 0, false, uint.MaxValue);
+                        }
                     }
 
-                    var exitCs = new Additional.Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.RedColor, dimension);
+                    var exitCs = new Additional.Cylinder(new Vector3(style.Position.X, style.Position.Y, style.Position.Z - 1f), 1f, 2f, false, Utils.RedColor, uint.MaxValue);
 
                     exitCs.InteractionType = Additional.ExtraColshape.InteractionTypes.HouseExit;
 
@@ -379,7 +441,7 @@ namespace BCRPClient.Sync
                         {
                             var gData = Data.Locations.Garage.Style.Get(grType, 0);
 
-                            var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, dimension, null)
+                            var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, uint.MaxValue, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
                             };
@@ -394,10 +456,13 @@ namespace BCRPClient.Sync
                         CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Menu_Apartments);
                     }
 
-                    TempBlips.Add(new Additional.ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, dimension));
+                    TempBlips.Add(new Additional.ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
 
                     Utils.CancelPendingTask("House::Enter");
 
+                    GameEvents.DisableAllControls(false);
+
+                    Additional.SkyCamera.FadeScreen(false, 500, -1);
                 }, 0, false, 0);
 
                 Utils.SetTaskAsPending("House::Enter", task);
@@ -424,16 +489,19 @@ namespace BCRPClient.Sync
             {
                 var lIdx = (int)args[0];
 
-                var light = Lights.GetValueOrDefault(lIdx);
+                var lightsPack = Lights.GetValueOrDefault(lIdx);
 
-                if (light == null)
+                if (lightsPack == null)
                     return;
 
                 if (args[1] is bool state)
                 {
-                    light.SetData("State", state);
+                    lightsPack.State = state;
 
-                    RAGE.Game.Entity.SetEntityLights(light.Handle, !state);
+                    foreach (var x in lightsPack.Objects)
+                    {
+                        RAGE.Game.Entity.SetEntityLights(x.Handle, !state);
+                    }
 
                     if (CEF.HouseMenu.IsActive)
                         CEF.HouseMenu.SetLightState(lIdx, state);
@@ -444,9 +512,12 @@ namespace BCRPClient.Sync
 
                     if (rgb != null)
                     {
-                        light.SetData("RGB", rgb);
+                        lightsPack.RGB = rgb;
 
-                        light.SetLightColour(rgb);
+                        foreach (var x in lightsPack.Objects)
+                        {
+                            x.SetLightColour(rgb);
+                        }
 
                         if (CEF.HouseMenu.IsActive)
                             CEF.HouseMenu.SetLightColour(lIdx, rgb);
@@ -586,7 +657,8 @@ namespace BCRPClient.Sync
             Doors.Clear();
 
             foreach (var x in Lights.Values)
-                x?.Destroy();
+                foreach (var y in x.Objects)
+                    y?.Destroy();
 
             Lights.Clear();
 
@@ -613,33 +685,33 @@ namespace BCRPClient.Sync
                 if (t == null)
                     continue;
 
-                var lInfo = style.Lights[i];
-
-                var coords = lInfo.Position;
-
-                var handle = RAGE.Game.Object.GetClosestObjectOfType(coords.X, coords.Y, coords.Z, 1f, lInfo.Model, false, true, true);
-
-                if (handle <= 0)
-                    continue;
-
-                var x = new RAGE.Elements.MapObject(handle)
+                for (int j = 0; j < style.Lights[i].Length; j++)
                 {
-                    Dimension = uint.MaxValue,
-                };
+                    var lInfo = style.Lights[i][j];
 
-                x.SetData("State", t.GetData<bool>("State"));
-                x.SetData("RGB", t.GetData<Utils.Colour>("RGB"));
+                    var coords = lInfo.Position;
 
-                t.Destroy();
+                    var handle = RAGE.Game.Object.GetClosestObjectOfType(coords.X, coords.Y, coords.Z, 1f, lInfo.Model, false, true, true);
 
-                Lights[i] = x;
+                    if (handle <= 0)
+                        continue;
 
-                RAGE.Game.Entity.SetEntityLights(x.Handle, !x.GetData<bool>("State"));
+                    var x = new RAGE.Elements.MapObject(handle)
+                    {
+                        Dimension = uint.MaxValue,
+                    };
 
-                var rgb = x.GetData<Utils.Colour>("RGB");
+                    t.Objects[j].Destroy();
 
-                if (rgb != null)
-                    x.SetLightColour(rgb);
+                    t.Objects[j] = x;
+
+                    RAGE.Game.Entity.SetEntityLights(x.Handle, !t.State);
+
+                    var rgb = t.RGB;
+
+                    if (rgb != null)
+                        x.SetLightColour(rgb);
+                }
             }
         }
     }

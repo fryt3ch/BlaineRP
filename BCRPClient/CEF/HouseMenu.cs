@@ -224,7 +224,7 @@ namespace BCRPClient.CEF
                         rgb = ((string)args[2]).ToColour();
                     }
 
-                    var curRgb = light.GetData<Utils.Colour>("RGB");
+                    var curRgb = light.RGB;
 
                     if (rgb.Red == curRgb.Red && rgb.Green == curRgb.Green && rgb.Blue == curRgb.Blue)
                         return;
@@ -281,7 +281,8 @@ namespace BCRPClient.CEF
 
                 var rgb = ((string)args[1]).ToColour();
 
-                light.SetLightColour(rgb);
+                foreach (var x in light.Objects)
+                    x.SetLightColour(rgb);
             });
 
             Events.Add("HouseMenu::SettlerPerm", (args) =>
@@ -356,7 +357,7 @@ namespace BCRPClient.CEF
 
             var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
-            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", $"Лампа #{x.Key}", x.Value.GetData<bool>("State"), x.Value.GetData<Utils.Colour>("RGB").HEX });
+            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", x.Value.Objects.Count > 1 ? $"Набор ламп #{x.Key + 1}" : $"Лампа #{x.Key + 1}", x.Value.State, x.Value.RGB.HEX });
 
             await CEF.Browser.Render(Browser.IntTypes.MenuHome, true, true);
 
@@ -405,7 +406,11 @@ namespace BCRPClient.CEF
 
             foreach (var x in Sync.House.Lights.Values)
             {
-                x?.SetLightColour(x.GetData<Utils.Colour>("RGB"));
+                if (x == null)
+                    continue;
+
+                foreach (var y in x.Objects)
+                    y?.SetLightColour(x.RGB);
             }
 
             Player.LocalPlayer.ResetData("HouseMenu::SellGov::ApproveTime");
