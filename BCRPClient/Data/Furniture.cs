@@ -159,11 +159,9 @@ namespace BCRPClient.Data
 
         public static Action<MapObject, object[]> GetCreateAction(string id) => CreateActions.GetValueOrDefault(All[id].Type);
 
-        public async System.Threading.Tasks.Task<MapObject> CreateObject(Vector3 pos, Vector3 rot, uint dim, uint uid, params object[] args)
+        public MapObject CreateObject(Vector3 pos, Vector3 rot, uint dim, uint uid, params object[] args)
         {
-            await Utils.RequestModel(Model);
-
-            var obj = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(Model, pos.X, pos.Y, pos.Z, false, false, false));
+            var obj = Utils.CreateObjectNoOffsetImmediately(Model, pos.X, pos.Y, pos.Z);
 
             obj.FreezePosition(true);
 

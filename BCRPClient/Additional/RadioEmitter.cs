@@ -76,16 +76,11 @@ namespace BCRPClient.Additional
             if (pos == null)
                 return;
 
-            var handle = RAGE.Game.Object.CreateObjectNoOffset(RAGE.Util.Joaat.Hash("prop_boombox_01"), pos.X, pos.Y, pos.Z, false, false, false);
-
-            MapObject = new MapObject(handle)
-            {
-                Dimension = uint.MaxValue,
-            };
+            MapObject = Utils.CreateObjectNoOffsetImmediately(RAGE.Util.Joaat.Hash("prop_boombox_01"), pos.X, pos.Y, pos.Z);
 
             MapObject.SetVisible(false, false);
 
-            Utils.LinkStaticEmitterToEntity(emitterStr, handle);
+            Utils.LinkStaticEmitterToEntity(emitterStr, MapObject.Handle);
 
             RAGE.Game.Audio.SetEmitterRadioStation(emitterStr, Sync.Radio.GetRadioStationName(RadioStationType));
 

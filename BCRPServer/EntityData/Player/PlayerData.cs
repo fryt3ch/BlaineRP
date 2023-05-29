@@ -265,27 +265,6 @@ namespace BCRPServer
             Player.TriggerEvent("Player::Properties::Update", false, PropertyTypes.Garage, garage.Id);
         }
 
-        public void AddFurniture(Game.Estates.Furniture furn)
-        {
-            if (Furniture.Contains(furn))
-                return;
-
-            Furniture.Add(furn);
-
-            Player.TriggerEvent("Player::Furniture::Update", true, furn.UID, furn.ID);
-
-            MySQL.CharacterFurnitureUpdate(Info);
-        }
-
-        public void RemoveFurniture(Game.Estates.Furniture furn)
-        {
-            Furniture.Remove(furn);
-
-            Player.TriggerEvent("Player::Furniture::Update", false, furn.UID);
-
-            MySQL.CharacterFurnitureUpdate(Info);
-        }
-
         public void UpdateMedicalCard(MedicalCard medCard)
         {
             Info.MedicalCard = medCard;

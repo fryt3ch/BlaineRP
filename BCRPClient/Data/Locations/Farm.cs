@@ -180,7 +180,7 @@ namespace BCRPClient.Data
 
                                     var zOffset = cropTData.GrownZOffset;
 
-                                    var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, z + zOffset, false, false, false));
+                                    var prop = Utils.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
 
                                     MapObject = prop;
 
@@ -255,7 +255,7 @@ namespace BCRPClient.Data
 
                                         var zOffset = cropTData.SownZOffset;
 
-                                        var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, z + zOffset, false, false, false));
+                                        var prop = Utils.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
 
                                         MapObject = prop;
 
@@ -498,7 +498,7 @@ namespace BCRPClient.Data
 
                                 var zOffset = growTime == 0 ? cropTData.GrownZOffset : cropTData.SownZOffset;
 
-                                var prop = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(cropTData.Model, x, y, z + zOffset, false, false, false));
+                                var prop = Utils.CreateObjectNoOffsetImmediately(cropTData.Model, x, y, z + zOffset);
 
                                 prop.SetTotallyInvincible(true);
 
@@ -762,7 +762,7 @@ namespace BCRPClient.Data
                             TextTask = new AsyncTask(() =>
                             {
                                 if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
-                                    Utils.DrawText(Text, x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                    Utils.DrawText(Text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }, 0, true, 0);
 
                             TextTask.Run();
@@ -1080,8 +1080,6 @@ namespace BCRPClient.Data
 
                     var emptyBucketModel = RAGE.Util.Joaat.Hash("brp_p_farm_bucket_0");
 
-                    await Utils.RequestModel(emptyBucketModel);
-
                     var res = (int)await Events.CallRemoteProc("Job::FARM::COWP", idx);
 
                     if (res == byte.MaxValue)
@@ -1103,7 +1101,7 @@ namespace BCRPClient.Data
 
                         Player.LocalPlayer.GetData<MapObject>("FARMAT::TEMPBUCKET0")?.Destroy();
 
-                        var tempBucket = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(emptyBucketModel, tPos.X, tPos.Y, tPos.Z, false, false, false));
+                        var tempBucket = Utils.CreateObjectNoOffsetImmediately(emptyBucketModel, tPos.X, tPos.Y, tPos.Z);
 
                         Player.LocalPlayer.SetData("FARMAT::TEMPBUCKET0", tempBucket);
                     }

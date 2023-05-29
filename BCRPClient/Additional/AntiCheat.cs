@@ -12,8 +12,7 @@ namespace BCRPClient.Additional
 
     class AntiCheat : Events.Script
     {
-        private static GameEvents.UpdateHandler Update { get; set; }
-        private static AsyncTask Loop { get; set; }
+        private static Additional.ExtraTimer Timer { get; set; }
 
         public static bool LastTeleportWasGround { get; set; }
 
@@ -40,27 +39,22 @@ namespace BCRPClient.Additional
 
         public static int LastAllowedAmmo { get; set; }
 
-        private static Stack<bool> AllowTP;
-        private static Stack<bool> AllowHP;
-        private static Stack<bool> AllowArm;
-        private static Stack<bool> AllowAlpha;
-        private static Stack<bool> AllowWeapon;
+        public const string TeleportTaskKey = "AC_TP_T";
+
+        public const string HealthTaskKey = "AC_HP_T";
+        public const string ArmourTaskKey = "AC_ARM_T";
+
+        public const string WeaponTaskKey = "AC_WEAPON_T";
+
+        public const string AlphaTaskKey = "AC_ALPHA_T";
+
+        private static uint DisableCloseAllOnTeleportCounter { get; set; }
         #endregion
+
+        public static void DisableCloseAllOnNextTeleport() => DisableCloseAllOnTeleportCounter++;
 
         public AntiCheat()
         {
-            AllowTP = new Stack<bool>();
-            AllowHP = new Stack<bool>();
-            AllowArm = new Stack<bool>();
-            AllowAlpha = new Stack<bool>();
-            AllowWeapon = new Stack<bool>();
-
-            AllowTP.Push(false);
-            AllowHP.Push(false);
-            AllowArm.Push(false);
-            AllowAlpha.Push(false);
-            AllowWeapon.Push(false);
-
             #region Events
             #region Teleport
 
@@ -102,231 +96,266 @@ namespace BCRPClient.Additional
                     return;
                 }
 
-                if (GroundTeleportTask != null)
+                Utils.CancelPendingTask(TeleportTaskKey);
+
+                AsyncTask task = null;
+
+                task = new AsyncTask(async () =>
                 {
-                    GroundTeleportTask.Cancel();
-
-                    GroundTeleportTask = null;
-                }
-
-                LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.Position;
-
-                var onGround = (bool)args[2];
-
-                LastTeleportWasGround = onGround;
-
-                var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
-
-                var fade = (bool)args[4];
-
-                var withVehicle = args.Length > 5;
-
-                GameEvents.DisableAllControls(true);
-                KeyBinds.DisableAll();
-
-                Player.LocalPlayer.Detach(false, false);
-
-                Player.LocalPlayer.FreezePosition(true);
-
-                var veh = Player.LocalPlayer.Vehicle;
-
-                if (withVehicle && veh != null)
-                {
-                    veh.Detach(false, false);
-
-                    var vData = Sync.Vehicles.GetData(veh);
-
-                    if (vData != null)
+                    if (GroundTeleportTask != null)
                     {
-                        if (!vData.IsFrozen)
-                            veh.FreezePosition(true);
+                        GroundTeleportTask.Cancel();
+
+                        GroundTeleportTask = null;
                     }
-                }
 
-                Sync.Players.CloseAll(false);
+                    LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.GetCoords(false);
 
-                if (fade)
-                {
-                    Additional.SkyCamera.FadeScreen(true, 500, -1);
+                    var onGround = (bool)args[2];
 
-                    await RAGE.Game.Invoker.WaitAsync(1000);
+                    LastTeleportWasGround = onGround;
 
-                    Additional.SkyCamera.FadeScreen(false, 1500, -1);
-                }
+                    var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
 
-                AllowTP.Push(true);
+                    var fade = (bool)args[4];
 
-                if (withVehicle && veh != null)
-                {
-                    var vData = Sync.Vehicles.GetData(veh);
+                    var withVehicle = args.Length > 5;
 
-                    if (vData != null)
+                    GameEvents.DisableAllControls(true);
+                    KeyBinds.DisableAll();
+
+                    Player.LocalPlayer.Detach(false, false);
+
+                    Player.LocalPlayer.FreezePosition(true);
+
+                    var veh = Player.LocalPlayer.Vehicle;
+
+                    if (withVehicle && veh != null)
                     {
+                        veh.Detach(false, false);
+
+                        var vData = Sync.Vehicles.GetData(veh);
+
+                        if (vData != null)
+                        {
+                            if (!vData.IsFrozen)
+                                veh.FreezePosition(true);
+                        }
+                    }
+
+                    if (DisableCloseAllOnTeleportCounter > 0)
+                        DisableCloseAllOnTeleportCounter--;
+                    else
+                        Sync.Players.CloseAll(false);
+
+                    if (fade)
+                    {
+                        Additional.SkyCamera.FadeScreen(true, 500, -1);
+
+                        await RAGE.Game.Invoker.WaitAsync(1000);
+
+                        Additional.SkyCamera.FadeScreen(false, 1500, -1);
+                    }
+
+                    if (withVehicle && veh != null)
+                    {
+                        var vData = Sync.Vehicles.GetData(veh);
+
+                        if (vData != null)
+                        {
+                            Player.LocalPlayer.FreezePosition(false);
+
+                            veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
+
+                            veh.SetHeading(heading);
+
+                            if (!vData.IsFrozen)
+                                veh.FreezePosition(false);
+
+                            AsyncTask.RunSlim(() =>
+                            {
+                                Sync.AttachSystem.ReattachObjects(veh);
+                            }, 500);
+
+                            if (onGround)
+                            {
+                                var coordZ = 0f;
+
+                                GroundTeleportTask = new AsyncTask(async () =>
+                                {
+                                    for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
+                                    {
+                                        if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
+                                            break;
+
+                                        if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
+                                        {
+                                            veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+
+                                            return;
+                                        }
+                                        else
+                                        {
+                                            veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 25f, false, false, false);
+
+                                            await RAGE.Game.Invoker.WaitAsync(5);
+                                        }
+                                    }
+
+                                    veh.Position = LastAllowedPos;
+                                }, 0, false, 0);
+
+                                GroundTeleportTask.Run();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Player.LocalPlayer.ClearTasksImmediately();
+
                         Player.LocalPlayer.FreezePosition(false);
 
-                        veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
+                        Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
 
-                        veh.SetHeading(heading);
-
-                        if (!vData.IsFrozen)
-                            veh.FreezePosition(false);
-
-                        AsyncTask.RunSlim(() =>
-                        {
-                            Sync.AttachSystem.ReattachObjects(veh);
-                        }, 500);
+                        Player.LocalPlayer.SetHeading(heading);
 
                         if (onGround)
                         {
                             var coordZ = 0f;
 
+                            var coordZr = LastAllowedPos.Z;
+
                             GroundTeleportTask = new AsyncTask(async () =>
                             {
                                 for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
                                 {
-                                    if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
-                                        break;
-
                                     if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
                                     {
-                                        veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+                                        Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
 
                                         return;
                                     }
                                     else
                                     {
-                                        veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 25f, false, false, false);
+                                        Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 25f, false, false, false);
 
                                         await RAGE.Game.Invoker.WaitAsync(5);
                                     }
                                 }
 
-                                veh.Position = LastAllowedPos;
+                                Player.LocalPlayer.Position = LastAllowedPos;
                             }, 0, false, 0);
 
                             GroundTeleportTask.Run();
                         }
                     }
-                }
-                else
-                {
-                    Player.LocalPlayer.ClearTasksImmediately();
 
-                    Player.LocalPlayer.FreezePosition(false);
+                    GameEvents.DisableAllControls(false);
+                    KeyBinds.EnableAll();
 
-                    Player.LocalPlayer.Position = LastAllowedPos;
+                    Utils.ResetGameplayCameraRotation();
 
-                    Player.LocalPlayer.SetHeading(heading);
+                    Events.OnPlayerSpawn?.Invoke(null);
 
-                    if (onGround)
-                    {
-                        var coordZ = 0f;
+                    await RAGE.Game.Invoker.WaitAsync(2000);
 
-                        var coordZr = LastAllowedPos.Z;
+                    if (!Utils.IsTaskStillPending(TeleportTaskKey, task))
+                        return;
 
-                        GroundTeleportTask = new AsyncTask(async () =>
-                        {
-                            for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
-                            {
-                                if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
-                                {
-                                    Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
+                    Utils.CancelPendingTask(TeleportTaskKey);
 
-                                    return;
-                                }
-                                else
-                                {
-                                    Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZr += 25f, false, false, false);
+                }, 0, false, 0);
 
-                                    await RAGE.Game.Invoker.WaitAsync(5);
-                                }
-                            }
-
-                            Player.LocalPlayer.Position = LastAllowedPos;
-                        }, 0, false, 0);
-
-                        GroundTeleportTask.Run();
-                    }
-                }
-
-                GameEvents.DisableAllControls(false);
-                KeyBinds.EnableAll();
-
-                Utils.ResetGameplayCameraRotation();
-
-                Events.OnPlayerSpawn?.Invoke(null);
-
-                await RAGE.Game.Invoker.WaitAsync(2000);
-
-                AllowTP.Pop();
-
-                if (AllowTP.Count == 0)
-                    AllowTP.Push(false);
+                Utils.SetTaskAsPending(TeleportTaskKey, task);
             });
             #endregion
 
             #region Health
             Events.Add("AC::State::HP", async (object[] args) =>
             {
-                var value = (int)args[0];
+                Utils.CancelPendingTask(HealthTaskKey);
 
-                LastAllowedHP = value;
-                Player.LocalPlayer.SetRealHealth(value);
+                AsyncTask task = null;
 
-                AllowHP.Push(true);
+                task = new AsyncTask(async () =>
+                {
+                    var value = (int)args[0];
 
-                await RAGE.Game.Invoker.WaitAsync(2000);
+                    LastAllowedHP = value;
+                    Player.LocalPlayer.SetRealHealth(value);
 
-                AllowHP.Pop();
+                    await RAGE.Game.Invoker.WaitAsync(2000);
 
-                if (AllowHP.Count == 0)
-                    AllowHP.Push(false);
+                    if (!Utils.IsTaskStillPending(HealthTaskKey, task))
+                        return;
+
+                    Utils.CancelPendingTask(HealthTaskKey);
+                }, 0, false, 0);
+
+                Utils.SetTaskAsPending(HealthTaskKey, task);
             });
             #endregion
 
             #region Armour
             Events.Add("AC::State::Arm", async (object[] args) =>
             {
-                var value = (int)args[0];
+                Utils.CancelPendingTask(ArmourTaskKey);
 
-                Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
+                AsyncTask task = null;
 
-                LastAllowedArm = value;
-                Player.LocalPlayer.SetArmour(value);
+                task = new AsyncTask(async () =>
+                {
+                    var value = (int)args[0];
 
-                AllowArm.Push(true);
+                    Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
 
-                await RAGE.Game.Invoker.WaitAsync(100);
+                    LastAllowedArm = value;
+                    Player.LocalPlayer.SetArmour(value);
 
-                Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
-                Sync.WeaponSystem.OnDamage += Sync.WeaponSystem.ArmourCheck;
+                    await RAGE.Game.Invoker.WaitAsync(100);
 
-                await RAGE.Game.Invoker.WaitAsync(1900);
+                    Sync.WeaponSystem.OnDamage -= Sync.WeaponSystem.ArmourCheck;
+                    Sync.WeaponSystem.OnDamage += Sync.WeaponSystem.ArmourCheck;
 
-                AllowArm.Pop();
+                    if (!Utils.IsTaskStillPending(ArmourTaskKey, task))
+                        return;
 
-                if (AllowArm.Count == 0)
-                    AllowArm.Push(false);
+                    await RAGE.Game.Invoker.WaitAsync(1900);
+
+                    if (!Utils.IsTaskStillPending(ArmourTaskKey, task))
+                        return;
+
+                    Utils.CancelPendingTask(ArmourTaskKey);
+                });
+
+                Utils.SetTaskAsPending(ArmourTaskKey, task);
             });
             #endregion
 
             #region Transparency
             Events.Add("AC::State::Alpha", async (object[] args) =>
             {
-                var value = (int)args[0];
+                Utils.CancelPendingTask(AlphaTaskKey);
 
-                LastAllowedAlpha = value;
+                AsyncTask task = null;
 
-                Player.LocalPlayer.SetAlpha(value, false);
+                task = new AsyncTask(async () =>
+                {
+                    var value = (int)args[0];
 
-                AllowAlpha.Push(true);
+                    LastAllowedAlpha = value;
 
-                await RAGE.Game.Invoker.WaitAsync(2000);
+                    Player.LocalPlayer.SetAlpha(value, false);
 
-                AllowAlpha.Pop();
+                    await RAGE.Game.Invoker.WaitAsync(2000);
 
-                if (AllowAlpha.Count == 0)
-                    AllowAlpha.Push(false);
+                    if (!Utils.IsTaskStillPending(AlphaTaskKey, task))
+                        return;
+
+                    Utils.CancelPendingTask(AlphaTaskKey);
+                });
+
+                Utils.SetTaskAsPending(AlphaTaskKey, task);
             });
             #endregion
 
@@ -348,53 +377,60 @@ namespace BCRPClient.Additional
             #region Weapon
             Events.Add("AC::State::Weapon", async (object[] args) =>
             {
-                LastAllowedAmmo = (int)args[0];
+                Utils.CancelPendingTask(WeaponTaskKey);
 
-                if (args.Length > 1)
+                AsyncTask task = null;
+
+                task = new AsyncTask(async () =>
                 {
-                    var curGunData = Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon).FirstOrDefault();
+                    LastAllowedAmmo = (int)args[0];
 
-                    if (curGunData != null)
+                    if (args.Length > 1)
                     {
-                        if (curGunData.ComponentsHashes != null)
+                        var curGunData = Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon).FirstOrDefault();
+
+                        if (curGunData != null)
                         {
-                            foreach (var x in curGunData.ComponentsHashes.Values)
-                                if (Player.LocalPlayer.HasGotWeaponComponent(LastAllowedWeapon, x))
-                                    Player.LocalPlayer.RemoveWeaponComponentFrom(LastAllowedWeapon, x);
+                            if (curGunData.ComponentsHashes != null)
+                            {
+                                foreach (var x in curGunData.ComponentsHashes.Values)
+                                    if (Player.LocalPlayer.HasGotWeaponComponent(LastAllowedWeapon, x))
+                                        Player.LocalPlayer.RemoveWeaponComponentFrom(LastAllowedWeapon, x);
+                            }
                         }
+
+                        LastAllowedWeapon = args[1].ToUInt32();
+
+                        Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
                     }
 
-                    LastAllowedWeapon = args[1].ToUInt32();
+                    Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
 
-                    Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
-                }
+                    if (Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon && x.HasAmmo).FirstOrDefault() != null)
+                    {
+                        CEF.HUD.SetAmmo(LastAllowedAmmo);
 
-                Player.LocalPlayer.SetAmmo(LastAllowedWeapon, LastAllowedAmmo, 1);
+                        CEF.HUD.SwitchAmmo(true);
 
-                AllowWeapon.Push(true);
+                        GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
+                        GameEvents.Update += Sync.WeaponSystem.UpdateWeapon;
+                    }
+                    else
+                    {
+                        CEF.HUD.SwitchAmmo(false);
 
-                if (Sync.WeaponSystem.WeaponList.Where(x => x.Hash == LastAllowedWeapon && x.HasAmmo).FirstOrDefault() != null)
-                {
-                    CEF.HUD.SetAmmo(LastAllowedAmmo);
+                        GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
+                    }
 
-                    CEF.HUD.SwitchAmmo(true);
+                    await RAGE.Game.Invoker.WaitAsync(2000);
 
-                    GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
-                    GameEvents.Update += Sync.WeaponSystem.UpdateWeapon;
-                }
-                else
-                {
-                    CEF.HUD.SwitchAmmo(false);
+                    if (!Utils.IsTaskStillPending(WeaponTaskKey, task))
+                        return;
 
-                    GameEvents.Update -= Sync.WeaponSystem.UpdateWeapon;
-                }
+                    Utils.CancelPendingTask(WeaponTaskKey);
+                });
 
-                await RAGE.Game.Invoker.WaitAsync(2000);
-
-                AllowWeapon.Pop();
-
-                if (AllowWeapon.Count == 0)
-                    AllowWeapon.Push(false);
+                Utils.SetTaskAsPending(WeaponTaskKey, task);
             });
             #endregion
             #endregion
@@ -417,26 +453,30 @@ namespace BCRPClient.Additional
 
             LastAllowedInvincible = false;
 
-            Update += Check;
+            Timer = new ExtraTimer(async (obj) =>
+            {
+                await RAGE.Game.Invoker.WaitAsync(0);
 
-            Loop = new AsyncTask(() => Update?.Invoke(), 1000, true);
-            Loop.Run();
+                Check();
+            }, null, 0, 1_000);
         }
 
         private static void Check()
         {
-/*            if (Player.LocalPlayer.Vehicle is Vehicle fakeVeh && fakeVeh.IsLocal)
-            {
-                if (Player.LocalPlayer.Dimension == Settings.MAIN_DIMENSION)
-                {
-                    fakeVeh.Destroy();
-                }
-            }*/
+            /*            if (Player.LocalPlayer.Vehicle is Vehicle fakeVeh && fakeVeh.IsLocal)
+                        {
+                            if (Player.LocalPlayer.Dimension == Settings.MAIN_DIMENSION)
+                            {
+                                fakeVeh.Destroy();
+                            }
+                        }*/
+
+            var curPos = Player.LocalPlayer.GetCoords(false);
 
             #region Teleport
-            if (!AllowTP.Peek())
+            if (!Utils.IsTaskStillPending(TeleportTaskKey, null))
             {
-                var diff = Vector3.Distance(Player.LocalPlayer.Position, LastPosition);
+                var diff = Vector3.Distance(curPos, LastPosition);
 
                 if ((Player.LocalPlayer.Vehicle == null && Player.LocalPlayer.IsRagdoll() && Player.LocalPlayer.IsInAir()) || (Player.LocalPlayer.Vehicle != null))
                     diff = Math.Abs(diff - Player.LocalPlayer.GetSpeed());
@@ -450,16 +490,20 @@ namespace BCRPClient.Additional
             }
             else
             {
-                if ((LastTeleportWasGround ? Player.LocalPlayer.Position.DistanceIgnoreZ(LastAllowedPos) : Vector3.Distance(Player.LocalPlayer.Position, LastAllowedPos)) >= 50f)
-                    Player.LocalPlayer.Position = LastAllowedPos;
+                if ((LastTeleportWasGround ? curPos.DistanceIgnoreZ(LastAllowedPos) : Vector3.Distance(curPos, LastAllowedPos)) >= 50f)
+                {
+                    Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
+
+                    curPos = LastAllowedPos;
+                }
             }
 
-            LastPosition = Player.LocalPlayer.Position;
+            LastPosition = curPos;
 
             #endregion
 
             #region Health
-            if (!AllowHP.Peek() && !LastAllowedInvincible)
+            if (!Utils.IsTaskStillPending(HealthTaskKey, null) && !LastAllowedInvincible)
             {
                 var diff = Player.LocalPlayer.GetRealHealth() - LastHealth;
 
@@ -474,7 +518,7 @@ namespace BCRPClient.Additional
             #endregion
 
             #region Armour
-            if (!AllowArm.Peek())
+            if (!Utils.IsTaskStillPending(ArmourTaskKey, null))
             {
                 var diff = Player.LocalPlayer.GetArmour() - LastArmour;
 
@@ -488,7 +532,7 @@ namespace BCRPClient.Additional
             #endregion
 
             #region Transparency
-            if (!AllowAlpha.Peek())
+            if (!Utils.IsTaskStillPending(AlphaTaskKey, null))
             {
                 if (Player.LocalPlayer.GetAlpha() != LastAllowedAlpha)
                     Player.LocalPlayer.SetAlpha(LastAllowedAlpha, false);
@@ -496,7 +540,7 @@ namespace BCRPClient.Additional
             #endregion
 
             #region Weapon
-            if (!AllowWeapon.Peek())
+            if (!Utils.IsTaskStillPending(WeaponTaskKey, null))
             {
                 var curWeapon = Player.LocalPlayer.GetSelectedWeapon();
 
@@ -535,25 +579,25 @@ namespace BCRPClient.Additional
                 var lastHp = veh.GetData<float?>("LastHealth") ?? 1000f;
                 var curHp = veh.GetEngineHealth();
 
-/*                if (!vData.IsInvincible)
-                {
-                    if (Player.LocalPlayer.Vehicle == veh || curHp < 0)
-                    {
-                        if (!veh.GetCanBeDamaged())
-                        {
-                            veh.SetCanBeDamaged(true);
-                            veh.SetInvincible(false);
-                        }
-                    }
-                    else
-                    {
-                        if (veh.GetCanBeDamaged())
-                        {
-                            veh.SetCanBeDamaged(false);
-                            veh.SetInvincible(true);
-                        }
-                    }
-                }*/
+                /*                if (!vData.IsInvincible)
+                                {
+                                    if (Player.LocalPlayer.Vehicle == veh || curHp < 0)
+                                    {
+                                        if (!veh.GetCanBeDamaged())
+                                        {
+                                            veh.SetCanBeDamaged(true);
+                                            veh.SetInvincible(false);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (veh.GetCanBeDamaged())
+                                        {
+                                            veh.SetCanBeDamaged(false);
+                                            veh.SetInvincible(true);
+                                        }
+                                    }
+                                }*/
 
                 if (veh.IsDead(0))
                 {
@@ -572,7 +616,7 @@ namespace BCRPClient.Additional
                     }
                 }
 
-                if (vData.FrozenPosition is string posStr && (Player.LocalPlayer.Vehicle != veh || AllowTP.Peek()))
+                if (vData.FrozenPosition is string posStr && (Player.LocalPlayer.Vehicle != veh || Utils.IsTaskStillPending(TeleportTaskKey, null)))
                 {
                     var posData = posStr.Split('_');
 

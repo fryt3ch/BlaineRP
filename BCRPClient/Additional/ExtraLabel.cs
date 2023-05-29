@@ -136,7 +136,7 @@ namespace BCRPClient.Additional
                     if (!Utils.GetScreenCoordFromWorldCoord(x.Position, ref posX, ref posY))
                         return;
 
-                    Utils.DrawText(x.Text, posX, posY, (byte)x.Color.Red, (byte)x.Color.Green, (byte)x.Color.Blue, (byte)x.Color.Alpha, 0.4f, (Utils.ScreenTextFontTypes)x.Font, true, true);
+                    Utils.DrawText(x.Text, posX, posY, (byte)x.Color.Red, (byte)x.Color.Green, (byte)x.Color.Blue, (byte)x.Color.Alpha, 0.4f, (RAGE.Game.Font)x.Font, true, true);
                 }
             });
         }

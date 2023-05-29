@@ -186,8 +186,8 @@ namespace BCRPClient.Data
                     {
                         if (Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         {
-                            Utils.DrawText($"ID: {data.Id} | Type: {data.Type}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                            Utils.DrawText($"Data: {data.Data}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"ID: {data.Id} | Type: {data.Type}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Utils.DrawText($"Data: {data.Data}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
 
@@ -196,10 +196,10 @@ namespace BCRPClient.Data
                     if (!Utils.GetScreenCoordFromWorldCoord(pos, ref screenX, ref screenY))
                         continue;
 
-                    Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                     if (data.SubName != null)
-                        Utils.DrawText(data.SubName, screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText(data.SubName, screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }
             };
         }

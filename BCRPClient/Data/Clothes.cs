@@ -120,7 +120,7 @@ namespace BCRPClient.Data
                         {
                             RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, true, false);
 
-                            RAGE.Game.Entity.SetEntityAsMissionEntity(atObj.Object.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+                            RAGE.Game.Entity.SetEntityAsMissionEntity(atObj.Object.Handle, false, false);
 
                             atObj.Object.Destroy();
                         }
@@ -322,7 +322,7 @@ namespace BCRPClient.Data
                         {
                             RAGE.Game.Entity.DetachEntity(atObj.Object.Handle, true, false);
 
-                            RAGE.Game.Entity.SetEntityAsMissionEntity(atObj.Object.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+                            RAGE.Game.Entity.SetEntityAsMissionEntity(atObj.Object.Handle, false, false);
 
                             atObj.Object.Destroy();
                         }
@@ -519,7 +519,7 @@ namespace BCRPClient.Data
                     {
                         RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, false);
 
-                        RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+                        RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false);
 
                         gEntity.Destroy();
 

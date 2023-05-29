@@ -356,7 +356,7 @@ namespace BCRPClient.Data.Minigames
 
             var rData = Ranges[srType];
 
-            Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeScoreText, CurrentScore, CurrentMaxScore), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+            Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeScoreText, CurrentScore, CurrentMaxScore), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
 
             var totalLooseScore = CurrentTotalShots + CurrentLooseScore;
 
@@ -371,19 +371,19 @@ namespace BCRPClient.Data.Minigames
 
             if (totalAccuracy < 50f)
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 0, 0, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else if (totalAccuracy < 75)
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 140, 0, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else if (totalAccuracy < 90)
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 0, 255, 0, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 215, 0, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
 
             if (Targets.Count <= 5 && Sync.World.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)

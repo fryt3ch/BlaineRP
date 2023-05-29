@@ -20,7 +20,15 @@ namespace BCRPClient
                 }
             }
 
-            public string Get(string key, string otherwise) => Texts.GetValueOrDefault(key, otherwise);
+            public string Get(string key, string otherwise, params object[] args)
+            {
+                var text = Texts.GetValueOrDefault(key, otherwise);
+
+                if (text != null && args.Length > 0)
+                    text = string.Format(text, args);
+
+                return text;
+            }
 
             public void Add(string key, string value)
             {
@@ -31,7 +39,7 @@ namespace BCRPClient
 
         private static Language CurrentLanguage { get; } = Settings.LANGUAGE == "ru" ? RussianLanguage : RussianLanguage;
 
-        public static string Get(string key, string otherwise = null) => CurrentLanguage.Get(key, otherwise);
+        public static string Get(string key, string otherwise = null, params object[] args) => CurrentLanguage.Get(key, otherwise, args);
 
         public static void Add(string key, string value) => CurrentLanguage.Add(key, value);
 

@@ -917,7 +917,7 @@ namespace BCRPClient.Data
 
         public static Action<int, string> GetActionToPreAction(System.Type type) => ItemsActionsPreActions.Where(x => x.Key.IsTypeOrAssignable(type)).Select(x => x.Value).FirstOrDefault();
 
-        public static async System.Threading.Tasks.Task StartPlaceItem(string itemId, int itemIdx)
+        public static void StartPlaceItem(string itemId, int itemIdx)
         {
             var itemData = GetData(itemId, null) as PlaceableItem.ItemData;
 
@@ -926,12 +926,10 @@ namespace BCRPClient.Data
 
             var coords = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
-            await Utils.RequestModel(itemData.Model);
-
             if (CEF.MapEditor.IsActive)
                 return;
 
-            var mapObject = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(itemData.Model, coords.X, coords.Y, coords.Z, false, false, false));
+            var mapObject = Utils.CreateObjectNoOffsetImmediately(itemData.Model, coords.X, coords.Y, coords.Z);
 
             mapObject.SetTotallyInvincible(true);
             mapObject.SetCollision(false, false);

@@ -68,7 +68,7 @@ namespace BCRPServer.Game.Businesses
 
             var furn = new Game.Estates.Furniture(itemId);
 
-            pData.AddFurniture(furn);
+            pData.Info.AddFurniture(furn);
 
             ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
 

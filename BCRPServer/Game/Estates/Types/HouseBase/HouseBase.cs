@@ -14,9 +14,11 @@ namespace BCRPServer.Game.Estates
 		{
 			public class DoorInfo
 			{
-				public uint Model { get; set; }
+                [JsonProperty(PropertyName = "M")]
+                public uint Model { get; set; }
 
-				public Vector3 Position { get; set; }
+                [JsonProperty(PropertyName = "P")]
+                public Vector3 Position { get; set; }
 
 				public DoorInfo(string Model, Vector3 Position) : this(NAPI.Util.GetHashKey(Model), Position)
 				{
@@ -32,9 +34,11 @@ namespace BCRPServer.Game.Estates
 
 			public class LightInfo
 			{
-				public uint Model { get; set; }
+                [JsonProperty(PropertyName = "M")]
+                public uint Model { get; set; }
 
-				public Vector3 Position { get; set; }
+                [JsonProperty(PropertyName = "P")]
+                public Vector3 Position { get; set; }
 
 				public LightInfo(string Model, Vector3 Position) : this(NAPI.Util.GetHashKey(Model), Position)
 				{
@@ -59,32 +63,36 @@ namespace BCRPServer.Game.Estates
 			}
 
 			private HashSet<RoomTypes> SupportedRoomTypes { get; }
-			private HashSet<HouseBase.Types> SupportedHouseTypes { get; }
+            private HashSet<HouseBase.Types> SupportedHouseTypes { get; }
 
-			private HashSet<ushort> FamiliarTypes { get; }
+            private HashSet<ushort> FamiliarTypes { get; }
 
-			public Utils.Vector4 InteriorPosition { get; }
+            public Utils.Vector4 InteriorPosition { get; }
 
-			public Vector3 Position { get; }
+            public Vector3 Position { get; }
 
-			public float Heading { get; }
+            public float Heading { get; }
 
-			private DoorInfo[] Doors { get; }
+            private DoorInfo[] Doors { get; }
 
-			private LightInfo[][] Lights { get; }
+            private LightInfo[][] Lights { get; }
 
 			public int LightsAmount => Lights.Length;
 
 			public int DoorsAmount => Doors.Length;
 
-			public uint Price { get; }
+            public uint Price { get; }
+
+			public ushort ParentType { get; }
 
 			/// <summary>Словарь планировок</summary>
 			private static Dictionary<ushort, Style> All { get; set; }
 
 			public static Style Get(ushort sType) => All.GetValueOrDefault(sType);
 
-			public Style(ushort Type, Vector3 Position, float Heading, Utils.Vector4 InteriorPosition, DoorInfo[] Doors, LightInfo[][] Lights, uint Price, HashSet<RoomTypes> SupportedRoomTypes, HashSet<HouseBase.Types> SupportedHouseTypes, Vector3 Offset = null)
+			public bool IsPositionInsideInterior(Vector3 position) => InteriorPosition.Position.DistanceTo(position) <= InteriorPosition.RotationZ;
+
+            public Style(ushort Type, Vector3 Position, float Heading, Utils.Vector4 InteriorPosition, DoorInfo[] Doors, LightInfo[][] Lights, uint Price, HashSet<RoomTypes> SupportedRoomTypes, HashSet<HouseBase.Types> SupportedHouseTypes, Vector3 Offset = null)
 			{
 				All.Add(Type, this);
 
@@ -100,6 +108,8 @@ namespace BCRPServer.Game.Estates
 
 				this.Doors = Doors;
 				this.Lights = Lights;
+
+				this.ParentType = Type;
 
 				for (int i = 0; i < Doors.Length; i++)
 				{
@@ -131,11 +141,13 @@ namespace BCRPServer.Game.Estates
 			{
 				All.Add(Type, this);
 
+				this.ParentType = ParentType;
+
 				var parent = Get(ParentType);
 
 				this.FamiliarTypes = new HashSet<ushort>() { ParentType };
 
-				foreach (var x in FamiliarTypes)
+				foreach (var x in parent.FamiliarTypes)
 				{
 					var s = Get(x);
 
@@ -314,8 +326,12 @@ namespace BCRPServer.Game.Estates
 
 					Lights: new LightInfo[][]
 					{
-						new LightInfo[] { new LightInfo("brp_p_light_4_0", new Vector3(2.642129f, 70.13357f, 1.483612f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_4_0", new Vector3(3.846375f, 72.22765f, 1.483612f)) },
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_4_0", new Vector3(2.642129f, 70.13357f, 1.483612f)),
+                            new LightInfo("brp_p_light_4_0", new Vector3(3.846375f, 72.22765f, 1.483612f)),
+                        },
+
 						new LightInfo[] { new LightInfo("brp_p_light_4_0", new Vector3(1.832659f, 72.88146f, 1.483612f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_4_0", new Vector3(2.793969f, 67.21001f, 1.483612f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_4_0", new Vector3(-2.349123f, 67.70047f, 1.483612f)) },
@@ -476,8 +492,12 @@ namespace BCRPServer.Game.Estates
 
 					Lights: new LightInfo[][]
 					{
-						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(3.039308f, 213.7278f, 1.481776f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(1.711056f, 210.8099f, 1.481776f)) },
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_3_1", new Vector3(3.039308f, 213.7278f, 1.481776f)),
+                            new LightInfo("brp_p_light_3_1", new Vector3(1.711056f, 210.8099f, 1.481776f)),
+                        },
+
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(3.934543f, 210.5374f, 1.481776f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(2.929501f, 206.8474f, 1.481777f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(-1.382281f, 208.2117f, 1.481776f)) },
@@ -537,7 +557,8 @@ namespace BCRPServer.Game.Estates
 						{
 							new LightInfo("brp_p_light_3_1", new Vector3(1.076304f, 241.2551f, 3.081781f)),
 							new LightInfo("brp_p_light_3_1", new Vector3(1.132537f, 245.6533f, 3.081782f)),
-						},
+                            new LightInfo("brp_p_light_3_1", new Vector3(4.70255f, 245.6533f, 3.081782f)),
+                        },
 
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(4.969859f, 239.3361f, -0.218224f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(-2.635627f, 239.8996f, -0.218224f)) },
@@ -550,7 +571,6 @@ namespace BCRPServer.Game.Estates
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(-2.710855f, 239.9792f, 3.081782f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(4.610734f, 240.6396f, 3.081782f)) },
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(4.77532f, 249.9269f, 3.081782f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(4.70255f, 245.6533f, 3.081782f)) },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.House, },
@@ -657,23 +677,41 @@ namespace BCRPServer.Game.Estates
 
 					Lights: new LightInfo[][]
 					{
-						new LightInfo[] { new LightInfo("brp_p_light_11_0", new Vector3(3.206917f, 318.8151f, 1.691686f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_11_0", new Vector3(-2.477737f, 319.9074f, 1.691687f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_11_0", new Vector3(-0.9743146f, 310.0256f, 1.691686f)) },
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_7_0", new Vector3(-0.5462933f, 316.2869f, 1.68866f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(2.501907f, 313.8606f, 1.693291f)),
+                        },
 
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-2.550541f, 309.9674f, 1.77866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(0.5905386f, 310.0841f, 1.77866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-4.760465f, 309.9926f, 1.68866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(3.189486f, 320.4447f, 1.77866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(3.171264f, 316.9838f, 1.77866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-4.179114f, 319.8979f, 1.77866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-0.8496855f, 319.9404f, 1.77866f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-0.5462933f, 316.2869f, 1.68866f)) },
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_11_0", new Vector3(3.206917f, 318.8151f, 1.691686f)),
 
-						new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(2.501907f, 313.8606f, 1.693291f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(-3.677651f, 314.9938f, 1.693291f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(3.751418f, 309.8597f, 1.693291f)) },
-					},
+                            new LightInfo("brp_p_light_7_0", new Vector3(3.189486f, 320.4447f, 1.77866f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(3.171264f, 316.9838f, 1.77866f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_11_0", new Vector3(-0.9743146f, 310.0256f, 1.691686f)),
+
+                            new LightInfo("brp_p_light_7_0", new Vector3(-2.550541f, 309.9674f, 1.77866f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(0.5905386f, 310.0841f, 1.77866f)),
+                        },
+
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.477737f, 319.9074f, 1.691687f)),
+
+                            new LightInfo("brp_p_light_7_0", new Vector3(-4.179114f, 319.8979f, 1.77866f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-0.8496855f, 319.9404f, 1.77866f)),
+                        },
+
+                        new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(-3.677651f, 314.9938f, 1.693291f)) },
+                        new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(3.751418f, 309.8597f, 1.693291f)) },
+
+                        new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-4.760465f, 309.9926f, 1.68866f)) },
+                    },
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.House, },
 
@@ -708,39 +746,39 @@ namespace BCRPServer.Game.Estates
 					{
 						new LightInfo[]
 						{
-							new LightInfo("brp_p_light_11_0", new Vector3(-1.529435f, 344.9614f, 1.676688f)),
-
-							new LightInfo("brp_p_light_7_0", new Vector3(-4.631263f, 349.3846f, 1.763661f)),
-							new LightInfo("brp_p_light_7_0", new Vector3(-1.106217f, 349.3983f, 1.763661f)),
-						},
-
-						new LightInfo[]
-						{
-							new LightInfo("brp_p_light_11_0", new Vector3(-2.817852f, 349.3704f, 1.676688f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(3.897215f, 349.7984f, 1.698291f)),
 
 							new LightInfo("brp_p_light_7_0", new Vector3(1.703947f, 351.3096f, 1.713661f)),
-							new LightInfo("brp_p_light_7_0", new Vector3(-4.000854f, 344.9742f, 1.76366f)),
 						},
 
-						new LightInfo[]
-						{
-							new LightInfo("brp_p_light_11_0", new Vector3(-1.990419f, 354.488f, 1.676688f)),
+                        new LightInfo[]
+                        {
+                            new LightInfo("brp_p_light_11_0", new Vector3(-1.529435f, 344.9614f, 1.676688f)),
 
-							new LightInfo("brp_p_light_7_0", new Vector3(-2.004944f, 356.123f, 1.763661f)),
-							new LightInfo("brp_p_light_7_0", new Vector3(-1.952244f, 352.8014f, 1.76366f)),
-						},
+                            new LightInfo("brp_p_light_7_0", new Vector3(-4.000854f, 344.9742f, 1.76366f)),
+                            new LightInfo("brp_p_light_7_0", new Vector3(0.7727992f, 345.0595f, 1.763661f)),
+                        },
 
-						new LightInfo[]
-						{
-							new LightInfo("brp_p_light_7_0", new Vector3(0.7727992f, 345.0595f, 1.763661f)),
+                        new LightInfo[]
+                        {
+                            new LightInfo("brp_p_light_11_0", new Vector3(-2.817852f, 349.3704f, 1.676688f)),
 
-							new LightInfo("brp_p_light_1_0", new Vector3(4.604296f, 344.9529f, 1.698292f)),
-						},
+                            new LightInfo("brp_p_light_7_0", new Vector3(-4.631263f, 349.3846f, 1.763661f)),
+                            new LightInfo("brp_p_light_7_0", new Vector3(-1.106217f, 349.3983f, 1.763661f)),
+                        },
+
+                        new LightInfo[]
+                        {
+                            new LightInfo("brp_p_light_11_0", new Vector3(-1.990419f, 354.488f, 1.676688f)),
+
+                            new LightInfo("brp_p_light_7_0", new Vector3(-2.004944f, 356.123f, 1.763661f)),
+                            new LightInfo("brp_p_light_7_0", new Vector3(-1.952244f, 352.8014f, 1.76366f)),
+                        },
+
+                        new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(3.813694f, 355.0768f, 1.698292f)) },
+						new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(4.604296f, 344.9529f, 1.698292f)) },
 
 						new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-5.114809f, 354.458f, 1.703661f)) },
-
-						new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(3.813694f, 355.0768f, 1.698292f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(3.897215f, 349.7984f, 1.698291f)) },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.House, },
@@ -1340,11 +1378,19 @@ namespace BCRPServer.Game.Estates
 					Lights: new LightInfo[][]
 					{
 						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(-2.497479f, 36.39978f, 1.491785f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(1.753863f, 39.39698f, 1.481785f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(1.753863f, 35.99698f, 1.481785f)) },
 
-						new LightInfo[] { new LightInfo("brp_p_light_5_0", new Vector3(-1.610097f, 31.95196f, 1.497232f)) },
-						new LightInfo[] { new LightInfo("brp_p_light_5_0", new Vector3(2.086908f, 31.74992f, 1.497242f)) },
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_3_1", new Vector3(1.753863f, 39.39698f, 1.481785f)),
+                            new LightInfo("brp_p_light_3_1", new Vector3(1.753863f, 35.99698f, 1.481785f)),
+                        },
+
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_5_0", new Vector3(-1.610097f, 31.95196f, 1.497232f)),
+                            new LightInfo("brp_p_light_5_0", new Vector3(2.086908f, 31.74992f, 1.497242f)),
+                        },
+
 						new LightInfo[] { new LightInfo("brp_p_light_5_0", new Vector3(-2.482678f, 39.65707f, 1.495396f)) },
 					},
 
@@ -1357,7 +1403,7 @@ namespace BCRPServer.Game.Estates
 					Offset: new Vector3(0f, -35f, 0f)
 				);
 
-/*				new Style
+				new Style
 				(
 					Type: 1030,
 
@@ -1374,19 +1420,30 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("apa_p_mp_yacht_door_02", new Vector3(-1.028391f, 66.02565f, -0.3497582f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_7_0", new Vector3(-2.485538f, 64.77189f, 1.496979f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-1.585538f, 68.7719f, 1.496979f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-3.185537f, 67.37189f, 1.496979f)),
+                        new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(-2.485538f, 64.77189f, 1.496979f)) },
 
-						new LightInfo("brp_p_light_1_0", new Vector3(1.662424f, 67.87781f, 1.497011f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(1.662423f, 64.87782f, 1.497011f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(2.992423f, 75.25782f, 1.497011f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-1.007577f, 75.25782f, 1.497011f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-1.007577f, 70.93782f, 1.497011f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(2.992423f, 70.93782f, 1.497011f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(0.9924229f, 73.03782f, 1.497011f)),
+                        new LightInfo[]
+						{
+							new LightInfo("brp_p_light_7_0", new Vector3(-1.585538f, 68.7719f, 1.496979f)),
+                            new LightInfo("brp_p_light_7_0", new Vector3(-3.185537f, 67.37189f, 1.496979f)),
+                        },
+
+                        new LightInfo[]
+						{
+							new LightInfo("brp_p_light_1_0", new Vector3(1.662424f, 67.87781f, 1.497011f)),
+                            new LightInfo("brp_p_light_1_0", new Vector3(1.662423f, 64.87782f, 1.497011f)),
+                        },
+
+                        new LightInfo[]
+						{
+							new LightInfo("brp_p_light_1_0", new Vector3(2.992423f, 75.25782f, 1.497011f)),
+                            new LightInfo("brp_p_light_1_0", new Vector3(-1.007577f, 75.25782f, 1.497011f)),
+                            new LightInfo("brp_p_light_1_0", new Vector3(-1.007577f, 70.93782f, 1.497011f)),
+                            new LightInfo("brp_p_light_1_0", new Vector3(2.992423f, 70.93782f, 1.497011f)),
+                            new LightInfo("brp_p_light_1_0", new Vector3(0.9924229f, 73.03782f, 1.497011f)),
+                        },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
@@ -1413,25 +1470,39 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("apa_p_mp_door_stilt_door", new Vector3(1.25506f, 105.5985f, -0.3502483f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.02290444f, 106.1517f, 1.500002f)),
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_3_1", new Vector3(-4.636493f, 103.6411f, 1.491739f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(-2.636492f, 103.6411f, 1.491739f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(-0.6364918f, 103.6411f, 1.491739f)),
+                        },
 
-						new LightInfo("brp_p_light_3_1", new Vector3(-1.636492f, 100.6411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-4.636493f, 103.6411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-2.636492f, 103.6411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-0.6364918f, 103.6411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-4.636493f, 106.6411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-2.636492f, 108.6411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(3.242906f, 103.5503f, 1.494738f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(4.363507f, 109.7411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(2.763509f, 108.1411f, 1.491739f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(3.863508f, 106.2411f, 1.491739f)),
+						new LightInfo[]
+						{
+							new LightInfo("brp_p_light_3_1", new Vector3(-4.636493f, 106.6411f, 1.491739f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(-2.636492f, 108.6411f, 1.491739f)),
+                        },
 
-						new LightInfo("brp_p_light_5_0", new Vector3(2.370064f, 100.706f, 1.505358f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_3_1", new Vector3(4.363507f, 109.7411f, 1.491739f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(2.763509f, 108.1411f, 1.491739f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(3.863508f, 106.2411f, 1.491739f)),
+                        },
 
-						new LightInfo("brp_p_light_7_0", new Vector3(0.01108941f, 109.2589f, 1.495928f)),
-					},
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_3_1", new Vector3(3.242906f, 103.5503f, 1.494738f)),
+
+                            new LightInfo("brp_p_light_5_0", new Vector3(2.370064f, 100.706f, 1.505358f)),
+                        },
+
+                        new LightInfo[] { new LightInfo("brp_p_light_1_0", new Vector3(-0.02290444f, 106.1517f, 1.500002f)) },
+                        new LightInfo[] { new LightInfo("brp_p_light_3_1", new Vector3(-1.636492f, 100.6411f, 1.491739f)) },
+                        new LightInfo[] { new LightInfo("brp_p_light_7_0", new Vector3(0.01108941f, 109.2589f, 1.495928f)) },
+                    },
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
 
@@ -1460,32 +1531,53 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("apa_p_mp_yacht_door_02", new Vector3(-1.852429f, 141.5582f, -0.3497639f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.7191803f, 135.2013f, 1.496958f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(2.28082f, 135.2013f, 1.496958f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(5.281544f, 135.202f, 1.496271f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 140.7123f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 137.9123f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-5.19773f, 143.9123f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-5.19773f, 146.7123f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 143.9123f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 146.7123f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(1.28082f, 140.0013f, 1.496958f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(1.28082f, 145.4013f, 1.496958f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(5.278643f, 145.4011f, 1.497271f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(5.278643f, 140.0011f, 1.497271f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 140.7123f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 137.9123f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-5.19773f, 143.9123f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-5.19773f, 146.7123f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 143.9123f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.7177288f, 146.7123f, 1.497004f)),
+                        },
 
-						new LightInfo("brp_p_light_6_0", new Vector3(-5.319083f, 137.5245f, 0.1927967f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.953239f, 138.3401f, 0.1904049f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.949531f, 142.1122f, 0.01664162f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(4.800152f, 137.5245f, 0.229517f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(1.800154f, 137.5245f, 0.229517f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_6_0", new Vector3(-5.319083f, 137.5245f, 0.1927967f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-1.953239f, 138.3401f, 0.1904049f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-1.949531f, 142.1122f, 0.01664162f)),
 
-						new LightInfo("brp_p_light_7_0", new Vector3(-5.287843f, 140.0756f, 1.489592f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-3.287843f, 140.0756f, 1.489592f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(3.312158f, 140.0756f, 1.489592f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(3.312158f, 145.3756f, 1.489592f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-5.287843f, 140.0756f, 1.489592f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-3.287843f, 140.0756f, 1.489592f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-0.7191803f, 135.2013f, 1.496958f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(2.28082f, 135.2013f, 1.496958f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(5.281544f, 135.202f, 1.496271f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(1.28082f, 140.0013f, 1.496958f)),
+                            new LightInfo("brp_p_light_1_0", new Vector3(5.278643f, 140.0011f, 1.497271f)),
+
+                            new LightInfo("brp_p_light_6_0", new Vector3(4.800152f, 137.5245f, 0.229517f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(1.800154f, 137.5245f, 0.229517f)),
+
+							new LightInfo("brp_p_light_7_0", new Vector3(3.312158f, 140.0756f, 1.489592f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(1.28082f, 145.4013f, 1.496958f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(5.278643f, 145.4011f, 1.497271f)),
+
+							new LightInfo("brp_p_light_7_0", new Vector3(3.312158f, 145.3756f, 1.489592f)),
+                        },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
@@ -1514,58 +1606,79 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("apa_p_mp_yacht_door_01", new Vector3(-1.43786f, 175.5864f, -0.3494816f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_1_0", new Vector3(-4.28703f, 167.8151f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.28703f, 167.8151f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(3.71297f, 167.8151f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(3.71297f, 170.8151f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.28703f, 170.8151f, 1.497004f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-4.28703f, 170.8151f, 1.497004f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_6_0", new Vector3(-1.544488f, 180.6005f, 0.3466968f)),
+                            new LightInfo("brp_p_light_6_0", new Vector3(-1.544488f, 183.6315f, 0.3511677f)),
 
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.544488f, 180.6005f, 0.3466968f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.544488f, 183.6315f, 0.3511677f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.344603f, 183.5446f, 0.2681332f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.344603f, 180.5446f, 0.2681332f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(5.579499f, 178.0592f, 0.269804f)),
+                            new LightInfo("brp_p_light_7_0", new Vector3(-3.00092f, 182.161f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-5.400918f, 182.161f, 1.496904f)),
 
-						new LightInfo("brp_p_light_7_0", new Vector3(-3.00092f, 182.161f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-5.400918f, 182.161f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-2.40092f, 178.161f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-2.40092f, 173.961f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-5.40092f, 173.961f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-5.40092f, 178.161f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(0.6990807f, 182.961f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(0.6990806f, 178.961f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 182.962f, 1.497648f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 178.962f, 1.497648f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(0.6990806f, 176.961f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(0.6990806f, 172.961f, 1.496904f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 176.962f, 1.497648f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 172.961f, 1.497648f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.329724f, 182.1355f, 1.396646f)),
+                        },
 
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.329724f, 182.1355f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 178.6755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 178.6755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 173.4755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 173.4755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 177.3755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 177.3755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 176.0755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 176.0755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 174.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 174.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.359723f, 170.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.640278f, 170.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.640278f, 167.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.359723f, 167.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.640278f, 169.2755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.640278f, 167.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.640278f, 170.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.640278f, 169.2755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359723f, 167.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359723f, 170.7755f, 1.396646f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359723f, 169.2755f, 1.396646f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_6_0", new Vector3(-1.344603f, 183.5446f, 0.2681332f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-1.344603f, 180.5446f, 0.2681332f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(5.579499f, 178.0592f, 0.269804f)),
+
+							new LightInfo("brp_p_light_7_0", new Vector3(0.6990807f, 182.961f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(0.6990806f, 178.961f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 182.962f, 1.497648f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 178.962f, 1.497648f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_7_0", new Vector3(0.6990806f, 176.961f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(0.6990806f, 172.961f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 176.962f, 1.497648f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(4.691546f, 172.961f, 1.497648f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-4.28703f, 167.8151f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.28703f, 167.8151f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(3.71297f, 167.8151f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(3.71297f, 170.8151f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.28703f, 170.8151f, 1.497004f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-4.28703f, 170.8151f, 1.497004f)),
+
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.359723f, 170.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.640278f, 170.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.640278f, 167.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.359723f, 167.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.640278f, 169.2755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.640278f, 167.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.640278f, 170.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.640278f, 169.2755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359723f, 167.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359723f, 170.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359723f, 169.2755f, 1.396646f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_7_0", new Vector3(-2.40092f, 178.161f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-2.40092f, 173.961f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-5.40092f, 173.961f, 1.496904f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-5.40092f, 178.161f, 1.496904f)),
+
+							new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 178.6755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 178.6755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 173.4755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 173.4755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 177.3755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 177.3755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 176.0755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 176.0755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.529722f, 174.7755f, 1.396646f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-3.359723f, 174.7755f, 1.396646f)),
+                        },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
@@ -1595,23 +1708,43 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("v_ilev_fh_door02", new Vector3(-1.867892f, 204.5072f, -0.4089871f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_3_1", new Vector3(4.704434f, 202.9523f, 1.48247f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(1.976834f, 203.2924f, 1.482523f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(1.976834f, 207.2924f, 1.482523f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(4.704434f, 208.9523f, 1.48247f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(4.704434f, 213.9522f, 1.48247f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(2.704434f, 215.9523f, 1.48247f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-3.623166f, 213.2924f, 1.482523f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(-3.395565f, 216.2522f, 1.48247f)),
-						new LightInfo("brp_p_light_3_1", new Vector3(0.6768188f, 210.0923f, 1.482529f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_3_1", new Vector3(4.704434f, 202.9523f, 1.48247f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(1.976834f, 203.2924f, 1.482523f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(1.976834f, 207.2924f, 1.482523f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(4.704434f, 208.9523f, 1.48247f)),
+                        },
 
-						new LightInfo("brp_p_light_5_0", new Vector3(-3.78965f, 203.6294f, 1.504824f)),
-						new LightInfo("brp_p_light_5_0", new Vector3(-3.78965f, 206.6294f, 1.504824f)),
-						new LightInfo("brp_p_light_5_0", new Vector3(-3.78965f, 34.62939f, 1.504824f)),
-						new LightInfo("brp_p_light_5_0", new Vector3(-0.7896497f, 206.6294f, 1.504824f)),
-						new LightInfo("brp_p_light_5_0", new Vector3(-0.7896497f, 203.6294f, 1.504824f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_3_1", new Vector3(4.704434f, 213.9522f, 1.48247f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(2.704434f, 215.9523f, 1.48247f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_3_1", new Vector3(-3.623166f, 213.2924f, 1.482523f)),
+							new LightInfo("brp_p_light_3_1", new Vector3(-3.395565f, 216.2522f, 1.48247f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_3_1", new Vector3(0.6768188f, 210.0923f, 1.482529f)),
+
+							new LightInfo("brp_p_light_5_0", new Vector3(-3.78965f, 203.6294f, 1.504824f)),
+							new LightInfo("brp_p_light_5_0", new Vector3(-3.78965f, 206.6294f, 1.504824f)),
+							new LightInfo("brp_p_light_5_0", new Vector3(-0.7896497f, 206.6294f, 1.504824f)),
+                        },
+
+						new LightInfo[] { new LightInfo("brp_p_light_5_0", new Vector3(-0.7896497f, 203.6294f, 1.504824f)), },
+
+/*						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_5_0", new Vector3(-3.78965f, 34.62939f, 1.504824f)),
+                        },*/
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
@@ -1623,7 +1756,7 @@ namespace BCRPServer.Game.Estates
 					Offset: new Vector3(0f, -210f, 0f)
 				);
 
-				new Style
+				new Style // no lights in 2 rooms, but fake light from window, prob change?
 				(
 					Type: 1080,
 
@@ -1644,27 +1777,42 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("v_ilev_fib_door2", new Vector3(0.2463773f, 240.5055f, -0.3499966f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_1_0", new Vector3(-5.093377f, 244.7984f, 1.490641f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-1.193377f, 244.7984f, 1.490641f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-1.193377f, 247.7984f, 1.490641f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-1.093377f, 237.7984f, 1.490641f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-1.093377f, 241.7984f, 1.490641f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-4.093377f, 241.7984f, 1.490641f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-4.093377f, 237.7984f, 1.490641f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-5.093377f, 244.7984f, 1.490641f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-1.193377f, 244.7984f, 1.490641f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-1.193377f, 247.7984f, 1.490641f)),
+                        },
 
-						new LightInfo("brp_p_light_6_0", new Vector3(4.289703f, 253.9034f, 0.08818245f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-4.658952f, 246.7252f, 0.2307453f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-1.093377f, 237.7984f, 1.490641f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-1.093377f, 241.7984f, 1.490641f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-4.093377f, 241.7984f, 1.490641f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-4.093377f, 237.7984f, 1.490641f)),
+                        },
 
-						new LightInfo("brp_p_light_7_0", new Vector3(-5.350868f, 252.1451f, 1.279947f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-3.350868f, 252.1451f, 1.279947f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-1.350868f, 252.1451f, 1.279947f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-4.449864f, 248.4461f, 1.279993f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_6_0", new Vector3(-4.658952f, 246.7252f, 0.2307453f)),
 
-						new LightInfo("brp_p_light_11_1", new Vector3(-5.349224f, 252.144f, 1.390802f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-3.349224f, 252.144f, 1.390802f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-1.349224f, 252.144f, 1.390802f)),
+                            new LightInfo("brp_p_light_7_0", new Vector3(-4.449864f, 248.4461f, 1.279993f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_7_0", new Vector3(-5.350868f, 252.1451f, 1.279947f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-3.350868f, 252.1451f, 1.279947f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-1.350868f, 252.1451f, 1.279947f)),
+
+							new LightInfo("brp_p_light_11_1", new Vector3(-5.349224f, 252.144f, 1.390802f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-3.349224f, 252.144f, 1.390802f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-1.349224f, 252.144f, 1.390802f)),
+                        },
+
+						new LightInfo[] { new LightInfo("brp_p_light_6_0", new Vector3(4.289703f, 253.9034f, 0.08818245f)) },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
@@ -1694,121 +1842,144 @@ namespace BCRPServer.Game.Estates
 						new DoorInfo("apa_p_mp_yacht_door_01", new Vector3(0.2392138f, 278.769f, -0.3494778f)),
 					},
 
-					Lights: new LightInfo[]
+					Lights: new LightInfo[][]
 					{
-						new LightInfo("brp_p_light_1_0", new Vector3(-5.357264f, 283.4746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-2.757266f, 283.4746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.1572667f, 283.4746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(2.442733f, 283.4746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(5.042731f, 283.4746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(5.042731f, 288.6746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(2.442733f, 288.6746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.1572667f, 288.6746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-2.757266f, 288.6746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-5.357264f, 288.6746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(5.042731f, 286.0746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(2.442733f, 286.0746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-0.1572667f, 286.0746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-2.757266f, 286.0746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-5.357264f, 286.0746f, 1.890642f)),
-						new LightInfo("brp_p_light_1_0", new Vector3(-4.536665f, 280.3985f, 1.489977f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_6_0", new Vector3(-5.638455f, 274.7072f, 0.1355228f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-3.488455f, 274.7072f, 0.1355228f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-5.638455f, 269.7072f, 0.1355228f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-3.638455f, 269.7072f, 0.1355228f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-1.638455f, 269.7072f, 0.1355228f)),
 
-						new LightInfo("brp_p_light_6_0", new Vector3(-2.549184f, 281.5291f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-2.549184f, 278.5291f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(0.1408161f, 281.5291f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(0.1408161f, 277.3291f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-0.1591839f, 274.3391f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-2.259184f, 274.3391f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-5.659184f, 274.9091f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-3.159184f, 274.9091f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-5.659184f, 278.1991f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-4.559184f, 282.4691f, 0.04358101f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-5.638455f, 274.7072f, 0.1355228f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-3.488455f, 274.7072f, 0.1355228f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-5.638455f, 269.7072f, 0.1355228f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-3.638455f, 269.7072f, 0.1355228f)),
-						new LightInfo("brp_p_light_6_0", new Vector3(-1.638455f, 269.7072f, 0.1355228f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-4.815666f, 271.2173f, 1.406649f)),
+                        },
 
-						new LightInfo("brp_p_light_7_0", new Vector3(-3.958856f, 289.7937f, 2.089968f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-1.208856f, 278.4937f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-1.208856f, 276.4937f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-4.208856f, 276.4937f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(-1.208856f, 280.4937f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(0.8511442f, 275.3337f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(1.791144f, 270.0337f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(4.791145f, 270.0337f, 1.490053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(4.786145f, 275.2637f, 1.296053f)),
-						new LightInfo("brp_p_light_7_0", new Vector3(1.785144f, 275.2637f, 1.290056f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_7_0", new Vector3(0.8511442f, 275.3337f, 1.490053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(1.791144f, 270.0337f, 1.490053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(4.791145f, 270.0337f, 1.490053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(4.786145f, 275.2637f, 1.296053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(1.785144f, 275.2637f, 1.290056f)),
 
-						new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 283.4724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 288.6724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 287.3725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 286.0724f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 284.7725f, 1.99933f)),
-						new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(4.784331f, 275.3373f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(4.784331f, 272.3673f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(4.784331f, 273.8673f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(1.784333f, 273.8673f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(1.784333f, 272.3673f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(1.784333f, 275.3373f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(3.284332f, 273.8673f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(3.284332f, 272.3673f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(3.284332f, 275.3373f, 1.406649f)),
+                        },
 
-						new LightInfo("brp_p_light_11_1", new Vector3(-1.215668f, 277.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-2.715668f, 276.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-5.615668f, 276.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-5.615668f, 275.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-5.615668f, 277.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-1.215668f, 279.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-1.215668f, 281.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-2.215668f, 281.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-0.2156675f, 281.4973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-5.625668f, 281.6973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-3.425669f, 281.6973f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-3.425669f, 279.1173f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-5.625668f, 279.1173f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(4.784331f, 275.3373f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(4.784331f, 272.3673f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(4.784331f, 273.8673f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(1.784333f, 273.8673f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(1.784333f, 272.3673f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(1.784333f, 275.3373f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(3.284332f, 273.8673f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(3.284332f, 272.3673f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(3.284332f, 275.3373f, 1.406649f)),
-						new LightInfo("brp_p_light_11_1", new Vector3(-4.815666f, 271.2173f, 1.406649f)),
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-4.536665f, 280.3985f, 1.489977f)),
+
+                            new LightInfo("brp_p_light_6_0", new Vector3(-4.559184f, 282.4691f, 0.04358101f)),
+
+                            new LightInfo("brp_p_light_11_1", new Vector3(-5.625668f, 281.6973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-3.425669f, 281.6973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-3.425669f, 279.1173f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-5.625668f, 279.1173f, 1.406649f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_1_0", new Vector3(-5.357264f, 283.4746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-2.757266f, 283.4746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.1572667f, 283.4746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(2.442733f, 283.4746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(5.042731f, 283.4746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(5.042731f, 288.6746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(2.442733f, 288.6746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.1572667f, 288.6746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-2.757266f, 288.6746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-5.357264f, 288.6746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(5.042731f, 286.0746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(2.442733f, 286.0746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-0.1572667f, 286.0746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-2.757266f, 286.0746f, 1.890642f)),
+							new LightInfo("brp_p_light_1_0", new Vector3(-5.357264f, 286.0746f, 1.890642f)),
+
+							new LightInfo("brp_p_light_7_0", new Vector3(-3.958856f, 289.7937f, 2.089968f)),
+
+							new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(5.040808f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-5.359194f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-4.059193f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-2.759194f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-1.459193f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(-0.1591928f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(1.140807f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(2.440807f, 283.4724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 288.6724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 287.3725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 286.0724f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 284.7725f, 1.99933f)),
+							new LightInfo("brp_p_light_11_0", new Vector3(3.740808f, 283.4724f, 1.99933f)),
+                        },
+
+						new LightInfo[]
+						{
+                            new LightInfo("brp_p_light_6_0", new Vector3(-2.549184f, 281.5291f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-2.549184f, 278.5291f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(0.1408161f, 281.5291f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(0.1408161f, 277.3291f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-0.1591839f, 274.3391f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-2.259184f, 274.3391f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-5.659184f, 274.9091f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-3.159184f, 274.9091f, 0.04358101f)),
+							new LightInfo("brp_p_light_6_0", new Vector3(-5.659184f, 278.1991f, 0.04358101f)),
+
+							new LightInfo("brp_p_light_7_0", new Vector3(-1.208856f, 278.4937f, 1.490053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-1.208856f, 276.4937f, 1.490053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-4.208856f, 276.4937f, 1.490053f)),
+							new LightInfo("brp_p_light_7_0", new Vector3(-1.208856f, 280.4937f, 1.490053f)),
+
+							new LightInfo("brp_p_light_11_1", new Vector3(-1.215668f, 277.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-2.715668f, 276.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-5.615668f, 276.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-5.615668f, 275.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-5.615668f, 277.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-1.215668f, 279.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-1.215668f, 281.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-2.215668f, 281.4973f, 1.406649f)),
+							new LightInfo("brp_p_light_11_1", new Vector3(-0.2156675f, 281.4973f, 1.406649f)),
+                        },
 					},
 
 					SupportedHouseTypes: new HashSet<HouseBase.Types>() { HouseBase.Types.Apartments, },
@@ -1818,7 +1989,7 @@ namespace BCRPServer.Game.Estates
 					Price: 10_000,
 
 					Offset: new Vector3(0f, -280f, 0f)
-				);*/
+				);
 
 				new Style(1, 0, new Vector3(0f, 0f, 30f), 10_000);
 
@@ -1912,7 +2083,7 @@ namespace BCRPServer.Game.Estates
 				new Style(1023, 1020, new Vector3(0f, 0f, 90f), 10_000);
 				new Style(1024, 1020, new Vector3(0f, 0f, 120f), 10_000);
 
-/*				new Style(1031, 1030, new Vector3(0f, 0f, 30f), 10_000);
+				new Style(1031, 1030, new Vector3(0f, 0f, 30f), 10_000);
 				new Style(1032, 1030, new Vector3(0f, 0f, 60f), 10_000);
 				new Style(1033, 1030, new Vector3(0f, 0f, 90f), 10_000);
 				new Style(1034, 1030, new Vector3(0f, 0f, 120f), 10_000);
@@ -1945,7 +2116,7 @@ namespace BCRPServer.Game.Estates
 				new Style(1091, 1090, new Vector3(0f, 0f, 30f), 10_000);
 				new Style(1092, 1090, new Vector3(0f, 0f, 60f), 10_000);
 				new Style(1093, 1090, new Vector3(0f, 0f, 90f), 10_000);
-				new Style(1094, 1090, new Vector3(0f, 0f, 120f), 10_000);*/
+				new Style(1094, 1090, new Vector3(0f, 0f, 120f), 10_000);
 
 				Game.Items.Container.AllSIDs.Add("h_locker", new Items.Container.Data(50, 150f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Locker));
 				Game.Items.Container.AllSIDs.Add("h_wardrobe", new Items.Container.Data(50, 80f, Items.Container.AllowedItemTypes.Wardrobe, Items.Container.ContainerTypes.Wardrobe));
@@ -2216,6 +2387,18 @@ namespace BCRPServer.Game.Estates
 			ContainersLocked = true;
 			IsLocked = false;
 
+			for (int i = 0; i < DoorsStates.Length; i++)
+				DoorsStates[i] = false;
+
+			for (int i = 0; i < LightsStates.Length; i++)
+			{
+				LightsStates[i].Colour = DefaultLightColour;
+				LightsStates[i].State = true;
+            }
+
+			MySQL.HouseUpdateLockState(this);
+			MySQL.HouseUpdateContainersLockState(this);
+
 			SetBalance(0, null);
 
 			ChangeOwner(null);
@@ -2346,5 +2529,77 @@ namespace BCRPServer.Game.Estates
 
 			return true;
 		}
+
+		public void SetStyle(ushort styleId, Style style, bool furnitureRefund)
+		{
+			var ownerInfo = Owner;
+
+			var oldStyleId = StyleType;
+			var oldStyle = StyleData;
+
+			StyleType = styleId;
+
+			if (style.IsTypeFamiliar(oldStyleId))
+			{
+				var parentStyle = Style.Get(style.ParentType);
+
+				var offsetOld = oldStyle.InteriorPosition.Position - parentStyle.InteriorPosition.Position;
+				var offsetNew = style.InteriorPosition.Position - parentStyle.InteriorPosition.Position;
+
+				foreach (var x in Furniture)
+				{
+					x.Data.Position = x.Data.Position - offsetOld + offsetNew;
+
+					MySQL.FurnitureUpdate(x);
+				}
+			}
+			else
+			{
+				if (furnitureRefund && ownerInfo != null)
+				{
+                    foreach (var x in Furniture)
+                    {
+                        x.Delete(this);
+                    }
+
+                    ownerInfo.AddFurniture(Furniture.ToArray());
+
+                    Furniture.Clear();
+                }
+				else
+				{
+                    foreach (var x in Furniture)
+                    {
+                        x.Delete(this);
+
+						Game.Estates.Furniture.Remove(x);
+                    }
+
+                    Furniture.Clear();
+                }
+
+				LightsStates = new Light[style.LightsAmount];
+
+				for (int i = 0; i < LightsStates.Length; i++)
+				{
+					LightsStates[i] = new Light(true, DefaultLightColour);
+				}
+
+				DoorsStates = new bool[style.DoorsAmount];
+
+                MySQL.HouseFurnitureUpdate(this);
+				MySQL.HouseUpdateDoorsStates(this);
+				MySQL.HouseUpdateLightsStates(this);
+            }
+
+            MySQL.HouseUpdateStyleType(this);
+
+			var hDim = Dimension;
+
+			var playersInside = PlayerData.All.Keys.Where(x => x.Dimension == hDim).ToArray();
+
+			SetPlayersInside(true, playersInside);
+			SetPlayersInside(false, playersInside);
+        }
 	}
 }

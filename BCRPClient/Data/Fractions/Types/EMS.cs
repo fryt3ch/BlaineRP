@@ -130,14 +130,14 @@ namespace BCRPClient.Data.Fractions
 
                                 bedObj.SetData("CustomText", (Action<float, float>)((x, y) =>
                                 {
-                                    Utils.DrawText($"Больничная койка", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                    Utils.DrawText($"Больничная койка", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                                     var isOccupied = IsBedOccupied(bedIdx);
 
                                     if (isOccupied)
-                                        Utils.DrawText($"[Занята]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                        Utils.DrawText($"[Занята]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                                     else
-                                        Utils.DrawText($"[Свободна]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                        Utils.DrawText($"[Свободна]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                                 }));
 
                                 bedObj.SetData("CustomAction", (Action<MapObject>)OnHealingBedPress);

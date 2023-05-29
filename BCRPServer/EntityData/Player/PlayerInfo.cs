@@ -343,6 +343,76 @@ namespace BCRPServer
                 MySQL.CharacterPhoneBalanceUpdate(this);
             }
 
+            public void AddFurniture(params Game.Estates.Furniture[] furn)
+            {
+                if (PlayerData != null)
+                {
+                    var furnJs = new List<string>();
+
+                    for (int i = 0; i < furn.Length; i++)
+                    {
+                        var x = furn[i];
+
+                        if (Furniture.Contains(x))
+                            return;
+
+                        Furniture.Add(x);
+
+                        furnJs.Add($"{x.UID}&{x.ID}");
+                    }
+
+                    PlayerData.Player.TriggerEvent("Player::Furniture::Update", true, furnJs);
+                }
+                else
+                {
+                    for (int i = 0; i < furn.Length; i++)
+                    {
+                        var x = furn[i];
+
+                        if (Furniture.Contains(x))
+                            return;
+
+                        Furniture.Add(x);
+                    }
+                }
+
+                MySQL.CharacterFurnitureUpdate(this);
+            }
+
+            public void RemoveFurniture(params Game.Estates.Furniture[] furn)
+            {
+                if (PlayerData != null)
+                {
+                    var furnJs = new List<string>();
+
+                    for (int i = 0; i < furn.Length; i++)
+                    {
+                        var x = furn[i];
+
+                        if (Furniture.Remove(x))
+                        {
+                            furnJs.Add($"{x.UID}");
+                        }
+                    }
+
+                    PlayerData.Player.TriggerEvent("Player::Furniture::Update", false, furnJs);
+                }
+                else
+                {
+                    for (int i = 0; i < furn.Length; i++)
+                    {
+                        var x = furn[i];
+
+                        if (Furniture.Remove(x))
+                        {
+
+                        }
+                    }
+                }
+
+                MySQL.CharacterFurnitureUpdate(this);
+            }
+
             public PlayerInfo()
             {
                 this.AllSMS = new List<Sync.Phone.SMS>() { };

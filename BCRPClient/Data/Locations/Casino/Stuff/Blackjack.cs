@@ -1351,13 +1351,13 @@ namespace BCRPClient.Data
                                     var text = $"{dealerSum}";
 
                                     if (dealerSum > LOOSE_AFTER || (playerSum > dealerSum && dealerSum >= DEALER_STOPS_ON))
-                                        Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (dealerSum == BLACKJACK_ON)
-                                        Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (dealerSum > playerSum)
-                                        Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else
-                                        Utils.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                 }
                             }
                         }
@@ -1376,17 +1376,17 @@ namespace BCRPClient.Data
                                 if (dealerSum <= LOOSE_AFTER)
                                 {
                                     if (playerSum > LOOSE_AFTER || (dealerSum > playerSum && dealerSum >= DEALER_STOPS_ON && dealerSum <= LOOSE_AFTER))
-                                        Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (playerSum == BLACKJACK_ON)
-                                        Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else if (playerSum > dealerSum)
-                                        Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                     else
-                                        Utils.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                        Utils.DrawText(text, x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                 }
                                 else
                                 {
-                                    Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                    Utils.DrawText(text, x, y, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                                 }
                             }
                         }
@@ -1404,7 +1404,7 @@ namespace BCRPClient.Data
 
                             if (Utils.GetScreenCoordFromWorldCoord(pos, ref x, ref y))
                             {
-                                Utils.DrawText($"{Utils.ToStringWithWhitespace(myBet.Amount.ToString())} фишек", x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                Utils.DrawText($"{Utils.ToStringWithWhitespace(myBet.Amount.ToString())} фишек", x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
                         }
                     }

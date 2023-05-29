@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
@@ -39,8 +40,10 @@ namespace BCRPClient.Sync
         {
             public class DoorInfo
             {
+                [JsonProperty(PropertyName = "M")]
                 public uint Model { get; set; }
 
+                [JsonProperty(PropertyName = "P")]
                 public Vector3 Position { get; set; }
 
                 public DoorInfo(uint Model, Vector3 Position)
@@ -52,8 +55,10 @@ namespace BCRPClient.Sync
 
             public class LightInfo
             {
+                [JsonProperty(PropertyName = "M")]
                 public uint Model { get; set; }
 
+                [JsonProperty(PropertyName = "P")]
                 public Vector3 Position { get; set; }
 
                 public LightInfo(uint Model, Vector3 Position)
@@ -75,6 +80,7 @@ namespace BCRPClient.Sync
 
             private HashSet<RoomTypes> SupportedRoomTypes { get; }
             private HashSet<HouseTypes> SupportedHouseTypes { get; }
+
             private HashSet<ushort> FamiliarTypes { get; }
 
             public Utils.Vector4 InteriorPosition { get; private set; }
@@ -134,7 +140,9 @@ namespace BCRPClient.Sync
 
         public static Dictionary<uint, MapObject> Furniture { get; private set; }
 
-        private static DateTime LastSent;
+        public static ushort? CurrentOverviewStyle { get; set; }
+
+        public static DateTime LastSent;
 
         public House()
         {
@@ -328,7 +336,7 @@ namespace BCRPClient.Sync
 
                         int handle = 0;
 
-                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0)
+                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending("House::Enter", task))
                         {
                             await RAGE.Game.Invoker.WaitAsync(5);
 
@@ -338,6 +346,13 @@ namespace BCRPClient.Sync
 
                                 return;
                             }
+                        }
+
+                        if (!Utils.IsTaskStillPending("House::Enter", task))
+                        {
+                            onStopTask();
+
+                            return;
                         }
 
                         var state = i >= doors.Length ? false : doors[i];
@@ -374,14 +389,14 @@ namespace BCRPClient.Sync
                         {
                             if (t.GetData<bool>("DoorState"))
                             {
-                                Utils.DrawText("[Закрыта]", x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                Utils.DrawText("[Закрыта]", x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
                             else
                             {
-                                Utils.DrawText("[Открыта]", x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                                Utils.DrawText("[Открыта]", x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
 
-                            Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                            Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }));
                     }
 
@@ -402,7 +417,7 @@ namespace BCRPClient.Sync
 
                             int handle = 0;
 
-                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0)
+                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending("House::Enter", task))
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
@@ -412,6 +427,13 @@ namespace BCRPClient.Sync
 
                                     return;
                                 }
+                            }
+
+                            if (!Utils.IsTaskStillPending("House::Enter", task))
+                            {
+                                onStopTask();
+
+                                return;
                             }
 
                             var t = new MapObject(handle)
@@ -425,7 +447,7 @@ namespace BCRPClient.Sync
 
                             t.SetLightColour(info.RGB);
 
-                            new TextLabel(y.Position, $"{i}", new RGBA(255, 255, 255, 255), 5f, 0, false, uint.MaxValue);
+                            //new TextLabel(t.GetOffsetFromInWorldCoords(0f, -0.15f, -0.15f), $"{i + 1}", new RGBA(255, 255, 255, 255), 5f, 0, false, uint.MaxValue) {  LOS = false, };
                         }
                     }
 
@@ -582,50 +604,66 @@ namespace BCRPClient.Sync
 
         public static void FindObject(MapObject obj)
         {
-            AsyncTask.RunSlim(async () =>
+            for (int i = 0; i < TempBlips.Count; i++)
             {
-                for (int i = 0; i < 5; i++)
-                {
-                    obj?.SetAlpha(125, false);
+                var x = TempBlips[i];
 
-                    await RAGE.Game.Invoker.WaitAsync(250);
-
-                    obj?.SetAlpha(255, false);
-
-                    await RAGE.Game.Invoker.WaitAsync(250);
-                }
-            }, 0);
+                if (x?.Exists != true)
+                    TempBlips.Remove(x);
+            }
 
             var blip = new Additional.ExtraBlip(162, obj.GetCoords(false), null, 0.75f, 3, 255, 0f, true, 0, 0f, Player.LocalPlayer.Dimension, Additional.ExtraBlip.Types.Furniture);
 
             blip.SetAsReachable(2.5f);
 
             TempBlips.Add(blip);
+
+            AsyncTask.RunSlim(async () =>
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    obj.SetAlpha(125, false);
+
+                    await RAGE.Game.Invoker.WaitAsync(250);
+
+                    if (obj?.Exists != true || blip?.Exists != true)
+                        break;
+
+                    obj.SetAlpha(255, false);
+
+                    await RAGE.Game.Invoker.WaitAsync(250);
+
+                    if (obj?.Exists != true || blip?.Exists != true)
+                        break;
+                }
+
+                obj?.SetAlpha(255, false);
+            }, 0);
         }
 
-        private static async void CreateObject(uint fUid, Data.Furniture fData, Utils.Vector4 fProps)
+        private static void CreateObject(uint fUid, Data.Furniture fData, Utils.Vector4 fProps)
         {
             MapObject obj = null;
 
             if (fData.Type == Data.Furniture.Types.Locker)
             {
-                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::LI"));
+                obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::LI"));
             }
             else if (fData.Type == Data.Furniture.Types.Wardrobe)
             {
-                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::WI"));
+                obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::WI"));
             }
             else if (fData.Type == Data.Furniture.Types.Fridge)
             {
-                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::FI"));
+                obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, Player.LocalPlayer.GetData<uint>("House::CurrentHouse::FI"));
             }
             else if (fData.Type == Data.Furniture.Types.KitchenSet)
             {
-                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, fUid);
+                obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid, fUid);
             }
             else
             {
-                obj = await fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid);
+                obj = fData.CreateObject(fProps.Position, new Vector3(0f, 0f, fProps.RotationZ), Player.LocalPlayer.Dimension, fUid);
             }
 
             obj.SetData("Data", fData);

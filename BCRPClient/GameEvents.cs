@@ -85,6 +85,8 @@ namespace BCRPClient
             RAGE.Game.Graphics.SetTvChannel(-1);
             RAGE.Game.Graphics.SetTvAudioFrontend(false);
 
+            RAGE.Game.Ui.SetMapFullScreen(false);
+
             Utils.ClearTvChannelPlaylist(-1);
             Utils.ClearTvChannelPlaylist(0);
             Utils.ClearTvChannelPlaylist(1);

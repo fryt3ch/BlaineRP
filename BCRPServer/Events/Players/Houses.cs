@@ -2,11 +2,156 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BCRPServer.Events.Players
 {
     class Houses : Script
     {
+        [RemoteEvent("House::FSOV")]
+        private static void StopStyleOverview(Player player, ushort currentStyleId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen)
+                return;
+
+            var house = pData.CurrentHouseBase;
+
+            if (house == null)
+                return;
+
+            if (house.StyleData.IsPositionInsideInterior(player.Position))
+                return;
+
+            house.SetPlayersInside(true, player);
+        }
+
+        [RemoteProc("House::SSOV")]
+        private static bool StartStyleOverview(Player player, ushort styleId, ushort currentStyleId)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
+            var house = pData.CurrentHouseBase;
+
+            if (house == null)
+                return false;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return false;
+            }
+
+            if (styleId == currentStyleId)
+                return false;
+
+            var style = Game.Estates.HouseBase.Style.Get(styleId);
+
+            if (style == null)
+                return false;
+
+            var currentStyle = Game.Estates.HouseBase.Style.Get(currentStyleId);
+
+            if (currentStyle == null)
+                return false;
+
+            if (!style.IsHouseTypeSupported(house.Type) || !style.IsRoomTypeSupported(house.RoomType))
+                return false;
+
+            if (style.IsTypeFamiliar(currentStyleId))
+            {
+                var offset = style.InteriorPosition.Position - currentStyle.InteriorPosition.Position;
+
+                player.Teleport(player.Position + offset, false, null, null, false);
+            }
+            else
+            {
+                player.Teleport(style.Position, false, null, style.Heading, false);
+            }
+
+            return true;
+        }
+
+        [RemoteProc("House::BST")]
+        private static bool BuyStyle(Player player, ushort styleId, bool useCash)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return false;
+
+            var house = pData.CurrentHouseBase;
+
+            if (house == null)
+                return false;
+
+            if (house.Owner != pData.Info)
+            {
+                player.Notify("House::NotAllowed");
+
+                return false;
+            }
+
+            var style = Game.Estates.HouseBase.Style.Get(styleId);
+
+            if (style == null)
+                return false;
+
+            if (house.StyleType == styleId)
+                return false;
+
+            if (!style.IsHouseTypeSupported(house.Type) || !style.IsRoomTypeSupported(house.RoomType))
+                return false;
+
+            var price = style.Price;
+
+            if (useCash)
+            {
+                ulong newBalance;
+
+                if (!pData.TryRemoveCash(price, out newBalance, true, null))
+                    return false;
+
+                pData.SetCash(newBalance);
+            }
+            else
+            {
+                if (!pData.HasBankAccount(true))
+                    return false;
+
+                ulong newBalance;
+
+                if (!pData.BankAccount.TryRemoveMoneyDebit(price, out newBalance, true, null))
+                    return false;
+
+                pData.BankAccount.SetDebitBalance(newBalance, null);
+            }
+
+            house.SetStyle(styleId, style, true);
+
+            return true;
+        }
+
         [RemoteProc("House::STG")]
         private static bool SellToGov(Player player)
         {
@@ -681,7 +826,7 @@ namespace BCRPServer.Events.Players
                     return;
                 }
 
-                pData.RemoveFurniture(furniture);
+                pData.Info.RemoveFurniture(furniture);
 
                 houseBase.Furniture.Add(furniture);
 
@@ -737,7 +882,7 @@ namespace BCRPServer.Events.Players
 
             furniture.Delete(houseBase);
 
-            pData.AddFurniture(furniture);
+            pData.Info.AddFurniture(furniture);
 
             NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Furn", furniture.UID);
 

@@ -72,18 +72,8 @@ namespace BCRPClient.CEF
                     }
                     else if (id == "rearrange")
                     {
-                        if (furn != null)
-                        {
-                            await Utils.RequestModel(furn.Model);
-                        }
-                        else if (pFurn != null)
-                        {
-                            await Utils.RequestModel(pFurn.Model);
-                        }
-                        else
-                        {
+                        if (furn == null && pFurn == null)
                             return;
-                        }
 
                         if (LastSent.IsSpam(1000, false, true))
                             return;
@@ -99,28 +89,24 @@ namespace BCRPClient.CEF
 
                             if (furn == null)
                             {
-                                await Utils.RequestModel(pFurn.Model);
-
                                 var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, Player.LocalPlayer.GetHeading(), 2f);
 
-                                furn = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(pFurn.Model, pos.X, pos.Y, pos.Z, false, false, false));
+                                furn = Utils.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
 
                                 furn.SetAlpha(125, false);
                             }
                             else
                             {
-                                await Utils.RequestModel(furn.Model);
-
                                 var pos = furn.GetCoords(false);
                                 var rot = furn.GetRotation(2);
-                                var model = furn.Model;
+                                var model = furn.GetData<Data.Furniture>("Data")?.Model ?? 0;
 
                                 furn.SetVisible(false, false);
                                 furn.SetCollision(false, false);
 
                                 furn.GetData<Additional.ExtraBlip>("Blip")?.Destroy();
 
-                                furn = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(model, pos.X, pos.Y, pos.Z, false, false, false));
+                                furn = Utils.CreateObjectNoOffsetImmediately(model, pos.X, pos.Y, pos.Z);
 
                                 furn.SetRotation(rot.X, rot.Y, rot.Z, 2, false);
                                 furn.SetAlpha(125, false);
@@ -192,16 +178,62 @@ namespace BCRPClient.CEF
                 }
                 else if (id == "browse" || id == "cash" || id == "bank") // layouts
                 {
-                    string id2 = (string)args[1];
+                    var id2 = (string)args[1];
 
                     if (!id2.Contains("hlo_"))
                         return;
 
-                    var layout = ushort.Parse(id2.Replace("hlo_", ""));
+                    var layoutId = ushort.Parse(id2.Replace("hlo_", ""));
+
+                    var style = Sync.House.Style.Get(layoutId);
+
+                    if (style == null)
+                        return;
+
+                    if (id == "browse")
+                    {
+                        if (LastSent.IsSpam(1000, false, true))
+                            return;
+
+                        LastSent = Sync.World.ServerTime;
+
+                        var curStyle = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
+
+                        if (curStyle == null)
+                            return;
+
+                        CEF.Browser.Ghostify(Browser.IntTypes.MenuHome, true);
+
+                        var res = (bool)await Events.CallRemoteProc("House::SSOV", layoutId, Sync.House.CurrentOverviewStyle ?? Sync.House.Style.All.Where(x => x.Value == curStyle).FirstOrDefault().Key);
+
+                        if (!res)
+                        {
+                            CEF.Browser.Ghostify(Browser.IntTypes.MenuHome, false);
+
+                            return;
+                        }
+
+                        await RAGE.Game.Invoker.WaitAsync(1);
+
+                        CEF.Browser.Ghostify(Browser.IntTypes.MenuHome, false);
+
+                        StyleOverviewStart(layoutId);
+                    }
+                    else if (id == "cash" || id == "bank")
+                    {
+                        var useCash = id == "cash";
+
+                        if (LastSent.IsSpam(1000, false, true))
+                            return;
+
+                        LastSent = Sync.World.ServerTime;
+
+                        var res = (bool)await Events.CallRemoteProc("House::BST", layoutId, useCash);
+                    }
                 }
                 else if (id == "expel") // expel settler
                 {
-                    uint cid = (uint)(int)args[1];
+                    var cid = Convert.ToUInt32(args[1]);
 
                     if (LastSent.IsSpam(1000, false, true))
                         return;
@@ -353,7 +385,7 @@ namespace BCRPClient.CEF
                 info = new object[] { rApartments.NumberInRoot + 1, house.OwnerName, house.Price, balance, house.Tax, (int)house.RoomType, 0, new object[] { doorState, contState } };
             }
 
-            var layouts = new object[] { Sync.House.Style.All.Where(x => x.Value == style || (x.Value.IsHouseTypeSupported(house.Type) && x.Value.IsRoomTypeSupported(house.RoomType))).Select(x => new object[] { $"hlo_{x.Key}", Sync.House.Style.GetName(x.Key), x.Value.Price }), $"hlo_{Sync.House.Style.All.Where(x => x.Value == style).FirstOrDefault().Key}" };
+            var layouts = new object[] { Sync.House.Style.All.Where(x => x.Value == style || (x.Value.IsHouseTypeSupported(house.Type) && x.Value.IsRoomTypeSupported(house.RoomType))).OrderBy(x => x.Key).Select(x => new object[] { $"hlo_{x.Key}", Sync.House.Style.GetName(x.Key), x.Value.Price }), $"hlo_{Sync.House.Style.All.Where(x => x.Value == style).FirstOrDefault().Key}" };
 
             var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
@@ -365,7 +397,26 @@ namespace BCRPClient.CEF
 
             CEF.Cursor.Show(true, true);
 
-            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+            EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () =>
+            {
+                if (Sync.House.CurrentOverviewStyle is ushort curStyle)
+                {
+                    if (CEF.Browser.IsActive(Browser.IntTypes.MenuHome))
+                    {
+                        CEF.Browser.Switch(Browser.IntTypes.MenuHome, false);
+
+                        CEF.Cursor.Show(false, false);
+                    }
+                    else
+                    {
+                        Close(false);
+                    }
+                }
+                else
+                {
+                    Close(false);
+                }
+            });
         }
 
         public static void ShowRequest()
@@ -396,7 +447,8 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            CEF.MapEditor.Close();
+            if (CEF.MapEditor.CurrentContext == "HouseFurnitureEdit")
+                CEF.MapEditor.Close(true);
 
             CEF.Browser.Render(Browser.IntTypes.MenuHome, false);
 
@@ -414,6 +466,13 @@ namespace BCRPClient.CEF
             }
 
             Player.LocalPlayer.ResetData("HouseMenu::SellGov::ApproveTime");
+
+            if (Sync.House.CurrentOverviewStyle is ushort curStyle)
+            {
+                StyleOverviewStop();
+
+                Events.CallRemote("House::FSOV", curStyle);
+            }
         }
 
         public static void SetButtonState(string id, bool state) => CEF.Browser.Window.ExecuteJs("MenuHome.setButton", id, state);
@@ -436,17 +495,6 @@ namespace BCRPClient.CEF
 
         public static void RemoveOwnedFurniture(uint uid) => CEF.Browser.Window.ExecuteJs("MenuHome.removeFurniture", "possible", uid);
 
-        private static void SwitchMenu(bool state)
-        {
-            if (!IsActive)
-                return;
-
-            CEF.Browser.Switch(Browser.IntTypes.MenuHome, state);
-
-            if (state)
-                CEF.Cursor.Show(true, true);
-        }
-
         public static void FurnitureEditOnStart(MapObject mObj)
         {
             if (!IsActive)
@@ -454,7 +502,7 @@ namespace BCRPClient.CEF
 
             KeyBinds.Unbind(EscBind);
 
-            SwitchMenu(false);
+            CEF.Browser.SwitchTemp(Browser.IntTypes.MenuHome, false);
         }
 
         public static void FurnitureEditOnEnd(MapObject mObj)
@@ -466,7 +514,7 @@ namespace BCRPClient.CEF
 
             EscBind = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
 
-            SwitchMenu(true);
+            CEF.Browser.SwitchTemp(Browser.IntTypes.MenuHome, true);
 
             foreach (var x in Sync.House.Furniture.Values)
             {
@@ -486,6 +534,74 @@ namespace BCRPClient.CEF
             Events.CallRemote("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z);
 
             LastSent = Sync.World.ServerTime;
+        }
+
+        public static void StyleOverviewStart(ushort styleId)
+        {
+            StyleOverviewStop();
+
+            Sync.House.CurrentOverviewStyle = styleId;
+
+            GameEvents.Render -= StyleOverviewRender;
+            GameEvents.Render += StyleOverviewRender;
+
+            CEF.Browser.Switch(Browser.IntTypes.MenuHome, false);
+
+            KeyBinds.DisableAll(KeyBinds.Types.Cursor, KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
+
+            CEF.Cursor.Show(false, false);
+        }
+
+        public static void StyleOverviewStop()
+        {
+            if (Sync.House.CurrentOverviewStyle == null)
+                return;
+
+            Sync.House.CurrentOverviewStyle = null;
+
+            GameEvents.Render -= StyleOverviewRender;
+
+            KeyBinds.EnableAll();
+
+            if (IsActive)
+            {
+                CEF.Browser.Switch(Browser.IntTypes.MenuHome, true);
+
+                CEF.Cursor.Show(true, true);
+            }
+        }
+
+        private static void StyleOverviewRender()
+        {
+            if (Sync.House.CurrentOverviewStyle is ushort styleId)
+            {
+                var isMenuActive = CEF.Browser.IsActive(Browser.IntTypes.MenuHome);
+
+                if (!isMenuActive)
+                {
+                    var text = Sync.House.Style.GetName(styleId);
+
+                    Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+
+                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", "null", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
+
+                    Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+
+                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", "null", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.M));
+
+                    Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                }
+
+                if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.M))
+                {
+                    if (IsActive && !isMenuActive)
+                    {
+                        CEF.Browser.Switch(Browser.IntTypes.MenuHome, true);
+
+                        CEF.Cursor.Show(true, true);
+                    }
+                }
+            }
         }
     }
 

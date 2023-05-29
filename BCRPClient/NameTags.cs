@@ -60,18 +60,18 @@ namespace BCRPClient
                     {
                         if (pData == null)
                         {
-                            Utils.DrawText($"ID: {player.RemoteId} | ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                            Utils.DrawText($"ID: {player.RemoteId} | ISN'T LOGGED IN", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                             return;
                         }
 
-                        Utils.DrawText($"ID: {player.RemoteId} | CID: {pData.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                        Utils.DrawText($"HP: {player.GetRealHealth()} | Arm: {player.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"ID: {player.RemoteId} | CID: {pData.CID}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Utils.DrawText($"HP: {player.GetRealHealth()} | Arm: {player.GetArmour()}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
-                        Utils.DrawText($"IsInvincible: {pData.IsInvincible} | IsFrozen: {pData.IsFrozen} | IsKnocked: {pData.IsKnocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
-                        Utils.DrawText($"Voice: {(pData.VoiceRange < 0f ? "muted" : (pData.VoiceRange == 0f ? "off" : $"{pData.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"IsInvincible: {pData.IsInvincible} | IsFrozen: {pData.IsFrozen} | IsKnocked: {pData.IsKnocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Utils.DrawText($"Voice: {(pData.VoiceRange < 0f ? "muted" : (pData.VoiceRange == 0f ? "off" : $"{pData.VoiceRange} m"))}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
-                        Utils.DrawText($"Fraction: {pData.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"Fraction: {pData.Fraction}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                     }
                 }
 
@@ -109,13 +109,13 @@ namespace BCRPClient
                 else
                     RAGE.Game.Graphics.RequestStreamedTextureDict("mpleaderboard", true);
 
-                Utils.DrawText(player.GetName(true, false, true), x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                Utils.DrawText(player.GetName(true, false, true), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (!Settings.Interface.HideCID)
-                    Utils.DrawText($"#{pData.CID}", x, y += Interval / 2, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText($"#{pData.CID}", x, y += Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (pData.AdminLevel > -1)
-                    Utils.DrawText(Locale.General.Players.AdminLabel, x, y += Interval / 2, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText(Locale.General.Players.AdminLabel, x, y += Interval / 2, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (RAGE.Game.Player.IsPlayerFreeAimingAtEntity(player.Handle))
                 {

@@ -878,7 +878,7 @@ namespace BCRPClient.Sync
             {
                 if (res)
                 {
-                    gEntity = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+                    gEntity = Utils.CreateObjectNoOffsetImmediately(hash, target.Position.X, target.Position.Y, target.Position.Z);
                 }
             }
 
@@ -972,7 +972,7 @@ namespace BCRPClient.Sync
                     {
                         RAGE.Game.Entity.DetachEntity(gEntity.Handle, true, props?.Collision ?? false);
 
-                        RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false); // fix for entity not actually deleted AFTER destroy
+                        RAGE.Game.Entity.SetEntityAsMissionEntity(gEntity.Handle, false, false);
 
                         gEntity.Destroy();
                     }
@@ -1101,7 +1101,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(Locale.General.Animations.CancelTextPushVehicle, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(Locale.General.Animations.CancelTextPushVehicle, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1138,7 +1138,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1175,7 +1175,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1215,7 +1215,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryA, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1282,9 +1282,9 @@ namespace BCRPClient.Sync
                                 }
                             }
 
-                            Utils.DrawText(string.Format(Locale.General.Animations.TextDoPuffSmoke, puffs), 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
-                            Utils.DrawText(Locale.General.Animations.TextToMouthSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.TextDoPuffSmoke, puffs), 0.5f, 0.90f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Utils.DrawText(Locale.General.Animations.TextToMouthSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1334,10 +1334,10 @@ namespace BCRPClient.Sync
                                     }
                                 }
 
-                                Utils.DrawText(Locale.General.Animations.TextToHandSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                                Utils.DrawText(Locale.General.Animations.TextToHandSmoke, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                             }
 
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextSmoke, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1366,7 +1366,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1395,7 +1395,7 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                            Utils.DrawText(string.Format(Locale.General.Animations.JustStopText, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1537,7 +1537,7 @@ namespace BCRPClient.Sync
                     {
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        Utils.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                        Utils.DrawText(string.Format("Нажмите {0}, чтобы встать с койки", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
 
                         if (Utils.CanShowCEF(true, true))
                         {
@@ -1661,8 +1661,6 @@ namespace BCRPClient.Sync
 
         public static async System.Threading.Tasks.Task<GameEntity> AttachObjectSimpleLocal(uint hash, Entity target, Types type)
         {
-            await Utils.RequestModel(hash);
-
             GameEntity gTarget = Utils.GetGameEntity(target);
 
             if (gTarget == null)
@@ -1680,13 +1678,13 @@ namespace BCRPClient.Sync
             }
             else
             {
-                gEntity = new MapObject(RAGE.Game.Object.CreateObjectNoOffset(hash, target.Position.X, target.Position.Y, target.Position.Z, false, false, false));
+                gEntity = Utils.CreateObjectNoOffsetImmediately(hash, target.Position.X, target.Position.Y, target.Position.Z);
             }
 
             if (gEntity == null)
                 return null;
 
-            AttachmentData props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
+            var props = ModelDependentAttachments.GetValueOrDefault(hash)?.GetValueOrDefault(type) ?? Attachments.GetValueOrDefault(type);
 
             if (props != null)
             {

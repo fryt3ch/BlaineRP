@@ -850,8 +850,8 @@ namespace BCRPClient.Data
                             if (screenCoordPos == null)
                                 continue;
 
-                            //Utils.DrawText(hData.DisplayName, screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.25f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
-                            Utils.DrawText(Utils.ToStringWithWhitespace(x.Amount.ToString()), screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.35f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+                            //Utils.DrawText(hData.DisplayName, screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.25f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                            Utils.DrawText(Utils.ToStringWithWhitespace(x.Amount.ToString()), screenCoordPos.X, screenCoordPos.Y, 255, 255, 255, 255, 0.35f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                         }
                     }
 

@@ -88,7 +88,7 @@ namespace BCRPClient
                         if (furnData != null)
                         {
                             if (EnabledVisual)
-                                Utils.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                Utils.DrawText(furnData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                     else if (entity.HasData("CustomText"))
@@ -115,7 +115,7 @@ namespace BCRPClient
                         if (iogData != null)
                         {
                             if (EnabledVisual)
-                                Utils.DrawText(iogData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                                Utils.DrawText(iogData.Name, x, y - NameTags.Interval, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                         }
                     }
                 }
@@ -124,7 +124,7 @@ namespace BCRPClient
             if (!EnabledVisual)
                 return;
 
-            Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+            Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.Interaction].GetKeyString(), x, y, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
         }
     }
 }

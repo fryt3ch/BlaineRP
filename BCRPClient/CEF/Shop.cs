@@ -429,7 +429,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Shop::Close", (object[] args) => { Close(false, true); });
 
-            Events.Add("Retail::Action", async (args) =>
+            Events.Add("Retail::Action", (args) =>
             {
                 var itemId = (string)args[0];
 
@@ -445,9 +445,9 @@ namespace BCRPClient.CEF
                     if (furnData == null)
                         return;
 
-                    await Utils.RequestModel(furnData.Model);
+                    var mapObj = Utils.CreateObjectNoOffsetImmediately(furnData.Model, 2770.449f, 3469.131f, 75.53225f);
 
-                    var mapObj = new RAGE.Elements.MapObject(RAGE.Game.Object.CreateObjectNoOffset(furnData.Model, 2770.449f, 3469.131f, 75.53225f, false, false, false));
+                    mapObj.SetTotallyInvincible(true);
 
                     mapObj.FreezePosition(true);
 
@@ -2542,12 +2542,12 @@ namespace BCRPClient.CEF
 
             if (!Additional.TuningMenu.IsActive && Player.LocalPlayer.Vehicle != null)
             {
-                Utils.DrawText(Locale.TestDrive.CloseText, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
-                Utils.DrawText(Locale.TestDrive.TuningText, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                Utils.DrawText(Locale.TestDrive.CloseText, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(Locale.TestDrive.TuningText, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else
             {
-                Utils.DrawText(Locale.TestDrive.CloseText, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, Utils.ScreenTextFontTypes.CharletComprimeColonge, false, true);
+                Utils.DrawText(Locale.TestDrive.CloseText, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
         }
 

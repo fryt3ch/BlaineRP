@@ -472,11 +472,11 @@ namespace BCRPClient.Sync
 
                 if (!Settings.Interface.HideIOGNames)
                 {
-                    Utils.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText($"{temp.Name} (x{temp.Amount})", screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }
 
                 if (temp == ClosestItemOnGround && !Settings.Interface.HideInteractionBtn)
-                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText(KeyBinds.Binds[KeyBinds.Types.TakeItem].GetKeyString(), screenX, Settings.Interface.HideIOGNames ? screenY : screenY + 0.025f, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
             }
         }
         #endregion

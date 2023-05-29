@@ -87,14 +87,14 @@ namespace BCRPClient.Sync
 
                 DoorObject.SetData("CustomText", (Action<float, float>)((x, y) =>
                 {
-                    Utils.DrawText(name == null ? "Дверь" : $"Дверь - {name}", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                    Utils.DrawText(name == null ? "Дверь" : $"Дверь - {name}", x, y - NameTags.Interval * 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                     var isLocked = IsLocked;
 
                     if (isLocked)
-                        Utils.DrawText($"[Закрыта]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"[Закрыта]", x, y - NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                     else
-                        Utils.DrawText($"[Открыта]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true);
+                        Utils.DrawText($"[Открыта]", x, y - NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }));
 
                 DoorObject.SetData("CustomAction", (Action<MapObject>)(async (obj) =>

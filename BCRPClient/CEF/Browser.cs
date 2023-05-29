@@ -333,6 +333,20 @@ namespace BCRPClient.CEF
         {
             Window.ExecuteCachedJs("switchTemplate", state, IntNames[type]);
         }
+
+        public static void Ghostify(IntTypes type, bool state)
+        {
+            if (state)
+            {
+                RenderedInterfaces.Remove(type);
+                ActiveInterfaces.Remove(type);
+            }
+            else
+            {
+                RenderedInterfaces.Add(type);
+                ActiveInterfaces.Add(type);
+            }
+        }
         #endregion
     }
 }

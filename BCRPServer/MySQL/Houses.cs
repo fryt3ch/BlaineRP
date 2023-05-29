@@ -332,5 +332,70 @@ namespace BCRPServer
 
             PushQuery(cmd);
         }
+
+        public static void HouseUpdateDoorsStates(Game.Estates.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Estates.HouseBase.Types.House ? "houses" : "apartments")} SET DoorsStates=@DStates WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.Id);
+
+            cmd.Parameters.AddWithValue("@DStates", house.DoorsStates.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseUpdateLightsStates(Game.Estates.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Estates.HouseBase.Types.House ? "houses" : "apartments")} SET LightsStates=@LStates WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.Id);
+
+            cmd.Parameters.AddWithValue("@LStates", house.LightsStates.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseUpdateStyleType(Game.Estates.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Estates.HouseBase.Types.House ? "houses" : "apartments")} SET StyleType=@SType WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.Id);
+
+            cmd.Parameters.AddWithValue("@SType", house.StyleType);
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseUpdateLockState(Game.Estates.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Estates.HouseBase.Types.House ? "houses" : "apartments")} SET IsLocked=@IL WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.Id);
+
+            cmd.Parameters.AddWithValue("@IL", house.IsLocked);
+
+            PushQuery(cmd);
+        }
+
+        public static void HouseUpdateContainersLockState(Game.Estates.HouseBase house)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE {(house.Type == Game.Estates.HouseBase.Types.House ? "houses" : "apartments")} SET ContainersLocked=@CL WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", house.Id);
+
+            cmd.Parameters.AddWithValue("@CL", house.ContainersLocked);
+
+            PushQuery(cmd);
+        }
     }
 }

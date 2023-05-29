@@ -14,11 +14,6 @@ namespace BCRPClient
     {
         private static DateTime LastConsoleMsg = Sync.World.ServerTime;
 
-        public enum ScreenTextFontTypes
-        {
-            ChaletLondon = 0, HouseScript = 1, Monospace = 2, CharletComprimeColonge = 4, Pricedown = 7
-        }
-
         public static bool IsGameWindowFocused => RAGE.Ui.Windows.Focused;
 
         public static Random Random { get; private set; } = new Random();
@@ -909,6 +904,8 @@ namespace BCRPClient
 
             RAGE.Game.Entity.SetEntityAsMissionEntity(handle, false, false);
 
+            RAGE.Game.Streaming.SetModelAsNoLongerNeeded(modelHash);
+
             return mObj;
         }
 
@@ -1009,11 +1006,11 @@ namespace BCRPClient
         /// <param name="scale">Масштаб</param>
         /// <param name="fontType">Шрифт</param>
         /// <param name="outline">Обводка</param>
-        public static void DrawText(string text, float x, float y, byte red = 255, byte green = 255, byte blue = 255, byte alpha = 255, float scale = 0.4f, ScreenTextFontTypes fontType = ScreenTextFontTypes.CharletComprimeColonge, bool outline = true, bool center = true)
+        public static void DrawText(string text, float x, float y, byte red = 255, byte green = 255, byte blue = 255, byte alpha = 255, float scale = 0.4f, RAGE.Game.Font fontType = RAGE.Game.Font.ChaletComprimeCologne, bool outline = true, bool center = true)
         {
-            RAGE.Game.Ui.BeginTextCommandDisplayText("STRING");
+            RAGE.Game.Ui.SetTextProportional(true);
 
-            RAGE.Game.Ui.AddTextComponentSubstringPlayerName(text);
+            RAGE.Game.Ui.SetTextEdge(1, 0, 0, 0, 255);
 
             RAGE.Game.Ui.SetTextFont((int)fontType);
             RAGE.Game.Ui.SetTextCentre(center);
@@ -1024,6 +1021,10 @@ namespace BCRPClient
 
             if (outline)
                 RAGE.Game.Ui.SetTextOutline();
+
+            RAGE.Game.Ui.BeginTextCommandDisplayText("CELL_EMAIL_BCON");
+
+            RAGE.Game.Ui.AddTextComponentSubstringPlayerName(text);
 
             RAGE.Game.Ui.EndTextCommandDisplayText(x, y, 0);
         }
@@ -1180,6 +1181,8 @@ namespace BCRPClient
 
         public static void ResetGameplayCameraRotation()
         {
+            return;
+
             RAGE.Game.Cam.SetGameplayCamRelativeHeading(0f);
 
             RAGE.Game.Invoker.Invoke(0x48608C3464F58AB4, 0f, 0f, 0f);

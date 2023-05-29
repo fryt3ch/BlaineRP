@@ -248,9 +248,9 @@ namespace BCRPClient.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В NONRP-ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В NONRP-ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         private static void ArrestRender()
@@ -267,9 +267,9 @@ namespace BCRPClient.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В СИЗО", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В СИЗО", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         private static void FederalPrisonRender()
@@ -286,9 +286,9 @@ namespace BCRPClient.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В ФЕДЕРАЛЬНОЙ ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В ФЕДЕРАЛЬНОЙ ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, Utils.ScreenTextFontTypes.CharletComprimeColonge, true, true);
+            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         public Punishment()

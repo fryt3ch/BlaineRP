@@ -1336,33 +1336,50 @@ namespace BCRPClient.Sync
 
             Events.Add("Player::Furniture::Update", (args) =>
             {
-                var data = Sync.Players.GetData(Player.LocalPlayer);
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
 
-                if (data == null)
+                if (pData == null)
                     return;
 
-                bool add = (bool)args[0];
-
-                var fUid = (uint)(int)args[1];
+                var add = (bool)args[0];
 
                 if (add)
                 {
-                    if (data.Furniture.ContainsKey(fUid))
-                        return;
+                    var furns = ((JArray)args[1]).ToObject<List<string>>();
 
-                    var fData = Data.Furniture.GetData((string)args[2]);
+                    foreach (var x in furns)
+                    {
+                        var d = x.Split('&');
 
-                    data.Furniture.Add(fUid, fData);
+                        var fUid = uint.Parse(d[0]);
 
-                    if (CEF.HouseMenu.IsActive)
-                        CEF.HouseMenu.AddOwnedFurniture(fUid, fData);
+                        var fId = d[1];
+
+                        var fData = Data.Furniture.GetData(fId);
+
+                        if (pData.Furniture.TryAdd(fUid, fData))
+                        {
+                            if (CEF.HouseMenu.IsActive)
+                                CEF.HouseMenu.AddOwnedFurniture(fUid, fData);
+                        }
+                    }
                 }
                 else
                 {
-                    data.Furniture.Remove(fUid);
+                    var furns = ((JArray)args[1]).ToObject<List<string>>();
 
-                    if (CEF.HouseMenu.IsActive)
-                        CEF.HouseMenu.RemoveOwnedFurniture(fUid);
+                    foreach (var x in furns)
+                    {
+                        var d = x.Split('&');
+
+                        var fUid = uint.Parse(d[0]);
+
+                        if (pData.Furniture.Remove(fUid))
+                        {
+                            if (CEF.HouseMenu.IsActive)
+                                CEF.HouseMenu.RemoveOwnedFurniture(fUid);
+                        }
+                    }
                 }
             });
 
