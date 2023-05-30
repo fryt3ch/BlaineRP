@@ -30,7 +30,7 @@ namespace BCRPClient.CEF
             {
                 var itemId = (string)args[0];
 
-                var amountD = args[1].ToDecimal();
+                var amountD = Utils.ToDecimal(args[1]);
 
                 int amount;
 

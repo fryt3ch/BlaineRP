@@ -1070,14 +1070,14 @@ namespace BCRPClient.CEF
 
                         if ((bool)curArgs[1])
                         {
-                            CurrentGiveMoney = curArgs[2].ToUInt32();
+                            CurrentGiveMoney = Utils.ToUInt32(curArgs[2]);
 
                             Browser.Window.ExecuteJs("Inventory.updateGiveMoney", CurrentGiveMoney);
                         }
                         else
                         {
                             var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
-                            var propId = curArgs[4].ToUInt32();
+                            var propId = Utils.ToUInt32(curArgs[4]);
 
                             string text = null;
 
@@ -1144,12 +1144,12 @@ namespace BCRPClient.CEF
 
                         if ((bool)curArgs[1])
                         {
-                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", curArgs[2].ToDecimal());
+                            Browser.Window.ExecuteJs("Inventory.updateReceiveMoney", Utils.ToDecimal(curArgs[2]));
                         }
                         else
                         {
                             var pType = (Sync.Players.PropertyTypes)(int)curArgs[3];
-                            var propId = curArgs[4].ToUInt32();
+                            var propId = Utils.ToUInt32(curArgs[4]);
 
                             string text = null;
 
@@ -1340,7 +1340,7 @@ namespace BCRPClient.CEF
                     if (CurrentGiveMoney < 0)
                         CurrentGiveMoney = 0;
 
-                    var newAmountI = args[1].ToDecimal();
+                    var newAmountI = Utils.ToDecimal(args[1]);
 
                     int newAmount;
 

@@ -290,9 +290,9 @@ namespace BCRPClient.Data.Jobs
 
             Events.Add("Job::TSC", (args) =>
             {
-                var newBalance = args[0].ToDecimal();
+                var newBalance = Utils.ToDecimal(args[0]);
 
-                var oldBalance = args[1].ToDecimal();
+                var oldBalance = Utils.ToDecimal(args[1]);
 
                 var diff = newBalance > oldBalance ? newBalance - oldBalance : 0;
 
@@ -345,7 +345,7 @@ namespace BCRPClient.Data.Jobs
                 }
                 else
                 {
-                    var id = args[0].ToUInt32();
+                    var id = Utils.ToUInt32(args[0]);
 
                     var order = activeOrders.Where(x => x.Id == id).FirstOrDefault();
 
@@ -409,7 +409,7 @@ namespace BCRPClient.Data.Jobs
                 }
                 else
                 {
-                    var id = args[0].ToUInt32();
+                    var id = Utils.ToUInt32(args[0]);
 
                     var order = activeOrders.Where(x => x.Id == id).FirstOrDefault();
 
@@ -472,7 +472,7 @@ namespace BCRPClient.Data.Jobs
                 }
                 else
                 {
-                    var id = args[0].ToUInt32();
+                    var id = Utils.ToUInt32(args[0]);
 
                     if (args.Length > 1 && args[1] is bool success)
                     {

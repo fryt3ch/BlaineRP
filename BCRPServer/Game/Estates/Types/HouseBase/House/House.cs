@@ -16,7 +16,7 @@ namespace BCRPServer.Game.Estates
 
         public override Utils.Vector4 PositionParams { get; }
 
-        public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, int Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, Types.House, RoomType)
+        public House(uint HID, Utils.Vector4 PositionParams, Style.RoomTypes RoomType, uint Price, Garage.Types? GarageType = null, Utils.Vector4 GarageOutside = null) : base(HID, Types.House, RoomType)
         {
             this.PositionParams = PositionParams;
 

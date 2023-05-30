@@ -124,6 +124,10 @@ namespace BCRPClient.Additional
             CasinoRouletteGame,
 
             Empty,
+
+            WholeFurniture,
+            FrontFurniture,
+            TopFurniture,
         }
 
         public static Dictionary<StateTypes, State> States = new Dictionary<StateTypes, State>()
@@ -267,6 +271,10 @@ namespace BCRPClient.Additional
             { StateTypes.CasinoRouletteGame, new State(new Vector3(0f, 0f, 2f), new Vector3(0f, 0f, 0f), 80, new Vector3(0f, 0f, 0f), 750, State.RenderTypes.None, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.None, ShakeAmplitude = 0f, } },
 
             { StateTypes.Empty, new State(new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), 0, new Vector3(0f, 0f, 0f), 0, State.RenderTypes.None, State.RenderTypes.None) { SourceBehaviourType = BehaviourTypes.None, TargetBehaviourType = BehaviourTypes.None, ShakeAmplitude = 0f, MinFov = 0f, MaxFov = 180f, } },
+
+            { StateTypes.WholeFurniture, new State(new Vector3(0f, 0f, 1.35f), null, 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 180f + 35f, 5.5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 5 } },
+            { StateTypes.FrontFurniture, new State(new Vector3(0f, 0f, 0f), null, 60, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.FrontOf, SourceParams = new float[] { 180f, 5f }, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 5 } },
+            { StateTypes.TopFurniture, new State(new Vector3(0f, 0f, 3f), null, 70, new Vector3(0f, 0f, 0f), 750, RenderTypes.None, RenderTypes.None) { SourceBehaviourType = BehaviourTypes.PointAt, TargetBehaviourType = BehaviourTypes.PointAt, MinFov = 5 } },
         };
 
         /// <summary>Минимально возможный FOV</summary>

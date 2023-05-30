@@ -532,8 +532,8 @@ namespace BCRPClient.CEF
 
             while (Player.LocalPlayer.Vehicle != null)
             {
-                Browser.Window.ExecuteJs("Hud.setFuel", Convert.ToInt32(data.FuelLevel));
-                Browser.Window.ExecuteJs("Hud.setMileage", Convert.ToInt32(data.Mileage) / 1000);
+                Browser.Window.ExecuteJs("Hud.setFuel", Utils.ToInt32(data.FuelLevel));
+                Browser.Window.ExecuteJs("Hud.setMileage", Utils.ToInt32(data.Mileage) / 1000);
 
                 Player driver = Utils.GetPlayerByHandle(Player.LocalPlayer.Vehicle.GetPedInSeat(-1, 0));
 

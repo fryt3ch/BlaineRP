@@ -632,8 +632,6 @@ namespace BCRPClient.Sync
                     if (Sync.Players.GetData(killer) == null)
                         killer = Player.LocalPlayer;
 
-                    var scaleformWaster = Additional.Scaleform.CreateShard("wasted", "~r~" + Locale.Scaleform.Wasted.Header, killer.Handle == Player.LocalPlayer.Handle ? Locale.Scaleform.Wasted.TextSelf : string.Format(Locale.Scaleform.Wasted.TextAttacker, killer.GetName(true, false, true), Sync.Players.GetData(killer)?.CID ?? 0), -1);
-
                     Events.CallRemote("Players::OnDeath", killer);
                 }
                 else if (pData == null)

@@ -30,7 +30,7 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuArrest::MoreInfo", async (args) =>
             {
-                var id = Convert.ToUInt32(args[0]);
+                var id = Utils.ToUInt32(args[0]);
 
                 if (LastSent.IsSpam(1000, false, true))
                     return;
@@ -60,7 +60,7 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuArrest::Button", async (args) =>
             {
-                var action = Convert.ToByte(args[0]);
+                var action = Utils.ToByte(args[0]);
 
                 if (action == 0)
                 {

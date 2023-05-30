@@ -48,7 +48,7 @@ namespace BCRPClient.CEF.PhoneApps
                     if (CurrentOrderInfo.Driver == null)
                         return;
 
-                    CurrentOrderInfo.DriverNumber = args[1].ToUInt32();
+                    CurrentOrderInfo.DriverNumber = Utils.ToUInt32(args[1]);
 
                     CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
                 }
@@ -95,7 +95,7 @@ namespace BCRPClient.CEF.PhoneApps
                 if (CEF.Phone.LastSent.IsSpam(250, false, false))
                     return;
 
-                var id = args[0].ToDecimal();
+                var id = Utils.ToDecimal(args[0]);
 
                 if (CurrentOrderInfo == null)
                 {

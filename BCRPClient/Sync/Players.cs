@@ -166,11 +166,11 @@ namespace BCRPClient.Sync
             public PlayerData(Player Player) => this.Player = Player;
 
             #region Player Data
-            public uint CID => Player.GetSharedData<object>("CID", 0).ToUInt32();
+            public uint CID => Utils.ToUInt32(Player.GetSharedData<object>("CID", 0));
 
-            public ulong Cash => Player.GetSharedData<object>("Cash", 0).ToUInt64();
+            public ulong Cash => Utils.ToUInt64(Player.GetSharedData<object>("Cash", 0));
 
-            public ulong BankBalance => Player.GetSharedData<object>("BankBalance", 0).ToUInt64();
+            public ulong BankBalance => Utils.ToUInt64(Player.GetSharedData<object>("BankBalance", 0));
 
             public bool Sex => Player.GetSharedData<bool>("Sex", true);
 
@@ -497,7 +497,7 @@ namespace BCRPClient.Sync
                     data.AllSMS = new List<CEF.PhoneApps.SMSApp.SMS>();
 
                 if (sData.ContainsKey("Vehicles"))
-                    data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Convert.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
+                    data.OwnedVehicles = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Vehicles"]).Select(x => { var data = x.Split('_'); return (Utils.ToUInt32(data[0]), Data.Vehicles.GetById(data[1])); }).ToList();
                 else
                     data.OwnedVehicles = new List<(uint VID, Data.Vehicles.Vehicle Data)>();
 
@@ -531,7 +531,7 @@ namespace BCRPClient.Sync
                     data.SettledHouseBase = ((Sync.House.HouseTypes)int.Parse(shbData[0])) == House.HouseTypes.House ? (Data.Locations.HouseBase)Data.Locations.House.All[uint.Parse(shbData[1])] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[uint.Parse(shbData[1])];
                 }
 
-                var achievements = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Achievements"]).ToDictionary(x => (AchievementTypes)Convert.ToInt32(x.Split('_')[0]), y => { var data = y.Split('_'); return (Convert.ToInt32(data[1]), Convert.ToInt32(data[2])); });
+                var achievements = RAGE.Util.Json.Deserialize<List<string>>((string)sData["Achievements"]).ToDictionary(x => (AchievementTypes)Utils.ToInt32(x.Split('_')[0]), y => { var data = y.Split('_'); return (Utils.ToInt32(data[1]), Utils.ToInt32(data[2])); });
 
                 foreach (var x in achievements)
                     UpdateAchievement(data, x.Key, x.Value.Item1, x.Value.Item2);
@@ -753,6 +753,34 @@ namespace BCRPClient.Sync
 
             #region Local Player Events
 
+            Events.Add("Player::Knocked", (args) =>
+            {
+                var state = (bool)args[0];
+
+                if (state)
+                {
+                    GameEvents.DisableMove(true);
+
+                    var attacker = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[1])) ?? Player.LocalPlayer;
+
+                    RAGE.Game.Graphics.StartScreenEffect("DeathFailMPIn", 0, true);
+
+                    var scaleformWaster = Additional.Scaleform.CreateShard("wasted", "~r~" + Locale.Scaleform.Wasted.Header, attacker.Handle == Player.LocalPlayer.Handle ? Locale.Scaleform.Wasted.TextSelf : string.Format(Locale.Scaleform.Wasted.TextAttacker, attacker.GetName(true, false, true), Sync.Players.GetData(attacker)?.CID ?? 0), -1);
+
+                    CEF.Death.Show();
+                }
+                else
+                {
+                    CEF.Death.Close();
+
+                    GameEvents.DisableMove(false);
+
+                    RAGE.Game.Graphics.StopScreenEffect("DeathFailMPIn");
+
+                    Additional.Scaleform.Get("wasted")?.Destroy();
+                }
+            });
+
             Events.Add("opday", (args) =>
             {
                 if (args == null || args.Length == 0)
@@ -761,15 +789,15 @@ namespace BCRPClient.Sync
                 }
                 else if (args.Length == 1)
                 {
-                    var playedTime = args[0].ToDecimal();
+                    var playedTime = Utils.ToDecimal(args[0]);
 
                     Events.CallLocal("Chat::ShowServerMessage", $"Время зарплаты | Вы ничего не получаете, так как за этот час Вы наиграли {playedTime / 60} минут из {10} необходимых!");
                 }
                 else
                 {
-                    var joblessBenefit = args[0].ToDecimal();
-                    var fractionSalary = args[1].ToDecimal();
-                    var organisationSalary = args[2].ToDecimal();
+                    var joblessBenefit = Utils.ToDecimal(args[0]);
+                    var fractionSalary = Utils.ToDecimal(args[1]);
+                    var organisationSalary = Utils.ToDecimal(args[2]);
 
                     if (joblessBenefit > 0)
                     {
@@ -1004,7 +1032,7 @@ namespace BCRPClient.Sync
                 }
                 else
                 {
-                    var step = (byte)args[1].ToDecimal();
+                    var step = Utils.ToByte(args[1]);
 
                     var sProgress = (int)args[2];
 
@@ -1455,12 +1483,12 @@ namespace BCRPClient.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var cash = Convert.ToDecimal(value).ToUInt64();
+                var cash = Utils.ToUInt64(value);
 
                 CEF.HUD.SetCash(cash);
                 CEF.Menu.SetCash(cash);
 
-                var oldCash = oldValue == null ? cash : Convert.ToDecimal(oldValue).ToUInt64();
+                var oldCash = oldValue == null ? cash : Utils.ToUInt64(oldValue);
 
                 if (cash == oldCash)
                     return;
@@ -1480,7 +1508,7 @@ namespace BCRPClient.Sync
                 if (pData.Player.Handle != Player.LocalPlayer.Handle)
                     return;
 
-                var bank = Convert.ToDecimal(value).ToUInt64();
+                var bank = Utils.ToUInt64(value);
 
                 CEF.HUD.SetBank(bank);
                 CEF.Menu.SetBank(bank);
@@ -1489,7 +1517,7 @@ namespace BCRPClient.Sync
                 CEF.Bank.UpdateMoney(bank);
                 CEF.PhoneApps.BankApp.UpdateBalance(bank);
 
-                var oldCash = oldValue == null ? bank : Convert.ToDecimal(oldValue).ToUInt64();
+                var oldCash = oldValue == null ? bank : Utils.ToUInt64(oldValue);
 
                 if (bank == oldCash)
                     return;
@@ -1879,30 +1907,12 @@ namespace BCRPClient.Sync
                 if (state)
                 {
                     player.SetCanRagdoll(false);
+
+                    Sync.Animations.Play(player, Animations.GeneralTypes.Knocked);
                 }
                 else
                 {
                     player.SetCanRagdoll(true);
-                }
-
-                if (player.Handle == Player.LocalPlayer.Handle)
-                {
-                    if (state)
-                    {
-                        CEF.Death.Show();
-
-                        GameEvents.DisableMove(true);
-
-                        RAGE.Game.Graphics.StartScreenEffect("DeathFailMPIn", 0, true);
-                    }
-                    else
-                    {
-                        GameEvents.DisableMove(false);
-
-                        RAGE.Game.Graphics.StopScreenEffect("DeathFailMPIn");
-
-                        Additional.Scaleform.Get("wasted")?.Destroy();
-                    }
                 }
             });
 
@@ -2176,7 +2186,6 @@ namespace BCRPClient.Sync
             CEF.Inventory.Close(true);
             CEF.Interaction.CloseMenu();
             CEF.Menu.Close();
-            CEF.Death.Close();
             CEF.Animations.Close();
             CEF.Shop.Close(true, true);
             CEF.Gas.Close(true);

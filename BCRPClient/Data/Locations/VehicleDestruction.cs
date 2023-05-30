@@ -71,7 +71,7 @@ namespace BCRPClient.Data
                 if (res == null)
                     return;
 
-                var price = res.ToDecimal();
+                var price = Utils.ToDecimal(res);
 
                 await CEF.ActionBox.ShowText
                 (

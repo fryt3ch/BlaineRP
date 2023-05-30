@@ -830,7 +830,7 @@ namespace BCRPServer.Game.Estates
         /// <summary>Данные многоквартирного дома</summary>
         public ApartmentsRoot Root => ApartmentsRoot.Get(RootId);
 
-        public Apartments(uint HID, uint RootId, ushort FloorIdx, ushort SubIdx, Style.RoomTypes RoomType, int Price) : base(HID, Types.Apartments, RoomType)
+        public Apartments(uint HID, uint RootId, ushort FloorIdx, ushort SubIdx, Style.RoomTypes RoomType, uint Price) : base(HID, Types.Apartments, RoomType)
         {
             this.RootId = RootId;
 

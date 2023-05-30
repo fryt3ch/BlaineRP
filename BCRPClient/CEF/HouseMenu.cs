@@ -24,7 +24,7 @@ namespace BCRPClient.CEF
             {
                 var data = RAGE.Util.Json.Deserialize<Dictionary<string, bool[]>>((string)args[0]);
 
-                var balance = args[1].ToUInt64();
+                var balance = Utils.ToUInt64(args[1]);
                 var dState = (bool)args[2];
                 var cState = (bool)args[3];
 
@@ -233,7 +233,7 @@ namespace BCRPClient.CEF
                 }
                 else if (id == "expel") // expel settler
                 {
-                    var cid = Convert.ToUInt32(args[1]);
+                    var cid = Utils.ToUInt32(args[1]);
 
                     if (LastSent.IsSpam(1000, false, true))
                         return;
@@ -344,7 +344,7 @@ namespace BCRPClient.CEF
                 }
                 else
                 {
-                    RemoveSettler(args[0].ToUInt32());
+                    RemoveSettler(Utils.ToUInt32(args[0]));
                 }
             });
 

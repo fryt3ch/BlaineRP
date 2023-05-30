@@ -69,7 +69,7 @@ namespace BCRPClient.CEF
 
                 if (CurrentType == Types.Range)
                 {
-                    var amount = args[1].ToDecimal();
+                    var amount = Utils.ToDecimal(args[1]);
 
                     if (amount < Player.LocalPlayer.GetData<decimal>("ActionBox::Temp::MinValue"))
                     {
@@ -88,7 +88,7 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentType == Types.Select)
                 {
-                    var id = args[1].ToDecimal();
+                    var id = Utils.ToDecimal(args[1]);
 
                     CurrentAction?.Invoke(new object[] { rType, id });
                 }

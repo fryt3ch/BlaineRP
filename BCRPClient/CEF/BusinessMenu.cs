@@ -49,7 +49,7 @@ namespace BCRPClient.CEF
                 if (newAmountObj == null)
                     return;
 
-                var newAmount = newAmountObj.ToUInt64();
+                var newAmount = Utils.ToUInt64(newAmountObj);
 
                 if (IsActive)
                 {
@@ -207,14 +207,14 @@ namespace BCRPClient.CEF
 
             Sync.Players.CloseAll(true);
 
-            var materialsBuyPrice = res["MB"].ToUInt32();
-            var deliveryPrice = res["DP"].ToUInt32();
+            var materialsBuyPrice = Utils.ToUInt32(res["MB"]);
+            var deliveryPrice = Utils.ToUInt32(res["DP"]);
 
             Player.LocalPlayer.SetData("BusinessMenu::Business::Data1", new object[] { materialsBuyPrice, deliveryPrice });
 
-            var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, Math.Round(biz.Tax * 100, 0).ToString(), res["C"].ToUInt64(), res["B"].ToUInt64(), res["M"].ToUInt32(), materialsBuyPrice, res["MS"].ToUInt32() };
+            var info = new object[] { $"{biz.Name} #{biz.SubId}", biz.Name, biz.OwnerName ?? "null", biz.Price, biz.Rent, Math.Round(biz.Tax * 100, 0).ToString(), Utils.ToUInt64(res["C"]), Utils.ToUInt64(res["B"]), Utils.ToUInt32(res["M"]), materialsBuyPrice, Utils.ToUInt32(res["MS"]) };
 
-            var manage = new List<object>() { new object[] { Math.Round((res["MA"].ToDecimal() - 1m) * 100, 0), biz.Type == Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN }, biz.Type == Data.Locations.Business.Types.Farm, (bool)res["IS"], Math.Round(res["IT"].ToDecimal() * 100, 0), };
+            var manage = new List<object>() { new object[] { Math.Round((Utils.ToDecimal(res["MA"]) - 1m) * 100, 0), biz.Type == Data.Locations.Business.Types.Farm ? MAX_MARGIN_FARM : MAX_MARGIN }, biz.Type == Data.Locations.Business.Types.Farm, (bool)res["IS"], Math.Round(Utils.ToDecimal(res["IT"]) * 100, 0), };
 
             var delState = ((string)res["DS"]).Split('_');
 

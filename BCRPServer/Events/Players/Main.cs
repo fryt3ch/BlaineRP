@@ -289,7 +289,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Players::OnDeath")]
-        private static void OnPlayerDeath(Player player, Player killer)
+        private static void OnPlayerDeath(Player player, Player attacker)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -312,7 +312,9 @@ namespace BCRPServer.Events.Players
                         continue;
 
                     if (pData.IsKnocked)
-                        pData.IsKnocked = false;
+                    {
+                        pData.SetAsNotKnocked();
+                    }
 
                     var pos = Utils.Demorgan.GetNextPos();
 
@@ -330,7 +332,9 @@ namespace BCRPServer.Events.Players
                         continue;
 
                     if (pData.IsKnocked)
-                        pData.IsKnocked = false;
+                    {
+                        pData.SetAsNotKnocked();
+                    }
 
                     var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(x.AdditionalData.Split('_')[1])) as Game.Fractions.Police;
 
@@ -353,7 +357,9 @@ namespace BCRPServer.Events.Players
                         continue;
 
                     if (pData.IsKnocked)
-                        pData.IsKnocked = false;
+                    {
+                        pData.SetAsNotKnocked();
+                    }
 
                     return;
                 }
@@ -414,7 +420,7 @@ namespace BCRPServer.Events.Players
 
                 NAPI.Player.SpawnPlayer(player, player.Position, player.Heading);
 
-                pData.IsKnocked = true;
+                pData.SetAsKnocked(attacker);
 
                 if (pData.IsWounded)
                     pData.IsWounded = false;

@@ -69,7 +69,7 @@ namespace BCRPClient.CEF.PhoneApps
                 }
                 else if (type == "volume")
                 {
-                    var volume = Convert.ToSingle(args[2]);
+                    var volume = Utils.ToSingle(args[2]);
 
                     var localStreamData = Sync.Radio.LocalPlayerStreamRadioAudioData;
 

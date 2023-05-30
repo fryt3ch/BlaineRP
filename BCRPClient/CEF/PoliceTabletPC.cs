@@ -30,7 +30,7 @@ namespace BCRPClient.CEF
                 if (pData == null)
                     return;
 
-                var code = Convert.ToByte(args[0]);
+                var code = Utils.ToByte(args[0]);
 
                 if (code == 3)
                 {
@@ -191,15 +191,15 @@ namespace BCRPClient.CEF
 
                     var name = (string)res["N"];
                     var surname = (string)res["S"];
-                    var cid = Convert.ToDecimal(res["I"]);
-                    var birthDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(res["BD"])).DateTime;
+                    var cid = Utils.ToDecimal(res["I"]);
+                    var birthDate = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(res["BD"])).DateTime;
                     var sex = (bool)res["G"];
                     var losSantosAllowed = (bool)res["LA"];
-                    var phoneNumber = Convert.ToDecimal(res["PN"]);
-                    var fractionData = Data.Fractions.Fraction.Get((Data.Fractions.Types)Convert.ToInt32(res["F"]));
+                    var phoneNumber = Utils.ToDecimal(res["PN"]);
+                    var fractionData = Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.ToInt32(res["F"]));
 
-                    var houseData = res.ContainsKey("H") ? Data.Locations.House.All[Convert.ToUInt32(res["H"])] : null;
-                    var apsData = res.ContainsKey("A") ? Data.Locations.Apartments.All[Convert.ToUInt32(res["A"])] : null;
+                    var houseData = res.ContainsKey("H") ? Data.Locations.House.All[Utils.ToUInt32(res["H"])] : null;
+                    var apsData = res.ContainsKey("A") ? Data.Locations.Apartments.All[Utils.ToUInt32(res["A"])] : null;
 
                     var vehicles = ((JArray)res["V"]).ToObject<List<string>>().Select(x => { var sData = x.Split('&'); return new Tuple<Data.Vehicles.Vehicle, string, Utils.Colour>(Data.Vehicles.GetById(sData[0]), sData[1], new Utils.Colour(sData[2])); }).ToList();
 
@@ -302,7 +302,7 @@ namespace BCRPClient.CEF
                 }
                 else // view
                 {
-                    var id = Convert.ToUInt32(args[1]);
+                    var id = Utils.ToUInt32(args[1]);
 
                     var apbData = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.APBInfo>>("APBs")?.Where(x => x.Id == id).FirstOrDefault();
 
@@ -385,7 +385,7 @@ namespace BCRPClient.CEF
 
                 if (CurrentTab == 2)
                 {
-                    var callRid = Convert.ToUInt16(args[0]);
+                    var callRid = Utils.ToUInt16(args[0]);
 
                     var callInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.CallInfo>>("Calls")?.Where(x => x.Player.RemoteId == callRid).FirstOrDefault();
 
@@ -404,7 +404,7 @@ namespace BCRPClient.CEF
                 }
                 else if (CurrentTab == 6) // gps tracker
                 {
-                    var gpsTrackerId = Convert.ToUInt32(args[0]);
+                    var gpsTrackerId = Utils.ToUInt32(args[0]);
 
                     var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
 
@@ -424,7 +424,7 @@ namespace BCRPClient.CEF
 
                     if (res != null)
                     {
-                        var vehicle = RAGE.Elements.Entities.Vehicles.GetAtRemote(Convert.ToUInt16(res));
+                        var vehicle = RAGE.Elements.Entities.Vehicles.GetAtRemote(Utils.ToUInt16(res));
 
                         if (vehicle?.Exists == true)
                         {
@@ -498,7 +498,7 @@ namespace BCRPClient.CEF
 
                 if (CurrentTab == 6)
                 {
-                    var gpsTrackerId = Convert.ToUInt32(args[0]);
+                    var gpsTrackerId = Utils.ToUInt32(args[0]);
 
                     var gpsTrackerInfo = pData.CurrentFraction?.GetCurrentData<List<Data.Fractions.Police.GPSTrackerInfo>>("GPSTrackers")?.Where(x => x.Id == gpsTrackerId).FirstOrDefault();
 

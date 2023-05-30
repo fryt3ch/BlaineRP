@@ -201,7 +201,7 @@ namespace BCRPClient.Sync
                 if (pData == null)
                     return;
 
-                var arId = Convert.ToUInt32(args[0]);
+                var arId = Utils.ToUInt32(args[0]);
 
                 var aRoot = Data.Locations.ApartmentsRoot.All[arId];
 
@@ -266,7 +266,7 @@ namespace BCRPClient.Sync
 
                     var hType = (HouseTypes)(int)data["T"];
 
-                    var sType = Convert.ToUInt16(data["S"]);
+                    var sType = Utils.ToUInt16(data["S"]);
 
                     var doors = RAGE.Util.Json.Deserialize<bool[]>((string)data["DS"]);
                     var lights = RAGE.Util.Json.Deserialize<JObject[]>((string)data["LS"]);

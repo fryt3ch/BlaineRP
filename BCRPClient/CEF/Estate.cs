@@ -248,7 +248,7 @@ namespace BCRPClient.CEF
                 else if (type == Types.Info)
                 {
                     var modelId = (string)args[0];
-                    var vid = args[1].ToDecimal();
+                    var vid = Utils.ToDecimal(args[1]);
                     var engine = (int)args[2];
                     var turbo = (bool)args[3];
 

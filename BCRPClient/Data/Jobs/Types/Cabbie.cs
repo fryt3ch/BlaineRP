@@ -87,7 +87,7 @@ namespace BCRPClient.Data.Jobs
 
                         var order = orders[id];
 
-                        var res = (byte)(await Events.CallRemoteProc("Job::CAB::TO", order.Id)).ToDecimal();
+                        var res = Utils.ToByte(await Events.CallRemoteProc("Job::CAB::TO", order.Id));
 
                         if (res == byte.MaxValue)
                         {
@@ -179,7 +179,7 @@ namespace BCRPClient.Data.Jobs
 
             SetCurrentData("AOL", activeOrders);
 
-            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote((ushort)data[0].ToDecimal()));
+            SetCurrentData("JVEH", RAGE.Elements.Entities.Vehicles.GetAtRemote(Convert.ToUInt16(data[0])));
         }
 
         public override void OnEndJob()

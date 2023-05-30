@@ -40,7 +40,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                 if (pData.CurrentJob == farmJobData)
                 {
-                    var salary = (await Events.CallRemoteProc("Job::GTCSI")).ToDecimal();
+                    var salary = Utils.ToDecimal(await Events.CallRemoteProc("Job::GTCSI"));
 
                     if (salary <= 0)
                     {
@@ -55,7 +55,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
                 }
                 else
                 {
-                    var margin = Convert.ToSingle(await Events.CallRemoteProc("Business::GMI", farmJobData.FarmBusiness.Id));
+                    var margin = Utils.ToSingle(await Events.CallRemoteProc("Business::GMI", farmJobData.FarmBusiness.Id));
 
                     if (NPC.CurrentNPC == null || margin < 0f)
                         return;

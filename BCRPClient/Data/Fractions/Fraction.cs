@@ -129,9 +129,9 @@ namespace BCRPClient.Data.Fractions
 
         public byte MaxRank { get; private set; }
 
-        public uint LeaderCID => Sync.World.GetSharedData<object>($"FRAC::L_{(int)Type}", 0).ToUInt32();
+        public uint LeaderCID => Utils.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::L_{(int)Type}", 0));
 
-        public uint Materials => Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}", 0).ToUInt32();
+        public uint Materials => Utils.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}", 0));
 
         public bool StorageLocked => Sync.World.GetSharedData<bool>($"FRAC::SL_{(int)Type}", false);
         public bool CreationWorkbenchLocked => Sync.World.GetSharedData<bool>($"FRAC::CWL_{(int)Type}", false);
@@ -245,7 +245,7 @@ namespace BCRPClient.Data.Fractions
             if (pData.Fraction != fType)
                 return;
 
-            var amount = value.ToDecimal();
+            var amount = Utils.ToDecimal(value);
 
             if (CEF.MaterialWorkbench.CurrentType == CEF.MaterialWorkbench.Types.Fraction)
             {
@@ -513,7 +513,7 @@ namespace BCRPClient.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = args[0].ToUInt32();
+                var cid = Utils.ToUInt32(args[0]);
 
                 var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
@@ -530,7 +530,7 @@ namespace BCRPClient.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = args[0].ToUInt32();
+                var cid = Utils.ToUInt32(args[0]);
 
                 var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
@@ -557,7 +557,7 @@ namespace BCRPClient.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = args[0].ToUInt32();
+                var cid = Utils.ToUInt32(args[0]);
 
                 var mData = Fraction.AllMembers.GetValueOrDefault(cid);
 
@@ -574,7 +574,7 @@ namespace BCRPClient.Data.Fractions
                 if (Fraction.AllMembers == null)
                     return;
 
-                var cid = args[0].ToUInt32();
+                var cid = Utils.ToUInt32(args[0]);
 
                 if (args.Length == 1)
                 {
@@ -587,7 +587,7 @@ namespace BCRPClient.Data.Fractions
                 }
                 else
                 {
-                    var mData = new MemberData() { IsOnline = true, Name = (string)args[1], Rank = (byte)(int)args[2], SubStatus = (byte)(int)args[3], LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(args[4])).DateTime };
+                    var mData = new MemberData() { IsOnline = true, Name = (string)args[1], Rank = (byte)(int)args[2], SubStatus = (byte)(int)args[3], LastSeenDate = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[4])).DateTime };
 
                     if (Fraction.AllMembers.TryAdd(cid, mData))
                     {
@@ -601,7 +601,7 @@ namespace BCRPClient.Data.Fractions
                 if (Fraction.AllVehicles == null)
                     return;
 
-                var vid = args[0].ToUInt32();
+                var vid = Utils.ToUInt32(args[0]);
                 var newMinRank = (byte)(int)args[1];
 
                 var vData = Fraction.AllVehicles.GetValueOrDefault(vid);

@@ -65,7 +65,7 @@ namespace BCRPServer
 
         /// <summary>Без сознания ли игрок?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool IsKnocked { get => Player.GetSharedData<bool?>("Knocked") ?? false; set { if (value) Player.SetSharedData("Knocked", value); else Player.ResetSharedData("Knocked"); } }
+        public bool IsKnocked { get => Player.GetSharedData<bool?>("Knocked") ?? false; private set { if (value) Player.SetSharedData("Knocked", value); else Player.ResetSharedData("Knocked"); } }
 
         public bool IsFrozen { get => Player.GetOwnSharedData<bool?>("IsFrozen") ?? false; set { if (value) Player.SetOwnSharedData("IsFrozen", value); else Player.ResetOwnSharedData("IsFrozen"); } }
 

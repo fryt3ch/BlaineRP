@@ -141,9 +141,9 @@ namespace BCRPClient.CEF
             if (!IsActive)
                 return;
 
-            CEF.Cursor.Show(false, false);
-
             CEF.Browser.Switch(Browser.IntTypes.Animations, false);
+
+            CEF.Cursor.Show(false, false);
 
             foreach (var x in TempBinds.ToList())
                 KeyBinds.Unbind(x);
@@ -190,7 +190,7 @@ namespace BCRPClient.CEF
 
         public static void Render()
         {
-            Utils.DrawText(string.Format(Locale.General.Animations.CancelText, KeyBinds.Get(KeyBinds.Types.CancelAnimation).GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+            Utils.DrawText(string.Format(Locale.General.Animations.CancelText, KeyBinds.Get(KeyBinds.Types.CancelAnimation).GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         public static async System.Threading.Tasks.Task Load()

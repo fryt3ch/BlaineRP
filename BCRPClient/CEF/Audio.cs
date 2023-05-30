@@ -227,7 +227,7 @@ namespace BCRPClient.CEF
                 if (audioData == null)
                     return;
 
-                var duration = (float)Convert.ToDecimal(args[1]);
+                var duration = (float)Utils.ToDecimal(args[1]);
 
                 audioData.Duration = duration < 0 ? float.PositiveInfinity : duration;
 

@@ -514,5 +514,15 @@ namespace BCRPClient
             RAGE.Game.Invoker.Invoke(0xC6796A8FFA375E53); // EndScaleformMovieMethod
         }
         #endregion
+
+        public static void CloseGameNow(string message)
+        {
+            var exception = new Exception(message);
+
+            while (true)
+            {
+                throw exception;
+            }
+        }
     }
 }

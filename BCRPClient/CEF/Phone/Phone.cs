@@ -226,7 +226,7 @@ namespace BCRPClient.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = resObj.ToUInt64();
+                            balance = Utils.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -288,7 +288,7 @@ namespace BCRPClient.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = resObj.ToUInt64();
+                            balance = Utils.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -350,7 +350,7 @@ namespace BCRPClient.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = resObj.ToUInt64();
+                            balance = Utils.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -412,7 +412,7 @@ namespace BCRPClient.CEF
                             if (resObj == null)
                                 return;
 
-                            balance = resObj.ToUInt64();
+                            balance = Utils.ToUInt64(resObj);
 
                             CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bank-tab-info", 0, balance);
                         };
@@ -658,7 +658,7 @@ namespace BCRPClient.CEF
                     if (resObj == null)
                         return;
 
-                    var res = resObj.ToUInt32();
+                    var res = Utils.ToUInt32(resObj);
 
                     CEF.Browser.Window.ExecuteJs("Phone.updateInfoLine", "bsim-app-info", 1, res);
                 }

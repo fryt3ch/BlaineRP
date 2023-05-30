@@ -36,7 +36,7 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            if (!mins.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+            if (!Utils.ToDecimal(mins).IsNumberValid<uint>(1, uint.MaxValue, out _, true))
                 return;
 
             if (!reason.IsTextLengthValid(1, 24, true))
@@ -95,7 +95,7 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            if (!days.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+            if (!Utils.ToDecimal(days).IsNumberValid<uint>(1, uint.MaxValue, out _, true))
                 return;
 
             if (!reason.IsTextLengthValid(1, 24, true))
@@ -154,7 +154,7 @@
             if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            if (!mins.ToDecimal().IsNumberValid<uint>(1, uint.MaxValue, out _, true))
+            if (!Utils.ToDecimal(mins).IsNumberValid<uint>(1, uint.MaxValue, out _, true))
                 return;
 
             if (!reason.IsTextLengthValid(1, 24, true))

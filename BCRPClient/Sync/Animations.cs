@@ -968,7 +968,7 @@ namespace BCRPClient.Sync
 
             Events.Add("Players::StopAnim", (object[] args) =>
             {
-                var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[0]));
+                var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[0]));
 
                 if (player == null)
                     return;

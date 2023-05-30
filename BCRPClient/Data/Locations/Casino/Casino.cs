@@ -39,7 +39,7 @@ namespace BCRPClient.Data
 
             public Additional.ExtraColshape MainColshape { get; set; }
 
-            public WallScreenTypes CurrentWallScreenType => (WallScreenTypes)Convert.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST", WallScreenTypes.None));
+            public WallScreenTypes CurrentWallScreenType => (WallScreenTypes)Utils.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST", WallScreenTypes.None));
 
             public Roulette GetRouletteById(int id) => id < 0 || id >= Roulettes.Length ? null : Roulettes[id];
             public LuckyWheel GetLuckyWheelById(int id) => id < 0 || id >= LuckyWheels.Length ? null : LuckyWheels[id];
@@ -225,7 +225,7 @@ namespace BCRPClient.Data
                             return;
 
                         while (!RAGE.Game.Interior.IsInteriorReady(intId))
-                            await RAGE.Game.Invoker.WaitAsync(100);
+                            await RAGE.Game.Invoker.WaitAsync(10);
 
                         if (!Utils.IsTaskStillPending(taskKey, task))
                             return;
@@ -583,16 +583,16 @@ namespace BCRPClient.Data
                 {
                     var data = ((JArray)roulettesData[i]).ToObject<object[]>();
 
-                    Roulettes[i].MinBet = Convert.ToUInt32(data[0]);
-                    Roulettes[i].MaxBet = Convert.ToUInt32(data[1]);
+                    Roulettes[i].MinBet = Utils.ToUInt32(data[0]);
+                    Roulettes[i].MaxBet = Utils.ToUInt32(data[1]);
                 }
 
                 for (int i = 0; i < blackjacksData.Length; i++)
                 {
                     var data = ((JArray)blackjacksData[i]).ToObject<object[]>();
 
-                    Blackjacks[i].MinBet = Convert.ToUInt32(data[0]);
-                    Blackjacks[i].MaxBet = Convert.ToUInt32(data[1]);
+                    Blackjacks[i].MinBet = Utils.ToUInt32(data[0]);
+                    Blackjacks[i].MaxBet = Utils.ToUInt32(data[1]);
                 }
 
                 Roulettes[1].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(2));
@@ -640,7 +640,7 @@ namespace BCRPClient.Data
                 if (!casino.MainColshape.IsInside || Utils.IsTaskStillPending("CASINO_TASK", null))
                     return;
 
-                var newType = (WallScreenTypes)Convert.ToByte(value ?? WallScreenTypes.None);
+                var newType = (WallScreenTypes)Utils.ToByte(value ?? WallScreenTypes.None);
 
                 UpdateCasinoWalls(newType);
             }
@@ -672,7 +672,7 @@ namespace BCRPClient.Data
             {
                 Events.Add("Casino::CB", (args) =>
                 {
-                    var newBalance = Convert.ToUInt32(args[0]);
+                    var newBalance = Utils.ToUInt32(args[0]);
 
                     if (Data.Minigames.Casino.Casino.IsActive)
                     {
@@ -704,13 +704,13 @@ namespace BCRPClient.Data
 
                 Events.Add("Casino::BLJM", async (args) =>
                 {
-                    var type = Convert.ToByte(args[0]);
+                    var type = Utils.ToByte(args[0]);
 
                     if (type == 0) // player anim
                     {
-                        var animType = Convert.ToByte(args[1]);
+                        var animType = Utils.ToByte(args[1]);
 
-                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[2]));
+                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[2]));
 
                         if (player?.Exists != true)
                             return;
@@ -738,11 +738,11 @@ namespace BCRPClient.Data
                         if (ped?.Exists != true || table.TableObject?.Exists != true)
                             return;
 
-                        var seatIdx = Convert.ToByte(args[3]);
+                        var seatIdx = Utils.ToByte(args[3]);
 
-                        var amount = Convert.ToUInt32(args[4]);
+                        var amount = Utils.ToUInt32(args[4]);
 
-                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[5]));
+                        var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[5]));
 
                         if (player?.Exists == true)
                         {
@@ -809,11 +809,11 @@ namespace BCRPClient.Data
 
                     var luckyWheel = casino.GetLuckyWheelById(luckyWheelId);
 
-                    var player = RAGE.Elements.Entities.Players.GetAtRemote(Convert.ToUInt16(args[2]));
+                    var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[2]));
 
-                    var targetZoneType = (Casino.LuckyWheel.ZoneTypes)Convert.ToByte(args[3]);
+                    var targetZoneType = (Casino.LuckyWheel.ZoneTypes)Utils.ToByte(args[3]);
 
-                    var resultOffset = Convert.ToSingle(args[4]);
+                    var resultOffset = Utils.ToSingle(args[4]);
 
                     luckyWheel.Spin(casinoId, luckyWheelId, player, targetZoneType, resultOffset);
                 });

@@ -66,7 +66,7 @@ namespace BCRPClient.CEF
 
                 var aId = (string)args[1];
 
-                var amountI = Convert.ToDecimal(args[2]);
+                var amountI = Utils.ToDecimal(args[2]);
 
                 int amount;
 
@@ -80,7 +80,7 @@ namespace BCRPClient.CEF
 
                 if (aId == "transfer")
                 {
-                    var cid = args[3].ToUInt32();
+                    var cid = Utils.ToUInt32(args[3]);
 
                     if (Player.LocalPlayer.HasData("Bank::LastCID") && Player.LocalPlayer.GetData<uint>("Bank::LastCID") == cid && Player.LocalPlayer.GetData<int>("Bank::LastAmount") == amount)
                     {
@@ -148,9 +148,9 @@ namespace BCRPClient.CEF
                 }
                 else
                 {
-                    var balance = args[2].ToUInt64();
-                    var sendLimitCur = args[3].ToUInt64();
-                    var savingsBalance = args[4].ToUInt64();
+                    var balance = Utils.ToUInt64(args[2]);
+                    var sendLimitCur = Utils.ToUInt64(args[3]);
+                    var savingsBalance = Utils.ToUInt64(args[4]);
                     var benefitsToDebit = (bool)args[5];
 
                     var param = new object[] { tariffNum, balance, sendLimitCur, savingsBalance, benefitsToDebit };

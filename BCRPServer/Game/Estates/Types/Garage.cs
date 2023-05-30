@@ -199,11 +199,11 @@ namespace BCRPServer.Game.Estates
 
         public GarageRoot Root => GarageRoot.Get(RootId);
 
-        public int Price { get; set; }
+        public uint Price { get; set; }
 
         public ClassTypes ClassType { get; set; }
 
-        public int Tax => GetTax(ClassType);
+        public uint Tax => GetTax(ClassType);
 
         public ulong Balance { get; set; }
 
@@ -219,7 +219,7 @@ namespace BCRPServer.Game.Estates
             GD,
         }
 
-        private static Dictionary<ClassTypes, int> Taxes = new Dictionary<ClassTypes, int>()
+        private static Dictionary<ClassTypes, uint> Taxes = new Dictionary<ClassTypes, uint>()
         {
             { ClassTypes.GA, 50 },
             { ClassTypes.GB, 75 },
@@ -227,7 +227,7 @@ namespace BCRPServer.Game.Estates
             { ClassTypes.GD, 100 },
         };
 
-        public static int GetTax(ClassTypes cType) => Taxes[cType];
+        public static uint GetTax(ClassTypes cType) => Taxes.GetValueOrDefault(cType, uint.MinValue);
 
         public static ClassTypes GetClass(Garage garage)
         {
@@ -243,7 +243,7 @@ namespace BCRPServer.Game.Estates
             return ClassTypes.GD;
         }
 
-        public Garage(uint Id, uint RootId, Types Type, byte Variation, int Price)
+        public Garage(uint Id, uint RootId, Types Type, byte Variation, uint Price)
         {
             this.Id = Id;
 
@@ -331,7 +331,7 @@ namespace BCRPServer.Game.Estates
         {
             ulong newCash;
 
-            if (!pData.TryRemoveCash((uint)Price, out newCash, true))
+            if (!pData.TryRemoveCash(Price, out newCash, true))
                 return false;
 
             if (pData.GaragesSlots <= 0)
@@ -409,7 +409,7 @@ namespace BCRPServer.Game.Estates
 
             if (govHalfPriceBack)
             {
-                var totalMoney = (uint)Price / 2;
+                var totalMoney = Price / 2;
 
                 if (Owner.BankAccount != null)
                 {

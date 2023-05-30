@@ -91,7 +91,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
                                 {
                                     var vData = res.Where(x => x.vid == id).FirstOrDefault();
 
-                                    var price = priceT.ToDecimal();
+                                    var price = Utils.ToDecimal(priceT);
 
                                     await CEF.ActionBox.ShowMoney
                                     (
@@ -198,7 +198,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
                                 {
                                     var vData = res.Where(x => x.vid == id).FirstOrDefault();
 
-                                    var price = priceT.ToDecimal();
+                                    var price = Utils.ToDecimal(priceT);
 
                                     await CEF.ActionBox.ShowMoney
                                     (

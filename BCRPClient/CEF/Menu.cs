@@ -514,7 +514,7 @@ namespace BCRPClient.CEF
             }
             else
             {
-                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, time.ToString("HH:mm"), $"{player.Name} [#{player.GetSharedData<object>("CID", 0).ToDecimal()}]", text);
+                Browser.Window.ExecuteJs("Menu.newHelpMessage", true, time.ToString("HH:mm"), $"{player.Name} [#{Utils.ToDecimal(player.GetSharedData<object>("CID", 0))}]", text);
             }
         }
 

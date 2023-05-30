@@ -328,7 +328,7 @@ namespace BCRPClient.CEF.PhoneApps
                     }
                     else
                     {
-                        var callInfo = new CallInfo(false, args[1].ToUInt32());
+                        var callInfo = new CallInfo(false, Utils.ToUInt32(args[1]));
 
                         pData.ActiveCall = callInfo;
 

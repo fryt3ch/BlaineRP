@@ -60,7 +60,7 @@ namespace BCRPClient.Data.Fractions
                 if (zoneInfo == null)
                     return;
 
-                var owner = (Types)Convert.ToInt32(value ?? 0);
+                var owner = (Types)Utils.ToInt32(value ?? 0);
 
                 zoneInfo.OnOwnerUpdate(owner);
             }
@@ -76,7 +76,7 @@ namespace BCRPClient.Data.Fractions
                 if (zoneInfo == null)
                     return;
 
-                var interval = Convert.ToInt32(value ?? 0);
+                var interval = Utils.ToInt32(value ?? 0);
 
                 zoneInfo.OnBlipFlashUpdate(interval);
             }

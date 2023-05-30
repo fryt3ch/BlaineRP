@@ -30,7 +30,7 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuFrac::Veh", async (args) =>
             {
-                var vid = Convert.ToUInt32(args[0]);
+                var vid = Utils.ToUInt32(args[0]);
 
                 var actionId = (int)args[1];
 
@@ -99,9 +99,9 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                var vid = Convert.ToUInt32(args[0]);
+                var vid = Utils.ToUInt32(args[0]);
 
-                var newMinRank = (byte)(Convert.ToInt32(args[1]) - 1);
+                var newMinRank = (byte)(Utils.ToInt32(args[1]) - 1);
 
                 if (Fraction.AllVehicles == null)
                     return;
@@ -128,7 +128,7 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuFrac::EmployeeAction", async (args) =>
             {
-                var cid = Convert.ToUInt32(args[0]);
+                var cid = Utils.ToUInt32(args[0]);
 
                 var actionId = (int)args[1];
 
@@ -219,7 +219,7 @@ namespace BCRPClient.CEF
                 if (fData == null)
                     return;
 
-                var rankToEdit = (byte)(Convert.ToInt32(args[0]) - 1);
+                var rankToEdit = (byte)(Utils.ToInt32(args[0]) - 1);
 
                 if (LastSent.IsSpam(1000, false, true))
                     return;
@@ -386,7 +386,7 @@ namespace BCRPClient.CEF
 
                 var tooltipId = (string)args[0];
 
-                var idxD = Convert.ToDecimal(args[2]);
+                var idxD = Utils.ToDecimal(args[2]);
 
                 var actionId = (int)args[1];
 
@@ -436,7 +436,7 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuFrac::SetPermit", async (args) =>
             {
-                var permId = Convert.ToUInt32(args[0]);
+                var permId = Utils.ToUInt32(args[0]);
 
                 var state = (bool)args[1];
 

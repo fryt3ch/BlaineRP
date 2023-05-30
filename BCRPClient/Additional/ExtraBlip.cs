@@ -1,5 +1,6 @@
 ﻿using RAGE;
 using RAGE.Elements;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +14,7 @@ namespace BCRPClient.Additional
             Events.Add("Blip::CreateGPS", (args) =>
             {
                 var pos = (Vector3)args[0];
-                var dim = args[1].ToUInt32();
+                var dim = Utils.ToUInt32(args[1]);
                 var drawRoute = (bool)args[2];
 
                 CreateGPS(pos, dim, drawRoute);

@@ -290,7 +290,7 @@ namespace BCRPClient.CEF
 
                 if (aId == "color")
                 {
-                    CurrentColour = Convert.ToByte(args[2]);
+                    CurrentColour = Utils.ToByte(args[2]);
                 }
                 else if (aId == "icon")
                 {

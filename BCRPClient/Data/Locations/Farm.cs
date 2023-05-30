@@ -91,7 +91,7 @@ namespace BCRPClient.Data
 
                     public static DateTime LastSent;
 
-                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Convert.ToInt64(obj) : (long?)null;
+                    public static long? GetGrowTime(Farm farm, int fieldIdx, byte col, byte row) => Sync.World.GetSharedData<object>($"FARM::CF_{farm.Id}_{fieldIdx}_{col}_{row}", null) is object obj ? Utils.ToInt64(obj) : (long?)null;
 
                     public static void OnSharedDataChanged(string dataKey, object value, object oldValue)
                     {
@@ -108,7 +108,7 @@ namespace BCRPClient.Data
 
                             var cropData = farm.CropFields[fieldIdx].CropsData[col][row];
 
-                            cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Convert.ToInt64(value));
+                            cropData.GrowTimeChanged(farm, fieldIdx, col, row, value == null ? (long?)null : Utils.ToInt64(value));
                         }
 
                         var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -417,7 +417,7 @@ namespace BCRPClient.Data
                     y = Columns[col].Pos.Y + Offset.Y * row;
                 }
 
-                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Sync.World.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+                public static long? GetIrrigationEndTime(Farm farm, int fieldIdx) => Sync.World.GetSharedData<object>($"FARM::CFI_{farm.Id}_{fieldIdx}") is object obj ? Utils.ToInt64(obj) : (long?)null;
 
                 public void IrrigationEndTimeChanged(Farm farm, int fieldIdx, long? irrigTimeN)
                 {
@@ -437,7 +437,7 @@ namespace BCRPClient.Data
 
                     if (farm?.MainColshape.IsInside == true)
                     {
-                       farm.CropFields[fieldIdx].IrrigationEndTimeChanged(farm, fieldIdx, value == null ? (long?)null : Convert.ToInt64(value));
+                       farm.CropFields[fieldIdx].IrrigationEndTimeChanged(farm, fieldIdx, value == null ? (long?)null : Utils.ToInt64(value));
                     }
 
                     var pData = Sync.Players.GetData(Player.LocalPlayer);
@@ -740,7 +740,7 @@ namespace BCRPClient.Data
 
                     var idx = int.Parse(data[2]);
 
-                    farm.OrangeTrees[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Convert.ToInt64(value));
+                    farm.OrangeTrees[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.ToInt64(value));
                 }
 
                 public static void Initialize(Farm farm, int idx)
@@ -798,7 +798,7 @@ namespace BCRPClient.Data
                     };
                 }
 
-                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::OT_{farm.Id}_{idx}") is object obj ? Utils.ToInt64(obj) : (long?)null;
 
                 public void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
                 {
@@ -966,10 +966,10 @@ namespace BCRPClient.Data
 
                     var idx = int.Parse(data[2]);
 
-                    farm.Cows[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Convert.ToInt64(value));
+                    farm.Cows[idx].GrowTimeChanged(farm, idx, value == null ? (long?)null : Utils.ToInt64(value));
                 }
 
-                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Convert.ToInt64(obj) : (long?)null;
+                public static long? GetGrowTime(Farm farm, int idx) => Sync.World.GetSharedData<object>($"FARM::COW_{farm.Id}_{idx}") is object obj ? Utils.ToInt64(obj) : (long?)null;
 
                 public async void GrowTimeChanged(Farm farm, int idx, long? growTimeN)
                 {

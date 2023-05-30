@@ -36,7 +36,7 @@ namespace BCRPClient.CEF
 
                 int amount;
 
-                if (!args[1].ToDecimal().IsNumberValid(1, int.MaxValue, out amount, true))
+                if (!Utils.ToDecimal(args[1]).IsNumberValid(1, int.MaxValue, out amount, true))
                     return;
 
                 if (LastSent.IsSpam(1000, false, false))
@@ -53,7 +53,7 @@ namespace BCRPClient.CEF
 
                 Player.LocalPlayer.SetData("CurrentATM::Id", (int)args[0]);
 
-                Show(args[1].ToDecimal());
+                Show(Utils.ToDecimal(args[1]));
             });
         }
 

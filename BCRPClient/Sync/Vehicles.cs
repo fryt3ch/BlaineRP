@@ -161,9 +161,9 @@ namespace BCRPClient.Sync
 
             public float Mileage { get => Vehicle.GetData<float?>("Mileage") ?? 0f; set => Vehicle.SetData("Mileage", value); }
 
-            public uint VID => Vehicle.GetSharedData<object>("VID", 0).ToUInt32();
+            public uint VID => Utils.ToUInt32(Vehicle.GetSharedData<object>("VID", 0));
 
-            public uint? TID => Vehicle.GetSharedData<object>("TID", null)?.ToUInt32() ?? null;
+            public uint? TID { get { var t = Vehicle.GetSharedData<object>("TID", null); if (t == null) return null; return Utils.ToUInt32(t); } }
 
             public bool HasNeonMod => Vehicle.GetSharedData<bool>("Mods::Neon", false);
 
@@ -743,7 +743,7 @@ namespace BCRPClient.Sync
 
             AddDataHandler("DirtLevel", (vData, value, oldValue) =>
             {
-                vData.Vehicle.SetDirtLevel(Convert.ToSingle(value));
+                vData.Vehicle.SetDirtLevel(Utils.ToSingle(value));
             });
             #endregion
 
@@ -903,7 +903,7 @@ namespace BCRPClient.Sync
 
             Events.Add("Vehicles::JVRO", async (args) =>
             {
-                var rentPrice = (args[0]).ToDecimal();
+                var rentPrice = Utils.ToDecimal(args[0]);
 
                 var vehicle = Player.LocalPlayer.Vehicle;
 

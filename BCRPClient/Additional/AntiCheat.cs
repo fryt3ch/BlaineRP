@@ -60,7 +60,7 @@ namespace BCRPClient.Additional
 
             Events.Add("AC::Ped::TP", async (args) =>
             {
-                var remoteId = Convert.ToUInt16(args[0]);
+                var remoteId = Utils.ToUInt16(args[0]);
 
                 var ped = RAGE.Elements.Entities.Peds.GetAtRemote(remoteId);
 
@@ -68,7 +68,7 @@ namespace BCRPClient.Additional
                     return;
 
                 var pos = (Vector3)args[1];
-                var heading = args[2] == null ? (float?)null : Convert.ToSingle(args[2]);
+                var heading = args[2] == null ? (float?)null : Utils.ToSingle(args[2]);
 
                 if (pos != null)
                 {
@@ -83,7 +83,7 @@ namespace BCRPClient.Additional
 
             Events.Add("AC::State::TP", async (object[] args) =>
             {
-                var dim = (int)args[0] < 0 ? Player.LocalPlayer.Dimension : (uint)(int)args[0];
+                var dim = (int)args[0] < 0 ? Player.LocalPlayer.Dimension : Utils.ToUInt32(args[0]);
 
                 if (args.Length == 1)
                 {
@@ -100,54 +100,54 @@ namespace BCRPClient.Additional
 
                 AsyncTask task = null;
 
+                if (GroundTeleportTask != null)
+                {
+                    GroundTeleportTask.Cancel();
+
+                    GroundTeleportTask = null;
+                }
+
+                LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.GetCoords(false);
+
+                var onGround = (bool)args[2];
+
+                LastTeleportWasGround = onGround;
+
+                var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
+
+                var fade = (bool)args[4];
+
+                var withVehicle = args.Length > 5;
+
+                GameEvents.DisableAllControls(true);
+                KeyBinds.DisableAll();
+
+                Player.LocalPlayer.Detach(false, false);
+
+                Player.LocalPlayer.FreezePosition(true);
+
+                var veh = Player.LocalPlayer.Vehicle;
+
+                if (withVehicle && veh != null)
+                {
+                    veh.Detach(false, false);
+
+                    var vData = Sync.Vehicles.GetData(veh);
+
+                    if (vData != null)
+                    {
+                        if (!vData.IsFrozen)
+                            veh.FreezePosition(true);
+                    }
+                }
+
+                if (DisableCloseAllOnTeleportCounter > 0)
+                    DisableCloseAllOnTeleportCounter--;
+                else
+                    Sync.Players.CloseAll(false);
+
                 task = new AsyncTask(async () =>
                 {
-                    if (GroundTeleportTask != null)
-                    {
-                        GroundTeleportTask.Cancel();
-
-                        GroundTeleportTask = null;
-                    }
-
-                    LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.GetCoords(false);
-
-                    var onGround = (bool)args[2];
-
-                    LastTeleportWasGround = onGround;
-
-                    var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
-
-                    var fade = (bool)args[4];
-
-                    var withVehicle = args.Length > 5;
-
-                    GameEvents.DisableAllControls(true);
-                    KeyBinds.DisableAll();
-
-                    Player.LocalPlayer.Detach(false, false);
-
-                    Player.LocalPlayer.FreezePosition(true);
-
-                    var veh = Player.LocalPlayer.Vehicle;
-
-                    if (withVehicle && veh != null)
-                    {
-                        veh.Detach(false, false);
-
-                        var vData = Sync.Vehicles.GetData(veh);
-
-                        if (vData != null)
-                        {
-                            if (!vData.IsFrozen)
-                                veh.FreezePosition(true);
-                        }
-                    }
-
-                    if (DisableCloseAllOnTeleportCounter > 0)
-                        DisableCloseAllOnTeleportCounter--;
-                    else
-                        Sync.Players.CloseAll(false);
-
                     if (fade)
                     {
                         Additional.SkyCamera.FadeScreen(true, 500, -1);
@@ -399,7 +399,7 @@ namespace BCRPClient.Additional
                             }
                         }
 
-                        LastAllowedWeapon = args[1].ToUInt32();
+                        LastAllowedWeapon = Utils.ToUInt32(args[1]);
 
                         Player.LocalPlayer.SetCurrentWeapon(LastAllowedWeapon, true);
                     }
@@ -472,6 +472,8 @@ namespace BCRPClient.Additional
                         }*/
 
             var curPos = Player.LocalPlayer.GetCoords(false);
+
+            AntiAltF4Vehicle();
 
             #region Teleport
             if (!Utils.IsTaskStillPending(TeleportTaskKey, null))
@@ -696,5 +698,18 @@ namespace BCRPClient.Additional
         }
 
         private static void InvincibleRender() => RAGE.Game.Player.SetPlayerInvincible(true);
+
+        private static void AntiAltF4Vehicle()
+        {
+            if (Player.LocalPlayer.IsInAnyVehicle(false))
+            {
+                if (RAGE.Game.Ui.IsWarningMessageActive() && Utils.GetWarningMessageTitleHash() == 1246147334)
+                {
+                    Player.LocalPlayer.ClearTasksImmediately();
+
+                    GameEvents.CloseGameNow("BETTER YOU DON'T ALT+F4 WHILE USING VEHICLE, MY FRIEND!");
+                }
+            }
+        }
     }
 }

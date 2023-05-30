@@ -138,7 +138,9 @@ namespace BCRPServer.Game.Fractions
         public static void SetPlayerToEmsAfterDeath(PlayerData pData, Vector3 curPos)
         {
             if (pData.IsKnocked)
-                pData.IsKnocked = false;
+            {
+                pData.SetAsNotKnocked();
+            }
 
             Game.Fractions.EMS emsFraction;
             int posIdx;

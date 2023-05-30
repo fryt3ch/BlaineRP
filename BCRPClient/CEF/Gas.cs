@@ -59,7 +59,7 @@ namespace BCRPClient.CEF
 
             Events.Add("GasStation::Show", async (object[] args) =>
             {
-                var margin = args[0].ToDecimal();
+                var margin = Utils.ToDecimal(args[0]);
 
                 await Show(margin);
             });

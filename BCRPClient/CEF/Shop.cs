@@ -406,7 +406,7 @@ namespace BCRPClient.CEF
             Events.Add("Shop::Show", async (object[] args) =>
             {
                 Types type = (Types)(int)args[0];
-                var margin = args[1].ToDecimal();
+                var margin = Utils.ToDecimal(args[1]);
 
                 CurrentMargin = margin;
 
@@ -417,7 +417,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Shop::UM", (args) =>
             {
-                CurrentMargin = args[0].ToDecimal();
+                CurrentMargin = Utils.ToDecimal(args[0]);
 
                 if (CurrentType == Types.None)
                     return;
@@ -445,20 +445,26 @@ namespace BCRPClient.CEF
                     if (furnData == null)
                         return;
 
-                    var mapObj = Utils.CreateObjectNoOffsetImmediately(furnData.Model, 2770.449f, 3469.131f, 75.53225f);
+                    CurrentItem = itemId;
+
+                    var mapObj = Utils.CreateObjectNoOffsetImmediately(furnData.Model, 2742.275f, 3485.742f, 55.6959f);
+
+                    mapObj.SetCollision(false, false);
+
+                    mapObj.PlaceOnGroundProperly();
 
                     mapObj.SetTotallyInvincible(true);
 
                     mapObj.FreezePosition(true);
 
-                    StartRetailPreview(mapObj, 250f, Additional.Camera.StateTypes.WholeVehicle, Additional.Camera.StateTypes.FrontVehicle, Additional.Camera.StateTypes.TopVehicle);
+                    StartRetailPreview(mapObj, 194.5612f + 180f, 1, Additional.Camera.StateTypes.WholeFurniture, Additional.Camera.StateTypes.FrontFurniture, Additional.Camera.StateTypes.TopFurniture);
                 }
             });
 
             Events.Add("Shop::UpdateColor", (object[] args) =>
             {
-                string id = (string)args[0];
-                Utils.Colour colour = ((string)args[1]).ToColour();
+                var id = (string)args[0];
+                var colour = ((string)args[1]).ToColour();
 
                 //Utils.ConsoleOutputLimited(id);
 
@@ -778,7 +784,7 @@ namespace BCRPClient.CEF
                         }
                         else if (type == "opacity")
                         {
-                            var value = (float)Convert.ToDouble(args[1]);
+                            var value = Utils.ToSingle(args[1]);
 
                             var fullId = (string)args[2];
 
@@ -2175,6 +2181,9 @@ namespace BCRPClient.CEF
                     };
 
                     CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, false }) }, null, false);
+
+                    GameEvents.Render -= RetailRenderFurniture;
+                    GameEvents.Render += RetailRenderFurniture;
                 }
                 else
                 {
@@ -2405,6 +2414,8 @@ namespace BCRPClient.CEF
                     Browser.Render(Browser.IntTypes.Retail, false);
 
                     StopRetailPreview();
+
+                    GameEvents.Render -= RetailRenderFurniture;
                 }
 
                 CurrentType = Types.None;
@@ -2663,18 +2674,21 @@ namespace BCRPClient.CEF
             }
         }
 
-        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, params Additional.Camera.StateTypes[] cameraStates)
+        private static void StartRetailPreview(GameEntity gEntity, float defaultHeading, byte renderType, params Additional.Camera.StateTypes[] cameraStates)
         {
             if (RetailPreviewActive)
                 return;
 
             RetailPreviewActive = true;
 
-            CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, false);
+            CEF.Browser.Switch(Browser.IntTypes.Retail, false);
 
             GameEvents.DisableAllControls(true);
 
-            KeyBinds.DisableAll();
+            KeyBinds.DisableAll(KeyBinds.Types.MicrophoneOn, KeyBinds.Types.MicrophoneOff);
+
+            CEF.HUD.ShowHUD(false);
+            CEF.Chat.Show(false);
 
             DefaultHeading = defaultHeading;
 
@@ -2688,6 +2702,12 @@ namespace BCRPClient.CEF
             AllowedCameraStates = cameraStates;
 
             ChangeView(0);
+
+            if (renderType == 1)
+            {
+                GameEvents.Render -= RetailPreviewFurnitureRender;
+                GameEvents.Render += RetailPreviewFurnitureRender;
+            }
         }
 
         private static void StopRetailPreview()
@@ -2699,7 +2719,7 @@ namespace BCRPClient.CEF
 
             if (IsRenderedRetail)
             {
-                CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, true);
+                CEF.Browser.Switch(Browser.IntTypes.Retail, true);
             }
 
             if (TempEntity != null)
@@ -2716,6 +2736,46 @@ namespace BCRPClient.CEF
             GameEvents.DisableAllControls(false);
 
             KeyBinds.EnableAll();
+
+            if (!Settings.Interface.HideHUD)
+                CEF.HUD.ShowHUD(true);
+
+            CEF.Chat.Show(true);
+
+            GameEvents.Render -= RetailPreviewFurnitureRender;
+        }
+
+        private static void RetailPreviewFurnitureRender()
+        {
+            if (CurrentItem != null)
+            {
+                var furnData = Data.Furniture.GetData(CurrentItem);
+
+                if (furnData == null)
+                    return;
+
+                var text = furnData.Name;
+
+                Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+
+                text = $"{KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape)} - вернуться к ассортименту";
+
+                Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+
+                text = $"V - смена вида, Ctrl + колесико - зум";
+
+                Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            }
+        }
+
+        private static void RetailRenderFurniture()
+        {
+            if (!CEF.Browser.IsActive(CEF.Browser.IntTypes.Retail))
+                return;
+
+            var text = "ПКМ по предмету - предпросмотр";
+
+            Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
     }
 }

@@ -264,8 +264,8 @@ namespace BCRPClient.CEF
 
                 var timeStr = TimeStr;
 
-                var cid = args[0].ToUInt32();
-                var rid = (ushort)(int)args[1];
+                var cid = Utils.ToUInt32(args[0]);
+                var rid = Utils.ToUInt16(args[1]);
                 var message = (string)args[2];
 
                 var mData = Data.Fractions.Fraction.AllMembers.GetValueOrDefault(cid);

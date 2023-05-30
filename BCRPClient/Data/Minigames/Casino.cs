@@ -32,7 +32,7 @@ namespace BCRPClient.Data.Minigames.Casino
         {
             Events.Add("Casino::SetBet", (args) =>
             {
-                CurrentBet = Convert.ToUInt32(args[0]);
+                CurrentBet = Utils.ToUInt32(args[0]);
             });
 
             Events.Add("CasinoSlots::Spin", async (args) =>

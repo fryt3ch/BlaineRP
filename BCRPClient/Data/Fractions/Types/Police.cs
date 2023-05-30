@@ -91,7 +91,7 @@ namespace BCRPClient.Data.Fractions
 
             SetCurrentData("Arrests", ((JArray)args[8]).ToObject<List<string>>().Select(x => { var d = x.Split('_'); return new ArrestInfo() { Id = uint.Parse(d[0]), TargetName = d[1], MemberName = d[2], Time = DateTimeOffset.FromUnixTimeSeconds(long.Parse(d[3])).DateTime, }; }).ToList());
 
-            SetCurrentData("ArrestsAmount", Convert.ToUInt32(args[9]));
+            SetCurrentData("ArrestsAmount", Utils.ToUInt32(args[9]));
 
             CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
@@ -355,7 +355,7 @@ namespace BCRPClient.Data.Fractions
                 if (calls == null)
                     return;
 
-                var rid = Convert.ToUInt16(args[0]);
+                var rid = Utils.ToUInt16(args[0]);
 
                 if (args.Length < 4)
                 {
@@ -375,7 +375,7 @@ namespace BCRPClient.Data.Fractions
                 }
                 else
                 {
-                    var call = new Police.CallInfo() { Type = Convert.ToByte(args[1]), Time = Sync.World.ServerTime, Message = (string)args[2], Position = (Vector3)args[3], Player = RAGE.Elements.Entities.Players.GetAtRemote(rid) };
+                    var call = new Police.CallInfo() { Type = Utils.ToByte(args[1]), Time = Sync.World.ServerTime, Message = (string)args[2], Position = (Vector3)args[3], Player = RAGE.Elements.Entities.Players.GetAtRemote(rid) };
 
                     calls.Add(call);
 
@@ -404,7 +404,7 @@ namespace BCRPClient.Data.Fractions
                 if (apbs == null)
                     return;
 
-                var uid = Convert.ToUInt32(args[0]);
+                var uid = Utils.ToUInt32(args[0]);
 
                 if (args.Length < 4)
                 {
@@ -458,7 +458,7 @@ namespace BCRPClient.Data.Fractions
                 if (trackers == null)
                     return;
 
-                var uid = Convert.ToUInt32(args[0]);
+                var uid = Utils.ToUInt32(args[0]);
 
                 if (args.Length < 3)
                 {
@@ -507,7 +507,7 @@ namespace BCRPClient.Data.Fractions
                 if (notifics == null)
                     return;
 
-                var uid = Convert.ToUInt16(args[0]);
+                var uid = Utils.ToUInt16(args[0]);
 
                 if (args.Length < 3)
                 {

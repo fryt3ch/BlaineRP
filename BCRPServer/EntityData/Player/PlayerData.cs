@@ -799,5 +799,19 @@ namespace BCRPServer
                 UpdateTimer = null;
             }
         }
+
+        public void SetAsKnocked(Player attacker)
+        {
+            IsKnocked = true;
+
+            Player.TriggerEvent("Player::Knocked", true, attacker?.Id ?? ushort.MaxValue);
+        }
+
+        public void SetAsNotKnocked()
+        {
+            IsKnocked = false;
+
+            Player.TriggerEvent("Player::Knocked", false);
+        }
     }
 }

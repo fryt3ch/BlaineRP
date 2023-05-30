@@ -2176,7 +2176,7 @@ namespace BCRPServer.Game.Estates
 			FD,
 		}
 
-		private static Dictionary<ClassTypes, int> Taxes = new Dictionary<ClassTypes, int>()
+		private static Dictionary<ClassTypes, uint> Taxes = new Dictionary<ClassTypes, uint>()
 		{
 			{ ClassTypes.A, 50 },
 			{ ClassTypes.B, 75 },
@@ -2189,7 +2189,7 @@ namespace BCRPServer.Game.Estates
 			{ ClassTypes.FD, 100 },
 		};
 
-		public static int GetTax(ClassTypes cType) => Taxes[cType];
+		public static uint GetTax(ClassTypes cType) => Taxes.GetValueOrDefault(cType, uint.MinValue);
 
 		public static ClassTypes GetClass(HouseBase house)
 		{
@@ -2249,7 +2249,7 @@ namespace BCRPServer.Game.Estates
 		public bool ContainersLocked { get; set; }
 
 		/// <summary>Налог</summary>
-		public int Tax => GetTax(Class);
+		public uint Tax => GetTax(Class);
 
 		public abstract Utils.Vector4 PositionParams { get; }
 
@@ -2267,7 +2267,7 @@ namespace BCRPServer.Game.Estates
 		public bool[] DoorsStates { get; set; }
 
 		/// <summary>Стандартная цена дома</summary>
-		public int Price { get; set; }
+		public uint Price { get; set; }
 
 		public uint Dimension { get; set; }
 
@@ -2366,7 +2366,7 @@ namespace BCRPServer.Game.Estates
 
 			if (govHalfPriceBack)
 			{
-				var totalMoney = (uint)Price / 2;
+				var totalMoney = Price / 2;
 
 				if (Owner.BankAccount != null)
 				{
@@ -2494,7 +2494,7 @@ namespace BCRPServer.Game.Estates
 		{
 			ulong newCash;
 
-			if (!pData.TryRemoveCash((uint)Price, out newCash, true))
+			if (!pData.TryRemoveCash(Price, out newCash, true))
 				return false;
 
 			if (pData.SettledHouseBase?.Type == Type)

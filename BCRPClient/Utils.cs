@@ -301,7 +301,7 @@ namespace BCRPClient
             if (result != 2 || materialHash == 0)
                 return 0;
 
-            return (Convert.ToDecimal(materialHash)).ToUInt32();
+            return Utils.ToUInt32(materialHash);
         }
 
         public static Entity GetEntityByRaycast(Vector3 startPos, Vector3 endPos, int ignoreHandle = 0, int flags = 31)
@@ -902,7 +902,7 @@ namespace BCRPClient
                 Dimension = uint.MaxValue,
             };
 
-            RAGE.Game.Entity.SetEntityAsMissionEntity(handle, false, false);
+            //RAGE.Game.Entity.SetEntityAsMissionEntity(handle, false, false);
 
             RAGE.Game.Streaming.SetModelAsNoLongerNeeded(modelHash);
 
@@ -1047,6 +1047,8 @@ namespace BCRPClient
 
             return new Vector3(coord.X + (float)(-Math.Sin(tZ)) * num, coord.Y + (float)Math.Cos(tZ) * num, coord.Z + (float)Math.Sin(tX) * 8.0f);
         }
+
+        public static int GetWarningMessageTitleHash() => RAGE.Game.Invoker.Invoke<int>(0x81DF9ABA6C83DFF9);
 
         public static Vector3 GetWorldCoordFromScreenCoord(float x, float y, float maxDistance = 100f) => GetWorldCoordFromScreenCoord(RAGE.Game.Cam.GetGameplayCamCoord(), RAGE.Game.Cam.GetGameplayCamRot(0), x, y, maxDistance);
 
@@ -1308,6 +1310,65 @@ namespace BCRPClient
 
             return 0;
         }
+
+        public static decimal ToDecimal(object obj)
+        {
+            return Convert.ToDecimal(obj);
+        }
+        public static float ToSingle(object obj)
+        {
+            return Convert.ToSingle(obj);
+        }
+
+        public static byte ToByte(object obj)
+        {
+            return Convert.ToByte(obj);
+        }
+
+        public static ushort ToUInt16(object obj)
+        {
+            return Convert.ToUInt16(obj);
+        }
+
+        public static int ToInt32(object obj)
+        {
+            return Convert.ToInt32(obj);
+        }
+
+        public static long ToInt64(object obj)
+        {
+            return Convert.ToInt64(obj);
+        }
+
+        public static uint ToUInt32(object obj)
+        {
+            var value = Utils.ToDecimal(obj);
+
+            unchecked
+            {
+                if (value < 0)
+                {
+                    return (uint)(int)value;
+                }
+
+                return (uint)value;
+            }
+        }
+
+        public static ulong ToUInt64(object obj)
+        {
+            var value = Utils.ToDecimal(obj);
+
+            unchecked
+            {
+                if (value < 0)
+                {
+                    return (ulong)(long)value;
+                }
+
+                return (ulong)value;
+            }
+        }
     }
 
     public static class Extensions
@@ -1538,38 +1599,6 @@ namespace BCRPClient
         public static string GetName(this Blip blip) => blip.GetData<string>("Name");
 
         public static bool GetSex(this Player player) => player.Model == Utils.MP_MALE_MODEL;
-
-        public static uint ToUInt32(this object obj)
-        {
-            var value = Convert.ToDecimal(obj);
-
-            unchecked
-            {
-                if (value < 0)
-                {
-                    return (uint)(int)value;
-                }
-
-                return (uint)value;
-            }
-        }
-
-        public static ulong ToUInt64(this object obj)
-        {
-            var value = Convert.ToDecimal(obj);
-
-            unchecked
-            {
-                if (value < 0)
-                {
-                    return (ulong)(long)value;
-                }
-
-                return (ulong)value;
-            }
-        }
-
-        public static decimal ToDecimal(this object obj) => Convert.ToDecimal(obj);
 
         public static void SetLightColour(this MapObject mObj, Utils.Colour rgb) => SetLightColour(mObj, rgb.Red, rgb.Green, rgb.Blue);
 

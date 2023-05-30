@@ -299,13 +299,13 @@ namespace BCRPClient.Sync
 
             Events.Add("Player::Punish", (args) =>
             {
-                var id = args[0].ToUInt32();
+                var id = Utils.ToUInt32(args[0]);
 
                 var type = (Sync.Punishment.Types)(int)args[1];
 
-                var admin = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[2]);
+                var admin = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[2]));
 
-                var endDateL = Convert.ToInt64(args[3]);
+                var endDateL = Utils.ToInt64(args[3]);
 
                 var reason = (string)args[4];
 

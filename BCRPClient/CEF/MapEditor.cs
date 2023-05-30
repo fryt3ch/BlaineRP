@@ -75,18 +75,18 @@ namespace BCRPClient.CEF
                     if (LastPos == null)
                         return;
 
-                    LastPos.X = Convert.ToSingle(args[1]);
-                    LastPos.Y = Convert.ToSingle(args[2]);
-                    LastPos.Z = Convert.ToSingle(args[3]);
+                    LastPos.X = Utils.ToSingle(args[1]);
+                    LastPos.Y = Utils.ToSingle(args[2]);
+                    LastPos.Z = Utils.ToSingle(args[3]);
                 }
                 else
                 {
                     if (LastRot == null)
                         return;
 
-                    LastRot.X = Convert.ToSingle(args[1]);
-                    LastRot.Y = Convert.ToSingle(args[2]);
-                    LastRot.Z = Convert.ToSingle(args[3]);
+                    LastRot.X = Utils.ToSingle(args[1]);
+                    LastRot.Y = Utils.ToSingle(args[2]);
+                    LastRot.Z = Utils.ToSingle(args[3]);
                 }
             });
         }
