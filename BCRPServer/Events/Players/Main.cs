@@ -378,23 +378,23 @@ namespace BCRPServer.Events.Players
             {
                 var pos = player.Position;
 
-                if (pDim >= Utils.HouseDimBase)
+                if (pDim >= Settings.HOUSE_DIMENSION_BASE)
                 {
-                    if (pDim < Utils.ApartmentsDimBase)
+                    if (pDim < Settings.APARTMENTS_DIMENSION_BASE)
                     {
                         var house = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.House;
 
                         if (house != null)
                             pos = house.PositionParams.Position;
                     }
-                    else if (pDim < Utils.ApartmentsRootDimBase)
+                    else if (pDim < Settings.APARTMENTS_ROOT_DIMENSION_BASE)
                     {
                         var aps = Utils.GetHouseBaseByDimension(pDim) as Game.Estates.Apartments;
 
                         if (aps != null)
                             pos = aps.Root.EnterParams.Position;
                     }
-                    else if (pDim < Utils.GarageDimBase)
+                    else if (pDim < Settings.GARAGE_DIMENSION_BASE)
                     {
                         var apsRoot = Utils.GetApartmentsRootByDimension(pDim);
 

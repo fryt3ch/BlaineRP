@@ -96,7 +96,7 @@ namespace BCRPServer.Sync
                     if (veh?.Vehicle?.Exists != true)
                     {
                         if (teleport)
-                            player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
+                            player.Teleport(t.Position, false, Settings.MAIN_DIMENSION, t.RotationZ, true);
                     }
                     else
                     {
@@ -104,18 +104,18 @@ namespace BCRPServer.Sync
                         {
                             if (teleport)
                             {
-                                player.Teleport(t.Position, false, Utils.Dimensions.Main, t.RotationZ, true);
+                                player.Teleport(t.Position, false, Settings.MAIN_DIMENSION, t.RotationZ, true);
 
                                 player.WarpToVehicleSeat(veh.Vehicle, 0, 5000);
                             }
 
-                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
+                            veh.Vehicle.Teleport(t.Position, Settings.MAIN_DIMENSION, t.RotationZ, false, Additional.AntiCheat.VehicleTeleportTypes.Default);
 
                             veh.AttachBoatToTrailer();
                         }
                         else
                         {
-                            veh.Vehicle.Teleport(t.Position, Utils.Dimensions.Main, t.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                            veh.Vehicle.Teleport(t.Position, Settings.MAIN_DIMENSION, t.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
 
                             veh.AttachBoatToTrailer();
                         }
@@ -128,7 +128,7 @@ namespace BCRPServer.Sync
                 else
                 {
                     if (teleport)
-                        player.Teleport(t.Position, true, Utils.Dimensions.Main, t.RotationZ, true);
+                        player.Teleport(t.Position, true, Settings.MAIN_DIMENSION, t.RotationZ, true);
 
                     player.TriggerEvent("Shop::Close::Server");
 

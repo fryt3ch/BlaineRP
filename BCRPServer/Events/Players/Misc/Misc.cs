@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace BCRPServer.Events.Players
+namespace BCRPServer.Events.Players.Misc
 {
-    internal class Misc : Script
+    internal class Other : Script
     {
         [RemoteEvent("Players::StopCarry")]
         public static void StopCarry(Player player)
@@ -182,7 +182,7 @@ namespace BCRPServer.Events.Players
             if (pData.IsFrozen)
                 return;
 
-            if (pData.Player.Dimension != Utils.Dimensions.Demorgan)
+            if (pData.Player.Dimension != Settings.DEMORGAN_DIMENSION)
                 return;
 
             Utils.Demorgan.SetToDemorgan(pData, true);
@@ -234,7 +234,7 @@ namespace BCRPServer.Events.Players
             if (estAgency == null || posId < 0 || posId >= estAgency.Positions.Length)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
                 return null;
 
             return $"{estAgency.HouseGPSPrice}";
@@ -258,7 +258,7 @@ namespace BCRPServer.Events.Players
             if (estAgency == null || posId < 0 || posId >= estAgency.Positions.Length)
                 return false;
 
-            if (player.Dimension != Utils.Dimensions.Main || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || player.Position.DistanceTo(estAgency.Positions[posId]) > 5f)
                 return false;
 
             if (gpsType == 0)

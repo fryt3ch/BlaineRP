@@ -180,9 +180,9 @@ namespace BCRPServer.Game.Estates
                 return VehicleExitPositions[nextId];
             }
 
-            public bool IsEntityNearEnter(Entity entity) => entity.Dimension == Utils.Dimensions.Main && entity.Position.DistanceIgnoreZ(EnterPosition.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+            public bool IsEntityNearEnter(Entity entity) => entity.Dimension == Settings.MAIN_DIMENSION && entity.Position.DistanceIgnoreZ(EnterPosition.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
 
-            public bool IsEntityNearVehicleEnter(Entity entity) => entity.Dimension == Utils.Dimensions.Main && entity.Position.DistanceTo(EnterPositionVehicle.Position) <= EnterPositionVehicle.RotationZ + 2.5f;
+            public bool IsEntityNearVehicleEnter(Entity entity) => entity.Dimension == Settings.MAIN_DIMENSION && entity.Position.DistanceTo(EnterPositionVehicle.Position) <= EnterPositionVehicle.RotationZ + 2.5f;
 
             public static GarageRoot Get(uint id) => All.GetValueOrDefault(id);
         }
@@ -255,7 +255,7 @@ namespace BCRPServer.Game.Estates
 
             this.ClassType = GetClass(this);
 
-            this.Dimension = (uint)(Id + Utils.GarageDimBase);
+            this.Dimension = (uint)(Id + Settings.GARAGE_DIMENSION_BASE);
 
             All.Add(Id, this);
         }
@@ -527,7 +527,7 @@ namespace BCRPServer.Game.Estates
             {
                 var pos = Root.EnterPosition;
 
-                Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Settings.MAIN_DIMENSION, pos.RotationZ, true, players);
             }
             else
             {

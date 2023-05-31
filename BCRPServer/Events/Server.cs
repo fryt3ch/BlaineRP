@@ -20,10 +20,11 @@ namespace BCRPServer.Events
 
         public static byte PayDayX { get; set; } = 1;
 
-        #region On Start
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
         {
+            // Settings Step
+
             CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
             CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;
             CultureInfo.CurrentCulture = Settings.CultureInfo;
@@ -68,7 +69,6 @@ namespace BCRPServer.Events
 
             }
 
-            #region Settings Section
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Establishing connection with databases");
             Utils.ConsoleOutput($" | {(MySQL.InitConnection() ? "~Green~Success~/~" : "~Red~Error~/~")}", false);
 
@@ -87,9 +87,9 @@ namespace BCRPServer.Events
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Setting global dimension weather");
-            #endregion
 
-            #region Local Data Load Section
+            // Local Data Load Step
+
             Game.Businesses.Business.LoadPrices();
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Loading all items [DATA]");
@@ -116,9 +116,9 @@ namespace BCRPServer.Events
             Game.Bank.LoadAll();
 
             Sync.Quest.InitializeAll();
-            #endregion
 
-            #region Database Data Load Section
+            // DB Load Step
+
             MySQL.LoadAll();
 
             Game.Estates.House.LoadAll();
@@ -149,7 +149,6 @@ namespace BCRPServer.Events
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Estates.Furniture.All.Count} furniture");
 
             GC.Collect();
-            #endregion
 
             Utils.ConsoleOutput("~Red~###########################################################################################~/~");
             Utils.ConsoleOutput();
@@ -168,18 +167,13 @@ namespace BCRPServer.Events
             Game.Misc.FishBuyer.InitializeAll();
             Game.Misc.VehicleDestruction.InitializeAll();
             Game.Misc.EstateAgency.InitializeAll();
+            Game.Misc.MarketStall.Initialize();
 
             Game.Misc.Elevator.InitializeAll();
 
             Sync.DoorSystem.InitializeAll();
 
             Game.Casino.Casino.InitializeAll();
-
-            /*            var truck = VehicleData.NewTemp(Game.Data.Vehicles.GetData("bison"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), new Vector3(-740.3475f, 5813.844f, 18f), 255f, Utils.Dimensions.Main);
-
-                        var boat = VehicleData.NewTemp(Game.Data.Vehicles.GetData("dinghy"), Utils.Colour.FromRageColour(Utils.RedColor), Utils.Colour.FromRageColour(Utils.RedColor), Utils.DefaultSpawnPosition, 0f, Utils.Dimensions.Main);
-
-                        boat.AttachBoatToTrailer();*/
 
             Additional.ConsoleCommands.Activate();
 
@@ -219,7 +213,6 @@ namespace BCRPServer.Events
 
             MySQL.StartService();
         }
-        #endregion
 
         public static void DoPayDay(bool isAuto)
         {

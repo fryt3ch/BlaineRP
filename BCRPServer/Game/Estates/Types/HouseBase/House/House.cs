@@ -21,7 +21,7 @@ namespace BCRPServer.Game.Estates
             this.PositionParams = PositionParams;
 
             this.Price = Price;
-            this.Dimension = (uint)(HID + Utils.HouseDimBase);
+            this.Dimension = (uint)(HID + Settings.HOUSE_DIMENSION_BASE);
 
             if (GarageType is Garage.Types gType)
             {
@@ -42,9 +42,9 @@ namespace BCRPServer.Game.Estates
             Sync.World.SetSharedData($"House::{Id}::OName", pInfo == null ? null : $"{pInfo.Name} {pInfo.Surname} [#{pInfo.CID}]");
         }
 
-        public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Utils.Dimensions.Main && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+        public override bool IsEntityNearEnter(Entity entity) => entity.Dimension == Settings.MAIN_DIMENSION && entity.Position.DistanceIgnoreZ(PositionParams.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
 
-        public bool IsEntityNearVehicleEnter(Entity entity) => GarageOutside == null ? false : entity.Dimension == Utils.Dimensions.Main && entity.Position.DistanceIgnoreZ(GarageOutside.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+        public bool IsEntityNearVehicleEnter(Entity entity) => GarageOutside == null ? false : entity.Dimension == Settings.MAIN_DIMENSION && entity.Position.DistanceIgnoreZ(GarageOutside.Position) <= Settings.ENTITY_INTERACTION_MAX_DISTANCE;
 
         public override void SetPlayersInside(bool teleport, params Player[] players)
         {
@@ -64,7 +64,7 @@ namespace BCRPServer.Game.Estates
         {
             if (teleport)
             {
-                Utils.TeleportPlayers(PositionParams.Position, false, Utils.Dimensions.Main, PositionParams.RotationZ, true, players);
+                Utils.TeleportPlayers(PositionParams.Position, false, Settings.MAIN_DIMENSION, PositionParams.RotationZ, true, players);
             }
             else
             {

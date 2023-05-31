@@ -10,7 +10,7 @@ namespace BCRPServer
         {
             public static Dictionary<uint, PlayerInfo> All { get; private set; } = new Dictionary<uint, PlayerInfo>();
 
-            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Utils.FirstCID);
+            public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(Settings.META_UID_FIRST_CID);
 
             public static void AddOnLoad(PlayerInfo pInfo)
             {

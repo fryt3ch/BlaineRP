@@ -671,6 +671,19 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
+        public class Tent : PlaceableItem
+        {
+            new public class ItemData : PlaceableItem.ItemData
+            {
+                public ItemData(string Name, float Weight, uint Model) : base(Name, Weight, Model)
+                {
+
+                }
+            }
+
+            public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
+        }
+
         public class MiscStackable : Item, IStackable
         {
             new public class ItemData : Item.ItemData, Item.ItemData.IStackable

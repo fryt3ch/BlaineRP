@@ -177,7 +177,7 @@ namespace BCRPServer.Game
         {
             var bData = GetBankData(id);
 
-            if (bData == null || player.Dimension != Utils.Dimensions.Main)
+            if (bData == null || player.Dimension != Settings.MAIN_DIMENSION)
                 return false;
 
             foreach (var x in bData)
@@ -193,7 +193,7 @@ namespace BCRPServer.Game
         {
             var atmData = GetAtmData(id);
 
-            if (atmData == null || player.Dimension != Utils.Dimensions.Main)
+            if (atmData == null || player.Dimension != Settings.MAIN_DIMENSION)
                 return false;
 
             return player.Position.DistanceTo(atmData.Position) <= (atmData.RotationZ + 5f);

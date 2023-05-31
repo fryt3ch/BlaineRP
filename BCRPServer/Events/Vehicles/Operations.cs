@@ -54,13 +54,13 @@ namespace BCRPServer.Events.Vehicles
                     if (house.GarageOutside == null)
                         return;
 
-                    veh.Teleport(house.GarageOutside.Position, Utils.Dimensions.Main, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                    veh.Teleport(house.GarageOutside.Position, Settings.MAIN_DIMENSION, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                 }
                 else if (pData.CurrentGarage is Game.Estates.Garage garage)
                 {
                     var ePos = garage.Root.GetNextVehicleExit();
 
-                    veh.Teleport(ePos.Position, Utils.Dimensions.Main, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
+                    veh.Teleport(ePos.Position, Settings.MAIN_DIMENSION, ePos.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                 }
                 else
                 {

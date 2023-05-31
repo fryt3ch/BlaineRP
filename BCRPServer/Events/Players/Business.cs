@@ -24,7 +24,7 @@ namespace BCRPServer.Events.Players
 
             pData.CurrentBusiness = null;
 
-            player.Teleport(ws.PositionShootingRangeEnter.Position, false, Utils.Dimensions.Main, ws.PositionShootingRangeEnter.RotationZ, true);
+            player.Teleport(ws.PositionShootingRangeEnter.Position, false, Settings.MAIN_DIMENSION, ws.PositionShootingRangeEnter.RotationZ, true);
 
             pData.InventoryBlocked = false;
 
@@ -73,7 +73,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -124,7 +124,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -160,7 +160,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -192,7 +192,7 @@ namespace BCRPServer.Events.Players
             if (amountI <= 0)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -235,7 +235,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -267,7 +267,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return false;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -307,7 +307,7 @@ namespace BCRPServer.Events.Players
             if (amountI <= 0)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -374,7 +374,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -437,7 +437,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (player.Dimension != Utils.Dimensions.Main)
+            if (player.Dimension != Settings.MAIN_DIMENSION)
                 return null;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -480,7 +480,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
+            if (pData.CurrentBusiness != null || player.Dimension != Settings.MAIN_DIMENSION)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -570,7 +570,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
+            if (pData.CurrentBusiness != null || player.Dimension != Settings.MAIN_DIMENSION)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -601,7 +601,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || player.Dimension != Utils.Dimensions.Main)
+            if (pData.CurrentBusiness != null || player.Dimension != Settings.MAIN_DIMENSION)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -691,7 +691,7 @@ namespace BCRPServer.Events.Players
 
             if (!(shop is Game.Businesses.IEnterable))
             {
-                if (player.Dimension != Utils.Dimensions.Main || !shop.IsPlayerNearInteractPosition(pData))
+                if (player.Dimension != Settings.MAIN_DIMENSION || !shop.IsPlayerNearInteractPosition(pData))
                     return false;
             }
 
@@ -718,7 +718,7 @@ namespace BCRPServer.Events.Players
             if (gs == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || Vector3.Distance(player.Position, gs.PositionInfo) > 50f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || Vector3.Distance(player.Position, gs.PositionInfo) > 50f)
                 return;
 
             var vData = vehicle.GetMainData();

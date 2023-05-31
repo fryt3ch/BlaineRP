@@ -123,7 +123,7 @@ namespace BCRPServer.Events.Commands
                 return;
 
             if (dim == 0)
-                dim = Utils.Dimensions.Main;
+                dim = Settings.MAIN_DIMENSION;
 
             var tData = pData;
 

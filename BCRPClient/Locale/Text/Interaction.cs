@@ -48,6 +48,8 @@ namespace BCRPClient
                 { Additional.ExtraColshape.InteractionTypes.CasinoBlackjackInteract, "чтобы сесть за стол" },
                 { Additional.ExtraColshape.InteractionTypes.CasinoLuckyWheelInteract, "чтобы прокрутить колесо удачи" },
                 { Additional.ExtraColshape.InteractionTypes.CasinoSlotMachineInteract, "чтобы сесть за автомат" },
+
+                { Additional.ExtraColshape.InteractionTypes.MarketStallInteract, "чтобы начать торговать" },
             };
         }
     }

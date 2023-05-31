@@ -240,22 +240,14 @@ namespace BCRPServer
                 {
                     cmd.CommandText = "SELECT * FROM server_data;";
 
-                    var updCmd = new MySqlCommand()
+                    var actionDict = new Dictionary<string, Action<string>>()
                     {
-                        CommandText = "UPDATE server_data SET LastLaunchTime=@LLT;",
-                    };
-
-                    updCmd.Parameters.AddWithValue("@LLT", currentTime);
-
-                    PushQuery(updCmd);
-
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
                         {
-                            while (reader.Read())
+                            "LAST_LAUNCH_TIME",
+
+                            (dataJson) =>
                             {
-                                var llt = (DateTime)reader["LastLaunchTime"];
+                                var llt = dataJson.DeserializeFromJson<DateTime>();
 
                                 var businessMaxDayIdx = 14;
 
@@ -267,8 +259,35 @@ namespace BCRPServer
 
                                 Game.Businesses.Business.CurrentStatisticsDayIdx = (Game.Businesses.Business.PreviousStatisticsDayIdx + ((int)Math.Floor(timePassedSinceLastLaunch.TotalDays))) % businessMaxDayIdx;
                             }
+                        },
+
+                        {
+                            "MARKETSTALL_RENT_PRICE",
+
+                            (dataJson) =>
+                            {
+                                Game.Misc.MarketStall.RentPrice = dataJson.DeserializeFromJson<uint>();
+                            }
+                        },
+                    };
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var id = (string)reader["ID"];
+
+                                var dataJson = reader["Data"] is DBNull ? null : (string)reader["Data"];
+
+                                actionDict.GetValueOrDefault(id)?.Invoke(dataJson);
+                            }
                         }
                     }
+
+
+                    UpdateServerData("LAST_LAUNCH_TIME", currentTime);
                 }
 
                 using (var cmd = conn.CreateCommand())
@@ -1225,13 +1244,13 @@ namespace BCRPServer
                     Game.Items.Item.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = Utils.FirstCID; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = Settings.META_UID_FIRST_CID; i <= PlayerData.PlayerInfo.UidHandler.LastAddedMaxUid; i++)
             {
                 if (PlayerData.PlayerInfo.Get(i) == null)
                     PlayerData.PlayerInfo.UidHandler.SetUidAsFree(i);
             }
 
-            for (uint i = Utils.FirstVID; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
+            for (uint i = Settings.META_UID_FIRST_VID; i <= VehicleData.VehicleInfo.UidHandler.LastAddedMaxUid; i++)
             {
                 if (VehicleData.VehicleInfo.Get(i) == null)
                     VehicleData.VehicleInfo.UidHandler.SetUidAsFree(i);
@@ -1294,6 +1313,22 @@ namespace BCRPServer
             //Console.WriteLine(Game.Items.Gift.UidHandler.HandlerStr);
             //Console.WriteLine(VehicleData.VehicleInfo.UidHandler.HandlerStr);
             //Console.WriteLine(PlayerData.PlayerInfo.UidHandler.HandlerStr);
+        }
+
+        public static void UpdateServerData(string key, object value)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE server_data SET Data=@Data WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", key);
+
+            if (value == null)
+                cmd.Parameters.AddWithValue("@Data", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@Data", value.SerializeToJson());
+
+            PushQuery(cmd);
         }
 
         #endregion

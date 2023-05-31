@@ -14,20 +14,8 @@ using System.Threading.Tasks;
 
 namespace BCRPServer
 {
-    public static class Utils
+    public static partial class Utils
     {
-        public static class Dimensions
-        {
-            /// <summary>Основное игровое измерение</summary>
-            public const uint Main = 7;
-
-            /// <summary>Техническое измерение (в основном, пре-спавнинг сущностей)</summary>
-            public const uint Stuff = 1;
-
-            /// <summary>Деморган</summary>
-            public const uint Demorgan = 2;
-        }
-
         public static class Demorgan
         {
             private static Vector3[] Positions = new Vector3[]
@@ -56,12 +44,12 @@ namespace BCRPServer
 
                 var pos = GetNextPos();
 
-                pData.Player.Teleport(pos, false, Utils.Dimensions.Demorgan, null, false);
+                pData.Player.Teleport(pos, false, Settings.DEMORGAN_DIMENSION, null, false);
             }
 
             public static void SetFromDemorgan(PlayerData pData)
             {
-                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Utils.Dimensions.Main, Utils.DefaultSpawnHeading, false);
+                pData.Player.Teleport(Utils.DefaultSpawnPosition, false, Settings.MAIN_DIMENSION, Utils.DefaultSpawnHeading, false);
             }
         }
 
@@ -84,27 +72,13 @@ namespace BCRPServer
             XMAS,
         }
 
-        /// <summary>Номер первого CID</summary>
-        /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, тогда 2999 - последний Remote ID</remarks>
-        public const uint FirstCID = 3000;
+        public static uint GetPlayerIdByDimension(uint dim) => dim < Settings.PLAYER_PRIVATE_DIMENSION_BASE ? 0 : dim - Settings.PLAYER_PRIVATE_DIMENSION_BASE;
 
-        /// <summary>Номер первого VID</summary>
-        /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, а машин у каждого - 100, тогда 299999 - посдений RemoteID</remarks>
-        public const uint FirstVID = 100_000;
+        public static uint GetHouseIdByDimension(uint dim) => dim < Settings.HOUSE_DIMENSION_BASE ? 0 : dim - Settings.HOUSE_DIMENSION_BASE;
 
-        public const uint PlayerPrivateDimBase = 1000;
-        public const uint HouseDimBase = 10000;
-        public const uint ApartmentsDimBase = 20000;
-        public const uint ApartmentsRootDimBase = 30000;
-        public const uint GarageDimBase = 50000;
+        public static uint GetGarageIdByDimension(uint dim) => dim < Settings.GARAGE_DIMENSION_BASE ? 0 : dim - Settings.GARAGE_DIMENSION_BASE;
 
-        public static uint GetPlayerIdByDimension(uint dim) => dim < PlayerPrivateDimBase ? 0 : dim - PlayerPrivateDimBase;
-
-        public static uint GetHouseIdByDimension(uint dim) => dim < HouseDimBase ? 0 : dim - HouseDimBase;
-
-        public static uint GetGarageIdByDimension(uint dim) => dim < GarageDimBase ? 0 : dim - GarageDimBase;
-
-        public static uint GetApartmentsIdByDimension(uint dim) => dim < ApartmentsDimBase ? 0 : dim - ApartmentsDimBase;
+        public static uint GetApartmentsIdByDimension(uint dim) => dim < Settings.APARTMENTS_DIMENSION_BASE ? 0 : dim - Settings.APARTMENTS_DIMENSION_BASE;
 
         public static Game.Estates.HouseBase GetHouseBaseByDimension(uint dim)
         {
@@ -143,14 +117,14 @@ namespace BCRPServer
             return Game.Estates.Garage.Get(gId);
         }
 
-        public static uint GetApartmentsRootIdByDimension(uint dim) => dim < ApartmentsRootDimBase ? 0 : dim - ApartmentsRootDimBase;
+        public static uint GetApartmentsRootIdByDimension(uint dim) => dim < Settings.APARTMENTS_ROOT_DIMENSION_BASE ? 0 : dim - Settings.APARTMENTS_ROOT_DIMENSION_BASE;
 
         /// <summary>Стандартная позиция спавна</summary>
         public static Vector3 DefaultSpawnPosition = new Vector3(-749.78f, 5818.21f, 17f);
         /// <summary>Стандартный поворот</summary>
         public static float DefaultSpawnHeading = 0f;
 
-        public static uint GetPrivateDimension(Player player) => player.Id + PlayerPrivateDimBase;
+        public static uint GetPrivateDimension(Player player) => player.Id + Settings.PLAYER_PRIVATE_DIMENSION_BASE;
 
         /// <summary>Нулевой вектор (X=0, Y=0, Z=0)</summary>
         public static Vector3 ZeroVector => new Vector3(0, 0, 0);
@@ -351,7 +325,7 @@ namespace BCRPServer
         /// <param name="vid">VID или RemoteID</param>
         /// <returns>Объект класса VehicleData, если транспорт найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static VehicleData FindVehicleOnline(uint vid) => vid >= FirstVID ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Values.Where(x => x.Vehicle.Id == vid).FirstOrDefault();
+        public static VehicleData FindVehicleOnline(uint vid) => vid >= Settings.META_UID_FIRST_VID ? VehicleData.All.Values.Where(x => x.VID == vid).FirstOrDefault() : VehicleData.All.Values.Where(x => x.Vehicle.Id == vid).FirstOrDefault();
 
         #endregion
 
@@ -497,13 +471,13 @@ namespace BCRPServer
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса PlayerData, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static PlayerData FindReadyPlayerOnline(uint pid) => pid >= FirstCID ? PlayerData.All.Values.Where(x => x.CID == pid).FirstOrDefault() : PlayerData.All.Where(x => x.Key.Id == pid).Select(x => x.Value).FirstOrDefault();
+        public static PlayerData FindReadyPlayerOnline(uint pid) => pid >= Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.CID == pid).FirstOrDefault() : PlayerData.All.Where(x => x.Key.Id == pid).Select(x => x.Value).FirstOrDefault();
 
         /// <summary>Метод для получения сущности игрока, который в сети</summary>
         /// <param name="pid">CID или RemoteID</param>
         /// <returns>Объект класса Player, если игрок найден, null - в противном случае</returns>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static Player FindPlayerOnline(uint pid) => pid >= FirstCID ? PlayerData.All.Values.Where(x => x.CID == pid).Select(x => x.Player).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
+        public static Player FindPlayerOnline(uint pid) => pid >= Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.CID == pid).Select(x => x.Player).FirstOrDefault() : NAPI.Pools.GetAllPlayers().Where(x => x?.Id == pid).FirstOrDefault();
 
         /// <summary>Метод для получения пола игрока</summary>
         /// <param name="player">Сущность игрока</param>

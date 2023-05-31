@@ -176,13 +176,13 @@ namespace BCRPServer.Additional
 
                         if (pDim != dim)
                         {
-                            if (pDim >= Utils.HouseDimBase)
+                            if (pDim >= Settings.HOUSE_DIMENSION_BASE)
                             {
-                                if (pDim < Utils.ApartmentsRootDimBase)
+                                if (pDim < Settings.APARTMENTS_ROOT_DIMENSION_BASE)
                                 {
                                     Utils.GetHouseBaseByDimension(pDim)?.SetPlayersOutside(false, player);
                                 }
-                                else if (pDim < Utils.GarageDimBase)
+                                else if (pDim < Settings.GARAGE_DIMENSION_BASE)
                                 {
                                     Utils.GetApartmentsRootByDimension(pDim)?.SetPlayersOutside(false, player);
                                 }
@@ -242,17 +242,17 @@ namespace BCRPServer.Additional
 
         private static void OnDimensionChange(uint dim, params Player[] players)
         {
-            if (dim < Utils.HouseDimBase)
+            if (dim < Settings.HOUSE_DIMENSION_BASE)
                 return;
 
-            if (dim < Utils.ApartmentsRootDimBase)
+            if (dim < Settings.APARTMENTS_ROOT_DIMENSION_BASE)
             {
                 Utils.GetHouseBaseByDimension(dim)?.SetPlayersInside(false, players);
 
                 return;
             }
 
-            if (dim < Utils.GarageDimBase)
+            if (dim < Settings.GARAGE_DIMENSION_BASE)
             {
                 Utils.GetApartmentsRootByDimension(dim)?.SetPlayersInside(false, players);
 

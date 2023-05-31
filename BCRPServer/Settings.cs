@@ -33,6 +33,26 @@ namespace BCRPServer
         public const string DIR_CLIENT_DOOR_SYSTEM_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\DoorSystem.cs";
         public const string DIR_CLIENT_SYNC_HOUSE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\House.cs";
 
+        /// <summary>Основное игровое измерение</summary>
+        public const uint MAIN_DIMENSION = 7;
+        /// <summary>Техническое измерение (в основном, пре-спавнинг сущностей)</summary>
+        public const uint STUFF_DIMENSION = 1;
+        /// <summary>Деморган</summary>
+        public const uint DEMORGAN_DIMENSION = 2;
+
+        public const uint PLAYER_PRIVATE_DIMENSION_BASE = 1_000;
+        public const uint HOUSE_DIMENSION_BASE = 10_000;
+        public const uint APARTMENTS_DIMENSION_BASE = 20_000;
+        public const uint APARTMENTS_ROOT_DIMENSION_BASE = 30_000;
+        public const uint GARAGE_DIMENSION_BASE = 50_000;
+
+        /// <summary>Номер первого CID</summary>
+        /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, тогда 2999 - последний Remote ID</remarks>
+        public const uint META_UID_FIRST_CID = 3_000;
+        /// <summary>Номер первого VID</summary>
+        /// <remarks>Используется, чтобы отличать CID от Remote ID<br/>Пусть 3000 - макс. кол-во игроков на сервере, а машин у каждого - 100, тогда 299999 - посдений RemoteID</remarks>
+        public const uint META_UID_FIRST_VID = 100_000;
+
         /// <summary>Задержка до выхода из программы, когда сервер остановлен</summary>
         public const int SERVER_STOP_DELAY = 5000;
 
@@ -258,10 +278,10 @@ namespace BCRPServer
         public const ushort MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
 
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
-        public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS { get => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } }; }
+        public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
 
         /// <summary>Стандартный набор лицензий у созданных персонажей</summary>
-        public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES { get => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M }; }
+        public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
 
         /// <summary>Список доступных для сервера типов погоды</summary>
         public static List<Utils.WeatherTypes> Weathers = new List<Utils.WeatherTypes>()

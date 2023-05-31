@@ -38,7 +38,7 @@ namespace BCRPServer.Game.Casino
         public ushort BuyChipPrice { get; set; }
         public ushort SellChipPrice { get; set; }
 
-        public WallScreenTypes CurrentWallScreenType { get => (WallScreenTypes)Convert.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST")); set => Sync.World.SetSharedData($"CASINO_{Id}_WST", (byte)value); }
+        public WallScreenTypes CurrentWallScreenType { get => (WallScreenTypes)Utils.ToByte(Sync.World.GetSharedData<object>($"CASINO_{Id}_WST")); set => Sync.World.SetSharedData($"CASINO_{Id}_WST", (byte)value); }
 
         public Casino()
         {

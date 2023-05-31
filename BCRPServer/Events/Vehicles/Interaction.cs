@@ -468,7 +468,7 @@ namespace BCRPServer.Events.Vehicles
             if (destr == null)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main || destr.Position.DistanceTo(player.Position) > 10f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || destr.Position.DistanceTo(player.Position) > 10f)
                 return null;
 
             if (!vData.IsFullOwner(pData, true))
@@ -503,7 +503,7 @@ namespace BCRPServer.Events.Vehicles
             if (destr == null)
                 return false;
 
-            if (player.Dimension != Utils.Dimensions.Main || destr.Position.DistanceTo(player.Position) > 10f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || destr.Position.DistanceTo(player.Position) > 10f)
                 return false;
 
             if (!vData.IsFullOwner(pData, true))

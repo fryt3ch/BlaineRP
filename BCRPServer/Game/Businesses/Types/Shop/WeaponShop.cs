@@ -84,7 +84,7 @@ namespace BCRPServer.Game.Businesses
 
         public Utils.Vector4 PositionShootingRangeEnter { get; set; }
 
-        public static uint ShootingRangePrice { get => (uint)Sync.World.GetSharedData<int>("SRange::Price"); set => Sync.World.SetSharedData("SRange::Price", value); }
+        public static uint ShootingRangePrice { get => Utils.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price")); set => Sync.World.SetSharedData("SRange::Price", value); }
 
         public static Utils.Vector4 ShootingRangePosition { get; private set; } = new Utils.Vector4(13.00517f, -1098.977f, 29.79701f, 337.5131f);
 

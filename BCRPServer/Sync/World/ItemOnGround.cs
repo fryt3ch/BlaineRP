@@ -171,7 +171,7 @@ namespace BCRPServer.Sync
             {
                 if (item is IStackable itemStackable)
                 {
-                    var existingAll = ItemsOnGround.Values.Where(x => x.Type == type && x.Item.ID == item.ID && (x.Object.Dimension == dimension || x.Object.Dimension == Utils.Dimensions.Stuff) && Vector3.Distance(x.Object.Position, position) <= Settings.IOG_MAX_DISTANCE_TO_STACK).ToList();
+                    var existingAll = ItemsOnGround.Values.Where(x => x.Type == type && x.Item.ID == item.ID && (x.Object.Dimension == dimension || x.Object.Dimension == Settings.STUFF_DIMENSION) && Vector3.Distance(x.Object.Position, position) <= Settings.IOG_MAX_DISTANCE_TO_STACK).ToList();
 
                     if (existingAll.Count > 0)
                     {
@@ -211,7 +211,7 @@ namespace BCRPServer.Sync
                 }
             }
 
-            var obj = NAPI.Object.CreateObject(item.Model, position, rotation, 255, Utils.Dimensions.Stuff);
+            var obj = NAPI.Object.CreateObject(item.Model, position, rotation, 255, Settings.STUFF_DIMENSION);
 
             var iog = new ItemOnGround(item, obj, type);
 

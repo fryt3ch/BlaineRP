@@ -72,6 +72,8 @@ namespace BCRPClient.Sync
                 new IPLInfo(null, new Vector3(2495.55f, 3157.45f, 0f), 100f, uint.MaxValue, "gr_case2_bunkerclosed"),
             };
 
+            RAGE.Game.Streaming.RequestIpl("brp_map_fair_stalls_ls_0");
+
             RAGE.Game.Streaming.RequestIpl("gabz_pillbox_milo_");
 
             var pillboxIntId = RAGE.Game.Interior.GetInteriorAtCoords(311.2546f, -592.4204f, 42.32737f);

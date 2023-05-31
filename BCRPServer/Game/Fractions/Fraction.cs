@@ -88,7 +88,7 @@ namespace BCRPServer.Game.Fractions
 
         public string Name { get; set; }
 
-        public uint Materials { get => Convert.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}")); set => Sync.World.SetSharedData($"FRAC::M_{(int)Type}", value); }
+        public uint Materials { get => Utils.ToUInt32(Sync.World.GetSharedData<object>($"FRAC::M_{(int)Type}")); set => Sync.World.SetSharedData($"FRAC::M_{(int)Type}", value); }
 
         public ulong Balance { get; set; }
 

@@ -31,7 +31,7 @@ namespace BCRPServer.Events.Players
             if (roulette == null)
                 return null;
 
-            if (player.Dimension != Utils.Dimensions.Main || roulette.Position.DistanceTo(player.Position) > 5f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || roulette.Position.DistanceTo(player.Position) > 5f)
                 return null;
 
             var betData = roulette.CurrentPlayers.GetValueOrDefault(pData.CID);
@@ -79,7 +79,7 @@ namespace BCRPServer.Events.Players
             if (roulette == null)
                 return false;
 
-            if (player.Dimension != Utils.Dimensions.Main || roulette.Position.DistanceTo(player.Position) > 5f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || roulette.Position.DistanceTo(player.Position) > 5f)
                 return false;
 
             if (!roulette.CanPlaceBet())
@@ -173,7 +173,7 @@ namespace BCRPServer.Events.Players
             if (luckyWheel == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || luckyWheel.Position.DistanceTo(player.Position) > 5f)
+            if (player.Dimension != Settings.MAIN_DIMENSION || luckyWheel.Position.DistanceTo(player.Position) > 5f)
                 return;
 
             if (!luckyWheel.IsAvailableNow())
@@ -529,7 +529,7 @@ namespace BCRPServer.Events.Players
                 table.StartGame();
             }
 
-            Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 1, casinoId, tableId, tableIdx, amount, player.Id);
+            Utils.TriggerEventInDistance(table.Position, Settings.MAIN_DIMENSION, 10f, "Casino::BLJM", 1, casinoId, tableId, tableIdx, amount, player.Id);
 
             return true;
         }
@@ -588,13 +588,13 @@ namespace BCRPServer.Events.Players
 
                 table.SetPlayerToDecisionState((byte)(tableIdx + 1));
 
-                Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 0, 1, player.Id);
+                Utils.TriggerEventInDistance(table.Position, Settings.MAIN_DIMENSION, 10f, "Casino::BLJM", 0, 1, player.Id);
             }
             else if (decision == 1)
             {
                 table.OnPlayerChooseAnother((byte)tableIdx);
 
-                Utils.TriggerEventInDistance(table.Position, Utils.Dimensions.Main, 10f, "Casino::BLJM", 0, 2, player.Id);
+                Utils.TriggerEventInDistance(table.Position, Settings.MAIN_DIMENSION, 10f, "Casino::BLJM", 0, 2, player.Id);
             }
         }
     }

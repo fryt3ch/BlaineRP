@@ -224,7 +224,7 @@ namespace BCRPServer.Game.Casino
         {
             CurrentStateData = value;
 
-            Utils.TriggerEventInDistance(Position, Utils.Dimensions.Main, 50f, "Casino::BLJS", CasinoId, Id, value);
+            Utils.TriggerEventInDistance(Position, Settings.MAIN_DIMENSION, 50f, "Casino::BLJS", CasinoId, Id, value);
         }
 
         public string GetCurrentStateData()
@@ -753,6 +753,6 @@ namespace BCRPServer.Game.Casino
             }
         }
 
-        public bool IsPlayerNearTable(Player player) => player.Dimension == Utils.Dimensions.Main && player.Position.DistanceTo(Position) <= 5f;
+        public bool IsPlayerNearTable(Player player) => player.Dimension == Settings.MAIN_DIMENSION && player.Position.DistanceTo(Position) <= 5f;
     }
 }

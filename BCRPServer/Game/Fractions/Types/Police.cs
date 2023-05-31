@@ -121,14 +121,14 @@ namespace BCRPServer.Game.Fractions
 
             var pos = GetNextArrestCellPosition();
 
-            pData.Player.Teleport(pos, false, Utils.Dimensions.Main, null, false);
+            pData.Player.Teleport(pos, false, Settings.MAIN_DIMENSION, null, false);
         }
 
         public void SetPlayerFromPrison(PlayerData pData)
         {
             var pos = new Utils.Vector4(ArrestFreePosition.X, ArrestFreePosition.Y, ArrestFreePosition.Z, ArrestFreePosition.RotationZ);
 
-            pData.Player.Teleport(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, false);
+            pData.Player.Teleport(pos.Position, false, Settings.MAIN_DIMENSION, pos.RotationZ, false);
         }
 
         public static CallInfo GetCallByCaller(ushort rid) => Calls.GetValueOrDefault(rid);

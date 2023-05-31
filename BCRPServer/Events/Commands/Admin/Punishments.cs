@@ -97,7 +97,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
             
             if (tInfo == null)
             {
@@ -164,7 +164,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -218,7 +218,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -292,7 +292,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -353,7 +353,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[1];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -418,7 +418,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[2];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -470,7 +470,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = (string)args[2];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {
@@ -544,7 +544,7 @@ namespace BCRPServer.Events.Commands
 
             var reason = args[1];
 
-            var tInfo = pid < Utils.FirstCID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
+            var tInfo = pid < Settings.META_UID_FIRST_CID ? PlayerData.All.Values.Where(x => x.Player.Id == pid).FirstOrDefault()?.Info : PlayerData.PlayerInfo.Get(pid);
 
             if (tInfo == null)
             {

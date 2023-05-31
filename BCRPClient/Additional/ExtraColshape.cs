@@ -19,12 +19,10 @@ namespace BCRPClient.Additional
 
         public static bool CancelLastColshape { get; set; }
 
-        public static object[] FormatArgsLastIntColshape { get; set; }
+        public static string OverrideInteractionText { get; set; }
 
         private ExtraColshapes()
         {
-            FormatArgsLastIntColshape = new string[] { };
-
             ExtraColshape.LastSent = DateTime.MinValue;
             ExtraColshape.InteractionColshapesAllowed = true;
 
@@ -287,7 +285,18 @@ namespace BCRPClient.Additional
 
                     CEF.HUD.InteractionAction = func;
 
-                    CEF.HUD.SwitchInteractionText(true, string.Format(Locale.Interaction.Names.GetValueOrDefault(data.InteractionType) ?? Locale.Interaction.Names.GetValueOrDefault(Additional.ExtraColshape.InteractionTypes.Interact) ?? "null", FormatArgsLastIntColshape));
+                    var interactionText = OverrideInteractionText;
+
+                    if (interactionText != null)
+                    {
+                        OverrideInteractionText = null;
+                    }
+                    else
+                    {
+                        interactionText = Locale.Interaction.Names.GetValueOrDefault(data.InteractionType) ?? Locale.Interaction.Names.GetValueOrDefault(Additional.ExtraColshape.InteractionTypes.Interact) ?? "null";
+                    }
+
+                    CEF.HUD.SwitchInteractionText(true, interactionText);
                 }
 
                 data.OnEnter?.Invoke(null);
@@ -443,6 +452,8 @@ namespace BCRPClient.Additional
             CasinoSlotMachineInteract,
             CasinoBlackjackInteract,
             CasinoPockerInteract,
+
+            MarketStallInteract,
         }
 
         public enum ActionTypes
@@ -488,6 +499,8 @@ namespace BCRPClient.Additional
             ElevatorInteract,
 
             CasinoInteract,
+
+            MarketStallInteract,
         }
 
         public static Dictionary<ApproveTypes, Func<bool>> ApproveFuncs = new Dictionary<ApproveTypes, Func<bool>>()
@@ -1392,10 +1405,129 @@ namespace BCRPClient.Additional
                     LastSent = Sync.World.ServerTime;
                 }
             },
+
+            {
+                InteractionTypes.MarketStallInteract, async () =>
+                {
+                    var marketStall = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.MarketStall>("CurrentMarketStall");
+
+                    if (marketStall == null)
+                        return;
+
+                    var currentRenterRid = marketStall.CurrentRenterRID;
+
+                    if (currentRenterRid == Player.LocalPlayer.RemoteId)
+                    {
+
+                    }
+                    else if (currentRenterRid == ushort.MaxValue)
+                    {
+                        await CEF.ActionBox.ShowMoney
+                        (
+                            "MarketStallStartRent", "Аренда торговой лавки", $"Вы действительно хотите арендовать данную торговую лавку?\nИспользуя её, вы сможете продавать свои предметы другим игрокам без риска быть обманутым.\n\nЕсли вы отойдёте от лавки слишком далеко, то лишитесь аренды!\n\n\nСтоимость: ${Utils.ToStringWithWhitespace(BCRPClient.Data.Locations.MarketStall.RentPrice.ToString())}",
+
+                            CEF.ActionBox.DefaultBindAction,
+
+                            async (CEF.ActionBox.ReplyTypes rType) =>
+                            {
+                                var useCash = rType == ActionBox.ReplyTypes.OK;
+
+                                if (useCash || rType == ActionBox.ReplyTypes.Cancel)
+                                {
+                                    if (LastSent.IsSpam(1000, false, true))
+                                        return;
+
+                                    LastSent = Sync.World.ServerTime;
+
+                                    var res = (bool)await Events.CallRemoteProc("MarketStall::Rent", marketStall.Id, useCash);
+
+                                    if (res)
+                                    {
+                                        CEF.ActionBox.Close(true);
+
+                                        var pos = Player.LocalPlayer.GetCoords(false);
+
+                                        if (pos.DistanceTo(marketStall.Position.Position) <= 15f)
+                                        {
+                                            var objHandle = marketStall.GetClosestMapObject();
+
+                                            if (objHandle > 0)
+                                            {
+                                                var newPos = RAGE.Game.Entity.GetOffsetFromEntityInWorldCoords(objHandle, 0f, -0.25f, 0f);
+
+                                                Player.LocalPlayer.SetCoordsNoOffset(newPos.X, newPos.Y, newPos.Z, false, false, false);
+                                                Player.LocalPlayer.SetHeading(RAGE.Game.Entity.GetEntityHeading(objHandle));
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    CEF.ActionBox.Close(true);
+                                }
+                            },
+
+                            null
+                        );
+                    }
+                    else
+                    {
+
+                    }
+                }
+            },
         };
 
         public static Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>> Actions = new Dictionary<ActionTypes, Dictionary<bool, Action<ExtraColshape>>>()
         {
+            {
+                ActionTypes.MarketStallInteract,
+
+                new Dictionary<bool, Action<ExtraColshape>>()
+                {
+                    {
+                        true,
+
+                        (cs) =>
+                        {
+                            if (cs.Data is Data.Locations.MarketStall marketStall)
+                            {
+                                var currentRenterRid = marketStall.CurrentRenterRID;
+
+                                var interactionText = "";
+
+                                if (currentRenterRid == Player.LocalPlayer.RemoteId)
+                                {
+                                    interactionText = "чтобы управлять лавкой";
+                                }
+                                else if (currentRenterRid == ushort.MaxValue)
+                                {
+                                    interactionText = null;
+                                }
+                                else
+                                {
+                                    interactionText = $"чтобы посмотреть товары {RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid)?.Name ?? "null"} ({currentRenterRid})";
+                                }
+
+                                if (interactionText != null)
+                                    ExtraColshapes.OverrideInteractionText = interactionText;
+
+                                Player.LocalPlayer.SetData("CurrentMarketStall", marketStall);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (cs) =>
+                        {
+                            Player.LocalPlayer.ResetData("CurrentMarketStall");
+                        }
+                    },
+                }
+            },
+
             {
                 ActionTypes.CasinoInteract,
 
@@ -1834,7 +1966,7 @@ namespace BCRPClient.Additional
                         {
                             if (cs.Data is BCRPClient.Data.Locations.WeaponShop ws)
                             {
-                                ExtraColshapes.FormatArgsLastIntColshape = new object[] { BCRPClient.Data.Locations.WeaponShop.ShootingRangePrice };
+                                ExtraColshapes.OverrideInteractionText = string.Format(Locale.Interaction.Names.GetValueOrDefault(InteractionTypes.ShootingRangeEnter, "null"), BCRPClient.Data.Locations.WeaponShop.ShootingRangePrice);
 
                                 Player.LocalPlayer.SetData("CurrentShootingRange", ws);
                             }

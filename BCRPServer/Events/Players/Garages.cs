@@ -169,7 +169,7 @@ namespace BCRPServer.Events.Players
             if (garage == null)
                 return;
 
-            player.Teleport(garage.Root.EnterPosition.Position, false, Utils.Dimensions.Main, garage.Root.EnterPosition.RotationZ, true);
+            player.Teleport(garage.Root.EnterPosition.Position, false, Settings.MAIN_DIMENSION, garage.Root.EnterPosition.RotationZ, true);
 
             player.TriggerEvent("Garage::Exit");
         }
@@ -200,7 +200,7 @@ namespace BCRPServer.Events.Players
             if (gRoot == null)
                 return;
 
-            if (player.Dimension != Utils.Dimensions.Main || !vData.IsFullOwner(pData))
+            if (player.Dimension != Settings.MAIN_DIMENSION || !vData.IsFullOwner(pData))
                 return;
 
             if (!player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
@@ -268,7 +268,7 @@ namespace BCRPServer.Events.Players
 
             if (slot >= 0)
             {
-                if (player.Dimension != Utils.Dimensions.Main)
+                if (player.Dimension != Settings.MAIN_DIMENSION)
                     return;
 
                 var garage = pData.OwnedGarages.Where(x => x.Root == gRoot).FirstOrDefault();

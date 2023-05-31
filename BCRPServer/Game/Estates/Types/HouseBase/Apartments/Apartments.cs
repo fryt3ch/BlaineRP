@@ -778,7 +778,7 @@ namespace BCRPServer.Game.Estates
 
                 this.EnterParams = EnterParams;
 
-                this.Dimension = Utils.ApartmentsRootDimBase + Id;
+                this.Dimension = Settings.APARTMENTS_ROOT_DIMENSION_BASE + Id;
 
                 All.Add(Id, this);
             }
@@ -805,7 +805,7 @@ namespace BCRPServer.Game.Estates
                 {
                     var pos = EnterParams;
 
-                    Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+                    Utils.TeleportPlayers(pos.Position, false, Settings.MAIN_DIMENSION, pos.RotationZ, true, players);
                 }
                 else
                 {
@@ -839,7 +839,7 @@ namespace BCRPServer.Game.Estates
 
             this.Price = Price;
 
-            this.Dimension = HID + Utils.ApartmentsDimBase;
+            this.Dimension = HID + Settings.APARTMENTS_DIMENSION_BASE;
 
             All.Add(HID, this);
         }
@@ -893,7 +893,7 @@ namespace BCRPServer.Game.Estates
 
                 var pos = root.EnterParams;
 
-                Utils.TeleportPlayers(pos.Position, false, Utils.Dimensions.Main, pos.RotationZ, true, players);
+                Utils.TeleportPlayers(pos.Position, false, Settings.MAIN_DIMENSION, pos.RotationZ, true, players);
             }
             else
             {

@@ -31,7 +31,7 @@ namespace BCRPServer.Sync
 
         public static void Initialize()
         {
-            ServerDataColshape = NAPI.ColShape.CreatCircleColShape(0f, 0f, 0f, Utils.Dimensions.Stuff);
+            ServerDataColshape = NAPI.ColShape.CreatCircleColShape(0f, 0f, 0f, Settings.STUFF_DIMENSION);
 
             SetSharedData("ServerData", true);
         }

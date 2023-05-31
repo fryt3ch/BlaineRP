@@ -177,6 +177,6 @@ namespace BCRPServer.Game.Casino
             return rItem;
         }
 
-        public bool IsPlayerNear(Player player) => player.Dimension == Utils.Dimensions.Main && player.Position.DistanceTo(Position) <= 5f;
+        public bool IsPlayerNear(Player player) => player.Dimension == Settings.MAIN_DIMENSION && player.Position.DistanceTo(Position) <= 5f;
     }
 }

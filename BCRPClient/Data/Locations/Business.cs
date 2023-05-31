@@ -538,7 +538,7 @@ namespace BCRPClient.Data
                 ("csb_anita", "Анита"),
             };
 
-            public static uint ShootingRangePrice => (uint)Sync.World.GetSharedData<int>("SRange::Price", 0);
+            public static uint ShootingRangePrice => Utils.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price", 0));
 
             public WeaponShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
