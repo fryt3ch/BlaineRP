@@ -113,7 +113,7 @@ namespace BCRPClient.Sync
                 this.FamiliarTypes = RAGE.Util.Json.Deserialize<HashSet<ushort>>(FamiliarTypesJs);
             }
 
-            public static string GetName(ushort type) => Locale.Get($"HOUSE_STYLE_{type}@Name", "null");
+            public static string GetName(ushort type) => Locale.Get($"HOUSE_STYLE_{type}@Name");
 
             public bool IsHouseTypeSupported(HouseTypes hType) => SupportedHouseTypes.Contains(hType);
             public bool IsRoomTypeSupported(RoomTypes rType) => SupportedRoomTypes.Contains(rType);

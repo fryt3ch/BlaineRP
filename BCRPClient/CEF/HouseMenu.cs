@@ -389,7 +389,7 @@ namespace BCRPClient.CEF
 
             var furns = new object[] { Sync.House.Furniture.Select(x => { var fData = x.Value.GetData<Data.Furniture>("Data"); return new object[] { x.Key, fData.Id, fData.Name }; }), pData.Furniture.Select(x => new object[] { x.Key, x.Value.Id, x.Value.Name }), 50 };
 
-            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", x.Value.Objects.Count > 1 ? $"Набор ламп #{x.Key + 1}" : $"Лампа #{x.Key + 1}", x.Value.State, x.Value.RGB.HEX });
+            var lights = Sync.House.Lights.Select(x => new object[] { $"ls_{x.Key}", Locale.Get(x.Value.Objects.Count > 1 ? "HOUSEMENU_LAMPS_SET" : "HOUSEMENU_LAMPS_SINGLE", x.Key + 1), x.Value.State, x.Value.RGB.HEX });
 
             await CEF.Browser.Render(Browser.IntTypes.MenuHome, true, true);
 
@@ -583,11 +583,11 @@ namespace BCRPClient.CEF
 
                     Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", "null", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
+                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
                     Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", "null", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.M));
+                    text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.M));
 
                     Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }

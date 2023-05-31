@@ -171,7 +171,7 @@ namespace BCRPClient.CEF
                     {
                         CEF.Browser.Window.ExecuteJs("MenuBiz.setMoneyAccount", res);
 
-                        CEF.Browser.Window.ExecuteJs("MenuBiz.fillDelivery", true, amount, "Заказ принят");
+                        CEF.Browser.Window.ExecuteJs("MenuBiz.fillDelivery", true, amount, Locale.Get("BUSINESSMENU_ORDER_STATE_0"));
                     }
                 }
                 else if (id == "cancel")
@@ -222,7 +222,7 @@ namespace BCRPClient.CEF
 
             if (delOrderAmount > 0)
             {
-                manage.AddRange(new object[] { true, delOrderAmount, delState.Length > 1 ? "Заказ в пути" : "Заказ принят" });
+                manage.AddRange(new object[] { true, delOrderAmount, Locale.Get(delState.Length > 1 ? "BUSINESSMENU_ORDER_STATE_1" : "BUSINESSMENU_ORDER_STATE_0") });
             }
             else
             {

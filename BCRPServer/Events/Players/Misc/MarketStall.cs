@@ -67,9 +67,35 @@ namespace BCRPServer.Events.Players.Misc
         }
 
         [RemoteProc("MarketStall::Lock")]
-        private static bool Lock(Player player, int stallIdx, bool state)
+        private static byte Lock(Player player, int stallIdx, bool state)
         {
-            return false;
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 255;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return 255;
+
+            var stall = Game.Misc.MarketStall.GetByIdx(stallIdx);
+
+            if (stall == null)
+                return 255;
+
+            if (!stall.IsPlayerNear(player))
+                return 255;
+
+            if (!stall.IsPlayerRenter(stallIdx, player, true))
+                return 255;
+
+            if (stall.IsLocked == state)
+                return 2;
+
+            stall.IsLocked = state;
+
+            return 1;
         }
 
         [RemoteProc("MarketStall::Close")]

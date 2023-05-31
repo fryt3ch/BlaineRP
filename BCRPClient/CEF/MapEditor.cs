@@ -283,7 +283,9 @@ namespace BCRPClient.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+
+                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }
@@ -378,7 +380,9 @@ namespace BCRPClient.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+
+                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }
@@ -458,7 +462,9 @@ namespace BCRPClient.CEF
 
                 if (Entity.GetScreenPosition(ref sX, ref sY))
                 {
-                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+
+                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }
@@ -538,7 +544,9 @@ namespace BCRPClient.CEF
 
                 if (Utils.GetScreenCoordFromWorldCoord(LastPos, ref sX, ref sY))
                 {
-                    Utils.DrawText($"Угол поворота: {LastRot.Z.ToString("0.00")}", sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    var text = Locale.Get("MAPEDITOR_ROTATION_ANGLE", LastRot.Z.ToString("0.00"));
+
+                    Utils.DrawText(text, sX, sY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
             }
         }

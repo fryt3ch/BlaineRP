@@ -393,6 +393,8 @@ namespace BCRPClient.CEF
             { "Casino::BLMT", new Instance(Types.Error, "Сегодня Вы можете поставить еще не более {0} фишек!", Locale.Notifications.ErrorHeader) },
 
             { "Casino::CSB", new Instance(Types.Error, "Вы не можете сделать ставку в данный момент!", Locale.Notifications.ErrorHeader) },
+
+            { "MarketStall::NO", new Instance(Types.Error, "Вы не владеете этой торговой лавкой!", Locale.Notifications.ErrorHeader) },
         };
 
         public Notification()

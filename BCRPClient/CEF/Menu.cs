@@ -301,20 +301,20 @@ namespace BCRPClient.CEF
 
             var mainDict = new Dictionary<string, string>()
             {
-                { "time", "Время сервера" },
-                { "help", "Скрыть подсказки" },
-                { "names", "Скрыть имена игроков" },
-                { "cid", "Скрыть CID игроков" },
-                { "hud", "Скрыть HUD" },
-                { "quest", "Скрыть задание" },
+                { "time", Locale.Get("SETTING_USESERVERTIME") },
+                { "help", Locale.Get("SETTING_HIDEHINTS") },
+                { "names", Locale.Get("SETTING_HIDENAMES") },
+                { "cid", Locale.Get("SETTING_HIDECIDS") },
+                { "hud", Locale.Get("SETTING_HIDEHUD") },
+                { "quest", Locale.Get("SETTING_HIDEQUEST") },
             }.ToDictionary(x => x.Key, x => Utils.ReplaceNewLineHtml(x.Value));
 
             var extraDict = new Dictionary<string, string>()
             {
-                { "interact", "Скрыть кнопку взаимодействия" },
-                { "items", "Скрыть названия\nпредметов на земле" },
-                { "reload", "Автоматическая перезарядка" },
-                { "finger", "Включить указание\nпальцем на объекты" },
+                { "interact", Locale.Get("SETTING_HIDEINTERACT") },
+                { "items", Locale.Get("SETTING_HIDENAMES_ITEMS") },
+                { "reload", Locale.Get("SETTING_AUTORELOAD") },
+                { "finger", Locale.Get("SETTING_FINGERPOINT") },
             }.ToDictionary(x => x.Key, x => Utils.ReplaceNewLineHtml(x.Value));
 
             CEF.Browser.Window.ExecuteJs("Menu.createManyToggles", "main", mainDict.Select(x => new object[] { x.Key, x.Value }));

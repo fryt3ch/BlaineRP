@@ -10,7 +10,7 @@ namespace BCRPServer.Game.Misc
 
         public Utils.Vector4 Position { get; set; }
 
-        public bool IsLocked { get; private set; }
+        public bool IsLocked { get; set; }
 
         private List<Sync.Offers.Offer.Trade.TradeItem> Items { get; set; }
 
@@ -93,6 +93,26 @@ namespace BCRPServer.Game.Misc
         public void SetItems(List<Sync.Offers.Offer.Trade.TradeItem> items)
         {
             Items = items;
+        }
+
+        public bool IsPlayerRenter(int stallIdx, Player player, bool notify)
+        {
+            var renterRid = GetCurrentRenterRID(stallIdx);
+
+            if (renterRid == ushort.MaxValue)
+                return false;
+
+            if (renterRid != player.Id)
+            {
+                if (notify)
+                {
+                    player.Notify("MarketStall::NO");
+                }
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

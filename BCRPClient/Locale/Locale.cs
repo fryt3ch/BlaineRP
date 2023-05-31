@@ -8,7 +8,7 @@ namespace BCRPClient
         {
             private Dictionary<string, string> Texts { get; set; }
 
-            public Language(params (string Key, string Value)[] Texts)
+            public Language((string Key, string Value)[] Texts)
             {
                 this.Texts = new Dictionary<string, string>();
 
@@ -20,12 +20,12 @@ namespace BCRPClient
                 }
             }
 
-            public string Get(string key, string otherwise, params object[] args)
+            public string Get(string key, string otherwise, params object[] formatArfs)
             {
                 var text = Texts.GetValueOrDefault(key, otherwise);
 
-                if (text != null && args.Length > 0)
-                    text = string.Format(text, args);
+                if (text != null && formatArfs.Length > 0)
+                    text = string.Format(text, formatArfs);
 
                 return text;
             }
@@ -39,7 +39,8 @@ namespace BCRPClient
 
         private static Language CurrentLanguage { get; } = Settings.LANGUAGE == "ru" ? RussianLanguage : RussianLanguage;
 
-        public static string Get(string key, string otherwise = null, params object[] args) => CurrentLanguage.Get(key, otherwise, args);
+        public static string Get(string key, params object[] formatArgs) => CurrentLanguage.Get(key, "NULL", formatArgs);
+        public static string GetNullOtherwise(string key, params object[] formatArgs) => CurrentLanguage.Get(key, null, formatArgs);
 
         public static void Add(string key, string value) => CurrentLanguage.Add(key, value);
 

@@ -84,7 +84,7 @@ namespace BCRPClient.CEF
 
                         await CEF.ActionBox.ShowInputWithText
                         (
-                            "MenuArrestFreeInput", $"Вы хотите закрыть дело #{Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD")}", $"Введите причину амнистии", 100, "", null, null,
+                            "MenuArrestFreeInput", Locale.Get("ARRESTMENU_FREE_HEADER", Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD")), Locale.Get("ARRESTMENU_FREE_CONTENT"), 100, "", null, null,
 
                             () =>
                             {
@@ -147,7 +147,7 @@ namespace BCRPClient.CEF
 
                         await CEF.ActionBox.ShowInputWithText
                         (
-                            "MenuArrestChangeTimeInput", "Изменение срока наказания", $"Введите число минут, на которое вы хотите изменить срок по делу #{Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD")} и причину.\n\nПример: -10, Хорошее поведение", 100, "0", null, null,
+                            "MenuArrestChangeTimeInput", Locale.Get("ARRESTMENU_CHTIME_HEADER"), Locale.Get("ARRESTMENU_CHTIME_CONTENT", Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD")), 100, "0", null, null,
 
                             () =>
                             {

@@ -38,14 +38,14 @@ namespace BCRPClient.CEF
 
                     if (curCallInfo == null)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не принимались ни за один вызов!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("POLICETABLET_CALL_NOTAKEN"));
 
                         return;
                     }
 
                     if (curCallInfo.Position.DistanceTo(Player.LocalPlayer.Position) > 10f)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Для того, чтобы завершить текущий вызов, вы должны находиться не более, чем в 10 метрах от него!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("POLICETABLET_CALL_FINISH_0", 10));
 
                         return;
                     }
@@ -341,7 +341,7 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Police::APBF", apbInfo.Id))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Ориентировка №{apbInfo.Id} исполнена (удалена из базы)!");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Get("POLICETABLET_APB_FINISH", apbInfo.Id));
                     }
                     else
                     {
@@ -365,7 +365,7 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Police::APBA", name, details, largeDetails))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Ориентировка успешно добавлена в базу!\nОна будет активна 24 часа, после чего удалится");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Get("POLICETABLET_APB_ADD", 24));
 
                         TabBack();
                     }
@@ -391,7 +391,7 @@ namespace BCRPClient.CEF
 
                     if (callInfo == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой вызов не существует!");
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("POLICETABLET_CALL_NOTEXISTS"));
 
                         return;
                     }
@@ -410,7 +410,7 @@ namespace BCRPClient.CEF
 
                     if (gpsTrackerInfo == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой GPS-трекер не существует!");
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("POLICETABLET_GPSTR_NOTEXISTS"));
 
                         return;
                     }
@@ -450,7 +450,7 @@ namespace BCRPClient.CEF
 
                     if (Player.LocalPlayer.GetData<object>("House::CurrentHouse") == houseData)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, "Вы уже находитесь в этом доме!");
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Get("POLICETABLET_RFIND_INHOUSENOW"));
 
                         return;
                     }
@@ -470,7 +470,7 @@ namespace BCRPClient.CEF
 
                     if (Player.LocalPlayer.GetData<object>("House::CurrentHouse") == apsData)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, "Вы уже находитесь в этой квартире!");
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Get("POLICETABLET_RFIND_INFLATNOW"));
 
                         return;
                     }
@@ -504,7 +504,7 @@ namespace BCRPClient.CEF
 
                     if (gpsTrackerInfo == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой GPS-трекер не существует!");
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("POLICETABLET_GPSTR_NOTEXISTS"));
 
                         return;
                     }

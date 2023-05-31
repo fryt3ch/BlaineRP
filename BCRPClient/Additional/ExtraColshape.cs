@@ -1407,74 +1407,7 @@ namespace BCRPClient.Additional
             },
 
             {
-                InteractionTypes.MarketStallInteract, async () =>
-                {
-                    var marketStall = Player.LocalPlayer.GetData<BCRPClient.Data.Locations.MarketStall>("CurrentMarketStall");
-
-                    if (marketStall == null)
-                        return;
-
-                    var currentRenterRid = marketStall.CurrentRenterRID;
-
-                    if (currentRenterRid == Player.LocalPlayer.RemoteId)
-                    {
-
-                    }
-                    else if (currentRenterRid == ushort.MaxValue)
-                    {
-                        await CEF.ActionBox.ShowMoney
-                        (
-                            "MarketStallStartRent", "Аренда торговой лавки", $"Вы действительно хотите арендовать данную торговую лавку?\nИспользуя её, вы сможете продавать свои предметы другим игрокам без риска быть обманутым.\n\nЕсли вы отойдёте от лавки слишком далеко, то лишитесь аренды!\n\n\nСтоимость: ${Utils.ToStringWithWhitespace(BCRPClient.Data.Locations.MarketStall.RentPrice.ToString())}",
-
-                            CEF.ActionBox.DefaultBindAction,
-
-                            async (CEF.ActionBox.ReplyTypes rType) =>
-                            {
-                                var useCash = rType == ActionBox.ReplyTypes.OK;
-
-                                if (useCash || rType == ActionBox.ReplyTypes.Cancel)
-                                {
-                                    if (LastSent.IsSpam(1000, false, true))
-                                        return;
-
-                                    LastSent = Sync.World.ServerTime;
-
-                                    var res = (bool)await Events.CallRemoteProc("MarketStall::Rent", marketStall.Id, useCash);
-
-                                    if (res)
-                                    {
-                                        CEF.ActionBox.Close(true);
-
-                                        var pos = Player.LocalPlayer.GetCoords(false);
-
-                                        if (pos.DistanceTo(marketStall.Position.Position) <= 15f)
-                                        {
-                                            var objHandle = marketStall.GetClosestMapObject();
-
-                                            if (objHandle > 0)
-                                            {
-                                                var newPos = RAGE.Game.Entity.GetOffsetFromEntityInWorldCoords(objHandle, 0f, -0.25f, 0f);
-
-                                                Player.LocalPlayer.SetCoordsNoOffset(newPos.X, newPos.Y, newPos.Z, false, false, false);
-                                                Player.LocalPlayer.SetHeading(RAGE.Game.Entity.GetEntityHeading(objHandle));
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    CEF.ActionBox.Close(true);
-                                }
-                            },
-
-                            null
-                        );
-                    }
-                    else
-                    {
-
-                    }
-                }
+                InteractionTypes.MarketStallInteract, BCRPClient.Data.Locations.MarketStall.OnInteractionKeyPressed
             },
         };
 
@@ -1494,19 +1427,19 @@ namespace BCRPClient.Additional
                             {
                                 var currentRenterRid = marketStall.CurrentRenterRID;
 
-                                var interactionText = "";
+                                string interactionText = null;
 
                                 if (currentRenterRid == Player.LocalPlayer.RemoteId)
                                 {
-                                    interactionText = "чтобы управлять лавкой";
+                                    interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_1");
                                 }
                                 else if (currentRenterRid == ushort.MaxValue)
                                 {
-                                    interactionText = null;
+
                                 }
                                 else
                                 {
-                                    interactionText = $"чтобы посмотреть товары {RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid)?.Name ?? "null"} ({currentRenterRid})";
+                                    interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_2", RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid)?.Name ?? "null", currentRenterRid);
                                 }
 
                                 if (interactionText != null)

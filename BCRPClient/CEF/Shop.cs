@@ -2021,7 +2021,7 @@ namespace BCRPClient.CEF
                         {
                             var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEXNoAlpha : null;
 
-                            subData.Add(new object[] { "neon", Locale.General.Business.TuningNeon, "color-selection-1", new object[] { "Цвет неона", prices["neon"], prices["neon_0"] }, curNeon });
+                            subData.Add(new object[] { "neon", Locale.General.Business.TuningNeon, "color-selection-1", new object[] { Locale.Get("SHOP_TUNING_NEONCOL_0"), prices["neon"], prices["neon_0"] }, curNeon });
                         }
 
                         foreach (var x in Additional.TuningMenu.Slots.Where(x => x.Value.Id == "spoiler" || x.Value.Id == "fbump" || x.Value.Id == "rbump" || x.Value.Id == "skirt" || x.Value.Id == "exh" || x.Value.Id == "frame" || x.Value.Id == "grill" || x.Value.Id == "hood" || x.Value.Id == "roof" || x.Value.Id == "seats" || x.Value.Id == "swheel" || x.Value.Id == "livery" || x.Value.Id == "horn").ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Key)))
@@ -2132,9 +2132,9 @@ namespace BCRPClient.CEF
                         // misc
                         subData = new List<object>();
 
-                        subData.Add(new object[] { "fix", "Ремонт", "variants-list", new object[] { new object[] { prices["fix_0"], "Полноценный" }, new object[] { prices["fix_1"], "Косметический (визуальный)" } }, null });
+                        subData.Add(new object[] { "fix", Locale.Get("SHOP_TUNING_FIX_L"), "variants-list", new object[] { new object[] { prices["fix_0"], Locale.Get("SHOP_TUNING_FIX_0") }, new object[] { prices["fix_1"], Locale.Get("SHOP_TUNING_FIX_1") } }, null });
 
-                        subData.Add(new object[] { "keys", "Ключи", "variants-list", new object[] { new object[] { prices["keys_0"], "Смена замков" }, new object[] { prices["keys_1"], "Дупликат ключей" } }, null });
+                        subData.Add(new object[] { "keys", Locale.Get("SHOP_TUNING_KEYS_L"), "variants-list", new object[] { new object[] { prices["keys_0"], Locale.Get("SHOP_TUNING_KEYS_0") }, new object[] { prices["keys_1"], Locale.Get("SHOP_TUNING_KEYS_1") } }, null });
 
                         tData.Add(subData);
 
@@ -2758,11 +2758,11 @@ namespace BCRPClient.CEF
 
                 Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                text = $"{KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape)} - вернуться к ассортименту";
+                text = Locale.Get("SHOP_RET_PREVIEW_HELP_0", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
                 Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-                text = $"V - смена вида, Ctrl + колесико - зум";
+                text = Locale.Get("SHOP_RET_PREVIEW_HELP_1");
 
                 Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
@@ -2773,7 +2773,7 @@ namespace BCRPClient.CEF
             if (!CEF.Browser.IsActive(CEF.Browser.IntTypes.Retail))
                 return;
 
-            var text = "ПКМ по предмету - предпросмотр";
+            var text = Locale.Get("SHOP_RET_PREVIEW_HELP_2");
 
             Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
