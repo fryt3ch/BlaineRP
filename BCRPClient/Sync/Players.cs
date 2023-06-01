@@ -765,7 +765,7 @@ namespace BCRPClient.Sync
 
                     RAGE.Game.Graphics.StartScreenEffect("DeathFailMPIn", 0, true);
 
-                    var scaleformWaster = Additional.Scaleform.CreateShard("wasted", "~r~" + Locale.Scaleform.Wasted.Header, attacker.Handle == Player.LocalPlayer.Handle ? Locale.Scaleform.Wasted.TextSelf : string.Format(Locale.Scaleform.Wasted.TextAttacker, attacker.GetName(true, false, true), Sync.Players.GetData(attacker)?.CID ?? 0), -1);
+                    var scaleformWaster = Additional.Scaleform.CreateShard("wasted", Locale.Get("SCALEFORM_WASTED_HEADER"), attacker.Handle == Player.LocalPlayer.Handle ? Locale.Get("SCALEFORM_WASTED_ATTACKER_S") : Locale.Get("SCALEFORM_WASTED_ATTACKER_P", attacker.GetName(true, false, true), Sync.Players.GetData(attacker)?.CID ?? 0), -1);
 
                     CEF.Death.Show();
                 }

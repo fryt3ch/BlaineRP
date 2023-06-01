@@ -115,7 +115,7 @@ namespace BCRPClient
                     Utils.DrawText($"#{pData.CID}", x, y += Interval / 2, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (pData.AdminLevel > -1)
-                    Utils.DrawText(Locale.General.Players.AdminLabel, x, y += Interval / 2, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                    Utils.DrawText(Locale.Get("PLAYER_ADMIN_L"), x, y += Interval / 2, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                 if (RAGE.Game.Player.IsPlayerFreeAimingAtEntity(player.Handle))
                 {

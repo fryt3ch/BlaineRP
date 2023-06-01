@@ -192,7 +192,7 @@ namespace BCRPClient
 
                 var curTime = Sync.World.ServerTime;
 
-                var text = new Additional.ExtraLabel(pos, string.Format(Locale.General.Players.PlayerQuitText, curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
+                var text = new Additional.ExtraLabel(pos, Locale.Get("PLAYER_QUIT_TEXT", curTime.ToString("dd.MM.yy"), curTime.ToString("HH:mm::ss"), pData.CID, player.RemoteId), new RGBA(255, 255, 255, 255), 10f, 0, true, player.Dimension) { Font = 4, LOS = false };
 
                 pos.Z -= 1f;
 
@@ -506,7 +506,7 @@ namespace BCRPClient
             else
             {
                 RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, $"CID #{pData.CID}");
-                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, string.Format(Locale.PauseMenu.Money, Utils.GetPriceString(pData.Cash), Utils.GetPriceString(pData.BankBalance)));
+                RAGE.Game.Invoker.Invoke(0xBA7148484BD90365, Locale.Get("GEN_PAUSEMENU_MONEY_T", Utils.GetPriceString(pData.Cash), Utils.GetPriceString(pData.BankBalance)));
             }
 
             RAGE.Game.Invoker.Invoke(0xC58424BA936EB458, false); // ScaleformMovieMethodAddParamBool

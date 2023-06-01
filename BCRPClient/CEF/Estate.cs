@@ -548,7 +548,7 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.Estate, true, true);
 
-            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "veh", null, new object[] { targetPlayer.GetName(true, false, true), price, vData.Name, vData.GovPrice, vid, plate ?? Locale.General.Documents.VehiclePassportNoPlate });
+            CEF.Browser.Window.ExecuteJs("Estate.draw", "offer", "veh", null, new object[] { targetPlayer.GetName(true, false, true), price, vData.Name, vData.GovPrice, vid, plate ?? Locale.Get("DOCS_VEHPASS_NOPLATE") });
 
             if (showCursor)
                 CEF.Cursor.Show(true, true);

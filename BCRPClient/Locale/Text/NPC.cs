@@ -8,9 +8,6 @@ namespace BCRPClient
         {
             public static class NPC
             {
-                public static string NotFamiliarMale = "Незнакомец";
-                public static string NotFamiliarFemale = "Незнакомка";
-
                 public static Dictionary<string, string> TypeNames = new Dictionary<string, string>()
                 {
                     { "quest", "Квестодатель" },

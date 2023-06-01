@@ -4,12 +4,6 @@ namespace BCRPClient
 {
     public static partial class Locale
     {
-        public static class TestDrive
-        {
-            public static string CloseText = "Нажмите ESC, чтобы закончить тест-драйв";
-            public static string TuningText = "Нажмите F4, чтобы открыть меню тюнинга";
-        }
-
         public static class Property
         {
             public static Dictionary<Data.Vehicles.Vehicle.Types, string> VehicleTypesNames = new Dictionary<Data.Vehicles.Vehicle.Types, string>()
@@ -28,8 +22,6 @@ namespace BCRPClient
             public static string ApartmentsTradeInfoStr = "{0}, кв. {1}";
             public static string GarageTradeInfoStr = "{0}, #{1}";
             public static string BusinessTradeInfoStr = "{0} #{1}";
-
-            public static string VehicleNoNumberplate = "без гос. номера";
 
             public static Dictionary<Data.Jobs.Types, string> JobNames = new Dictionary<Data.Jobs.Types, string>()
             {
@@ -105,10 +97,6 @@ namespace BCRPClient
 
         public static class Shop
         {
-            public static string ModDeletionTitle = "Удаление модификации";
-
-            public static string ModDeletionText = "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо!\nВыберите способ оплаты, чтобы продолжить.";
-
             public static string BarberShopLipstickLabel = "Помада";
             public static string BarberShopBlushLabel = "Румяна";
             public static string BarberShopMakeupLabel = "Макияж";

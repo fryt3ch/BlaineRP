@@ -296,7 +296,7 @@ namespace BCRPClient.Data.Minigames
                 if (!Utils.IsTaskStillPending("SRange::Start::D", task))
                     return;
 
-                var scaleformCounter = Additional.Scaleform.CreateCounter("srange_s_counter", Locale.Scaleform.ShootingRangeCountdownTitle, Locale.Scaleform.ShootingRangeCountdownText, 5, Additional.Scaleform.CounterSoundTypes.Deep);
+                var scaleformCounter = Additional.Scaleform.CreateCounter("srange_s_counter", Locale.Get("SCALEFORM_SRANGE_CDOWN_HEADER"), Locale.Get("SCALEFORM_SRANGE_CDOWN_CONTENT"), 5, Additional.Scaleform.CounterSoundTypes.Deep);
 
                 await RAGE.Game.Invoker.WaitAsync(5000);
 
@@ -356,7 +356,7 @@ namespace BCRPClient.Data.Minigames
 
             var rData = Ranges[srType];
 
-            Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeScoreText, CurrentScore, CurrentMaxScore), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+            Utils.DrawText(Locale.Get("SCALEFORM_SRANGE_SCORE_T", CurrentScore, CurrentMaxScore), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
 
             var totalLooseScore = CurrentTotalShots + CurrentLooseScore;
 
@@ -369,21 +369,23 @@ namespace BCRPClient.Data.Minigames
                 return;
             }
 
+            var accText = Locale.Get("SCALEFORM_SRANGE_ACC_T", totalAccuracy);
+
             if (totalAccuracy < 50f)
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.95f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else if (totalAccuracy < 75)
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.95f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else if (totalAccuracy < 90)
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.95f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else
             {
-                Utils.DrawText(string.Format(Locale.Scaleform.ShootingRangeAccuracyText, totalAccuracy), 0.5f, 0.95f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.95f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
 
             if (Targets.Count <= 5 && Sync.World.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)

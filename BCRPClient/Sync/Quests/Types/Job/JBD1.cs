@@ -142,7 +142,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                         var res = await quest.CallProgressUpdateProc();
                                     }, waitTime, false, 0);
 
-                                    var scaleform = Additional.Scaleform.CreateCounter("job_busdriver_0", Locale.Scaleform.JobBusDriverWaitTitle, Locale.Scaleform.JobTruckerLoadMaterialsText, waitTime / 1000, Additional.Scaleform.CounterSoundTypes.None);
+                                    var scaleform = Additional.Scaleform.CreateCounter("job_busdriver_0", Locale.Get("SCALEFORM_JOB_BUSDRIVER_WAIT_HEADER"), Locale.Get("SCALEFORM_JOB_TRUCKER_WAIT_CONTENT"), waitTime / 1000, Additional.Scaleform.CounterSoundTypes.None);
 
                                     scaleform.OnRender += () =>
                                     {

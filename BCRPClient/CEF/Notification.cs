@@ -84,8 +84,8 @@ namespace BCRPClient.CEF
 
         private static Dictionary<string, Instance> Prepared = new Dictionary<string, Instance>()
         {
-            { "ASP::ARN", new Instance(Types.Error, Locale.Notifications.AntiSpam.ActionRestrictedNow, Locale.Notifications.ErrorHeader) },
-            { "SA", new Instance(Types.Error, "Вы не можете делать это с самим собой!", Locale.Notifications.ErrorHeader) },
+            { "ASP::ARN", new Instance(Types.Error, "GEN_ACTION_RESTRICTED_NOW", Locale.Notifications.ErrorHeader) },
+            { "SA", new Instance(Types.Error, "GEN_ACTION_NO_SELF", Locale.Notifications.ErrorHeader) },
 
             { "ACMD::NA", new Instance(Types.Error, "Для использования данной команды необходим более высокий уровень администрирования!", Locale.Notifications.ErrorHeader) },
 

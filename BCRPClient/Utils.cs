@@ -482,12 +482,16 @@ namespace BCRPClient
             var pData = Sync.Players.GetData(player);
 
             if (pData == null)
-                return includeId ? Locale.General.Players.MaleNameDefault + string.Format(Locale.General.Players.Id, player.RemoteId) : Locale.General.Players.MaleNameDefault;
+            {
+                var defNameMale = Locale.Get("NPC_NOTFAM_MALE");
 
-            var name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.IsMasked) ? player.Name : pData.Sex ? Locale.General.Players.MaleNameDefault : Locale.General.Players.FemaleNameDefault) : player.Name;
+                return includeId ? defNameMale + $" ({player.RemoteId})" : defNameMale;
+            }
+
+            var name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.IsMasked) ? player.Name : Locale.Get(pData.Sex ? "NPC_NOTFAM_MALE" : "NPC_NOTFAM_FEMALE")) : player.Name;
 
             if (includeId)
-                return name + " " + string.Format(Locale.General.Players.Id, player.RemoteId);
+                return name + $" ({player.RemoteId})";
             else
                 return name;
         }
@@ -880,7 +884,7 @@ namespace BCRPClient
                 {
                     if (notify)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.AntiSpam.ActionRestrictedNow);
+                        CEF.Notification.Show("ASP::ARN");
                     }
 
                     return false;

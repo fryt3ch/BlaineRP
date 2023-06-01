@@ -927,7 +927,7 @@ namespace BCRPClient.CEF
 
                         await CEF.ActionBox.ShowMoney
                         (
-                            "TuningShopDeleteMod", Locale.Shop.ModDeletionTitle, string.Format(Locale.Shop.ModDeletionText, data[0] == "neon" ? Locale.General.Business.TuningNeon : data[0] == "pearl" ? Locale.General.Business.TuningPearl : data[0] == "tsmoke" ? Locale.General.Business.TuningTyreSmokeColour : Locale.General.Business.TuningWheelColour),
+                            "TuningShopDeleteMod", Locale.Get("SHOP_TUNING_MODDEL_HEADER"), Locale.Get("SHOP_TUNING_MODDEL_CONTENT", data[0] == "neon" ? Locale.Get("SHOP_TUNING_NEON_L") : data[0] == "pearl" ? Locale.Get("SHOP_TUNING_PEARL_L") : data[0] == "tsmoke" ? Locale.Get("SHOP_TUNING_TSMOKEC_L") : Locale.Get("SHOP_TUNING_WHEELC_L")),
                             
                             null,
 
@@ -1687,7 +1687,7 @@ namespace BCRPClient.CEF
                                 continue;
 
                             if (!allTattoos.ContainsKey(tattooData.ZoneType))
-                                allTattoos.Add(tattooData.ZoneType, new List<object>() { new object[] { "none", Locale.General.Business.NothingItem, prices[$"tat_-1_{(int)tattooData.ZoneType}"] } });
+                                allTattoos.Add(tattooData.ZoneType, new List<object>() { new object[] { "none", Locale.Get("SHOP_SHARED_NOTHINGITEM_L"), prices[$"tat_-1_{(int)tattooData.ZoneType}"] } });
 
                             allTattoos[tattooData.ZoneType].Add(new object[] { x.Key, tattooData.Name, x.Value });
                         }
@@ -1743,7 +1743,7 @@ namespace BCRPClient.CEF
                         if (prices == null)
                             return;
 
-                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, false };
+                        var clearingItem = new object[] { "clear", Locale.Get("SHOP_SHARED_NOTHINGITEM_L"), 0, 0, false };
 
                         List<object[]> hats = new List<object[]>() { clearingItem };
                         List<object[]> tops = new List<object[]>() { clearingItem };
@@ -1871,7 +1871,7 @@ namespace BCRPClient.CEF
 
                         var prices = GetPrices(CurrentType);
 
-                        var clearingItem = new object[] { "clear", Locale.General.Business.NothingItem, 0, 0, false };
+                        var clearingItem = new object[] { "clear", Locale.Get("SHOP_SHARED_NOTHINGITEM_L"), 0, 0, false };
 
                         var necklaces = new List<object>() { clearingItem };
                         var earrings = new List<object>() { clearingItem };
@@ -2021,7 +2021,7 @@ namespace BCRPClient.CEF
                         {
                             var curNeon = vData.HasNeonMod ? veh.GetNeonColour().HEXNoAlpha : null;
 
-                            subData.Add(new object[] { "neon", Locale.General.Business.TuningNeon, "color-selection-1", new object[] { Locale.Get("SHOP_TUNING_NEONCOL_0"), prices["neon"], prices["neon_0"] }, curNeon });
+                            subData.Add(new object[] { "neon", Locale.Get("SHOP_TUNING_NEON_L"), "color-selection-1", new object[] { Locale.Get("SHOP_TUNING_NEONCOL_0"), prices["neon"], prices["neon_0"] }, curNeon });
                         }
 
                         foreach (var x in Additional.TuningMenu.Slots.Where(x => x.Value.Id == "spoiler" || x.Value.Id == "fbump" || x.Value.Id == "rbump" || x.Value.Id == "skirt" || x.Value.Id == "exh" || x.Value.Id == "frame" || x.Value.Id == "grill" || x.Value.Id == "hood" || x.Value.Id == "roof" || x.Value.Id == "seats" || x.Value.Id == "swheel" || x.Value.Id == "livery" || x.Value.Id == "horn").ToDictionary(x => x.Value.Id, x => (x.Value.Name, x.Key)))
@@ -2045,17 +2045,19 @@ namespace BCRPClient.CEF
                         if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
                             subData.Add(new object[] { "colourt", techData["colourt"].Name, "variants-list", techData["colourt"].ModNames.Select(x => new object[] { prices[$"colourt_{x.Key}"], x.Value }), $"colourt_{veh.GetColourType()}" });
 
-                        subData.Add(new object[] { "colour", Locale.General.Business.TuningColours, "color-selection-2", new object[] { CurrentColor1.HEXNoAlpha, CurrentColor2.HEXNoAlpha, prices["colour"] } });
+                        subData.Add(new object[] { "colour", Locale.Get("SHOP_TUNING_COLOURS_L"), "color-selection-2", new object[] { CurrentColor1.HEXNoAlpha, CurrentColor2.HEXNoAlpha, prices["colour"] } });
 
-                        subData.Add(new object[] { "pearl", Locale.General.Business.TuningPearl, "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
+                        subData.Add(new object[] { "pearl", Locale.Get("SHOP_TUNING_PEARL_L"), "color-selection-many", new object[] { true, prices["pearl"], prices["pearl_0"] }, veh.GetPearlColour() });
 
                         if (vData.Data.Type != Data.Vehicles.Vehicle.Types.Boat)
                         {
-                            subData.Add(new object[] { "wcolour", Locale.General.Business.TuningWheelColour, "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
+                            subData.Add(new object[] { "wcolour", Locale.Get("SHOP_TUNING_WHEELC_L"), "color-selection-many", new object[] { true, prices["wcolour"], prices["wcolour_0"] }, veh.GetWheelsColour() });
 
                             var curTsCol = vData.TyreSmokeColour?.HEXNoAlpha;
 
-                            subData.Add(new object[] { "tsmoke", Locale.General.Business.TuningTyreSmokeColour, "color-selection-1", new object[] { Locale.General.Business.TuningTyreSmokeColour, prices["tsmoke"], prices["tsmoke_0"] }, curTsCol });
+                            var tyreSmokeColourLabel = Locale.Get("SHOP_TUNING_TSMOKEC_L");
+
+                            subData.Add(new object[] { "tsmoke", tyreSmokeColourLabel, "color-selection-1", new object[] { tyreSmokeColourLabel, prices["tsmoke"], prices["tsmoke_0"] }, curTsCol });
                         }
 
                         tData.Add(subData);
@@ -2553,12 +2555,12 @@ namespace BCRPClient.CEF
 
             if (!Additional.TuningMenu.IsActive && Player.LocalPlayer.Vehicle != null)
             {
-                Utils.DrawText(Locale.TestDrive.CloseText, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
-                Utils.DrawText(Locale.TestDrive.TuningText, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_0"), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_1"), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
             else
             {
-                Utils.DrawText(Locale.TestDrive.CloseText, 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(Locale.Get("SHOP_TESTDRIVE_HELP_0"), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
             }
         }
 

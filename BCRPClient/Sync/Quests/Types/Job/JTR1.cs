@@ -75,7 +75,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                         var res = await quest.CallProgressUpdateProc();
                                     }, waitTime, false, 0);
 
-                                    var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", Locale.Scaleform.JobTruckerLoadMaterialsTitle, Locale.Scaleform.JobTruckerLoadMaterialsText, waitTime / 1000, Additional.Scaleform.CounterSoundTypes.None);
+                                    var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", Locale.Get("SCALEFORM_JOB_TRUCKER_WAIT_0_HEADER"), Locale.Get("SCALEFORM_JOB_TRUCKER_WAIT_CONTENT"), waitTime / 1000, Additional.Scaleform.CounterSoundTypes.None);
 
                                     scaleform.OnRender += () =>
                                     {
@@ -182,7 +182,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                         var res = await quest.CallProgressUpdateProc();
                                     }, waitTime, false, 0);
 
-                                    var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", Locale.Scaleform.JobTruckerUnloadMaterialsTitle, Locale.Scaleform.JobTruckerLoadMaterialsText, waitTime / 1000, Additional.Scaleform.CounterSoundTypes.None);
+                                    var scaleform = Additional.Scaleform.CreateCounter("job_trucker_0", Locale.Get("SCALEFORM_JOB_TRUCKER_WAIT_1_HEADER"), Locale.Get("SCALEFORM_JOB_TRUCKER_WAIT_CONTENT"), waitTime / 1000, Additional.Scaleform.CounterSoundTypes.None);
 
                                     scaleform.OnRender += () =>
                                     {

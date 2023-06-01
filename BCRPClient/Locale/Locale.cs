@@ -127,15 +127,6 @@ namespace BCRPClient
             #region Players
             public static class Players
             {
-                public static string MaleNameDefault = "Гражданин";
-                public static string FemaleNameDefault = "Гражданка";
-
-                public static string Id = "({0})";
-
-                public static string AdminLabel = "Администратор";
-
-                public static string PlayerQuitText = "Игрок вышел {0} в {1}\nCID: #{2} | ID: {3}";
-
                 public static Dictionary<Sync.Players.SkillTypes, string> SkillNames = new Dictionary<Sync.Players.SkillTypes, string>()
                 {
                     { Sync.Players.SkillTypes.Shooting, "Стрельба" },
@@ -170,65 +161,10 @@ namespace BCRPClient
                 };
             }
             #endregion
-
-            public static class Business
-            {
-                public static string InfoColshape = "{0} #{1}";
-
-                public static string NothingItem = "Ничего";
-
-                public static string TuningNeon = "Неон";
-                public static string TuningColours = "Цвета покраски";
-                public static string TuningPearl = "Перламутр";
-                public static string TuningWheelColour = "Цвет покрышек";
-                public static string TuningTyreSmokeColour = "Цвет дыма от колес";
-
-                public static string ShootingRangeTitle = "Тир";
-            }
-
-            public static class Documents
-            {
-                public static string SexMale = "мужской";
-                public static string SexFemale = "женский";
-
-                public static string NotMarriedMale = "не женат";
-                public static string NotMarriedFemale = "не замужем";
-
-                public static string VehiclePassportNoPlate = "отсутствует";
-            }
         }
         #endregion
 
         #region Other
-        public static class PauseMenu
-        {
-            public static string Money = "Наличные: {0} | Банк: {1}";
-        }
-
-        public static class Scaleform
-        {
-            public static class Wasted
-            {
-                public static string Header = "Вы при смерти";
-
-                public static string TextAttacker = "Атакующий: {0} | CID: #{1}";
-                public static string TextSelf = "Несчастный случай";
-            }
-
-            public static string ShootingRangeCountdownTitle = "~g~Приготовьтесь!";
-            public static string ShootingRangeCountdownText = "Начало через: {0}";
-
-            public static string ShootingRangeScoreText = "Счёт: {0} / {1}";
-            public static string ShootingRangeAccuracyText = "Точность: {0}%";
-
-            public const string JobBusDriverWaitTitle = "~g~Ожидание пассажиров";
-            public const string JobCollectorWaitTitle = "~g~Загрузка денег";
-            public const string JobCollectorWaitTitle1 = "~g~Выгрузка денег";
-            public const string JobTruckerLoadMaterialsTitle = "~g~Загрузка материалов";
-            public const string JobTruckerUnloadMaterialsTitle = "~g~Выгрузка материалов";
-            public const string JobTruckerLoadMaterialsText = "Подождите еще {0} сек.";
-        }
-
         public static class HudMenu
         {
             public static Dictionary<CEF.HUD.Menu.Types, string> Names = new Dictionary<CEF.HUD.Menu.Types, string>()

@@ -42,6 +42,8 @@ namespace BCRPClient
                 ("POLICETABLET_RFIND_INHOUSENOW", "Вы уже находитесь в этом доме!"),
                 ("POLICETABLET_RFIND_INFLATNOW", "Вы уже находитесь в этой квартире!"),
 
+                ("SHOP_SHARED_NOTHINGITEM_L", "Ничего"),
+                ("SHOP_WEAPON_SRANGE_L", "Тир"),
                 ("SHOP_TUNING_NEONCOL_0", "Цвет неона"),
                 ("SHOP_TUNING_FIX_L", "Ремонт"),
                 ("SHOP_TUNING_FIX_0", "Полноценный"),
@@ -49,10 +51,26 @@ namespace BCRPClient
                 ("SHOP_TUNING_KEYS_L", "Ключи"),
                 ("SHOP_TUNING_KEYS_0", "Смена замков"),
                 ("SHOP_TUNING_KEYS_1", "Дубликат ключей"),
+                ("SHOP_TUNING_MODDEL_HEADER", "Удаление модификации"),
+                ("SHOP_TUNING_MODDEL_CONTENT", "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо!\nВыберите способ оплаты, чтобы продолжить."),
+                ("SHOP_TUNING_NEON_L", "Неон"),
+                ("SHOP_TUNING_COLOURS_L", "Цвета покраски"),
+                ("SHOP_TUNING_PEARL_L", "Перламутр"),
+                ("SHOP_TUNING_WHEELC_L", "Цвет покрышек"),
+                ("SHOP_TUNING_TSMOKEC_L", "Цвет дыма от колес"),
+
+                ("SHOP_TESTDRIVE_HELP_0", "Нажмите {0}, чтобы закончить тест-драйв"),
+                ("SHOP_TESTDRIVE_HELP_1", "Нажмите {0}, чтобы открыть меню тюнинга"),
 
                 ("SHOP_RET_PREVIEW_HELP_0", "{0} - вернуться к ассортименту"),
                 ("SHOP_RET_PREVIEW_HELP_1", "V - смена вида, Ctrl + колесико - зум"),
                 ("SHOP_RET_PREVIEW_HELP_2", "ПКМ по предмету - предпросмотр"),
+
+                ("DOCS_SEX_MALE", "мужской"),
+                ("DOCS_SEX_FEMALE", "женский"),
+                ("DOCS_NOTMARRIED_MALE", "не женат"),
+                ("DOCS_NOTMARRIED_FEMALE", "не замужем"),
+                ("DOCS_VEHPASS_NOPLATE", "отсутствует"),
 
                 ("MARKETSTALL_R_HEADER", "Аренда торговой лавки"),
                 ("MARKETSTALL_R_CONTENT", "Вы действительно хотите арендовать данную торговую лавку?\nИспользуя её, вы сможете продавать свои предметы другим игрокам без риска быть обманутым.\n\nЕсли вы отойдёте от лавки слишком далеко, то лишитесь аренды!\n\n\nСтоимость: {0}"),
@@ -65,6 +83,7 @@ namespace BCRPClient
                 ("MARKETSTALL_MG_SELLHIST", "История продаж"),
                 ("MARKETSTALL_MG_CLOSE", "Закрыть лавку"),
                 ("MARKETSTALL_MG_HISTEMPTY", "История Ваших продаж на данный момент пуста!"),
+                ("MARKETSTALL_NOWNER", "Вы не арендуете эту торговую лавку!"),
 
                 ("BUSINESSMENU_ORDER_STATE_0", "Заказ принят"),
                 ("BUSINESSMENU_ORDER_STATE_1", "Заказ в пути"),
@@ -79,6 +98,37 @@ namespace BCRPClient
                 ("INTERACTION_L_MARKETSTALL_0", "чтобы начать торговать"),
                 ("INTERACTION_L_MARKETSTALL_1", "чтобы управлять лавкой"),
                 ("INTERACTION_L_MARKETSTALL_2", "чтобы посмотреть товары {0} ({1})"),
+
+                ("NPC_NOTFAM_MALE", "Незнакомец"),
+                ("NPC_NOTFAM_FEMALE", "Незнакомка"),
+
+                ("PLAYER_DEFNAME_MALE", "Гражданин"),
+                ("PLAYER_DEFNAME_FEMALE", "Гражданка"),
+                ("PLAYER_ADMIN_L", "Администратор"),
+                ("PLAYER_QUIT_TEXT", "Игрок вышел {0} в {1}\nCID: #{2} | ID: {3}"),
+
+                ("GEN_PAUSEMENU_MONEY_T", "Наличные: {0} | Банк: {1}"),
+
+                ("GEN_ACTION_RESTRICTED_NOW", "Сейчас вы не можете сделать это!"),
+                ("GEN_ACTION_NO_SELF", "Вы не можете делать это с самим собой!"),
+
+                ("NOTIFICATION_HEADER_DEF", "Уведомление"),
+                ("NOTIFICATION_HEADER_ERROR", "Ошибка"),
+                ("NOTIFICATION_HEADER_APPROVE", "Подтверждение"),
+
+                ("SCALEFORM_WASTED_HEADER", "~r~Вы при смерти"),
+                ("SCALEFORM_WASTED_ATTACKER_P", "Атакующий: {0} | CID: #{1}"),
+                ("SCALEFORM_WASTED_ATTACKER_S", "Несчастный случай"),
+                ("SCALEFORM_SRANGE_CDOWN_HEADER", "~g~Приготовьтесь!"),
+                ("SCALEFORM_SRANGE_CDOWN_CONTENT", "Начало через: {0}"),
+                ("SCALEFORM_SRANGE_SCORE_T", "Счёт: {0} / {1}"),
+                ("SCALEFORM_SRANGE_ACC_T", "Точность: {0}%"),
+                ("SCALEFORM_JOB_BUSDRIVER_WAIT_HEADER", "~g~Ожидание пассажиров"),
+                ("SCALEFORM_JOB_COLLECTOR_WAIT_0_HEADER", "~g~Загрузка денег"),
+                ("SCALEFORM_JOB_COLLECTOR_WAIT_1_HEADER", "~g~Выгрузка денег"),
+                ("SCALEFORM_JOB_TRUCKER_WAIT_0_HEADER", "~g~Загрузка материалов"),
+                ("SCALEFORM_JOB_TRUCKER_WAIT_1_HEADER", "~g~Выгрузка материалов"),
+                ("SCALEFORM_JOB_TRUCKER_WAIT_CONTENT", "Подождите еще {0} сек."),
             }
         );
     }
