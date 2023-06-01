@@ -72,7 +72,7 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("AUTH_STARTPLACE_CANNOT"), -1);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("AUTH_STARTPLACE_CANNOT"), -1);
                     }
                 }
             });
@@ -92,7 +92,7 @@ namespace BCRPClient.CEF
                     }
                     else
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("AUTH_STARTPLACE_CANNOT"), -1);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("AUTH_STARTPLACE_CANNOT"), -1);
                     }
                 }
             });

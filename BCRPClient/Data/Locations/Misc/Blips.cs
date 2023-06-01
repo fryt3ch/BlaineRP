@@ -36,6 +36,8 @@ namespace BCRPClient.Data
             new Additional.ExtraBlip(728, new Vector3(340.87f, 3569.55f, 20f), "Рынок автомобилей", 1f, 19, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
             new Additional.ExtraBlip(728, new Vector3(2049.33f, 3436.35f, 20f), "Рынок автомобилей", 1f, 19, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
 
+            new Additional.ExtraBlip(728, new Vector3(-1148.351f, -1698.468f, 20f), Locale.Get("BLIP_MARKETSTALLS"), 1f, 3, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
+
             new Additional.ExtraBlip(436, new Vector3(-371.8f, 6121.9f, 20f), "Пожарная станция", 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
             new Additional.ExtraBlip(436, new Vector3(1697f, 3586f, 20f), "Пожарная станция", 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION, Additional.ExtraBlip.Types.Default);
 

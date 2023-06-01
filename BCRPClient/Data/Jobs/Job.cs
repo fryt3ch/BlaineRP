@@ -38,7 +38,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JTR1)?.Step > 0)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -50,7 +50,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -73,7 +73,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JCL1)?.Step > 0)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -85,7 +85,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -108,7 +108,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (cabbieJob.GetCurrentData<Cabbie.OrderInfo>("CO") != null)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -120,7 +120,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -143,7 +143,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JBD1)?.Step > 0)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -155,7 +155,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -339,7 +339,7 @@ namespace BCRPClient.Data.Jobs
 
                     activeOrders.Add(order);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
 
                     CEF.Audio.PlayOnce("JOB_NEWORDER", CEF.Audio.TrackTypes.Success0, 0.5f, 0);
                 }
@@ -403,7 +403,7 @@ namespace BCRPClient.Data.Jobs
 
                     activeOrders.Add(order);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
 
                     CEF.Audio.PlayOnce("JOB_NEWORDER", CEF.Audio.TrackTypes.Success0, 0.5f, 0);
                 }
@@ -466,7 +466,7 @@ namespace BCRPClient.Data.Jobs
 
                     activeOrders.Add(order);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.JobNewOrder, KeyBinds.Get(KeyBinds.Types.Menu).GetKeyString(), Locale.HudMenu.Names.GetValueOrDefault(CEF.HUD.Menu.Types.Job_Menu) ?? "null"));
 
                     CEF.Audio.PlayOnce("JOB_NEWORDER", CEF.Audio.TrackTypes.Success0, 0.5f, 0);
                 }
@@ -488,11 +488,11 @@ namespace BCRPClient.Data.Jobs
 
                         if (success)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi4);
+                            CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi4);
                         }
                         else
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.DefHeader, Locale.Notifications.General.JobOrderCancelByCaller);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.JobOrderCancelByCaller);
 
                             CEF.Audio.PlayOnce("JOB_CANCELORDER", CEF.Audio.TrackTypes.Error0, 0.5f, 0);
                         }

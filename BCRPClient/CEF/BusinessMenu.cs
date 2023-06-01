@@ -71,7 +71,7 @@ namespace BCRPClient.CEF
                 {
                     Player.LocalPlayer.SetData("BusinessMenu::SellGov::ApproveTime", Sync.World.ServerTime);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Notifications.ApproveHeader, string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(biz.Price))), 5000);
+                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(biz.Price))), 5000);
                 }
                 else
                 {
@@ -105,7 +105,7 @@ namespace BCRPClient.CEF
 
                 if ((bool)await Events.CallRemoteProc("Business::SSMA", biz.Id, (ushort)margin))
                 {
-                    CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.BusinessNewMarginOwner0, margin));
+                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.BusinessNewMarginOwner0, margin));
                 }
             });
 
@@ -125,7 +125,7 @@ namespace BCRPClient.CEF
 
                 if ((bool)await Events.CallRemoteProc("Business::SSIS", biz.Id, state))
                 {
-                    CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, state ? Locale.Notifications.General.BusinessIncassationNowOn : Locale.Notifications.General.BusinessIncassationNowOff);
+                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), state ? Locale.Notifications.General.BusinessIncassationNowOn : Locale.Notifications.General.BusinessIncassationNowOff);
 
                     if (IsActive)
                     {

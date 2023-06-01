@@ -21,7 +21,7 @@ namespace BCRPClient.Sync
 
         private static AsyncTask CurrentDriverSyncTask { get; set; }
 
-        public static List<Vehicle> ControlledVehicles;
+        public static List<Vehicle> ControlledVehicles = new List<Vehicle>();
 
         private static Dictionary<string, Action<VehicleData, object, object>> DataActions = new Dictionary<string, Action<VehicleData, object, object>>();
 
@@ -69,7 +69,7 @@ namespace BCRPClient.Sync
 
             public void ShowTimeLeftNotification()
             {
-                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.Name}\"", Sync.World.ServerTime.AddMilliseconds(TimeLeftToDelete).Subtract(Sync.World.ServerTime).GetBeautyString()));
+                CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.Vehicles.RentedVehicleTimeLeft, $"\"{VehicleData.Name}\"", Sync.World.ServerTime.AddMilliseconds(TimeLeftToDelete).Subtract(Sync.World.ServerTime).GetBeautyString()));
             }
 
             public static void Check()
@@ -322,8 +322,6 @@ namespace BCRPClient.Sync
 
             //Player.LocalPlayer.SetConfigFlag(184, true);
             #endregion
-
-            ControlledVehicles = new List<Vehicle>();
 
             GameEvents.Update += ControlledTick;
 
@@ -961,11 +959,11 @@ namespace BCRPClient.Sync
 
                                 if (res == 1)
                                 {
-                                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobRentVehicleAlreadyRented0);
+                                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobRentVehicleAlreadyRented0);
                                 }
                                 else if (res == 2)
                                 {
-                                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobRentVehicleAlreadyRented1);
+                                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobRentVehicleAlreadyRented1);
                                 }
                             }
                         }
@@ -1200,7 +1198,7 @@ namespace BCRPClient.Sync
 
                 if (forceStatus == curStatus)
                 {
-                    Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, curStatus ? Locale.Notifications.Vehicles.Doors.AlreadyLocked : Locale.Notifications.Vehicles.Doors.AlreadyUnlocked);
+                    Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), curStatus ? Locale.Notifications.Vehicles.Doors.AlreadyLocked : Locale.Notifications.Vehicles.Doors.AlreadyUnlocked);
 
                     return;
                 }
@@ -1326,7 +1324,7 @@ namespace BCRPClient.Sync
 
                 if (forceStatus == curStatus)
                 {
-                    Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, curStatus ? Locale.Notifications.Vehicles.Trunk.AlreadyLocked : Locale.Notifications.Vehicles.Trunk.AlreadyUnlocked);
+                    Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), curStatus ? Locale.Notifications.Vehicles.Trunk.AlreadyLocked : Locale.Notifications.Vehicles.Trunk.AlreadyUnlocked);
 
                     return;
                 }
@@ -1372,7 +1370,7 @@ namespace BCRPClient.Sync
 
                 if (forceStatus == curStatus)
                 {
-                    Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, curStatus ? Locale.Notifications.Vehicles.Hood.AlreadyLocked : Locale.Notifications.Vehicles.Hood.AlreadyUnlocked);
+                    Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), curStatus ? Locale.Notifications.Vehicles.Hood.AlreadyLocked : Locale.Notifications.Vehicles.Hood.AlreadyUnlocked);
 
                     return;
                 }
@@ -1449,7 +1447,7 @@ namespace BCRPClient.Sync
                 }
                 else
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Trunk.NoPhysicalTrunk);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.Trunk.NoPhysicalTrunk);
                 }
 
                 return;
@@ -1459,7 +1457,7 @@ namespace BCRPClient.Sync
 
             if (maxSeats <= 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Passengers.NotEnterable);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.Passengers.NotEnterable);
 
                 return;
             }
@@ -1469,14 +1467,14 @@ namespace BCRPClient.Sync
 
             if (vehicle.GetPedInSeat(-1, 0) == Player.LocalPlayer.Handle)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Passengers.IsDriver);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.Passengers.IsDriver);
 
                 return;
             }
 
             if (!vehicle.IsSeatFree(seatId - 1, 0))
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.Passengers.SomeoneSeating);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.Passengers.SomeoneSeating);
 
                 return;
             }
@@ -1646,7 +1644,7 @@ namespace BCRPClient.Sync
             }
             else
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotNearGarage);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.House.NotNearGarage);
 
                 return;
             }
@@ -1804,7 +1802,7 @@ namespace BCRPClient.Sync
 
             if (plateText == null || plateText.Length == 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.NoPlate);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.NoPlate);
 
                 return;
             }
@@ -1826,7 +1824,7 @@ namespace BCRPClient.Sync
 
             if (plateText != null && plateText.Length > 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.PlateExists);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.PlateExists);
 
                 return;
             }
@@ -2048,7 +2046,7 @@ namespace BCRPClient.Sync
 
             if (wpPos == null)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Commands.Teleport.NoWaypoint);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Commands.Teleport.NoWaypoint);
 
                 return;
             }
@@ -2090,7 +2088,7 @@ namespace BCRPClient.Sync
                                     }
                                     else
                                     {
-                                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
+                                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
 
                                         return;
                                     }
@@ -2161,7 +2159,7 @@ namespace BCRPClient.Sync
         {
             if (!vehicle.IsDamaged() && vehicle.GetEngineHealth() >= 1000f && vehicle.GetBodyHealth() >= 1000f)
             {
-                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.Vehicles.VehicleIsNotDamagedFixError);
+                CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Vehicles.VehicleIsNotDamagedFixError);
             }
             else
             {

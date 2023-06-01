@@ -75,7 +75,7 @@ namespace BCRPClient.Data.Jobs
         {
             if (activeOrders.Count == 0)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.General.JobNoOrders);
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.JobNoOrders);
 
                 return;
             }
@@ -138,11 +138,11 @@ namespace BCRPClient.Data.Jobs
                         {
                             if (res == 2)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderAlreadyTaken);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderAlreadyTaken);
                             }
                             else
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobOrderTakeError);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderTakeError);
                             }
                         }
                     }

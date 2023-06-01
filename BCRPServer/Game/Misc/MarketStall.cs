@@ -114,5 +114,20 @@ namespace BCRPServer.Game.Misc
 
             return true;
         }
+
+        public bool IsLockedNow(int stallIdx, Player player, bool notify)
+        {
+            if (IsLocked)
+            {
+                if (notify)
+                {
+                    player.Notify("MarketStall::LN");
+                }
+
+                return true;
+            }
+
+            return false;
+        }
     }
 }

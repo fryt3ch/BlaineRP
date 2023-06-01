@@ -52,7 +52,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (maxChips <= 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                         return;
                     }
@@ -103,7 +103,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
                 {
                     if (balance <= 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "У Вас нет фишек!");
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "У Вас нет фишек!");
 
                         return;
                     }

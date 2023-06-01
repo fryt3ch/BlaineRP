@@ -48,9 +48,7 @@ namespace BCRPClient.Sync
 
         public PushVehicle()
         {
-            LastSwitchTime = Sync.World.ServerTime;
 
-            Toggled = false;
         }
 
         public static void Toggle(Vehicle vehicle = null)
@@ -87,7 +85,7 @@ namespace BCRPClient.Sync
 
                 if (data.EngineOn)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.DefHeader, Locale.Notifications.Vehicles.Push.EngineOn);
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Vehicles.Push.EngineOn);
 
                     return;
                 }

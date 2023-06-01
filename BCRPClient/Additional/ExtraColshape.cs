@@ -357,6 +357,8 @@ namespace BCRPClient.Additional
         /// <summary>Получить колшейп по айди (локальный)</summary>
         public static ExtraColshape GetById(int id) => All.Where(x => x?.Colshape?.Id == id).FirstOrDefault();
 
+        public static ExtraColshape GetByName(string name) => All.Where(x => x.Name == name).FirstOrDefault();
+
         /// <summary>Получить колшейп по айди (серверный)</summary>
         public static ExtraColshape GetByRemoteId(int id) => All.Where(x => x?.Colshape?.RemoteId == id).FirstOrDefault();
 
@@ -895,7 +897,7 @@ namespace BCRPClient.Additional
 
                     if (notOwnedLics.Count == 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уже владеете всеми лицензиями для транспорта, так держать!", -1);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уже владеете всеми лицензиями для транспорта, так держать!", -1);
 
                         return;
                     }
@@ -1032,7 +1034,7 @@ namespace BCRPClient.Additional
                     
                     if (fData.CreationWorkbenchPrices.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "На данный момент здесь нельзя создать ни один предмет!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "На данный момент здесь нельзя создать ни один предмет!");
 
                         return;
                     }

@@ -73,7 +73,7 @@ namespace BCRPServer.Events.Players
             if (!style.IsHouseTypeSupported(house.Type) || !style.IsRoomTypeSupported(house.RoomType))
                 return false;
 
-            if (style.IsTypeFamiliar(currentStyleId))
+            if (style.IsTypeFamiliar(currentStyleId) && currentStyle.IsPositionInsideInterior(player.Position))
             {
                 var offset = style.InteriorPosition.Position - currentStyle.InteriorPosition.Position;
 

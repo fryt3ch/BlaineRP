@@ -328,7 +328,7 @@ namespace BCRPClient.Data
 
                         if (farmJob == null || farmJob.FarmBusiness != farm)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не работаете на этой ферме!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не работаете на этой ферме!");
 
                             return;
                         }
@@ -357,7 +357,7 @@ namespace BCRPClient.Data
                         {
                             if (res == 1)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Кто-то уже работает с этим растением!");
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Кто-то уже работает с этим растением!");
                             }
                         }
                     }
@@ -901,7 +901,7 @@ namespace BCRPClient.Data
 
                     if (farmJob == null || farmJob.FarmBusiness != farm)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не работаете на этой ферме!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не работаете на этой ферме!");
 
                         return;
                     }
@@ -926,7 +926,7 @@ namespace BCRPClient.Data
                     {
                         if (res == 1)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Кто-то уже работает с этим растением!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Кто-то уже работает с этим растением!");
                         }
                     }
                 }
@@ -1065,7 +1065,7 @@ namespace BCRPClient.Data
 
                     if (farmJob == null || farmJob.FarmBusiness != farm)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не работаете на этой ферме!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не работаете на этой ферме!");
 
                         return;
                     }
@@ -1109,7 +1109,7 @@ namespace BCRPClient.Data
                     {
                         if (res == 1)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Кто-то уже доет эту корову!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Кто-то уже доет эту корову!");
                         }
                     }
                 }
@@ -1467,7 +1467,7 @@ namespace BCRPClient.Data
                                     {
                                         if ((bool)await Events.CallRemoteProc("Job::FARM::FJ"))
                                         {
-                                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Вы ушли слишком далеко от фермы и были уволены!");
+                                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Вы ушли слишком далеко от фермы и были уволены!");
                                         }
                                     }
                                 }*/
@@ -1517,7 +1517,7 @@ namespace BCRPClient.Data
 
                                             if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                             {
-                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                                 return;
                                             }
@@ -1527,7 +1527,7 @@ namespace BCRPClient.Data
 
                                             if (Math.Floor(jobVehicle.GetSpeedKm()) > TRACTOR_MAX_SPEED_KM_H)
                                             {
-                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Скорость Вашего трактора была слишком высока и урожай не был собран!\nНе превышайте скорость в {TRACTOR_MAX_SPEED_KM_H} км/ч");
+                                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"Скорость Вашего трактора была слишком высока и урожай не был собран!\nНе превышайте скорость в {TRACTOR_MAX_SPEED_KM_H} км/ч");
 
                                                 return;
                                             }
@@ -1575,7 +1575,7 @@ namespace BCRPClient.Data
 
                 if (count <= 0)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "На данный момент ни одна пшеница не созрела, ждите, пока на миникарте появится значок!");
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "На данный момент ни одна пшеница не созрела, ждите, пока на миникарте появится значок!");
                 }
             }
 
@@ -1609,7 +1609,7 @@ namespace BCRPClient.Data
 
                                         if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                         {
-                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                             return;
                                         }
@@ -1628,7 +1628,7 @@ namespace BCRPClient.Data
 
                                             if (res == 254)
                                             {
-                                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, $"Поле #{fieldIdx + 1} полностью орошено!");
+                                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Поле #{fieldIdx + 1} полностью орошено!");
                                             }
 
                                             if (jobVehicle.Exists)
@@ -1687,7 +1687,7 @@ namespace BCRPClient.Data
 
                 if (count <= 0)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "На данный момент нет ни одного не орошенного, ждите, пока на миникарте появится значок!");
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "На данный момент нет ни одного не орошенного, ждите, пока на миникарте появится значок!");
                 }
             }
         }

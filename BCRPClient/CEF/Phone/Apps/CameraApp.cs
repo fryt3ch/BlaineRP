@@ -445,7 +445,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             if (notify)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.ScreenshotSaved, fileName));
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.ScreenshotSaved, fileName));
             }
         }
 

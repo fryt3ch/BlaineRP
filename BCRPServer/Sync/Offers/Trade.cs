@@ -61,6 +61,12 @@ namespace BCRPServer.Sync
 
                 public (Game.Items.Inventory.Results Result, PlayerData PlayerError) Execute(PlayerData pData, PlayerData tData)
                 {
+                    if (pData.Cash < SenderMoney)
+                        return (Game.Items.Inventory.Results.NotEnoughMoney, pData);
+
+                    if (tData.Cash < ReceiverMoney)
+                        return (Game.Items.Inventory.Results.NotEnoughMoney, tData);
+
                     var senderFreeSlots = pData.Items.Where(x => x == null).Count();
 
                     var senderItems = SenderItems.Where(x => x != null && x.ItemRoot != null).ToList();
@@ -89,12 +95,6 @@ namespace BCRPServer.Sync
 
                     if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
                         return (Game.Items.Inventory.Results.NoSpace, tData);
-
-                    if (pData.Cash < SenderMoney)
-                        return (Game.Items.Inventory.Results.NotEnoughMoney, pData);
-
-                    if (tData.Cash < ReceiverMoney)
-                        return (Game.Items.Inventory.Results.NotEnoughMoney, tData);
 
                     foreach (var x in SenderVehicles)
                     {

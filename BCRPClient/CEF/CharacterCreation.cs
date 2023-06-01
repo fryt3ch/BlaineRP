@@ -86,14 +86,14 @@ namespace BCRPClient.CEF
 
                 if (!Utils.IsNameValid(name))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.CharacterCreation.WrongName);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.CharacterCreation.WrongName);
 
                     return;
                 }
 
                 if (!Utils.IsNameValid(surname))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.CharacterCreation.WrongSurname);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.CharacterCreation.WrongSurname);
 
                     return;
                 }
@@ -102,14 +102,14 @@ namespace BCRPClient.CEF
 
                 if (age.Length < 1 || !int.TryParse(age, out numAge) || numAge < 18 || numAge > 99)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.CharacterCreation.WrongAge);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.CharacterCreation.WrongAge);
 
                     return;
                 }
 
                 if (Sync.World.ServerTime.Subtract(LastCreateRequested).TotalMilliseconds > 5000)
                 {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.CharacterCreation.PressAgainToCreate, 5000);
+                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToCreate, 5000);
 
                     LastCreateRequested = Sync.World.ServerTime;
 
@@ -130,7 +130,7 @@ namespace BCRPClient.CEF
             {
                 if (Sync.World.ServerTime.Subtract(LastExitRequested).TotalMilliseconds > 5000)
                 {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.CharacterCreation.PressAgainToExit, 5000);
+                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToExit, 5000);
 
                     LastExitRequested = Sync.World.ServerTime;
                 }

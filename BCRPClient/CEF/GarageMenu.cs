@@ -62,7 +62,7 @@ namespace BCRPClient.CEF
                     {
                         Player.LocalPlayer.SetData("GarageMenu::SellGov::ApproveTime", Sync.World.ServerTime);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Notifications.ApproveHeader, string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(garage.Price))), 5000);
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(garage.Price))), 5000);
                     }
                     else
                     {

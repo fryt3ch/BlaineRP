@@ -400,14 +400,14 @@ namespace BCRPClient.CEF
 
                     if (receipt == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.WorkbenchWrongCraft);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.WorkbenchWrongCraft);
 
                         return;
                     }
 
                     if (WorkbenchResultData != null && WorkbenchResultData[0] != null && WorkbenchResultData[0][2] != null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.WorkbenchResultItemExists);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.WorkbenchResultItemExists);
 
                         return;
                     }

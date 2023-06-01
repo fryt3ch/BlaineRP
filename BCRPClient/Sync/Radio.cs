@@ -137,6 +137,7 @@ namespace BCRPClient.Sync
         public Radio()
         {
             SetRadioStationName(StationTypes.MP_BRP, "Radio Blaine RP");
+
             SetRadioStationName(StationTypes.BRP_0, "Europa Plus");
             SetRadioStationName(StationTypes.BRP_1, "Record Radio");
             SetRadioStationName(StationTypes.BRP_2, "Retro FM");

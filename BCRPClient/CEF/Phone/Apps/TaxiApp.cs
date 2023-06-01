@@ -33,7 +33,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                         CurrentOrderInfo = null;
 
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.DefHeader, Locale.Notifications.General.Taxi3);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.Taxi3);
 
                         Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                     }
@@ -50,7 +50,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                     CurrentOrderInfo.DriverNumber = Utils.ToUInt32(args[1]);
 
-                    CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
+                    CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi0, CurrentOrderInfo.Driver.Name));
                 }
                 else if (args.Length == 1)
                 {
@@ -63,7 +63,7 @@ namespace BCRPClient.CEF.PhoneApps
                         {
                             CurrentOrderInfo.Driver = null;
 
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi1, CurrentOrderInfo.Driver.Name));
 
                             Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
@@ -74,7 +74,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                             CurrentOrderInfo = null;
 
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.Taxi2, KeyBinds.Get(KeyBinds.Types.SendCoordsToDriver).GetKeyString()));
 
                             Additional.ExtraBlips.DestroyTrackerBlipByKey("Taxi");
                         }
@@ -109,7 +109,7 @@ namespace BCRPClient.CEF.PhoneApps
                         {
                             var pos = Player.LocalPlayer.Position;
 
-                            CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.TaxiOrdered, Utils.GetStreetName(pos)));
+                            CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiOrdered, Utils.GetStreetName(pos)));
 
                             pos.Z -= 1f;
 
@@ -124,7 +124,7 @@ namespace BCRPClient.CEF.PhoneApps
                                         if (CurrentOrderInfo?.ExitColshape1?.Exists != true)
                                             return;
 
-                                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(Locale.Notifications.General.TaxiDistanceWarn, Settings.TAXI_ORDER_MAX_WAIT_RANGE / 2));
+                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(Locale.Notifications.General.TaxiDistanceWarn, Settings.TAXI_ORDER_MAX_WAIT_RANGE / 2));
                                     }
                                 },
 
@@ -145,7 +145,7 @@ namespace BCRPClient.CEF.PhoneApps
                         }
                         else
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.TaxiError);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.TaxiError);
                         }
                     }
                 }

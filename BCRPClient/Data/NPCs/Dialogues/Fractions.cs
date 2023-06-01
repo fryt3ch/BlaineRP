@@ -57,7 +57,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (res.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не владеете ни одним транспортом, который не стоит на учёте и на который установлен какой-либо гос. номер!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не владеете ни одним транспортом, который не стоит на учёте и на который установлен какой-либо гос. номер!");
 
                         return;
                     }
@@ -114,7 +114,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                                                 if (res != null)
                                                 {
-                                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы поставили {vData.Item3.Name} на гос. учёт, он зарегистрирован под гос. номером [{res}]");
+                                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы поставили {vData.Item3.Name} на гос. учёт, он зарегистрирован под гос. номером [{res}]");
 
                                                     CEF.ActionBox.Close(true);
                                                 }
@@ -164,7 +164,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (res.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы не владеете ни одним транспортом, который стоит на гос. учёте!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не владеете ни одним транспортом, который стоит на гос. учёте!");
 
                         return;
                     }
@@ -221,7 +221,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                                                 if (res != null)
                                                 {
-                                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы сняли {vData.Item3.Name} с гос. учёта!");
+                                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы сняли {vData.Item3.Name} с гос. учёта!");
 
                                                     if (res.Length > 0)
                                                     {

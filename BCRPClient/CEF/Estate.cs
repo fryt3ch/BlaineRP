@@ -156,7 +156,7 @@ namespace BCRPClient.CEF
                         }
                         else if (id == "mail")
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Пока нет писем!");
+                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Пока нет писем!");
 
                             // todo
                         }

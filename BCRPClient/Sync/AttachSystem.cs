@@ -1424,7 +1424,7 @@ namespace BCRPClient.Sync
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Коробки с апельсинами", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Отнесите коробку с апельсинами в место, отмеченное на карте");
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Отнесите коробку с апельсинами в место, отмеченное на карте");
                     }),
 
                     new Action(() =>
@@ -1453,7 +1453,7 @@ namespace BCRPClient.Sync
 
                             Sync.Animations.LastSent = Sync.World.ServerTime;
 
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили коробку с апельсинами!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уронили коробку с апельсинами!");
 
                             Events.CallRemote("Job::FARM::SOTP");
                         }
@@ -1485,7 +1485,7 @@ namespace BCRPClient.Sync
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::B", new Additional.ExtraBlip(478, closestOrangeBoxPos, "Вёдра с молоком", 1f, 21, 255, 0f, false, 0, 0f, Settings.MAIN_DIMENSION));
                         Player.LocalPlayer.SetData("JOBATFARM::FOBC::MS", markers);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Отнесите ведро с молоком в место, отмеченное на карте");
+                        CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Отнесите ведро с молоком в место, отмеченное на карте");
                     }),
 
                     new Action(() =>
@@ -1514,7 +1514,7 @@ namespace BCRPClient.Sync
 
                             Sync.Animations.LastSent = Sync.World.ServerTime;
 
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Вы уронили ведро с молоком!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уронили ведро с молоком!");
 
                             Events.CallRemote("Job::FARM::SCOWP");
                         }

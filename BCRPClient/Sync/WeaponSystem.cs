@@ -19,7 +19,6 @@ namespace BCRPClient.Sync
 
         public static (Player Player, int Damage, int BoneIdx, DateTime Time) LastAttackerInfo { get; private set; }
 
-        #region Supported Weapons
         public class Weapon
         {
             public enum ComponentTypes
@@ -370,7 +369,6 @@ namespace BCRPClient.Sync
                 }
             },
         };
-        #endregion
 
         #region Parts Of Body
         public enum PartTypes

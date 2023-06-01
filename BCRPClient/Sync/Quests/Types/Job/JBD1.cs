@@ -53,7 +53,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                                     if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
@@ -125,7 +125,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                                     if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
@@ -134,7 +134,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                     {
                                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                         {
-                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                             return;
                                         }
@@ -148,7 +148,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                     {
                                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                                         {
-                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                             scaleform.Destroy();
                                             task.Cancel();
@@ -235,7 +235,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                                     if (jobVehicle == null || Player.LocalPlayer.Vehicle != jobVehicle)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }

@@ -123,7 +123,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (balance >= maxBalance)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                         return;
                     }
@@ -132,7 +132,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (nBalance == 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                         return;
                     }
@@ -165,7 +165,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (minBalance >= balance)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Utils.GetPriceString(minBalance)));
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.Money.MinimalBalanceHouse, Utils.GetPriceString(minBalance)));
 
                             return;
                         }
@@ -253,7 +253,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (balance >= maxBalance)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                             return;
                         }
@@ -262,7 +262,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (nBalance == 0)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                             return;
                         }
@@ -295,7 +295,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             if (minBalance >= balance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MinimalBalanceHouse);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MinimalBalanceHouse);
 
                                 return;
                             }
@@ -383,7 +383,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (balance >= maxBalance)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                             return;
                         }
@@ -392,7 +392,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (nBalance == 0)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                             return;
                         }
@@ -425,7 +425,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             if (minBalance >= balance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MinimalBalanceHouse);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MinimalBalanceHouse);
 
                                 return;
                             }
@@ -513,7 +513,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (balance >= maxBalance)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                             return;
                         }
@@ -522,7 +522,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (nBalance == 0)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                             return;
                         }
@@ -555,7 +555,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             if (minBalance >= balance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MinimalBalanceHouse);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MinimalBalanceHouse);
 
                                 return;
                             }
@@ -628,7 +628,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                         if (nBalance == 0)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                             return;
                         }
@@ -661,7 +661,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                             if (balance <= 0)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NoBalanceHouse);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NoBalanceHouse);
 
                                 return;
                             }

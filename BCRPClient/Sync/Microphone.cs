@@ -126,7 +126,7 @@ namespace BCRPClient.Sync
                     AddTalker(player);
             }
 
-            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.Players.Microphone.Reloaded);
+            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Players.Microphone.Reloaded);
         }
 
         public static void Start()

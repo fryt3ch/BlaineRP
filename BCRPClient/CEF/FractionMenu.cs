@@ -63,7 +63,7 @@ namespace BCRPClient.CEF
 
                     if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.QuitThisVehicle);
 
                         return;
                     }
@@ -72,7 +72,7 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Fraction::VRSP", vid))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Транспорт {vData.Numberplate} был возвращен на свое парковочное место!");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Транспорт {vData.Numberplate} был возвращен на свое парковочное место!");
                     }
                 }
             });
@@ -113,7 +113,7 @@ namespace BCRPClient.CEF
 
                 if (vData.MinRank == newMinRank)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Этот ранг уже установлен в качестве минимального для данного транспорта!");
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"Этот ранг уже установлен в качестве минимального для данного транспорта!");
 
                     return;
                 }
@@ -122,7 +122,7 @@ namespace BCRPClient.CEF
 
                 if ((bool)await Events.CallRemoteProc("Fraction::VCMR", vid, newMinRank))
                 {
-                    CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы изменили минимальный ранг для доступа к транспорту {vData.Numberplate} на {newMinRank + 1} - {fData.GetRankName(newMinRank)}!");
+                    CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы изменили минимальный ранг для доступа к транспорту {vData.Numberplate} на {newMinRank + 1} - {fData.GetRankName(newMinRank)}!");
                 }
             });
 
@@ -164,7 +164,7 @@ namespace BCRPClient.CEF
                 {
                     if (mData.Rank == fData.MaxRank)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Этот сотрудник уже имеет максимально возможную должность!");
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Этот сотрудник уже имеет максимально возможную должность!");
 
                         return;
                     }
@@ -175,14 +175,14 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Fraction::MRC", cid, newRank))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы повысили сотрудника {mData.Name} #{cid}!\nЕго новая должность - {newRank + 1} - {fData.GetRankName(newRank)}");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы повысили сотрудника {mData.Name} #{cid}!\nЕго новая должность - {newRank + 1} - {fData.GetRankName(newRank)}");
                     }
                 }
                 else if (actionId == 1) // rank down
                 {
                     if (mData.Rank == 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, "Этот сотрудник уже имеет минимально возможную должность!");
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Этот сотрудник уже имеет минимально возможную должность!");
 
                         return;
                     }
@@ -193,7 +193,7 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Fraction::MRC", cid, newRank))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы понизили сотрудника {mData.Name} #{cid}!\nЕго новая должность - {newRank + 1} - {fData.GetRankName(newRank)}");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы понизили сотрудника {mData.Name} #{cid}!\nЕго новая должность - {newRank + 1} - {fData.GetRankName(newRank)}");
                     }
                 }
                 else if (actionId == 2) // fire
@@ -202,7 +202,7 @@ namespace BCRPClient.CEF
 
                     if ((bool)await Events.CallRemoteProc("Fraction::MF", cid))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы уволили сотрудника {mData.Name} #{cid}!");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы уволили сотрудника {mData.Name} #{cid}!");
                     }
                 }
             });
@@ -277,14 +277,14 @@ namespace BCRPClient.CEF
                 {
                     if ((bool)await Events.CallRemoteProc("Fraction::SL", state))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, state ? "Вы закрыли склад!" : "Вы открыли склад!");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), state ? "Вы закрыли склад!" : "Вы открыли склад!");
                     }
                 }
                 else if (id == "workbench")
                 {
                     if ((bool)await Events.CallRemoteProc("Fraction::CWBL", state))
                     {
-                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, state ? "Вы закрыли создание предметов из материалов!" : "Вы открыли создание предметов из материалов!");
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), state ? "Вы закрыли создание предметов из материалов!" : "Вы открыли создание предметов из материалов!");
                     }
                 }
             });
@@ -339,7 +339,7 @@ namespace BCRPClient.CEF
 
                     if (text.Where(x => x == '\n').Count() > NEWS_TEXT_MAX_NL)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalNewLineCharacterCount, NEWS_TEXT_MAX_NL), -1);
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.General.MaximalNewLineCharacterCount, NEWS_TEXT_MAX_NL), -1);
 
                         return;
                     }
@@ -469,7 +469,7 @@ namespace BCRPClient.CEF
 
                 if (!RankNamePattern.IsMatch(name))
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Название ранга должно быть от 2х до 12ти букв, цифр или знака пробел!");
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Название ранга должно быть от 2х до 12ти букв, цифр или знака пробел!");
 
                     return;
                 }
@@ -486,7 +486,7 @@ namespace BCRPClient.CEF
 
                 if (fData.GetRankName(rankToEdit) == name)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Эта должность уже имеет такое название!");
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Эта должность уже имеет такое название!");
 
                     return;
                 }
@@ -496,9 +496,9 @@ namespace BCRPClient.CEF
                     if (fData.GetRankName(i) == name)
                     {
                         if (i == rankToEdit)
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Эта должность уже имеет такое название!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Эта должность уже имеет такое название!");
                         else
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Одна из должностей уже имеет такое название!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Одна из должностей уже имеет такое название!");
 
                         return;
                     }
@@ -511,7 +511,7 @@ namespace BCRPClient.CEF
 
                 if ((bool)await Events.CallRemoteProc("Fraction::RUN", rankToEdit, name))
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.DefHeader, $"Вы изменили название должности {rankToEdit + 1} на \"{name}\"!");
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), $"Вы изменили название должности {rankToEdit + 1} на \"{name}\"!");
                 }
             });
         }

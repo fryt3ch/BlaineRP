@@ -175,7 +175,7 @@ namespace BCRPClient.CEF
 
                         if (house == null)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedHouse);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedHouse);
 
                             return;
                         }
@@ -200,7 +200,7 @@ namespace BCRPClient.CEF
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
@@ -209,14 +209,14 @@ namespace BCRPClient.CEF
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
 
                                 return;
                             }
@@ -237,7 +237,7 @@ namespace BCRPClient.CEF
 
                         if (house == null)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedApartments);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedApartments);
 
                             return;
                         }
@@ -262,7 +262,7 @@ namespace BCRPClient.CEF
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
@@ -271,14 +271,14 @@ namespace BCRPClient.CEF
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
 
                                 return;
                             }
@@ -299,7 +299,7 @@ namespace BCRPClient.CEF
 
                         if (garage == null)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedGarage);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedGarage);
 
                             return;
                         }
@@ -324,7 +324,7 @@ namespace BCRPClient.CEF
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
@@ -333,14 +333,14 @@ namespace BCRPClient.CEF
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
 
                                 return;
                             }
@@ -361,7 +361,7 @@ namespace BCRPClient.CEF
 
                         if (biz == null)
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedBusiness);
+                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedBusiness);
 
                             return;
                         }
@@ -386,7 +386,7 @@ namespace BCRPClient.CEF
                         {
                             if (balance >= maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.MaximalBalanceAlready);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.MaximalBalanceAlready);
 
                                 return;
                             }
@@ -395,14 +395,14 @@ namespace BCRPClient.CEF
 
                             if (nBalance == 0)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Money.NotEnough);
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Money.NotEnough);
 
                                 return;
                             }
 
                             if ((decimal)balance + amount > maxBalance)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
+                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.Money.MaximalBalanceNear, Utils.GetPriceString(maxBalance - balance)));
 
                                 return;
                             }
@@ -571,14 +571,14 @@ namespace BCRPClient.CEF
 
                             if (house == null)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedHouseWGarage);
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedHouseWGarage);
 
                                 return;
                             }
 
                             if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.QuitThisVehicle);
 
                                 return;
                             }
@@ -591,14 +591,14 @@ namespace BCRPClient.CEF
 
                             if (garage == null)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.NoOwnedGarage);
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedGarage);
 
                                 return;
                             }
 
                             if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.QuitThisVehicle);
 
                                 return;
                             }
@@ -618,7 +618,7 @@ namespace BCRPClient.CEF
                         {
                             if (Player.LocalPlayer.Vehicle?.RemoteId == rid)
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.QuitThisVehicle);
+                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.QuitThisVehicle);
 
                                 return;
                             }

@@ -23,6 +23,8 @@ namespace BCRPServer.Game.Items
         {
             { "pwb_bbq_0", new ItemData("Гриль (компактный)", 5f, "prop_bbq_4", Craft.Workbench.WorkbenchTypes.Grill) },
             { "pwb_bbq_1", new ItemData("Гриль (большой)", 10f, "prop_bbq_5", Craft.Workbench.WorkbenchTypes.Grill) },
+
+            { "pwb_bbq_2", new ItemData("Костёр", 1f, "prop_beach_fire", Craft.Workbench.WorkbenchTypes.Grill) },
         };
 
         [JsonIgnore]

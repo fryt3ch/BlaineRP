@@ -179,7 +179,7 @@ namespace BCRPClient.CEF
         public static Action InteractionAction = null;
         private static int InteractionBind = -1;
 
-        public enum StatusTypes
+        public enum StatusTypes : byte
         {
             /// <summary>Голод</summary>
             Food = 0,
@@ -197,7 +197,7 @@ namespace BCRPClient.CEF
             FishingZone,
         }
 
-        public enum SpeedometerTypes
+        public enum SpeedometerTypes : byte
         {
             /// <summary>Левый поворотник</summary>
             LeftArrow = 0,

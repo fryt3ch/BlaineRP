@@ -197,7 +197,7 @@ namespace BCRPClient.Data.Fractions
 
             if (health > 80)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"Для того, чтобы пройти лечение в больнице, кол-во Вашего здоровья должно быть не более, чем 80 ед., Ваше здоровье - {health} ед.");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"Для того, чтобы пройти лечение в больнице, кол-во Вашего здоровья должно быть не более, чем 80 ед., Ваше здоровье - {health} ед.");
 
                 return;
             }
@@ -237,7 +237,7 @@ namespace BCRPClient.Data.Fractions
                     },
                 };
 
-                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Вы легли на койку и начали процесс лечения!");
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Вы легли на койку и начали процесс лечения!");
             }
         }
     }

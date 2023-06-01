@@ -59,7 +59,7 @@ namespace BCRPClient.Data
 
                     npc.SwitchDialogue(false);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Расценки у этого скупщика рыбы изменились, перейдите в диалог с ним еще раз!");
+                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Расценки у этого скупщика рыбы изменились, перейдите в диалог с ним еще раз!");
                 }
             }
         }

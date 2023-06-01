@@ -1833,7 +1833,7 @@ namespace BCRPClient
                 converted = default(T);
 
                 if (notify)
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.LessThanMinValue, min));
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.General.LessThanMinValue, min));
 
                 return false;
             }
@@ -1842,7 +1842,7 @@ namespace BCRPClient
                 converted = converted = default(T);
 
                 if (notify)
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.BiggerThanMaxValue, max));
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.General.BiggerThanMaxValue, max));
 
                 return false;
             }
@@ -1856,14 +1856,14 @@ namespace BCRPClient
         {
             if (text == null || text.Length < minLength)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MinimalCharactersCount, minLength));
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.General.MinimalCharactersCount, minLength));
 
                 return false;
             }
 
             if (text.Length > maxLength)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, string.Format(Locale.Notifications.General.MaximalCharactersCount, maxLength));
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.General.MaximalCharactersCount, maxLength));
 
                 return false;
             }

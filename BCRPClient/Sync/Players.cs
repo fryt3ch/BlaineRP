@@ -1093,7 +1093,7 @@ namespace BCRPClient.Sync
 
                 UpdateSkill(sType, value);
 
-                CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
+                CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(value >= oldValue ? Locale.Notifications.General.SkillUp : Locale.Notifications.General.SkillDown, Locale.General.Players.SkillNamesGenitive.GetValueOrDefault(sType) ?? "null", Math.Abs(value - oldValue), value, MaxSkills[sType]));
             });
 
             Events.Add("Player::WSkins::Update", (args) =>
@@ -1224,17 +1224,17 @@ namespace BCRPClient.Sync
 
                     if (state)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments, playerInit.GetName(true, false, true)));
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouse : Locale.Notifications.House.SettledApartments, playerInit.GetName(true, false, true)));
                     }
                     else
                     {
                         if (playerInit?.Handle == Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf);
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseSelf : Locale.Notifications.House.ExpelledApartmentsSelf);
                         }
                         else
                         {
-                            CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments, playerInit.GetName(true, false, true)));
+                            CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), string.Format(pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouse : Locale.Notifications.House.ExpelledApartments, playerInit.GetName(true, false, true)));
                         }
                     }
                 }
@@ -1242,11 +1242,11 @@ namespace BCRPClient.Sync
                 {
                     if (state)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto);
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.SettledHouseAuto : Locale.Notifications.House.SettledApartmentsAuto);
                     }
                     else
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto);
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), pType == House.HouseTypes.House ? Locale.Notifications.House.ExpelledHouseAuto : Locale.Notifications.House.ExpelledApartmentsAuto);
                     }
                 }
             });
@@ -1614,10 +1614,12 @@ namespace BCRPClient.Sync
                     CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, true);
 
                     if (mood % 5 == 0)
-                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowMood, false, 5000);
+                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowMood, false, 5_000);
                 }
                 else
+                {
                     CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
+                }
 
                 CEF.Inventory.UpdateStates();
             });
@@ -1634,7 +1636,7 @@ namespace BCRPClient.Sync
                     CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, true);
 
                     if (satiety % 5 == 0)
-                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowSatiety, false, 5000);
+                        CEF.Notification.ShowHint(Locale.Notifications.Players.States.LowSatiety, false, 5_000);
 
                     if (satiety == 0)
                     {
@@ -1669,7 +1671,7 @@ namespace BCRPClient.Sync
                         HungerTask = null;
                     }
 
-                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Mood, false);
+                    CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.Food, false);
                 }
 
                 CEF.Inventory.UpdateStates();
@@ -2122,7 +2124,7 @@ namespace BCRPClient.Sync
 
             if (wSkins.Count == 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.Inventory.NoWeaponSkins);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.NoWeaponSkins);
 
                 return;
             }

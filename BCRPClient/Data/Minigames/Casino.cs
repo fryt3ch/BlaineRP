@@ -63,7 +63,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                     if (Utils.IsTaskStillPending($"CASINO_SLOTMACHINE_{casinoId}_{machineId}", null))
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Сейчас нельзя сделать это!");
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Сейчас нельзя сделать это!");
 
                         return;
                     }
@@ -72,7 +72,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                     if (bet < Data.Locations.Casino.SlotMachine.MinBet || bet > Data.Locations.Casino.SlotMachine.MaxBet)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"На этом автомате разрешены ставки от {Utils.ToStringWithWhitespace(Data.Locations.Casino.SlotMachine.MinBet.ToString())} до {Utils.ToStringWithWhitespace(Data.Locations.Casino.SlotMachine.MaxBet.ToString())} фишек!", -1);
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"На этом автомате разрешены ставки от {Utils.ToStringWithWhitespace(Data.Locations.Casino.SlotMachine.MinBet.ToString())} до {Utils.ToStringWithWhitespace(Data.Locations.Casino.SlotMachine.MaxBet.ToString())} фишек!", -1);
 
                         return;
                     }
@@ -176,7 +176,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                         if (bet < table.MinBet || bet > table.MaxBet)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, $"На этом автомате разрешены ставки от {Utils.ToStringWithWhitespace(table.MinBet.ToString())} до {Utils.ToStringWithWhitespace(table.MaxBet.ToString())} фишек!", -1);
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"На этом автомате разрешены ставки от {Utils.ToStringWithWhitespace(table.MinBet.ToString())} до {Utils.ToStringWithWhitespace(table.MaxBet.ToString())} фишек!", -1);
 
                             return;
                         }
@@ -185,7 +185,7 @@ namespace BCRPClient.Data.Minigames.Casino
 
                         if (curStateData == null || (curStateData[0] != 'I' && curStateData[0] != 'S'))
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Сейчас нельзя сделать это!");
+                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Сейчас нельзя сделать это!");
 
                             return;
                         }

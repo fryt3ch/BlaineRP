@@ -46,7 +46,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (args == null || args.Length < 1)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.WrongCoordsSms);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.WrongCoordsSms);
 
                     return;
                 }
@@ -55,7 +55,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (coordsData.Length < 2)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.WrongCoordsSms);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.WrongCoordsSms);
 
                     return;
                 }
@@ -64,7 +64,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (!float.TryParse(coordsData[0], out x) || !float.TryParse(coordsData[1], out y))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.WrongCoordsSms);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.WrongCoordsSms);
 
                     return;
                 }
@@ -97,11 +97,11 @@ namespace BCRPClient.CEF.PhoneApps
 
                     if (AttachPos)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.General.SmsSendAttachPosOn);
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.SmsSendAttachPosOn);
                     }
                     else
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.DefHeader, Locale.Notifications.General.SmsSendAttachPosOff);
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.General.SmsSendAttachPosOff);
                     }
 
                     return;
@@ -137,7 +137,7 @@ namespace BCRPClient.CEF.PhoneApps
                 }
                 else if (smsStrData.Length == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.SmsCantBeSentNow);
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.SmsCantBeSentNow);
 
                     return;
                 }
@@ -178,7 +178,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (timePassed > 5000)
                 {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Notifications.ApproveHeader, Locale.Notifications.General.SmsDeleteConfirmText, 5000);
+                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.General.SmsDeleteConfirmText, 5000);
 
                     PhoneApps.SMSApp.LastSMSDeleteApproveTime = Sync.World.ServerTime;
 

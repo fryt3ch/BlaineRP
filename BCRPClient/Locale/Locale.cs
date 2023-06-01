@@ -39,7 +39,7 @@ namespace BCRPClient
 
         private static Language CurrentLanguage { get; } = Settings.LANGUAGE == "ru" ? RussianLanguage : RussianLanguage;
 
-        public static string Get(string key, params object[] formatArgs) => CurrentLanguage.Get(key, "NULL", formatArgs);
+        public static string Get(string key, params object[] formatArgs) => CurrentLanguage.Get(key, key, formatArgs);
         public static string GetNullOtherwise(string key, params object[] formatArgs) => CurrentLanguage.Get(key, null, formatArgs);
 
         public static void Add(string key, string value) => CurrentLanguage.Add(key, value);

@@ -32,6 +32,7 @@ namespace BCRPClient
                 ("MAPEDITOR_ROTATION_ANGLE", "Угол поворота: {0}"),
 
                 ("AUTH_STARTPLACE_CANNOT", "Вы не можете выбрать это место для появления!"),
+                ("AUTH_STARTPLACE_FAULT", "Что-то пошло не так, выберите другое место Вашего появления!"),
 
                 ("POLICETABLET_CALL_NOTAKEN", "Вы не принимались ни за один вызов!"),
                 ("POLICETABLET_CALL_FINISH_0", "Для того, чтобы завершить текущий вызов, вы должны находиться не более, чем в {0} метрах от него!"),
@@ -84,6 +85,11 @@ namespace BCRPClient
                 ("MARKETSTALL_MG_CLOSE", "Закрыть лавку"),
                 ("MARKETSTALL_MG_HISTEMPTY", "История Ваших продаж на данный момент пуста!"),
                 ("MARKETSTALL_NOWNER", "Вы не арендуете эту торговую лавку!"),
+                ("MARKETSTALL_LOCKED_NOW", "Эта торговая лавка в данный момент закрыта!"),
+                ("MARKETSTALL_NOITEMS_SELL", "У Вас в инвентаре нет ни одного предмета, который можно продать!"),
+                ("MARKETSTALL_R_ODIST_0", "Если Вы отойдете еще на {0} м. от Вашей торговой лавки, то лишитесь аренды!"),
+                ("MARKETSTALL_R_ODIST_1", "Вы лишились аренды торговой лавки, т.к. ушли слишком далеко от нее!"),
+                ("MARKETSTALL_MG_ITEMCH_0", "Цена, которую вы указали за 1 ед. предмета для '{0}' не соответствует диапазону (от {1} до {2})"),
 
                 ("BUSINESSMENU_ORDER_STATE_0", "Заказ принят"),
                 ("BUSINESSMENU_ORDER_STATE_1", "Заказ в пути"),
@@ -114,7 +120,9 @@ namespace BCRPClient
 
                 ("NOTIFICATION_HEADER_DEF", "Уведомление"),
                 ("NOTIFICATION_HEADER_ERROR", "Ошибка"),
+                ("NOTIFICATION_HEADER_WARN", "Предупреждение"),
                 ("NOTIFICATION_HEADER_APPROVE", "Подтверждение"),
+                ("NOTIFICATION_HEADER_ASPAM", "Анти-спам"),
 
                 ("SCALEFORM_WASTED_HEADER", "~r~Вы при смерти"),
                 ("SCALEFORM_WASTED_ATTACKER_P", "Атакующий: {0} | CID: #{1}"),
@@ -129,6 +137,8 @@ namespace BCRPClient
                 ("SCALEFORM_JOB_TRUCKER_WAIT_0_HEADER", "~g~Загрузка материалов"),
                 ("SCALEFORM_JOB_TRUCKER_WAIT_1_HEADER", "~g~Выгрузка материалов"),
                 ("SCALEFORM_JOB_TRUCKER_WAIT_CONTENT", "Подождите еще {0} сек."),
+
+                ("BLIP_MARKETSTALLS", "Рынок"),
             }
         );
     }

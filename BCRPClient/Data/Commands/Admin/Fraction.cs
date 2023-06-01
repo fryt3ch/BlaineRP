@@ -25,7 +25,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }
@@ -54,7 +54,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }
@@ -83,7 +83,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }
@@ -112,7 +112,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }
@@ -141,7 +141,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }
@@ -170,7 +170,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }
@@ -199,7 +199,7 @@ namespace BCRPClient.Data
 
             if ((Data.Fractions.Types)fractionTypeNum == Fractions.Types.None)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, "Такой фракции не существует!");
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Такой фракции не существует!");
 
                 return;
             }

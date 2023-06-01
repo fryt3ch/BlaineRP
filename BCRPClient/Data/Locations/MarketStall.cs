@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BCRPClient.Data
@@ -14,7 +15,7 @@ namespace BCRPClient.Data
         {
             public static uint RentPrice => Utils.ToUInt32(Sync.World.GetSharedData<object>("MARKETSTALL_RP", 0));
 
-            public static List<string> SellHistory => Player.LocalPlayer.GetData<List<string>>("MarketStall::SH");
+            public static List<string> SellHistory { get => Player.LocalPlayer.GetData<List<string>>("MarketStall::SH"); set { if (value == null) Player.LocalPlayer.ResetData("MarketStall::SH"); else Player.LocalPlayer.SetData("MarketStall::SH", value); } }
 
             public int Id { get; set; }
 
@@ -38,6 +39,99 @@ namespace BCRPClient.Data
 
                     Data = this,
                 };
+
+                Sync.World.AddDataHandler($"MARKETSTALL_{Id}_R", OnRenterRIDChanged);
+            }
+
+            public static MarketStall GetCurrentRentedMarketStall(out Additional.ExtraColshape colshape)
+            {
+                var rid = Player.LocalPlayer.RemoteId;
+
+                colshape = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.CurrentRenterRID == rid).FirstOrDefault();
+
+                return (MarketStall)colshape?.Data;
+            }
+
+            private static void OnRenterRIDChanged(string key, object value, object oldValue)
+            {
+                var d = key.Split('_');
+
+                var stallIdx = int.Parse(d[1]);
+
+                var cs = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == stallIdx).FirstOrDefault();
+
+                if (cs == null)
+                    return;
+
+                var marketStall = (MarketStall)cs.Data;
+
+                var newRid = Utils.ToUInt16(value ?? ushort.MaxValue);
+                var oldRid = Utils.ToUInt16(oldValue ?? ushort.MaxValue);
+
+                if (newRid == Player.LocalPlayer.RemoteId)
+                {
+                    SellHistory = new List<string>();
+
+                    var pos = new Vector3(cs.Position.X, cs.Position.Y, cs.Position.Z);
+
+                    var subCs = new Additional.Sphere(pos, 20f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    {
+                        ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+
+                        OnExit = (cancel) =>
+                        {
+                            CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_0", 10));
+                        },
+                    };
+
+                    var mainCs = new Additional.Sphere(pos, 30f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    {
+                        ApproveType = Additional.ExtraColshape.ApproveTypes.None,
+
+                        OnExit = async (cancel) =>
+                        {
+                            if ((bool)await Events.CallRemoteProc("MarketStall::Close", marketStall.Id))
+                                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_1"));
+                        },
+
+                        Data = subCs,
+
+                        Name = "MARKETSTALL_RENT_DIST_CS",
+                    };
+                }
+                else if (oldRid == Player.LocalPlayer.RemoteId && newRid == ushort.MaxValue)
+                {
+                    var sellHistory = SellHistory;
+
+                    SellHistory = null;
+
+                    var distColshape = Additional.ExtraColshape.GetByName("MARKETSTALL_RENT_DIST_CS");
+
+                    if (distColshape != null)
+                    {
+                        var subColshape = distColshape.Data as Additional.ExtraColshape;
+
+                        subColshape?.Destroy();
+
+                        distColshape.Destroy();
+                    }
+                }
+
+                var isNear = Player.LocalPlayer.GetCoords(false).DistanceTo(cs.Position) <= 10f;
+
+                if (cs.IsInside)
+                {
+                    cs.OnExit?.Invoke(null);
+                    cs.OnEnter?.Invoke(null);
+                }
+
+                if (!isNear)
+                    return;
+
+                if (CEF.ActionBox.CurrentContextStr == $"MarketStallStartRent_{stallIdx}")
+                {
+                    CEF.ActionBox.Close(true);
+                }
             }
 
             public static async void OnInteractionKeyPressed()
@@ -108,12 +202,40 @@ namespace BCRPClient.Data
 
                                     if (res == 1)
                                     {
-                                        CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.DefHeader, Locale.Get(isStallLocked ? "MARKETSTALL_MG_UNLOCKED" : "MARKETSTALL_MG_LOCKED"));
+                                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get(isStallLocked ? "MARKETSTALL_MG_UNLOCKED" : "MARKETSTALL_MG_LOCKED"));
                                     }
                                 }
                                 else if (opt == 2)
                                 {
+                                    var items = new List<object>();
 
+                                    for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+                                    {
+                                        var x = CEF.Inventory.ItemsParams[i];
+
+                                        if (x == null)
+                                            continue;
+
+                                        var y = (object[])CEF.Inventory.ItemsData[i][0];
+
+                                        items.Add(new object[] { new object[] { i, y[0] }, y[1], 0, y[3], y[4], false });
+                                    }
+
+                                    if (items.Count == 0)
+                                    {
+                                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_NOITEMS_SELL"));
+
+                                        return;
+                                    }
+
+                                    if (Additional.ExtraColshape.LastSent.IsSpam(500, false, true))
+                                        return;
+
+                                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+
+                                    CEF.ActionBox.Close(false);
+
+                                    CEF.PlayerMarket.Show($"MARKETSTALL@SELLER_{marketStall.Id}", new object[] { items, });
                                 }
                                 else if (opt == 3)
                                 {
@@ -121,7 +243,7 @@ namespace BCRPClient.Data
 
                                     if (sellHist == null || sellHist.Count == 0)
                                     {
-                                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Get("MARKETSTALL_MG_HISTEMPTY"));
+                                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_MG_HISTEMPTY"));
 
                                         return;
                                     }
@@ -152,7 +274,7 @@ namespace BCRPClient.Data
                 {
                     await CEF.ActionBox.ShowMoney
                     (
-                        "MarketStallStartRent", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", $"${Utils.ToStringWithWhitespace(RentPrice.ToString())}"),
+                        $"MarketStallStartRent_{marketStall.Id}", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", Utils.GetPriceString(RentPrice)),
 
                         CEF.ActionBox.DefaultBindAction,
 

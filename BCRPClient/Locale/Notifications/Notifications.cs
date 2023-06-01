@@ -6,10 +6,6 @@ namespace BCRPClient
     {
         public static partial class Notifications
         {
-            public static string DefHeader = "Уведомление";
-            public static string ErrorHeader = "Ошибка";
-            public static string ApproveHeader = "Подтверждение";
-
             public static class Blip
             {
                 public static string Header = "GPS";

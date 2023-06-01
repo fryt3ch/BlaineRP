@@ -103,7 +103,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                                     if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
@@ -188,7 +188,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 {
                                     if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
@@ -199,7 +199,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                     if (quest.GetActualData<Marker>("E_MKR_0") is Marker checkpoint)
                                         checkpoint.Visible = false;
 
-                                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Notifications.DefHeader, "Для того, чтобы закончить экзамен заглушите двигатель транспорта!");
+                                    CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), "Для того, чтобы закончить экзамен заглушите двигатель транспорта!");
 
                                     AsyncTask engineTask = null;
 

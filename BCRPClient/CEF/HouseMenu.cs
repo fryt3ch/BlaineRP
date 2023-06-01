@@ -166,7 +166,7 @@ namespace BCRPClient.CEF
                     {
                         Player.LocalPlayer.SetData("HouseMenu::SellGov::ApproveTime", Sync.World.ServerTime);
 
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Notifications.ApproveHeader, string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(house.Price))), 5000);
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(house.Price))), 5000);
                     }
                     else
                     {
@@ -429,7 +429,7 @@ namespace BCRPClient.CEF
 
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.House.NotInAnyHouse);
+                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.House.NotInAnyHouse);
 
                 return;
             }
@@ -654,7 +654,7 @@ namespace BCRPClient.CEF
 
                     if (curFloor == floor)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Notifications.ErrorHeader, Locale.Notifications.General.ElevatorCurrentFloor);
+                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.ElevatorCurrentFloor);
 
                         return;
                     }

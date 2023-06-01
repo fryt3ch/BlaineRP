@@ -1,6 +1,7 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace BCRPServer.Events.Players.Misc
@@ -23,6 +24,9 @@ namespace BCRPServer.Events.Players.Misc
             var stall = Game.Misc.MarketStall.GetByIdx(stallIdx);
 
             if (stall == null)
+                return false;
+
+            if (!stall.IsPlayerNear(player))
                 return false;
 
             var rentPrice = Game.Misc.MarketStall.RentPrice;
@@ -101,7 +105,24 @@ namespace BCRPServer.Events.Players.Misc
         [RemoteProc("MarketStall::Close")]
         private static bool Close(Player player, int stallIdx)
         {
-            return false;
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return false;
+
+            var pData = sRes.Data;
+
+            var stall = Game.Misc.MarketStall.GetByIdx(stallIdx);
+
+            if (stall == null)
+                return false;
+
+            if (!stall.IsPlayerRenter(stallIdx, player, true))
+                return false;
+
+            Game.Misc.MarketStall.SetCurrentRenterRID(stallIdx, ushort.MaxValue);
+
+            return true;
         }
 
         [RemoteProc("MarketStall::Buy")]
@@ -126,6 +147,9 @@ namespace BCRPServer.Events.Players.Misc
             var stall = Game.Misc.MarketStall.GetByIdx(stallIdx);
 
             if (stall == null)
+                return null;
+
+            if (!stall.IsPlayerNear(player))
                 return null;
 
             return null;
