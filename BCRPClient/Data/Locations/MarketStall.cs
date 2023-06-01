@@ -1,9 +1,11 @@
 ﻿using BCRPClient.CEF;
+using Newtonsoft.Json.Linq;
 using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -166,6 +168,7 @@ namespace BCRPClient.Data
                         options.Add((1, Locale.Get(isStallLocked ? "MARKETSTALL_MG_UNLOCK" : "MARKETSTALL_MG_LOCK")));
                         options.Add((2, Locale.Get("MARKETSTALL_MG_CHOOSE")));
                         options.Add((3, Locale.Get("MARKETSTALL_MG_SELLHIST")));
+                        options.Add((77, Locale.Get("MARKETSTALL_DEBUG_SHOW")));
 
                         options.Add((255, Locale.Get("MARKETSTALL_MG_CLOSE")));
 
@@ -218,7 +221,7 @@ namespace BCRPClient.Data
 
                                         var y = (object[])CEF.Inventory.ItemsData[i][0];
 
-                                        items.Add(new object[] { new object[] { i, y[0] }, y[1], 0, y[3], y[4], false });
+                                        items.Add(new object[] { new object[] { i, y[0] }, ((string)y[1]).Replace("[A] ", ""), 0, y[3], y[4], null });
                                     }
 
                                     if (items.Count == 0)
@@ -232,6 +235,13 @@ namespace BCRPClient.Data
                                         return;
 
                                     Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+
+                                    var res = await Events.CallRemoteProc("MarketStall::OSIM", marketStall.Id);
+
+                                    if (res == null)
+                                        return;
+
+                                    // todo work with already items on market
 
                                     CEF.ActionBox.Close(false);
 
@@ -263,6 +273,12 @@ namespace BCRPClient.Data
 
                                         return;
                                     }
+                                }
+                                else if (opt == 77)
+                                {
+                                    CEF.ActionBox.Close(false);
+
+                                    ShowGoods(marketStall);
                                 }
                             },
 
@@ -317,8 +333,60 @@ namespace BCRPClient.Data
                 }
                 else
                 {
+                    if (Additional.ExtraColshape.LastSent.IsSpam(1000, false, true))
+                        return;
 
+                    Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
+
+                    ShowGoods(marketStall);
                 }
+            }
+
+            private static async void ShowGoods(MarketStall marketStall)
+            {
+                var res = await Events.CallRemoteProc("MarketStall::Show", marketStall.Id);
+
+                if (res == null)
+                    return;
+
+                var resList = (res as JArray)?.ToObject<List<string>>();
+
+                if (resList == null || resList.Count == 0)
+                {
+                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_NOITEMS_BUY"));
+
+                    return;
+                }
+
+                var items = new List<object>();
+
+                foreach (var x in resList)
+                {
+                    var d = x.Split('&');
+
+                    var id = d[1];
+
+                    var weight = float.Parse(d[2]);
+                    var price = decimal.Parse(d[4]);
+                    var amount = uint.Parse(d[5]);
+
+                    var iName = Data.Items.GetName(id);
+
+                    var tag = d[3];
+
+                    if (tag.Length > 0)
+                        iName += $" [{tag}]";
+
+                    var iType = Data.Items.GetType(id, true);
+
+                    items.Add(new object[] { new object[] { uint.Parse(d[0]), Data.Items.GetImageId(id, iType) }, iName, price, amount, weight, typeof(Data.Items.Clothes).IsAssignableFrom(iType) ? Locale.Get("SHOP_RET_DRESS_L") : null });
+                }
+
+                var seller = RAGE.Elements.Entities.Players.GetAtRemote(marketStall.CurrentRenterRID);
+
+                var sellerName = Utils.GetPlayerName(seller, true, false, true);
+
+                CEF.PlayerMarket.Show($"MARKETSTALL@BUYER_{marketStall.Id}", new object[] { items, sellerName });
             }
         }
     }

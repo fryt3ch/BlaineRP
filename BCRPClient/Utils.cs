@@ -485,7 +485,7 @@ namespace BCRPClient
             {
                 var defNameMale = Locale.Get("NPC_NOTFAM_MALE");
 
-                return includeId ? defNameMale + $" ({player.RemoteId})" : defNameMale;
+                return includeId ? defNameMale + $" ({player?.RemoteId ?? ushort.MaxValue})" : defNameMale;
             }
 
             var name = familiarOnly ? (player.IsFamilliar() && (dontMask || !pData.IsMasked) ? player.Name : Locale.Get(pData.Sex ? "NPC_NOTFAM_MALE" : "NPC_NOTFAM_FEMALE")) : player.Name;

@@ -154,6 +154,15 @@ namespace BCRPServer.Events.Players
                 if (pData.CurrentJob is Game.Jobs.Job curJob)
                     curJob.OnWorkerExit(pData);
 
+                int rentedMarketStallIdx;
+
+                var rentedMarketStall = Game.Misc.MarketStall.GetByRenter(player.Id, out rentedMarketStallIdx);
+
+                if (rentedMarketStall != null)
+                {
+                    rentedMarketStall.SetCurrentRenter(rentedMarketStallIdx, null);
+                }
+
                 player.DetachAllObjects();
 
                 player.DetachAllEntities();

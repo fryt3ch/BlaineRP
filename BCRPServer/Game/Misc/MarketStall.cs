@@ -8,11 +8,25 @@ namespace BCRPServer.Game.Misc
     {
         private static MarketStall[] All;
 
+        public class Item
+        {
+            public Game.Items.Item ItemRoot { get; set; }
+            public int Amount { get; set; }
+            public uint Price { get; set; }
+
+            public Item(Game.Items.Item ItemRoot, int Amount, uint Price)
+            {
+                this.ItemRoot = ItemRoot;
+                this.Amount = Amount;
+                this.Price = Price;
+            }
+        }
+
         public Utils.Vector4 Position { get; set; }
 
         public bool IsLocked { get; set; }
 
-        private List<Sync.Offers.Offer.Trade.TradeItem> Items { get; set; }
+        public List<Item> Items { get; private set; }
 
         public static uint RentPrice { get => Utils.ToUInt32(Sync.World.GetSharedData<object>("MARKETSTALL_RP")); set => Sync.World.SetSharedData("MARKETSTALL_RP", value); }
 
@@ -21,7 +35,7 @@ namespace BCRPServer.Game.Misc
             return Utils.ToUInt16(Sync.World.GetSharedData<object>($"MARKETSTALL_{stallIdx}_R") ?? ushort.MaxValue);
         }
 
-        public static void SetCurrentRenterRID(int stallIdx, ushort rid)
+        private static void SetCurrentRenterRID(int stallIdx, ushort rid)
         {
             if (rid == ushort.MaxValue)
                 Sync.World.ResetSharedData($"MARKETSTALL_{stallIdx}_R");
@@ -29,7 +43,7 @@ namespace BCRPServer.Game.Misc
                 Sync.World.SetSharedData($"MARKETSTALL_{stallIdx}_R", rid);
         }
 
-        public bool IsPlayerNear(Player player) => player.Dimension == Settings.MAIN_DIMENSION && player.Position.DistanceTo(Position.Position) <= 7.5f;
+        public bool IsPlayerNear(Player player, float maxDistance = 7.5f) => player.Dimension == Settings.MAIN_DIMENSION && player.Position.DistanceTo(Position.Position) <= maxDistance;
 
         public static MarketStall GetByIdx(int stallIdx) => stallIdx < 0 || stallIdx >= All.Length ? null : All[stallIdx];
 
@@ -90,14 +104,9 @@ namespace BCRPServer.Game.Misc
             Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LOCATIONS_DATA_PATH, "MARKETSTALLS_TO_REPLACE", lines);
         }
 
-        public void SetItems(List<Sync.Offers.Offer.Trade.TradeItem> items)
+        public bool IsPlayerRenter(int stallIdx, Player player, bool notify, out ushort renterRid)
         {
-            Items = items;
-        }
-
-        public bool IsPlayerRenter(int stallIdx, Player player, bool notify)
-        {
-            var renterRid = GetCurrentRenterRID(stallIdx);
+            renterRid = GetCurrentRenterRID(stallIdx);
 
             if (renterRid == ushort.MaxValue)
                 return false;
@@ -128,6 +137,23 @@ namespace BCRPServer.Game.Misc
             }
 
             return false;
+        }
+
+        public void SetCurrentRenter(int stallIdx, PlayerData pData)
+        {
+            if (pData == null)
+            {
+                SetCurrentRenterRID(stallIdx, ushort.MaxValue);
+            }
+            else
+            {
+                SetCurrentRenterRID(stallIdx, pData.Player.Id);
+            }
+        }
+
+        public void SetItems(List<Item> items)
+        {
+            Items = items;
         }
     }
 }

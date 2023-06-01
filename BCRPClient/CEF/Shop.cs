@@ -57,7 +57,7 @@ namespace BCRPClient.CEF
         private static decimal CurrentMargin { get; set; }
 
         /// <summary>Тип текущего магазина</summary>
-        private static Types CurrentType;
+        private static Types CurrentType { get; set; } = Types.None;
 
         private static Additional.ExtraColshape CloseColshape { get; set; }
 
@@ -395,10 +395,6 @@ namespace BCRPClient.CEF
 
         public Shop()
         {
-            LastSent = Sync.World.ServerTime;
-
-            CurrentType = Types.None;
-
             #region TO_REPLACE
 
             #endregion
@@ -431,34 +427,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Retail::Action", (args) =>
             {
-                var itemId = (string)args[0];
-
-                //Utils.ConsoleOutput(itemId);
-
-                if (CurrentType == Types.FurnitureShop)
-                {
-                    if (RetailPreviewActive)
-                        return;
-
-                    var furnData = Data.Furniture.GetData(itemId);
-
-                    if (furnData == null)
-                        return;
-
-                    CurrentItem = itemId;
-
-                    var mapObj = Utils.CreateObjectNoOffsetImmediately(furnData.Model, 2742.275f, 3485.742f, 55.6959f);
-
-                    mapObj.SetCollision(false, false);
-
-                    mapObj.PlaceOnGroundProperly();
-
-                    mapObj.SetTotallyInvincible(true);
-
-                    mapObj.FreezePosition(true);
-
-                    StartRetailPreview(mapObj, 194.5612f + 180f, 1, Additional.Camera.StateTypes.WholeFurniture, Additional.Camera.StateTypes.FrontFurniture, Additional.Camera.StateTypes.TopFurniture);
-                }
+                //var itemId = (string)args[0];
             });
 
             Events.Add("Shop::UpdateColor", (object[] args) =>
@@ -1241,6 +1210,9 @@ namespace BCRPClient.CEF
 
             Events.Add("Shop::Buy", async (object[] args) =>
             {
+                if (CurrentType == Types.None)
+                    return;
+
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                 if (pData == null)
@@ -1546,6 +1518,40 @@ namespace BCRPClient.CEF
 
                         }
                     }
+                }
+            });
+
+            // in fact - retail
+            Events.Add("Shop::Try", (args) =>
+            {
+                if (!IsRenderedRetail)
+                    return;
+
+                if (CurrentType == Types.FurnitureShop)
+                {
+                    var itemId = (string)args[0];
+
+                    if (RetailPreviewActive)
+                        return;
+
+                    var furnData = Data.Furniture.GetData(itemId);
+
+                    if (furnData == null)
+                        return;
+
+                    CurrentItem = itemId;
+
+                    var mapObj = Utils.CreateObjectNoOffsetImmediately(furnData.Model, 2742.275f, 3485.742f, 55.6959f);
+
+                    mapObj.SetCollision(false, false);
+
+                    mapObj.PlaceOnGroundProperly();
+
+                    mapObj.SetTotallyInvincible(true);
+
+                    mapObj.FreezePosition(true);
+
+                    StartRetailPreview(mapObj, 194.5612f + 180f, 1, Additional.Camera.StateTypes.WholeFurniture, Additional.Camera.StateTypes.FrontFurniture, Additional.Camera.StateTypes.TopFurniture);
                 }
             });
         }
@@ -2182,10 +2188,9 @@ namespace BCRPClient.CEF
                         }
                     };
 
-                    CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, false }) }, null, false);
+                    var viewText = Locale.Get("SHOP_RET_VIEW_L");
 
-                    GameEvents.Render -= RetailRenderFurniture;
-                    GameEvents.Render += RetailRenderFurniture;
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", $"{RetailJsTypes[type]}-{subTypeNum}", new object[] { Data.Furniture.All.Where(x => FurnitureSections[subType].Contains(x.Value.Type)).Where(x => prices.ContainsKey(x.Key)).Select(x => new object[] { x.Key, x.Value.Name, prices[x.Key], 1, 0f, viewText }) }, null, false);
                 }
                 else
                 {
@@ -2205,7 +2210,7 @@ namespace BCRPClient.CEF
                         }
                     };
 
-                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => { var itemData = Data.Items.GetData(y); return new object[] { y, itemData.Name, prices[y], (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, false }; })), null, false);
+                    CEF.Browser.Window.ExecuteJs("Retail.draw", RetailJsTypes[type], sections.Select(x => x.Value.Select(y => { var itemData = Data.Items.GetData(y); return new object[] { y, itemData.Name, prices[y], (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; })), null, false);
                 }
 
                 OnShowFinish();
@@ -2416,8 +2421,6 @@ namespace BCRPClient.CEF
                     Browser.Render(Browser.IntTypes.Retail, false);
 
                     StopRetailPreview();
-
-                    GameEvents.Render -= RetailRenderFurniture;
                 }
 
                 CurrentType = Types.None;
@@ -2683,7 +2686,7 @@ namespace BCRPClient.CEF
 
             RetailPreviewActive = true;
 
-            CEF.Browser.Switch(Browser.IntTypes.Retail, false);
+            CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, false);
 
             GameEvents.DisableAllControls(true);
 
@@ -2721,7 +2724,7 @@ namespace BCRPClient.CEF
 
             if (IsRenderedRetail)
             {
-                CEF.Browser.Switch(Browser.IntTypes.Retail, true);
+                CEF.Browser.SwitchTemp(Browser.IntTypes.Retail, true);
             }
 
             if (TempEntity != null)
@@ -2768,16 +2771,6 @@ namespace BCRPClient.CEF
 
                 Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
-        }
-
-        private static void RetailRenderFurniture()
-        {
-            if (!CEF.Browser.IsActive(CEF.Browser.IntTypes.Retail))
-                return;
-
-            var text = Locale.Get("SHOP_RET_PREVIEW_HELP_2");
-
-            Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
     }
 }

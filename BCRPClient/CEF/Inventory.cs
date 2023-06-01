@@ -13,6 +13,10 @@ namespace BCRPClient.CEF
 
         private static int FreezeCounter { get; set; }
 
+        public delegate void OnInventoryUpdated(int typeid);
+
+        public static event OnInventoryUpdated InventoryUpdated;
+
         public enum Types
         {
             None = -1,
@@ -218,10 +222,13 @@ namespace BCRPClient.CEF
             var iType = Data.Items.GetType(id);
             var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+            var name = Data.Items.GetName(id);
 
             if (inUse)
                 name = name.Insert(0, "[A] ");
+
+            if (tag != null && tag.Length > 0)
+                name += $" [{tag}]";
 
             if (inContainer)
                 return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };
@@ -769,6 +776,8 @@ namespace BCRPClient.CEF
                     int id = (int)curArgs[0];
 
                     usedGroups.Add(id);
+
+                    InventoryUpdated?.Invoke(id);
 
                     if (id == 0)
                     {

@@ -1,9 +1,7 @@
 ﻿#define DEBUGGING
-using RAGE; using RAGE.Elements; using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
+using RAGE;
+using RAGE.Elements;
+using System;
 
 namespace BCRPClient
 {

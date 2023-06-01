@@ -1441,7 +1441,7 @@ namespace BCRPClient.Additional
                                 }
                                 else
                                 {
-                                    interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_2", RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid)?.Name ?? "null", currentRenterRid);
+                                    interactionText = Locale.Get("INTERACTION_L_MARKETSTALL_2", Utils.GetPlayerName(RAGE.Elements.Entities.Players.GetAtRemote(currentRenterRid), true, false, false), currentRenterRid);
                                 }
 
                                 if (interactionText != null)

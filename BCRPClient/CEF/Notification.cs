@@ -396,6 +396,10 @@ namespace BCRPClient.CEF
 
             { "MarketStall::NO", new Instance(Types.Error, Locale.Get("MARKETSTALL_NOWNER"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "MarketStall::LN", new Instance(Types.Error, Locale.Get("MARKETSTALL_LOCKED_NOW"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "MarketStall::BSE0", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_0"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "MarketStall::BSE1", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_1"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "MarketStall::BSE2", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_2"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "MarketStall::BSE3", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_3"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
         };
 
         public Notification()

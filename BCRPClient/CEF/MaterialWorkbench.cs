@@ -66,7 +66,7 @@ namespace BCRPClient.CEF
 
             CurrentType = type;
 
-            CEF.Browser.Window.ExecuteJs("Retail.draw", "creation", new object[] { prices.Select(x => { var itemData = Data.Items.GetData(x.Key); return new object[] { x.Key, itemData.Name, x.Value, (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, false }; }) }, materialsAmount, false);
+            CEF.Browser.Window.ExecuteJs("Retail.draw", "creation", new object[] { prices.Select(x => { var itemData = Data.Items.GetData(x.Key); return new object[] { x.Key, itemData.Name, x.Value, (itemData as Data.Items.Item.ItemData.IStackable)?.MaxAmount ?? 1, itemData.Weight, null }; }) }, materialsAmount, false);
 
             CEF.Cursor.Show(true, true);
 
