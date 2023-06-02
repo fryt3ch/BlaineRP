@@ -89,8 +89,6 @@ namespace BCRPClient.Additional
                 {
                     Sync.Players.CloseAll(false);
 
-                    Utils.ResetGameplayCameraRotation();
-
                     Events.OnPlayerSpawn?.Invoke(null);
 
                     return;
@@ -113,7 +111,7 @@ namespace BCRPClient.Additional
 
                 LastTeleportWasGround = onGround;
 
-                var heading = args[3] is float fHeading ? fHeading : Player.LocalPlayer.GetHeading();
+                var heading = args[3] == null ? (float?)null : Utils.ToSingle(args[3]);
 
                 var fade = (bool)args[4];
 
@@ -167,7 +165,12 @@ namespace BCRPClient.Additional
 
                             veh.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
 
-                            veh.SetHeading(heading);
+                            if (heading is float headingF)
+                            {
+                                veh.SetHeading(headingF);
+
+                                Utils.ResetGameplayCameraRotation();
+                            }
 
                             if (!vData.IsFrozen)
                                 veh.FreezePosition(false);
@@ -217,7 +220,12 @@ namespace BCRPClient.Additional
 
                         Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
 
-                        Player.LocalPlayer.SetHeading(heading);
+                        if (heading is float headingF)
+                        {
+                            Player.LocalPlayer.SetHeading(headingF);
+
+                            Utils.ResetGameplayCameraRotation();
+                        }
 
                         if (onGround)
                         {
@@ -252,8 +260,6 @@ namespace BCRPClient.Additional
 
                     GameEvents.DisableAllControls(false);
                     KeyBinds.EnableAll();
-
-                    Utils.ResetGameplayCameraRotation();
 
                     Events.OnPlayerSpawn?.Invoke(null);
 

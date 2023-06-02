@@ -126,6 +126,7 @@ namespace BCRPClient
                 ("PLAYER_QUIT_TEXT", "Игрок вышел {0} в {1}\nCID: #{2} | ID: {3}"),
 
                 ("GEN_PAUSEMENU_MONEY_T", "Наличные: {0} | Банк: {1}"),
+                ("GEN_PAUSEMENU_HUDM_T", "Blaine RP"),
 
                 ("GEN_ACTION_RESTRICTED_NOW", "Сейчас вы не можете сделать это!"),
                 ("GEN_ACTION_NO_SELF", "Вы не можете делать это с самим собой!"),
@@ -143,6 +144,7 @@ namespace BCRPClient
                 ("SCALEFORM_SRANGE_CDOWN_CONTENT", "Начало через: {0}"),
                 ("SCALEFORM_SRANGE_SCORE_T", "Счёт: {0} / {1}"),
                 ("SCALEFORM_SRANGE_ACC_T", "Точность: {0}%"),
+                ("SCALEFORM_SRANGE_H_EXIT", "{0} - покинуть тир"),
                 ("SCALEFORM_JOB_BUSDRIVER_WAIT_HEADER", "~g~Ожидание пассажиров"),
                 ("SCALEFORM_JOB_COLLECTOR_WAIT_0_HEADER", "~g~Загрузка денег"),
                 ("SCALEFORM_JOB_COLLECTOR_WAIT_1_HEADER", "~g~Выгрузка денег"),

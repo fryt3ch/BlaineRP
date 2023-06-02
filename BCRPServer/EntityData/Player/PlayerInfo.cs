@@ -208,34 +208,40 @@ namespace BCRPServer
                 return TempData.Remove(key);
             }
 
-            public bool HasCooldown(Sync.Cooldowns.Types cdType)
+            public bool HasCooldown(Sync.Cooldowns.Types cdType, DateTime curDate, int cdSecs, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate)
             {
-                DateTime dt;
+                if (!TryGetCooldownTimePassed(cdType, curDate, out timePassed, out cdDate))
+                {
+                    timeLeft = TimeSpan.Zero;
 
-                if (!Cooldowns.TryGetValue(cdType, out dt))
                     return false;
+                }
 
-                return dt > Utils.GetCurrentTime();
+                timeLeft = TimeSpan.FromSeconds(cdSecs).Subtract(timePassed);
+
+                return timeLeft.TotalSeconds > 0;
             }
 
-            public TimeSpan GetCooldownTimeLeft(Sync.Cooldowns.Types cdType)
+            public bool TryGetCooldownTimePassed(Sync.Cooldowns.Types cdType, DateTime curDate, out TimeSpan timePassed, out DateTime cdDate)
             {
-                DateTime dt;
+                if (!Cooldowns.TryGetValue(cdType, out cdDate))
+                {
+                    timePassed = TimeSpan.Zero;
 
-                if (!Cooldowns.TryGetValue(cdType, out dt))
-                    dt = DateTime.MinValue;
+                    return false;
+                }
 
-                return dt.Subtract(Utils.GetCurrentTime());
+                timePassed = curDate.Subtract(cdDate);
+
+                return true;
             }
 
-            public void SetCooldown(Sync.Cooldowns.Types cdType, int secs)
+            public void SetCooldown(Sync.Cooldowns.Types cdType, DateTime date)
             {
-                var time = Utils.GetCurrentTime().AddSeconds(secs);
+                if (!Cooldowns.TryAdd(cdType, date))
+                    Cooldowns[cdType] = date;
 
-                if (!Cooldowns.TryAdd(cdType, time))
-                    Cooldowns[cdType] = time;
-
-                MySQL.CharacterCooldownSet(this, cdType);
+                MySQL.CharacterCooldownSet(this, cdType, date);
             }
 
             public bool RemoveCooldown(Sync.Cooldowns.Types cdType)

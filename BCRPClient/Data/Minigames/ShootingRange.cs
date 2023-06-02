@@ -231,7 +231,7 @@ namespace BCRPClient.Data.Minigames
 
         public ShootingRange()
         {
-            Events.Add("SRange::Start", async (args) =>
+            Events.Add("SRange::Start", (args) =>
             {
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -240,17 +240,22 @@ namespace BCRPClient.Data.Minigames
 
                 var srType = (Types)(int)args[0];
 
-                Utils.SetActionAsPending("ShootingRange", true);
+                AsyncTask task = null;
 
-                while (Additional.SkyCamera.IsFadedOut)
-                    await RAGE.Game.Invoker.WaitAsync(25);
+                task = new AsyncTask(async () =>
+                {
+                    while (Additional.SkyCamera.IsFadedOut)
+                        await RAGE.Game.Invoker.WaitAsync(25);
 
-                if (!Utils.IsActionPending("ShootingRange"))
-                    return;
+                    if (!Utils.IsTaskStillPending("ShootingRange", task))
+                        return;
 
-                Utils.SetActionAsPending("ShootingRange", false);
+                    Utils.CancelPendingTask("ShootingRange");
 
-                Start(srType, pData.Skills[Sync.Players.SkillTypes.Shooting]);
+                    Start(srType, pData.Skills[Sync.Players.SkillTypes.Shooting]);
+                }, 0, false, 0);
+
+                Utils.SetTaskAsPending("ShootingRange", task);
             });
         }
 
@@ -326,6 +331,7 @@ namespace BCRPClient.Data.Minigames
 
             Events.OnPlayerWeaponShot -= ShotHandler;
 
+            Utils.CancelPendingTask("ShootingRange");
             Utils.CancelPendingTask("SRange::Start::D");
 
             Additional.Scaleform.Get("srange_s_counter")?.Destroy();
@@ -334,14 +340,15 @@ namespace BCRPClient.Data.Minigames
 
             Sync.WeaponSystem.DisabledFiring = false;
 
-            for (int i = 0; i < Targets.Count; i++)
-                Targets[i--].Destroy();
+            if (Targets != null)
+            {
+                for (int i = 0; i < Targets.Count; i++)
+                    Targets[i--].Destroy();
 
-            Targets.Clear();
+                Targets.Clear();
 
-            Targets = null;
-
-            Utils.SetActionAsPending("ShootingRange", false);
+                Targets = null;
+            }
 
             RAGE.Game.Audio.PlaySoundFrontend(-1, "SHOOTING_RANGE_ROUND_OVER", "HUD_AWARDS", true);
 
@@ -356,7 +363,18 @@ namespace BCRPClient.Data.Minigames
 
             var rData = Ranges[srType];
 
-            Utils.DrawText(Locale.Get("SCALEFORM_SRANGE_SCORE_T", CurrentScore, CurrentMaxScore), 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+            Utils.DrawText(Locale.Get("SCALEFORM_SRANGE_H_EXIT", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape)), 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+
+            CEF.Cursor.OnTickCursor();
+
+            if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.Escape))
+            {
+                Finish();
+
+                return;
+            }
+
+            Utils.DrawText(Locale.Get("SCALEFORM_SRANGE_SCORE_T", CurrentScore, CurrentMaxScore), 0.5f, 0.875f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
             var totalLooseScore = CurrentTotalShots + CurrentLooseScore;
 
@@ -373,19 +391,19 @@ namespace BCRPClient.Data.Minigames
 
             if (totalAccuracy < 50f)
             {
-                Utils.DrawText(accText, 0.5f, 0.95f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.900f, 255, 0, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
             else if (totalAccuracy < 75)
             {
-                Utils.DrawText(accText, 0.5f, 0.95f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.900f, 255, 140, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
             else if (totalAccuracy < 90)
             {
-                Utils.DrawText(accText, 0.5f, 0.95f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.900f, 0, 255, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
             else
             {
-                Utils.DrawText(accText, 0.5f, 0.95f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                Utils.DrawText(accText, 0.5f, 0.900f, 255, 215, 0, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
             }
 
             if (Targets.Count <= 5 && Sync.World.ServerTime.Subtract(LastTargetAdded).TotalMilliseconds >= NewTargetDelay)

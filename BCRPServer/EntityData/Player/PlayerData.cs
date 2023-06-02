@@ -661,18 +661,16 @@ namespace BCRPServer
             return true;
         }
 
-        public bool HasCooldown(Sync.Cooldowns.Types cdType, int notifyType = -1)
+        public bool HasCooldown(Sync.Cooldowns.Types cdType, DateTime curDate, int cdSecs, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, int notifyType = -1)
         {
-            var ts = Info.GetCooldownTimeLeft(cdType);
-
-            if (ts.TotalSeconds > 0)
+            if (Info.HasCooldown(cdType, curDate, cdSecs, out timePassed, out timeLeft, out cdDate))
             {
                 if (notifyType >= 0)
                 {
                     if (notifyType != 3)
                         Player.Notify($"CDown::{notifyType}");
                     else
-                        Player.Notify("CDown::3", ts.GetBeautyString());
+                        Player.Notify("CDown::3", timeLeft.GetBeautyString());
                 }
 
                 return true;

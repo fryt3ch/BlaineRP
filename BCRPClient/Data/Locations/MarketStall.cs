@@ -15,8 +15,6 @@ namespace BCRPClient.Data
     {
         public class MarketStall
         {
-            public static uint RentPrice => Utils.ToUInt32(Sync.World.GetSharedData<object>("MARKETSTALL_RP", 0));
-
             public static List<string> SellHistory { get => Player.LocalPlayer.GetData<List<string>>("MarketStall::SH"); set { if (value == null) Player.LocalPlayer.ResetData("MarketStall::SH"); else Player.LocalPlayer.SetData("MarketStall::SH", value); } }
 
             public int Id { get; set; }
@@ -288,9 +286,11 @@ namespace BCRPClient.Data
                 }
                 else if (currentRenterRid == ushort.MaxValue)
                 {
+                    var rentPrice = await GetRentPrice();
+
                     await CEF.ActionBox.ShowMoney
                     (
-                        $"MarketStallStartRent_{marketStall.Id}", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", Utils.GetPriceString(RentPrice)),
+                        $"MarketStallStartRent_{marketStall.Id}", Locale.Get("MARKETSTALL_R_HEADER"), Locale.Get("MARKETSTALL_R_CONTENT", Utils.GetPriceString(rentPrice)),
 
                         CEF.ActionBox.DefaultBindAction,
 
@@ -387,6 +387,13 @@ namespace BCRPClient.Data
                 var sellerName = Utils.GetPlayerName(seller, true, false, true);
 
                 CEF.PlayerMarket.Show($"MARKETSTALL@BUYER_{marketStall.Id}", new object[] { items, sellerName });
+            }
+
+            public static async System.Threading.Tasks.Task<uint> GetRentPrice()
+            {
+                var res = await Sync.World.GetRetrievableData<object>("MARKETSTALL_RP", 0);
+
+                return Utils.ToUInt32(res);
             }
         }
     }

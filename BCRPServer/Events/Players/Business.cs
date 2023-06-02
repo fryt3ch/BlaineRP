@@ -22,6 +22,9 @@ namespace BCRPServer.Events.Players
             if (ws == null)
                 return;
 
+            if (!player.ResetData("INSRANGE"))
+                return;
+
             pData.CurrentBusiness = null;
 
             player.Teleport(ws.PositionShootingRangeEnter.Position, false, Settings.MAIN_DIMENSION, ws.PositionShootingRangeEnter.RotationZ, true);
@@ -59,8 +62,6 @@ namespace BCRPServer.Events.Players
 
             if (currentSkill == 100)
                 pData.Info.Achievements[PlayerData.Achievement.Types.SR2].UpdateProgress(pData.Info, (uint)Math.Round(accuracy < 0 ? 0f : accuracy > 100f ? 100f : accuracy));
-
-            pData.Info.SetCooldown(Sync.Cooldowns.Types.ShootingRange, Sync.Cooldowns.CD_SHOOTING_RANGE);
         }
 
         [RemoteEvent("SRange::Enter::Shop")]
@@ -84,10 +85,15 @@ namespace BCRPServer.Events.Players
             if (ws == null)
                 return;
 
-            if (!ws.IsPlayerNearShootingRangeEnterPosition(pData))
+            if (!ws.IsPlayerNearShootingRangeEnterPosition(player))
                 return;
 
-            if (pData.HasCooldown(Sync.Cooldowns.Types.ShootingRange, 2))
+            if (!pData.CanUseInventory(true) || player.HasData("INSRANGE"))
+                return;
+
+            var curTime = Utils.GetCurrentTime();
+
+            if (pData.HasCooldown(Sync.Cooldowns.Types.ShootingRange, curTime, Sync.Cooldowns.CD_SHOOTING_RANGE, out _, out _, out _, 2))
                 return;
 
             if (!ws.TryBuyShootingRange(pData))
@@ -112,6 +118,10 @@ namespace BCRPServer.Events.Players
             pData.GiveTempWeapon("w_pistol", -1);
 
             pData.CurrentBusiness = ws;
+
+            pData.Info.SetCooldown(Sync.Cooldowns.Types.ShootingRange, curTime);
+
+            player.SetData("INSRANGE", true);
         }
 
         [RemoteProc("Business::BuyGov")]

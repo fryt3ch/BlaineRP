@@ -8,6 +8,15 @@ namespace BCRPServer.Events.Players.Misc
 {
     internal class Other : Script
     {
+        [RemoteProc("SW::GRD")]
+        private static object GetRetrievableData(Player player, uint key)
+        {
+            if (player?.Exists != true)
+                return null;
+
+            return Sync.World.GetRetrievableData<object>(key, null);
+        }
+
         [RemoteEvent("Players::StopCarry")]
         public static void StopCarry(Player player)
         {

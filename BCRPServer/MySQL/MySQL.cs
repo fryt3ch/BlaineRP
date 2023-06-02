@@ -580,9 +580,6 @@ namespace BCRPServer
 
                                     var dateTime = (DateTime)obj;
 
-                                    if (dateTime < currentTime)
-                                        continue;
-
                                     cooldowns.Add(x, dateTime);
                                 }
                             }

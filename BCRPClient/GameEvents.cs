@@ -465,7 +465,7 @@ namespace BCRPClient
             // Waypoint
             RAGE.Game.Ui.SetHudColour(142, Settings.HUD_COLOUR.R, Settings.HUD_COLOUR.G, Settings.HUD_COLOUR.B, Settings.HUD_COLOUR.A);
 
-            RAGE.Game.Gxt.Add("PM_PAUSE_HDR", Settings.HUD_MAIN_TEXT);
+            RAGE.Game.Gxt.Add("PM_PAUSE_HDR", Locale.Get("GEN_PAUSEMENU_HUDM_T"));
 
             RAGE.Game.Ui.SetMinimapComponent(15, true, -1); // Fort Zancudo
             RAGE.Game.Ui.SetMinimapComponent(6, true, -1); // Vespucci Beach lifeguard building

@@ -581,15 +581,15 @@ namespace BCRPClient.CEF
                 {
                     var text = Sync.House.Style.GetName(styleId);
 
-                    Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Utils.DrawText(text, 0.5f, 0.850f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                     text = Locale.Get("HOUSE_STYLE_OVERVIEW_T1", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.Escape));
 
-                    Utils.DrawText(text, 0.5f, 0.920f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Utils.DrawText(text, 0.5f, 0.925f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
                     text = Locale.Get("HOUSE_STYLE_OVERVIEW_T2", KeyBinds.ExtraBind.GetKeyString(RAGE.Ui.VirtualKeys.M));
 
-                    Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                    Utils.DrawText(text, 0.5f, 0.950f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                 }
 
                 if (KeyBinds.IsDown(RAGE.Ui.VirtualKeys.M))

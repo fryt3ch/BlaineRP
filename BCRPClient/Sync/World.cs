@@ -174,6 +174,16 @@ namespace BCRPClient.Sync
 
         public static T GetSharedData<T>(string key, T defaultValue = default(T)) => ServerDataColshape.GetSharedData<T>(key, defaultValue);
 
+        public static async System.Threading.Tasks.Task<T> GetRetrievableData<T>(string key, T defaultValue = default(T))
+        {
+            var obj = await Events.CallRemoteProc("SW::GRD", RAGE.Util.Joaat.Hash(key));
+
+            if (obj is T objT)
+                return objT;
+
+            return defaultValue;
+        }
+
         private static Dictionary<string, Action<object, object>> DataActions = new Dictionary<string, Action<object, object>>();
 
         public static void InvokeHandler(string dataKey, object value, object oldValue = null) => DataActions.GetValueOrDefault(dataKey)?.Invoke(value, oldValue);

@@ -28,7 +28,7 @@ namespace BCRPServer.Game.Misc
 
         public List<Item> Items { get; private set; }
 
-        public static uint RentPrice { get => Utils.ToUInt32(Sync.World.GetSharedData<object>("MARKETSTALL_RP")); set => Sync.World.SetSharedData("MARKETSTALL_RP", value); }
+        public static uint RentPrice { get => Sync.World.GetRetrievableData<uint>("MARKETSTALL_RP", 0); set => Sync.World.SetRetrievableData("MARKETSTALL_RP", value); }
 
         public static ushort GetCurrentRenterRID(int stallIdx)
         {

@@ -7,14 +7,14 @@ namespace BCRPServer
 {
     public static partial class MySQL
     {
-        public static void CharacterCooldownSet(PlayerData.PlayerInfo pInfo, Sync.Cooldowns.Types cdType)
+        public static void CharacterCooldownSet(PlayerData.PlayerInfo pInfo, Sync.Cooldowns.Types cdType, DateTime date)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = $"UPDATE cooldowns SET {cdType.ToString()}=@Time WHERE CID=@CID;";
+            cmd.CommandText = $"UPDATE cooldowns SET {cdType.ToString()}=@Time WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
-            cmd.Parameters.AddWithValue("@Time", pInfo.Cooldowns.GetValueOrDefault(cdType));
+            cmd.Parameters.AddWithValue("@Time", date);
 
             PushQuery(cmd);
         }
@@ -23,7 +23,7 @@ namespace BCRPServer
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = $"UPDATE cooldowns SET {cdType.ToString()}=@Time WHERE CID=@CID;";
+            cmd.CommandText = $"UPDATE cooldowns SET {cdType.ToString()}=@Time WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
             cmd.Parameters.AddWithValue("@Time", DBNull.Value);

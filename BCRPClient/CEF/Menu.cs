@@ -358,9 +358,9 @@ namespace BCRPClient.CEF
             KeyBinds.Unbind(TempBindEsc);
             TempBindEsc = -1;
 
-            Cursor.Show(false, false);
-
             Browser.Switch(Browser.IntTypes.Menu, false);
+
+            Cursor.Show(false, false);
         }
 
         #region Updaters

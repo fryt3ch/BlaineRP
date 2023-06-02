@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using static BCRPClient.Locale.Notifications.Punishments;
 
 namespace BCRPClient
 {
@@ -33,6 +32,7 @@ namespace BCRPClient
             }
         };
 
+        #region TO_REPLACE
         public const uint MAIN_DIMENSION = 7;
         public const uint STUFF_DIMENSION = 1;
 
@@ -42,18 +42,9 @@ namespace BCRPClient
 
         public const int MAX_PLAYER_HEALTH = 100 + 100;
 
-        public static readonly Color HUD_COLOUR = Color.FromArgb(255, 255, 0, 0);
-        public const string HUD_MAIN_TEXT = "Blaine RP";
-
-        public const bool DISABLE_IDLE_CAM = true;
-        public const int DISABLE_IDLE_CAM_TIMEOUT = 25000;
-
-        public const int SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT = 2500;
-        public const int WORLD_POSITION_OF_SCREEN_CENTER_CHECK_TIMEOUT = 250;
-
         public const int DEFAULT_FADE_IN_OUT_SPEED = 500;
 
-        public const int DISCORD_STATUS_UPDATE_TIME = 5000;
+        public const int DISCORD_STATUS_UPDATE_TIME = 5_000;
 
         public const int RENTED_VEHICLE_TIME_TO_AUTODELETE = 300_000;
 
@@ -65,6 +56,14 @@ namespace BCRPClient
         public const byte TAXI_ORDER_MAX_WAIT_RANGE = 10;
 
         public const double DAMAGE_SYSTEM_WOUND_CHANCE = 0.15d;
+        #endregion
+
+        public const bool DISABLE_IDLE_CAM = true;
+        public const int DISABLE_IDLE_CAM_TIMEOUT = 25_000;
+
+        public const int SCREEN_RESOLUTION_CHANGE_CHECK_TIMEOUT = 2_500;
+
+        public static readonly Color HUD_COLOUR = Color.FromArgb(255, 255, 0, 0);
 
         public Settings()
         {

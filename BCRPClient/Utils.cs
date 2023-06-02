@@ -1187,8 +1187,6 @@ namespace BCRPClient
 
         public static void ResetGameplayCameraRotation()
         {
-            return;
-
             RAGE.Game.Cam.SetGameplayCamRelativeHeading(0f);
 
             RAGE.Game.Invoker.Invoke(0x48608C3464F58AB4, 0f, 0f, 0f);
