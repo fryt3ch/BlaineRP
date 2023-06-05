@@ -68,13 +68,13 @@ namespace BCRPServer
 
             public uint OwnerID { get; set; }
 
-            public List<uint> AllKeys { get; set; }
+            public Guid KeysUid { get; set; }
 
             public DateTime RegistrationDate { get; set; }
 
             public uint OwnersCount { get; set; }
 
-            public uint? TID { get; set; }
+            public uint TID { get; set; }
 
             public Game.Items.Numberplate Numberplate { get; set; }
 

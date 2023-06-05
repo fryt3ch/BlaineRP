@@ -47,7 +47,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public float Weight { get; }
 
-        [JsonProperty(PropertyName = "A")]
+        [JsonProperty(PropertyName = "A", Order = int.MinValue + 1)]
         /// <summary>Кол-во единиц предмета в стаке</summary>
         public int Amount { get; set; }
     }
@@ -55,9 +55,14 @@ namespace BCRPServer.Game.Items
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые, помимо названия, имеют уникальный тэг</summary>
     public interface ITagged
     {
-        [JsonProperty(PropertyName = "T")]
+        [JsonProperty(PropertyName = "T", Order = int.MinValue + 2)]
         /// <summary>Тэг</summary>
         public string Tag { get; set; }
+    }
+
+    public interface ITaggedFull : ITagged
+    {
+
     }
 
     /// <summary>Этот интерфейс реализуют классы таких предметов, которые способны тратиться</summary>
@@ -68,7 +73,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public int MaxAmount { get; }
 
-        [JsonProperty(PropertyName = "A")]
+        [JsonProperty(PropertyName = "A", Order = int.MinValue + 1)]
         /// <summary>Кол-во оставшихся единиц предмета</summary>
         public int Amount { get; set; }
     }

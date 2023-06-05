@@ -164,7 +164,7 @@ namespace BCRPServer
             public List<Game.Estates.Furniture> Furniture { get; set; }
 
             /// <summary>Скины на оружие игрока</summary>
-            public Dictionary<Game.Items.WeaponSkin.ItemData.Types, Game.Items.WeaponSkin> WeaponSkins { get; set; }
+            public List<Game.Items.WeaponSkin> WeaponSkins { get; set; }
 
             public Dictionary<Sync.Cooldowns.Types, DateTime> Cooldowns { get; set; }
 

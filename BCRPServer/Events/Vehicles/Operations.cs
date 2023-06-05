@@ -322,14 +322,14 @@ namespace BCRPServer.Events.Vehicles
             vData.TrunkLocked = newState;
 
             // Clear All Trunk Observers If Closed
-            if (newState && vData.TID is uint tid)
+            if (newState)
             {
-                var cont = Game.Items.Container.Get(tid);
+                var cont = Game.Items.Container.Get(vData.TID);
 
-                if (cont == null)
-                    return;
-
-                cont.ClearAllWrongObservers();
+                if (cont != null)
+                {
+                    cont.ClearAllWrongObservers();
+                }
             }
         }
 

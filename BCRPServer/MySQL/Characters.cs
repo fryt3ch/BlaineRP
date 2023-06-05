@@ -316,7 +316,7 @@ namespace BCRPServer
 
             cmd.Parameters.AddWithValue("@ID", pInfo.CID);
 
-            cmd.Parameters.AddWithValue("@WSkins", pInfo.WeaponSkins.ToDictionary(x => x.Key, x => x.Value.UID).SerializeToJson());
+            cmd.Parameters.AddWithValue("@WSkins", pInfo.WeaponSkins.Select(x => x.UID).SerializeToJson());
 
             PushQuery(cmd);
         }

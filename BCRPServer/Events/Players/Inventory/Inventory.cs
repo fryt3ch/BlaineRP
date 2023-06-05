@@ -329,10 +329,24 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return false;
 
-            var ws = pData.Info.WeaponSkins.GetValueOrDefault(wSkinType);
+            int wsIdx = -1;
 
-            if (ws == null)
+            for (int i = 0; i < pData.Info.WeaponSkins.Count; i++)
+            {
+                var x = pData.Info.WeaponSkins[i];
+
+                if (x.Data.Type == wSkinType)
+                {
+                    wsIdx = i;
+
+                    break;
+                }
+            }
+
+            if (wsIdx < 0)
                 return false;
+
+            var ws = pData.Info.WeaponSkins[wsIdx];
 
             var freeIdx = -1;
 
@@ -353,7 +367,7 @@ namespace BCRPServer.Events.Players
                 return false;
             }
 
-            pData.Info.WeaponSkins.Remove(wSkinType);
+            pData.Info.WeaponSkins.RemoveAt(wsIdx);
 
             pData.Items[freeIdx] = ws;
 

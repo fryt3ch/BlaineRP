@@ -6,6 +6,7 @@ namespace BCRPClient
 {
     public static partial class Locale
     {
+        // restricted chars for regex _|&^
         public static Language RussianLanguage => new Language
         (
             Texts: new (string Key, string Value)[]
@@ -54,11 +55,14 @@ namespace BCRPClient
                 ("SHOP_TUNING_KEYS_1", "Дубликат ключей"),
                 ("SHOP_TUNING_MODDEL_HEADER", "Удаление модификации"),
                 ("SHOP_TUNING_MODDEL_CONTENT", "Вы собираетесь удалить {0} со своего транспорта.\n\nДанное действие необратимо!\nВыберите способ оплаты, чтобы продолжить."),
+                ("SHOP_TUNING_KEYS_CHANGE_APPROVE", "Вы собираетесь сменить замки на своем транспорте. После этой операции все ранее созданные дубликаты ключей перестанут функционировать. Нажмите еще раз, чтобы продолжить."),
                 ("SHOP_TUNING_NEON_L", "Неон"),
                 ("SHOP_TUNING_COLOURS_L", "Цвета покраски"),
                 ("SHOP_TUNING_PEARL_L", "Перламутр"),
                 ("SHOP_TUNING_WHEELC_L", "Цвет покрышек"),
                 ("SHOP_TUNING_TSMOKEC_L", "Цвет дыма от колес"),
+                ("SHOP_TUNING_KEYDUBL_HEADER", "Название ключа"),
+                ("SHOP_TUNING_KEYDUBL_CONTENT", "Введите название вашего ключа\n\nРазрешенные символы: цифры, буквы (рус. и англ.), пробел, -\n\nКол-во символов: от 1 до 18"),
 
                 ("SHOP_TESTDRIVE_HELP_0", "Нажмите {0}, чтобы закончить тест-драйв"),
                 ("SHOP_TESTDRIVE_HELP_1", "Нажмите {0}, чтобы открыть меню тюнинга"),
@@ -102,6 +106,9 @@ namespace BCRPClient
                 ("MARKETSTALL_B_SERROR_1", "Этот предмет в данный момент не находится у продавца в инвентаре, свяжитесь с ним или попробуйте позже!"),
                 ("MARKETSTALL_B_SERROR_2", "Продавец находится слишком далеко от данной торговой лавки, поэтому он был лишен аренды!"),
                 ("MARKETSTALL_B_SERROR_3", "У продавца закончился данный товар!"),
+                ("MARKETSTALL_B_SERROR_4", "У продавца осталось только {0} ед. данного товара!"),
+                ("MARKETSTALL_B_SERROR_5", "У продавца нет банковского счета, используйте наличные!"),
+                ("MARKETSTALL_TRY_ERROR_0", "В данный момент примерка товаров не работает!"),
 
                 ("BUSINESSMENU_ORDER_STATE_0", "Заказ принят"),
                 ("BUSINESSMENU_ORDER_STATE_1", "Заказ в пути"),
@@ -130,6 +137,7 @@ namespace BCRPClient
 
                 ("GEN_ACTION_RESTRICTED_NOW", "Сейчас вы не можете сделать это!"),
                 ("GEN_ACTION_NO_SELF", "Вы не можете делать это с самим собой!"),
+                ("GEN_TEXT_NOTMATCH_0", "Введенное Вами значение не соответствует правилу!"),
 
                 ("NOTIFICATION_HEADER_DEF", "Уведомление"),
                 ("NOTIFICATION_HEADER_ERROR", "Ошибка"),

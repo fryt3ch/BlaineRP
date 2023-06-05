@@ -12,6 +12,9 @@ namespace BCRPClient.CEF
 
         private static DateTime LastAntiSpamShowed { get; set; }
 
+        private static DateTime ApproveTime;
+        private static string ApproveContext;
+
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.Notifications); }
 
         public static bool IsOnTop { get; private set; } = false;
@@ -581,5 +584,14 @@ namespace BCRPClient.CEF
 
             CEF.Browser.Window.ExecuteJs("Notific.switchPos", state);
         }
+
+        public static void SetCurrentApproveContext(string context, DateTime time)
+        {
+            ApproveContext = context;
+
+            ApproveTime = time;
+        }
+
+        public static bool HasApproveTimedOut(string context, DateTime curTime, int timeoutMs) => context != ApproveContext || curTime.Subtract(ApproveTime).TotalMilliseconds >= timeoutMs;
     }
 }

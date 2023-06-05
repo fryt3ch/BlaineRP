@@ -445,7 +445,7 @@ namespace BCRPServer
 
             Furniture = new List<Game.Estates.Furniture>();
 
-            Info.WeaponSkins = new Dictionary<WeaponSkin.ItemData.Types, WeaponSkin>();
+            Info.WeaponSkins = new List<WeaponSkin>();
 
             Familiars = new HashSet<uint>();
 
@@ -547,7 +547,7 @@ namespace BCRPServer
                     data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
 
                 if (Info.WeaponSkins.Count > 0)
-                    data.Add("WSkins", Info.WeaponSkins.Select(x => x.Value.ID).SerializeToJson());
+                    data.Add("WSkins", Info.WeaponSkins.Select(x => x.ID).SerializeToJson());
 
                 if (Info.AllSMS.Count > 0)
                     data.Add("SMS", Info.AllSMS.Select(x => x.Data).SerializeToJson());

@@ -11,19 +11,7 @@ namespace BCRPServer.Game.Items
     [JsonConverter(typeof(ItemConverter))]
     public abstract class Item
     {
-        public static Dictionary<uint, Item> All { get; private set; } = new Dictionary<uint, Item>();
-
         public static UidHandlerUInt32 UidHandler { get; private set; } = new UidHandlerUInt32(1);
-
-        public static void AddOnLoad(Item item)
-        {
-            if (item == null)
-                return;
-
-            All.Add(item.UID, item);
-
-            UidHandler.TryUpdateLastAddedMaxUid(item.UID);
-        }
 
         public static void Add(Item item)
         {
@@ -31,8 +19,6 @@ namespace BCRPServer.Game.Items
                 return;
 
             item.UID = UidHandler.MoveNextUid();
-
-            All.Add(item.UID, item);
 
             MySQL.ItemAdd(item);
         }
@@ -58,28 +44,9 @@ namespace BCRPServer.Game.Items
 
                 UidHandler.SetUidAsFree(item.UID);
 
-                All.Remove(item.UID);
-
                 MySQL.ItemDelete(item);
             }
         }
-
-        public static void RemoveOnLoad(Item item)
-        {
-            if (item == null)
-                return;
-
-            if (item is Game.Items.Numberplate np)
-            {
-                np.RemoveTagFromUsed();
-            }
-
-            UidHandler.SetUidAsFree(item.UID);
-
-            All.Remove(item.UID);
-        }
-
-        public static Item Get(uint id) => All.GetValueOrDefault(id);
 
         private static Dictionary<Game.Items.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.Groups, Func<Item, string>>()
         {

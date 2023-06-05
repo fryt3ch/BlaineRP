@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BCRPServer.Game.Items
 {
-    public class Numberplate : Item, ITagged
+    public class Numberplate : Item, ITaggedFull
     {
         public static HashSet<string>[] UsedTags { get; private set; } = new HashSet<string>[]
         {

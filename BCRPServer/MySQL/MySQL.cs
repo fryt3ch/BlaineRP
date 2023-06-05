@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -206,9 +207,34 @@ namespace BCRPServer
             }
         }
 
-        public static void LoadAll()
+        public static void LoadAll(out int loadedItemsAmount)
         {
             var currentTime = Utils.GetCurrentTime();
+
+            var allItems = new Dictionary<uint, Game.Items.Item>();
+
+            var usedItems = new HashSet<uint>();
+
+            Game.Items.Item getItemAndRemove(uint uid)
+            {
+                Game.Items.Item returnItem;
+
+                if (allItems.Remove(uid, out returnItem))
+                {
+                    Game.Items.Item.UidHandler.TryUpdateLastAddedMaxUid(uid);
+
+                    usedItems.Add(uid);
+
+                    if (returnItem is Game.Items.Numberplate np)
+                    {
+                        np.AddTagToUsed();
+                    }
+
+                    return returnItem;
+                }
+
+                return null;
+            }
 
 /*            using (var conn = new MySqlConnection($"SERVER={Host}; DATABASE=fiveup_main; UID={User}; PASSWORD={Password}"))
             {
@@ -319,33 +345,26 @@ namespace BCRPServer
                         {
                             while (reader.Read())
                             {
-                                var data = reader["Data"];
-
-                                if (data is DBNull)
-                                    continue;
-
                                 var uid = Convert.ToUInt32(reader["ID"]);
 
-                                var item = ((string)data).DeserializeFromJson<Game.Items.Item>();
+                                var item = ((string)reader["Data"]).DeserializeFromJson<Game.Items.Item>();
 
                                 if (item == null)
                                     continue;
 
-                                var iData = reader["Items"];
-
-                                if (!(iData is DBNull))
-                                    includedItems.Add(uid, ((string)iData).DeserializeFromJson<uint[]>());
+                                if (reader["Items"] is string iDataStr)
+                                    includedItems.Add(uid, iDataStr.DeserializeFromJson<uint[]>());
 
                                 item.UID = uid;
 
-                                Game.Items.Item.AddOnLoad(item);
+                                allItems.Add(uid, item);
                             }
                         }
                     }
 
                     foreach (var x in includedItems.Keys)
                     {
-                        if (Game.Items.Item.Get(x) is Game.Items.IContainer container)
+                        if (allItems.GetValueOrDefault(x) is Game.Items.IContainer container)
                         {
                             container.Items = new Game.Items.Item[includedItems[x].Length];
 
@@ -354,7 +373,7 @@ namespace BCRPServer
                                 if (includedItems[x][i] == 0)
                                     continue;
 
-                                container.Items[i] = Game.Items.Item.Get(includedItems[x][i]);
+                                container.Items[i] = getItemAndRemove(includedItems[x][i]);
                             }
                         }
                     }
@@ -370,7 +389,7 @@ namespace BCRPServer
                                 var id = Convert.ToUInt32(reader["ID"]);
                                 var sid = (string)reader["SID"];
 
-                                var items = (((string)reader["Items"]).DeserializeFromJson<uint[]>()).Select(x => x == 0 ? null : Game.Items.Item.Get(x)).ToArray();
+                                var items = ((string)reader["Items"]).DeserializeFromJson<List<uint>>().Select(x => x == 0 ? null : getItemAndRemove(x)).ToArray();
 
                                 var cont = new Game.Items.Container(sid, id, items);
 
@@ -394,11 +413,11 @@ namespace BCRPServer
 
                                 var oId = Convert.ToUInt32(reader["OwnerID"]);
 
-                                var allKeys = ((string)reader["AllKeys"]).DeserializeFromJson<List<uint>>();
+                                var keysUid = reader["KeysUid"] is Guid keysUidG ? keysUidG : Guid.Empty;
 
-                                var tid = reader["TID"] is DBNull ? null : (uint?)Convert.ToUInt32(reader["TID"]);
+                                var tid = Convert.ToUInt32(reader["TID"]);
 
-                                var numberplate = Convert.ToUInt32(reader["Numberplate"]);
+                                var numberplateUid = Convert.ToUInt32(reader["Numberplate"]);
 
                                 var tuning = ((string)reader["Tuning"]).DeserializeFromJson<Game.Data.Vehicles.Tuning>();
 
@@ -416,7 +435,7 @@ namespace BCRPServer
 
                                     ID = sid,
 
-                                    AllKeys = allKeys,
+                                    KeysUid = keysUid,
 
                                     OwnerType = oType,
 
@@ -426,7 +445,7 @@ namespace BCRPServer
 
                                     TID = tid,
 
-                                    Numberplate = numberplate == 0 ? null : Game.Items.Item.Get(numberplate) as Game.Items.Numberplate,
+                                    Numberplate = numberplateUid == 0 ? null : getItemAndRemove(numberplateUid) as Game.Items.Numberplate,
 
                                     Tuning = tuning,
 
@@ -829,31 +848,22 @@ namespace BCRPServer
                                 if (pInfo == null)
                                     continue;
 
-                                var items = ((string)reader["Items"]).DeserializeFromJson<uint[]>();
-                                var clothes = ((string)reader["Clothes"]).DeserializeFromJson<uint[]>();
-                                var accs = ((string)reader["Accessories"]).DeserializeFromJson<uint[]>();
-                                var weapons = ((string)reader["Weapons"]).DeserializeFromJson<uint[]>();
-
                                 var holster = Convert.ToUInt32(reader["Holster"]);
                                 var arm = Convert.ToUInt32(reader["Armour"]);
                                 var bag = Convert.ToUInt32(reader["Bag"]);
 
-                                var furniture = ((string)reader["Furniture"]).DeserializeFromJson<uint[]>();
+                                pInfo.Items = ((string)reader["Items"]).DeserializeFromJson<List<uint>>().Select(x => x == 0 ? null : getItemAndRemove(x)).ToArray();
+                                pInfo.Clothes = ((string)reader["Clothes"]).DeserializeFromJson<List<uint>>().Select(x => x == 0 ? null : getItemAndRemove(x) as Game.Items.Clothes).ToArray();
+                                pInfo.Accessories = ((string)reader["Accessories"]).DeserializeFromJson<List<uint>>().Select(x => x == 0 ? null : getItemAndRemove(x) as Game.Items.Clothes).ToArray();
+                                pInfo.Weapons = ((string)reader["Weapons"]).DeserializeFromJson<List<uint>>().Select(x => x == 0 ? null : getItemAndRemove(x) as Game.Items.Weapon).ToArray();
 
-                                var wskins = ((string)reader["WSkins"]).DeserializeFromJson<Dictionary<Game.Items.WeaponSkin.ItemData.Types, uint>>();
+                                pInfo.Holster = holster == 0 ? null : getItemAndRemove(holster) as Game.Items.Holster;
+                                pInfo.Armour = arm == 0 ? null : getItemAndRemove(arm) as Game.Items.Armour;
+                                pInfo.Bag = bag == 0 ? null : getItemAndRemove(bag) as Game.Items.Bag;
 
-                                pInfo.Items = items.Select(x => x == 0 ? null : Game.Items.Item.Get(x)).ToArray();
-                                pInfo.Clothes = clothes.Select(x => x == 0 ? null : Game.Items.Item.Get(x) as Game.Items.Clothes).ToArray();
-                                pInfo.Accessories = accs.Select(x => x == 0 ? null : Game.Items.Item.Get(x) as Game.Items.Clothes).ToArray();
-                                pInfo.Weapons = weapons.Select(x => x == 0 ? null : Game.Items.Item.Get(x) as Game.Items.Weapon).ToArray();
-
-                                pInfo.Holster = holster == 0 ? null : Game.Items.Item.Get(holster) as Game.Items.Holster;
-                                pInfo.Armour = arm == 0 ? null : Game.Items.Item.Get(arm) as Game.Items.Armour;
-                                pInfo.Bag = bag == 0 ? null : Game.Items.Item.Get(bag) as Game.Items.Bag;
-
-                                pInfo.Furniture = furniture.Select(x => Game.Estates.Furniture.Get(x)).Where(x => x != null).ToList();
-
-                                pInfo.WeaponSkins = wskins.Where(x => Game.Items.Item.Get(x.Value) is Game.Items.WeaponSkin).ToDictionary(x => x.Key, x => (Game.Items.WeaponSkin)Game.Items.Item.Get(x.Value));
+                                pInfo.Furniture = ((string)reader["Furniture"]).DeserializeFromJson<List<uint>>().Select(x => Game.Estates.Furniture.Get(x)).Where(x => x != null).ToList();
+                                
+                                pInfo.WeaponSkins = ((string)reader["WSkins"]).DeserializeFromJson<List<uint>>().Select(x => getItemAndRemove(x) as Game.Items.WeaponSkin).Where(x => x != null).ToList();
                             }
                         }
                     }
@@ -1171,73 +1181,35 @@ namespace BCRPServer
                     }
                 }
 
-                UpdateFreeUIDs();
+                UpdateFreeUIDs(allItems, usedItems);
+
+                loadedItemsAmount = usedItems.Count;
             }
         }
 
-        private static void UpdateFreeUIDs()
+        private static void UpdateFreeUIDs(Dictionary<uint, Game.Items.Item> notUsedItems, HashSet<uint> usedItems)
         {
             var curTime = Utils.GetCurrentTime();
 
-            var usedItems = new List<Game.Items.Item>();
-
-            usedItems.AddRange(Game.Items.Container.All.Values.SelectMany(x => x.Items));
-
-            usedItems.AddRange(PlayerData.PlayerInfo.All.Values.SelectMany(x => x.Items.Concat(x.Clothes).Concat(x.Weapons).Concat(x.Accessories).Concat(x.WeaponSkins.Values).Concat(new Game.Items.Item[] { x.Bag, x.Holster, x.Armour })));
-
-            usedItems.AddRange(VehicleData.VehicleInfo.All.Values.Select(x => x.Numberplate));
-
-            usedItems.RemoveAll(x => x == null);
-
-            uint maxUid = 0;
-
-            foreach (var x in usedItems.ToList())
-            {
-                if (x is Game.Items.IContainer cont)
-                {
-                    usedItems.AddRange(cont.Items);
-
-                    foreach (var y in cont.Items)
-                    {
-                        if (y is Game.Items.IContainer cont1)
-                        {
-                            usedItems.AddRange(cont1.Items);
-                        }
-                    }
-                }
-            }
-
-            var toDel = Game.Items.Item.All.Values.Except(usedItems).ToList();
-
-            toDel.ForEach(x => Game.Items.Item.RemoveOnLoad(x));
-
-            if (toDel.Count > 0)
+            if (notUsedItems.Count > 0)
             {
                 var updCmd = new MySqlCommand();
 
-                if (toDel.Count > 1)
-                    updCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', toDel.Select(x => x.UID))});";
-                else
-                    updCmd.CommandText = $"DELETE FROM Items WHERE ID={toDel[0].UID};";
+                updCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({CreateParametersSubstringIN("@ID", notUsedItems.Count)});";
+
+                int counter = 0;
+
+                foreach (var x in notUsedItems)
+                {
+                    updCmd.Parameters.AddWithValue($"@ID{counter++}", x.Key);
+                }
 
                 PushQuery(updCmd);
             }
 
-            Game.Items.Item.UidHandler.ResetLastAddedMaxUid();
-
-            foreach (var x in Game.Items.Item.All)
-            {
-                if (x.Value is Game.Items.Numberplate np)
-                {
-                    np.AddTagToUsed();
-                }
-
-                Game.Items.Item.UidHandler.TryUpdateLastAddedMaxUid(x.Key);
-            }
-
             for (uint i = 1; i <= Game.Items.Item.UidHandler.LastAddedMaxUid; i++)
             {
-                if (Game.Items.Item.Get(i) == null)
+                if (!usedItems.Contains(i))
                     Game.Items.Item.UidHandler.SetUidAsFree(i);
             }
 
@@ -1259,11 +1231,11 @@ namespace BCRPServer
                     Game.Items.Container.UidHandler.SetUidAsFree(i);
             }
 
-            var allGifts = PlayerData.PlayerInfo.All.SelectMany(x => x.Value.Gifts).ToDictionary(x => x.ID, y => y);
+            var allGifts = PlayerData.PlayerInfo.All.SelectMany(x => x.Value.Gifts.Select(x => x.ID)).ToHashSet();
 
             for (uint i = 1; i <= Game.Items.Gift.UidHandler.LastAddedMaxUid; i++)
             {
-                if (!allGifts.ContainsKey(i))
+                if (!allGifts.Contains(i))
                     Game.Items.Gift.UidHandler.SetUidAsFree(i);
             }
 
@@ -1273,7 +1245,7 @@ namespace BCRPServer
                     Game.Estates.Furniture.UidHandler.SetUidAsFree(i);
             }
 
-            var apbsToDel = new List<uint>();
+            var apbsToDel = new HashSet<uint>();
 
             for (uint i = 1; i <= Game.Fractions.Police.APBUidHandler.LastAddedMaxUid; i++)
             {
@@ -1297,10 +1269,14 @@ namespace BCRPServer
             {
                 var apbUpdCmd = new MySqlCommand();
 
-                if (toDel.Count > 1)
-                    apbUpdCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({string.Join(',', apbsToDel)});";
-                else
-                    apbUpdCmd.CommandText = $"DELETE FROM Items WHERE ID={apbsToDel[0]};";
+                apbUpdCmd.CommandText = $"DELETE FROM Items WHERE ID IN ({CreateParametersSubstringIN("@ID", apbsToDel.Count)});";
+
+                int counter = 0;
+
+                foreach (var x in apbsToDel)
+                {
+                    apbUpdCmd.Parameters.AddWithValue($"@ID{counter++}", x);
+                }
 
                 PushQuery(apbUpdCmd);
             }
@@ -1326,6 +1302,22 @@ namespace BCRPServer
                 cmd.Parameters.AddWithValue("@Data", value.SerializeToJson());
 
             PushQuery(cmd);
+        }
+
+        public static string CreateParametersSubstringIN(string key, int amount)
+        {
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < amount - 1; i++)
+            {
+                sb.Append(key);
+                sb.Append(i);
+                sb.Append(',');
+            }
+
+            sb.Append(amount - 1);
+
+            return sb.ToString();
         }
 
         #endregion

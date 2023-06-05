@@ -1,9 +1,10 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace BCRPServer.Game.Items
 {
-    public class VehicleKey : Item, ITagged
+    public class VehicleKey : Item, ITaggedFull
     {
         new public class ItemData : Item.ItemData
         {
@@ -14,17 +15,21 @@ namespace BCRPServer.Game.Items
 
         public static Dictionary<string, Item.ItemData> IDList = new Dictionary<string, Item.ItemData>()
         {
-            { "vk_0", new ItemData("Ключ", 0.01f, "p_car_keys_01") },
+            { "vk_0", new ItemData("Ключ от транспорта", 0.01f, "p_car_keys_01") },
         };
 
         [JsonIgnore]
         public VehicleData.VehicleInfo VehicleInfo => VehicleData.VehicleInfo.Get(VID);
 
-        public bool IsKeyValid(VehicleData.VehicleInfo vInfo) => (vInfo == null || vInfo.VID != VID) ? false : vInfo.AllKeys.Contains(UID);
+        public bool IsKeyValid(VehicleData.VehicleInfo vInfo) => KeysUid != Guid.Empty && vInfo?.VID == VID && vInfo.KeysUid == KeysUid;
 
         public string Tag { get; set; }
 
+        [JsonProperty(PropertyName = "VID")]
         public uint VID { get; set; }
+
+        [JsonProperty(PropertyName = "KUID")]
+        public Guid KeysUid { get; set; }
 
         public VehicleKey(string ID) : base(ID, IDList[ID], typeof(VehicleKey))
         {

@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
@@ -1376,13 +1377,81 @@ namespace BCRPClient.CEF
                                 CEF.Browser.Window.ExecuteJs("Tuning.buyVariant", id);
                         }
                     }
-                    else if (id == "fix" || id == "keys")
+                    else if (id == "fix")
                     {
                         id += $"_{CurrentVariation}";
 
                         if ((bool)await Events.CallRemoteProc("Shop::Buy", id, useCash))
                         {
 
+                        }
+                    }
+                    else if (id == "keys")
+                    {
+                        if (CurrentVariation == 0)
+                        {
+                            var approveTime = 5_000;
+
+                            if (CEF.Notification.HasApproveTimedOut("TuningShopKeysChange", Sync.World.ServerTime, approveTime))
+                            {
+                                CEF.Notification.SetCurrentApproveContext("TuningShopKeysChange", Sync.World.ServerTime);
+
+                                CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Get("SHOP_TUNING_KEYS_CHANGE_APPROVE"), approveTime);
+                            }
+                            else
+                            {
+                                CEF.Notification.ClearAll();
+
+                                CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+
+                                if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{id}_0", useCash))
+                                {
+
+                                }
+                            }
+                        }
+                        else if (CurrentVariation == 1)
+                        {
+                            await CEF.ActionBox.ShowInputWithText
+                            (
+                                "TuningShopKeysTag",
+
+                                Locale.Get("SHOP_TUNING_KEYDUBL_HEADER"),
+
+                                Locale.Get("SHOP_TUNING_KEYDUBL_CONTENT"),
+
+                                18, Data.Items.GetName("vk_0") ?? "null", null, null,
+
+                                null,
+
+                                async (CEF.ActionBox.ReplyTypes rType, string text) =>
+                                {
+                                    if (rType == ActionBox.ReplyTypes.Cancel)
+                                    {
+                                        CEF.ActionBox.Close(false);
+
+                                        return;
+                                    }
+
+                                    text = text?.Trim();
+
+                                    if (text == null || !(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s]{1,18}$")).IsMatch(text))
+                                    {
+                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_TEXT_NOTMATCH_0"), -1);
+
+                                        return;
+                                    }
+
+                                    if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{id}_1_{text}", useCash))
+                                    {
+                                        CEF.ActionBox.Close(false);
+
+                                        return;
+                                    }
+                                },
+
+                                null
+                            );
                         }
                     }
                     else
@@ -2287,7 +2356,7 @@ namespace BCRPClient.CEF
             if (pData == null)
                 return;
 
-            if (CurrentType == Types.TuningShop && CEF.ActionBox.CurrentContextStr == "TuningShopDeleteMod")
+            if (CurrentType == Types.TuningShop && CEF.ActionBox.CurrentContextStr != null && (CEF.ActionBox.CurrentContextStr == "TuningShopDeleteMod" || CEF.ActionBox.CurrentContextStr == "TuningShopKeysTag"))
             {
                 CEF.ActionBox.Close(true);
             }

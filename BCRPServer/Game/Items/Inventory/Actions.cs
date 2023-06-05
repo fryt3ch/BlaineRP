@@ -592,12 +592,32 @@ namespace BCRPServer.Game.Items
 
                             var wsData = ws.Data;
 
-                            var oldWs = pData.Info.WeaponSkins.GetValueOrDefault(wsData.Type);
+                            int oldWsIdx = -1;
+
+                            for (int i = 0; i < pData.Info.WeaponSkins.Count; i++)
+                            {
+                                var x = pData.Info.WeaponSkins[i];
+
+                                if (x.Data.Type == wsData.Type)
+                                {
+                                    oldWsIdx = i;
+
+                                    break;
+                                }
+                            }
+
+                            var oldWs = oldWsIdx >= 0 ? pData.Info.WeaponSkins[oldWsIdx] : null;
 
                             if (oldWs != null)
-                                pData.Info.WeaponSkins[wsData.Type] = ws;
+                            {
+                                pData.Info.WeaponSkins.RemoveAt(oldWsIdx);
+
+                                pData.Info.WeaponSkins.Add(ws);
+                            }
                             else
-                                pData.Info.WeaponSkins.Add(wsData.Type, ws);
+                            {
+                                pData.Info.WeaponSkins.Add(ws);
+                            }
 
                             if (group == Groups.Bag)
                             {

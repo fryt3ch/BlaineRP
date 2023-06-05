@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -136,7 +137,10 @@ namespace BCRPServer.Events.Players.Misc
 
             var pData = sRes.Data;
 
-            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+            if (amount <= 0)
+                return false;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || !pData.CanUseInventory(true))
                 return false;
 
             var stall = Game.Misc.MarketStall.GetByIdx(stallIdx);
@@ -149,7 +153,7 @@ namespace BCRPServer.Events.Players.Misc
 
             ushort renterRid;
 
-            if (stall.IsPlayerRenter(stallIdx, player, false, out renterRid))
+            if (!stall.IsPlayerRenter(stallIdx, player, false, out renterRid)) // vice versa
                 return false;
 
             if (renterRid == ushort.MaxValue)
@@ -172,16 +176,25 @@ namespace BCRPServer.Events.Players.Misc
                 }
             }
 
-            if (itemIdx < 0 || stall.Items[itemIdx].Amount <= 0)
+            if (itemIdx < 0)
             {
                 player.Notify("MarketStall::BSE3");
 
                 return false;
             }
 
+            var sItem = stall.Items[itemIdx];
+
             var rData = PlayerData.All.Values.Where(x => x.Player.Id == renterRid).FirstOrDefault();
 
             if (rData == null)
+            {
+                player.Notify("MarketStall::BSE0");
+
+                return false;
+            }
+
+            if (rData.IsKnocked || rData.IsFrozen || rData.IsCuffed || !rData.CanUseInventory())
             {
                 player.Notify("MarketStall::BSE0");
 
@@ -197,8 +210,6 @@ namespace BCRPServer.Events.Players.Misc
                 return false;
             }
 
-            var sItem = stall.Items[itemIdx];
-
             var rItemIdx = Array.IndexOf(rData.Items, sItem.ItemRoot);
 
             if (rItemIdx < 0)
@@ -208,19 +219,100 @@ namespace BCRPServer.Events.Players.Misc
                 return false;
             }
 
-            if (rData.IsKnocked || rData.IsFrozen || rData.IsCuffed || !rData.CanUseInventory())
+            var actualAmount1 = Game.Items.Stuff.GetItemAmount(sItem.ItemRoot);
+
+            var actualAmount2 = actualAmount1 > sItem.Amount ? sItem.Amount : actualAmount1;
+
+            if (actualAmount2 < amount)
             {
-                player.Notify("MarketStall::BSE0");
+                player.Notify("MarketStall::BSE4", actualAmount2);
 
                 return false;
             }
 
-            return false;
+            ulong newBalanceB;
+            ulong newBalanceS;
+
+            ulong totalMoney = 0;
+
+            try
+            {
+                totalMoney = (ulong)amount * sItem.Price;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+            if (useCash)
+            {
+                if (!pData.TryRemoveCash(totalMoney, out newBalanceB, true, null))
+                    return false;
+
+                if (!rData.TryAddCash(totalMoney, out newBalanceS, true, null))
+                    return false;
+            }
+            else
+            {
+                if (!rData.HasBankAccount(false))
+                {
+                    player.Notify("MARKETSTALL_B_SERROR_5");
+
+                    return false;
+                }
+
+                if (!pData.HasBankAccount(true))
+                    return false;
+
+                if (!pData.BankAccount.TryRemoveMoneyDebit(totalMoney, out newBalanceB, true, null))
+                    return false;
+
+                if (!rData.BankAccount.TryAddMoneyDebit(totalMoney, out newBalanceS, true, null))
+                    return false;
+            }
+
+            if (!pData.TryGiveExistingItem(sItem.ItemRoot, amount, true, true))
+                return false;
+
+            if (useCash)
+            {
+                pData.SetCash(newBalanceB);
+
+                rData.SetCash(newBalanceS);
+            }
+            else
+            {
+                pData.BankAccount.SetDebitBalance(newBalanceB, null);
+
+                rData.BankAccount.SetDebitBalance(newBalanceS, null);
+            }
+
+            if (amount >= actualAmount1)
+            {
+                rData.Items[rItemIdx] = null;
+
+                MySQL.CharacterItemsUpdate(rData.Info);
+            }
+
+            sItem.Amount -= amount;
+
+            if (sItem.Amount <= 0)
+            {
+                stall.Items.RemoveAt(itemIdx);
+            }
+
+            rData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, rItemIdx, Game.Items.Item.ToClientJson(rData.Items[rItemIdx], Game.Items.Inventory.Groups.Items));
+
+            rData.Player.TriggerEvent("MarketStall::ATBH", itemUid, amount, totalMoney, sItem.ItemRoot.ID, Game.Items.Stuff.GetItemTag(sItem.ItemRoot));
+
+            return true;
         }
 
         [RemoteProc("MarketStall::Try")]
         private static object Try(Player player, int stallIdx, uint itemUid)
         {
+            return null;
+
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)

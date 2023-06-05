@@ -119,7 +119,9 @@ namespace BCRPServer.Events
 
             // DB Load Step
 
-            MySQL.LoadAll();
+            int loadedItemsAmount = 0;
+
+            MySQL.LoadAll(out loadedItemsAmount);
 
             Game.Estates.House.LoadAll();
             Game.Estates.Apartments.LoadAll();
@@ -128,7 +130,7 @@ namespace BCRPServer.Events
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Clearing unused items & Getting free items UID's");
             Utils.ConsoleOutput($" | ~Red~Free UID's: [{Game.Items.Item.UidHandler.FreeUidsCount}]~/~", false);
 
-            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Item.All.Count} items");
+            Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{loadedItemsAmount} items");
 
             Utils.ConsoleOutput($"~Red~[BRPMode]~/~ Loaded ~Red~{Game.Items.Container.All.Count} containers");
 

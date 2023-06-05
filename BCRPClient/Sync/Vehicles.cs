@@ -163,7 +163,7 @@ namespace BCRPClient.Sync
 
             public uint VID => Utils.ToUInt32(Vehicle.GetSharedData<object>("VID", 0));
 
-            public uint? TID { get { var t = Vehicle.GetSharedData<object>("TID", null); if (t == null) return null; return Utils.ToUInt32(t); } }
+            public uint TID => Utils.ToUInt32(Vehicle.GetSharedData<object>("TID", 0));
 
             public bool HasNeonMod => Vehicle.GetSharedData<bool>("Mods::Neon", false);
 
@@ -353,7 +353,7 @@ namespace BCRPClient.Sync
                     {
                         if (pData.AdminLevel > -1)
                         {
-                            Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == null ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                            Utils.DrawText($"ID: {x.RemoteId} | VID: {data.VID} | TID: {(data.TID == 0 ? "null" : data.TID.ToString())}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                             Utils.DrawText($"EngineOn: {data.EngineOn} | Locked: {data.DoorsLocked} | TrunkLocked: {data.TrunkLocked}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                             Utils.DrawText($"Fuel: {data.FuelLevel.ToString("0.00")} | Mileage: {data.Mileage.ToString("0.00")}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                             Utils.DrawText($"EHP: {x.GetEngineHealth()} | BHP: {x.GetBodyHealth()} | IsInvincible: {data.IsInvincible}", screenX, screenY += NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
@@ -1778,14 +1778,14 @@ namespace BCRPClient.Sync
             if (Player.LocalPlayer.Vehicle != null)
                 return;
 
-            if (vData.TID == null)
+            if (vData.TID == 0)
             {
                 CEF.Notification.Show(Notification.Types.Information, Locale.Notifications.Vehicles.Header, Locale.Notifications.Vehicles.Trunk.NoTrunk);
 
                 return;
             }
 
-            CEF.Inventory.Show(Inventory.Types.Container, (uint)vData.TID);
+            CEF.Inventory.Show(Inventory.Types.Container, vData.TID);
         }
 
         public static void TakePlate(Vehicle veh)

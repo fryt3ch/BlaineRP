@@ -9,7 +9,7 @@ namespace BCRPServer
         /// <remarks>Фактически, это ID контейнера (см. Game.Items.Container)</remarks>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         /// <value>ID багажника, если отсутвует - null</value>
-        public uint? TID { get => Info.TID; set { Vehicle.SetSharedData("TID", value); Info.TID = value; } }
+        public uint TID { get => Info.TID; set { if (value == 0) Vehicle.ResetSharedData("TID"); else Vehicle.SetSharedData("TID", value); Info.TID = value; } }
 
         /// <summary>Уровень топлива</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

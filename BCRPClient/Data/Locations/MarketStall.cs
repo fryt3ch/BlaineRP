@@ -217,9 +217,12 @@ namespace BCRPClient.Data
                                         if (x == null)
                                             continue;
 
+                                        if (x.InUse)
+                                            continue;
+
                                         var y = (object[])CEF.Inventory.ItemsData[i][0];
 
-                                        items.Add(new object[] { new object[] { i, y[0] }, ((string)y[1]).Replace("[A] ", ""), 0, y[3], y[4], null });
+                                        items.Add(new object[] { new object[] { i, y[0] }, (string)y[1], 0, y[3], y[4], null });
                                     }
 
                                     if (items.Count == 0)
@@ -370,14 +373,11 @@ namespace BCRPClient.Data
                     var price = decimal.Parse(d[4]);
                     var amount = uint.Parse(d[5]);
 
-                    var iName = Data.Items.GetName(id);
-
                     var tag = d[3];
 
-                    if (tag.Length > 0)
-                        iName += $" [{tag}]";
-
                     var iType = Data.Items.GetType(id, true);
+
+                    var iName = Data.Items.GetNameWithTag(id, iType, tag, out _);
 
                     items.Add(new object[] { new object[] { uint.Parse(d[0]), Data.Items.GetImageId(id, iType) }, iName, price, amount, weight, typeof(Data.Items.Clothes).IsAssignableFrom(iType) ? Locale.Get("SHOP_RET_DRESS_L") : null });
                 }

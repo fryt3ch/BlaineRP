@@ -214,14 +214,11 @@ namespace BCRPServer
 
             Numberplate?.Setup(this);
 
-            if (TID != null)
-            {
-                var cont = Game.Items.Container.Get((uint)TID);
+            var cont = Game.Items.Container.Get(TID);
 
-                if (cont != null)
-                {
-                    cont.UpdateOwner(Vehicle);
-                }
+            if (cont != null)
+            {
+                cont.UpdateOwner(Vehicle);
             }
         }
 
@@ -267,8 +264,7 @@ namespace BCRPServer
             {
                 this.Numberplate?.Delete();
 
-                if (TID is uint tid)
-                    Game.Items.Container.Get(tid)?.Delete();
+                Game.Items.Container.Get(TID)?.Delete();
 
                 if (OwnerType == OwnerTypes.Player)
                 {
@@ -434,7 +430,6 @@ namespace BCRPServer
             var vInfo = new VehicleInfo()
             {
                 Data = vType,
-                AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.Player,
                 OwnerID = pData.CID,
                 ID = vType.ID,
@@ -488,7 +483,6 @@ namespace BCRPServer
                 VID = 0,
 
                 Data = vType,
-                AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.PlayerTemp,
                 OwnerID = pData.CID,
                 ID = vType.ID,
@@ -527,7 +521,6 @@ namespace BCRPServer
                 VID = 0,
 
                 Data = vType,
-                AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.AlwaysFree,
                 OwnerID = 0,
                 ID = vType.ID,
@@ -563,7 +556,6 @@ namespace BCRPServer
                 VID = 0,
 
                 Data = vType,
-                AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.PlayerRent,
                 OwnerID = pData.CID,
                 ID = vType.ID,
@@ -608,7 +600,6 @@ namespace BCRPServer
                 VID = 0,
 
                 Data = vType,
-                AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.PlayerRentJob,
                 OwnerID = 0,
                 ID = vType.ID,
@@ -651,7 +642,6 @@ namespace BCRPServer
                 VID = 0,
 
                 Data = vType,
-                AllKeys = new List<uint>(),
                 OwnerType = OwnerTypes.PlayerDrivingSchool,
                 OwnerID = 0,
                 ID = vType.ID,

@@ -286,11 +286,11 @@ namespace BCRPServer.Game.Items
         {
             if (Data.IsMk2Weapon)
             {
-                return pData.Info.WeaponSkins.GetValueOrDefault(WeaponSkin.ItemData.Types.UniMk2)?.Data.Variation ?? 0;
+                return pData.Info.WeaponSkins.Where(x => x.Data.Type == WeaponSkin.ItemData.Types.UniMk2).FirstOrDefault()?.Data.Variation ?? 0;
             }
             else
             {
-                return pData.Info.WeaponSkins.GetValueOrDefault(WeaponSkin.ItemData.Types.UniDef)?.Data.Variation ?? 0;
+                return pData.Info.WeaponSkins.Where(x => x.Data.Type == WeaponSkin.ItemData.Types.UniDef).FirstOrDefault()?.Data.Variation ?? 0;
             }
         }
 

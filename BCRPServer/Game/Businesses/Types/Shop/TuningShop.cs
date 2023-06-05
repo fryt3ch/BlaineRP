@@ -1,11 +1,15 @@
 ﻿using GTANetworkAPI;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace BCRPServer.Game.Businesses
 {
     public class TuningShop : Shop, IEnterable
     {
         public static Types DefaultType => Types.TuningShop;
+
+        private static Regex KeysTagPattern = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s]{1,18}$", RegexOptions.Compiled);
 
         public static MaterialsData InitMaterialsData => new MaterialsData(5, 7, 50)
         {
@@ -194,6 +198,9 @@ namespace BCRPServer.Game.Businesses
             if (vData?.Vehicle?.Exists != true)
                 return false;
 
+/*            if (!vData.IsFullOwner(pData, true))
+                return false;*/
+
             var iData = item.Split('_');
 
             if (iData.Length <= 1)
@@ -250,7 +257,57 @@ namespace BCRPServer.Game.Businesses
                 }
                 else if (iData[0] == "keys")
                 {
-                    return false; // todo
+                    if (p == 0)
+                    {
+                        if (!TryProceedPayment(pData, useCash, item, 1, out newMats, out newBalance, out newPlayerBalance))
+                            return false;
+
+                        vData.Info.KeysUid = System.Guid.NewGuid();
+
+                        MySQL.VehicleKeysUidUpdate(vData.Info);
+                    }
+                    else if (p == 1)
+                    {
+                        if (iData.Length != 3)
+                            return false;
+
+                        if (!TryProceedPayment(pData, useCash, $"{iData[0]}_{iData[1]}", 1, out newMats, out newBalance, out newPlayerBalance))
+                            return false;
+
+                        if (vData.Info.KeysUid == System.Guid.Empty)
+                            return false;
+
+                        var tag = iData[2].Trim();
+
+                        if (!KeysTagPattern.IsMatch(tag))
+                            return false;
+
+                        Game.Items.Item givenItem;
+
+                        if (!pData.GiveItem(out givenItem, "vk_0", 0, 1, true, true))
+                        {
+                            return false;
+                        }
+
+                        var keyItem = (Game.Items.VehicleKey)givenItem;
+
+                        var keyItemIdx = Array.IndexOf(pData.Items, givenItem);
+
+                        if (keyItemIdx < 0)
+                            return false;
+
+                        keyItem.Tag = tag;
+                        keyItem.VID = vData.VID;
+                        keyItem.KeysUid = vData.Info.KeysUid;
+
+                        keyItem.Update();
+
+                        pData.Player.InventoryUpdate(Items.Inventory.Groups.Items, keyItemIdx, keyItem.ToClientJson(Items.Inventory.Groups.Items));
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else if (iData[0] == "wheel" || iData[0] == "rwheel")
                 {

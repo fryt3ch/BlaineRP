@@ -17,26 +17,28 @@ namespace BCRPServer
             cmd.Parameters.AddWithValue("@OwnerType", (int)vInfo.OwnerType);
             cmd.Parameters.AddWithValue("@OwnerID", vInfo.OwnerID);
 
-            cmd.Parameters.AddWithValue("@AllKeys", vInfo.AllKeys.SerializeToJson());
             cmd.Parameters.AddWithValue("@RegDate", vInfo.RegistrationDate);
             cmd.Parameters.AddWithValue("@Numberplate", vInfo.Numberplate?.UID ?? 0);
             cmd.Parameters.AddWithValue("@Tuning", vInfo.Tuning.SerializeToJson());
 
-            cmd.Parameters.AddWithValue("@TID", vInfo.TID ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@TID", vInfo.TID);
             cmd.Parameters.AddWithValue("@LastData", vInfo.LastData.SerializeToJson());
 
             PushQuery(cmd);
         }
 
-        public static void VehicleKeysUpdate(VehicleData.VehicleInfo vInfo)
+        public static void VehicleKeysUidUpdate(VehicleData.VehicleInfo vInfo)
         {
             var cmd = new MySqlCommand();
 
-            cmd.CommandText = "UPDATE vehicles SET AllKeys=@Keys WHERE ID=@ID;";
+            cmd.CommandText = "UPDATE vehicles SET KeysUid=@KUid WHERE ID=@ID;";
 
             cmd.Parameters.AddWithValue("@ID", vInfo.VID);
 
-            cmd.Parameters.AddWithValue("@Keys", vInfo.AllKeys.SerializeToJson());
+            if (vInfo.KeysUid == Guid.Empty)
+                cmd.Parameters.AddWithValue("@KUid", DBNull.Value);
+            else
+                cmd.Parameters.AddWithValue("@KUid", vInfo.KeysUid.ToString());
 
             PushQuery(cmd);
         }

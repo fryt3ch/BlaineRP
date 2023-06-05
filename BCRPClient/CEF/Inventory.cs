@@ -11,6 +11,8 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive { get => Browser.IsActiveOr(Browser.IntTypes.Inventory, Browser.IntTypes.CratesInventory, Browser.IntTypes.Trade, Browser.IntTypes.Workbench) || ActionBox.CurrentContextStr == "Inventory"; }
 
+        public const string InUseItemPrefix = "&#9995; ";
+
         private static int FreezeCounter { get; set; }
 
         public delegate void OnInventoryUpdated(int typeid);
@@ -144,12 +146,12 @@ namespace BCRPClient.CEF
         #endregion
 
         #region Fillers
-        private static object[] FillWeapon(string type, int ammo, bool inUse, string tag, string wcStr)
+        private static object[] FillWeapon(string id, int ammo, bool inUse, string tag, string wcStr)
         {
-            var iType = Data.Items.GetType(type);
-            var imgId = Data.Items.GetImageId(type, iType);
+            var iType = Data.Items.GetType(id);
+            var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = (tag == null || tag.Length == 0) ? Data.Items.GetName(type) : Data.Items.GetName(type) + $" [{tag}]";
+            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             var tooltips = new List<object>();
 
@@ -186,7 +188,7 @@ namespace BCRPClient.CEF
             var iType = Data.Items.GetType(id);
             var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             if (!isReady)
                 return new object[] { imgId, name, null, amount, weight };
@@ -199,7 +201,7 @@ namespace BCRPClient.CEF
             var iType = Data.Items.GetType(id);
             var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
         }
@@ -209,7 +211,7 @@ namespace BCRPClient.CEF
             var iType = Data.Items.GetType(id);
             var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = (tag == null || tag.Length < 1) ? Data.Items.GetName(id) : Data.Items.GetName(id) + $" [{tag}]";
+            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             if (iType == typeof(Data.Items.WorkbenchTool))
                 return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, true, false, true, true, false, false), null, null };
@@ -222,13 +224,10 @@ namespace BCRPClient.CEF
             var iType = Data.Items.GetType(id);
             var imgId = Data.Items.GetImageId(id, iType);
 
-            var name = Data.Items.GetName(id);
+            var name = Data.Items.GetNameWithTag(id, iType, tag, out _);
 
             if (inUse)
-                name = name.Insert(0, "[A] ");
-
-            if (tag != null && tag.Length > 0)
-                name += $" [{tag}]";
+                name = name.Insert(0, InUseItemPrefix);
 
             if (inContainer)
                 return new object[] { imgId, name, Data.Items.GetActions(iType, id, amount, inBag, inUse, true, true), amount, weight };

@@ -222,7 +222,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Menu::GetGift", (object[] args) =>
             {
-                var id = (uint)(int)args[0];
+                var id = Utils.ToUInt32(((string)args[0]).Replace("gift-btn", ""));
 
                 if (id < 0)
                     return;
@@ -402,7 +402,7 @@ namespace BCRPClient.CEF
         public static string GetGiftName(GiftTypes type, string gid, int amount)
         {
             if (type == GiftTypes.Item)
-                return Data.Items.GetName(gid) ?? "null" + (amount > 1 ? $" x{amount}" : "");
+                return Data.Items.GetName(gid) + (amount > 1 ? $" x{amount}" : "");
 
             if (type == GiftTypes.Vehicle)
                 return Data.Vehicles.GetById(gid)?.Name ?? "null";

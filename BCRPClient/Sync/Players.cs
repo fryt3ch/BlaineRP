@@ -558,7 +558,7 @@ namespace BCRPClient.Sync
 
                 if (sData.ContainsKey("WSkins"))
                 {
-                    data.WeaponSkins = RAGE.Util.Json.Deserialize<List<string>>((string)sData["WSkins"]).ToDictionary(x => ((Data.Items.WeaponSkin.ItemData)Data.Items.GetData(x, null)).Type, x => x);
+                    data.WeaponSkins = RAGE.Util.Json.Deserialize<List<string>>((string)sData["WSkins"]).ToDictionary(x => ((Data.Items.WeaponSkin.ItemData)Data.Items.GetData(x, typeof(Data.Items.WeaponSkin.ItemData))).Type, x => x);
                 }
                 else
                 {

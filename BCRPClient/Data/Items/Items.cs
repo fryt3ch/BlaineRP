@@ -2,6 +2,7 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 
 namespace BCRPClient.Data
@@ -70,6 +71,11 @@ namespace BCRPClient.Data
         }
 
         public interface ITagged
+        {
+
+        }
+
+        public interface ITaggedFull : ITagged
         {
 
         }
@@ -394,7 +400,7 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class Numberplate : Item, ITagged
+        public class Numberplate : Item, ITaggedFull
         {
             new public class ItemData : Item.ItemData
             {
@@ -409,7 +415,7 @@ namespace BCRPClient.Data
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
 
-        public class VehicleKey : Item, ITagged
+        public class VehicleKey : Item, ITaggedFull
         {
             public static Dictionary<string, Item.ItemData> IDList { get; set; } = new Dictionary<string, Item.ItemData>();
         }
@@ -793,6 +799,24 @@ namespace BCRPClient.Data
         }
 
         public static string GetName(string id) => GetData(id, null)?.Name ?? "null";
+
+        public static string GetNameWithTag(string id, System.Type iType, string tag, out string baseName)
+        {
+            baseName = GetName(id);
+
+            if (tag == null || tag.Length == 0)
+                return baseName;
+
+            if (iType == null)
+                iType = GetType(id, false);
+
+            if (typeof(ITaggedFull).IsAssignableFrom(iType))
+            {
+                return tag;
+            }
+
+            return $"{baseName} [{tag}]";
+        }
 
         public static object[][] GetActions(System.Type type, string id, int amount, bool isBag = false, bool inUse = false, bool hasContainer = false, bool isContainer = false, bool canSplit = true, bool canDrop = true)
         {

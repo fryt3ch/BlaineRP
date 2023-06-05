@@ -172,10 +172,14 @@ namespace BCRPClient.Additional
                     return false;
             }
 
-            Colshape = new Additional.Circle(Position, range, false, Utils.RedColor, Dimension, null);
+            Colshape = new Additional.Circle(Position, range, false, Utils.RedColor, Dimension, null)
+            {
+                ApproveType = ExtraColshape.ApproveTypes.None,
 
-            Colshape.ActionType = ExtraColshape.ActionTypes.ReachableBlip;
-            Colshape.Data = this;
+                ActionType = ExtraColshape.ActionTypes.ReachableBlip,
+
+                Data = this,
+            };
 
             return true;
         }

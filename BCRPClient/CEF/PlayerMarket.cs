@@ -93,6 +93,10 @@ namespace BCRPClient.CEF
 
                 if (d[0] == "MARKETSTALL@BUYER")
                 {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_TRY_ERROR_0"), -1);
+
+                    return;
+
                     if (CEF.Shop.LastSent.IsSpam(1000, false, true))
                         return;
 
