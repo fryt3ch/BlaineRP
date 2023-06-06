@@ -2,14 +2,13 @@
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace BCRPClient.CEF
 {
     class CharacterCreation : Events.Script
     {
         public static DateTime LastSent;
-        public static DateTime LastExitRequested;
-        public static DateTime LastCreateRequested;
 
         public static bool IsActive { get => Browser.IsActive(Browser.IntTypes.CharacterCreation); }
 
@@ -107,41 +106,55 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                if (Sync.World.ServerTime.Subtract(LastCreateRequested).TotalMilliseconds > 5000)
+                var approveContext = $"CharacterCreation_{name}_{surname}_{age}";
+                var approveTime = 5_000;
+
+                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
                 {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToCreate, 5000);
+                    if (LastSent.IsSpam(1_500, false, true))
+                        return;
 
-                    LastCreateRequested = Sync.World.ServerTime;
+                    LastSent = Sync.World.ServerTime;
 
-                    return;
+                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToCreate, approveTime);
                 }
+                else
+                {
+                    CEF.Notification.ClearAll();
 
-                if (LastSent.IsSpam(5000, false, false))
-                    return;
+                    CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
-                Events.CallRemote("CharacterCreation::Create", name, surname, age, Sex, EyeColor, RAGE.Util.Json.Serialize(HeadBlend), RAGE.Util.Json.Serialize(HeadOverlays), RAGE.Util.Json.Serialize(HairStyle), RAGE.Util.Json.Serialize(FaceFeatures), RAGE.Util.Json.Serialize(Clothes));
-
-                LastSent = Sync.World.ServerTime;
+                    Events.CallRemote("CharacterCreation::Create", name, surname, age, Sex, EyeColor, RAGE.Util.Json.Serialize(HeadBlend), RAGE.Util.Json.Serialize(HeadOverlays), RAGE.Util.Json.Serialize(HairStyle), RAGE.Util.Json.Serialize(FaceFeatures), RAGE.Util.Json.Serialize(Clothes));
+                }
             });
             #endregion
 
             #region Exit
             Events.Add("CharacterCreation::OnExit", (object[] args) =>
             {
-                if (Sync.World.ServerTime.Subtract(LastExitRequested).TotalMilliseconds > 5000)
-                {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToExit, 5000);
+                var approveContext = "CharacterCreationEXIT";
+                var approveTime = 5_000;
 
-                    LastExitRequested = Sync.World.ServerTime;
+                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                {
+                    if (LastSent.IsSpam(1_000, false, true))
+                        return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.CharacterCreation.PressAgainToExit, approveTime);
                 }
                 else
                 {
-                    if (LastSent.IsSpam(1000, false, false))
-                        return;
+                    CEF.Notification.ClearAll();
+
+                    CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
                     Events.CallRemote("CharacterCreation::Exit");
-
-                    LastSent = Sync.World.ServerTime;
                 }
             });
             #endregion
@@ -482,9 +495,6 @@ namespace BCRPClient.CEF
 
             Clothes = new string[] { null, null, null, null };
             #endregion
-
-            LastExitRequested = DateTime.MinValue;
-            LastCreateRequested = DateTime.MinValue;
 
             Sex = true;
 

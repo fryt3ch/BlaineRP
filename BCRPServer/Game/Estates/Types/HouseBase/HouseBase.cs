@@ -246,7 +246,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-849.6476f, 3442.679f, -180.5f),
 					Heading: 177.6222f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f, -180f, 6.94992f),
 
 					Doors: new DoorInfo[]
 					{
@@ -279,7 +279,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-847.1672f, 3478.561f, -180.5f),
 					Heading: 177.7124f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 35f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 35f, -180f, 7.52497f),
 
 					Doors: new DoorInfo[]
 					{
@@ -315,7 +315,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-845.6879f, 3513.75f, -180.5001f),
 					Heading: 86.09361f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 70f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 70f, -180f, 7.0415f),
 
 					Doors: new DoorInfo[]
 					{
@@ -354,7 +354,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-853.1857f, 3545.175f, -182.1146f),
 					Heading: 273.0863f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 105f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 105f, -180f, 9.53456f),
 
 					Doors: new DoorInfo[]
 					{
@@ -403,7 +403,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-846.2768f, 3579.112f, -180.5f),
 					Heading: 85.65966f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 140f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 140f, -180f, 7.81977f),
 
 					Doors: new DoorInfo[]
 					{
@@ -442,7 +442,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-847.5582f, 3615.727f, -180.525f),
 					Heading: 127.9297f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 175f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 175f, -180f, 8.46709f),
 
 					Doors: new DoorInfo[]
 					{
@@ -479,7 +479,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-846.0022f, 3654.428f, -180.5001f),
 					Heading: 175.8804f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 210f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 210f, -180f, 7.58965f),
 
 					Doors: new DoorInfo[]
 					{
@@ -520,7 +520,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-848.4805f, 3678.419f, -182.2f),
 					Heading: 356.7289f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 245f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 245f, -180f, 10.7366f),
 
 					Doors: new DoorInfo[]
 					{
@@ -589,7 +589,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-846.1027f, 3718.751f, -180.775f),
 					Heading: 89.03065f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 280f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 280f, -180f, 9.00488f),
 
 					Doors: new DoorInfo[]
 					{
@@ -662,7 +662,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-845.1092f, 3753.724f, -180.7951f),
 					Heading: 81.4196f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 315f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 315f, -180f, 9.42834f),
 
 					Doors: new DoorInfo[]
 					{
@@ -729,7 +729,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-844.476f, 3789.712f, -180.7799f),
 					Heading: 83.89639f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 350f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 350f, -180f, 10.0227f),
 
 					Doors: new DoorInfo[]
 					{
@@ -797,7 +797,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-856.2227f, 3824.961f, -182.4751f),
 					Heading: 269.9142f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 385f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 385f, -180f, 12.0572f),
 
 					Doors: new DoorInfo[]
 					{
@@ -913,7 +913,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-842.799f, 3861.573f, -180.7238f),
 					Heading: 87.02471f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 420f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 420f, -180f, 12.1327f),
 
 					Doors: new DoorInfo[]
 					{
@@ -986,7 +986,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-854.6521f, 3894.84f, -182.196f),
 					Heading: 271.9679f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 455f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 455f, -180f, 13.569f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1103,7 +1103,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-854.1147f, 3932.486f, -182.5f),
 					Heading: 269.0663f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 490f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 490f, -180f, 14.7842f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1226,7 +1226,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-857.3874f, 3964.743f, -181.5365f),
 					Heading: 269.621f,
 
-					InteriorPosition: new Utils.Vector4(-850f, 3440f + 525f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-850f, 3440f + 525f, -180f, 16.2984f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1331,7 +1331,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-903.6582f, 3442.644f, -180.5001f),
 					Heading: 265.6042f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f, -180f, 7.09981f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1364,7 +1364,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-903.5726f, 3476.603f, -180.5001f),
 					Heading: 265.2024f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 35f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 35f, -180f, 7.360031f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1410,7 +1410,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-903.665f, 3504.762f, -180.5001f),
 					Heading: 265.8553f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 70f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 70f, -180f, 7.91285f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1462,7 +1462,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-905.8348f, 3543.652f, -180.5001f),
 					Heading: 267.7038f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 105f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 105f, -180f, 9.25402f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1520,7 +1520,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-905.8141f, 3584.104f, -180.5001f),
 					Heading: 265.9755f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 140f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 140f, -180f, 10.4071f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1596,7 +1596,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-905.9375f, 3617.076f, -180.5001f),
 					Heading: 272.7087f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 175f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 175f, -180f, 11.1925f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1697,7 +1697,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-905.9075f, 3649.897f, -180.4993f),
 					Heading: 268.0993f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 210f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 210f, -180f, 10.7189f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1763,7 +1763,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-905.9802f, 3684.474f, -180.5001f),
 					Heading: 268.7205f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 245f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 245f, -180f, 11.213f),
 
 					Doors: new DoorInfo[]
 					{
@@ -1831,7 +1831,7 @@ namespace BCRPServer.Game.Estates
 					Position: new Vector3(-905.9459f, 3716.544f, -180.5001f),
 					Heading: 263.868f,
 
-					InteriorPosition: new Utils.Vector4(-900f, 3440f + 280f, -180f, 10f),
+					InteriorPosition: new Utils.Vector4(-900f, 3440f + 280f, -180f, 12.3893f),
 
 					Doors: new DoorInfo[]
 					{

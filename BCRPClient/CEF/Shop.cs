@@ -1390,11 +1390,12 @@ namespace BCRPClient.CEF
                     {
                         if (CurrentVariation == 0)
                         {
+                            var approveContext = "TuningShopKeysChange";
                             var approveTime = 5_000;
 
-                            if (CEF.Notification.HasApproveTimedOut("TuningShopKeysChange", Sync.World.ServerTime, approveTime))
+                            if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
                             {
-                                CEF.Notification.SetCurrentApproveContext("TuningShopKeysChange", Sync.World.ServerTime);
+                                CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
 
                                 CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Get("SHOP_TUNING_KEYS_CHANGE_APPROVE"), approveTime);
                             }

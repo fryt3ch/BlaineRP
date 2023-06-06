@@ -31,6 +31,8 @@ namespace BCRPClient.CEF
         private static Action CurrentRenderAction { get; set; }
         private static Action<Vector3, Vector3> CurrentFinishAction { get; set; }
 
+        public static Utils.Vector4 PositionLimit { get; set; }
+
         public class Mode
         {
             public bool EnableX { get; set; }
@@ -170,6 +172,8 @@ namespace BCRPClient.CEF
             TempBinds.Clear();
 
             Sync.WeaponSystem.DisabledFiring = false;
+
+            PositionLimit = null;
         }
 
         private static void ToggleRotationMode(bool state)
@@ -207,14 +211,19 @@ namespace BCRPClient.CEF
                 return;
             }
 
+            var playerPos = Player.LocalPlayer.GetCoords(false);
+
             var curPos = RAGE.Game.Entity.GetEntityCoords(Entity.Handle, false);
 
-            if (Player.LocalPlayer.Position.DistanceTo(LastPos) > 7.5f)
+            if (PositionLimit != null)
             {
-                if (curPos.DistanceTo(Player.LocalPlayer.Position) > 7.5f)
-                    curPos = Player.LocalPlayer.Position;
+                if (LastPos.DistanceTo(PositionLimit.Position) > PositionLimit.RotationZ)
+                {
+                    if (curPos.DistanceTo(playerPos) > 10f)
+                        curPos = playerPos;
 
-                LastPos = curPos;
+                    LastPos = curPos;
+                }
             }
 
             RAGE.Game.Entity.SetEntityCoordsNoOffset(Entity.Handle, LastPos.X, LastPos.Y, LastPos.Z, false, false, false);

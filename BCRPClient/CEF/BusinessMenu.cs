@@ -59,25 +59,30 @@ namespace BCRPClient.CEF
 
             Events.Add("MenuBiz::SellToGov", async (args) =>
             {
-                if (LastSent.IsSpam(1000, false, true))
-                    return;
-
                 var biz = Player.LocalPlayer.GetData<Data.Locations.Business>("BusinessMenu::Business");
 
                 if (biz == null)
                     return;
 
-                if (!Player.LocalPlayer.HasData("BusinessMenu::SellGov::ApproveTime") || Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("BusinessMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
-                {
-                    Player.LocalPlayer.SetData("BusinessMenu::SellGov::ApproveTime", Sync.World.ServerTime);
+                var approveContext = "MenuBizSellToGov";
+                var approveTime = 5_000;
 
-                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(biz.Price))), 5000);
+                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                {
+                    if (LastSent.IsSpam(1_500, false, true))
+                        return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                    CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(biz.Price))), approveTime);
                 }
                 else
                 {
-                    Player.LocalPlayer.ResetData("BusinessMenu::SellGov::ApproveTime");
+                    CEF.Notification.ClearAll();
 
-                    LastSent = Sync.World.ServerTime;
+                    CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
                     if ((bool)await Events.CallRemoteProc("Business::SellGov", biz.Id))
                     {
@@ -277,8 +282,6 @@ namespace BCRPClient.CEF
 
             Player.LocalPlayer.ResetData("BusinessMenu::Business");
             Player.LocalPlayer.ResetData("BusinessMenu::Business::Data1");
-
-            Player.LocalPlayer.ResetData("BusinessMenu::SellGov::ApproveTime");
         }
     }
 }

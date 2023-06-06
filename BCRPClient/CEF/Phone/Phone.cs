@@ -696,20 +696,25 @@ namespace BCRPClient.CEF
                         if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                             return;
 
-                        if (Player.LocalPlayer.HasData("Bank::LastCID") && Player.LocalPlayer.GetData<uint>("Bank::LastCID") == cid && Player.LocalPlayer.GetData<int>("Bank::LastAmount") == amount)
-                        {
-                            await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, false);
+                        var approveContext = $"BankSendToPlayer_{cid}_{amount}";
+                        var approveTime = 5_000;
 
-                            Player.LocalPlayer.ResetData("Bank::LastCID");
-                            Player.LocalPlayer.ResetData("Bank::LastAmount");
+                        if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                        {
+                            CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                            if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, true)) ;
+                            {
+
+                            }
                         }
                         else
                         {
-                            if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, true))
-                            {
-                                Player.LocalPlayer.SetData("Bank::LastCID", cid);
-                                Player.LocalPlayer.SetData("Bank::LastAmount", amount);
-                            }
+                            CEF.Notification.ClearAll();
+
+                            CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+
+                            await Events.CallRemoteProc("Bank::Debit::Send", -1, cid, amount, false);
                         }
                     }
                     else if (CurrentAppTab >= 1 && CurrentAppTab <= 4)
@@ -940,9 +945,6 @@ namespace BCRPClient.CEF
             KeyBinds.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
-
-            Player.LocalPlayer.ResetData("Bank::LastCID");
-            Player.LocalPlayer.ResetData("Bank::LastAmount");
         }
 
         public static void Preload()

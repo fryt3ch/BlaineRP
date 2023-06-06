@@ -778,35 +778,35 @@ namespace BCRPServer.Events.Players
             }
         }
 
-        [RemoteEvent("House::Menu::Furn::End")]
-        public static void HouseMenuFurnitureEnd(Player player, uint fUid, float x, float y, float z, float rotZ)
+        [RemoteProc("House::Menu::Furn::End")]
+        public static byte HouseMenuFurnitureEnd(Player player, uint fUid, float x, float y, float z, float rotZ)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
-                return;
+                return 0;
 
             var houseBase = pData.CurrentHouseBase;
 
             if (houseBase == null)
-                return;
+                return 0;
 
             if (houseBase.Owner != pData.Info)
             {
                 player.Notify("House::NotAllowed");
 
-                return;
+                return 0;
             }
 
             var furniture = Game.Estates.Furniture.Get(fUid);
 
             if (furniture == null)
-                return;
+                return 0;
 
             if (rotZ > 180f)
             {
@@ -817,13 +817,22 @@ namespace BCRPServer.Events.Players
                 rotZ = -(rotZ % 180f);
             }
 
+            var d = new Utils.Vector4(x, y, z, rotZ);
+
+            if (!houseBase.StyleData.IsPositionInsideInterior(d.Position))
+            {
+                player.Notify("House::FPE0");
+
+                return 255;
+            }
+
             if (pData.Furniture.Contains(furniture))
             {
                 if (houseBase.Furniture.Count + 1 >= Settings.HOUSE_MAX_FURNITURE)
                 {
                     player.Notify("Inv::HMPF", Settings.HOUSE_MAX_FURNITURE);
 
-                    return;
+                    return 255;
                 }
 
                 pData.Info.RemoveFurniture(furniture);
@@ -835,16 +844,18 @@ namespace BCRPServer.Events.Players
             else
             {
                 if (!houseBase.Furniture.Contains(furniture))
-                    return;
+                    return 0;
             }
 
-            furniture.Data = new Utils.Vector4(x, y, z, rotZ);
+            furniture.Data = d;
 
             furniture.Setup(houseBase);
 
             NAPI.ClientEvent.TriggerClientEventInDimension(houseBase.Dimension, "House::Furn", furniture.SerializeToJson());
 
             MySQL.FurnitureUpdate(furniture);
+
+            return 1;
         }
 
         [RemoteEvent("House::Menu::Furn::Remove")]

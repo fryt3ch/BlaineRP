@@ -428,7 +428,7 @@ namespace BCRPServer.Events.Players
                 {
                     if (pData.Items[slot] is Game.Items.Parachute parachute && parachute.InUse)
                     {
-                        if (parachute.StopUse(pData, Groups.Items, slot, false, false))
+                        if (parachute.StopUse(pData, Groups.Items, slot, false, "DONT_CANCEL_TASK_CLIENT"))
                         {
                             parachute.Delete();
 

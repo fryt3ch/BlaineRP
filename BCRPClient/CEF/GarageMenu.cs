@@ -58,15 +58,20 @@ namespace BCRPClient.CEF
                 }
                 else if (aId == "sell")
                 {
-                    if (!Player.LocalPlayer.HasData("GarageMenu::SellGov::ApproveTime") || Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("GarageMenu::SellGov::ApproveTime")).TotalMilliseconds > 5000)
-                    {
-                        Player.LocalPlayer.SetData("GarageMenu::SellGov::ApproveTime", Sync.World.ServerTime);
+                    var approveContext = "GarageMenuSellGov}";
+                    var approveTime = 5_000;
 
-                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(garage.Price))), 5000);
+                    if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                    {
+                        CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                        CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), string.Format(Locale.Notifications.Money.AdmitToSellGov1, Utils.GetPriceString(Utils.GetGovSellPrice(garage.Price))), approveTime);
                     }
                     else
                     {
-                        Player.LocalPlayer.ResetData("GarageMenu::SellGov::ApproveTime");
+                        CEF.Notification.ClearAll();
+
+                        CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
                         if ((bool)await Events.CallRemoteProc("Garage::STG", garage.Id))
                         {
@@ -171,8 +176,6 @@ namespace BCRPClient.CEF
             CEF.Cursor.Show(false, false);
 
             TempBinds.Clear();
-
-            Player.LocalPlayer.ResetData("GarageMenu::SellGov::ApproveTime");
         }
 
         private static void SetIsLocked(int gNum, bool state) => CEF.Browser.Window.ExecuteJs("MenuGar.changeLocked", gNum, state);

@@ -75,6 +75,11 @@ namespace BCRPClient.CEF
                         if (furn == null && pFurn == null)
                             return;
 
+                        var curStyle = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
+
+                        if (curStyle == null)
+                            return;
+
                         if (LastSent.IsSpam(1000, false, true))
                             return;
 
@@ -94,6 +99,9 @@ namespace BCRPClient.CEF
                                 furn = Utils.CreateObjectNoOffsetImmediately(pFurn.Model, pos.X, pos.Y, pos.Z);
 
                                 furn.SetAlpha(125, false);
+
+                                furn.SetTotallyInvincible(true);
+                                furn.SetCollision(false, false);
                             }
                             else
                             {
@@ -110,9 +118,14 @@ namespace BCRPClient.CEF
 
                                 furn.SetRotation(rot.X, rot.Y, rot.Z, 2, false);
                                 furn.SetAlpha(125, false);
+
+                                furn.SetTotallyInvincible(true);
+                                furn.SetCollision(false, false);
                             }
 
                             furn.SetData("UID", fUid);
+
+                            CEF.MapEditor.PositionLimit = curStyle.InteriorPosition;
 
                             CEF.MapEditor.Show
                             (
@@ -190,17 +203,17 @@ namespace BCRPClient.CEF
                     if (style == null)
                         return;
 
+                    var curStyle = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
+
+                    if (curStyle == null)
+                        return;
+
                     if (id == "browse")
                     {
                         if (LastSent.IsSpam(1000, false, true))
                             return;
 
                         LastSent = Sync.World.ServerTime;
-
-                        var curStyle = Player.LocalPlayer.GetData<Sync.House.Style>("House::CurrentHouse::Style");
-
-                        if (curStyle == null)
-                            return;
 
                         CEF.Browser.Ghostify(Browser.IntTypes.MenuHome, true);
 
@@ -223,12 +236,28 @@ namespace BCRPClient.CEF
                     {
                         var useCash = id == "cash";
 
-                        if (LastSent.IsSpam(1000, false, true))
-                            return;
+                        var approveContext = $"HouseMenuBuyStyle_{layoutId}";
+                        var approveTime = 5_000;
 
-                        LastSent = Sync.World.ServerTime;
+                        if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                        {
+                            if (LastSent.IsSpam(1000, false, true))
+                                return;
 
-                        var res = (bool)await Events.CallRemoteProc("House::BST", layoutId, useCash);
+                            LastSent = Sync.World.ServerTime;
+
+                            CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                            CEF.Notification.Show(CEF.Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), curStyle.IsTypeFamiliar(layoutId) ? Locale.Get("HOUSE_STYLE_APPROVE_0") : Locale.Get("HOUSE_STYLE_APPROVE_1"), approveTime);
+                        }
+                        else
+                        {
+                            CEF.Notification.ClearAll();
+
+                            CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+
+                            var res = (bool)await Events.CallRemoteProc("House::BST", layoutId, useCash);
+                        }
                     }
                 }
                 else if (id == "expel") // expel settler
@@ -526,14 +555,27 @@ namespace BCRPClient.CEF
             }
         }
 
-        public static void FurntureEditFinish(MapObject mObj, Vector3 pos, Vector3 rot)
+        public static async void FurntureEditFinish(MapObject mObj, Vector3 pos, Vector3 rot)
         {
             if (LastSent.IsSpam(1000, false, false))
                 return;
 
-            Events.CallRemote("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z);
-
             LastSent = Sync.World.ServerTime;
+
+            var res = Utils.ToByte(await Events.CallRemoteProc("House::Menu::Furn::End", mObj.GetData<uint>("UID"), pos.X, pos.Y, pos.Z, rot.Z));
+
+            if (res == 1)
+            {
+                CEF.MapEditor.Close();
+            }
+            else if (res == 255)
+            {
+
+            }
+            else if (res == 0)
+            {
+                CEF.MapEditor.Close();
+            }
         }
 
         public static void StyleOverviewStart(ushort styleId)

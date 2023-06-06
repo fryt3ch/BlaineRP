@@ -43,7 +43,7 @@ namespace BCRPClient.CEF
 
                 bool state = (bool)args[0];
 
-                if (LastSent.IsSpam(1000, false, false))
+                if (LastSent.IsSpam(1000, false, true))
                     return;
 
                 LastSent = Sync.World.ServerTime;
@@ -73,7 +73,7 @@ namespace BCRPClient.CEF
                 if (!amountI.IsNumberValid(1, int.MaxValue, out amount, true))
                     return;
 
-                if (LastSent.IsSpam(1000, false, false))
+                if (LastSent.IsSpam(1000, false, true))
                     return;
 
                 LastSent = Sync.World.ServerTime;
@@ -82,20 +82,30 @@ namespace BCRPClient.CEF
                 {
                     var cid = Utils.ToUInt32(args[3]);
 
-                    if (Player.LocalPlayer.HasData("Bank::LastCID") && Player.LocalPlayer.GetData<uint>("Bank::LastCID") == cid && Player.LocalPlayer.GetData<int>("Bank::LastAmount") == amount)
-                    {
-                        await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, false);
+                    var approveContext = $"BankSendToPlayer_{cid}_{amount}";
+                    var approveTime = 5_000;
 
-                        Player.LocalPlayer.ResetData("Bank::LastCID");
-                        Player.LocalPlayer.ResetData("Bank::LastAmount");
+                    if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
+                    {
+                        if (LastSent.IsSpam(1_500, false, true))
+                            return;
+
+                        LastSent = Sync.World.ServerTime;
+
+                        CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true)) ;
+                        {
+
+                        }
                     }
                     else
                     {
-                        if ((bool)await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, true)) ;
-                        {
-                            Player.LocalPlayer.SetData("Bank::LastCID", cid);
-                            Player.LocalPlayer.SetData("Bank::LastAmount", amount);
-                        }
+                        CEF.Notification.ClearAll();
+
+                        CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
+
+                        await Events.CallRemoteProc("Bank::Debit::Send", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), cid, amount, false);
                     }
                 }
                 else
@@ -228,9 +238,6 @@ namespace BCRPClient.CEF
             TempBinds.Clear();
 
             Player.LocalPlayer.ResetData("CurrentBank::Id");
-
-            Player.LocalPlayer.ResetData("Bank::LastCID");
-            Player.LocalPlayer.ResetData("Bank::LastAmount");
         }
 
         public static void UpdateMoney(ulong value)

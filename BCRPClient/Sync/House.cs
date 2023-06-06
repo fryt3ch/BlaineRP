@@ -549,11 +549,9 @@ namespace BCRPClient.Sync
 
             Events.Add("House::Furn", (args) =>
             {
-                CEF.MapEditor.Close();
-
                 if (args[0] is int)
                 {
-                    var fUid = (uint)(int)args[0];
+                    var fUid = Utils.ToUInt32(args[0]);
 
                     var furn = Furniture.GetValueOrDefault(fUid);
 

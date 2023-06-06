@@ -271,6 +271,11 @@ namespace BCRPServer.Events.Players.Misc
                     return false;
             }
 
+            if (sItem.ItemRoot is Game.Items.IUsable usable && usable.InUse)
+            {
+                usable.StopUse(rData, Game.Items.Inventory.Groups.Items, rItemIdx, false);
+            }
+
             if (!pData.TryGiveExistingItem(sItem.ItemRoot, amount, true, true))
                 return false;
 

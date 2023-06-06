@@ -169,51 +169,56 @@ namespace BCRPClient.CEF.PhoneApps
                 if (pData == null)
                     return;
 
-                if (LastSent.IsSpam(250, false, false))
+                if (LastSent.IsSpam(250, false, true))
                     return;
 
                 var number = uint.Parse(args[0].ToString());
 
-                var timePassed = Sync.World.ServerTime.Subtract(PhoneApps.SMSApp.LastSMSDeleteApproveTime).TotalMilliseconds;
+                var approveContext = $"PhoneSmsDelete_{number}";
+                var approveTime = 5_000;
 
-                if (timePassed > 5000)
+                if (CEF.Notification.HasApproveTimedOut(approveContext, Sync.World.ServerTime, approveTime))
                 {
-                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.General.SmsDeleteConfirmText, 5000);
+                    if (LastSent.IsSpam(1_500, false, true))
+                        return;
 
-                    PhoneApps.SMSApp.LastSMSDeleteApproveTime = Sync.World.ServerTime;
+                    LastSent = Sync.World.ServerTime;
 
-                    return;
+                    CEF.Notification.SetCurrentApproveContext(approveContext, Sync.World.ServerTime);
+
+                    CEF.Notification.Show(Notification.Types.Question, Locale.Get("NOTIFICATION_HEADER_APPROVE"), Locale.Notifications.General.SmsDeleteConfirmText, approveTime);
                 }
-
-                PhoneApps.SMSApp.LastSMSDeleteApproveTime = DateTime.MinValue;
-
-                if (timePassed < 5000)
+                else
+                {
                     CEF.Notification.ClearAll();
 
-                var numsToDel = new Dictionary<byte, PhoneApps.SMSApp.SMS>();
+                    CEF.Notification.SetCurrentApproveContext(null, DateTime.MinValue);
 
-                var allSms = pData.AllSMS;
+                    var numsToDel = new Dictionary<byte, PhoneApps.SMSApp.SMS>();
 
-                for (int i = 0; i < allSms.Count; i++)
-                {
-                    if (allSms[i].SenderNumber == number || allSms[i].ReceiverNumber == number)
-                        numsToDel.Add((byte)i, allSms[i]);
+                    var allSms = pData.AllSMS;
+
+                    for (int i = 0; i < allSms.Count; i++)
+                    {
+                        if (allSms[i].SenderNumber == number || allSms[i].ReceiverNumber == number)
+                            numsToDel.Add((byte)i, allSms[i]);
+                    }
+
+                    if (numsToDel.Count == 0)
+                        return;
+
+                    LastSent = Sync.World.ServerTime;
+
+                    if (!(bool)await Events.CallRemoteProc("Phone::DSMS", numsToDel.Keys.ToArray()))
+                        return;
+
+                    foreach (var x in numsToDel.Values)
+                    {
+                        allSms.Remove(x);
+                    }
+
+                    Phone.ShowApp(pData, AppTypes.SMS);
                 }
-
-                if (numsToDel.Count == 0)
-                    return;
-
-                LastSent = Sync.World.ServerTime;
-
-                if (!(bool)await Events.CallRemoteProc("Phone::DSMS", numsToDel.Keys.ToArray()))
-                    return;
-
-                foreach (var x in numsToDel.Values)
-                {
-                    allSms.Remove(x);
-                }
-
-                Phone.ShowApp(pData, AppTypes.SMS);
             });
 
             Events.Add("Phone::CSMS", (args) =>

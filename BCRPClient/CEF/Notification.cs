@@ -284,6 +284,7 @@ namespace BCRPClient.CEF
             { "House::LCC", new Instance(Types.Success, Locale.Notifications.House.LightColourChanged, Locale.Get("NOTIFICATION_HEADER_DEF")) },
             { "House::HMA", new Instance(Types.Error, Locale.Notifications.General.MaxAmountOfHouses, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "House::AB", new Instance(Types.Error, "Эта недвижимость уже кем-то приобретена!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "House::FPE0", new Instance(Types.Error, Locale.Get("HOUSE_FURNPLACE_0"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
             { "House::ASH", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledHere, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "House::ASOH", new Instance(Types.Error, Locale.Notifications.House.AlreadySettledOtherHouse, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
