@@ -53,25 +53,6 @@ namespace BCRPServer
             }
         }
 
-        public enum WeatherTypes : byte
-        {
-            BLIZZARD = 0,
-            CLEAR,
-            CLEARING,
-            CLOUDS,
-            EXTRASUNNY,
-            FOGGY,
-            HALLOWEEN,
-            NEUTRAL,
-            OVERCAST,
-            RAIN,
-            SMOG,
-            SNOW,
-            SNOWLIGHT,
-            THUNDER,
-            XMAS,
-        }
-
         public static uint GetPlayerIdByDimension(uint dim) => dim < Settings.PLAYER_PRIVATE_DIMENSION_BASE ? 0 : dim - Settings.PLAYER_PRIVATE_DIMENSION_BASE;
 
         public static uint GetHouseIdByDimension(uint dim) => dim < Settings.HOUSE_DIMENSION_BASE ? 0 : dim - Settings.HOUSE_DIMENSION_BASE;
@@ -722,19 +703,62 @@ namespace BCRPServer
 
             Console.ResetColor();
 
-            var splitted = text.Split('~');
-
             ConsoleColor color;
 
-            foreach (var x in splitted)
+            for (int i = 0; i < text.Length; i++)
             {
-                if (x.StartsWith('/'))
-                    Console.ResetColor();
-                else if (Enum.TryParse(x.Substring(0), out color))
-                    Console.ForegroundColor = color;
+                if (text[i] == '~')
+                {
+                    int nextSpecIdx = -1;
+
+                    StringBuilder specSb = new StringBuilder();
+
+                    for (int j = i + 1; j < text.Length; j++)
+                    {
+                        if (text[j] == '~')
+                        {
+                            nextSpecIdx = j;
+
+                            break;
+                        }
+                        else
+                        {
+                            specSb.Append(text[j]);
+                        }
+                    }
+
+                    if (nextSpecIdx <= i)
+                    {
+                        specSb.Insert(0, text[i]);
+
+                        Console.Write(specSb.ToString());
+
+                        break;
+                    }
+                    else
+                    {
+                        var specStr = specSb.ToString();
+
+                        i += specStr.Length + 1;
+
+                        if (specStr == "/")
+                        {
+                            Console.ResetColor();
+                        }
+                        else
+                        {
+                            if (Enum.TryParse(specStr, out color))
+                                Console.ForegroundColor = color;
+                        }
+                    }
+                }
                 else
-                    Console.Write(x);
+                {
+                    Console.Write(text[i]);
+                }
             }
+
+            Console.ResetColor();
         }
 
         /// <summary>Получить всех администраторов на сервере</summary>
@@ -1076,14 +1100,6 @@ namespace BCRPServer
         public static void LogTrade(PlayerData pData, PlayerData tData)
         {
             //todo
-        }
-
-        public static void SetWeather(WeatherTypes weather)
-        {
-            if (weather == WeatherTypes.XMAS)
-                NAPI.World.SetWeather("XMAS");
-
-            Sync.World.SetSharedData("Weather", (byte)weather);
         }
 
         public static Entity GetEntityInVehicleSeat(this Vehicle veh, int seatId)

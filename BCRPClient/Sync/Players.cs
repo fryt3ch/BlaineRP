@@ -592,6 +592,8 @@ namespace BCRPClient.Sync
 
                 CEF.Menu.SetOrganisation((string)sData["Org"]);
 
+                CEF.Menu.SetFraction(Data.Fractions.Types.None);
+
                 foreach (var x in data.Skills)
                     CEF.Menu.UpdateSkill(x.Key, x.Value);
 

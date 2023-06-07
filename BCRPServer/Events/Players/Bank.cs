@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using Org.BouncyCastle.Asn1.Tsp;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using System;
 using static BCRPServer.Game.Bank;
 
@@ -111,7 +112,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Bank::Debit::Operation")]
-        private static void Operation(Player player, bool isAtm, int bankId, bool add, int amountI)
+        private static void DebitOperation(Player player, bool isAtm, int bankId, bool add, int amountI)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -169,6 +170,71 @@ namespace BCRPServer.Events.Players
                 pData.BankAccount.SetDebitBalance(newBalance, null);
                 pData.SetCash(newCash);
             }
+        }
+
+        [RemoteProc("Bank::Savings::Operation")]
+        private static object SavingsOperation(Player player, int bankId, bool add, int amountI)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.BankAccount == null || amountI <= 0)
+                return null;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
+
+            var amount = (ulong)amountI;
+
+            if (!IsPlayerNearBank(player, bankId))
+                return null;
+
+            ulong newBalanceSavings;
+            ulong newBalanceDebit;
+
+            if (add)
+            {
+                if (!pData.BankAccount.TryRemoveMoneyDebit(amount, out newBalanceDebit, true))
+                    return null;
+
+                if (pData.BankAccount.SavingsBalance + amount > pData.BankAccount.Tariff.MaxSavingsBalance)
+                {
+                    amount = pData.BankAccount.SavingsBalance - pData.BankAccount.Tariff.MaxSavingsBalance;
+
+                    if (amount <= 0)
+                    {
+                        player.Notify("Bank::MSB");
+
+                        return null;
+                    }
+                }
+
+                if (!pData.BankAccount.TryAddMoneySavings(amount, out newBalanceSavings, true))
+                    return null;
+
+                pData.BankAccount.SetDebitBalance(newBalanceDebit, null);
+                pData.BankAccount.SetSavingsBalance(newBalanceSavings, null);
+            }
+            else
+            {
+                if (!pData.BankAccount.TryRemoveMoneySavings(amount, out newBalanceSavings, true))
+                    return null;
+
+                if (!pData.BankAccount.TryAddMoneyDebit(amount, out newBalanceDebit, true))
+                    return null;
+
+                pData.BankAccount.SetSavingsBalance(newBalanceSavings, null);
+                pData.BankAccount.SetDebitBalance(newBalanceDebit, null);
+
+                if (newBalanceSavings < pData.BankAccount.MinSavingsBalance)
+                    pData.BankAccount.MinSavingsBalance = newBalanceSavings;
+            }
+
+            return $"{newBalanceSavings}_{pData.BankAccount.MinSavingsBalance}";
         }
 
         [RemoteEvent("Bank::Tariff::Buy")]

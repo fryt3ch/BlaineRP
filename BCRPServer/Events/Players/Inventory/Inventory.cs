@@ -284,7 +284,7 @@ namespace BCRPServer.Events.Players
         }
 
         [RemoteEvent("Gift::Collect")]
-        private static void GiftCollect(Player player, int id)
+        private static void GiftCollect(Player player, uint id)
         {
             var sRes = player.CheckSpamAttack();
 

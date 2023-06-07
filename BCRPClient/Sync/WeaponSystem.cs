@@ -662,6 +662,8 @@ namespace BCRPClient.Sync
                 }
             };
 
+            Events.OnExplosion += OnExplosion;
+
             #region Events
             Events.Add("Weapon::TaskReload", async (object[] args) =>
             {
@@ -1035,6 +1037,13 @@ namespace BCRPClient.Sync
                     LastSentPedDamage = Sync.World.ServerTime;
                 }
             }
+        }
+
+        private static void OnExplosion(Player player, uint explosionType, Vector3 position, Events.CancelEventArgs cancel)
+        {
+            cancel.Cancel = true;
+
+            return;
         }
     }
 }

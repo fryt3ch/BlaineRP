@@ -116,13 +116,16 @@ namespace BCRPClient.CEF
                     }
                     else if (id == "savings")
                     {
-                        var newSavingsValue = (int)await Events.CallRemoteProc("Bank::Savings::Operation", false, Player.LocalPlayer.GetData<int>("CurrentBank::Id"), aId == "deposit", amount);
+                        var res = ((string)await Events.CallRemoteProc("Bank::Savings::Operation", Player.LocalPlayer.GetData<int>("CurrentBank::Id"), aId == "deposit", amount))?.Split('_');
 
-                        if (newSavingsValue >= 0)
+                        if (res == null)
+                            return;
+
+                        var newSavingsValue = Utils.ToUInt64(res[0]);
+                        var newMinSavingsValue = Utils.ToUInt64(res[1]);
+
+                        if (IsActive)
                         {
-                            if (!IsActive)
-                                return;
-
                             CEF.Browser.Window.ExecuteJs("MenuBank.setSavingsBal", newSavingsValue);
                         }
                     }

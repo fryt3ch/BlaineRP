@@ -213,7 +213,7 @@ namespace BCRPClient.CEF
             { "Bank::NoAccountTarget", new Instance(Types.Error, Locale.Notifications.Money.Bank.NoAccountTarget, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Bank::TargetNotFound", new Instance(Types.Error, Locale.Notifications.Money.Bank.TargetNotFound, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Bank::DayLimitExceed", new Instance(Types.Error, Locale.Notifications.Money.Bank.DayLimitExceed, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { "Bank::MaxSavings", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "Bank::MSB", new Instance(Types.Error, Locale.Notifications.Money.Bank.SavingsDepositMaxExceed, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Bank::SendApprove", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApprove, Locale.Get("NOTIFICATION_HEADER_APPROVE")) },
             { "Bank::SendApproveP", new Instance(Types.Question, Locale.Notifications.Money.Bank.SendApproveP, Locale.Get("NOTIFICATION_HEADER_APPROVE")) },
 

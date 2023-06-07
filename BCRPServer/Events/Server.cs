@@ -20,6 +20,8 @@ namespace BCRPServer.Events
 
         public static byte PayDayX { get; set; } = 1;
 
+        private static Timer PayDayTimer { get; set; }
+
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
         {
@@ -179,39 +181,27 @@ namespace BCRPServer.Events
 
             Additional.ConsoleCommands.Activate();
 
-            Utils.SetWeather(Utils.WeatherTypes.CLEAR);
+            Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
 
-            Task.Run(async () =>
+            PayDayTimer = new Timer((obj) =>
             {
-                while (true)
+                var curTime = Utils.GetCurrentTime();
+
+                if (curTime.Minute != 0)
+                    return;
+
+                var giveBankSavings = curTime.Hour == 0;
+
+                NAPI.Task.Run(() =>
                 {
-                    await Task.Delay(1000);
+                    DoPayDay(true);
 
-                    var currentTime = Utils.GetCurrentTime();
-
-                    if (currentTime.Second == 0)
+                    if (giveBankSavings)
                     {
-                        if (currentTime.Minute == 0)
-                        {
-                            NAPI.Task.Run(() =>
-                            {
-                                DoPayDay(true);
-                            });
-
-                            GC.Collect();
-                        }
-                        else if (currentTime.Minute == 30)
-                        {
-                            var newWeather = Settings.Weathers[(new Random().Next(0, Settings.Weathers.Count))];
-
-                            NAPI.Task.Run(() =>
-                            {
-                                Utils.SetWeather(newWeather);
-                            });
-                        }
+                        GiveBankSavings();
                     }
-                }
-            });
+                }, 0);
+            }, null, 1_000, 1_000);
 
             MySQL.StartService();
         }
@@ -332,6 +322,24 @@ namespace BCRPServer.Events
 
                     continue;
                 }
+            }
+        }
+
+        public static void GiveBankSavings()
+        {
+            foreach (var x in PlayerData.PlayerInfo.All)
+            {
+                var bankAccount = x.Value.BankAccount;
+
+                if (bankAccount == null)
+                    continue;
+
+                if (bankAccount.MinSavingsBalance <= 0)
+                {
+                    continue;
+                }
+
+                bankAccount.GiveSavingsBenefit();
             }
         }
 

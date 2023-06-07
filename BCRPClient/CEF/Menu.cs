@@ -222,10 +222,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Menu::GetGift", (object[] args) =>
             {
-                var id = Utils.ToUInt32(((string)args[0]).Replace("gift-btn", ""));
-
-                if (id < 0)
-                    return;
+                var id = Utils.ToUInt32(((string)args[0]).Replace("-gift-btn", ""));
 
                 if (!LastSent.IsSpam(1000, false, false))
                 {
@@ -237,9 +234,9 @@ namespace BCRPClient.CEF
 
             Events.Add("Menu::Gifts::Update", (object[] args) =>
             {
-                bool add = (bool)args[0];
+                var add = (bool)args[0];
 
-                var id = (uint)(int)args[1];
+                var id = Utils.ToUInt32(args[1]);
 
                 if (add)
                 {

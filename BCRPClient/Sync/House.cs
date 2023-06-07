@@ -158,74 +158,98 @@ namespace BCRPClient.Sync
 
             Furniture = new Dictionary<uint, MapObject>();
 
-            Events.Add("Garage::Enter", async (args) =>
+            Events.Add("Garage::Enter", (args) =>
             {
-                Utils.SetActionAsPending("Garage::Load", true);
+                var taskKey = "GarageEnter";
 
-                while (Additional.SkyCamera.IsFadedOut)
-                    await RAGE.Game.Invoker.WaitAsync(250);
+                Utils.CancelPendingTask(taskKey);
 
-                if (!Utils.IsActionPending("Garage::Load"))
-                    return;
+                AsyncTask task = null;
 
-                Sync.Players.CloseAll(false);
-
-                var garage = Data.Locations.Garage.All[(uint)(int)args[0]];
-
-                var style = Data.Locations.Garage.Style.Get(garage.Type, garage.Variation);
-
-                var gExitCs = new Additional.Cylinder(style.EnterPosition, 1f, 2f, false, Utils.RedColor, Player.LocalPlayer.Dimension, null)
+                task = new AsyncTask(async () =>
                 {
-                    InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
-                };
+                    while (Additional.SkyCamera.IsFadedOut)
+                        await RAGE.Game.Invoker.WaitAsync(25);
 
-                TempColshapes.Add(gExitCs);
+                    if (!Utils.IsTaskStillPending(taskKey, task))
+                        return;
 
-                Utils.SetActionAsPending("Garage::Load", false);
+                    Sync.Players.CloseAll(false);
+
+                    var garage = Data.Locations.Garage.All[(uint)(int)args[0]];
+
+                    var style = Data.Locations.Garage.Style.Get(garage.Type, garage.Variation);
+
+                    var gExitCs = new Additional.Cylinder(new Vector3(style.EnterPosition.X, style.EnterPosition.Y, style.EnterPosition.Z - 1f), 1f, 2f, false, Utils.RedColor, Player.LocalPlayer.Dimension, null)
+                    {
+                        InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
+                    };
+
+                    TempColshapes.Add(gExitCs);
+
+                    Utils.CancelPendingTask(taskKey);
+                });
+
+                Utils.SetTaskAsPending(taskKey, task);
             });
 
             Events.Add("Garage::Exit", (args) =>
             {
+                var taskKey = "GarageEnter";
+
+                Utils.CancelPendingTask(taskKey);
+
                 foreach (var x in TempColshapes)
                     x?.Destroy();
 
                 TempColshapes.Clear();
-
-                Utils.SetActionAsPending("Garage::Load", false);
             });
 
             Events.Add("ARoot::Enter", async (args) =>
             {
-                var pData = Sync.Players.GetData(Player.LocalPlayer);
+                var taskKey = "ARootEnter";
 
-                if (pData == null)
-                    return;
+                Utils.CancelPendingTask(taskKey);
 
-                var arId = Utils.ToUInt32(args[0]);
+                AsyncTask task = null;
 
-                var aRoot = Data.Locations.ApartmentsRoot.All[arId];
+                task = new AsyncTask(async () =>
+                {
+                    var pData = Sync.Players.GetData(Player.LocalPlayer);
 
-                Utils.SetActionAsPending("ApartmentsRoot::Load", true);
+                    if (pData == null)
+                        return;
 
-                while (Additional.SkyCamera.IsFadedOut)
-                    await RAGE.Game.Invoker.WaitAsync(25);
+                    var arId = Utils.ToUInt32(args[0]);
 
-                if (!Utils.IsActionPending("ApartmentsRoot::Load"))
-                    return;
+                    var aRoot = Data.Locations.ApartmentsRoot.All[arId];
 
-                Utils.SetActionAsPending("ApartmentsRoot::Load", false);
+                    while (Additional.SkyCamera.IsFadedOut)
+                        await RAGE.Game.Invoker.WaitAsync(25);
 
-                aRoot.Load();
+                    if (!Utils.IsTaskStillPending(taskKey, task))
+                        return;
 
-                Player.LocalPlayer.SetData("ApartmentsRoot::Current", aRoot);
+                    aRoot.Load();
 
-                foreach (var x in pData.OwnedApartments.ToList())
-                    if (x?.RootId == arId)
-                        x.ToggleOwnerBlip(true);
+                    Player.LocalPlayer.SetData("ApartmentsRoot::Current", aRoot);
+
+                    foreach (var x in pData.OwnedApartments.ToList())
+                        if (x?.RootId == arId)
+                            x.ToggleOwnerBlip(true);
+
+                    Utils.CancelPendingTask(taskKey);
+                });
+
+                Utils.SetTaskAsPending(taskKey, task);
             });
 
             Events.Add("ARoot::Exit", (args) =>
             {
+                var taskKey = "ARootEnter";
+
+                Utils.CancelPendingTask(taskKey);
+
                 var pData = Sync.Players.GetData(Player.LocalPlayer);
 
                 if (pData == null)
@@ -247,6 +271,8 @@ namespace BCRPClient.Sync
 
             Events.Add("House::Enter", (object[] args) =>
             {
+                var taskKey = "House::Enter";
+
                 HouseExit();
 
                 AsyncTask task = null;
@@ -275,10 +301,10 @@ namespace BCRPClient.Sync
 
                     var style = Style.Get(sType);
 
-                    while (Additional.SkyCamera.IsFadedOut && Utils.IsTaskStillPending("House::Enter", task))
+                    while (Additional.SkyCamera.IsFadedOut && Utils.IsTaskStillPending(taskKey, task))
                         await RAGE.Game.Invoker.WaitAsync(25);
 
-                    if (!Utils.IsTaskStillPending("House::Enter", task))
+                    if (!Utils.IsTaskStillPending(taskKey, task))
                         return;
 
                     Additional.SkyCamera.FadeScreen(true, 0, -1);
@@ -294,10 +320,10 @@ namespace BCRPClient.Sync
                         return;
                     }
 
-                    while (!RAGE.Game.Interior.IsInteriorReady(interior) && Utils.IsTaskStillPending("House::Enter", task))
+                    while (!RAGE.Game.Interior.IsInteriorReady(interior) && Utils.IsTaskStillPending(taskKey, task))
                         await RAGE.Game.Invoker.WaitAsync(5);
 
-                    if (!Utils.IsTaskStillPending("House::Enter", task))
+                    if (!Utils.IsTaskStillPending(taskKey, task))
                     {
                         onStopTask();
 
@@ -329,6 +355,8 @@ namespace BCRPClient.Sync
 
                     Player.LocalPlayer.SetData("House::CurrentHouse", house);
 
+                    var doorLockedStr = Locale.Get("HOUSE_DOOR_LOCKED_L");
+                    var doorNotLockedStr = Locale.Get("HOUSE_DOOR_NOTLOCKED_L");
 
                     for (int i = 0; i < style.Doors.Length; i++)
                     {
@@ -336,11 +364,11 @@ namespace BCRPClient.Sync
 
                         int handle = 0;
 
-                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending("House::Enter", task))
+                        while ((handle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, x.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending(taskKey, task))
                         {
                             await RAGE.Game.Invoker.WaitAsync(5);
 
-                            if (!Utils.IsTaskStillPending("House::Enter", task))
+                            if (!Utils.IsTaskStillPending(taskKey, task))
                             {
                                 onStopTask();
 
@@ -348,7 +376,7 @@ namespace BCRPClient.Sync
                             }
                         }
 
-                        if (!Utils.IsTaskStillPending("House::Enter", task))
+                        if (!Utils.IsTaskStillPending(taskKey, task))
                         {
                             onStopTask();
 
@@ -389,11 +417,11 @@ namespace BCRPClient.Sync
                         {
                             if (t.GetData<bool>("DoorState"))
                             {
-                                Utils.DrawText("[Закрыта]", x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Utils.DrawText(doorLockedStr, x, y -= NameTags.Interval, 255, 0, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
                             else
                             {
-                                Utils.DrawText("[Открыта]", x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+                                Utils.DrawText(doorNotLockedStr, x, y -= NameTags.Interval, 0, 255, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
                             }
 
                             Utils.DrawText("Дверь", x, y -= NameTags.Interval / 2f, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
@@ -417,11 +445,11 @@ namespace BCRPClient.Sync
 
                             int handle = 0;
 
-                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending("House::Enter", task))
+                            while ((handle = RAGE.Game.Object.GetClosestObjectOfType(y.Position.X, y.Position.Y, y.Position.Z, 1f, y.Model, false, true, true)) <= 0 && Utils.IsTaskStillPending(taskKey, task))
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
-                                if (!Utils.IsTaskStillPending("House::Enter", task))
+                                if (!Utils.IsTaskStillPending(taskKey, task))
                                 {
                                     onStopTask();
 
@@ -429,7 +457,7 @@ namespace BCRPClient.Sync
                                 }
                             }
 
-                            if (!Utils.IsTaskStillPending("House::Enter", task))
+                            if (!Utils.IsTaskStillPending(taskKey, task))
                             {
                                 onStopTask();
 
@@ -463,7 +491,7 @@ namespace BCRPClient.Sync
                         {
                             var gData = Data.Locations.Garage.Style.Get(grType, 0);
 
-                            var gExitCs = new Additional.Cylinder(gData.EnterPosition, 1f, 2f, false, Utils.RedColor, uint.MaxValue, null)
+                            var gExitCs = new Additional.Cylinder(new Vector3(gData.EnterPosition.X, gData.EnterPosition.Y, gData.EnterPosition.Z - 1f), 1f, 2f, false, Utils.RedColor, uint.MaxValue, null)
                             {
                                 InteractionType = Additional.ExtraColshape.InteractionTypes.GarageExit,
                             };
@@ -480,14 +508,14 @@ namespace BCRPClient.Sync
 
                     TempBlips.Add(new Additional.ExtraBlip(40, style.Position, Locale.Property.HouseExitTextLabel, 0.75f, 1, 255, 0, true, 0, 0, uint.MaxValue));
 
-                    Utils.CancelPendingTask("House::Enter");
+                    Utils.CancelPendingTask(taskKey);
 
                     GameEvents.DisableAllControls(false);
 
                     Additional.SkyCamera.FadeScreen(false, 500, -1);
                 }, 0, false, 0);
 
-                Utils.SetTaskAsPending("House::Enter", task);
+                Utils.SetTaskAsPending(taskKey, task);
             });
 
             Events.Add("House::Exit", (args) => HouseExit(args));

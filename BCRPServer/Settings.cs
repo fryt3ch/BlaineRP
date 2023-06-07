@@ -283,21 +283,6 @@ namespace BCRPServer
         /// <summary>Стандартный набор лицензий у созданных персонажей</summary>
         public static List<PlayerData.LicenseTypes> CHARACTER_DEFAULT_LICENSES => new List<PlayerData.LicenseTypes> { PlayerData.LicenseTypes.M };
 
-        /// <summary>Список доступных для сервера типов погоды</summary>
-        public static List<Utils.WeatherTypes> Weathers = new List<Utils.WeatherTypes>()
-        {
-            Utils.WeatherTypes.EXTRASUNNY,
-            Utils.WeatherTypes.CLEAR,
-            Utils.WeatherTypes.CLOUDS,
-            Utils.WeatherTypes.SMOG,
-            Utils.WeatherTypes.FOGGY,
-            Utils.WeatherTypes.OVERCAST,
-            Utils.WeatherTypes.RAIN,
-            Utils.WeatherTypes.THUNDER,
-            Utils.WeatherTypes.CLEARING,
-            //Utils.WeatherTypes.BLIZZARD,
-        };
-
         public static string SettingsToClientStr = (STREAM_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE, ENTITY_INTERACTION_MAX_DISTANCE_RENDER, MIN_CRUISE_CONTROL_SPEED, MAX_CRUISE_CONTROL_SPEED, MAX_INVENTORY_WEIGHT).SerializeToJson();
     }
 }
