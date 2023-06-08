@@ -177,6 +177,14 @@ namespace BCRPClient.Sync
             ToggleLock("v_ilev_gtdoor", 471.4755f, -996.4594f, 25.00599f, true);
             ToggleLock("v_ilev_gtdoor", 475.7543f, -996.4594f, 25.00599f, true);
             ToggleLock("v_ilev_gtdoor", 480.0301f, -996.4594f, 25.00599f, true);
+
+            // Amunnation Club 1
+            ToggleLock("v_ilev_gc_door04", 16.12787f, -1114.606f, 29.94694f, true);
+            ToggleLock("v_ilev_gc_door03", 18.572f, -1115.495f, 29.94694f, true);
+
+            // Amunnation Club 2
+            ToggleLock("v_ilev_gc_door04", 813.1779f, -2148.27f, 29.76892f, true);
+            ToggleLock("v_ilev_gc_door03", 810.5769f, -2148.27f, 29.76892f, true);
         }
 
         public static void ToggleLock(Door doorInfo, bool state) => ToggleLock(doorInfo.Model, doorInfo.Position, state);

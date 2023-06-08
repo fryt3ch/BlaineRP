@@ -35,7 +35,7 @@ namespace BCRPClient.Data.Fractions
 
             if (Type == Types.GOV_LS)
             {
-                UniformNames = new List<string>()
+                UniformNames = new string[]
                 {
                     "Стандартная форма",
                     "Форма для специальных операций",
@@ -44,7 +44,7 @@ namespace BCRPClient.Data.Fractions
             }
         }
 
-        public List<string> UniformNames { get; set; }
+        public string[] UniformNames { get; set; }
 
         public override void OnStartMembership(params object[] args)
         {

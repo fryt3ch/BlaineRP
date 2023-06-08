@@ -181,13 +181,13 @@ namespace BCRPServer.Events
 
             Additional.ConsoleCommands.Activate();
 
-            Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
+            Sync.Weather.StartRealWeatherSync(new string[] { "LA", "Sacramento", "NY", "Dublin" , "Moscow", "Kaliningrad", "Omsk" }, true, 0, -1);
 
             PayDayTimer = new Timer((obj) =>
             {
                 var curTime = Utils.GetCurrentTime();
 
-                if (curTime.Minute != 0)
+                if (curTime.Minute != 0 || curTime.Second != 0)
                     return;
 
                 var giveBankSavings = curTime.Hour == 0;

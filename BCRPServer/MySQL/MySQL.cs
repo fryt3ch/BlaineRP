@@ -572,7 +572,7 @@ namespace BCRPServer
                         }
                     }
 
-                    var allCooldowns = new Dictionary<uint, Dictionary<Sync.Cooldowns.Types, DateTime>>();
+                    var allCooldowns = new Dictionary<uint, Dictionary<uint, DateTime>>();
 
                     cmd.CommandText = "SELECT * FROM cooldowns;";
 
@@ -580,26 +580,24 @@ namespace BCRPServer
                     {
                         if (reader.HasRows)
                         {
-                            var types = Enum.GetValues(typeof(Sync.Cooldowns.Types)).Cast<Sync.Cooldowns.Types>().Where(x => !Sync.Cooldowns.IsTemp(x)).ToList();
-
                             while (reader.Read())
                             {
-                                var cid = Convert.ToUInt32(reader["ID"]);
+                                var cid = Convert.ToUInt32(reader["CID"]);
+                                var type = Convert.ToUInt32(reader["Type"]);
 
-                                var cooldowns = new Dictionary<Sync.Cooldowns.Types, DateTime>();
+                                var dateTime = (DateTime)reader["Date"];
 
-                                allCooldowns.Add(cid, cooldowns);
+                                var pCd = allCooldowns.GetValueOrDefault(cid);
 
-                                foreach (var x in types)
+                                if (pCd == null)
                                 {
-                                    var obj = reader[x.ToString()];
+                                    pCd = new Dictionary<uint, DateTime>() { { type, dateTime }, };
 
-                                    if (obj == DBNull.Value)
-                                        continue;
-
-                                    var dateTime = (DateTime)obj;
-
-                                    cooldowns.Add(x, dateTime);
+                                    allCooldowns.Add(cid, pCd);
+                                }
+                                else
+                                {
+                                    pCd.TryAdd(type, dateTime);
                                 }
                             }
                         }
@@ -787,7 +785,7 @@ namespace BCRPServer
 
                                     Quests = quests,
 
-                                    Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<Sync.Cooldowns.Types, DateTime>(),
+                                    Cooldowns = allCooldowns.GetValueOrDefault(cid) ?? new Dictionary<uint, DateTime>(),
                                 };
 
                                 PlayerData.PlayerInfo.AddOnLoad(pInfo);

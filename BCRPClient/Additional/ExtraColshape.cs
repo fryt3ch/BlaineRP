@@ -965,9 +965,9 @@ namespace BCRPClient.Additional
                     var allButtons = new List<(decimal, string)>();
 
                     if (res >= 0)
-                        allButtons.Add((-1, "[Завершить рабочий день]"));
+                        allButtons.Add((-1, Locale.Get("FRACTION_LOCKER_0")));
 
-                    for (int i = 0; i < fDataUnif.UniformNames.Count; i++)
+                    for (int i = 0; i < fDataUnif.UniformNames.Length; i++)
                     {
                         if (res == i)
                             continue;
@@ -977,7 +977,7 @@ namespace BCRPClient.Additional
 
                     await CEF.ActionBox.ShowSelect
                     (
-                        "FractionUniformSelect", Locale.Actions.FractionUniformSelectTitle, allButtons.ToArray(), null, null,
+                        "FractionUniformSelect", Locale.Get("FRACTION_LOCKER_1"), allButtons.ToArray(), null, null,
 
                         CEF.ActionBox.DefaultBindAction,
 

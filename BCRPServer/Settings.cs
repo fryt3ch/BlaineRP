@@ -277,6 +277,9 @@ namespace BCRPServer
 
         public const ushort MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
 
+        public const int COOLDOWN_SHOOTINGRANGE_SHOP = 3 * 60 * 60;
+        public const int COOLDOWN_POLICE_CODE = 5 * 60;
+
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>
         public static Dictionary<PlayerData.SkillTypes, int> CHARACTER_DEFAULT_SKILLS => new Dictionary<PlayerData.SkillTypes, int>() { { PlayerData.SkillTypes.Strength, 0 }, { PlayerData.SkillTypes.Cooking, 0 }, { PlayerData.SkillTypes.Shooting, 0 }, { PlayerData.SkillTypes.Fishing, 0 } };
 

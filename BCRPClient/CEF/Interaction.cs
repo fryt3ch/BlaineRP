@@ -485,28 +485,15 @@ namespace BCRPClient.CEF
 
         private static void ShowPassengers()
         {
-            if (!IsActive)
-                return;
-
-            Browser.SwitchTemp(Browser.IntTypes.Interaction, false);
-
             var veh = Player.LocalPlayer.Vehicle;
 
             if (veh == null)
-            {
-                CloseMenu();
-
                 return;
-            }
 
             var vehData = Sync.Vehicles.GetData(veh);
 
             if (vehData == null)
-            {
-                CloseMenu();
-
                 return;
-            }
 
             var players = new List<object>();
 
@@ -525,17 +512,14 @@ namespace BCRPClient.CEF
             {
                 Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Vehicles.Passengers.None);
 
-                CloseMenu();
-
                 return;
             }
 
-            KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
+            Browser.Render(Browser.IntTypes.Interaction_Passengers, true, true);
 
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
             Browser.Window.ExecuteJs($"Passengers.fill", new object[] { players });
-            Browser.Switch(Browser.IntTypes.Interaction_Passengers, true);
 
             Cursor.Show(true, true);
         }
@@ -581,7 +565,7 @@ namespace BCRPClient.CEF
                 return;
 
             Browser.Switch(Browser.IntTypes.Interaction, false);
-            Browser.Switch(Browser.IntTypes.Interaction_Passengers, false);
+            Browser.Render(Browser.IntTypes.Interaction_Passengers, false);
 
             GameEvents.Render -= CheckEntityDistance;
 

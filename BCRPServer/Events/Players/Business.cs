@@ -93,7 +93,9 @@ namespace BCRPServer.Events.Players
 
             var curTime = Utils.GetCurrentTime();
 
-            if (pData.HasCooldown(Sync.Cooldowns.Types.ShootingRange, curTime, Sync.Cooldowns.CD_SHOOTING_RANGE, out _, out _, out _, 2))
+            var cdSRangeType = NAPI.Util.GetHashKey("SRANGE_SHOP");
+
+            if (pData.HasCooldown(cdSRangeType, curTime, Settings.COOLDOWN_SHOOTINGRANGE_SHOP, out _, out _, out _, 2, false))
                 return;
 
             if (!ws.TryBuyShootingRange(pData))
@@ -119,7 +121,7 @@ namespace BCRPServer.Events.Players
 
             pData.CurrentBusiness = ws;
 
-            pData.Info.SetCooldown(Sync.Cooldowns.Types.ShootingRange, curTime);
+            pData.Info.SetCooldown(cdSRangeType, curTime, true);
 
             player.SetData("INSRANGE", true);
         }

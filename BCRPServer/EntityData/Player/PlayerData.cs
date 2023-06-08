@@ -661,9 +661,9 @@ namespace BCRPServer
             return true;
         }
 
-        public bool HasCooldown(Sync.Cooldowns.Types cdType, DateTime curDate, int cdSecs, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, int notifyType = -1)
+        public bool HasCooldown(uint cdType, DateTime curDate, int cdSecs, out TimeSpan timePassed, out TimeSpan timeLeft, out DateTime cdDate, int notifyType = -1, bool removeIfExists = true)
         {
-            if (Info.HasCooldown(cdType, curDate, cdSecs, out timePassed, out timeLeft, out cdDate))
+            if (Info.HasCooldown(cdType, curDate, cdSecs, out timePassed, out timeLeft, out cdDate, removeIfExists))
             {
                 if (notifyType >= 0)
                 {

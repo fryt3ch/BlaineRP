@@ -70,7 +70,7 @@ namespace BCRPClient.Data.Fractions
 
     public interface IUniformable
     {
-        public List<string> UniformNames { get; set; }
+        public string[] UniformNames { get; set; }
     }
 
     public abstract class Fraction

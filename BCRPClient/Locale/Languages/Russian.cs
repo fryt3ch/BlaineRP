@@ -48,6 +48,14 @@ namespace BCRPClient
                 ("POLICETABLET_GPSTR_NOTEXISTS", "Такой GPS-трекер не существует!"),
                 ("POLICETABLET_RFIND_INHOUSENOW", "Вы уже находитесь в этом доме!"),
                 ("POLICETABLET_RFIND_INFLATNOW", "Вы уже находитесь в этой квартире!"),
+                ("POLICETABLET_L_CT_0", "КОД-0"),
+                ("POLICETABLET_L_CT_1", "КОД-1"),
+                ("POLICETABLET_L_CT_2", "КОД-2"),
+                ("POLICETABLET_L_CT_255", "Вызов"),
+                ("POLICETABLET_L_CM_0", "Требуется немедленная поддержка! Всем департаментам!"),
+                ("POLICETABLET_L_CM_1", "Требуется небольшая помощь!"),
+                ("POLICETABLET_L_CM_2", "Требуется помощь!"),
+                ("POLICETABLET_L_CODE", "Вы отправили сигнал {0}!"),
 
                 ("SHOP_SHARED_NOTHINGITEM_L", "Ничего"),
                 ("SHOP_WEAPON_SRANGE_L", "Тир"),
@@ -83,6 +91,9 @@ namespace BCRPClient
                 ("DOCS_NOTMARRIED_MALE", "не женат"),
                 ("DOCS_NOTMARRIED_FEMALE", "не замужем"),
                 ("DOCS_VEHPASS_NOPLATE", "отсутствует"),
+
+                ("FRACTION_LOCKER_0", "[Завершить рабочий день]"),
+                ("FRACTION_LOCKER_1", "Выбор рабочей формы"),
 
                 ("MARKETSTALL_R_HEADER", "Аренда торговой лавки"),
                 ("MARKETSTALL_R_CONTENT", "Вы действительно хотите арендовать данную торговую лавку?\nИспользуя её, вы сможете продавать свои предметы другим игрокам без риска быть обманутым.\n\nЕсли вы отойдёте от лавки слишком далеко, то лишитесь аренды!\n\n\nСтоимость: {0}"),

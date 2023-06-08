@@ -40,7 +40,7 @@ namespace BCRPClient
         private static Language CurrentLanguage { get; } = Settings.LANGUAGE == "ru" ? RussianLanguage : RussianLanguage;
 
         public static string Get(string key, params object[] formatArgs) => CurrentLanguage.Get(key, key, formatArgs);
-        public static string GetNullOtherwise(string key, params object[] formatArgs) => CurrentLanguage.Get(key, null, formatArgs);
+        public static string? GetNullOtherwise(string key, params object[] formatArgs) => CurrentLanguage.Get(key, null, formatArgs);
 
         public static void Add(string key, string value) => CurrentLanguage.Add(key, value);
 
@@ -66,22 +66,6 @@ namespace BCRPClient
 
             public static string PhoneOutgoingCall = "Исходящий вызов";
             public static string PhoneIncomingCall = "Входящий вызов";
-
-            public static Dictionary<byte, string> PoliceTabletCallTypes = new Dictionary<byte, string>()
-            {
-                { 0, "КОД-0" },
-                { 1, "КОД-1" },
-                { 2, "КОД-2" },
-
-                { 255, "Вызов" },
-            };
-
-            public static Dictionary<byte, string> PoliceTabletCallMessages = new Dictionary<byte, string>()
-            {
-                { 0, "Требуется немедленная поддержка! Всем департаментам!" },
-                { 1, "Требуется небольшая помощь!" },
-                { 2, "Требуется помощь!" },
-            };
 
             public static class PhoneCamera
             {

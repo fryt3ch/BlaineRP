@@ -56,9 +56,9 @@ namespace BCRPClient.Data.Fractions
                 };
             }
 
-            if (Type == Types.COP_LS)
+            if (Type == Types.COP_BLAINE)
             {
-                UniformNames = new List<string>()
+                UniformNames = new string[]
                 {
                     "Стандартная форма",
                     "Форма для специальных операций",
@@ -73,7 +73,7 @@ namespace BCRPClient.Data.Fractions
 
         public Vector3[] ArrestCellsPositions { get; set; }
 
-        public List<string> UniformNames { get; set; }
+        public string[] UniformNames { get; set; }
 
         public override void OnStartMembership(params object[] args)
         {

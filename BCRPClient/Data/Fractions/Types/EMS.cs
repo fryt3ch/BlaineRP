@@ -10,7 +10,7 @@ namespace BCRPClient.Data.Fractions
 {
     public class EMS : Fraction, IUniformable
     {
-        public List<string> UniformNames { get; set; }
+        public string[] UniformNames { get; set; }
 
         public List<MapObject> TempObjects { get; set; }
 
@@ -41,7 +41,7 @@ namespace BCRPClient.Data.Fractions
 
             if (Type == Types.EMS_BLAINE)
             {
-                UniformNames = new List<string>()
+                UniformNames = new string[]
                 {
                     "Доктор (полностью)",
                     "Доктор (только халат)",

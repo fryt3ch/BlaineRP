@@ -90,7 +90,7 @@ namespace BCRPClient.Data
 
                 if (PositionInfo != null)
                 {
-                    InfoColshape = new Additional.Cylinder(PositionInfo, 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
+                    InfoColshape = new Additional.Cylinder(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z - 1f), 1f, 1.5f, false, new Utils.Colour(255, 0, 0, 255), Settings.MAIN_DIMENSION, null)
                     {
                         ActionType = Additional.ExtraColshape.ActionTypes.BusinessInfo,
                         InteractionType = Additional.ExtraColshape.InteractionTypes.BusinessInfo,
@@ -98,7 +98,7 @@ namespace BCRPClient.Data
                         Data = this,
                     };
 
-                    InfoText = new Additional.ExtraLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z + 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
+                    InfoText = new Additional.ExtraLabel(new Vector3(PositionInfo.X, PositionInfo.Y, PositionInfo.Z - 0.5f), $"{Name} #{SubId}", new RGBA(255, 255, 255, 255), 15f, 0, false, Settings.MAIN_DIMENSION) { Font = 0 };
                 }
 
                 All.Add(Id, this);
@@ -515,7 +515,9 @@ namespace BCRPClient.Data
             {
                 this.Blip = new Additional.ExtraBlip(72, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                this.EnteranceColshape = new Additional.Sphere(PositionInteract.Position, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                var tPos = new Vector3(PositionInteract.Position.X, PositionInteract.Position.Y, PositionInteract.Position.Z - 0.5f);
+
+                this.EnteranceColshape = new Additional.Cylinder(tPos, 2.5f, 2f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
                 {
                     ApproveType = Additional.ExtraColshape.ApproveTypes.OnlyServerVehicleDriver,
 
@@ -525,7 +527,7 @@ namespace BCRPClient.Data
                     Data = this,
                 };
 
-                new Marker(44, PositionInteract.Position, 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
+                new Marker(44, new Vector3(tPos.X, tPos.Y, tPos.Z + 0.75f), 1f, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 0f), new RGBA(255, 255, 255), true, Settings.MAIN_DIMENSION);
 
                 CEF.PhoneApps.GPSApp.AddPosition("bizother", "tuning", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }
@@ -553,7 +555,9 @@ namespace BCRPClient.Data
                     DefaultDialogueId = "seller_clothes_greeting_0",
                 };
 
-                var shootingRangeEnterCs = new Additional.Cylinder(ShootingRangePosition, 1.5f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                var tPos = new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z - 1f);
+
+                var shootingRangeEnterCs = new Additional.Cylinder(tPos, 1.5f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                 {
                     Data = this,
 
@@ -561,7 +565,7 @@ namespace BCRPClient.Data
                     InteractionType = Additional.ExtraColshape.InteractionTypes.ShootingRangeEnter,
                 };
 
-                var shootingRangeText = new Additional.ExtraLabel(new Vector3(ShootingRangePosition.X, ShootingRangePosition.Y, ShootingRangePosition.Z + 0.5f), Locale.Get("SHOP_WEAPON_SRANGE_L"), new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
+                var shootingRangeText = new Additional.ExtraLabel(new Vector3(tPos.X, tPos.Y, tPos.Z + 0.75f), Locale.Get("SHOP_WEAPON_SRANGE_L"), new RGBA(255, 255, 255, 255), 10f, 0, true, Settings.MAIN_DIMENSION);
 
                 CEF.PhoneApps.GPSApp.AddPosition("bizother", "weapon", $"bizother_{Id}", $"{Name} #{SubId}", new RAGE.Ui.Cursor.Vector2(PositionInteract.X, PositionInteract.Y));
             }

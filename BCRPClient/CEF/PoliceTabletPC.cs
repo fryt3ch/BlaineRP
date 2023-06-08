@@ -65,6 +65,11 @@ namespace BCRPClient.CEF
                     LastSent = Sync.World.ServerTime;
 
                     var res = (bool)await Events.CallRemoteProc("Police::CODE", code);
+
+                    if (res)
+                    {
+                        CEF.Notification.Show(Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICETABLET_L_CODE", Locale.Get($"POLICETABLET_L_CT_{code}")));
+                    }
                 }
             });
 
@@ -614,7 +619,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 0, allCalls.Where(x => x.Player?.Exists == true).OrderBy(x => x.Time).Select(x => GetCallRowList(x, pPos)).ToList());
         }
 
-        public static List<object> GetCallRowList(Data.Fractions.Police.CallInfo x, Vector3 pPos) => new List<object> { x.Player.RemoteId, x.Time.ToString("HH:mm"), Locale.General.PoliceTabletCallTypes.GetValueOrDefault(x.Type) ?? "null", $"{x.Player.Name}", pPos.DistanceTo(x.Position).ToString("0.0"), x.Message.Length == 0 ? Locale.General.PoliceTabletCallMessages.GetValueOrDefault(x.Type) ?? "" : x.Message };
+        public static List<object> GetCallRowList(Data.Fractions.Police.CallInfo x, Vector3 pPos) => new List<object> { x.Player.RemoteId, x.Time.ToString("HH:mm"), Locale.Get($"POLICETABLET_L_CT_{x.Type}"), $"{x.Player.Name}", pPos.DistanceTo(x.Position).ToString("0.0"), x.Message.Length == 0 ? Locale.GetNullOtherwise($"POLICETABLET_L_CM_{x.Type}") ?? "" : x.Message };
 
         public static void ShowFinesTab(List<Data.Fractions.Police.FineInfo> allFines)
         {

@@ -33,6 +33,7 @@ namespace BCRPServer.Sync
 
         private const int UpdateTimeout = 1000 * 60 * 30;
 
+        // https://www.weatherapi.com/docs/weather_conditions.json
         private const string UrlFormatString = "http://api.weatherapi.com/v1/current.json?key={0}&q={1}";
 
         private const string APIKey = "8dd49447c2374d32a2874253230706";
