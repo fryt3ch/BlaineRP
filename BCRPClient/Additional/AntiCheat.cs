@@ -12,7 +12,6 @@ namespace BCRPClient.Additional
 
     class AntiCheat : Events.Script
     {
-        private static Additional.ExtraTimer Timer { get; set; }
 
         public static bool LastTeleportWasGround { get; set; }
 
@@ -83,7 +82,7 @@ namespace BCRPClient.Additional
 
             Events.Add("AC::State::TP", async (object[] args) =>
             {
-                var dim = (int)args[0] < 0 ? Player.LocalPlayer.Dimension : Utils.ToUInt32(args[0]);
+                Utils.CancelPendingTask(TeleportTaskKey);
 
                 if (args.Length == 1)
                 {
@@ -93,8 +92,6 @@ namespace BCRPClient.Additional
 
                     return;
                 }
-
-                Utils.CancelPendingTask(TeleportTaskKey);
 
                 AsyncTask task = null;
 
@@ -446,11 +443,11 @@ namespace BCRPClient.Additional
         {
             var player = Player.LocalPlayer;
 
-            LastPosition = player.Position;
+            LastPosition = player.GetCoords(false);
             LastArmour = player.GetArmour();
             LastHealth = player.GetRealHealth();
 
-            LastAllowedPos = player.Position;
+            LastAllowedPos = new Vector3(LastPosition.X, LastPosition.Y, LastPosition.Z);
             LastAllowedHP = player.GetRealHealth();
             LastAllowedArm = player.GetArmour();
             LastAllowedAlpha = 255;
@@ -459,12 +456,12 @@ namespace BCRPClient.Additional
 
             LastAllowedInvincible = false;
 
-            Timer = new ExtraTimer(async (obj) =>
+            var task = new AsyncTask(() =>
             {
-                await RAGE.Game.Invoker.WaitAsync(0);
-
                 Check();
-            }, null, 0, 1_000);
+            }, 1_000, true, 0);
+
+            task.Run();
         }
 
         private static void Check()
@@ -491,9 +488,9 @@ namespace BCRPClient.Additional
 
                 if (diff >= 50f)
                 {
-                    Events.CallRemote("AC::Detect::TP", diff);
-
                     //Utils.ConsoleOutput("ASDAS");
+
+                    Events.CallRemote("AC::Detect::TP", diff);
                 }
             }
             else

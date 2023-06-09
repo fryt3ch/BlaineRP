@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace BCRPClient
 {
-    class KeyBinds : Events.Script
+    class KeyBinds
     {
         public static bool CursorNotFreezeInput { get; set; }
 
@@ -391,7 +391,7 @@ namespace BCRPClient
         };
         #endregion
 
-        public static Dictionary<Types, ExtraBind> Binds { get; set; }
+        public static Dictionary<Types, ExtraBind> Binds { get; set; } = new Dictionary<Types, ExtraBind>();
 
         #region Bind Class
 
@@ -1128,11 +1128,6 @@ namespace BCRPClient
                 bind.Value.ChangeKeys(DefaultBinds[bind.Key]);
         }
         #endregion
-
-        public KeyBinds()
-        {
-            Binds = new Dictionary<Types, ExtraBind>();
-        }
 
         public static void DisableAll(params Types[] ignoreTypes)
         {

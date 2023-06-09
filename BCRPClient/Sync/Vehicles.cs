@@ -1558,7 +1558,7 @@ namespace BCRPClient.Sync
             var veh = Player.LocalPlayer.GetData<Vehicle>("TEV::V");
             var timePassed = Sync.World.ServerTime.Subtract(Player.LocalPlayer.GetData<DateTime>("TEV::T")).TotalMilliseconds;
 
-            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 7500 || (timePassed > 1000 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
+            if (tStatus == 7 || veh?.Exists != true || veh.IsDead(0) || Player.LocalPlayer.Position.DistanceTo(veh.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE || timePassed > 7500 || (timePassed > 1_000 && Utils.AnyOnFootMovingControlPressed()) || (!veh.IsOnAllWheels() && SetIntoVehicle(veh, seatId)))
             {
                 if (tStatus != 7)
                     Player.LocalPlayer.ClearTasks();

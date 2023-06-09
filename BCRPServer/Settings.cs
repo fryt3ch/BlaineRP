@@ -278,6 +278,7 @@ namespace BCRPServer
         public const ushort MUTE_MAX_MINUTES = 10080; // 7 * 24 * 60
 
         public const int COOLDOWN_SHOOTINGRANGE_SHOP = 3 * 60 * 60;
+        public const int COOLDOWN_CASINO_ROULETTE_FREE_0 = 24 * 60 * 60;
         public const int COOLDOWN_POLICE_CODE = 5 * 60;
 
         /// <summary>Стандартные показатели навыков у созданных персонажей</summary>

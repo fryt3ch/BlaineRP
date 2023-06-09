@@ -2133,24 +2133,21 @@ namespace BCRPClient.Additional
             }
         }
 
-        private static Additional.ExtraTimer streamUpdateTimer { get; set; }
-        private static Additional.ExtraTimer updateTimer { get; set; }
-
         public static void Activate()
         {
-            streamUpdateTimer = new Additional.ExtraTimer(async (obj) =>
+            var streamUpdateTask = new AsyncTask(() =>
             {
-                await RAGE.Game.Invoker.WaitAsync(0);
-
                 UpdateInside();
-            }, null, 0, 200);
+            }, 250, true, 0);
 
-            updateTimer = new Additional.ExtraTimer(async (obj) =>
+            streamUpdateTask.Run();
+
+            var updateTask = new AsyncTask(() =>
             {
-                await RAGE.Game.Invoker.WaitAsync(0);
-
                 UpdateStreamed();
-            }, null, 0, 1000);
+            }, 1_000, true, 0);
+
+            updateTask.Run();
         }
 
         public static void UpdateStreamed()

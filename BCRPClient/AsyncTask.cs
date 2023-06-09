@@ -116,7 +116,8 @@ namespace BCRPClient
 
         private async System.Threading.Tasks.Task ExecuteLoopAction(CancellationToken ct)
         {
-            await RAGE.Game.Invoker.WaitAsync(DelayToStart);
+            if (DelayToStart > 0)
+                await RAGE.Game.Invoker.WaitAsync(DelayToStart);
 
             while (!ct.IsCancellationRequested)
             {
@@ -141,7 +142,8 @@ namespace BCRPClient
         // Return FALSE in delegate to continue loop, return TRUE - to stop it
         private async System.Threading.Tasks.Task ExecuteLoopFunc(CancellationToken ct)
         {
-            await RAGE.Game.Invoker.WaitAsync(DelayToStart);
+            if (DelayToStart > 0)
+                await RAGE.Game.Invoker.WaitAsync(DelayToStart);
 
             while (!ct.IsCancellationRequested)
             {

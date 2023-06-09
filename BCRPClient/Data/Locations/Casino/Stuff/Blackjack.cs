@@ -404,11 +404,11 @@ namespace BCRPClient.Data
                     if (table.TextLabel == null)
                         return;
 
-                    var stateTask = table.TextLabel.GetData<Additional.ExtraTimer>("StateTask");
+                    var stateTask = table.TextLabel.GetData<AsyncTask>("StateTask");
 
                     if (stateTask != null)
                     {
-                        stateTask.Dispose();
+                        stateTask.Cancel();
 
                         table.TextLabel.ResetData("StateTask");
                     }
@@ -513,14 +513,14 @@ namespace BCRPClient.Data
 
                             if (CurrentTable == table && CurrentSeatIdx == seatIdx)
                             {
-                                var timer = new Additional.ExtraTimer(async (obj) =>
+                                var task = new AsyncTask(() =>
                                 {
-                                    await RAGE.Game.Invoker.WaitAsync(0);
-
                                     updateFunc($"Ваш ход! ({DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()})");
-                                }, null, 0, 1000);
+                                }, 1_000, true, 0);
 
-                                table.TextLabel.SetData("StateTask", timer);
+                                task.Run();
+
+                                table.TextLabel.SetData("StateTask", task);
 
                                 if (Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
                                 {
@@ -540,14 +540,14 @@ namespace BCRPClient.Data
                                     Data.Minigames.Casino.Casino.ShowBlackjackButton(1, false);
                                 }
 
-                                var timer = new Additional.ExtraTimer(async (obj) =>
+                                var task = new AsyncTask(() =>
                                 {
-                                    await RAGE.Game.Invoker.WaitAsync(0);
-
                                     updateFunc($"Ход игрока #{seatIdx + 1} ({DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()})");
-                                }, null, 0, 1000);
+                                }, 1_000, true, 0);
 
-                                table.TextLabel.SetData("StateTask", timer);
+                                task.Run();
+
+                                table.TextLabel.SetData("StateTask", task);
                             }
 
                             table.NextStagePlayer(casinoId, tableId, str, onLoad, 0);
@@ -624,14 +624,14 @@ namespace BCRPClient.Data
                         {
                             var time = long.Parse(str.Substring(1, str.IndexOf('*') - 1));
 
-                            var timer = new Additional.ExtraTimer(async (obj) =>
+                            var task = new AsyncTask(() =>
                             {
-                                await RAGE.Game.Invoker.WaitAsync(0);
-
                                 updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}");
-                            }, null, 0, 1000);
+                            }, 1_000, true, 0);
 
-                            table.TextLabel.SetData("StateTask", timer);
+                            task.Run();
+
+                            table.TextLabel.SetData("StateTask", task);
 
                             if (CurrentTable == table && Data.Minigames.Casino.Casino.CurrentType == Minigames.Casino.Casino.Types.Blackjack)
                             {

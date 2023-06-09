@@ -354,11 +354,11 @@ namespace BCRPClient.Data
 
         public class GasStation : Business
         {
-            public GasStation(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Vector3 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
+            public GasStation(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionGas, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.GasStation, Price, Rent, Tax)
             {
-                this.Blip = new Additional.ExtraBlip(361, PositionGas, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
+                this.Blip = new Additional.ExtraBlip(361, PositionGas.Position, Name, 0.75f, 47, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var cs = new Additional.Sphere(PositionGas, 5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
+                var cs = new Additional.Cylinder(new Vector3(PositionGas.X, PositionGas.Y, PositionGas.Z - 1f), PositionGas.RotationZ, 2.5f, false, new Utils.Colour(255, 0, 0, 125), Settings.MAIN_DIMENSION, null)
                 {
                     Data = this.Id,
 

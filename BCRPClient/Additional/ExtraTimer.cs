@@ -6,43 +6,64 @@ namespace BCRPClient.Additional
 {
     public class ExtraTimer
     {
-        private static List<System.Threading.Timer> allTimers = new List<System.Threading.Timer>();
+        private static List<System.Threading.Timer> allTimers;
 
         private System.Threading.Timer rTimer { get; set; }
 
+        // Fix to dispose all previous session timers!
         private static DateTime lastTime { get; set; }
 
-        private static System.Threading.Timer sTimer { get; } = new System.Threading.Timer(async (obj) =>
+        private static System.Threading.Timer sTimer;
+
+        public static void Activate()
         {
-            var startWaitDate = DateTime.Now;
+            allTimers = new List<System.Threading.Timer>();
 
-            await RAGE.Game.Invoker.WaitAsync(0);
-
-            if (DateTime.Now.Subtract(startWaitDate).TotalMilliseconds > 1000)
-                return;
-
-            var curTime = Sync.World.ServerTime;
-
-            if (lastTime == curTime)
+            sTimer = new System.Threading.Timer(async (obj) =>
             {
-                for (int i = 0; i < allTimers.Count; i++)
+                sTimer.Change(-1, -1);
+
+                await RAGE.Game.Invoker.WaitAsync(0);
+
+                var curTime = Sync.World.ServerTime;
+
+                if (lastTime == curTime)
                 {
-                    allTimers[i]?.Dispose();
+                    for (int i = 0; i < allTimers.Count; i++)
+                    {
+                        allTimers[i]?.Dispose();
+                    }
+
+                    allTimers.Clear();
+
+                    sTimer.Dispose();
+
+                    sTimer = null;
+
+                    allTimers = null;
+
+                    return;
                 }
 
-                allTimers.Clear();
+                lastTime = curTime;
 
-                sTimer.Dispose();
+                sTimer.Change(2_500, 2_500);
+            }, null, 0, 2_500);
+        }
 
-                return;
-            }
-
-            lastTime = curTime;
-        }, null, 0, 2_500);
-
-        public ExtraTimer(System.Threading.TimerCallback Action, object StateObj, int DueTime, int Period)
+        public ExtraTimer(Func<System.Threading.Tasks.Task> Action, int DueTime, int Period)
         {
-            rTimer = new System.Threading.Timer(Action, StateObj, DueTime, Period);
+            rTimer = new System.Threading.Timer(async (obj) =>
+            {
+                rTimer.Change(-1, -1);
+
+                await RAGE.Game.Invoker.WaitAsync(0);
+
+                await Action.Invoke();
+
+                rTimer.Change(Period, Period);
+
+            }, null, DueTime, Period);
 
             allTimers.Add(rTimer);
         }

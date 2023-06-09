@@ -76,9 +76,27 @@ namespace BCRPServer.Game.Businesses
             new Market(66, new Vector3(1168.038f, 2702.137f, 38.17805f), new Utils.Vector4(1165.925f, 2710.803f, 38.15771f, 175.9661f));
             new Market(67, new Vector3(-2975.207f, 389.1467f, 15.02665f), new Utils.Vector4(-2966.424f, 390.8955f, 15.04331f, 84.64081f));
 
-            // 68 - free id
-
-            new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), null, new Vector3(263.9698f, 2607.402f, 44.98298f));
+            new GasStation(16, new Vector3(270.1317f, 2601.239f, 44.64737f), null, new Utils.Vector4(263.9698f, 2607.402f, 44.98298f, 7.5f));
+            new GasStation(68, new Vector3(1698.498f, 6425.668f, 32.76406f), null, new Utils.Vector4(1701.724f, 6416.483f, 32.76001f, 10f));
+            new GasStation(69, new Vector3(1676.205f, 4923.622f, 42.05463f), null, new Utils.Vector4(1686.895f, 4929.302f, 42.0781f, 7.5f));
+            new GasStation(70, new Vector3(2671.806f, 3259.376f, 55.24052f), null, new Utils.Vector4(2679.951f, 3264.098f, 55.24052f, 7.5f));
+            new GasStation(71, new Vector3(2591.919f, 351.4034f, 108.4573f), null, new Utils.Vector4(2581.307f, 361.7208f, 108.4688f, 13f));
+            new GasStation(72, new Vector3(45.4535f, 2788.245f, 57.87816f), null, new Utils.Vector4(49.50636f, 2778.856f, 58.04395f, 7.5f));
+            new GasStation(73, new Vector3(1203.327f, 2656.537f, 37.8521f), null, new Utils.Vector4(1208.081f, 2660.416f, 37.90003f, 7.5f));
+            new GasStation(74, new Vector3(-2567.018f, 2344.798f, 33.07035f), null, new Utils.Vector4(-2555.233f, 2334.28f, 33.07805f, 13f));
+            new GasStation(75, new Vector3(-1788.858f, 812.7391f, 138.4958f), null, new Utils.Vector4(-1800.013f, 802.8375f, 138.6524f, 13f));
+            new GasStation(76, new Vector3(626.5507f, 249.8059f, 103.0407f), null, new Utils.Vector4(620.7009f, 268.8442f, 103.0894f, 13f));
+            new GasStation(77, new Vector3(1187.193f, -313.6362f, 69.18339f), null, new Utils.Vector4(1180.661f, -330.5511f, 69.31657f, 13f));
+            new GasStation(78, new Vector3(-2106.312f, -334.4171f, 13.01274f), null, new Utils.Vector4(-2096.814f, -320.1179f, 13.16092f, 13f));
+            new GasStation(79, new Vector3(-1423.172f, -287.5374f, 46.2537f), null, new Utils.Vector4(-1436.963f, -276.8523f, 46.20766f, 12.5f));
+            new GasStation(80, new Vector3(168.2355f, 6594.022f, 31.84759f), null, new Utils.Vector4(179.9487f, 6602.907f, 31.86819f, 13f));
+            new GasStation(81, new Vector3(-226.9775f, 6184.625f, 31.4902f), null, new Utils.Vector4(-217.702f, 6200.958f, 31.48996f, 7.5f));
+            new GasStation(82, new Vector3(-734.1768f, -946.4086f, 18.53576f), null, new Utils.Vector4(-723.9554f, -936.2401f, 19.89023f - 0.5f, 12.5f));
+            new GasStation(83, new Vector3(-305.5214f, -1486.814f, 30.38564f), null, new Utils.Vector4(-319.5534f, -1471.608f, 30.5486f, 12.5f));
+            new GasStation(84, new Vector3(809.7831f, -1043.675f, 26.57383f), null, new Utils.Vector4(818.9824f, -1027.963f, 26.40432f, 12.5f));
+            new GasStation(85, new Vector3(273.7592f, -1276.649f, 29.23184f), null, new Utils.Vector4(265.0627f, -1261.298f, 29.29272f, 12.5f));
+            new GasStation(86, new Vector3(-64.82754f, -1775.309f, 28.89548f), null, new Utils.Vector4(-70.46722f, -1761.065f, 29.53409f, 12.5f));
+            new GasStation(87, new Vector3(1219.133f, -1391.201f, 35.1943f), null, new Utils.Vector4(1208.479f, -1402.744f, 35.22414f, 10f));
 
             new CarShop1(17, new Vector3(-62.48621f, -1089.3f, 26.69341f), new Utils.Vector4(-55.08611f, -1111.217f, 26.05543f, 36.2f), new Utils.Vector4[] { new Utils.Vector4(-41.65706f, -1116.344f, 26.05584f, 3f), new Utils.Vector4(-45.15728f, -1116.411f, 26.05584f, 3f), new Utils.Vector4(-47.71569f, -1116.379f, 26.05584f, 3f), new Utils.Vector4(-50.56787f, -1116.191f, 26.05584f, 3f), new Utils.Vector4(-53.62245f, -1116.565f, 26.05584f, 3f), new Utils.Vector4(-56.34209f, -1116.566f, 26.05584f, 3f), new Utils.Vector4(-59.11841f, -1116.814f, 26.05584f, 3f), new Utils.Vector4(-62.03639f, -1117.178f, 26.05584f, 3f) }, new Utils.Vector4(-54.68786f, -1088.418f, 26.42234f, 155.8f));
 

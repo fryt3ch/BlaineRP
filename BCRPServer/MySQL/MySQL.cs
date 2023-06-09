@@ -211,6 +211,8 @@ namespace BCRPServer
         {
             var currentTime = Utils.GetCurrentTime();
 
+            int businessPrevStatsDayIdx = 0;
+
             var allItems = new Dictionary<uint, Game.Items.Item>();
 
             var usedItems = new HashSet<uint>();
@@ -281,9 +283,9 @@ namespace BCRPServer
 
                                 var bTime = DateTime.MinValue;
 
-                                Game.Businesses.Business.PreviousStatisticsDayIdx = ((int)Math.Floor(llt.Subtract(bTime).TotalDays)) % businessMaxDayIdx;
+                                businessPrevStatsDayIdx = ((byte)Math.Floor(llt.Subtract(bTime).TotalDays)) % businessMaxDayIdx;
 
-                                Game.Businesses.Business.CurrentStatisticsDayIdx = (Game.Businesses.Business.PreviousStatisticsDayIdx + ((int)Math.Floor(timePassedSinceLastLaunch.TotalDays))) % businessMaxDayIdx;
+                                Game.Businesses.Business.CurrentStatisticsDayIdx = (businessPrevStatsDayIdx + ((int)Math.Floor(timePassedSinceLastLaunch.TotalDays))) % businessMaxDayIdx;
                             }
                         },
 
@@ -934,6 +936,8 @@ namespace BCRPServer
                     {
                         if (reader.HasRows)
                         {
+                            var daysDiff = Game.Businesses.Business.CurrentStatisticsDayIdx - businessPrevStatsDayIdx;
+
                             while (reader.Read())
                             {
                                 var bizId = Convert.ToInt32(reader["ID"]);
@@ -969,8 +973,6 @@ namespace BCRPServer
 
                                 business.Statistics = ((string)reader["Statistics"]).DeserializeFromJson<ulong[]>();
 
-                                var daysDiff = Game.Businesses.Business.CurrentStatisticsDayIdx - Game.Businesses.Business.PreviousStatisticsDayIdx;
-
                                 for (int j = 0; j < daysDiff; j++)
                                 {
                                     for (int i = 0; i < business.Statistics.Length; i++)
@@ -984,6 +986,11 @@ namespace BCRPServer
                                             business.Statistics[i] = business.Statistics[i + 1];
                                         }
                                     }
+                                }
+
+                                if (daysDiff > 0)
+                                {
+                                    MySQL.BusinessUpdateStatistics(business);
                                 }
 
                                 if (business.OrderedMaterials > 0)

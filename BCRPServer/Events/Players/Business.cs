@@ -492,7 +492,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || player.Dimension != Settings.MAIN_DIMENSION)
+            if (pData.CurrentBusiness != null)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -582,7 +582,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || player.Dimension != Settings.MAIN_DIMENSION)
+            if (pData.CurrentBusiness != null)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -613,7 +613,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (pData.CurrentBusiness != null || player.Dimension != Settings.MAIN_DIMENSION)
+            if (pData.CurrentBusiness != null)
                 return;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
@@ -703,8 +703,16 @@ namespace BCRPServer.Events.Players
 
             if (!(shop is Game.Businesses.IEnterable))
             {
-                if (player.Dimension != Settings.MAIN_DIMENSION || !shop.IsPlayerNearInteractPosition(pData))
-                    return false;
+                if (shop is Game.Businesses.GasStation gs)
+                {
+                    if (!gs.IsPlayerNearGasolinesPosition(pData))
+                        return false;
+                }
+                else
+                {
+                    if (!shop.IsPlayerNearInteractPosition(pData))
+                        return false;
+                }
             }
 
             var res = shop.TryBuyItem(pData, useCash, id);
@@ -712,44 +720,47 @@ namespace BCRPServer.Events.Players
             return res;
         }
 
-        [RemoteEvent("GasStation::Enter")]
-        public static void GasStationEnter(Player player, Vehicle vehicle, int id)
+        [RemoteProc("GasStation::Enter")]
+        public static object GasStationEnter(Player player, Vehicle vehicle, int id)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return null;
 
             var pData = sRes.Data;
 
             if (pData.CurrentBusiness != null)
-                return;
+                return null;
+
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen)
+                return null;
 
             var gs = Game.Businesses.Business.Get(id) as Game.Businesses.GasStation;
 
             if (gs == null)
-                return;
+                return null;
 
-            if (player.Dimension != Settings.MAIN_DIMENSION || Vector3.Distance(player.Position, gs.PositionInfo) > 50f)
-                return;
+            if (!gs.IsPlayerNearGasolinesPosition(pData))
+                return null;
 
             var vData = vehicle.GetMainData();
 
             if (vData == null)
-                return;
+                return null;
 
             if (vData.FuelLevel == vData.Data.Tank)
             {
                 player.Notify(vData.Data.FuelType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
 
-                return;
+                return null;
             }
 
-            player.CloseAll(true);
-
-            player.TriggerEvent("GasStation::Show", (float)gs.Margin);
+            //player.CloseAll(true);
 
             pData.CurrentBusiness = gs;
+
+            return (float)gs.Margin;
         }
 
         [RemoteEvent("GasStation::Exit")]
@@ -766,67 +777,6 @@ namespace BCRPServer.Events.Players
                 return;
 
             pData.CurrentBusiness = null;
-        }
-
-        [RemoteEvent("GasStation::Buy")]
-        public static void GasStationBuy(Player player, Vehicle vehicle, int fNum, int amountI, bool useCash)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (amountI <= 0 || !Enum.IsDefined(typeof(Game.Data.Vehicles.Vehicle.FuelTypes), fNum))
-                return;
-
-            var amount = (uint)amountI;
-
-            var gs = pData.CurrentBusiness as Game.Businesses.GasStation;
-
-            if (gs == null)
-                return;
-
-            var fType = (Game.Data.Vehicles.Vehicle.FuelTypes)fNum;
-
-            var vData = vehicle.GetMainData();
-
-            if (vData == null)
-                return;
-
-            if (vData.Data.FuelType != fType)
-                return;
-
-            var newFuelLevel = vData.FuelLevel + amount;
-
-            if (newFuelLevel > vData.Data.Tank)
-            {
-                amount = (uint)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
-
-                newFuelLevel = vData.Data.Tank;
-
-                if (amount == 0)
-                {
-                    player.Notify(fType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
-
-                    return;
-                }
-            }
-
-            uint newMats;
-            ulong newBalance, newPlayerBalance;
-
-            if (!gs.TryProceedPayment(pData, useCash, Game.Businesses.GasStation.GasIds[fType], amount, out newMats, out newBalance, out newPlayerBalance))
-                return;
-
-            gs.ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
-
-            vData.FuelLevel = newFuelLevel;
-
-            pData.CurrentBusiness = null;
-
-            player.CloseAll(true);
         }
     }
 }

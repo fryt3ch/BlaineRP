@@ -132,8 +132,6 @@ namespace BCRPClient.Sync
 
         public static CEF.Audio.Data LocalPlayerStreamRadioAudioData => CEF.Audio.AllAudios.Where(x => x.Id == "PLAYER_LOCAL_RADIO").FirstOrDefault();
 
-        private static Additional.ExtraTimer updateTimer { get; set; }
-
         public Radio()
         {
             SetRadioStationName(StationTypes.MP_BRP, "Radio Blaine RP");
@@ -153,10 +151,8 @@ namespace BCRPClient.Sync
 
             ToggleMobilePhoneRadio(false);
 
-            updateTimer = new Additional.ExtraTimer(async (obj) =>
+            var updateTask = new AsyncTask(() =>
             {
-                await RAGE.Game.Invoker.WaitAsync(1000);
-
                 var sType = GetCurrentStationType();
 
                 var stationChanged = CurrentStationType != sType;
@@ -195,7 +191,9 @@ namespace BCRPClient.Sync
                 }
 
                 CEF.PhoneApps.RadioApp.UpdateRadioStation(CurrentStationType == StationTypes.Off ? StationTypes.NSPFM : CurrentStationType);
-            }, null, 1000, 1000);
+            }, 1_000, true, 0);
+
+            updateTask.Run();
         }
 
         public static StationTypes GetCurrentStationType() => StationIds.Where(x => x.Value == RAGE.Game.Audio.GetPlayerRadioStationName()).FirstOrDefault().Key;

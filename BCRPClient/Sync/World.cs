@@ -394,8 +394,6 @@ namespace BCRPClient.Sync
             obj.ResetData();
         }
 
-        private static Additional.ExtraTimer closestIogTimer { get; set; }
-
         public World()
         {
             ItemOnGround.LastShowed = Sync.World.ServerTime;
@@ -418,10 +416,8 @@ namespace BCRPClient.Sync
                 }
             });
 
-            closestIogTimer = new Additional.ExtraTimer(async (obj) =>
+            var closestIogTask = new AsyncTask(() =>
             {
-                await RAGE.Game.Invoker.WaitAsync(0);
-
                 var minDist = float.MaxValue;
                 var minIdx = -1;
 
@@ -446,7 +442,9 @@ namespace BCRPClient.Sync
                     ClosestItemOnGround = null;
                 else
                     ClosestItemOnGround = ItemsOnGround[minIdx];
-            }, null, 2500, 1000);
+            }, 1_000, true, 0);
+
+            closestIogTask.Run();
             #endregion
         }
 

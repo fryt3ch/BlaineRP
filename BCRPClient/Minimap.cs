@@ -5,9 +5,9 @@ namespace BCRPClient
 {
     class Minimap : Events.Script
     {
-        public static int MinimapZoomState = 0;
+        public static byte MinimapZoomState { get; private set; } = 0;
 
-        private static Timer MinimapZoomTimer = null;
+        private static AsyncTask zoomTask;
 
         public Minimap()
         {
@@ -31,24 +31,32 @@ namespace BCRPClient
 
                 MinimapZoomState = 1;
 
-                MinimapZoomTimer = new Timer((obj) =>
+                zoomTask?.Cancel();
+
+                zoomTask = new AsyncTask(() =>
                 {
                     RAGE.Game.Ui.SetRadarBigmapEnabled(false, true);
                     RAGE.Game.Ui.SetRadarZoom(1);
 
                     MinimapZoomState = 0;
-                    MinimapZoomTimer.Dispose();
-                    MinimapZoomTimer = null;
 
-                }, null, 10000, Timeout.Infinite);
+                    if (zoomTask != null)
+                    {
+                        zoomTask.Cancel();
+
+                        zoomTask = null;
+                    }
+                }, 10_000, false, 0);
+
+                zoomTask.Run();
             }
             else if (MinimapZoomState == 1)
             {
-                if (MinimapZoomTimer != null)
+                if (zoomTask != null)
                 {
-                    MinimapZoomTimer.Dispose();
+                    zoomTask.Cancel();
 
-                    MinimapZoomTimer = null;
+                    zoomTask = null;
                 }
 
                 RAGE.Game.Ui.SetRadarBigmapEnabled(true, false);
@@ -61,11 +69,11 @@ namespace BCRPClient
             }
             else
             {
-                if (MinimapZoomTimer != null)
+                if (zoomTask != null)
                 {
-                    MinimapZoomTimer.Dispose();
+                    zoomTask.Cancel();
 
-                    MinimapZoomTimer = null;
+                    zoomTask = null;
                 }
 
                 MinimapZoomState = 0;

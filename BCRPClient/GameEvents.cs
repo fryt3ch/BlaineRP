@@ -47,7 +47,7 @@ namespace BCRPClient
             System.GC.Collect();
 
             RAGE.Game.Gxt.Add("BRP_AEBLPT", "~a~");
-            RAGE.Game.Gxt.Add("BRP_AELBLT", "~a~");
+            //RAGE.Game.Gxt.Add("BRP_AELBLT", "~a~");
 
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = Settings.CultureInfo;
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = Settings.CultureInfo;

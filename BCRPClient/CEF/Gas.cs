@@ -16,26 +16,17 @@ namespace BCRPClient.CEF
 
         private static Vehicle TargetVehicle { get; set; }
 
-        public static Dictionary<Data.Vehicles.Vehicle.FuelTypes, string> GasIds { get; private set; } = new Dictionary<Data.Vehicles.Vehicle.FuelTypes, string>()
-        {
-            { Data.Vehicles.Vehicle.FuelTypes.Petrol, "gas_g_0" },
-
-            { Data.Vehicles.Vehicle.FuelTypes.Electricity, "gas_e_0" },
-        };
-
         private static Additional.ExtraColshape CloseColshape { get; set; }
 
-        private static List<int> TempBinds { get; set; }
+        private static int EscBindIdx = -1;
+
+        public static bool BuyByFraction { get; set; }
 
         public Gas()
         {
-            LastSent = DateTime.MinValue;
-
-            TempBinds = new List<int>();
-
-            Events.Add("Gas::Buy", (object[] args) =>
+            Events.Add("Gas::Buy", async (object[] args) =>
             {
-                bool byCash = (bool)args[0];
+                bool useCash = (bool)args[0];
                 int amount = (int)args[1];
 
                 var stationId = StationID;
@@ -48,20 +39,15 @@ namespace BCRPClient.CEF
                 if (vData == null || vData.Data == null)
                     return;
 
-                if (!LastSent.IsSpam(500, false, false))
+                if (!LastSent.IsSpam(500, false, true))
                 {
-                    Events.CallRemote("GasStation::Buy", TargetVehicle, (int)vData.Data.FuelType, amount, byCash);
-
                     LastSent = Sync.World.ServerTime;
+
+                    if ((bool)await Events.CallRemoteProc("Shop::Buy", $"{GetGasBuyIdByFuelType(vData.Data.FuelType)}&{TargetVehicle.RemoteId}&{amount}&{(BuyByFraction ? 1 : 0)}", useCash))
+                    {
+
+                    }
                 }
-            });
-
-
-            Events.Add("GasStation::Show", async (object[] args) =>
-            {
-                var margin = Utils.ToDecimal(args[0]);
-
-                await Show(margin);
             });
 
             Events.Add("CarMaint::Close", async (object[] args) =>
@@ -71,6 +57,8 @@ namespace BCRPClient.CEF
                 CEF.Numberplates.Close();
             });
         }
+
+        public static string GetGasBuyIdByFuelType(Data.Vehicles.Vehicle.FuelTypes fType) => fType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
 
         public static async void RequestShow(Vehicle vehicle, bool showGasAnyway = false)
         {
@@ -245,12 +233,17 @@ namespace BCRPClient.CEF
 
             TargetVehicle = vehicle;
 
-            if (LastSent.IsSpam(1000, false, false))
+            if (LastSent.IsSpam(1000, false, true))
                 return;
 
-            Events.CallRemote("GasStation::Enter", vehicle, gasStationId);
-
             LastSent = Sync.World.ServerTime;
+
+            var res = await Events.CallRemoteProc("GasStation::Enter", vehicle, gasStationId);
+
+            if (res == null)
+                return;
+
+            Show(Utils.ToDecimal(res));
         }
 
         public static async System.Threading.Tasks.Task Show(decimal margin)
@@ -278,14 +271,14 @@ namespace BCRPClient.CEF
 
             var prices = CEF.Shop.GetPrices(Shop.Types.GasStation);
 
-            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol, new object[] { maxFuel, prices[GasIds[vData.Data.FuelType]] * margin } });
+            CEF.Browser.Window.ExecuteJs("CarMaint.drawGas", new object[] { vData.Data.FuelType == Data.Vehicles.Vehicle.FuelTypes.Petrol, new object[] { maxFuel, prices[GetGasBuyIdByFuelType(vData.Data.FuelType)] * margin } });
 
             CEF.Cursor.Show(true, true);
 
             GameEvents.Render -= Render;
             GameEvents.Render += Render;
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -307,10 +300,9 @@ namespace BCRPClient.CEF
 
             TargetVehicle = null;
 
-            foreach (var x in TempBinds)
-                KeyBinds.Unbind(x);
+            KeyBinds.Unbind(EscBindIdx);
 
-            TempBinds.Clear();
+            EscBindIdx = -1;
         }
 
         private static void Render()

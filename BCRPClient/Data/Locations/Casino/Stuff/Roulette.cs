@@ -134,11 +134,11 @@ namespace BCRPClient.Data
                     if (roulette.TextLabel == null)
                         return;
 
-                    var stateTask = roulette.TextLabel.GetData<Additional.ExtraTimer>("StateTask");
+                    var stateTask = roulette.TextLabel.GetData<AsyncTask>("StateTask");
 
                     if (stateTask != null)
                     {
-                        stateTask.Dispose();
+                        stateTask.Cancel();
 
                         roulette.TextLabel.ResetData("StateTask");
                     }
@@ -159,14 +159,14 @@ namespace BCRPClient.Data
                                 {
                                     updateFunc($"Выпало число {betType.ToString().Replace("_", "")}!");
 
-                                    var timer = new Additional.ExtraTimer(async (obj) =>
+                                    var task = new AsyncTask(() =>
                                     {
-                                        await RAGE.Game.Invoker.WaitAsync(0);
-
                                         updateFunc(defText);
-                                    }, null, 2_500, -1);
+                                    }, 2_500, false, 0);
 
-                                    roulette.TextLabel.SetData("StateTask", timer);
+                                    task.Run();
+
+                                    roulette.TextLabel.SetData("StateTask", task);
 
                                     roulette.LastBets?.Add((BetTypes)lastBallRes);
 
@@ -212,14 +212,14 @@ namespace BCRPClient.Data
                         {
                             var time = long.Parse(str.Substring(1));
 
-                            var timer = new Additional.ExtraTimer(async (obj) =>
+                            var task = new AsyncTask(() =>
                             {
-                                await RAGE.Game.Invoker.WaitAsync(0);
-
                                 updateFunc($"Игра начнётся через {DateTimeOffset.FromUnixTimeSeconds(time).DateTime.Subtract(Sync.World.ServerTime).GetBeautyString()}");
-                            }, null, 0, 1000);
+                            }, 1_000, true, 0);
 
-                            roulette.TextLabel.SetData("StateTask", timer);
+                            task.Run();
+
+                            roulette.TextLabel.SetData("StateTask", task);
                         }
                     }
                     else

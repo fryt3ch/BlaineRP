@@ -37,8 +37,6 @@ namespace BCRPServer.Game.Businesses
     {
         public static int CurrentStatisticsDayIdx { get; set; }
 
-        public static int PreviousStatisticsDayIdx { get; set; }
-
         public const decimal INCASSATION_TAX = 0.05m;
 
         public const uint MATS_DELIVERY_PRICE = 2000;
@@ -207,7 +205,7 @@ namespace BCRPServer.Game.Businesses
 
         public bool IsPlayerNearInteractPosition(PlayerData pData)
         {
-            return Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
+            return PositionInteract != null && pData.Player.Dimension == Settings.MAIN_DIMENSION && Vector3.Distance(pData.Player.Position, PositionInteract.Position) <= 10f;
         }
 
         public static Utils.Vector4 GetNextExitProperty(IEnterable enterable)

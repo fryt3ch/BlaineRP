@@ -13,17 +13,17 @@ namespace BCRPServer
 
             if (insert)
             {
-                cmd.CommandText = "UPDATE cooldowns SET Date=@D WHERE CID=@CID AND Type=@T;";
+                cmd.CommandText = "INSERT INTO cooldowns (ID, CID, Type, Date) VALUES (@ID, @CID, @T, @D);";
 
+                cmd.Parameters.AddWithValue("@ID", Guid.NewGuid().ToString());
                 cmd.Parameters.AddWithValue("@CID", pInfo.CID);
                 cmd.Parameters.AddWithValue("@T", cdType);
                 cmd.Parameters.AddWithValue("@D", date);
             }
             else
             {
-                cmd.CommandText = "INSERT INTO cooldowns (ID, CID, Type, Date) VALUES (@ID, @CID, @T, @D);";
+                cmd.CommandText = "UPDATE cooldowns SET Date=@D WHERE CID=@CID AND Type=@T;";
 
-                cmd.Parameters.AddWithValue("@ID", Guid.NewGuid().ToString());
                 cmd.Parameters.AddWithValue("@CID", pInfo.CID);
                 cmd.Parameters.AddWithValue("@T", cdType);
                 cmd.Parameters.AddWithValue("@D", date);

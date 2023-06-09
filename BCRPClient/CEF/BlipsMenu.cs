@@ -20,7 +20,7 @@ namespace BCRPClient.CEF
 
         private static bool FirstOpen { get; set; }
 
-        private static Additional.ExtraTimer Timer { get; set; }
+        private static AsyncTask UpdateTask { get; set; }
 
         public class LocalBlip
         {
@@ -357,17 +357,18 @@ namespace BCRPClient.CEF
             if (RAGE.Game.Ui.DoesBlipExist(waypointBlip))
                 RAGE.Game.Ui.SetBlipDisplay(waypointBlip, 0);
 
-            Timer?.Dispose();
+            UpdateTask?.Cancel();
 
-            Timer = new Additional.ExtraTimer(async (obj) =>
+            UpdateTask = new AsyncTask(() =>
             {
-                await RAGE.Game.Invoker.WaitAsync(0);
-
                 if (TempBlip != null && LastEdited == -1)
                 {
                     TempBlip.Position = CurrentUsePos ? Player.LocalPlayer.Position : GameEvents.WaypointPosition ?? Player.LocalPlayer.Position;
                 }
-            }, null, 0, 500);
+
+            }, 500, true, 0);
+
+            UpdateTask.Run();
         }
 
         public static void Close(bool ignoreTimeout = false)
@@ -409,11 +410,11 @@ namespace BCRPClient.CEF
             if (RAGE.Game.Ui.DoesBlipExist(waypointBlip))
                 RAGE.Game.Ui.SetBlipDisplay(waypointBlip, 2);
 
-            if (Timer != null)
+            if (UpdateTask != null)
             {
-                Timer.Dispose();
+                UpdateTask.Cancel();
 
-                Timer = null;
+                UpdateTask = null;
             }
         }
     }

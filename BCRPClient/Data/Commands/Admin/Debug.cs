@@ -200,18 +200,38 @@ namespace BCRPClient.Data
             poly.RemoveVertice((int)vertId);
         }
 
-        [Command("poly_setheight", true, "Задать высоту полигону", "poly_sheight")]
-        public static void PolySetHeight(uint id, float height)
+        [Command("cs_setheight", true, "Задать высоту полигону", "cs_sheight")]
+        public static void CsSetHeight(uint id, float height)
         {
             if (height < 0f)
                 return;
 
-            var poly = Additional.ExtraColshape.GetById((int)id) as Additional.Polygon;
+            var cs = Additional.ExtraColshape.GetById((int)id);
 
-            if (poly == null)
+            if (cs == null)
                 return;
 
-            poly.SetHeight(height);
+            if (cs is Additional.Polygon poly)
+                poly.SetHeight(height);
+            else if (cs is Additional.Cylinder cyl)
+                cyl.Height = height;
+        }
+
+        [Command("cs_setradius", true, "Задать высоту полигону", "cs_srad")]
+        public static void CsSetRadius(uint id, float radius)
+        {
+            if (radius < 0f)
+                return;
+
+            var cs = Additional.ExtraColshape.GetById((int)id);
+
+            if (cs == null)
+                return;
+
+            if (cs is Additional.Cylinder cyl)
+                cyl.Radius = radius;
+            else if (cs is Additional.Sphere sph)
+                sph.Radius = radius;
         }
 
         [Command("colshape_save_server", true, "Задать высоту полигону", "poly_sheight")]

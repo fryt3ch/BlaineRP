@@ -1,4 +1,5 @@
 ﻿using GTANetworkAPI;
+using System;
 using System.Collections.Generic;
 
 namespace BCRPServer.Game.Businesses
@@ -12,26 +13,86 @@ namespace BCRPServer.Game.Businesses
             Prices = new Dictionary<string, uint>()
             {
                 { "gas_g_0", 1 },
+
                 { "gas_e_0", 0 },
             }
         };
 
         public override string ClientData => $"{ID}, {PositionInfo.ToCSharpStr()}, {GovPrice}, {Rent}, {Tax}f, {GasolinesPosition.ToCSharpStr()}, {PositionInteract.ToCSharpStr()}";
 
-        public static Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, string> GasIds { get; private set; } = new Dictionary<Game.Data.Vehicles.Vehicle.FuelTypes, string>()
-        {
-            { Game.Data.Vehicles.Vehicle.FuelTypes.Petrol, "gas_g_0" },
+        public Utils.Vector4 GasolinesPosition { get; set; }
 
-            { Game.Data.Vehicles.Vehicle.FuelTypes.Electricity, "gas_e_0" },
-        };
-
-        public bool IsGas(string itemId) => GasIds.ContainsValue(itemId);
-
-        public Vector3 GasolinesPosition { get; set; }
-
-        public GasStation(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Vector3 GasolinesPosition) : base(ID, PositionInfo, PositionInteract, DefaultType)
+        public GasStation(int ID, Vector3 PositionInfo, Utils.Vector4 PositionInteract, Utils.Vector4 GasolinesPosition) : base(ID, PositionInfo, PositionInteract, DefaultType)
         {
             this.GasolinesPosition = GasolinesPosition;
+        }
+
+        public static string GetGasBuyIdByFuelType(Data.Vehicles.Vehicle.FuelTypes fType) => fType == Data.Vehicles.Vehicle.FuelTypes.Electricity ? "gas_e_0" : "gas_g_0";
+
+        public bool IsPlayerNearGasolinesPosition(PlayerData pData) => pData.Player.Dimension == Settings.MAIN_DIMENSION && pData.Player.Position.DistanceTo(GasolinesPosition.Position) <= GasolinesPosition.RotationZ + 2.5f;
+
+        public override bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
+        {
+            var iData = itemId.Split('&');
+
+            if (iData.Length != 4)
+                return false;
+
+            var item = iData[0];
+
+            ushort vehicleRid;
+
+            uint amount;
+
+            if (!ushort.TryParse(iData[1], out vehicleRid) || !uint.TryParse(iData[2], out amount))
+                return false;
+
+            bool byByFraction = iData[3] == "1";
+
+            var vData = Utils.FindVehicleOnline(vehicleRid);
+
+            if (vData == null)
+                return false;
+
+            if (!pData.Player.AreEntitiesNearby(vData.Vehicle, 7.5f))
+                return false;
+
+            var vFuelType = vData.Data.FuelType;
+
+            if (GetGasBuyIdByFuelType(vFuelType) != item)
+                return false;
+
+            var newFuelLevel = vData.FuelLevel + amount;
+
+            if (newFuelLevel > vData.Data.Tank)
+            {
+                amount = (uint)Math.Ceiling(vData.Data.Tank - vData.FuelLevel);
+
+                newFuelLevel = vData.Data.Tank;
+
+                if (amount == 0)
+                {
+                    pData.Player.Notify(vFuelType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::FOFP" : "Vehicle::FOFE");
+
+                    return false;
+                }
+            }
+
+            uint newMats;
+            ulong newBalance, newPlayerBalance;
+
+            if (!TryProceedPayment(pData, useCash, item, amount, out newMats, out newBalance, out newPlayerBalance))
+                return false;
+
+            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
+
+            vData.FuelLevel = newFuelLevel;
+
+            pData.CurrentBusiness = null;
+
+            pData.Player.CloseAll(true);
+
+            return base.TryBuyItem(pData, useCash, itemId);
         }
     }
 }

@@ -440,7 +440,7 @@ namespace BCRPClient.Data
 
                         if (x.TextLabel != null)
                         {
-                            x.TextLabel.GetData<Additional.ExtraTimer>("StateTask")?.Dispose();
+                            x.TextLabel.GetData<AsyncTask>("StateTask")?.Cancel();
 
                             x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
 
@@ -488,7 +488,7 @@ namespace BCRPClient.Data
 
                         if (x.TextLabel != null)
                         {
-                            x.TextLabel.GetData<Additional.ExtraTimer>("StateTask")?.Dispose();
+                            x.TextLabel.GetData<AsyncTask>("StateTask")?.Cancel();
 
                             x.TextLabel.GetData<Additional.ExtraLabel>("Info")?.Destroy();
 

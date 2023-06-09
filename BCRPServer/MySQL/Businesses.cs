@@ -118,5 +118,18 @@ namespace BCRPServer
 
             PushQuery(cmd);
         }
+
+        public static void BusinessUpdateStatistics(Game.Businesses.Business business)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE businesses SET Statistics=@Stats WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", business.ID);
+
+            cmd.Parameters.AddWithValue("@Stats", business.Statistics.SerializeToJson());
+
+            PushQuery(cmd);
+        }
     }
 }

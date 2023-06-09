@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 
 namespace BCRPServer.Events.Players
@@ -176,6 +177,13 @@ namespace BCRPServer.Events.Players
             if (player.Dimension != Settings.MAIN_DIMENSION || luckyWheel.Position.DistanceTo(player.Position) > 5f)
                 return;
 
+            var freeLuckyWheelCdId = NAPI.Util.GetHashKey("CASINO_LW_FREE_0");
+
+            var curTime = Utils.GetCurrentTime();
+
+            if (pData.HasCooldown(freeLuckyWheelCdId, curTime, Settings.COOLDOWN_CASINO_ROULETTE_FREE_0, out _, out _, out _, 3, true))
+                return;
+
             if (!luckyWheel.IsAvailableNow())
             {
                 player.Notify("Casino::LCWAS");
@@ -192,9 +200,9 @@ namespace BCRPServer.Events.Players
                 }
             }                
 
-            // add check if can spin wheel
-
             luckyWheel.Spin(casinoId, luckyWheelId, pData);
+
+            pData.Info.SetCooldown(freeLuckyWheelCdId, curTime, true);
         }
 
         [RemoteProc("Casino::SLME")]
