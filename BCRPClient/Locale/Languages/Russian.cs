@@ -11,7 +11,7 @@ namespace BCRPClient
         (
             Texts: new (string Key, string Value)[]
             {
-                ("HOUSE_STYLE_0@Name", "Вар. 1, Стиль: 1"),
+                //("HOUSE_STYLE_0@Name", "Вар. 1, Стиль: 1"),
 
                 ("HOUSEMENU_LAMPS_SET", "Набор ламп #{0}"),
                 ("HOUSEMENU_LAMPS_SINGLE", "Лампа #{0}"),
@@ -76,6 +76,9 @@ namespace BCRPClient
                 ("SHOP_TUNING_TSMOKEC_L", "Цвет дыма от колес"),
                 ("SHOP_TUNING_KEYDUBL_HEADER", "Название ключа"),
                 ("SHOP_TUNING_KEYDUBL_CONTENT", "Введите название вашего ключа\n\nРазрешенные символы: цифры, буквы (рус. и англ.), пробел, -\n\nКол-во символов: от 1 до 18"),
+                ("SHOP_GAS_L_DEFAULT", "АЗС"),
+                ("SHOP_GAS_L_FRACTON", "АЗС (за счёт фракции)"),
+                ("SHOP_GAS_FRACTION_INFO", "Выбирайте любой способ оплаты, топливо будет оплачено за счёт Вашей фракции!"),
 
                 ("SHOP_TESTDRIVE_HELP_0", "Нажмите {0}, чтобы закончить тест-драйв"),
                 ("SHOP_TESTDRIVE_HELP_1", "Нажмите {0}, чтобы открыть меню тюнинга"),
@@ -142,6 +145,26 @@ namespace BCRPClient
 
                 ("NPC_NOTFAM_MALE", "Незнакомец"),
                 ("NPC_NOTFAM_FEMALE", "Незнакомка"),
+                ("NPC_SUBNAME_QUEST", "Квестодатель"),
+                ("NPC_SUBNAME_SELLER", "Продавец"),
+                ("NPC_SUBNAME_VENDOR", "Торговец"),
+                ("NPC_SUBNAME_SELLER_TATTOO", "Тату-мастер"),
+                ("NPC_SUBNAME_SELLER_BARBER", "Стилист"),
+                ("NPC_SUBNAME_FISH_BUYER", "Скупщик рыбы"),
+                ("NPC_SUBNAME_BANK_WORKER", "Работник банка"),
+                ("NPC_SUBNAME_VEH_POUND_WORKER", "Работник штрафстоянки"),
+                ("NPC_SUBNAME_VEH_RENT_WORKER", "Арендодатель транспорта"),
+                ("NPC_SUBNAME_JOB_TRUCK_BOSS", "Глава дальнобойщиков"),
+                ("NPC_SUBNAME_JOB_FARM_BOSS", "Фермер"),
+                ("NPC_SUBNAME_PRIEST", "Священник"),
+                ("NPC_SUBNAME_COP_WORKER_0", "Дежурный полиции"),
+                ("NPC_SUBNAME_DRIVINGSCHOOL_WORKER", "Менеджер автошколы"),
+                ("NPC_SUBNAME_BOATVM_WORKER", "Менеджер доков"),
+                ("NPC_SUBNAME_AIRVM_WORKER", "Менеджер аэродрома"),
+                ("NPC_SUBNAME_GROUNDVM_WORKER", "Менеджер наземного транспорта"),
+                ("NPC_SUBNAME_CASINO_ROULETTE_WORKER", "Крупье"),
+                ("NPC_SUBNAME_CASINO_BLACKJACK_WORKER", "Крупье"),
+                ("NPC_SUBNAME_CASINO_CASHIER", "Кассир"),
 
                 ("PLAYER_DEFNAME_MALE", "Гражданин"),
                 ("PLAYER_DEFNAME_FEMALE", "Гражданка"),

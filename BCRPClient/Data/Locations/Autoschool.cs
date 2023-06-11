@@ -49,6 +49,8 @@ namespace BCRPClient.Data
                 {
                     var npc = new NPC($"drivingschool_{id}", "Оливия", NPC.Types.Talkable, "s_f_y_airhostess_01", new Vector3(214.5508f, -1400.095f, 30.58353f), 318.5795f, Settings.MAIN_DIMENSION)
                     {
+                        SubName = "NPC_SUBNAME_DRIVINGSCHOOL_WORKER",
+
                         DefaultDialogueId = "drivingschool_d_0",
                     };
                 }

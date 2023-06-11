@@ -33,6 +33,8 @@ namespace BCRPClient.Data
                 {
                     var npc = new Data.NPC("fishbuyer_0", "Остин", NPC.Types.Talkable, "a_m_o_genstreet_01", Position.Position, Position.RotationZ, Settings.MAIN_DIMENSION)
                     {
+                        SubName = "NPC_SUBNAME_FISH_BUYER",
+
                         Data = this,
 
                         DefaultDialogueId = "fishbuyer_0_g",

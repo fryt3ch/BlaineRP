@@ -140,19 +140,14 @@ namespace BCRPClient.Data
 
         public class ClothesShop1 : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public ClothesShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop1, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(73, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_y_shop_low", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -164,19 +159,14 @@ namespace BCRPClient.Data
 
         public class ClothesShop2 : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public ClothesShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop2, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(366, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_y_shop_mid", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -188,19 +178,14 @@ namespace BCRPClient.Data
 
         public class ClothesShop3 : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public ClothesShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.ClothesShop3, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(439, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_m_shop_high", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -225,6 +210,8 @@ namespace BCRPClient.Data
 
                 this.Seller = new NPC($"vendor_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_VENDOR",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_bags_preprocess",
@@ -238,7 +225,7 @@ namespace BCRPClient.Data
         {
             private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
             {
-                ("a_m_y_jetski_01", "Джулиан"),
+                ("a_m_y_jetski_01", "Джулиан"), // s_m_y_shop_mask
             };
 
             public MaskShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MaskShop, Price, Rent, Tax)
@@ -249,6 +236,8 @@ namespace BCRPClient.Data
 
                 this.Seller = new NPC($"vendor_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_VENDOR",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -261,19 +250,14 @@ namespace BCRPClient.Data
 
         public class JewelleryShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public JewelleryShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.JewelleryShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(617, PositionInteract.Position, Name, 1f, 1, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "csb_anita", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -285,20 +269,14 @@ namespace BCRPClient.Data
 
         public class TattooShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("u_m_y_tattoo_01", "Рикардо"),
-                ("u_m_y_tattoo_01", "Сантьяго"),
-            };
-
             public TattooShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.TattooShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(75, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"tatseller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"tatseller_{Id}", "", NPC.Types.Talkable, "u_m_y_tattoo_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER_TATTOO",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -308,19 +286,14 @@ namespace BCRPClient.Data
 
         public class BarberShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public BarberShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BarberShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(71, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_f_y_clubbar_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER_BARBER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -330,19 +303,14 @@ namespace BCRPClient.Data
 
         public class Market : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public Market(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.Market, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(52, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "mp_m_shopkeep_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -377,19 +345,14 @@ namespace BCRPClient.Data
 
         public class CarShop1 : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public CarShop1(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop1, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(225, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_mrk", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -399,19 +362,14 @@ namespace BCRPClient.Data
 
         public class CarShop2 : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public CarShop2(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop2, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(530, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_agatha", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -421,19 +379,14 @@ namespace BCRPClient.Data
 
         public class CarShop3 : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public CarShop3(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.CarShop3, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(523, PositionInteract.Position, Name, 1f, 5, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "csb_anita", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -443,19 +396,14 @@ namespace BCRPClient.Data
 
         public class MotoShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public MotoShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.MotoShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(522, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "u_m_y_sbike", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -465,19 +413,14 @@ namespace BCRPClient.Data
 
         public class BoatShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public BoatShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.BoatShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(410, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_djsolrobt", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -487,19 +430,14 @@ namespace BCRPClient.Data
 
         public class AeroShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public AeroShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.AeroShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(602, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_jewelass", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -535,21 +473,16 @@ namespace BCRPClient.Data
 
         public class WeaponShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public static uint ShootingRangePrice => Utils.ToUInt32(Sync.World.GetSharedData<object>("SRange::Price", 0));
 
             public WeaponShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract, Vector3 ShootingRangePosition) : base(Id, PositionInfo, Types.WeaponShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(110, PositionInteract.Position, Name, 1f, 0, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "s_m_y_ammucity_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_clothes_greeting_0",
@@ -573,19 +506,14 @@ namespace BCRPClient.Data
 
         public class FurnitureShop : Business
         {
-            private static (string Model, string Name)[] NPCs { get; set; } = new (string, string)[]
-            {
-                ("csb_anita", "Анита"),
-            };
-
             public FurnitureShop(int Id, Vector3 PositionInfo, uint Price, uint Rent, float Tax, Utils.Vector4 PositionInteract) : base(Id, PositionInfo, Types.FurnitureShop, Price, Rent, Tax)
             {
                 this.Blip = new Additional.ExtraBlip(779, PositionInteract.Position, Name, 1f, 8, 255, 0f, true, 0, 0f, Settings.MAIN_DIMENSION);
 
-                var npcParams = SubId >= NPCs.Length ? NPCs[0] : NPCs[SubId];
-
-                this.Seller = new NPC($"seller_{Id}", npcParams.Name, NPC.Types.Talkable, npcParams.Model, PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
+                this.Seller = new NPC($"seller_{Id}", "", NPC.Types.Talkable, "ig_natalia", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_SELLER",
+
                     Data = this,
 
                     DefaultDialogueId = "seller_furn_g_0",

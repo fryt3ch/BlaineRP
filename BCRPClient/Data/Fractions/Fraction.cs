@@ -113,6 +113,8 @@ namespace BCRPClient.Data.Fractions
 
             { 25, "Модерировать объявления" },
             { 26, "Выходить в эфир" },
+
+            { 10_000, "Заправка транспорта за счёт фракции" },
         };
 
         public static string GetFractionPermissionName(uint id) => PermissionNames.GetValueOrDefault(id);

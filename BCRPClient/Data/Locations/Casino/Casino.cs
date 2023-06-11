@@ -130,14 +130,16 @@ namespace BCRPClient.Data
                         new SlotMachine(Id, 29, SlotMachine.ModelTypes.vw_prop_casino_slot_07a, 982.2607f, 46.56145f, 73.47611f, 291.9941f),
                     };
 
-                    var cashier = new Data.NPC($"Casino@Cashier_{Id}_0", "Анна", NPC.Types.Talkable, "u_f_m_casinocash_01", new Vector3(978.074f, 38.62385f, 74.88191f), 51.26f, Settings.MAIN_DIMENSION)
+                    var cashier = new Data.NPC($"Casino@Cashier_{Id}_0", "Эмили", NPC.Types.Talkable, "u_f_m_casinocash_01", new Vector3(978.074f, 38.62385f, 74.88191f), 51.26f, Settings.MAIN_DIMENSION)
                     {
+                        SubName = "NPC_SUBNAME_CASINO_CASHIER",
+
                         DefaultDialogueId = "casino_cashier_def",
 
                         Data = this,
                     };
 
-                    cashier.Ped.SetStreamInCustomAction((entity) =>
+                    cashier.Ped.StreamInCustomActionsAdd((entity) =>
                     {
                         var ped = entity as Ped;
 
@@ -171,7 +173,7 @@ namespace BCRPClient.Data
                             Vehicle = new RAGE.Elements.Vehicle(RAGE.Util.Joaat.Hash("reaper"), new Vector3(963.3792f, 47.93621f, 75.18184f + 1f), 238.3463f, "CASINO", 255, true, 0, 0, Settings.MAIN_DIMENSION);
                         }
 
-                        Vehicle.SetStreamInCustomAction((entity) =>
+                        Vehicle.StreamInCustomActionsAdd((entity) =>
                         {
                             var veh = entity as Vehicle;
 
@@ -202,7 +204,7 @@ namespace BCRPClient.Data
                             veh.SetData("SpinTask", spinTask);
                         });
 
-                        Vehicle.SetStreamOutCustomAction((entity) =>
+                        Vehicle.StreamOutCustomActionsAdd((entity) =>
                         {
                             var veh = entity as Vehicle;
 
@@ -343,9 +345,7 @@ namespace BCRPClient.Data
                         {
                             var x = SlotMachines[i];
 
-                            int objHandle = 0;
-
-                            while ((objHandle = RAGE.Game.Object.GetClosestObjectOfType(x.Position.X, x.Position.Y, x.Position.Z, 1f, RAGE.Util.Joaat.Hash(x.ModelType.ToString()), false, true, true)) <= 0)
+                            while (x.MachineObj?.Exists != true)
                             {
                                 await RAGE.Game.Invoker.WaitAsync(5);
 
@@ -353,14 +353,7 @@ namespace BCRPClient.Data
                                     return;
                             }
 
-                            var obj = new MapObject(objHandle)
-                            {
-                                Dimension = uint.MaxValue,
-                            };
-
-                            x.MachineObj = obj;
-
-                            var coords = obj.GetOffsetFromInWorldCoords(0f, -1.15f, 0f);
+                            var coords = x.MachineObj.GetOffsetFromInWorldCoords(0f, -1.15f, 0f);
 
                             var cs = new Additional.Cylinder(new Vector3(coords.X, coords.Y, coords.Z), 0.95f, 2f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                             {
@@ -375,39 +368,6 @@ namespace BCRPClient.Data
                         }
 
                         SlotMachine.SoundId = RAGE.Game.Audio.GetSoundId();
-
-/*                        KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, async () =>
-                        {
-                            var table = Blackjacks[0];
-
-                            for (int i = 0; i < Blackjack.CardOffsets.Length; i++)
-                            {
-                                for (int j = 0; j < Blackjack.CardOffsets[i].Length; j++)
-                                {
-                                    var x = Blackjack.CardOffsets[i][j];
-
-                                    var coords = table.TableObject.GetOffsetFromInWorldCoords(x.X, x.Y, x.Z);
-
-                                    var model = RAGE.Util.Joaat.Hash(Blackjack.GetCardModelByType(Blackjack.CardTypes.Club_Ace));
-
-                                    await Utils.RequestModel(model);
-
-                                    var obj = new MapObject(model, coords, new Vector3(0f, 0f, table.TableObject.GetHeading() + x.RotationZ), 255)
-                                    {
-                                        Dimension = 0,
-                                    };
-
-                                    if (i > 0)
-                                    {
-                                        await table.DealerGiveCard(i - 1, obj);
-                                    }
-                                    else
-                                    {
-                                        await table.DealerGiveSelfCard((byte)j, obj);
-                                    }
-                                }
-                            }
-                        });*/
 
                         Utils.CancelPendingTask("CASINO_TASK");
                     }, 0, false, 0);
@@ -561,13 +521,6 @@ namespace BCRPClient.Data
 
                             x.Reels = null;
                         }
-
-                        if (x.MachineObj != null)
-                        {
-                            x.MachineObj.Destroy();
-
-                            x.MachineObj = null;
-                        }
                     }
 
                     if (SlotMachine.SoundId > -1)
@@ -595,11 +548,11 @@ namespace BCRPClient.Data
                     Blackjacks[i].MaxBet = Utils.ToUInt32(data[1]);
                 }
 
-                Roulettes[1].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(2));
-                Roulettes[0].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(3));
+                Roulettes[1].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(2));
+                Roulettes[0].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(3));
 
-                Blackjacks[1].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(2));
-                Blackjacks[0].TableObject.SetStreamInCustomAction((entity) => (entity as MapObject)?.SetTextureVariant(3));
+                Blackjacks[1].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(2));
+                Blackjacks[0].TableObject.StreamInCustomActionsAdd((entity) => (entity as MapObject)?.SetTextureVariant(3));
             }
 
             private void CasinoWallsRender()

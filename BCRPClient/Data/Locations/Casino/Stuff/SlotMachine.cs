@@ -57,7 +57,7 @@ namespace BCRPClient.Data
                 {
                     this.ModelType = ModelType;
 
-                    this.Position = new Vector3(PosX, PosY, PosZ);
+                    this.MachineObj = new MapObject(RAGE.Util.Joaat.Hash(ModelType.ToString()), new Vector3(PosX, PosY, PosZ), new Vector3(0f, 0f, Heading), 255, Settings.MAIN_DIMENSION);
                 }
 
                 public void Spin(int casinoId, int machineId, ReelIconTypes resultA, ReelIconTypes resultB, ReelIconTypes resultC, decimal jackpot)

@@ -28,8 +28,10 @@ namespace BCRPClient.Data
                 {
                     posBlip += NPCs[i].Position;
 
-                    var npc = new NPC($"bank_{this.Id}_{i}", "Эмили", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION)
+                    var npc = new NPC($"bank_{this.Id}_{i}", "", NPC.Types.Talkable, "csb_anita", NPCs[i].Position, NPCs[i].RotationZ, Settings.MAIN_DIMENSION)
                     {
+                        SubName = "NPC_SUBNAME_BANK_WORKER",
+
                         DefaultDialogueId = "bank_preprocess",
 
                         Data = this,

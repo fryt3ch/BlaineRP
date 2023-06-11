@@ -9,8 +9,6 @@ namespace BCRPClient
     {
         public static int FPS => (int)Math.Floor(1f / RAGE.Game.Misc.GetFrameTime());
 
-        public static bool PlayerFreezed = false;
-
         private static AsyncTask MainLoop;
 
         public delegate void UpdateHandler();
@@ -230,7 +228,15 @@ namespace BCRPClient
 
                 CEF.Audio.OnEntityStreamIn(gEntity);
 
-                entity.GetStreamInCustomAction()?.Invoke(entity);
+                var customActions = entity.StreamInCustomActionsGet();
+
+                if (customActions != null)
+                {
+                    foreach (var x in customActions)
+                    {
+                        x.Invoke(entity);
+                    }
+                }
             };
 
             Events.OnEntityStreamOut += async (entity) =>
@@ -259,7 +265,15 @@ namespace BCRPClient
                     CEF.Audio.OnEntityStreamOut(gEntity);
                 }
 
-                entity.GetStreamOutCustomAction()?.Invoke(entity);
+                var customActions = entity.StreamOutCustomActionsGet();
+
+                if (customActions != null)
+                {
+                    foreach (var x in customActions)
+                    {
+                        x.Invoke(entity);
+                    }
+                }
             };
 
             MainLoop = new AsyncTask(() => Update?.Invoke(), 0, true);

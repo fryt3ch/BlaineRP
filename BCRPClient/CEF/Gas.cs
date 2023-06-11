@@ -135,6 +135,11 @@ namespace BCRPClient.CEF
                     {
                         if (id < 0)
                         {
+                            if (id == -2)
+                            {
+                                CEF.Gas.BuyByFraction = true;
+                            }
+
                             CEF.Gas.RequestShow(vehicle, true);
                         }
                         else
@@ -215,7 +220,12 @@ namespace BCRPClient.CEF
             }
             else if (allGasItems.Count > 0)
             {
-                allGasItems.Insert(0, (-1, Locale.Actions.GasStationText, 0));
+                allGasItems.Insert(0, (-1, Locale.Get("SHOP_GAS_L_DEFAULT"), 0));
+
+                if (pData.CurrentFraction != null)
+                {
+                    allGasItems.Insert(1, (-2, Locale.Get("SHOP_GAS_L_FRACTON"), 0));
+                }
 
                 await CEF.ActionBox.ShowSelect
                 (
@@ -260,6 +270,11 @@ namespace BCRPClient.CEF
 
             await CEF.Browser.Render(Browser.IntTypes.VehicleMisc, true, true);
 
+            if (BuyByFraction)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("SHOP_GAS_FRACTION_INFO"));
+            }
+
             CloseColshape = new Additional.Sphere(Player.LocalPlayer.Position, 2.5f, false, Utils.RedColor, uint.MaxValue, null)
             {
                 OnExit = (cancel) =>
@@ -303,6 +318,8 @@ namespace BCRPClient.CEF
             KeyBinds.Unbind(EscBindIdx);
 
             EscBindIdx = -1;
+
+            BuyByFraction = false;
         }
 
         private static void Render()

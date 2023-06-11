@@ -24,8 +24,6 @@ namespace BCRPClient
 
             public static string DefaultSelectHeader = "Выбор действия";
 
-            public static string GasStationText = "Заправочная станция";
-
             public static string GasItemRangeHeader = "Выберите количество";
 
             public static string NumberplateSelectHeader = "Выбор номерного знака";

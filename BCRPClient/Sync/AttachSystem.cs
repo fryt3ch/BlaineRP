@@ -845,7 +845,7 @@ namespace BCRPClient.Sync
                         positionBase.Z -= 0.5f;
                 }
 
-                veh.SetStreamInCustomAction((entity) =>
+                veh.StreamInCustomActionsAdd((entity) =>
                 {
                     var eVeh = entity as Vehicle;
 
@@ -863,7 +863,7 @@ namespace BCRPClient.Sync
             {
                 var veh = new Vehicle(hash, target.Position, 0f, "", 255, true, 0, 0, target.Dimension);
 
-                veh.SetStreamInCustomAction((entity) =>
+                veh.StreamInCustomActionsAdd((entity) =>
                 {
                     var eVeh = entity as Vehicle;
 

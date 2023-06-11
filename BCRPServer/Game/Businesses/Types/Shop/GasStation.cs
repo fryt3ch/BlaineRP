@@ -47,7 +47,7 @@ namespace BCRPServer.Game.Businesses
             if (!ushort.TryParse(iData[1], out vehicleRid) || !uint.TryParse(iData[2], out amount))
                 return false;
 
-            bool byByFraction = iData[3] == "1";
+            bool payByFraction = iData[3] == "1";
 
             var vData = Utils.FindVehicleOnline(vehicleRid);
 
@@ -78,13 +78,34 @@ namespace BCRPServer.Game.Businesses
                 }
             }
 
-            uint newMats;
-            ulong newBalance, newPlayerBalance;
+            if (payByFraction)
+            {
+                if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
+                    return false;
 
-            if (!TryProceedPayment(pData, useCash, item, amount, out newMats, out newBalance, out newPlayerBalance))
-                return false;
+                var fData = Game.Fractions.Fraction.Get(pData.Fraction);
 
-            ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
+                if (!fData.HasMemberPermission(pData.Info, 10_000, true))
+                    return false;
+
+                uint newMats;
+                ulong newBalance, newFractionBalance;
+
+                if (!TryProceedPaymentByFraction(pData, fData, item, amount, out newMats, out newBalance, out newFractionBalance))
+                    return false;
+
+                ProceedPaymentByFraction(pData, fData, newMats, newBalance, newFractionBalance);
+            }
+            else
+            {
+                uint newMats;
+                ulong newBalance, newPlayerBalance;
+
+                if (!TryProceedPayment(pData, useCash, item, amount, out newMats, out newBalance, out newPlayerBalance))
+                    return false;
+
+                ProceedPayment(pData, useCash, newMats, newBalance, newPlayerBalance);
+            }
 
             vData.FuelLevel = newFuelLevel;
 

@@ -1122,7 +1122,7 @@ namespace BCRPClient.Data
 
                     cow.Ped = new RAGE.Elements.Ped(CropTypesData[CropField.Types.Cow].Model, farm.Cows[idx].Position.Position, farm.Cows[idx].Position.RotationZ, Settings.MAIN_DIMENSION);
 
-                    cow.Ped.SetStreamInCustomAction(CowStreamInAction);
+                    cow.Ped.StreamInCustomActionsAdd(CowStreamInAction);
 
                     cow.Ped.SetData("LGT", GetGrowTime(farm, idx));
 
@@ -1249,6 +1249,8 @@ namespace BCRPClient.Data
 
                 this.Seller = new NPC($"farmer_{Id}", "Райнер", NPC.Types.Talkable, "a_m_m_hillbilly_01", PositionInteract.Position, PositionInteract.RotationZ, Settings.MAIN_DIMENSION)
                 {
+                    SubName = "NPC_SUBNAME_JOB_FARM_BOSS",
+
                     DefaultDialogueId = "job_farm_pl_0",
 
                     Data = this,

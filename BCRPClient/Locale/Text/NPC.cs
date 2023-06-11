@@ -8,38 +8,6 @@ namespace BCRPClient
         {
             public static class NPC
             {
-                public static Dictionary<string, string> TypeNames = new Dictionary<string, string>()
-                {
-                    { "quest", "Квестодатель" },
-
-                    { "seller", "Продавец" },
-                    { "vendor", "Торговец" },
-                    { "tatseller", "Тату-мастер" },
-
-                    { "fishbuyer", "Скупщик рыбы" },
-
-                    { "bank", "Работник банка" },
-                    { "vpound", "Работник штрафстоянки" },
-                    { "vrent", "Арендодатель транспорта" },
-
-                    { "job@trucker", "Глава дальнобойщиков" },
-
-                    { "farmer", "Фермер" },
-
-                    { "priest", "Священник" },
-
-                    { "cop0", "Дежурный полиции" },
-                    { "drivingschool", "Менеджер автошколы" },
-
-                    { "boatm", "Менеджер доков" },
-                    { "airvm", "Менеджер аэродрома" },
-                    { "groundvm", "Менеджер наземного транспорта" },
-
-                    { "Casino@Roulette", "Крупье" },
-                    { "Casino@Blackjack", "Крупье" },
-                    { "Casino@Cashier", "Кассир" },
-                };
-
                 public static Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>> TimeWords = new Dictionary<Data.Dialogue.TimeTypes, Dictionary<int, string>>()
                 {
                     {

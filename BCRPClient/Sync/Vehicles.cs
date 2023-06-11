@@ -998,18 +998,6 @@ namespace BCRPClient.Sync
                     }
                 );
             });
-
-            KeyBinds.Bind(RAGE.Ui.VirtualKeys.F, true, () =>
-            {
-                if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.TryEnterVehicle(Interaction.CurrentEntity as Vehicle, -1);
-            });
-
-            KeyBinds.Bind(RAGE.Ui.VirtualKeys.X, true, () =>
-            {
-                if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.ToggleLandingGearState(Player.LocalPlayer.Vehicle);
-            });
         }
 
         #region Handlers

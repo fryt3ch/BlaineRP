@@ -1891,33 +1891,51 @@ namespace BCRPClient
             ped.PlayAmbientSpeech2(speechName, speechParam, p3);
         }
 
-        public static void SetStreamInCustomAction(this Entity entity, Action<Entity> action)
+        public static bool StreamInCustomActionsAdd(this Entity entity, Action<Entity> action)
         {
-            if (action == null)
+            var eHandler = entity.GetData<HashSet<Action<Entity>>>("ECA_SI");
+
+            if (eHandler == null)
             {
-                entity.ResetData("ECA_SI");
+                eHandler = new HashSet<Action<Entity>>() { action };
+
+                entity.SetData("ECA_SI", eHandler);
+
+                return true;
             }
             else
             {
-                entity.SetData("ECA_SI", action);
+                return eHandler.Add(action);
             }
         }
 
-        public static void SetStreamOutCustomAction(this Entity entity, Action<Entity> action)
+        public static bool StreamOutCustomActionsAdd(this Entity entity, Action<Entity> action)
         {
-            if (action == null)
+            var eHandler = entity.GetData<HashSet<Action<Entity>>>("ECA_SO");
+
+            if (eHandler == null)
             {
-                entity.ResetData("ECA_SO");
+                eHandler = new HashSet<Action<Entity>>() { action };
+
+                entity.SetData("ECA_SO", eHandler);
+
+                return true;
             }
             else
             {
-                entity.SetData("ECA_SO", action);
+                return eHandler.Add(action);
             }
         }
 
-        public static Action<Entity> GetStreamInCustomAction(this Entity entity) => entity.GetData<Action<Entity>>("ECA_SI");
+        public static bool StreamInCustomActionsRemove(this Entity entity, Action<Entity> action) => entity.GetData<HashSet<Action<Entity>>>("ECA_SI")?.Remove(action) ?? false;
+        public static bool StreamOutCustomActionsRemove(this Entity entity, Action<Entity> action) => entity.GetData<HashSet<Action<Entity>>>("ECA_SO")?.Remove(action) ?? false;
 
-        public static Action<Entity> GetStreamOutCustomAction(this Entity entity) => entity.GetData<Action<Entity>>("ECA_SO");
+        public static bool StreamInCustomActionsReset(this Entity entity) => entity.ResetData("ECA_SI");
+        public static bool StreamOutCustomActionsReset(this Entity entity) => entity.ResetData("ECA_SO");
+
+        public static HashSet<Action<Entity>> StreamInCustomActionsGet(this Entity entity) => entity.GetData<HashSet<Action<Entity>>>("ECA_SI");
+
+        public static HashSet<Action<Entity>> StreamOutCustomActionsGet(this Entity entity) => entity.GetData<HashSet<Action<Entity>>>("ECA_SO");
 
         public static Vector3 GetWorldRotationOfBone(this GameEntityBase gEntity, int boneIdx) => RAGE.Game.Invoker.Invoke<Vector3>(0xCE6294A232D03786, gEntity.Handle, boneIdx);
     }

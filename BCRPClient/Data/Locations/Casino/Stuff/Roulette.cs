@@ -102,9 +102,12 @@ namespace BCRPClient.Data
                         NotifyStreaming = true,
                     };
 
-                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION);
+                    NPC = new NPC($"Casino@Roulette_{CasinoId}_{Id}", "", NPC.Types.Static, "S_F_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, RotZ, 0f, 0.7f, 1f), RotZ + 180f, Settings.MAIN_DIMENSION)
+                    {
+                        SubName = "NPC_SUBNAME_CASINO_ROULETTE_WORKER",
+                    };
 
-                    NPC.Ped.SetStreamInCustomAction(OnPedStreamIn);
+                    NPC.Ped.StreamInCustomActionsAdd(OnPedStreamIn);
                 }
 
                 public string GetCurrestStateString()

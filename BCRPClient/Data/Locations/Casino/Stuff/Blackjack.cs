@@ -266,9 +266,12 @@ namespace BCRPClient.Data
                         NotifyStreaming = true, // h4_prop_casino_blckjack_01e
                     };
 
-                    NPC = new NPC($"Casino@Blackjack_{CasinoId}_{Id}", "", NPC.Types.Static, "S_M_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, Heading, 0f, 0.7f, 1f), Heading + 180f, Settings.MAIN_DIMENSION);
+                    NPC = new NPC($"Casino@Blackjack_{CasinoId}_{Id}", "", NPC.Types.Static, "S_M_Y_Casino_01", RAGE.Game.Object.GetObjectOffsetFromCoords(PosX, PosY, PosZ, Heading, 0f, 0.7f, 1f), Heading + 180f, Settings.MAIN_DIMENSION)
+                    {
+                        SubName = "NPC_SUBNAME_CASINO_BLACKJACK_WORKER",
+                    };
 
-                    NPC.Ped.SetStreamInCustomAction(OnPedStreamIn);
+                    NPC.Ped.StreamInCustomActionsAdd(OnPedStreamIn);
                 }
 
                 private static void OnPedStreamIn(Entity entity)

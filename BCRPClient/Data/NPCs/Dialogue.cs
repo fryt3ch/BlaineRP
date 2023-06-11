@@ -195,7 +195,7 @@ namespace BCRPClient.Data
             for (int i = 0; i < buttons.Count; i++)
                 btnsData.Add(new object[] { i, buttons[i].Text });
 
-            CEF.NPC.Draw(npcHolder.Name, text, btnsData.ToArray());
+            CEF.NPC.Draw(npcHolder.GetDisplayName() ?? npcHolder.Id, text, btnsData.ToArray());
         }
 
         public class LastInfo

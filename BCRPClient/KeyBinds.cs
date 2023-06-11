@@ -61,6 +61,8 @@ namespace BCRPClient
 
             ExtraAction0, ExtraAction1,
 
+            EnterVehicle, PlaneLandingGear,
+
             weapon0, weapon1, weapon2,
             pockets0, pockets1, pockets2, pockets3, pockets4, pockets5, pockets6, pockets7, pockets8, pockets9, pockets10, pockets11, pockets12, pockets13, pockets14, pockets15, pockets16, pockets17, pockets18, pockets19
         }
@@ -376,6 +378,9 @@ namespace BCRPClient
 
             { Types.ExtraAction0, new RAGE.Ui.VirtualKeys[] { } },
             { Types.ExtraAction1, new RAGE.Ui.VirtualKeys[] { } },
+
+            { Types.EnterVehicle, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.F, } },
+            { Types.PlaneLandingGear, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.X, } },
 
             { Types.weapon0, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.N1 } },
             { Types.weapon1, new RAGE.Ui.VirtualKeys[] { RAGE.Ui.VirtualKeys.N2 } },
@@ -935,8 +940,8 @@ namespace BCRPClient
                 {
                     Events.CallRemote("Players::FLT");
                 }
-            }, true, true)
-            { Description = "Фонарик (вкл/выкл)" });
+            }, true, false)
+            { Description = "Фонарик (вкл/выкл)" }); // deprecated
 
             Add(new ExtraBind(Types.TakeScreenshot, () =>
             {
@@ -955,6 +960,18 @@ namespace BCRPClient
                 CurrentExtraAction1?.Invoke();
             }, true, true)
             { Description = "Быстрое действие 2" });
+
+            Add(new ExtraBind(Types.EnterVehicle, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                    Sync.Vehicles.TryEnterVehicle(Interaction.CurrentEntity as Vehicle, -1);
+            }, true, false, Types.None, false));
+
+            Add(new ExtraBind(Types.PlaneLandingGear, () =>
+            {
+                if (Utils.CanShowCEF(true, true))
+                    Sync.Vehicles.ToggleLandingGearState(Player.LocalPlayer.Vehicle);
+            }, true, false, Types.None, false));
 
             // Inventory Binds
             Add(new ExtraBind(Types.weapon0, () =>

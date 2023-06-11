@@ -431,6 +431,24 @@ namespace BCRPServer.Game.Businesses
             }
         }
 
+        public virtual void ProceedPaymentByFraction(PlayerData pData, Game.Fractions.Fraction fData, uint newMats, ulong newBalance, ulong newFractionBalance)
+        {
+            if (Owner != null)
+            {
+                if (newMats != Materials)
+                    SetMaterials(newMats);
+
+                if (newBalance > Bank)
+                    UpdateStatistics(newBalance - Bank);
+
+                SetBank(newBalance);
+
+                MySQL.BusinessUpdateBalances(this, false);
+            }
+
+            fData.SetBalance(newFractionBalance, true);
+        }
+
         public void SellToGov(bool balancesBack = true, bool govHalfPriceBack = true)
         {
             if (Owner == null)

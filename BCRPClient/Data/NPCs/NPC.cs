@@ -138,9 +138,6 @@ namespace BCRPClient.Data
             {
                 Sync.Animations.Play(ped, curAnim, -1);
             }
-
-            if (data.SubName == null)
-                data.SubName = Locale.General.NPC.TypeNames.GetValueOrDefault(data.Id.Split('_')[0]);
         }
 
         public static async System.Threading.Tasks.Task OnPedStreamOut(Ped ped)
@@ -199,7 +196,7 @@ namespace BCRPClient.Data
                     Utils.DrawText(data.Name, screenX, screenY, 255, 255, 255, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
 
                     if (data.SubName != null)
-                        Utils.DrawText(data.SubName, screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
+                        Utils.DrawText(Locale.Get(data.SubName), screenX, screenY += NameTags.Interval / 2f, 255, 215, 0, 255, 0.4f, RAGE.Game.Font.ChaletComprimeCologne, true);
                 }
             };
         }
@@ -370,6 +367,17 @@ namespace BCRPClient.Data
                     SwitchDialogue(false);
                 }
             }
+        }
+
+        public string GetDisplayName()
+        {
+            if (Name != null && Name.Length > 0)
+                return Name;
+
+            if (SubName != null)
+                return Locale.Get(SubName);
+
+            return null;
         }
     }
 }

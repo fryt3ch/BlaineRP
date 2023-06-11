@@ -107,6 +107,57 @@ namespace BCRPServer.Game.Businesses
             }
         }
 
+        public bool TryProceedPaymentByFraction(PlayerData pData, Game.Fractions.Fraction fData, string itemId, uint amount, out uint newMats, out ulong newBalance, out ulong newFractionBalance)
+        {
+            try
+            {
+                var matData = MaterialsData;
+
+                var matPrice = matData.Prices[itemId];
+
+                matPrice *= amount;
+
+                if (Owner != null)
+                {
+                    if (!TryRemoveMaterials(matPrice, out newMats, true, pData))
+                    {
+                        newBalance = 0;
+                        newFractionBalance = 0;
+
+                        return false;
+                    }
+                }
+                else
+                {
+                    newMats = 0;
+                }
+
+                var realPrice = (ulong)Math.Floor((decimal)matPrice * matData.RealPrice * Margin);
+
+                if (!fData.TryRemoveMoney(realPrice, out newFractionBalance, true, pData))
+                {
+                    newBalance = 0;
+
+                    return false;
+                }
+
+                var bizPrice = GetBusinessPrice(matPrice, false);
+
+                if (!TryAddMoneyBank(bizPrice, out newBalance, true, pData))
+                    return false;
+
+                return true;
+            }
+            catch (Exception)
+            {
+                newMats = 0;
+                newBalance = 0;
+                newFractionBalance = 0;
+
+                return false;
+            }
+        }
+
         public virtual bool TryBuyItem(PlayerData pData, bool useCash, string itemId)
         {
             var iData = itemId.Split('&');

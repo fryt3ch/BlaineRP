@@ -58,7 +58,7 @@ namespace BCRPClient.Data
                         NotifyStreaming = true,
                     };
 
-                    ArrowObj.SetStreamInCustomAction(OnLightObjStreamIn);
+                    ArrowObj.StreamInCustomActionsAdd(OnLightObjStreamIn);
 
                     ArrowObj.SetHeading(Heading);
 
@@ -67,7 +67,7 @@ namespace BCRPClient.Data
                         NotifyStreaming = true,
                     };
 
-                    LightsObj.SetStreamInCustomAction(OnLightObjStreamIn);
+                    LightsObj.StreamInCustomActionsAdd(OnLightObjStreamIn);
                 }
 
                 private static void OnLightObjStreamIn(Entity entity)

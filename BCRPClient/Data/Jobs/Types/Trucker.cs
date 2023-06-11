@@ -37,7 +37,7 @@ namespace BCRPClient.Data.Jobs
             if (subId == 0)
                 JobGiver = new NPC($"job_{Id}_{subId}", "Кеннет", NPC.Types.Talkable, "ig_oneil", Position.Position, Position.RotationZ, Settings.MAIN_DIMENSION);
 
-            JobGiver.SubName = Locale.General.NPC.TypeNames.GetValueOrDefault("job@trucker");
+            JobGiver.SubName = "NPC_SUBNAME_JOB_TRUCK_BOSS";
 
             JobGiver.Data = this;
 

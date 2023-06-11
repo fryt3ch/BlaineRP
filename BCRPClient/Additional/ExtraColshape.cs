@@ -684,6 +684,9 @@ namespace BCRPClient.Additional
                     if (res == null)
                         return;
 
+                    Utils.ConsoleOutput(slotMachineId);
+                    Utils.ConsoleOutput(slotMachine?.MachineObj.Handle ?? -1);
+
                     if (slotMachine?.MachineObj?.Exists != true)
                         return;
 
