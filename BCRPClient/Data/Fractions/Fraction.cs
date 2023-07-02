@@ -410,6 +410,8 @@ namespace BCRPClient.Data.Fractions
             CEF.HUD.Menu.UpdateCurrentTypes(true, HUD.Menu.Types.Fraction_Menu);
 
             CEF.Menu.SetFraction(Type);
+
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fraction_invite", (entity) => { var player = entity as Player; if (player == null) return; PlayerInvite(player); });
         }
 
         public virtual void OnEndMembership()
@@ -467,6 +469,30 @@ namespace BCRPClient.Data.Fractions
         }
 
         public bool ResetCurrentData(string key) => CurrentData.Remove(key);
+
+        public void PlayerInvite(Player player)
+        {
+            var tData = Sync.Players.GetData(player);
+
+            if (tData == null)
+                return;
+
+            if (tData.Fraction != Types.None)
+            {
+                if (tData.Fraction == Type)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("FRACTION_INV_E_1"));
+                }
+                else
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("FRACTION_INV_E_0"));
+                }
+
+                return;
+            }
+
+            Sync.Offers.Request(player, Sync.Offers.Types.InviteFraction, null);
+        }
     }
 
     public class FractionEvents : Events.Script

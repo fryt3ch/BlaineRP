@@ -315,14 +315,8 @@ namespace BCRPClient.CEF
             { "CDown::2", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText2, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "CDown::3", new Instance(Types.Error, Locale.Notifications.AntiSpam.CooldownText3, Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
-            { "Cuffs::0_0_0", new Instance(Types.Success, "Вы надели наручники на {0}", Locale.Get("NOTIFICATION_HEADER_DEF")) },
-            { "Cuffs::0_0_1", new Instance(Types.Success, "Вы сняли наручники с {0}", Locale.Get("NOTIFICATION_HEADER_DEF")) },
-
-            { "Cuffs::0_0", new Instance(Types.Information, "{0} надел на Вас наручники!", Locale.Get("NOTIFICATION_HEADER_DEF")) },
-            { "Cuffs::0_1", new Instance(Types.Information, "{0} снял с Вас наручники", Locale.Get("NOTIFICATION_HEADER_DEF")) },
-
-            { "Cuffs::1_0_0", new Instance(Types.Information, "Вы надели стяжки на {0}", Locale.Get("NOTIFICATION_HEADER_DEF")) },
-            { "Cuffs::1_0_1", new Instance(Types.Information, "Вы сняли стяжки с {0}", Locale.Get("NOTIFICATION_HEADER_DEF")) },
+            { "Cuffs::0_0", new Instance(Types.Cuffs, Locale.Get("POLICE_CUFFS_N_2"), Locale.Get("NOTIFICATION_HEADER_DEF")) },
+            { "Cuffs::0_1", new Instance(Types.Cuffs, Locale.Get("POLICE_CUFFS_N_3"), Locale.Get("NOTIFICATION_HEADER_DEF")) },
 
             { "Cuffs::1_0", new Instance(Types.Information, "{0} надел на Вас стяжки!", Locale.Get("NOTIFICATION_HEADER_DEF")) },
             { "Cuffs::1_1", new Instance(Types.Information, "{0} снял с Вас стяжки", Locale.Get("NOTIFICATION_HEADER_DEF")) },
@@ -433,14 +427,18 @@ namespace BCRPClient.CEF
 
             Events.Add("Notify::P", (object[] args) =>
             {
-                var player = RAGE.Elements.Entities.Players.GetAtRemote((ushort)(int)args[1]);
-
-                if (player == null)
-                    return;
-
                 var args1 = ((Newtonsoft.Json.Linq.JArray)args[2]).ToObject<List<object>>();
 
-                args1.Insert(0, Utils.GetPlayerName(player, true, false, true));
+                var player = RAGE.Elements.Entities.Players.GetAtRemote(Utils.ToUInt16(args[1]));
+
+                if (player != null)
+                {
+                    args1.Insert(0, Utils.GetPlayerName(player, true, false, true));
+                }
+                else
+                {
+                    args1.Insert(0, "null");
+                }
 
                 Show((string)args[0], args1.ToArray());
             });

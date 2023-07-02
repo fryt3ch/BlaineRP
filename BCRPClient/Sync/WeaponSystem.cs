@@ -538,7 +538,11 @@ namespace BCRPClient.Sync
                                 RAGE.Game.Ped.SetAiMeleeWeaponDamageModifier(1f);*/
 
                 if (DisabledFiring || CEF.Cursor.IsActive)
+                {
                     RAGE.Game.Player.DisablePlayerFiring(true);
+
+                    RAGE.Game.Pad.DisableControlAction(32, 25, true);
+                }
 
                 /*                if (Player.LocalPlayer.IsPerformingStealthKill())
                                     Player.LocalPlayer.ClearTasksImmediately();*/

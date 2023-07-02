@@ -1056,7 +1056,7 @@ namespace BCRPClient.Sync
 
         public static List<AttachmentObject> GetEntityObjectAttachments(Entity entity) => entity.GetData<List<AttachmentObject>>(AttachedObjectsKey);
 
-        public static List<AttachmentObject> GetEntityEntityAttachments(Entity entity) => entity.GetData<List<AttachmentObject>>(AttachedEntitiesKey);
+        public static List<AttachmentEntity> GetEntityEntityAttachments(Entity entity) => entity.GetData<List<AttachmentEntity>>(AttachedEntitiesKey);
 
         private static Dictionary<Types, Types> SameActionsTypes = new Dictionary<Types, Types>()
         {
@@ -1188,6 +1188,60 @@ namespace BCRPClient.Sync
                             Utils.DrawText(string.Format(Locale.General.Animations.CancelTextCarryB, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
+                )
+            },
+
+            {
+                Types.PoliceEscort,
+
+                (
+                    () =>
+                    {
+
+                    },
+
+                    () =>
+                    {
+                        if (Player.LocalPlayer.GetData<bool>("POLICEESCORTEFLAG"))
+                        {
+                            var pos = Player.LocalPlayer.GetCoords(false);
+
+                            Player.LocalPlayer.TaskGoStraightToCoord(pos.X, pos.Y, pos.Z, 1f, 1, Player.LocalPlayer.GetHeading(), 0f);
+
+                            Player.LocalPlayer.ResetData("POLICEESCORTEFLAG");
+                        }
+                    },
+
+                    () =>
+                    {
+                        var rootPlayer = Utils.GetPlayerByHandle(Player.LocalPlayer.GetAttachedTo(), true);
+
+                        var speed = 0f;
+
+                        if (rootPlayer?.Exists != true || rootPlayer == Player.LocalPlayer || (speed = rootPlayer.GetSpeed()) <= 0.8f)
+                        {
+                            if (Player.LocalPlayer.GetData<bool>("POLICEESCORTEFLAG"))
+                            {
+                                var pos = Player.LocalPlayer.GetCoords(false);
+
+                                Player.LocalPlayer.TaskGoStraightToCoord(pos.X, pos.Y, pos.Z, 1f, 1, Player.LocalPlayer.GetHeading(), 0f);
+
+                                Player.LocalPlayer.ResetData("POLICEESCORTEFLAG");
+                            }
+
+                            return;
+                        }
+                        else
+                        {
+                            var heading = rootPlayer.GetHeading();
+
+                            var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, heading, 10f);
+
+                            Player.LocalPlayer.TaskGoStraightToCoord(pos.X, pos.Y, pos.Z, speed * 0.5f, -1, heading, 0f);
+
+                            Player.LocalPlayer.SetData("POLICEESCORTEFLAG", true);
+                        }
+                    }
                 )
             },
         };
@@ -1562,6 +1616,74 @@ namespace BCRPClient.Sync
                             }
                         }
                     })
+                )
+            },
+
+            {
+                Types.Cuffs,
+
+                (
+                    () =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+
+                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Disable();
+                    },
+
+                    () =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+
+                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
+                    },
+
+                    () =>
+                    {
+
+                    }
+                )
+            },
+
+            {
+                Types.PoliceEscort,
+                
+                (
+                    () =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = true;
+
+                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Disable();
+                    },
+
+                    () =>
+                    {
+                        Sync.WeaponSystem.DisabledFiring = false;
+
+                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
+                    },
+
+                    async () =>
+                    {
+                        RAGE.Game.Pad.DisableControlAction(32, 21, true);
+                        RAGE.Game.Pad.DisableControlAction(32, 22, true);
+
+                        var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
+
+                        Utils.DrawText(string.Format("Нажмите {0}, чтобы прекратить вести человека", bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+
+                        if (Utils.CanShowCEF(true, true))
+                        {
+                            if (bind.IsPressed)
+                            {
+                                if (!Sync.Animations.LastSent.IsSpam(500, false, false))
+                                {
+                                    Sync.Animations.LastSent = Sync.World.ServerTime;
+
+                                    await Events.CallRemoteProc("Police::Escort", null, false);
+                                }
+                            }
+                        }
+                    }
                 )
             },
         };

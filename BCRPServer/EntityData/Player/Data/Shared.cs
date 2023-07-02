@@ -69,7 +69,7 @@ namespace BCRPServer
 
         public bool IsFrozen { get => Player.GetOwnSharedData<bool?>("IsFrozen") ?? false; set { if (value) Player.SetOwnSharedData("IsFrozen", value); else Player.ResetOwnSharedData("IsFrozen"); } }
 
-        public bool IsCuffed { get => Player.GetSharedData<bool?>("IsCuffed") ?? false; set { if (value) Player.SetSharedData("IsCuffed", value); else Player.ResetSharedData("IsCuffed"); } }
+        public bool IsCuffed => AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.Cuffs || x.Type == Sync.AttachSystem.Types.CableCuffs).Any();
 
         public int VehicleSeat { get => Player.GetSharedData<int?>("VehicleSeat") ?? -1; set { if (value >= 0) Player.SetSharedData("VehicleSeat", value); else Player.ResetSharedData("VehicleSeat"); } }
 

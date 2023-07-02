@@ -197,8 +197,6 @@ namespace BCRPClient.Sync
 
         public static void Request(Player player, Types type, object data = null)
         {
-            Utils.ConsoleOutput("ASD-1");
-
             if (CurrentTarget != null)
             {
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Offers.PlayerHasOffer);
@@ -206,17 +204,11 @@ namespace BCRPClient.Sync
                 return;
             }
 
-            Utils.ConsoleOutput("ASD-2");
-
             if (player?.Exists != true)
                 return;
 
-            Utils.ConsoleOutput("ASD-3");
-
             if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
-
-            Utils.ConsoleOutput("ASD-4");
 
             if (Utils.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || !Utils.CanDoSomething(true, ActionsToCheck))
                 return;

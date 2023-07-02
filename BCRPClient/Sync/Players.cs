@@ -194,7 +194,7 @@ namespace BCRPClient.Sync
 
             public bool IsMuted => VoiceRange < 0f;
 
-            public bool IsCuffed => Player.GetSharedData<bool>("IsCuffed", false);
+            public bool IsCuffed => AttachedObjects?.Where(x => x.Type == AttachSystem.Types.Cuffs || x.Type == AttachSystem.Types.CableCuffs).Any() == true;
 
             public bool IsInvalid => Player.GetSharedData<bool>("IsInvalid", false);
 
@@ -268,7 +268,7 @@ namespace BCRPClient.Sync
 
             public List<Sync.AttachSystem.AttachmentObject> AttachedObjects => Sync.AttachSystem.GetEntityObjectAttachments(Player);
 
-            public List<Sync.AttachSystem.AttachmentObject> AttachedEntities => Sync.AttachSystem.GetEntityEntityAttachments(Player);
+            public List<Sync.AttachSystem.AttachmentEntity> AttachedEntities => Sync.AttachSystem.GetEntityEntityAttachments(Player);
 
             public List<int> Decorations => Player.GetSharedData<JArray>("DCR", null)?.ToObject<List<int>>();
 
@@ -1417,23 +1417,6 @@ namespace BCRPClient.Sync
                                 CEF.HouseMenu.RemoveOwnedFurniture(fUid);
                         }
                     }
-                }
-            });
-
-            AddDataHandler("IsCuffed", (pData, value, oldValue) =>
-            {
-                if (pData.Player != Player.LocalPlayer)
-                    return;
-
-                var state = value as bool? ?? false;
-
-                if (state)
-                {
-
-                }
-                else
-                {
-
                 }
             });
 

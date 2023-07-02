@@ -96,7 +96,7 @@ namespace BCRPClient.Data.Fractions
 
             CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
-            KeyBinds.CurrentExtraAction0 = () => CuffPlayer(null, null);
+            KeyBinds.CurrentExtraAction0 = () => PlayerCuff(BCRPClient.Interaction.CurrentEntity as Player, null);
 
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
 
@@ -117,6 +117,8 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "gps_tracker", (entity) => { var veh = entity as Vehicle; if (veh == null) return; GPSTrackerVehicleInstall(veh); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fine", (entity) => { var player = entity as Player; if (player == null) return; PlayerFine(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "take_license", (entity) => { var player = entity as Player; if (player == null) return; PlayerRemoveLicense(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "cuffs", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, null); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "police_escort", (entity) => { var player = entity as Player; if (player == null) return; PlayerEscort(player, null); });
 
             SetCurrentData("LastCuffed", DateTime.MinValue);
 
@@ -157,13 +159,13 @@ namespace BCRPClient.Data.Fractions
 
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, null);
 
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 10, null);
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 11, null);
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 12, null);
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 13, null);
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 14, null);
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 15, null);
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 0, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 10, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 11, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 12, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, null);
 
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, null);
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, null);
@@ -195,11 +197,8 @@ namespace BCRPClient.Data.Fractions
             await CEF.PoliceTabletPC.Show(fData, isOnDuty, AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0, finesAmount, fData.GetCurrentData<uint>("ArrestsAmount"));
         }
 
-        public async void CuffPlayer(Player player, bool? state)
+        public async void PlayerCuff(Player player, bool? state)
         {
-            if (player == null)
-                player = BCRPClient.Interaction.CurrentEntity as Player;
-
             if (player?.Exists != true)
                 return;
 
@@ -208,35 +207,62 @@ namespace BCRPClient.Data.Fractions
             if (tData == null)
                 return;
 
-            var cuffState = tData.IsCuffed;
+            var cuffAttach = tData.AttachedObjects?.Where(x => x.Type == Sync.AttachSystem.Types.Cuffs || x.Type == Sync.AttachSystem.Types.CableCuffs).FirstOrDefault();
+
+            var cuffState = state == null ? cuffAttach == null : (bool)state;
+
+            if (cuffState)
+            {
+                if (cuffAttach != null)
+                {
+                    if (cuffAttach.Type == Sync.AttachSystem.Types.Cuffs)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_CUFFS_E_0"), -1);
+
+                        return;
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_CUFFS_E_2"), -1);
+
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                if (cuffAttach == null || cuffAttach.Type != Sync.AttachSystem.Types.Cuffs)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_CUFFS_E_1"), -1);
+
+                    return;
+                }
+            }
 
             var lastSent = GetCurrentData<DateTime>("LastCuffed");
 
-            if (lastSent.IsSpam(1500, false, true))
+            if (lastSent.IsSpam(500, false, true))
                 return;
 
             SetCurrentData("LastCuffed", Sync.World.ServerTime);
 
-            var res = (int)await Events.CallRemoteProc("Police::Cuff", player, state);
+            var res = (int)await Events.CallRemoteProc("Police::Cuff", player, cuffState);
 
             if (res == byte.MaxValue)
             {
                 if (cuffState)
                 {
-                    CEF.Notification.Show("Cuffs::0_0_1", Utils.GetPlayerName(player, true, false, true));
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_0", Utils.GetPlayerName(player, true, false, true)));
                 }
                 else
                 {
-                    CEF.Notification.Show("Cuffs::0_0_0", Utils.GetPlayerName(player, true, false, true));
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Utils.GetPlayerName(player, true, false, true)));
                 }
             }
         }
 
-        public void EscortPlayer(Player player, bool? state)
+        public async void PlayerEscort(Player player, bool? state)
         {
-            if (player == null)
-                player = BCRPClient.Interaction.CurrentEntity as Player;
-
             if (player?.Exists != true)
                 return;
 
@@ -245,18 +271,62 @@ namespace BCRPClient.Data.Fractions
             if (tData == null)
                 return;
 
-            if (!tData.IsCuffed)
-            {
-                // notify
+            var escortAttach = tData.AttachedEntities?.Where(x => x.Type == Sync.AttachSystem.Types.PoliceEscort).FirstOrDefault();
 
-                return;
+            var escortState = state == null ? escortAttach == null : (bool)state;
+
+            if (escortState)
+            {
+                if (!tData.IsCuffed)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
+
+                    return;
+                }
+
+                if (escortAttach != null)
+                {
+                    if (tData.IsAttachedTo != Player.LocalPlayer)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_2"), -1);
+                    }
+                    else
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_3"), -1);
+                    }
+
+                    return;
+                }
+            }
+            else
+            {
+                if (escortAttach == null || escortAttach.Type != Sync.AttachSystem.Types.PoliceEscort || tData.IsAttachedTo != Player.LocalPlayer)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_1"), -1);
+
+                    return;
+                }
             }
 
-            if (tData.IsAttachedTo is Entity entity && entity != Player.LocalPlayer)
-            {
-                // notify
+            var lastSent = GetCurrentData<DateTime>("LastEscorted");
 
+            if (lastSent.IsSpam(500, false, true))
                 return;
+
+            SetCurrentData("LastEscorted", Sync.World.ServerTime);
+
+            var res = (int)await Events.CallRemoteProc("Police::Escort", player, escortState);
+
+            if (res == byte.MaxValue)
+            {
+/*                if (escortState)
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_0", Utils.GetPlayerName(player, true, false, true)));
+                }
+                else
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Utils.GetPlayerName(player, true, false, true)));
+                }*/
             }
         }
 

@@ -11,7 +11,7 @@ namespace BCRPServer.Events.Fractions
     internal class Police : Script
     {
         [RemoteProc("Police::Cuff")]
-        private static byte Cuff(Player player, Player target, byte stateN)
+        private static byte Cuff(Player player, Player target, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -28,29 +28,29 @@ namespace BCRPServer.Events.Fractions
             if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return 0;
 
-            var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
 
             if (fData == null)
                 return 0;
 
-            var state = stateN == 0 ? false : true;
-
-            if (stateN == 2)
-            {
-                state = !tData.IsCuffed;
-            }
-            else if (state == tData.IsCuffed)
-            {
-                return 2;
-            }
+            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+                return 0;
 
             if (tData.IsKnocked || tData.IsFrozen)
                 return 1;
 
-            tData.IsCuffed = state;
+            var cuffAttach = tData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.Cuffs || x.Type == Sync.AttachSystem.Types.CableCuffs).FirstOrDefault();
 
             if (state)
             {
+                if (cuffAttach != null)
+                {
+                    if (cuffAttach.Type == Sync.AttachSystem.Types.Cuffs)
+                        return 2;
+                    else
+                        return 3;
+                }
+
                 if (tData.IsAttachedToEntity is Entity entity)
                 {
                     entity.DetachEntity(tData.Player);
@@ -67,6 +67,12 @@ namespace BCRPServer.Events.Fractions
             }
             else
             {
+                if (cuffAttach == null)
+                    return 2;
+
+                if (cuffAttach.Type != Sync.AttachSystem.Types.Cuffs)
+                    return 3;
+
                 if (tData.IsAttachedToEntity is Entity entity)
                 {
                     entity.DetachEntity(tData.Player);
@@ -75,12 +81,6 @@ namespace BCRPServer.Events.Fractions
                 if (tData.Player.DetachObject(Sync.AttachSystem.Types.Cuffs))
                 {
                     tData.Player.NotifyWithPlayer("Cuffs::0_1", player);
-                }
-                else
-                {
-                    tData.Player.DetachObject(Sync.AttachSystem.Types.CableCuffs);
-
-                    tData.Player.NotifyWithPlayer("Cuffs::1_1", player);
                 }
 
                 if (tData.GeneralAnim == Sync.Animations.GeneralTypes.CuffedStatic0)
@@ -91,7 +91,7 @@ namespace BCRPServer.Events.Fractions
         }
 
         [RemoteProc("Police::Escort")]
-        private static byte Escort(Player player, Player target, byte stateN)
+        private static byte Escort(Player player, Player target, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
@@ -100,65 +100,60 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
-            var tData = target?.GetMainData();
-
-            if (tData == null || tData == pData)
-                return 0;
-
-            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
-                return 0;
-
-            if (!tData.IsCuffed)
-                return 1;
-
-            var fData = Game.Fractions.Fraction.Get(pData.Fraction);
-
-            if (fData == null)
-                return 0;
-
-            var state = stateN == 0 ? false : true;
-
-            var curAttachState = player.GetAttachmentData(target);
-
-            if (curAttachState != null && curAttachState.Type == Sync.AttachSystem.Types.PoliceEscort)
+            if (state)
             {
-                if (stateN == 2 || !state)
-                {
-                    if (pData.GeneralAnim == Sync.Animations.GeneralTypes.PoliceEscort0)
-                        pData.StopGeneralAnim();
+                var tData = target?.GetMainData();
 
-                    player.DetachEntity(tData.Player);
+                if (tData == null || tData == pData)
+                    return 0;
 
-                    // notify both
-                }
-                else
+                if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAttachedToEntity != null || pData.HasAnyHandAttachedObject || pData.AttachedEntities.Count > 0)
+                    return 0;
+
+                if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+                    return 0;
+
+                if (!tData.IsCuffed)
+                    return 1;
+
+                var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+                if (fData == null)
+                    return 0;
+
+                if (tData.Player.GetEntityIsAttachedTo() is Entity entityAttachedTo)
                 {
-                    return 2;
+                    var attachData = entityAttachedTo.GetAttachmentData(tData.Player);
+
+                    if (attachData != null && attachData.Type == Sync.AttachSystem.Types.PoliceEscort)
+                        return 0;
                 }
+
+                pData.PlayAnim(Sync.Animations.GeneralTypes.PoliceEscort0);
+
+                player.AttachEntity(target, Sync.AttachSystem.Types.PoliceEscort);
+
+                return 255;
             }
             else
             {
-                if (tData.IsAttachedToEntity != null)
-                    return 2;
+                var attachData = pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.PoliceEscort && x.EntityType == EntityType.Player).FirstOrDefault();
 
-                if (pData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.PoliceEscort).Any())
-                    return 3;
+                if (attachData == null)
+                    return 0;
 
-                if (stateN == 2 || state)
-                {
-                    pData.PlayAnim(Sync.Animations.GeneralTypes.PoliceEscort0);
+                target = Utils.GetPlayerByID(attachData.Id);
 
-                    player.AttachEntity(target, Sync.AttachSystem.Types.PoliceEscort);
+                if (target == null)
+                    return 0;
 
-                    // notify both
-                }
-                else
-                {
-                    return 2;
-                }
+                pData.Player.DetachEntity(target);
+
+                if (pData.GeneralAnim == Sync.Animations.GeneralTypes.PoliceEscort0)
+                    pData.StopGeneralAnim();
+
+                return 255;
             }
-
-            return byte.MaxValue;
         }
 
         [RemoteProc("Police::DBS")]

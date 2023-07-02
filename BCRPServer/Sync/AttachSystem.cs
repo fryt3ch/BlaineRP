@@ -902,8 +902,8 @@ namespace BCRPServer.Sync
             if (list == null)
                 return false;
 
-            if (list.Where(x => x.Id == target.Id).Any())
-                DetachEntity(entity, target);
+            if (target.GetEntityIsAttachedTo() is Entity attachedToEntity)
+                DetachEntity(attachedToEntity, target);
 
             var newAttachment = new AttachmentEntityNet(target.Id, target.Type, type);
             list.Add(newAttachment);
