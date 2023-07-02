@@ -549,6 +549,11 @@ namespace BCRPServer.Game.Fractions
             return status;
         }
 
+        public void SendFractionChatMessage(string msg)
+        {
+            TriggerEventToMembers("Chat::ShowServerMessage", $"[Фракция] {msg}");
+        }
+
         public Utils.Vector4 GetSpawnPosition(byte idx) => idx >= SpawnPositions.Length ? null : SpawnPositions[idx];
         public Utils.Vector4 GetCreationWorkbenchPosition(byte idx) => idx >= CreationWorkbenchPositions.Length ? null : CreationWorkbenchPositions[idx];
         public Utils.Vector4 GetContainerPosition(byte idx) => idx >= ContainerPositions.Length ? null : ContainerPositions[idx];

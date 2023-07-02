@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BCRPServer.Game.Fractions
 {
@@ -68,6 +69,22 @@ namespace BCRPServer.Game.Fractions
 
         public static uint VehicleNumberplateRegPrice { get; set; } = 1_000;
         public static uint VehicleNumberplateUnRegPrice { get; set; } = 500;
+
+        public const uint ARREST_MAX_MINS = 24 * 60;
+        public const uint ARREST_MAX_MINS_ADD = 36 * 60;
+        public const short ARREST_C_MAX_MINS = 120;
+        public const short ARREST_C_MIN_MINS = -120;
+        public const short EXTRA_CALL_CD_TIMEOUT = 60 * 1;
+        public const short DEF_CALL_CD_TIMEOUT = 60 * 5;
+
+        public const uint FINE_MIN_AMOUNT = 100;
+        public const uint FINE_MAX_AMOUNT = 100_000;
+
+        public static Regex ArrestChangeReasonRegex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$", RegexOptions.Compiled);
+        public static Regex FineReasonRegex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$", RegexOptions.Compiled);
+        public static Regex PoliceCallReasonRegex { get; } = new Regex(@"^[A-Za-zА-Яа-я0-9,./?$#@!%^&*()'+=\-\[\]]{1,24}$", RegexOptions.Compiled);
+
+        public static HashSet<PlayerData.LicenseTypes> AllowedLicenceTypesToRemove { get; } = new HashSet<PlayerData.LicenseTypes>() { PlayerData.LicenseTypes.A, PlayerData.LicenseTypes.B, PlayerData.LicenseTypes.C, PlayerData.LicenseTypes.D, PlayerData.LicenseTypes.Fly, PlayerData.LicenseTypes.Sea, PlayerData.LicenseTypes.Weapons, PlayerData.LicenseTypes.Hunting, };
 
         private static Dictionary<ushort, CallInfo> Calls { get; set; } = new Dictionary<ushort, CallInfo>();
 
@@ -135,7 +152,7 @@ namespace BCRPServer.Game.Fractions
 
         public static GPSTrackerInfo GetGPSTrackerById(uint id) => GPSTrackers.GetValueOrDefault(id);
 
-        public static void AddGPSTracker(GPSTrackerInfo info)
+        public static uint AddGPSTracker(GPSTrackerInfo info)
         {
             var id = GPSTrackerUidHandler.MoveNextUid();
 
@@ -152,6 +169,8 @@ namespace BCRPServer.Game.Fractions
             {
                 NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::GPSTC", id, info.InstallerStr, info.VehicleStr);
             }
+
+            return id;
         }
 
         public static void RemoveGPSTracker(uint id, GPSTrackerInfo info)
@@ -279,6 +298,13 @@ namespace BCRPServer.Game.Fractions
                 {
                     NAPI.ClientEvent.TriggerClientEventToPlayers(membersToTrigger, "FPolice::CC", rid);
                 }
+
+                var player = Utils.GetPlayerByID(rid);
+
+                if (player != null)
+                {
+                    player.TriggerEvent("PoliceCall::Cancel", reason);
+                }
             }
         }
 
@@ -364,7 +390,7 @@ namespace BCRPServer.Game.Fractions
         {
             base.PostInitialize();
 
-            var allPunishments = PlayerData.PlayerInfo.All.Values.ToDictionary(x => x, x => x.Punishments.Where(x => x.Type == Sync.Punishment.Types.Arrest)).ToList();
+            var allPunishments = PlayerData.PlayerInfo.All.Values.ToDictionary(x => x, x => x.Punishments.Where(x => x.Type == Sync.Punishment.Types.Arrest && x.IsActive())).ToList();
 
             foreach (var y in allPunishments)
             {
@@ -386,6 +412,32 @@ namespace BCRPServer.Game.Fractions
                     ActiveArrests.Add(x.Id, new ArrestInfo() { TargetCID = y.Key.CID, PunishmentData = x, MemberName = memberInfo == null ? "null" : $"{memberInfo.Name} {memberInfo.Surname}", TargetName = $"{targetInfo.Name} {targetInfo.Surname}" });
                 }
             }
+        }
+
+        public void AddFine(FineInfo fine)
+        {
+            Fines.Add(fine);
+
+            TriggerEventToMembers("FPolice::FINEC", fine.Member, fine.Target, fine.Amount, fine.Reason, fine.Time.GetUnixTimestamp());
+        }
+
+        public void AddActiveArrest(ArrestInfo arrestInfo)
+        {
+            ActiveArrests.Add(arrestInfo.PunishmentData.Id, arrestInfo);
+
+            TriggerEventToMembers("FPolice::ARRESTSC", arrestInfo.PunishmentData.Id, arrestInfo.MemberName, arrestInfo.TargetName, arrestInfo.PunishmentData.StartDate.GetUnixTimestamp());
+        }
+
+        public bool RemoveActiveArrest(uint id)
+        {
+            if (ActiveArrests.Remove(id))
+            {
+                TriggerEventToMembers("FPolice::ARRESTSC", id);
+
+                return true;
+            }
+
+            return false;
         }
 
         public Vector3 GetArrestMenuPosition(byte idx) => idx >= ArrestMenuPositions.Length ? null : ArrestMenuPositions[idx];

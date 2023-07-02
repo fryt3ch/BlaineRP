@@ -15,8 +15,6 @@ namespace BCRPClient.Additional
 
         public static bool LastTeleportWasGround { get; set; }
 
-        private static AsyncTask GroundTeleportTask { get; set; }
-
         #region Variables
         public static Vector3 LastPosition { get; set; }
 
@@ -39,6 +37,7 @@ namespace BCRPClient.Additional
         public static int LastAllowedAmmo { get; set; }
 
         public const string TeleportTaskKey = "AC_TP_T";
+        public const string TeleportGroundTaskKey = "AC_TPG_T";
 
         public const string HealthTaskKey = "AC_HP_T";
         public const string ArmourTaskKey = "AC_ARM_T";
@@ -83,6 +82,7 @@ namespace BCRPClient.Additional
             Events.Add("AC::State::TP", async (object[] args) =>
             {
                 Utils.CancelPendingTask(TeleportTaskKey);
+                Utils.CancelPendingTask(TeleportGroundTaskKey);
 
                 if (args.Length == 1)
                 {
@@ -94,13 +94,6 @@ namespace BCRPClient.Additional
                 }
 
                 AsyncTask task = null;
-
-                if (GroundTeleportTask != null)
-                {
-                    GroundTeleportTask.Cancel();
-
-                    GroundTeleportTask = null;
-                }
 
                 LastAllowedPos = (Vector3)args[1] ?? Player.LocalPlayer.GetCoords(false);
 
@@ -181,12 +174,17 @@ namespace BCRPClient.Additional
                             {
                                 var coordZ = 0f;
 
-                                GroundTeleportTask = new AsyncTask(async () =>
+                                AsyncTask task = null;
+
+                                task = new AsyncTask(async () =>
                                 {
                                     for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
                                     {
                                         if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                             break;
+
+                                        if (!Utils.IsTaskStillPending(TeleportGroundTaskKey, task))
+                                            return;
 
                                         if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
                                         {
@@ -203,9 +201,11 @@ namespace BCRPClient.Additional
                                     }
 
                                     veh.Position = LastAllowedPos;
+
+                                    Utils.CancelPendingTask(TeleportGroundTaskKey);
                                 }, 0, false, 0);
 
-                                GroundTeleportTask.Run();
+                                Utils.SetTaskAsPending(TeleportGroundTaskKey, task);
                             }
                         }
                     }
@@ -213,7 +213,8 @@ namespace BCRPClient.Additional
                     {
                         Player.LocalPlayer.ClearTasksImmediately();
 
-                        Player.LocalPlayer.FreezePosition(false);
+                        if (Sync.Players.CharacterLoaded)
+                            Player.LocalPlayer.FreezePosition(false);
 
                         Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, LastAllowedPos.Z, false, false, false);
 
@@ -230,10 +231,15 @@ namespace BCRPClient.Additional
 
                             var coordZr = LastAllowedPos.Z;
 
-                            GroundTeleportTask = new AsyncTask(async () =>
+                            AsyncTask task = null;
+
+                            task = new AsyncTask(async () =>
                             {
                                 for (float coordZr = LastAllowedPos.Z; coordZr <= 1000f;)
                                 {
+                                    if (!Utils.IsTaskStillPending(TeleportGroundTaskKey, task))
+                                        return;
+
                                     if (RAGE.Game.Misc.GetGroundZFor3dCoord(LastAllowedPos.X, LastAllowedPos.Y, coordZr, ref coordZ, true))
                                     {
                                         Player.LocalPlayer.SetCoordsNoOffset(LastAllowedPos.X, LastAllowedPos.Y, coordZ + 1f, false, false, false);
@@ -249,9 +255,11 @@ namespace BCRPClient.Additional
                                 }
 
                                 Player.LocalPlayer.Position = LastAllowedPos;
+
+                                Utils.CancelPendingTask(TeleportGroundTaskKey);
                             }, 0, false, 0);
 
-                            GroundTeleportTask.Run();
+                            Utils.SetTaskAsPending(TeleportGroundTaskKey, task);
                         }
                     }
 
@@ -474,7 +482,7 @@ namespace BCRPClient.Additional
                             }
                         }*/
 
-            var curPos = Player.LocalPlayer.GetCoords(false);
+            var curPos = Player.LocalPlayer.Position;
 
             AntiAltF4Vehicle();
 
@@ -488,7 +496,7 @@ namespace BCRPClient.Additional
 
                 if (diff >= 50f)
                 {
-                    //Utils.ConsoleOutput("ASDAS");
+                    Utils.ConsoleOutput($"{RAGE.Util.Json.Serialize(curPos)}, {RAGE.Util.Json.Serialize(LastPosition)}");
 
                     Events.CallRemote("AC::Detect::TP", diff);
                 }

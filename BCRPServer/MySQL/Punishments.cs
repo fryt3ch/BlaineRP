@@ -107,6 +107,19 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void UpdatePunishmentEndDate(Sync.Punishment punishment)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = $"UPDATE punishments SET EndDate=@D WHERE ID=@ID;";
+
+            cmd.Parameters.AddWithValue("@ID", punishment.Id);
+
+            cmd.Parameters.AddWithValue("@D", punishment.EndDate);
+
+            PushQuery(cmd);
+        }
+
         public static void RemovePunishment(uint id)
         {
             var cmd = new MySqlCommand();

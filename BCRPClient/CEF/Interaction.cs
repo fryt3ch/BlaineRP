@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Net.WebSockets;
-using System.Security.Cryptography.X509Certificates;
 
 namespace BCRPClient.CEF
 {
@@ -52,7 +50,8 @@ namespace BCRPClient.CEF
                     dict.Add(subType, subDict);
                 }
 
-                subDict.TryAdd(type, action);
+                if (!subDict.TryAdd(type, action))
+                    subDict[type] = action;
             }
 
             public void AddAction(string subType, string type, Action<Entity> action) => AddAction(MainType, subType, type, action);
@@ -68,8 +67,8 @@ namespace BCRPClient.CEF
                 if (mIdx < 0)
                     return;
 
-                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
-                    return;
+/*                if (pIdx < 0 || pIdx >= MainLabels.Count * 2)
+                    return;*/
 
                 var eLabels = ExtraLabels[mIdx];
 
@@ -474,7 +473,7 @@ namespace BCRPClient.CEF
                 info.ExtraLabelsTemp = null;
             }
 
-            Browser.Window.ExecuteJs("Interaction.draw", info.MainType, info.MainLabels, extraLabels.Select(x => x == null ? x : x.Select(x => x == null ? "none" : x).ToList()));
+            Browser.Window.ExecuteJs("Interaction.draw", info.MainType, info.MainLabels, extraLabels.Select(x => x == null ? x : x.Select(y => y ?? "none").ToList()));
 
             KeyBinds.Get(KeyBinds.Types.Interaction).Disable();
 
@@ -483,7 +482,7 @@ namespace BCRPClient.CEF
             Cursor.Show(true, true);
         }
 
-        private static void ShowPassengers()
+        private static async void ShowPassengers()
         {
             var veh = Player.LocalPlayer.Vehicle;
 
@@ -515,11 +514,11 @@ namespace BCRPClient.CEF
                 return;
             }
 
-            Browser.Render(Browser.IntTypes.Interaction_Passengers, true, true);
+            await Browser.Render(Browser.IntTypes.Interaction_Passengers, true, true);
 
             TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => CloseMenu()));
 
-            Browser.Window.ExecuteJs($"Passengers.fill", new object[] { players });
+            Browser.Window.ExecuteJs($"Passengers.fill", players);
 
             Cursor.Show(true, true);
         }
@@ -541,6 +540,8 @@ namespace BCRPClient.CEF
             BCRPClient.Interaction.Enabled = false;
 
             BCRPClient.Interaction.CurrentEntity = player;
+
+            TryShowMenu();
         }
 
         public static void PlayerKick(int id)
@@ -753,7 +754,7 @@ namespace BCRPClient.CEF
 
                 if (allVehs.Count == 1)
                 {
-                    Sync.Offers.Show(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
+                    Sync.Offers.Request(player, Sync.Offers.Types.ShowVehiclePassport, allVehs[0].VID);
 
                     return;
                 }

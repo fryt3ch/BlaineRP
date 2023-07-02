@@ -48,6 +48,8 @@ namespace BCRPServer.Sync
             SellVehicle,
             /// <summary>Продать бизнес</summary>
             SellBusiness,
+            /// <summary>Штраф полиции</summary>
+            PoliceFine,
         }
 
         private static Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>> OfferActions = new Dictionary<Types, Dictionary<bool, Action<PlayerData, PlayerData, Offer>>>()
@@ -682,6 +684,59 @@ namespace BCRPServer.Sync
                                 return;
 
                             tPlayer.TriggerEvent("Documents::Show", 3, pData.Name, pData.Surname, pData.Info.MedicalCard.Diagnose, pData.Info.MedicalCard.IssueFraction, pData.Info.MedicalCard.DoctorName, pData.Info.MedicalCard.IssueDate.SerializeToJson());
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.PoliceFine,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+                            if (fData == null)
+                                return;
+
+                            if (!fData.HasMemberPermission(pData.Info, 14, true))
+                                return;
+
+                            var d = ((string)offer.Data).Split('_');
+
+                            var amount = uint.Parse(d[0]);
+
+                            var reason = d[1];
+
+                            ulong newBalanceT, newBalanceS;
+
+                            if (!tData.TryRemoveCash(amount, out newBalanceT, true, pData))
+                                return;
+
+                            if (!pData.TryAddCash(amount, out newBalanceS, true, tData))
+                                return;
+
+                            tData.SetCash(newBalanceT);
+                            pData.SetCash(newBalanceS);
                         }
                     }
                 }

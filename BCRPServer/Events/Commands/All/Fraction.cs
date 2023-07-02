@@ -91,11 +91,11 @@ namespace BCRPServer.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason);
 
-                fData.TriggerEventToMembers("Chat::ShowServerMessage", $"[FMUTE] {pData.Player.Name} ({pData.Player.Id}) выдал мут {tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id}) на {mins} мин. Причина: {reason}");
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) выдал мут {tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id}) на {mins} мин. Причина: {reason}");
             }
             else
             {
-                fData.TriggerEventToMembers("Chat::ShowServerMessage", $"[FMUTE] {pData.Player.Name} ({pData.Player.Id}) выдал мут {tInfo.Name} {tInfo.Surname} #{tInfo.CID} на {mins} мин. Причина: {reason}");
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) выдал мут {tInfo.Name} {tInfo.Surname} #{tInfo.CID} на {mins} мин. Причина: {reason}");
             }
         }
 
@@ -165,11 +165,11 @@ namespace BCRPServer.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualMute.Id, (int)actualMute.Type, pData.Player.Id, -1, reason);
 
-                fData.TriggerEventToMembers("Chat::ShowServerMessage", $"[FMUTE] {pData.Player.Name} ({pData.Player.Id}) снял мут {tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id}). Причина: {reason}");
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) снял мут {tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id}). Причина: {reason}");
             }
             else
             {
-                fData.TriggerEventToMembers("Chat::ShowServerMessage", $"[FMUTE] {pData.Player.Name} ({pData.Player.Id}) снял мут {tInfo.Name} {tInfo.Surname} #{tInfo.CID}. Причина: {reason}");
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) снял мут {tInfo.Name} {tInfo.Surname} #{tInfo.CID}. Причина: {reason}");
             }
         }
     }

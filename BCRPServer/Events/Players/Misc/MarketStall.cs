@@ -151,9 +151,12 @@ namespace BCRPServer.Events.Players.Misc
             if (!stall.IsPlayerNear(player))
                 return false;
 
+            if (stall.IsLockedNow(stallIdx, player, true))
+                return false;
+
             ushort renterRid;
 
-            if (!stall.IsPlayerRenter(stallIdx, player, false, out renterRid)) // vice versa
+            if (stall.IsPlayerRenter(stallIdx, player, false, out renterRid))
                 return false;
 
             if (renterRid == ushort.MaxValue)
@@ -308,7 +311,7 @@ namespace BCRPServer.Events.Players.Misc
 
             rData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, rItemIdx, Game.Items.Item.ToClientJson(rData.Items[rItemIdx], Game.Items.Inventory.Groups.Items));
 
-            rData.Player.TriggerEvent("MarketStall::ATBH", itemUid, amount, totalMoney, sItem.ItemRoot.ID, Game.Items.Stuff.GetItemTag(sItem.ItemRoot));
+            rData.Player.TriggerEvent("MarketStall::ATBH", itemUid, sItem.ItemRoot.ID, amount, totalMoney);
 
             return true;
         }
@@ -378,8 +381,8 @@ namespace BCRPServer.Events.Players.Misc
             if (Game.Misc.MarketStall.GetCurrentRenterRID(stallIdx) == ushort.MaxValue)
                 return null;
 
-/*            if (stall.IsPlayerRenter(stallIdx, player, false))
-                return null;*/
+            if (stall.IsPlayerRenter(stallIdx, player, false, out _))
+                return null;
 
             if (stall.IsLockedNow(stallIdx, player, true))
                 return null;
@@ -461,25 +464,41 @@ namespace BCRPServer.Events.Players.Misc
             if (!stall.IsPlayerRenter(stallIdx, player, true, out _))
                 return null;
 
-            if (stall.Items == null)
-                return string.Empty;
-
             var cItems = new List<string>();
 
-            for  (int i = 0; i < stall.Items.Count; i++)
+            if (stall.Items != null)
             {
-                var sItem = stall.Items[i];
+                var wereItemsChanged = false;
 
-                var rIdx = sItem.ItemRoot == null ? -1 : Array.IndexOf(pData.Items, sItem.ItemRoot);
-
-                if (rIdx < 0)
+                for (int i = 0; i < stall.Items.Count; i++)
                 {
-                    stall.Items.RemoveAt(i--);
+                    var sItem = stall.Items[i];
 
-                    continue;
+                    var rIdx = sItem.ItemRoot == null ? -1 : Array.IndexOf(pData.Items, sItem.ItemRoot);
+
+                    if (rIdx < 0)
+                    {
+                        stall.Items.RemoveAt(i--);
+
+                        wereItemsChanged = true;
+
+                        continue;
+                    }
+
+                    if (sItem.ItemRoot is Game.Items.IStackable stackable && stackable.Amount < sItem.Amount)
+                    {
+                        sItem.Amount = stackable.Amount;
+
+                        wereItemsChanged = true;
+                    }
+
+                    cItems.Add($"{rIdx}_{sItem.Amount}_{sItem.Price}");
                 }
 
-                cItems.Add($"{rIdx}_{sItem.Amount}_{sItem.Price}");
+                if (wereItemsChanged)
+                {
+                    Utils.TriggerEventInDistance(stall.Position.Position, Settings.MAIN_DIMENSION, 10f, "MarketStall::UPD", stallIdx);
+                }
             }
 
             return cItems;
@@ -565,6 +584,8 @@ namespace BCRPServer.Events.Players.Misc
                 return 255;
 
             stall.SetItems(rItems);
+
+            Utils.TriggerEventInDistance(stall.Position.Position, Settings.MAIN_DIMENSION, 10f, "MarketStall::UPD", stallIdx);
 
             return 1;
         }

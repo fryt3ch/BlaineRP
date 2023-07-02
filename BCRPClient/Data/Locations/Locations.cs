@@ -84,6 +84,8 @@ namespace BCRPClient.Data
             InitializeBlips();
 
             InitializeNPCs();
+
+            Locations.MarketStall.LoadEvents();
         }
     }
 }

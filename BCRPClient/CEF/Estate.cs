@@ -22,6 +22,8 @@ namespace BCRPClient.CEF
 
         private static Additional.ExtraColshape CloseColshape { get; set; }
 
+        private static Player TargetPlayer { get; set; }
+
         public enum Types
         {
             Info = 0,
@@ -48,7 +50,7 @@ namespace BCRPClient.CEF
                 if (!Player.LocalPlayer.HasData("Estate::CurrentData"))
                     return;
 
-                if (LastSent.IsSpam(250, false, false))
+                if (LastSent.IsSpam(250, false, true))
                     return;
 
                 LastSent = Sync.World.ServerTime;
@@ -63,10 +65,14 @@ namespace BCRPClient.CEF
                     }
                     else if (id == "accept")
                     {
-                        var price = (int)args[1];
+                        var price = Utils.ToDecimal(args[1]);
+
+                        if (!price.IsNumberValid<decimal>(1, int.MaxValue, out _, true))
+                            return;
+
                         var num = (int)args[2];
 
-                        if (BCRPClient.Interaction.CurrentEntity is Player player)
+                        if (TargetPlayer is Player player)
                         {
                             if (price <= 0)
                             {
@@ -207,10 +213,10 @@ namespace BCRPClient.CEF
                     if (subType == 0)
                     {
                         var vData = Data.Vehicles.GetById((string)args[2]);
-                        var vid = (uint)(int)args[3];
+                        var vid = Utils.ToUInt32(args[3]);
 
                         var player = (Player)args[4];
-                        var price = (int)args[5];
+                        var price = Utils.ToDecimal(args[5]);
                         var plate = (string)args[6];
 
                         ShowOfferVehicle(vData, player, price, vid, plate, true);
@@ -220,27 +226,27 @@ namespace BCRPClient.CEF
                         var business = Data.Locations.Business.All[(int)args[2]];
 
                         var player = (Player)args[3];
-                        var price = (int)args[4];
+                        var price = Utils.ToDecimal(args[4]);
 
                         ShowOfferBusiness(business, player, price, true);
                     }
                     else if (subType == 2 || subType == 3)
                     {
-                        var id = (uint)(int)args[2];
+                        var id = Utils.ToUInt32(args[2]);
 
                         var houseBase = subType == 2 ? (Data.Locations.HouseBase)Data.Locations.House.All[id] : (Data.Locations.HouseBase)Data.Locations.Apartments.All[id];
 
                         var player = (Player)args[3];
-                        var price = (int)args[4];
+                        var price = Utils.ToDecimal(args[4]);
 
                         ShowOfferHouseBase(houseBase, player, price, true);
                     }
                     else if (subType == 4)
                     {
-                        var garage = Data.Locations.Garage.All[(uint)(int)args[2]];
+                        var garage = Data.Locations.Garage.All[Utils.ToUInt32(args[2])];
 
                         var player = (Player)args[3];
-                        var price = (int)args[4];
+                        var price = Utils.ToDecimal(args[4]);
 
                         ShowOfferGarage(garage, player, price, true);
                     }
@@ -395,7 +401,7 @@ namespace BCRPClient.CEF
 
             foreach (var x in pData.OwnedHouses.ToList())
             {
-                estToSell.Add(new object[] { Sync.Players.PropertyTypes.House.ToString(), Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
+                estToSell.Add(new object[] { "House", Locale.General.PropertyHouseString, Utils.GetStreetName(x.Position), x.Class.ToString(), x.Price, x.Id });
 
                 estIds.Add((Sync.Players.PropertyTypes.House, x.Id));
             }
@@ -409,7 +415,7 @@ namespace BCRPClient.CEF
 
             foreach (var x in pData.OwnedGarages.ToList())
             {
-                estToSell.Add(new object[] { Sync.Players.PropertyTypes.Garage.ToString(), Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
+                estToSell.Add(new object[] { "Garage", Locale.General.PropertyGarageString, Data.Locations.GarageRoot.All[x.RootId].Name, x.ClassType.ToString(), x.Price, x.NumberInRoot + 1 });
 
                 estIds.Add((Sync.Players.PropertyTypes.Garage, x.Id));
             }
@@ -427,9 +433,11 @@ namespace BCRPClient.CEF
                 CEF.Cursor.Show(true, true);
 
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+
+            TargetPlayer = targetPlayer;
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, int price, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferHouseBase(Data.Locations.HouseBase houseBase, Player targetPlayer, decimal price, bool showCursor = true)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -463,7 +471,7 @@ namespace BCRPClient.CEF
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, int price, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferGarage(Data.Locations.Garage garage, Player targetPlayer, decimal price, bool showCursor = true)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -527,9 +535,11 @@ namespace BCRPClient.CEF
                 CEF.Cursor.Show(true, true);
 
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+
+            TargetPlayer = targetPlayer;
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferVehicle(Data.Vehicles.Vehicle vData, Player targetPlayer, int price, uint vid, string plate, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferVehicle(Data.Vehicles.Vehicle vData, Player targetPlayer, decimal price, uint vid, string plate, bool showCursor = true)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -593,9 +603,11 @@ namespace BCRPClient.CEF
                 CEF.Cursor.Show(true, true);
 
             EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close(false));
+
+            TargetPlayer = targetPlayer;
         }
 
-        public static async System.Threading.Tasks.Task ShowOfferBusiness(Data.Locations.Business business, Player targetPlayer, int price, bool showCursor = true)
+        public static async System.Threading.Tasks.Task ShowOfferBusiness(Data.Locations.Business business, Player targetPlayer, decimal price, bool showCursor = true)
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 

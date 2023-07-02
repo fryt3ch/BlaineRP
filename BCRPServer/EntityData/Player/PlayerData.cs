@@ -756,23 +756,7 @@ namespace BCRPServer
 
                             if (time >= x.EndDate.GetUnixTimestamp())
                             {
-                                if (x.Type == Sync.Punishment.Types.NRPPrison)
-                                {
-                                    Player.TriggerEvent("Player::Punish", x.Id, (int)x.Type, ushort.MaxValue, -2, null);
-
-                                    Utils.Demorgan.SetFromDemorgan(this);
-
-                                    if (Info.Fraction != Game.Fractions.Types.None)
-                                    {
-                                        var fData = Game.Fractions.Fraction.Get(Info.Fraction);
-
-                                        fData.OnMemberStatusChange(Info, fData.GetMemberStatus(Info));
-                                    }
-
-                                    x.AmnestyInfo = new Sync.Punishment.Amnesty();
-
-                                    MySQL.UpdatePunishmentAmnesty(x);
-                                }
+                                x.OnFinish(Info, 0);
                             }
                             else
                             {

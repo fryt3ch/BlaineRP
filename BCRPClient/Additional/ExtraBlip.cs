@@ -38,6 +38,12 @@ namespace BCRPClient.Additional
 
                     key = "Taxi";
                 }
+                else if (type == 1) // police call
+                {
+                    blip = new Additional.ExtraBlip(198, new Vector3(x, y, 0), "Сотрудник полиции", 1f, 29, 255, 0f, false, 0, 0f, uint.MaxValue);
+
+                    key = "PoliceCall";
+                }
 
                 if (key == null || blip == null)
                     return;

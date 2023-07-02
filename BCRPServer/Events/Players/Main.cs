@@ -1,10 +1,8 @@
 ﻿using BCRPServer.Sync;
 using GTANetworkAPI;
-using Org.BouncyCastle.Asn1.Tsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events.Players
@@ -14,6 +12,9 @@ namespace BCRPServer.Events.Players
         [ServerEvent(Event.PlayerWeaponSwitch)]
         private static void OnPlayerWeaponSwitch(Player player, uint oldWeapon, uint newWeapon)
         {
+            if (oldWeapon == 2725352035 && newWeapon == oldWeapon)
+                return;
+
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
@@ -513,9 +514,9 @@ namespace BCRPServer.Events.Players
                 fData?.OnMemberJoined(pData);
             }
 
-            var ped = new PedData((uint)PedHash.Hooker03SFY, new Utils.Vector4(player.Position, player.Heading), player.Dimension, null);
+            //var ped = new PedData((uint)PedHash.Hooker03SFY, new Utils.Vector4(player.Position, player.Heading), player.Dimension, null);
 
-            ped.IsInvincible = true;
+            //ped.IsInvincible = true;
 
             //ped.AttachObject(Sync.AttachSystem.Models.Cuffs, AttachSystem.Types.Cuffs, -1, null);
 

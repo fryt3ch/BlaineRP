@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
@@ -632,17 +633,12 @@ namespace BCRPClient.CEF
             LastTab = 0;
             CurrentTab = 3;
 
-            var counter = 1m;
+            int i = 0;
 
-            CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 1, allFines.OrderByDescending(x => x.Time).Select(x => new object[] { counter++, x.Time.ToString("HH:mm"), x.Amount, x.Member, x.Target, x.Reason }).ToList());
+            CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 1, allFines.OrderByDescending(x => x.Time).Select(x => GetFineRowList(x, ref i)).ToList());
         }
 
-/*        public static List<object> GetFineRowList(Data.Fractions.Police.FineInfo x)
-        {
-            var counter = 1m;
-
-            new List<object>() { };
-        }*/
+        public static List<object> GetFineRowList(Data.Fractions.Police.FineInfo x, ref int i) => new List<object> { i++, x.Time.ToString("HH:mm"), x.Amount, x.Member, x.Target, x.Reason };
 
         public static void ShowAPBsTab(List<Data.Fractions.Police.APBInfo> allOrientations)
         {
@@ -689,10 +685,10 @@ namespace BCRPClient.CEF
             LastTab = 0;
             CurrentTab = 6;
 
-            CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 4, allGpsTrackers.OrderBy(x => x.Id).Select(x => GetGPSTrackerRowList(x)).ToList());
+            CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 4, allGpsTrackers.Select(x => GetGPSTrackerRowList(x)).ToList());
         }
 
-        public static List<object> GetGPSTrackerRowList(Data.Fractions.Police.GPSTrackerInfo x) => new List<object>() { x.Id, x.Id, x.VehicleStr, x.InstallerStr, "" };
+        public static List<object> GetGPSTrackerRowList(Data.Fractions.Police.GPSTrackerInfo x) => new List<object>() { x.Id, x.Id, x.VehicleStr, x.InstallerStr, };
 
         public static void Close()
         {

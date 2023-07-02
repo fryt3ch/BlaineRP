@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -353,14 +354,23 @@ namespace BCRPServer.Events.Fractions
             if (!fData.HasMemberPermission(pData.Info, 18, true))
                 return false;
 
-            if (Game.Fractions.Police.GetCallByCaller(player.Id) != null)
+            var existingCall = Game.Fractions.Police.GetCallByCaller(player.Id);
+
+            var cdHash = NAPI.Util.GetHashKey("POLICE_EXTRA_CODE");
+
+            if (existingCall != null)
             {
-                return false;
+                if (pData.HasCooldown(cdHash, Utils.GetCurrentTime(), Game.Fractions.Police.EXTRA_CALL_CD_TIMEOUT, out _, out _, out _, 3, true))
+                    return false;
+
+                Game.Fractions.Police.RemoveCall(player.Id, existingCall, 0, null);
             }
 
             var callInfo = new Game.Fractions.Police.CallInfo() { Type = code, Position = player.Position, Message = string.Empty, Time = Utils.GetCurrentTime(), FractionType = code == 0 ? Game.Fractions.Types.None : fData.Type };
 
             Game.Fractions.Police.AddCall(player.Id, callInfo);
+
+            pData.Info.SetCooldown(cdHash, Utils.GetCurrentTime(), false);
 
             return true;
         }
@@ -432,6 +442,9 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
             var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
 
             if (fData == null)
@@ -467,6 +480,9 @@ namespace BCRPServer.Events.Fractions
 
             var pData = sRes.Data;
 
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return false;
+
             var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
 
             if (fData == null)
@@ -490,6 +506,63 @@ namespace BCRPServer.Events.Fractions
             Game.Fractions.Police.RemoveGPSTracker(uid, gpsTrackerInfo);
 
             return true;
+        }
+
+        [RemoteProc("Police::GPSTRI")]
+        private static object PoliceGPSTrackerInstall(Player player, Vehicle vehicle, int slot, bool allDepsSee)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            if (!fData.HasMemberPermission(pData.Info, 20, true))
+                return null;
+
+            var vData = vehicle.GetMainData();
+
+            if (vData == null)
+                return null;
+
+            if (!vData.Vehicle.AreEntitiesNearby(player, 7.5f))
+                return null;
+
+            if (slot < 0 || slot >= pData.Items.Length)
+                return null;
+
+            var gpsTracker = pData.Items[slot];
+
+            if (gpsTracker == null || gpsTracker.ID != "mis_gpstr")
+                return null;
+
+            if (gpsTracker is Game.Items.IStackable stackable && stackable.Amount > 1)
+            {
+                stackable.Amount -= 1;
+
+                gpsTracker.Update();
+            }
+            else
+            {
+                gpsTracker.Delete();
+
+                gpsTracker = null;
+            }
+
+            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slot, Game.Items.Item.ToClientJson(gpsTracker, Game.Items.Inventory.Groups.Items));
+
+            var id = Game.Fractions.Police.AddGPSTracker(new Game.Fractions.Police.GPSTrackerInfo() { VID = vData.VID, FractionType = allDepsSee ? Game.Fractions.Types.None : fData.Type, InstallerStr = $"{pData.Player.Name}", VehicleStr = $"{vData.Data.Name} [{vData.Info.RegisteredNumberplate ?? string.Empty}]" });
+
+            return id;
         }
 
         [RemoteEvent("Police::MRPCA")]
@@ -548,7 +621,11 @@ namespace BCRPServer.Events.Fractions
             if (arrestInfo == null)
                 return null;
 
-            return $"{arrestInfo.PunishmentData.StartDate.GetUnixTimestamp()}_{arrestInfo.PunishmentData.EndDate.GetUnixTimestamp()}_{arrestInfo.TargetName}_{arrestInfo.TargetCID}_{arrestInfo.MemberName}_{arrestInfo.PunishmentData.Reason}";
+            long secondsPassed;
+
+            var secondsLeft = arrestInfo.PunishmentData.GetSecondsLeft(out secondsPassed);
+
+            return $"{arrestInfo.PunishmentData.StartDate.GetUnixTimestamp()}_{secondsLeft}_{secondsPassed}_{arrestInfo.TargetName}_{arrestInfo.TargetCID}_{arrestInfo.MemberName}_{arrestInfo.PunishmentData.Reason}";
         }
 
         [RemoteProc("Police::ARF")]
@@ -585,72 +662,222 @@ namespace BCRPServer.Events.Fractions
             if (reason == null)
                 return true;
 
+            reason = reason.Trim();
+
+            if (!Game.Fractions.Police.ArrestChangeReasonRegex.IsMatch(reason))
+                return false;
+
+            var tInfo = PlayerData.PlayerInfo.Get(arrestInfo.TargetCID);
+
+            if (tInfo == null)
+                return false;
+
+            arrestInfo.PunishmentData.OnFinish(tInfo, 1, pData);
+
+            arrestInfo.PunishmentData.AmnestyInfo = new Sync.Punishment.Amnesty() { CID = pData.CID, Date = Utils.GetCurrentTime(), Reason = reason, };
+
+            MySQL.UpdatePunishmentAmnesty(arrestInfo.PunishmentData);
+
+            fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) закрыл дело #{arrestInfo.PunishmentData.Id} и выпустил из СИЗО {tInfo.Name} {tInfo.Surname} ({reason})");
+
             return true;
         }
 
         [RemoteProc("Police::ARCT")]
-        private static bool PoliceArrestChangeTime(Player player, int fractionTypeNum, byte menuPosIdx, uint punishmentId, ushort timeChange, string reason)
+        private static object PoliceArrestChangeTime(Player player, int fractionTypeNum, byte menuPosIdx, uint punishmentId, short timeChange, string reason)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return false;
+                return null;
 
             var pData = sRes.Data;
 
             if (!Enum.IsDefined(typeof(Game.Fractions.Types), fractionTypeNum))
-                return false;
+                return null;
 
             if (player.Dimension != Settings.MAIN_DIMENSION || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
-                return false;
+                return null;
 
             var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fractionTypeNum) as Game.Fractions.Police;
 
             if (fData == null)
-                return false;
+                return null;
 
             var menuPos = fData.GetArrestMenuPosition(menuPosIdx);
 
             if (menuPos == null || menuPos.DistanceTo(player.Position) > 5f)
-                return false;
+                return null;
 
             var arrestInfo = fData.GetArrestInfoById(punishmentId);
 
             if (arrestInfo == null)
-                return false;
+                return null;
+
+            if (!arrestInfo.PunishmentData.IsActive())
+                return null;
 
             if (reason == null)
                 return true;
 
-            return true;
+            if (timeChange == 0 || timeChange < Game.Fractions.Police.ARREST_C_MIN_MINS || timeChange > Game.Fractions.Police.ARREST_C_MAX_MINS)
+                return null;
+
+            reason = reason.Trim();
+
+            if (!Game.Fractions.Police.ArrestChangeReasonRegex.IsMatch(reason))
+                return null;
+
+            var tInfo = PlayerData.PlayerInfo.Get(arrestInfo.TargetCID);
+
+            if (tInfo == null)
+                return null;
+
+            var curSecs = arrestInfo.PunishmentData.EndDate.GetUnixTimestamp();
+
+            if (timeChange < 0)
+            {
+                var minMins = (curSecs - int.Parse(arrestInfo.PunishmentData.AdditionalData.Split('_')[0])) / -60 + 1;
+
+                if (timeChange < minMins)
+                {
+                    player.Notify("ArrestMenu::E3", minMins);
+
+                    return null;
+                }
+
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) уменьшил срок в СИЗО на {timeChange} мин. по делу #{arrestInfo.PunishmentData.Id} ({reason})");
+            }
+            else
+            {
+                var maxMins = Game.Fractions.Police.ARREST_MAX_MINS_ADD - curSecs / 60;
+
+                if (timeChange > maxMins)
+                {
+                    player.Notify("ArrestMenu::E4", maxMins);
+
+                    return null;
+                }
+
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) увеличил срок в СИЗО на {timeChange} мин. по делу #{arrestInfo.PunishmentData.Id} ({reason})");
+            }
+
+            arrestInfo.PunishmentData.EndDate = arrestInfo.PunishmentData.EndDate.AddMinutes(timeChange);
+
+            MySQL.UpdatePunishmentEndDate(arrestInfo.PunishmentData);
+
+            var timeStamp = arrestInfo.PunishmentData.EndDate.GetUnixTimestamp();
+
+            if (tInfo.PlayerData != null)
+            {
+                tInfo.PlayerData.Player.TriggerEvent("Player::Punish", arrestInfo.PunishmentData.Id, 0, ushort.MaxValue, timeStamp, null);
+            }
+
+            return timeStamp;
         }
 
         [RemoteProc("Police::Call")]
-        private static bool PoliceCall(Player player, string message)
+        private static byte PoliceCall(Player player, string message)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return false;
+                return 0;
 
             var pData = sRes.Data;
 
-            if (message == null)
-                return false;
+            if (message == null || message.Length == 0)
+            {
+                var existingCall = Game.Fractions.Police.GetCallByCaller(player.Id);
 
-            if (player.Dimension != Settings.MAIN_DIMENSION || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
-                return false;
+                if (existingCall == null)
+                    return 0;
 
-            if (Game.Fractions.Police.GetCallByCaller(player.Id) != null)
-                return false;
+                Game.Fractions.Police.RemoveCall(player.Id, existingCall, 0, pData);
 
-            // text check
+                return 255;
+            }
+            else
+            {
+                if (player.Dimension != Settings.MAIN_DIMENSION || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                    return 0;
 
-            var callInfo = new Game.Fractions.Police.CallInfo() { Type = 255, Position = player.Position, Message = message, Time = Utils.GetCurrentTime(), FractionType = Game.Fractions.Types.None, };
+                var existingCall = Game.Fractions.Police.GetCallByCaller(player.Id);
 
-            Game.Fractions.Police.AddCall(player.Id, callInfo);
+                if (existingCall != null)
+                    return 1;
 
-            return true;
+                message = message.Trim();
+
+                if (!Game.Fractions.Police.PoliceCallReasonRegex.IsMatch(message))
+                    return 0;
+
+                /*            var cdHash = NAPI.Util.GetHashKey("POLICE_DEF_CALL");
+
+                            var curTime = Utils.GetCurrentTime();
+
+                            if (pData.HasCooldown(cdHash, curTime, Game.Fractions.Police.DEF_CALL_CD_TIMEOUT, out _, out _, out _, 3, true))
+                                return 2;*/
+
+                var callInfo = new Game.Fractions.Police.CallInfo() { Type = 255, Position = player.Position, Message = message, Time = Utils.GetCurrentTime(), FractionType = Game.Fractions.Types.None, };
+
+                Game.Fractions.Police.AddCall(player.Id, callInfo);
+
+                //pData.Info.SetCooldown(cdHash, curTime, false);
+
+                return 255;
+            }
+        }
+
+        [RemoteProc("Police::RmLic")]
+        private static object PoliceRemoveLicense(Player player, Player target, string licTypeS)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            if (!fData.HasMemberPermission(pData.Info, 15, true))
+                return null;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return null;
+
+            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+                return null;
+
+            if (licTypeS == null || licTypeS.Length == 0)
+            {
+                return tData.Licenses;
+            }
+            else
+            {
+                int licTypeN;
+
+                if (!int.TryParse(licTypeS, out licTypeN) || !Enum.IsDefined(typeof(PlayerData.LicenseTypes), licTypeN))
+                    return null;
+
+                var licType = (PlayerData.LicenseTypes)licTypeN;
+
+                if (!Game.Fractions.Police.AllowedLicenceTypesToRemove.Contains(licType))
+                    return 0;
+
+                tData.RemoveLicense(licType);
+
+                return 255;
+            }
         }
     }
 }

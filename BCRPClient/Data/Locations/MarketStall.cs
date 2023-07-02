@@ -15,7 +15,7 @@ namespace BCRPClient.Data
     {
         public class MarketStall
         {
-            public static List<string> SellHistory { get => Player.LocalPlayer.GetData<List<string>>("MarketStall::SH"); set { if (value == null) Player.LocalPlayer.ResetData("MarketStall::SH"); else Player.LocalPlayer.SetData("MarketStall::SH", value); } }
+            public static List<(uint, string, decimal, decimal)> SellHistory { get => Player.LocalPlayer.GetData<List<(uint, string, decimal, decimal)>>("MarketStall::SH"); set { if (value == null) Player.LocalPlayer.ResetData("MarketStall::SH"); else Player.LocalPlayer.SetData("MarketStall::SH", value); } }
 
             public int Id { get; set; }
 
@@ -70,26 +70,35 @@ namespace BCRPClient.Data
 
                 if (newRid == Player.LocalPlayer.RemoteId)
                 {
-                    SellHistory = new List<string>();
+                    SellHistory = new List<(uint, string, decimal, decimal)>();
 
                     var pos = new Vector3(cs.Position.X, cs.Position.Y, cs.Position.Z);
 
-                    var subCs = new Additional.Sphere(pos, 20f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    Additional.ExtraColshape subCs = null;
+                    Additional.ExtraColshape mainCs = null;
+
+                    subCs = new Additional.Sphere(pos, 20f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
                         OnExit = (cancel) =>
                         {
+                            if (subCs?.Exists != true)
+                                return;
+
                             CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_0", 10));
                         },
                     };
 
-                    var mainCs = new Additional.Sphere(pos, 30f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
+                    mainCs = new Additional.Sphere(pos, 30f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null)
                     {
                         ApproveType = Additional.ExtraColshape.ApproveTypes.None,
 
                         OnExit = async (cancel) =>
                         {
+                            if (mainCs?.Exists != true)
+                                return;
+
                             if ((bool)await Events.CallRemoteProc("MarketStall::Close", marketStall.Id))
                                 CEF.Notification.Show(CEF.Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_WARN"), Locale.Get("MARKETSTALL_R_ODIST_1"));
                         },
@@ -166,7 +175,7 @@ namespace BCRPClient.Data
                         options.Add((1, Locale.Get(isStallLocked ? "MARKETSTALL_MG_UNLOCK" : "MARKETSTALL_MG_LOCK")));
                         options.Add((2, Locale.Get("MARKETSTALL_MG_CHOOSE")));
                         options.Add((3, Locale.Get("MARKETSTALL_MG_SELLHIST")));
-                        options.Add((77, Locale.Get("MARKETSTALL_DEBUG_SHOW")));
+                        //options.Add((77, Locale.Get("MARKETSTALL_DEBUG_SHOW")));
 
                         options.Add((255, Locale.Get("MARKETSTALL_MG_CLOSE")));
 
@@ -222,7 +231,7 @@ namespace BCRPClient.Data
 
                                         var y = (object[])CEF.Inventory.ItemsData[i][0];
 
-                                        items.Add(new object[] { new object[] { i, y[0] }, (string)y[1], 0, y[3], y[4], null });
+                                        items.Add(new object[] { new object[] { i, y[0] }, (string)y[1], 0, y[3], y[4], null, null, });
                                     }
 
                                     if (items.Count == 0)
@@ -237,12 +246,26 @@ namespace BCRPClient.Data
 
                                     Additional.ExtraColshape.LastSent = Sync.World.ServerTime;
 
-                                    var res = await Events.CallRemoteProc("MarketStall::OSIM", marketStall.Id);
+                                    var res = ((await Events.CallRemoteProc("MarketStall::OSIM", marketStall.Id)) as JArray)?.ToObject<List<string>>();
 
                                     if (res == null)
                                         return;
 
-                                    // todo work with already items on market
+                                    foreach (var x in res)
+                                    {
+                                        var d = x.Split('_');
+                                        
+                                        var idx = int.Parse(d[0]);
+                                        
+                                        var t = items.Where(x => (int)((object[])(((object[])x)[0]))[0] == idx).FirstOrDefault();
+
+                                        if (t == null)
+                                            continue;
+
+                                        var amount = int.Parse(d[1]); var price = decimal.Parse(d[2]);
+
+                                        ((object[])t)[6] = new object[] { price, amount };
+                                    }
 
                                     CEF.ActionBox.Close(false);
 
@@ -258,6 +281,25 @@ namespace BCRPClient.Data
 
                                         return;
                                     }
+
+                                    var strings = new List<string>();
+
+                                    var totalEarned = 0m;
+
+                                    for (int i = 0; i < sellHist.Count; i++)
+                                    {
+                                        var x = sellHist[i];
+
+                                        totalEarned += x.Item4;
+
+                                        strings.Add(Locale.Get("MARKETSTALL_SH_0", i + 1, Data.Items.GetName(x.Item2), x.Item3, Utils.GetPriceString(x.Item4)));
+                                    }
+
+                                    strings.Add("\n\n" + Locale.Get("MARKETSTALL_SH_1", Utils.GetPriceString(totalEarned)));
+
+                                    CEF.ActionBox.Close(false);
+
+                                    CEF.Note.ShowRead($"MARKETSTALL@SELLER_SELLHIST_{marketStall.Id}", string.Join("\n\n", strings), CEF.Note.DefaultBindAction, null);
                                 }
                                 else if (opt == 255)
                                 {
@@ -394,6 +436,75 @@ namespace BCRPClient.Data
                 var res = await Sync.World.GetRetrievableData<object>("MARKETSTALL_RP", 0);
 
                 return Utils.ToUInt32(res);
+            }
+
+            public static void LoadEvents()
+            {
+                Events.Add("MarketStall::UPD", (args) =>
+                {
+                    var id = Utils.ToInt32(args[0]);
+
+                    var cs = Additional.ExtraColshape.All.Where(x => x.Data is MarketStall marketStall && marketStall.Id == id).FirstOrDefault();
+
+                    if (cs == null)
+                        return;
+
+                    if (CEF.PlayerMarket.CurrentContext == null)
+                        return;
+
+                    if (CEF.PlayerMarket.CurrentContext == $"MARKETSTALL@SELLER_{id}")
+                    {
+
+                    }
+                    else if (CEF.PlayerMarket.CurrentContext == $"MARKETSTALL@BUYER_{id}")
+                    {
+                        CEF.PlayerMarket.Close();
+
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("MARKETSTALL_B_SERROR_6"));
+                    }
+                });
+
+                Events.Add("MarketStall::ATBH", (args) =>
+                {
+                    var curRentedStall = GetCurrentRentedMarketStall(out _);
+
+                    if (curRentedStall == null)
+                        return;
+
+                    var sellHist = SellHistory;
+
+                    if (sellHist == null)
+                        return;
+
+                    var itemUid = Utils.ToUInt32(args[0]);
+                    var itemId = (string)args[1];
+
+                    var itemAmount = Utils.ToUInt32(args[2]);
+                    var itemPrice = Utils.ToDecimal(args[3]);
+
+                    int histItemIdx = -1;
+
+                    for (int i = 0; i < sellHist.Count; i++)
+                    {
+                        var x = sellHist[i];
+
+                        if (x.Item1 == itemUid && x.Item2 == itemId)
+                        {
+                            histItemIdx = i;
+
+                            break;
+                        }
+                    }
+
+                    if (histItemIdx < 0)
+                    {
+                        sellHist.Add((itemUid, itemId, itemAmount, itemPrice));
+                    }
+                    else
+                    {
+                        sellHist[histItemIdx] = (itemUid, itemId, sellHist[histItemIdx].Item3 + itemAmount, sellHist[histItemIdx].Item4 + itemPrice);
+                    }
+                });
             }
         }
     }

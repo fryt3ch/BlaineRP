@@ -54,6 +54,8 @@ namespace BCRPClient
         public const byte SERVER_TIME_UTC_OFFSET = 3;
 
         public const byte TAXI_ORDER_MAX_WAIT_RANGE = 10;
+        public const byte POLICE_CALL_MAX_WAIT_RANGE = 10;
+        public const byte EMS_CALL_MAX_WAIT_RANGE = 10;
 
         public const double DAMAGE_SYSTEM_WOUND_CHANCE = 0.15d;
         #endregion

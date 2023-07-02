@@ -40,7 +40,7 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     await CEF.ActionBox.ShowSelect
                     (
-                        "Phone911Select", "Экстренные службы", new (decimal Id, string Text)[] { (102, "Полиция"), (103, "Скорая помощь") }, null, null,
+                        "Phone911Select", Locale.Get("PHONE_ECALL_0"), new (decimal Id, string Text)[] { (102, Locale.Get("PHONE_ECALL_1")), (103, Locale.Get("PHONE_ECALL_2")) }, null, null,
 
                         () =>
                         {
@@ -82,7 +82,7 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     await CEF.ActionBox.ShowInputWithText
                     (
-                        "PhonePoliceCallInput", "Вызов полиции", "Здравствуйте, опишите, что произошло?\n\n(от 1 до 24 символов, только буквы/цифры/знаки препинания/пробелы)", 24, "", null, null,
+                        "PhonePoliceCallInput", Locale.Get("PHONE_ECALL_3"), Locale.Get("PHONE_ECALL_5"), 24, "", null, null,
 
                         () =>
                         {
@@ -101,7 +101,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                             str = str?.Trim();
 
-                            var pattern = new Regex(@"^[A-Za-zА-Яа-Я0-9,./?$#@!%^&*()'+=\-\[\]]{1,24}$");
+                            var pattern = new Regex(@"^[A-Za-zА-Яа-я0-9,./?$#@!%^&*()'+=\-\[\]]{1,24}$");
 
                             if (str == null || !pattern.IsMatch(str))
                             {
@@ -110,9 +110,62 @@ namespace BCRPClient.CEF.PhoneApps
                                 return;
                             }
 
-                            CEF.ActionBox.Close(false);
+                            var res = Utils.ToByte(await Events.CallRemoteProc("Police::Call", str));
 
-                            // call remote
+                            if (res == 255)
+                            {
+                                CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_S_0"));
+
+                                CEF.ActionBox.Close(false);
+
+                                var pos = Player.LocalPlayer.GetCoords(false);
+
+                                pos.Z -= 1f;
+
+                                var cs1 = Player.LocalPlayer.GetData<Additional.ExtraColshape>("PoliceCallWaitCs");
+
+                                if (cs1 != null)
+                                {
+                                    (cs1.Data as Additional.ExtraColshape)?.Destroy();
+
+                                    cs1.Destroy();
+                                }
+
+                                Additional.ExtraColshape cs2 = null;
+
+                                cs1 = new Additional.Cylinder(pos, Settings.POLICE_CALL_MAX_WAIT_RANGE / 2, 10f, false, Utils.RedColor, Settings.MAIN_DIMENSION)
+                                {
+                                    OnExit = (cancel) =>
+                                    {
+                                        if (cs1?.Exists != true)
+                                            return;
+
+                                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("PHONE_ECALL_W_0", Settings.POLICE_CALL_MAX_WAIT_RANGE / 2));
+                                    }
+                                };
+
+                                cs2 = new Additional.Cylinder(pos, Settings.POLICE_CALL_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.MAIN_DIMENSION)
+                                {
+                                    OnExit = async (cancel) =>
+                                    {
+                                        if (cs2?.Exists != true)
+                                            return;
+
+                                        var resCancel = await Events.CallRemoteProc("Police::Call", string.Empty);
+                                    },
+
+                                    Data = cs1,
+                                };
+
+                                Player.LocalPlayer.SetData("PoliceCallWaitCs", cs2);
+                            }
+                            else
+                            {
+                                if (res == 1)
+                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("PHONE_ECALL_E_1"));
+                                else if (res == 0)
+                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("PHONE_ECALL_E_0"));
+                            }
                         },
 
                         () =>
@@ -135,7 +188,7 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     await CEF.ActionBox.ShowInputWithText
                     (
-                        "PhoneMedicalCallInput", "Вызов скорой помощи", "Здравствуйте, опишите, что произошло?\n\n(от 1 до 24 символов, только буквы/цифры/знаки препинания/пробелы)", 24, "", null, null,
+                        "PhoneMedicalCallInput", Locale.Get("PHONE_ECALL_4"), Locale.Get("PHONE_ECALL_6"), 24, "", null, null,
 
                         () =>
                         {
@@ -154,7 +207,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                             str = str?.Trim();
 
-                            var pattern = new Regex(@"^[A-Za-zА-Яа-Я0-9,./?$#@!%^&*()'+=\-\[\]]{1,24}$");
+                            var pattern = new Regex(@"^[A-Za-zА-Яа-я0-9,./?$#@!%^&*()'+=\-\[\]]{1,24}$");
 
                             if (str == null || !pattern.IsMatch(str))
                             {
@@ -422,6 +475,22 @@ namespace BCRPClient.CEF.PhoneApps
                             AddToCallHistory(callInfo.Number, EndedCallStatusTypes.IncomingError);
                         }
                     }
+                }
+            });
+
+            Events.Add("PoliceCall::Cancel", (args) =>
+            {
+                var reason = Utils.ToInt32(args[0]);
+
+                var cs = Player.LocalPlayer.GetData<Additional.ExtraColshape>("PoliceCallWaitCs");
+
+                if (cs != null)
+                {
+                    (cs.Data as Additional.ExtraColshape)?.Destroy();
+
+                    cs.Destroy();
+
+                    Additional.ExtraBlips.DestroyTrackerBlipByKey("PoliceCall");
                 }
             });
         }

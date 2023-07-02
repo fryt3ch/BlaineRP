@@ -41,6 +41,8 @@ namespace BCRPClient
 
                     { Sync.Offers.Types.InviteFraction, "{0} предлагает вам вступить во фракцию {1}" },
                     { Sync.Offers.Types.InviteOrganisation, "{0} предлагает вам вступить в организацию {1}" },
+
+                    { Sync.Offers.Types.PoliceFine, "{0} выписал Вам штраф в размере {1}. Причина: {2}. Оплачиваете?" },
                 };
 
                 public static string Cancel = "Предложение было отменено!";

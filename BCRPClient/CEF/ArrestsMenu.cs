@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
@@ -17,6 +18,8 @@ namespace BCRPClient.CEF
         private static int MenuPosIdx { get; set; }
 
         private static DateTime LastSent;
+
+        public static uint? CurrentArrestId { get => Player.LocalPlayer.GetData<uint?>("ArrestsMenu::CAD"); set { if (value == null) Player.LocalPlayer.ResetData("ArrestsMenu::CAD"); else Player.LocalPlayer.SetData("ArrestsMenu::CAD", value); } }
 
         public ArrestsMenu()
         {
@@ -45,26 +48,36 @@ namespace BCRPClient.CEF
                 if (!IsActive)
                     return;
 
-                var date = DateTimeOffset.FromUnixTimeSeconds(long.Parse(res[0])).DateTime;
-                var endDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(res[1])).DateTime;
-                var name = res[2];
-                var cid = res[3];
-                var memberStr = res[4];
+                var startDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(res[0])).DateTime;
 
-                var reasonS = res[5].Split('^');
+                var secondsLeft = ulong.Parse(res[1]);
+                var secondsPassed = ulong.Parse(res[2]);
 
-                CEF.Browser.Window.ExecuteJs("MenuArrest.fillArrestFull", new List<object> { date.ToString("dd.MM.yyyy HH:mm"), name, $"#{cid}", memberStr, endDate.Subtract(date).GetBeautyString(), Sync.World.ServerTime.Subtract(date).GetBeautyString(), reasonS[0], reasonS[1] });
+                var name = res[3];
+                var cid = res[4];
+                var memberStr = res[5];
 
-                Player.LocalPlayer.SetData("ArrestsMenu::CAD", id);
+                var reasonS = res[6].Split('^');
+
+                var totalTime = secondsPassed + secondsLeft;
+
+                CEF.Browser.Window.ExecuteJs("MenuArrest.fillArrestFull", new List<object> { startDate.ToString("dd.MM.yyyy HH:mm"), name, $"#{cid}", memberStr, TimeSpan.FromSeconds(totalTime).GetBeautyString(), TimeSpan.FromSeconds(secondsPassed).GetBeautyString(), reasonS[0], reasonS[1] });
+
+                CurrentArrestId = id;
             });
 
             Events.Add("MenuArrest::Button", async (args) =>
             {
                 var action = Utils.ToByte(args[0]);
 
+                if (CurrentArrestId == null)
+                    return;
+
+                var arrestId = (uint)CurrentArrestId;
+
                 if (action == 0)
                 {
-                    Player.LocalPlayer.ResetData("ArrestsMenu::CAD");
+                    CurrentArrestId = null;
 
                     CEF.Browser.Window.ExecuteJs("MenuArrest.switchContainer", 0);
                 }
@@ -75,7 +88,7 @@ namespace BCRPClient.CEF
 
                     LastSent = Sync.World.ServerTime;
 
-                    var res = (bool)await Events.CallRemoteProc("Police::ARF", (int)FractionType, MenuPosIdx, Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD"), null);
+                    var res = (bool)await Events.CallRemoteProc("Police::ARF", (int)FractionType, MenuPosIdx, arrestId, null);
 
                     if (res)
                     {
@@ -84,7 +97,7 @@ namespace BCRPClient.CEF
 
                         await CEF.ActionBox.ShowInputWithText
                         (
-                            "MenuArrestFreeInput", Locale.Get("ARRESTMENU_FREE_HEADER", Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD")), Locale.Get("ARRESTMENU_FREE_CONTENT"), 100, "", null, null,
+                            "MenuArrestFreeInput", Locale.Get("ARRESTMENU_FREE_HEADER", arrestId), Locale.Get("ARRESTMENU_FREE_CONTENT"), 100, "", null, null,
 
                             () =>
                             {
@@ -104,18 +117,25 @@ namespace BCRPClient.CEF
 
                                 str = str?.Trim();
 
+                                if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$")).IsMatch(str))
+                                {
+                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_2"));
+
+                                    return;
+                                }
+
                                 if (LastSent.IsSpam(500, false, true))
                                     return;
 
                                 LastSent = Sync.World.ServerTime;
 
-                                var res = (bool)await Events.CallRemoteProc("Police::ARF", (int)FractionType, MenuPosIdx, Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD"), str);
+                                var res = (bool)await Events.CallRemoteProc("Police::ARF", (int)FractionType, MenuPosIdx, arrestId, str);
 
                                 if (res)
                                 {
                                     CEF.ActionBox.Close();
 
-                                    Events.CallLocal("MenuArrest::Button", 0);
+                                    //Events.CallLocal("MenuArrest::Button", 0);
                                 }
                             },
 
@@ -138,9 +158,9 @@ namespace BCRPClient.CEF
 
                     LastSent = Sync.World.ServerTime;
 
-                    var res = (bool)await Events.CallRemoteProc("Police::ARCT", (int)FractionType, MenuPosIdx, Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD"), 0, null);
+                    var res = await Events.CallRemoteProc("Police::ARCT", (int)FractionType, MenuPosIdx, arrestId, 0, null) as bool?;
 
-                    if (res)
+                    if (res == true)
                     {
                         if (!IsActive)
                             return;
@@ -167,27 +187,50 @@ namespace BCRPClient.CEF
 
                                 var strD = str?.Trim()?.Split(',');
 
-                                if (strD.Length < 2)
+                                long minsU;
+
+                                if (strD.Length < 2 || !long.TryParse(strD[0], out minsU))
                                 {
+                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_0"));
+
                                     return;
                                 }
 
-                                ulong minsU;
+                                if (!((decimal)minsU).IsNumberValid<decimal>(-120, +120, out _, true))
+                                    return;
 
-                                if (!ulong.TryParse(strD[0], out minsU))
+                                if (minsU == 0)
                                 {
+                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_1"));
+
+                                    return;
+                                }
+                                var reasonStr = string.Join(',', strD.Skip(1)).Trim();
+
+                                if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$")).IsMatch(reasonStr))
+                                {
+                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_2"));
+
                                     return;
                                 }
 
-                                var reasonStr = string.Join(',', strD.Skip(1));
+                                if (LastSent.IsSpam(1000, false, true))
+                                    return;
 
-                                var res = (bool)await Events.CallRemoteProc("Police::ARCT", (int)FractionType, MenuPosIdx, Player.LocalPlayer.GetData<uint>("ArrestsMenu::CAD"), minsU, reasonStr);
+                                LastSent = Sync.World.ServerTime;
 
-                                if (res)
+                                var res = await Events.CallRemoteProc("Police::ARCT", (int)FractionType, MenuPosIdx, arrestId, minsU, reasonStr);
+
+                                if (res != null)
                                 {
                                     CEF.ActionBox.Close();
 
-                                    Events.CallLocal("MenuArrest::Button", 0);
+                                    if (CurrentArrestId != arrestId)
+                                        return;
+
+                                    CEF.Browser.Window.ExecuteJs("MenuArrest.updateInfoLine", 4, TimeSpan.FromSeconds(Utils.ToUInt64(res)).GetBeautyString());
+
+                                    //Events.CallLocal("MenuArrest::Button", 0);
                                 }
                             },
 
@@ -216,7 +259,7 @@ namespace BCRPClient.CEF
             FractionType = fType;
             MenuPosIdx = menuPosIdx;
 
-            CEF.Browser.Window.ExecuteJs("MenuArrest.fillArrests", true, arrests.Select(x => new object[] { x.Id, x.Time.ToString("dd.MM.yyyy HH:mm"), x.TargetName, x.MemberName }));
+            CEF.Browser.Window.ExecuteJs("MenuArrest.fillArrests", fType != Data.Fractions.Types.PRISON_BB, arrests.Select(x => new object[] { x.Id, x.Time.ToString("dd.MM.yyyy HH:mm"), x.TargetName, x.MemberName }).ToList());
 
             CEF.Cursor.Show(true, true);
 
@@ -230,7 +273,7 @@ namespace BCRPClient.CEF
 
             CEF.Browser.Render(Browser.IntTypes.MenuArrest, false, false);
 
-            Player.LocalPlayer.ResetData("ArrestsMenu::CAD");
+            CurrentArrestId = null;
 
             KeyBinds.Unbind(EscBindIdx);
 

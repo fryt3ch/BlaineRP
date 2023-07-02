@@ -472,7 +472,7 @@ namespace BCRPServer
         public static PlayerData.PlayerInfo FindPlayerOffline(uint cid) => PlayerData.PlayerInfo.Get(cid);
 
         /// <inheritdoc cref="Additional.AntiSpam.CheckNormal(Player, int)"/>
-        public static (bool IsSpammer, PlayerData Data) CheckSpamAttack(this Player player, int decreaseDelay = 250, bool checkPlayerReady = true) => Additional.AntiSpam.CheckNormal(player, decreaseDelay, checkPlayerReady);
+        public static (bool IsSpammer, PlayerData Data) CheckSpamAttack(this Player player, int decreaseDelay = 250, bool checkPlayerReady = true) { Console.WriteLine((new System.Diagnostics.StackTrace()).GetFrame(1).GetMethod().Name); return Additional.AntiSpam.CheckNormal(player, decreaseDelay, checkPlayerReady); }
         /// <inheritdoc cref="Additional.AntiSpam.CheckTemp(Player, int)"/>
         public static (bool IsSpammer, TempData Data) CheckSpamAttackTemp(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckTemp(player, decreaseDelay);
 

@@ -387,12 +387,12 @@ namespace BCRPServer.Events.Fractions
             if (!fData.IsLeaderOrWarden(pData.Info, true))
                 return null;
 
-            if (rankToEdit >= pData.Info.FractionRank)
+/*            if (rankToEdit >= pData.Info.FractionRank)
             {
                 player.Notify("Fraction::RE0");
 
                 return null;
-            }
+            }*/
 
             if (rankToEdit >= fData.Ranks.Count)
                 return null;

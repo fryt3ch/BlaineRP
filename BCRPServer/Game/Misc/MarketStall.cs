@@ -143,6 +143,9 @@ namespace BCRPServer.Game.Misc
         {
             if (pData == null)
             {
+                IsLocked = false;
+                SetItems(null);
+
                 SetCurrentRenterRID(stallIdx, ushort.MaxValue);
             }
             else

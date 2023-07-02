@@ -32,7 +32,7 @@ namespace BCRPServer.Additional
 
             var curSpams = ++pData.SpamCounter;
 
-            Console.WriteLine($"SpamCounter: {curSpams}");
+            //Console.WriteLine($"SpamCounter: {curSpams}");
 
             if (curSpams > Settings.ANTISPAM_MAX_COUNT)
             {
@@ -55,7 +55,7 @@ namespace BCRPServer.Additional
 
                     pData.SpamCounter = curSpams;
 
-                    Console.WriteLine($"SpamCounter: {curSpams}");
+                    //Console.WriteLine($"SpamCounter: {curSpams}");
                 }, decreaseDelay);
 
             return (false, pData);

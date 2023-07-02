@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BCRPClient.Data.Fractions
 {
@@ -99,13 +100,13 @@ namespace BCRPClient.Data.Fractions
 
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, "fraction_docs");
 
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 10, "fraction_invite");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 11, "police_search");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 12, "cuffs");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 13, "police_escort");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 14, "prison");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 15, "fine");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 0, "take_license");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 10, "fraction_invite");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 11, "police_search");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 12, "cuffs");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, "police_escort");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, "prison");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, "fine");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, "take_license");
 
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "gps_tracker");
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "police_search");
@@ -113,17 +114,21 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 19, "player_to_trunk");
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 0, "player_from_veh");
 
+            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "gps_tracker", (entity) => { var veh = entity as Vehicle; if (veh == null) return; GPSTrackerVehicleInstall(veh); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fine", (entity) => { var player = entity as Player; if (player == null) return; PlayerFine(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "take_license", (entity) => { var player = entity as Player; if (player == null) return; PlayerRemoveLicense(player); });
+
             SetCurrentData("LastCuffed", DateTime.MinValue);
 
             var arrestCs = new List<Additional.ExtraColshape>();
 
             if (Type == Types.COP_BLAINE)
             {
-                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null));
+                arrestCs.Add(new Additional.Cuboid(new Vector3(-430.256775f, 5997.575f, 32.45621f), 8.5f, 10f, 3.7f, 135f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null) { Data = Types.COP_BLAINE });
             }
             else if (Type == Types.COP_LS)
             {
-                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null));
+                arrestCs.Add(new Additional.Cuboid(new Vector3(472.494965f, -998.1451f, 25.3779182f), 21f, 11f, 3.5f, 0f, false, Utils.RedColor, Settings.MAIN_DIMENSION, null) { Data = Types.COP_LS });
             }
 
             foreach (var x in arrestCs)
@@ -132,12 +137,12 @@ namespace BCRPClient.Data.Fractions
 
                 x.OnEnter = (cancel) =>
                 {
-                    Utils.ConsoleOutput("CAN ARREST");
+                    //Utils.ConsoleOutput("CAN ARREST");
                 };
 
                 x.OnExit = (cancel) =>
                 {
-                    Utils.ConsoleOutput("CAN NOT ARREST");
+                    //Utils.ConsoleOutput("CAN NOT ARREST");
                 };
             }
         }
@@ -149,6 +154,22 @@ namespace BCRPClient.Data.Fractions
             KeyBinds.CurrentExtraAction0 = null;
 
             Additional.ExtraColshape.All.Where(x => x.Name == "FRAC_COP_ARREST_CS").ToList().ForEach(x => x.Destroy());
+
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("documents", 0, null);
+
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 10, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 11, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 12, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 13, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 14, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 15, null);
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("job", 0, null);
+
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, null);
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, null);
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 18, null);
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 19, null);
+            CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 0, null);
 
             base.OnEndMembership();
         }
@@ -237,6 +258,181 @@ namespace BCRPClient.Data.Fractions
 
                 return;
             }
+        }
+
+        public async void GPSTrackerVehicleInstall(Vehicle vehicle)
+        {
+            var gpsTrackerItemId = "mis_gpstr";
+
+            int itemIdx = -1;
+
+            for (int i = 0; i < CEF.Inventory.ItemsParams.Length; i++)
+            {
+                var x = CEF.Inventory.ItemsParams[i];
+
+                if (x == null)
+                    continue;
+
+                if (x.Id == gpsTrackerItemId)
+                {
+                    itemIdx = i;
+
+                    break;
+                }
+            }
+
+            if (itemIdx < 0)
+            {
+                CEF.Notification.Show("Inventory::NoItem");
+
+                return;
+            }
+
+            await CEF.ActionBox.ShowSelect("PoliceGPSTrackerDepSelect", Locale.Get("POLICE_GPSTR_0"), new (decimal Id, string Text)[] { (0, Locale.Get("POLICE_GPSTR_1")), (1, Locale.Get("POLICE_GPSTR_2")) }, null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            {
+                if (rType == CEF.ActionBox.ReplyTypes.Cancel || vehicle?.Exists != true || vehicle.Position.DistanceTo(Player.LocalPlayer.Position) > 10f || CEF.Inventory.ItemsParams[itemIdx]?.Id != gpsTrackerItemId)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                var allDepsSee = id == 1;
+
+                if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
+                    return;
+
+                CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+                var res = await Events.CallRemoteProc("Police::GPSTRI", vehicle, itemIdx, allDepsSee);
+
+                if (res != null)
+                {
+                    var resId = Utils.ToDecimal(res);
+
+                    CEF.ActionBox.Close(true);
+
+                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_GPSTR_3", resId), 5_000);
+                }
+            }, null);
+        }
+
+        public async void PlayerFine(Player player)
+        {
+            await CEF.ActionBox.ShowInputWithText("PolicePlayerFine", "Выписать штраф", "Введите сумму, на которую вы хотите оштрафовать гражданина и причину.\n\nПример: 500, Езда по встречной полосе", 100, "", null, null, CEF.ActionBox.DefaultBindAction, (rType, str) =>
+            {
+                if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                var strD = str?.Trim()?.Split(',');
+
+                int fineSum;
+
+                if (strD.Length < 2 || !int.TryParse(strD[0], out fineSum))
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_0"));
+
+                    return;
+                }
+
+                if (!((decimal)fineSum).IsNumberValid<decimal>(100, 100_000, out _, true))
+                {
+                    return;
+                }
+
+                var reason = string.Join(',', strD.Skip(1)).Trim();
+
+                if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$").IsMatch(reason)))
+                {
+                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_2"));
+
+                    return;
+                }
+
+                CEF.ActionBox.Close(true);
+
+                Sync.Offers.Request(player, Sync.Offers.Types.PoliceFine, $"{fineSum}_{reason}");
+
+            }, null);
+        }
+
+        public async void PlayerRemoveLicense(Player player, List<Sync.Players.LicenseTypes> licenses = null)
+        {
+            if (licenses == null)
+            {
+                licenses = (await Events.CallRemoteProc("Police::RmLic", player, string.Empty) as JArray)?.ToObject<List<int>>().Select(x => (Sync.Players.LicenseTypes)x).ToList();
+            }
+
+            if (licenses == null)
+                return;
+
+            if (licenses.Count == 0)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_E_2"), -1);
+
+                CEF.ActionBox.Close(true);
+
+                return;
+            }
+
+            await CEF.ActionBox.ShowSelect("PolicePlayerRmLic", "Лишить лицензии", licenses.Select(x => ((decimal)x, Locale.General.Players.LicenseNames.GetValueOrDefault(x) ?? "null")).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            {
+                if (rType == CEF.ActionBox.ReplyTypes.Cancel)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                var licType = (Sync.Players.LicenseTypes)id;
+
+                if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
+                    return;
+
+                CEF.ActionBox.LastSent = Sync.World.ServerTime;
+
+                var res = await Events.CallRemoteProc("Police::RmLic", player, $"{id}");
+
+                if (res == null)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+                else if (res is int resI)
+                {
+                    if (resI == 255)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_S_0", player.GetName(true, false, true), Locale.General.Players.LicenseNames.GetValueOrDefault(licType)), -1);
+
+                        licenses.Remove(licType);
+
+                        PlayerRemoveLicense(player, licenses);
+
+                        return;
+                    }
+                    else if (resI == 1)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_E_1"), -1);
+
+                        licenses.Remove(licType);
+
+                        PlayerRemoveLicense(player, licenses);
+
+                        return;
+                    }
+                    else if (resI == 0)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_E_0"), -1);
+
+                        return;
+                    }
+                }
+            }, null);
         }
 
         public class CallInfo
@@ -343,6 +539,88 @@ namespace BCRPClient.Data.Fractions
     {
         public PoliceEvents()
         {
+            Events.Add("FPolice::ARRESTSC", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                var arrests = pData.CurrentFraction?.GetCurrentData<List<Police.ArrestInfo>>("Arrests");
+
+                if (arrests == null)
+                    return;
+
+                var id = Utils.ToUInt32(args[0]);
+
+                if (args.Length == 1)
+                {
+                    var data = arrests.Where(x => x.Id == id).FirstOrDefault();
+
+                    if (data == null)
+                        return;
+
+                    arrests.Remove(data);
+
+                    if (CEF.ArrestsMenu.IsActive)
+                    {
+                        CEF.Browser.Window.ExecuteJs("MenuArrest.removeArrest", id);
+
+                        if (CEF.ArrestsMenu.CurrentArrestId == id)
+                        {
+                            Events.CallLocal("MenuArrest::Button", 0);
+                        }
+                    }
+                }
+                else
+                {
+                    var data = new Police.ArrestInfo() { Id = id, MemberName = (string)args[1], TargetName = (string)args[2], Time = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[3])).DateTime };
+
+                    arrests.Add(data);
+
+                    if (CEF.ArrestsMenu.IsActive)
+                    {
+                        CEF.Browser.Window.ExecuteJs("MenuArrest.addArrest", id, data.Time.ToString("dd.MM.yyyy HH:mm"), data.TargetName, data.MemberName);
+                    }
+                }
+            });
+
+            Events.Add("FPolice::FINEC", (args) =>
+            {
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                var fines = pData.CurrentFraction?.GetCurrentData<List<Police.FineInfo>>("Fines");
+
+                if (fines == null)
+                    return;
+
+                var member = (string)args[0];
+                var target = (string)args[1];
+                var amount = Utils.ToUInt32(args[2]);
+                var reason = (string)args[3];
+                var time = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[4])).Date;
+
+                var fine = new Police.FineInfo() { Amount = amount, Member = member, Reason = reason, Target = target, Time = time, };
+
+                fines.Add(fine);
+
+                if (CEF.PoliceTabletPC.CurrentTab == 3 || CEF.PoliceTabletPC.LastTab == 3)
+                {
+                    var i = fines.Count - 1;
+
+                    var arg = CEF.PoliceTabletPC.GetFineRowList(fine, ref i);
+
+                    arg.Insert(0, 1);
+
+                    CEF.Browser.Window.ExecuteJs("PoliceTablet.addElem", arg.ToArray());
+                }
+
+                // todo
+            });
+
             Events.Add("FPolice::CC", (args) =>
             {
                 var pData = Sync.Players.GetData(Player.LocalPlayer);

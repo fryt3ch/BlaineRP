@@ -41,7 +41,7 @@ namespace BCRPClient
                 public static string KickOnServerRestart = "Сервер перезапускается!\nПерезайдите позднее";
 
                 public static string LessThanMinValue = "Введенное значение должно быть не меньше, чем {0}!";
-                public static string BiggerThanMaxValue = "Введенное значение должно быть меньше либо равно ({0})!";
+                public static string BiggerThanMaxValue = "Введенное значение должно быть не больше, чем {0}!";
 
                 public static string BusinessNewMarginOwner0 = "Теперь наценка на продукцию Вашего бизнеса составляет {0}%";
                 public static string BusinessIncassationNowOn = "Теперь наличные из кассы Вашего бизнеса будут доставляться в банк!";

@@ -176,6 +176,32 @@ namespace BCRPServer.Events.Players
                         else
                             return ReturnTypes.Error;
                     }
+                    else if (oType == Types.PoliceFine)
+                    {
+                        var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+                        if (fData == null)
+                            return ReturnTypes.Error;
+
+                        if (!fData.HasMemberPermission(pData.Info, 14, true))
+                            return ReturnTypes.Error;
+
+                        var dataObjD = ((string)dataObj).Split('_');
+
+                        var amount = int.Parse(dataObjD[0]);
+
+                        if (amount < Game.Fractions.Police.FINE_MIN_AMOUNT || amount > Game.Fractions.Police.FINE_MAX_AMOUNT)
+                            return ReturnTypes.Error;
+
+                        var reason = dataObjD[1].Trim();
+
+                        if (!Game.Fractions.Police.FineReasonRegex.IsMatch(reason))
+                            return ReturnTypes.Error;
+
+                        dataObj = $"{amount}_{reason}";
+
+                        target.TriggerEvent("Offer::Show", player.Handle, type, dataObj);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -190,7 +216,7 @@ namespace BCRPServer.Events.Players
             switch (res)
             {
                 case ReturnTypes.Success:
-                    if (oType != Types.Cash && oType != Types.Settle)
+                    if (oType != Types.Cash && oType != Types.Settle && oType != Types.PoliceFine)
                     {
                         target.TriggerEvent("Offer::Show", player.Handle, type);
                     }

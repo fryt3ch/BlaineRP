@@ -84,7 +84,7 @@ namespace BCRPServer.Sync
 
         /// <summary>Получить оставшееся время в секундах</summary>
         /// <returns>Время в секундах</returns>
-        public ulong GetSecondsLeft()
+        public ulong GetSecondsLeft(out long secondsPassed)
         {
             var curTime = Utils.GetCurrentTime();
 
@@ -92,17 +92,19 @@ namespace BCRPServer.Sync
             {
                 var timeEnd = EndDate.GetUnixTimestamp();
 
-                var timePassed = long.Parse(AdditionalData.Split('_')[0]);
+                secondsPassed = long.Parse(AdditionalData.Split('_')[0]);
 
-                if (timePassed >= timeEnd)
+                if (secondsPassed >= timeEnd)
                     return 0;
 
-                var t = TimeSpan.FromSeconds(timeEnd - timePassed).TotalSeconds;
+                var t = TimeSpan.FromSeconds(timeEnd - secondsPassed).TotalSeconds;
 
                 return (ulong)t;
             }
             else
             {
+                secondsPassed = 0;
+
                 if (curTime >= EndDate)
                     return 0;
 
@@ -117,7 +119,70 @@ namespace BCRPServer.Sync
             if (AmnestyInfo != null)
                 return false;
 
-            return GetSecondsLeft() > 0;
+            return GetSecondsLeft(out _) > 0;
+        }
+
+        public void OnFinish(PlayerData.PlayerInfo pInfo, params object[] args)
+        {
+            if (Type == Types.NRPPrison)
+            {
+                var finishType = (int)args[0];
+
+                if (pInfo.PlayerData != null)
+                {
+                    if (finishType == 0)
+                    {
+                        pInfo.PlayerData.Player.TriggerEvent("Player::Punish", Id, (int)Type, ushort.MaxValue, -2, null);
+                    }
+
+                    Utils.Demorgan.SetFromDemorgan(pInfo.PlayerData);
+                }
+
+                if (pInfo.Fraction != Game.Fractions.Types.None)
+                {
+                    var fData = Game.Fractions.Fraction.Get(pInfo.Fraction);
+
+                    fData.OnMemberStatusChange(pInfo, fData.GetMemberStatus(pInfo));
+                }
+
+                if (finishType == 0)
+                {
+                    AmnestyInfo = new Sync.Punishment.Amnesty();
+
+                    MySQL.UpdatePunishmentAmnesty(this);
+                }
+            }
+            else if (Type == Types.Arrest)
+            {
+                var fData = Game.Fractions.Fraction.Get((Game.Fractions.Types)int.Parse(AdditionalData.Split('_')[1])) as Game.Fractions.Police;
+
+                var finishType = (int)args[0];
+
+                if (pInfo.PlayerData != null)
+                {
+                    if (finishType == 0)
+                    {
+                        pInfo.PlayerData.Player.TriggerEvent("Player::Punish", Id, (int)Type, ushort.MaxValue, -2, null);
+                    }
+                    else if (finishType == 1)
+                    {
+                        var tData = (PlayerData)args[1];
+
+                        pInfo.PlayerData.Player.TriggerEvent("Player::Punish", Id, (int)Type, tData.Player.Id, -1, null);
+                    }
+
+                    fData.SetPlayerFromPrison(pInfo.PlayerData);
+                }
+
+                fData.RemoveActiveArrest(Id);
+
+                if (finishType == 0)
+                {
+                    AmnestyInfo = new Sync.Punishment.Amnesty();
+
+                    MySQL.UpdatePunishmentAmnesty(this);
+                }
+            }
         }
 
         public static uint GetNextId() => Sync.Punishment.MaxAddedId += 1;

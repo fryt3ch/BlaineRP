@@ -45,6 +45,8 @@ namespace BCRPClient.Sync
             SellVehicle,
             /// <summary>Продать бизнес</summary>
             SellBusiness,
+            /// <summary>Штраф полиции</summary>
+            PoliceFine,
         }
 
         public enum ReplyTypes
@@ -161,6 +163,12 @@ namespace BCRPClient.Sync
 
                 text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, pType == 0 ? Locale.Notifications.Offers.OfferSettleHouse : Locale.Notifications.Offers.OfferSettleApartments);
             }
+            else if (type == Types.PoliceFine)
+            {
+                var d = ((string)data).Split('_');
+
+                text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, Utils.GetPriceString(decimal.Parse(d[0])), d[1]);
+            }
             else
             {
                 text = data == null ? string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type), name) : string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, data);
@@ -189,6 +197,8 @@ namespace BCRPClient.Sync
 
         public static void Request(Player player, Types type, object data = null)
         {
+            Utils.ConsoleOutput("ASD-1");
+
             if (CurrentTarget != null)
             {
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Offers.PlayerHasOffer);
@@ -196,13 +206,19 @@ namespace BCRPClient.Sync
                 return;
             }
 
+            Utils.ConsoleOutput("ASD-2");
+
             if (player?.Exists != true)
                 return;
+
+            Utils.ConsoleOutput("ASD-3");
 
             if (Vector3.Distance(player.Position, Player.LocalPlayer.Position) > Settings.ENTITY_INTERACTION_MAX_DISTANCE && (Player.LocalPlayer.Vehicle == null || player.Vehicle != Player.LocalPlayer.Vehicle))
                 return;
 
-            if (Utils.IsAnyCefActive() || LastSent.IsSpam(2000, false, false) || !Utils.CanDoSomething(true, ActionsToCheck))
+            Utils.ConsoleOutput("ASD-4");
+
+            if (Utils.IsAnyCefActive() || LastSent.IsSpam(1000, false, true) || !Utils.CanDoSomething(true, ActionsToCheck))
                 return;
 
             Events.CallRemote("Offers::Send", player, (int)type, RAGE.Util.Json.Serialize(data));

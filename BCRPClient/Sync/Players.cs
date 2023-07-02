@@ -410,8 +410,13 @@ namespace BCRPClient.Sync
                         if (!pData.Player.IsPlayingAnim(anim.Dict, anim.Name, 3))
                             Sync.Animations.Play(pData.Player, anim);
                     }
+
+                    if (players[i].GetData<Action>("AttachMethod") is Action act)
+                    {
+                        act.Invoke();
+                    }
                 }
-            }, 2500, true, 0)).Run();
+            }, 2_500, true, 0)).Run();
 
             #region LocalPlayer Ready
             Events.Add("Players::CloseAuth", async (object[] args) =>
@@ -653,6 +658,8 @@ namespace BCRPClient.Sync
 
                 CEF.Menu.UpdateSettingsData();
                 CEF.Menu.UpdateKeyBindsData();
+
+                Player.LocalPlayer.FreezePosition(false);
 
                 Player.LocalPlayer.SetInvincible(false);
 

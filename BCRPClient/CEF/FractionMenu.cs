@@ -92,7 +92,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank)
+                if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                 {
                     CEF.Notification.Show("Fraction::NAL");
 
@@ -224,7 +224,7 @@ namespace BCRPClient.CEF
                 if (LastSent.IsSpam(1000, false, true))
                     return;
 
-                if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank)
+                if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                 {
                     CEF.Notification.Show("Fraction::NAL");
 
@@ -266,7 +266,7 @@ namespace BCRPClient.CEF
 
                 LastSent = Sync.World.ServerTime;
 
-                if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank)
+                if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                 {
                     CEF.Notification.Show("Fraction::NAL");
 
@@ -310,7 +310,7 @@ namespace BCRPClient.CEF
 
                     LastSent = Sync.World.ServerTime;
 
-                    if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank)
+                    if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                     {
                         CEF.Notification.Show("Fraction::NAL");
 
@@ -397,7 +397,7 @@ namespace BCRPClient.CEF
 
                     LastSent = Sync.World.ServerTime;
 
-                    if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank)
+                    if ((Data.Fractions.Fraction.AllMembers?.GetValueOrDefault(pData.CID)?.Rank ?? 0) != fData.MaxRank && fData.LeaderCID != pData.CID)
                     {
                         CEF.Notification.Show("Fraction::NAL");
 

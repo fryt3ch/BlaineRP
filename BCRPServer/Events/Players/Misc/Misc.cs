@@ -297,7 +297,7 @@ namespace BCRPServer.Events.Players.Misc
 
             var pData = sRes.Data;
 
-            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn())
+            if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.IsAttachedToEntity != null)
                 return false;
 
             var elevatorFrom = Game.Misc.Elevator.Get(elevatorIdFrom);

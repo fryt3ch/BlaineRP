@@ -128,7 +128,7 @@ namespace BCRPClient.CEF.PhoneApps
                                     }
                                 },
 
-                                ExitColshape2 = new Additional.Cylinder(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, 10f, true, new Utils.Colour(0, 0, 255, 25), Settings.MAIN_DIMENSION)
+                                ExitColshape2 = new Additional.Cylinder(pos, Settings.TAXI_ORDER_MAX_WAIT_RANGE, 10f, false, new Utils.Colour(0, 0, 255, 25), Settings.MAIN_DIMENSION)
                                 {
                                     OnExit = (cancel) =>
                                     {

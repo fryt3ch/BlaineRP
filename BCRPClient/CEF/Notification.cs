@@ -404,6 +404,9 @@ namespace BCRPClient.CEF
             { "MarketStall::BSE1", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_1"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "MarketStall::BSE2", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_2"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "MarketStall::BSE3", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_3"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "MarketStall::BSE4", new Instance(Types.Error, Locale.Get("MARKETSTALL_B_SERROR_4"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+
+            { "ArrestMenu::E3", new Instance(Types.Error, Locale.Get("ARRESTMENU_E_3"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
         };
 
         public Notification()
@@ -447,6 +450,9 @@ namespace BCRPClient.CEF
         public static void Show(string type, params object[] args)
         {
             var inst = Prepared.GetValueOrDefault(type);
+
+            if (inst == null)
+                return;
 
             if (args.Length > 0)
                 Show(inst.Type, inst.Title, string.Format(inst.Message, args), inst.Timeout);

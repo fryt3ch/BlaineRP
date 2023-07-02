@@ -306,7 +306,7 @@ namespace BCRPServer.Game.Casino
                     {
                         var x = CurrentPlayers[j];
 
-                        if (x == null)
+                        if (x == null || x.Bet <= 0)
                         {
                             strBuilder.Append('*');
 
@@ -416,19 +416,7 @@ namespace BCRPServer.Game.Casino
                                     CurrentPlayers[x].Hand = null;
                                 }
 
-                                for (int i = 0; i < CurrentPlayers.Length; i++)
-                                {
-                                    var x = CurrentPlayers[i];
-
-                                    if (x == null || x.Hand == null)
-                                        continue;
-
-                                    SetPlayerToDecisionState((byte)i);
-
-                                    return;
-                                }
-
-                                SetPlayerToDecisionState(byte.MaxValue);
+                                SetPlayerToDecisionState(0);
                             }
                         });
                     }, null, 500 + CARD_GIVE_TIME * 2 + playersCount * CARD_GIVE_TIME * 2, Timeout.Infinite);
@@ -447,7 +435,7 @@ namespace BCRPServer.Game.Casino
                 return;
             }
             
-            if (CurrentPlayers[seatIdx] == null)
+            if (CurrentPlayers[seatIdx] == null || CurrentPlayers[seatIdx].Bet <= 0 || CurrentPlayers[seatIdx].Hand == null)
             {
                 SetPlayerToDecisionState((byte)(seatIdx + 1));
 

@@ -339,7 +339,7 @@ namespace BCRPClient.Sync
             { Types.WeaponLeftBack, new AttachmentData(24818, new Vector3(-0.1f, -0.15f, 0.11f), new Vector3(-180f, 0f, 0f), false, false, false, 2, true) },
             { Types.WeaponRightBack, new AttachmentData(24818, new Vector3(-0.1f, -0.15f, -0.13f), new Vector3(0f, 0f, 3.5f), false, false, false, 2, true) },
 
-            { Types.Carry, new AttachmentData(0, new Vector3(0.23f, 0.18f, 0.65f), new Vector3(0.5f, 0.5f, 15f), false, false, false, 2, true) },
+            { Types.Carry, new AttachmentData(1_000_000 + 0, new Vector3(0.23f, 0.18f, 0.65f), new Vector3(0.5f, 0.5f, 15f), false, false, false, 2, true) },
             { Types.PiggyBack, new AttachmentData(0, new Vector3(0f, -0.07f, 0.45f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
             { Types.Hostage, new AttachmentData(0, new Vector3(-0.24f, 0.11f, 0f), new Vector3(0.5f, 0.5f, 0f), false, false, false, 2, true) },
 
@@ -715,7 +715,13 @@ namespace BCRPClient.Sync
             var props = Attachments.GetValueOrDefault(type);
 
             if (props != null)
-                RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+            {
+                void attachMethod() => RAGE.Game.Entity.AttachEntityToEntity(gTarget.Handle, gEntity.Handle, props.BoneID >= 1_000_000 ? props.BoneID - 1_000_000 : RAGE.Game.Ped.GetPedBoneIndex(gEntity.Handle, props.BoneID), positionBase.X + props.PositionOffset.X, positionBase.Y + props.PositionOffset.Y, positionBase.Z + props.PositionOffset.Z, props.Rotation.X, props.Rotation.Y, props.Rotation.Z, false, props.UseSoftPinning, props.Collision, props.IsPed, props.RotationOrder, props.FixedRot);
+
+                gTarget.SetData<Action>("AttachMethod", attachMethod);
+
+                attachMethod();
+            }
 
             if (type == Types.VehicleTrailer)
             {
@@ -769,7 +775,11 @@ namespace BCRPClient.Sync
                 var props = Attachments.GetValueOrDefault(aObj.Type);
 
                 if (props != null)
+                {
                     RAGE.Game.Entity.DetachEntity(gTarget.Handle, true, props.Collision);
+
+                    gTarget.ResetData("AttachMethod");
+                }
 
                 if (aObj.Type == Types.VehicleTrailer || aObj.Type == Types.VehicleTrailerObjBoat)
                 {
@@ -1164,7 +1174,7 @@ namespace BCRPClient.Sync
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        if (root?.Exists != true || bind.IsPressed)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1204,7 +1214,7 @@ namespace BCRPClient.Sync
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (target?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, target.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        if (target?.Exists != true || bind.IsPressed)
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;

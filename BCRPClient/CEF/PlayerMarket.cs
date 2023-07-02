@@ -173,6 +173,8 @@ namespace BCRPClient.CEF
 
                 EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
             }
+
+            CEF.Cursor.Show(true, true);
         }
 
         public static void Close()

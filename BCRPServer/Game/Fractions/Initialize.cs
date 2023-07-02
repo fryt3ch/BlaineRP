@@ -63,6 +63,8 @@ namespace BCRPServer.Game.Fractions
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
                     { "w_pistol", 100 },
+
+                    { "mis_gpstr", 10 },
                 },
 
                 Salary = new List<uint>()
