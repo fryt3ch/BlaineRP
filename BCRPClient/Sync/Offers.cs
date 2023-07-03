@@ -169,6 +169,15 @@ namespace BCRPClient.Sync
 
                 text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, Utils.GetPriceString(decimal.Parse(d[0])), d[1]);
             }
+            else if (type == Types.InviteFraction)
+            {
+                var fData = Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.ToInt32(data));
+
+                if (fData == null)
+                    return;
+
+                text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, fData.Name);
+            }
             else
             {
                 text = data == null ? string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type), name) : string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, data);

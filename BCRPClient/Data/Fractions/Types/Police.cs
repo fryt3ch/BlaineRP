@@ -119,6 +119,7 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "take_license", (entity) => { var player = entity as Player; if (player == null) return; PlayerRemoveLicense(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "cuffs", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, null); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "police_escort", (entity) => { var player = entity as Player; if (player == null) return; PlayerEscort(player, null); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "prison", (entity) => { var player = entity as Player; if (player == null) return; PlayerArrest(player); });
 
             SetCurrentData("LastCuffed", DateTime.MinValue);
 
@@ -140,10 +141,15 @@ namespace BCRPClient.Data.Fractions
                 x.OnEnter = (cancel) =>
                 {
                     //Utils.ConsoleOutput("CAN ARREST");
+
+                    if (x.Data is Data.Fractions.Types fType)
+                        Player.LocalPlayer.SetData("PoliceArrestFType", fType);
                 };
 
                 x.OnExit = (cancel) =>
                 {
+                    Player.LocalPlayer.ResetData("PoliceArrestFType");
+
                     //Utils.ConsoleOutput("CAN NOT ARREST");
                 };
             }
@@ -328,6 +334,91 @@ namespace BCRPClient.Data.Fractions
                     CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Get("POLICE_CUFFS_N_1", Utils.GetPlayerName(player, true, false, true)));
                 }*/
             }
+        }
+
+        public async void PlayerArrest(Player player)
+        {
+            var tData = Sync.Players.GetData(player);
+
+            if (tData == null)
+                return;
+
+            if (!tData.IsCuffed)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
+
+                return;
+            }
+
+            var arrestFType = Player.LocalPlayer.GetData<Data.Fractions.Types>("PoliceArrestFType");
+
+            var fData = Data.Fractions.Fraction.Get(arrestFType);
+
+            if (fData == null)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_0"), -1);
+
+                return;
+            }
+
+            await CEF.Documents.ShowPoliceBlank(true, $"{fData.Name}", $"{player.Name}", $"{Player.LocalPlayer.Name}", Sync.World.ServerTime.ToString("dd.MM.yyyy HH:mm"), new string[] { "", "", "", Locale.Get(fData is Data.Fractions.Prison ? "POLICE_ARREST_TIME_L_1" : "POLICE_ARREST_TIME_L_0") }, async (args) =>
+            {
+                var rType = (int)args[0];
+
+                if (rType == 0)
+                {
+                    var reason1Str = ((string)args[1])?.Trim();
+                    var timeStr = ((string)args[2])?.Trim();
+                    var reason2Str = ((string)args[3])?.Trim();
+
+                    arrestFType = Player.LocalPlayer.GetData<Data.Fractions.Types>("PoliceArrestFType");
+
+                    fData = Data.Fractions.Fraction.Get(arrestFType);
+
+                    if (player?.Exists != true || player.Position.DistanceTo(Player.LocalPlayer.Position) > 5f || !tData.IsCuffed || fData == null)
+                    {
+                        CEF.Documents.Close();
+
+                        return;
+                    }
+
+                    if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$")).IsMatch(reason1Str))
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_1"), -1);
+
+                        return;
+                    }
+
+                    if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{0,100}$")).IsMatch(reason2Str))
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_2"), -1);
+
+                        return;
+                    }
+
+                    ulong time;
+
+                    if (!ulong.TryParse(timeStr, out time))
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_3"), -1);
+
+                        return;
+                    }
+
+                    if (!((decimal)time).IsNumberValid<decimal>(1, short.MaxValue, out _, true))
+                        return;
+
+                    var res = await Events.CallRemoteProc("Police::Arrest", player, (int)arrestFType, time, reason1Str, reason2Str);
+
+                    CEF.Documents.Close();
+                }
+                else if (rType == 1)
+                {
+                    CEF.Documents.Close();
+                }
+                else
+                    return;
+            });
         }
 
         public async void GPSTrackerVehicleInstall(Vehicle vehicle)
@@ -671,7 +762,7 @@ namespace BCRPClient.Data.Fractions
                 var target = (string)args[1];
                 var amount = Utils.ToUInt32(args[2]);
                 var reason = (string)args[3];
-                var time = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[4])).Date;
+                var time = DateTimeOffset.FromUnixTimeSeconds(Utils.ToInt64(args[4])).DateTime;
 
                 var fine = new Police.FineInfo() { Amount = amount, Member = member, Reason = reason, Target = target, Time = time, };
 

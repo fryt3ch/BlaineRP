@@ -174,6 +174,8 @@ namespace BCRPServer.Sync
                     fData.SetPlayerFromPrison(pInfo.PlayerData);
                 }
 
+                pInfo.LastData.Position = new Utils.Vector4(fData.ArrestFreePosition.X, fData.ArrestFreePosition.Y, fData.ArrestFreePosition.Z, fData.ArrestFreePosition.RotationZ);
+
                 fData.RemoveActiveArrest(Id);
 
                 if (finishType == 0)

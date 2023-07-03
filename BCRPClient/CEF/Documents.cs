@@ -17,32 +17,15 @@ namespace BCRPClient.CEF
 
         private static DateTime LastSent;
 
-        private static List<int> TempBinds { get; set; }
+        private static int EscBindIdx { get; set; } = -1;
+
+        private static Action<object[]> CurrentPoliceBlankAction { get; set; }
 
         public Documents()
         {
-            LastSent = DateTime.MinValue;
-
-            TempBinds = new List<int>();
-
-            Events.Add("Documents::PoliceBlank::Reply", (object[] args) =>
+            Events.Add("Docs::Police", (args) =>
             {
-                ReplyTypes rType = (ReplyTypes)args[0];
-
-                if (rType == ReplyTypes.OK)
-                {
-                    string text1 = (string)args[1];
-                    string text2 = (string)args[2];
-                    string text3 = (string)args[3];
-
-                    Close();
-                }
-                else if (rType == ReplyTypes.Cancel)
-                {
-                    Close();
-                }
-                else
-                    return;
+                CurrentPoliceBlankAction?.Invoke(args);
             });
 
             Events.Add("Documents::Show", (args) =>
@@ -102,7 +85,7 @@ namespace BCRPClient.CEF
         {
             await CEF.Browser.Render(Browser.IntTypes.Documents, true, true);
 
-            TempBinds.Add(KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close()));
+            EscBindIdx = KeyBinds.Bind(RAGE.Ui.VirtualKeys.Escape, true, () => Close());
 
             Cursor.Show(true, true);
         }
@@ -175,7 +158,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("Docs.show", false, 5, new object[] { null, null, null, null, null, GetVehiclePassportData(vName, oName, oSurname, vid, oCount, plate, dateOfIssue) });
         }
 
-        public static async System.Threading.Tasks.Task ShowPoliceBlank(bool isCop, string title, string criminal, string officer, string date, string[] completedData)
+        public static async System.Threading.Tasks.Task ShowPoliceBlank(bool isCop, string title, string criminal, string officer, string date, string[] completedData, Action<object[]> action)
         {
             if (IsActive)
                 return;
@@ -183,6 +166,8 @@ namespace BCRPClient.CEF
             await ReadyDefault();
 
             CEF.Browser.Window.ExecuteJs("Docs.policeBlank", new object[] { new object[] { isCop, title, criminal, officer, date, completedData } });
+
+            CurrentPoliceBlankAction = action;
         }
 
         public static void Close()
@@ -194,14 +179,15 @@ namespace BCRPClient.CEF
 
             Cursor.Show(false, false);
 
-            for (int i = 0; i < TempBinds.Count; i++)
-                KeyBinds.Unbind(TempBinds[i]);
+            KeyBinds.Unbind(EscBindIdx);
 
-            TempBinds.Clear();
+            EscBindIdx = -1;
+
+            CurrentPoliceBlankAction = null;
         }
 
         public static object[] GetPasportData(string name, string surname, bool sex, DateTime birthDate, string married, uint cid, DateTime dateOfIssue, bool boundToMilitaryService, bool losSantosAllowed) => new object[] { name, surname, Locale.Get(sex ? "DOCS_SEX_MALE" : "DOCS_SEX_FEMALE"), birthDate.ToString("dd.MM.yyyy"), married ?? Locale.Get(sex ? "DOCS_NOTMARRIED_MALE" : "DOCS_NOTMARRIED_FEMALE"), cid, dateOfIssue.ToString("dd.MM.yyyy"), boundToMilitaryService, losSantosAllowed };
-        public static object[] GetResumeData(string name, string surname, string[] data) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" } }, new object[] { new object[] { "side2-a", "side2-b" } } } };
+        public static object[] GetResumeData(string name, string surname, string[] data1) => new object[] { name, surname, new object[] { new object[] { new object[] { "side1-a", "side1-b" } }, new object[] { new object[] { "side2-a", "side2-b" } } } };
         public static object[] GetLicensesData(string name, string surname, List<Sync.Players.LicenseTypes> licenses)
         {
             return new object[] { name, surname, new object[] { new object[] { licenses.Contains(Sync.Players.LicenseTypes.M), licenses.Contains(Sync.Players.LicenseTypes.A), licenses.Contains(Sync.Players.LicenseTypes.B), licenses.Contains(Sync.Players.LicenseTypes.C), licenses.Contains(Sync.Players.LicenseTypes.D), licenses.Contains(Sync.Players.LicenseTypes.Fly), licenses.Contains(Sync.Players.LicenseTypes.Sea) },

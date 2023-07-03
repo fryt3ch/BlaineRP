@@ -80,6 +80,8 @@ namespace BCRPServer.Game.Fractions
         public const uint FINE_MIN_AMOUNT = 100;
         public const uint FINE_MAX_AMOUNT = 100_000;
 
+        public static Regex ArrestReason1Regex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$", RegexOptions.Compiled);
+        public static Regex ArrestReason2Regex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{0,100}$", RegexOptions.Compiled);
         public static Regex ArrestChangeReasonRegex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$", RegexOptions.Compiled);
         public static Regex FineReasonRegex { get; } = new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$", RegexOptions.Compiled);
         public static Regex PoliceCallReasonRegex { get; } = new Regex(@"^[A-Za-zА-Яа-я0-9,./?$#@!%^&*()'+=\-\[\]]{1,24}$", RegexOptions.Compiled);
@@ -111,6 +113,8 @@ namespace BCRPServer.Game.Fractions
         public Vector3[] ArrestMenuPositions { get; set; }
 
         public Utils.Vector4 ArrestFreePosition { get; set; }
+
+        public Utils.Vector4 ArrestColshapePosition { get; set; }
 
         private static int LastArrestCellPositionUsed { get; set; }
 
@@ -414,7 +418,7 @@ namespace BCRPServer.Game.Fractions
             }
         }
 
-        public void AddFine(FineInfo fine)
+        public void AddFine(PlayerData pData, PlayerData tData, FineInfo fine)
         {
             Fines.Add(fine);
 

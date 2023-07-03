@@ -162,7 +162,7 @@ namespace BCRPClient.CEF
 
                 if (actionId == 0) // rank up
                 {
-                    if (mData.Rank == fData.MaxRank)
+                    if (mData.Rank >= fData.MaxRank)
                     {
                         CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Этот сотрудник уже имеет максимально возможную должность!");
 
@@ -180,7 +180,7 @@ namespace BCRPClient.CEF
                 }
                 else if (actionId == 1) // rank down
                 {
-                    if (mData.Rank == 0)
+                    if (mData.Rank <= 0)
                     {
                         CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Этот сотрудник уже имеет минимально возможную должность!");
 

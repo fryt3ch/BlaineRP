@@ -951,13 +951,15 @@ namespace BCRPClient
 
             Add(new ExtraBind(Types.ExtraAction0, () =>
             {
-                CurrentExtraAction0?.Invoke();
+                if (Utils.CanShowCEF(true, true))
+                    CurrentExtraAction0?.Invoke();
             }, true, true)
             { Description = "Быстрое действие 1" });
 
             Add(new ExtraBind(Types.ExtraAction1, () =>
             {
-                CurrentExtraAction1?.Invoke();
+                if (Utils.CanShowCEF(true, true))
+                    CurrentExtraAction1?.Invoke();
             }, true, true)
             { Description = "Быстрое действие 2" });
 

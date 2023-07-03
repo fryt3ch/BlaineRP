@@ -1,5 +1,6 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
@@ -154,6 +155,107 @@ namespace BCRPServer.Events.Fractions
 
                 return 255;
             }
+        }
+
+        [RemoteProc("Police::Arrest")]
+        private static byte Arrest(Player player, Player target, int fTypeNum, ushort time, string reason1, string reason2)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (!Enum.IsDefined(typeof(Game.Fractions.Types), fTypeNum))
+                return 0;
+
+            var arrestFData = Game.Fractions.Fraction.Get((Game.Fractions.Types)fTypeNum);
+
+            if (arrestFData == null)
+                return 0;
+
+            if (pData.IsFrozen || pData.IsKnocked || pData.IsCuffed)
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return 0;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return 0;
+
+            if (!tData.Player.AreEntitiesNearby(pData.Player, 7.5f))
+                return 0;
+
+            reason1 = reason1.Trim();
+            reason2 = reason2.Trim();
+
+            if (fData == arrestFData)
+            {
+                if (!fData.HasMemberPermission(pData.Info, 10, true))
+                    return 1;
+
+                if (fData.ArrestColshapePosition.Position.DistanceTo(player.Position) > fData.ArrestColshapePosition.RotationZ + 2.5f)
+                    return 0;
+
+                if (!tData.IsCuffed)
+                    return 0;
+
+                var activePunishment = tData.Punishments.Where(x => (x.Type == Sync.Punishment.Types.Arrest || x.Type == Sync.Punishment.Types.FederalPrison || x.Type == Sync.Punishment.Types.NRPPrison) && x.IsActive()).FirstOrDefault();
+
+                if (activePunishment != null)
+                    return 2;
+
+                if (time <= 0 || time > Game.Fractions.Police.ARREST_MAX_MINS || !Game.Fractions.Police.ArrestReason1Regex.IsMatch(reason1) || !Game.Fractions.Police.ArrestReason2Regex.IsMatch(reason2))
+                    return 0;
+
+                var curTime = Utils.GetCurrentTime();
+
+                var punishment = new Sync.Punishment(Sync.Punishment.GetNextId(), Sync.Punishment.Types.Arrest, $"{reason1}^{reason2}", curTime, DateTimeOffset.FromUnixTimeSeconds(time * 60).DateTime, pData.CID)
+                {
+                    AdditionalData = $"0_{(int)fData.Type}",
+                };
+
+                fData.AddActiveArrest(new Game.Fractions.Police.ArrestInfo() { PunishmentData = punishment, MemberName = $"{player.Name}", TargetName = $"{target.Name}", TargetCID = tData.CID });
+
+                tData.Info.Punishments.Add(punishment);
+
+                MySQL.AddPunishment(tData.Info, pData.Info, punishment);
+
+                fData.SetPlayerToPrison(tData, false);
+                tData.ResetUpdateTimer();
+
+                tData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason1, punishment.AdditionalData);
+
+                try
+                {
+                    Game.Fractions.Police.SetPlayerArrestAmount(pData.Info, (ushort)(Game.Fractions.Police.GetPlayerArrestAmount(pData.Info) + 1));
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
+            else
+            {
+                if (arrestFData is Game.Fractions.Prison prisonData)
+                {
+                    if (!fData.HasMemberPermission(pData.Info, 13, true))
+                        return 1;
+
+                    return 0;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            return 0;
         }
 
         [RemoteProc("Police::DBS")]

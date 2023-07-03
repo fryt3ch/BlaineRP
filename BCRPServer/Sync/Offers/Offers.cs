@@ -737,6 +737,46 @@ namespace BCRPServer.Sync
 
                             tData.SetCash(newBalanceT);
                             pData.SetCash(newBalanceS);
+
+                            fData.AddFine(pData, tData, new Game.Fractions.Police.FineInfo() { Amount = amount, Reason = reason, Time = Utils.GetCurrentTime(), Member = pData.Player.Name, Target = tData.Player.Name, });
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.InviteFraction,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                            if (fData == null || fData.Type != (Game.Fractions.Types)offer.Data)
+                                return;
+
+                            if (tData.Fraction != Game.Fractions.Types.None)
+                                return;
+
+                            fData.SetPlayerFraction(tData.Info, 0);
                         }
                     }
                 }

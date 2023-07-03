@@ -665,7 +665,7 @@ namespace BCRPServer
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
         public static void Notify(this Player player, string key, params object[] args) => player.TriggerEvent("Notify", key, args);
 
-        public static void NotifyWithPlayer(this Player player, string key, Player player1, params object[] args) => player.Notify("Notify::P", key, player1.Id, args);
+        public static void NotifyWithPlayer(this Player player, string key, Player player1, params object[] args) => player.TriggerEvent("Notify::P", key, player1.Id, args);
         #endregion
 
         #region Data Extansions

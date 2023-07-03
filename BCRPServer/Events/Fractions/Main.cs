@@ -194,8 +194,8 @@ namespace BCRPServer.Events.Fractions
             if (fData == null)
                 return false;
 
-            if (fData.Ranks.Count >= newRank)
-                newRank = (byte)fData.Ranks.Count;
+            if (newRank >= fData.Ranks.Count)
+                newRank = (byte)(fData.Ranks.Count - 1);
 
             if (cid == pData.CID)
                 return false;
@@ -205,7 +205,7 @@ namespace BCRPServer.Events.Fractions
             if (tInfo == null)
                 return false;
 
-            if (tInfo.FractionRank == newRank)
+            if (tInfo.Fraction != fData.Type || tInfo.FractionRank == newRank)
                 return false;
 
             var rankUp = false;
@@ -226,6 +226,13 @@ namespace BCRPServer.Events.Fractions
             if (tInfo.FractionRank >= pData.Info.FractionRank)
             {
                 player.Notify("Fraction::HRIBTY");
+
+                return false;
+            }
+
+            if (newRank >= pData.Info.FractionRank)
+            {
+                player.Notify("Fraction::CSTR");
 
                 return false;
             }

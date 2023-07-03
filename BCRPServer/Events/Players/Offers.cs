@@ -202,6 +202,23 @@ namespace BCRPServer.Events.Players
 
                         target.TriggerEvent("Offer::Show", player.Handle, type, dataObj);
                     }
+                    else if (oType == Types.InviteFraction)
+                    {
+                        if (tData.Fraction != Game.Fractions.Types.None)
+                            return ReturnTypes.Error;
+
+                        if (!Game.Fractions.Fraction.IsMemberOfAnyFraction(pData, true))
+                            return ReturnTypes.Error;
+
+                        var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                        if (!fData.HasMemberPermission(pData.Info, 2, true))
+                            return ReturnTypes.Error;
+
+                        dataObj = fData.Type;
+
+                        target.TriggerEvent("Offer::Show", player.Handle, type, dataObj);
+                    }
                 }
                 catch (Exception ex)
                 {

@@ -378,7 +378,7 @@ namespace BCRPServer.Game.Fractions
         {
             pInfo.FractionRank = rank;
 
-            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
+            TriggerEventToMembers("Fraction::UMR", pInfo.CID, rank);
 
             MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
@@ -394,9 +394,7 @@ namespace BCRPServer.Game.Fractions
 
             AllMembers.Add(pInfo);
 
-            MySQL.CharacterFractionAndRankUpdate(pInfo);
-
-            TriggerEventToMembers("Fraction::MC", pInfo.CID, rank);
+            TriggerEventToMembers("Fraction::UM", pInfo.CID, $"{pInfo.Name} {pInfo.Surname}", rank, GetMemberStatus(pInfo), pInfo.LastJoinDate.GetUnixTimestamp());
 
             if (pInfo.PlayerData != null)
             {
@@ -408,6 +406,8 @@ namespace BCRPServer.Game.Fractions
             {
                 pInfo.Fraction = Type;
             }
+
+            MySQL.CharacterFractionAndRankUpdate(pInfo);
         }
 
         public virtual void SetPlayerNoFraction(PlayerData.PlayerInfo pInfo)
@@ -429,7 +429,7 @@ namespace BCRPServer.Game.Fractions
 
             MySQL.CharacterFractionAndRankUpdate(pInfo);
 
-            TriggerEventToMembers("Fraction::MC", pInfo.CID);
+            TriggerEventToMembers("Fraction::UM", pInfo.CID);
         }
 
         public void AddNews(string text, bool updateDb)

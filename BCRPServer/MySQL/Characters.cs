@@ -71,6 +71,18 @@ namespace BCRPServer
             PushQuery(cmd);
         }
 
+        public static void CharacterUpdateLastData(PlayerData.PlayerInfo pInfo)
+        {
+            var cmd = new MySqlCommand();
+
+            cmd.CommandText = "UPDATE characters SET LastData=@LD WHERE ID=@ID";
+
+            cmd.Parameters.AddWithValue("@ID", pInfo.CID);
+            cmd.Parameters.AddWithValue("@LD", pInfo.LastData.SerializeToJson());
+
+            PushQuery(cmd);
+        }
+
         public static void CharacterUpdateOnEnter(PlayerData.PlayerInfo pInfo)
         {
             var cmd = new MySqlCommand();

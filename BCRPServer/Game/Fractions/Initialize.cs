@@ -60,6 +60,8 @@ namespace BCRPServer.Game.Fractions
                     new Vector3(-435.4453f, 5997.362f, 31.71618f),
                 },
 
+                ArrestColshapePosition = new Utils.Vector4(-430.256775f, 5997.575f, 32.45621f, 10f),
+
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
                     { "w_pistol", 100 },
@@ -123,6 +125,8 @@ namespace BCRPServer.Game.Fractions
                 {
 
                 },
+
+                ArrestColshapePosition = new Utils.Vector4(472.494965f, -998.1451f, 25.3779182f, 21f),
 
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {

@@ -1628,6 +1628,8 @@ namespace BCRPClient.Sync
                         Sync.WeaponSystem.DisabledFiring = true;
 
                         KeyBinds.Get(KeyBinds.Types.Crouch)?.Disable();
+
+                        Player.LocalPlayer.SetEnableHandcuffs(true);
                     },
 
                     () =>
@@ -1635,6 +1637,8 @@ namespace BCRPClient.Sync
                         Sync.WeaponSystem.DisabledFiring = false;
 
                         KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
+
+                        Player.LocalPlayer.SetEnableHandcuffs(false);
                     },
 
                     () =>

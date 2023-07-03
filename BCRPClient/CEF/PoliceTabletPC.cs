@@ -620,7 +620,7 @@ namespace BCRPClient.CEF
             CEF.Browser.Window.ExecuteJs("PoliceTablet.fillActionInformation", 0, allCalls.Where(x => x.Player?.Exists == true).OrderBy(x => x.Time).Select(x => GetCallRowList(x, pPos)).ToList());
         }
 
-        public static List<object> GetCallRowList(Data.Fractions.Police.CallInfo x, Vector3 pPos) => new List<object> { x.Player.RemoteId, x.Time.ToString("HH:mm"), Locale.Get($"POLICETABLET_L_CT_{x.Type}"), $"{x.Player.Name}", pPos.DistanceTo(x.Position).ToString("0.0"), x.Message.Length == 0 ? Locale.GetNullOtherwise($"POLICETABLET_L_CM_{x.Type}") ?? "" : x.Message };
+        public static List<object> GetCallRowList(Data.Fractions.Police.CallInfo x, Vector3 pPos) => new List<object> { x.Player.RemoteId, x.Time.ToString("HH:mm"), Locale.Get($"POLICETABLET_L_CT_{x.Type}"), $"{x.Player.Name}", Locale.Get("GEN_DIST_METERS_0", pPos.DistanceTo(x.Position).ToString("0.0")), x.Message.Length == 0 ? Locale.GetNullOtherwise($"POLICETABLET_L_CM_{x.Type}") ?? "" : x.Message };
 
         public static void ShowFinesTab(List<Data.Fractions.Police.FineInfo> allFines)
         {

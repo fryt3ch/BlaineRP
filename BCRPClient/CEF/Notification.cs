@@ -333,8 +333,9 @@ namespace BCRPClient.CEF
             { "Fraction::NAL", new Instance(Types.Error, "Только лидер фракции может делать это!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Fraction::RE0", new Instance(Types.Error, "Вы не можете редактировать эту должность!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Fraction::RE1", new Instance(Types.Error, "Вы не можете самостоятельно изменить название должности!\nОставьте заявку на форуме с желаемыми названиями должностей и ожидайте ответа", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
-            { "Fraction::HRIBTY", new Instance(Types.Error, "Ранг данного сотрудника равен либо выше Вашего, вы не можете сделать это!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "Fraction::HRIBTY", new Instance(Types.Error, "Должность этого сотрудника равна либо выше Вашей, вы не можете сделать это!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Fraction::TGINYF", new Instance(Types.Error, "Данный человек не состоит в Вашей фракции!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "Fraction::CSTR", new Instance(Types.Error, "Вы не можете назначить этого сотрудника на данную должность!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
             { "Fraction::RU", new Instance(Types.Information, "{0} повысил Вас до должности {1}!", Locale.Get("NOTIFICATION_HEADER_DEF")) },
             { "Fraction::RD", new Instance(Types.Information, "{0} понизил Вас до должности {1}!", Locale.Get("NOTIFICATION_HEADER_DEF")) },
