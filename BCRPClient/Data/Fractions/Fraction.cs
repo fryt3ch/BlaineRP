@@ -114,6 +114,8 @@ namespace BCRPClient.Data.Fractions
             { 25, "Модерировать объявления" },
             { 26, "Выходить в эфир" },
 
+            { 100, "Изымать предметы при обыске" },
+
             { 10_000, "Заправка транспорта за счёт фракции" },
         };
 
@@ -428,6 +430,8 @@ namespace BCRPClient.Data.Fractions
             CEF.Menu.SetFraction(Data.Fractions.Types.None);
 
             CEF.FractionMenu.Close();
+
+            CEF.Interaction.CloseMenu();
 
             if (CEF.MaterialWorkbench.CurrentType == CEF.MaterialWorkbench.Types.Fraction)
                 CEF.MaterialWorkbench.Close();

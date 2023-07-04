@@ -351,6 +351,7 @@ namespace BCRPClient.CEF
 
             { "Fraction::NEMB", new Instance(Types.Error, "На счёте фракции недостаточно средств!\nТекущий баланс: ${0}", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Fraction::NEMA", new Instance(Types.Error, "На складе фракции недостаточно материалов!\nМатериалов имеется: {0} ед.", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+            { "Fraction::NIUF", new Instance(Types.Error, Locale.Get("FRACTION_NIUFE_0"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
             { "Police::DBS::PNF0", new Instance(Types.Error, "Человек с таким номером телефона не найден!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Police::DBS::PNF3", new Instance(Types.Error, "Человек с таким CID/ID не найден!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },

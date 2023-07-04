@@ -328,8 +328,8 @@ namespace BCRPClient.Sync
 
         public static Dictionary<Types, AttachmentData> Attachments = new Dictionary<Types, AttachmentData>()
         {
-            { Types.PushVehicleFront, new AttachmentData(6286, new Vector3(0f, 0.35f, 0.95f), new Vector3(0f, 0f, 180f), false, false, true, 2, true) },
-            { Types.PushVehicleBack, new AttachmentData(6286, new Vector3(0f, -0.6f, 0.95f), new Vector3(0f, 0f, 0f), false, false, true, 2, true) },
+            { Types.PushVehicleFront, new AttachmentData(6286, new Vector3(0f, 0.35f, 0.95f), new Vector3(0f, 0f, 180f), false, true, true, 2, true) },
+            { Types.PushVehicleBack, new AttachmentData(6286, new Vector3(0f, -0.6f, 0.95f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
             { Types.PhoneSync, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
             { Types.VehKey, new AttachmentData(6286, new Vector3(0.08f, 0.04f, -0.015f), new Vector3(175f, -115f, -90f), false, false, false, 2, true) },
             { Types.ParachuteSync, new AttachmentData(1_000_000 + 57717, new Vector3(0f, 0f, 3f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
@@ -1235,7 +1235,7 @@ namespace BCRPClient.Sync
                         {
                             var heading = rootPlayer.GetHeading();
 
-                            var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, heading, 10f);
+                            var pos = Additional.Camera.GetFrontOf(Player.LocalPlayer.Position, heading, 1f);
 
                             Player.LocalPlayer.TaskGoStraightToCoord(pos.X, pos.Y, pos.Z, speed * 0.5f, -1, heading, 0f);
 
@@ -1627,7 +1627,7 @@ namespace BCRPClient.Sync
                     {
                         Sync.WeaponSystem.DisabledFiring = true;
 
-                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Disable();
+                        KeyBinds.Get(KeyBinds.Types.Crawl)?.Disable();
 
                         Player.LocalPlayer.SetEnableHandcuffs(true);
                     },
@@ -1636,7 +1636,7 @@ namespace BCRPClient.Sync
                     {
                         Sync.WeaponSystem.DisabledFiring = false;
 
-                        KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
+                        KeyBinds.Get(KeyBinds.Types.Crawl)?.Enable();
 
                         Player.LocalPlayer.SetEnableHandcuffs(false);
                     },
@@ -1657,6 +1657,7 @@ namespace BCRPClient.Sync
                         Sync.WeaponSystem.DisabledFiring = true;
 
                         KeyBinds.Get(KeyBinds.Types.Crouch)?.Disable();
+                        KeyBinds.Get(KeyBinds.Types.Crawl)?.Disable();
                     },
 
                     () =>
@@ -1664,6 +1665,7 @@ namespace BCRPClient.Sync
                         Sync.WeaponSystem.DisabledFiring = false;
 
                         KeyBinds.Get(KeyBinds.Types.Crouch)?.Enable();
+                        KeyBinds.Get(KeyBinds.Types.Crawl)?.Enable();
                     },
 
                     async () =>

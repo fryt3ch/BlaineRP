@@ -118,10 +118,15 @@ namespace BCRPServer.Game.Fractions
 
         private static int LastArrestCellPositionUsed { get; set; }
 
-        public bool IsPlayerInAnyUniform(PlayerData pData)
+        public bool IsPlayerInAnyUniform(PlayerData pData, bool notifyIfNot = false)
         {
             if (pData.CurrentUniform is Customization.UniformTypes uType)
                 return UniformTypes.Contains(uType);
+
+            if (notifyIfNot)
+            {
+                pData.Player.Notify("Fraction::NIUF");
+            }
 
             return false;
         }
@@ -138,6 +143,8 @@ namespace BCRPServer.Game.Fractions
             if (!justTeleport)
             {
                 Utils.RemoveAllWeapons(pData, true, true);
+
+                pData.Uncuff();
             }
 
             var pos = GetNextArrestCellPosition();

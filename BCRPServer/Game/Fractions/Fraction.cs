@@ -43,7 +43,7 @@ namespace BCRPServer.Game.Fractions
 
         public Vector3[] LockerRoomPositions { get; set; }
 
-        public bool IsPlayerInAnyUniform(PlayerData pData);
+        public bool IsPlayerInAnyUniform(PlayerData pData, bool notifyIfNot = false);
     }
 
     public class RankData
@@ -55,6 +55,9 @@ namespace BCRPServer.Game.Fractions
         /// <remarks>0 - Доступ к складу, 1 - Приглашение, 2 - Повышение/понижение<br/>3 - Увольнение, 4 - Респавн транспорта</remarks>
         [JsonProperty(PropertyName = "P")]
         public Dictionary<uint, byte> Permissions { get; set; }
+
+        [JsonProperty(PropertyName = "S")]
+        public uint Salary { get; set; }
     }
 
     public class VehicleProps
@@ -117,8 +120,6 @@ namespace BCRPServer.Game.Fractions
         public PlayerData.PlayerInfo Leader { get; set; }
 
         public List<RankData> Ranks { get; set; }
-
-        public List<uint> Salary { get; set; }
 
         public Utils.Vector4[] SpawnPositions { get; set; }
 

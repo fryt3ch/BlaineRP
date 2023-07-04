@@ -495,100 +495,94 @@ namespace BCRPServer
                 }
             }
 
-            NAPI.Task.Run(() =>
+            var data = new JObject
             {
-                if (Player?.Exists != true)
-                    return;
-
-                var data = new JObject
                 {
+                    "Inventory",
+
+                    new JArray()
                     {
-                        "Inventory",
+                        Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Weapons)).SerializeToJson(),
+                        Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.Groups.Armour),
+                        Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Items)).SerializeToJson(),
+                        Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Clothes)).SerializeToJson(),
+                        Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Accessories)).SerializeToJson(),
+                        Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.Groups.BagItem),
+                        Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.Groups.HolsterItem),
+                    }
+                },
 
-                        new JArray()
-                        {
-                            Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Weapons)).SerializeToJson(),
-                            Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.Groups.Armour),
-                            Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Items)).SerializeToJson(),
-                            Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Clothes)).SerializeToJson(),
-                            Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Accessories)).SerializeToJson(),
-                            Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.Groups.BagItem),
-                            Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.Groups.HolsterItem),
-                        }
-                    },
+                { "PN", Info.PhoneNumber },
 
-                    { "PN", Info.PhoneNumber },
+                { "Licenses", Licenses.SerializeToJson() },
 
-                    { "Licenses", Licenses.SerializeToJson() },
+                { "Skills", Skills.SerializeToJson() },
 
-                    { "Skills", Skills.SerializeToJson() },
+                { "TimePlayed", TimePlayed },
+                { "CreationDate", CreationDate },
+                { "BirthDate", BirthDate },
+                { "Org", OrganisationID == -1 ? null : "todo" },
+                { "Familiars", Familiars.SerializeToJson() },
 
-                    { "TimePlayed", TimePlayed },
-                    { "CreationDate", CreationDate },
-                    { "BirthDate", BirthDate },
-                    { "Org", OrganisationID == -1 ? null : "todo" },
-                    { "Familiars", Familiars.SerializeToJson() },
+                { "Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson() }, // to change!
 
-                    { "Gifts", Gifts.ToDictionary(x => x.ID, x => ((int)x.Type, x.GID, x.Amount, (int)x.SourceType)).SerializeToJson() }, // to change!
+                { "Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson() },
+            };
 
-                    { "Achievements", Info.Achievements.Select(x => $"{(int)x.Key}_{x.Value.Progress}_{x.Value.TypeData.Goal}").SerializeToJson() },
-                };
+            if (activePunishments.Count > 0)
+                data.Add("P", JArray.FromObject(activePunishments.Select(x => $"{x.Id}&{(int)x.Type}&{x.EndDate.GetUnixTimestamp()}&{x.AdditionalData ?? ""}")));
 
-                if (activePunishments.Count > 0)
-                    data.Add("P", JArray.FromObject(activePunishments.Select(x => $"{x.Id}&{(int)x.Type}&{x.EndDate.GetUnixTimestamp()}&{x.AdditionalData ?? ""}")));
+            if (Info.Contacts.Count > 0)
+                data.Add("Conts", JObject.FromObject(Info.Contacts));
 
-                if (Info.Contacts.Count > 0)
-                    data.Add("Conts", JObject.FromObject(Info.Contacts));
+            if (Info.PhoneBlacklist.Count > 0)
+                data.Add("PBL", JArray.FromObject(Info.PhoneBlacklist));
 
-                if (Info.PhoneBlacklist.Count > 0)
-                    data.Add("PBL", JArray.FromObject(Info.PhoneBlacklist));
+            if (Furniture.Count > 0)
+                data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
 
-                if (Furniture.Count > 0)
-                    data.Add("Furniture", Furniture.ToDictionary(x => x.UID, x => x.ID).SerializeToJson());
+            if (Info.WeaponSkins.Count > 0)
+                data.Add("WSkins", Info.WeaponSkins.Select(x => x.ID).SerializeToJson());
 
-                if (Info.WeaponSkins.Count > 0)
-                    data.Add("WSkins", Info.WeaponSkins.Select(x => x.ID).SerializeToJson());
+            if (Info.AllSMS.Count > 0)
+                data.Add("SMS", Info.AllSMS.Select(x => x.Data).SerializeToJson());
 
-                if (Info.AllSMS.Count > 0)
-                    data.Add("SMS", Info.AllSMS.Select(x => x.Data).SerializeToJson());
+            if (Info.MedicalCard != null)
+                data.Add("MedCard", Info.MedicalCard.SerializeToJson());
 
-                if (Info.MedicalCard != null)
-                    data.Add("MedCard", Info.MedicalCard.SerializeToJson());
+            if (OwnedVehicles.Count > 0)
+                data.Add("Vehicles", OwnedVehicles.Select(x => $"{x.VID}_{x.ID}").SerializeToJson());
 
-                if (OwnedVehicles.Count > 0)
-                    data.Add("Vehicles", OwnedVehicles.Select(x => $"{x.VID}_{x.ID}").SerializeToJson());
+            if (OwnedBusinesses.Count > 0)
+                data.Add("Businesses", OwnedBusinesses.Select(x => x.ID).SerializeToJson());
 
-                if (OwnedBusinesses.Count > 0)
-                    data.Add("Businesses", OwnedBusinesses.Select(x => x.ID).SerializeToJson());
+            if (OwnedHouses.Count > 0)
+                data.Add("Houses", OwnedHouses.Select(x => x.Id).SerializeToJson());
 
-                if (OwnedHouses.Count > 0)
-                    data.Add("Houses", OwnedHouses.Select(x => x.Id).SerializeToJson());
+            if (OwnedApartments.Count > 0)
+                data.Add("Apartments", OwnedApartments.Select(x => x.Id).SerializeToJson());
 
-                if (OwnedApartments.Count > 0)
-                    data.Add("Apartments", OwnedApartments.Select(x => x.Id).SerializeToJson());
+            if (OwnedGarages.Count > 0)
+                data.Add("Garages", OwnedGarages.Select(x => x.Id).SerializeToJson());
 
-                if (OwnedGarages.Count > 0)
-                    data.Add("Garages", OwnedGarages.Select(x => x.Id).SerializeToJson());
+            if (SettledHouseBase != null)
+                data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.Id}");
 
-                if (SettledHouseBase != null)
-                    data.Add("SHB", $"{(int)SettledHouseBase.Type}_{SettledHouseBase.Id}");
+            if (Info.Quests.Count > 0)
+                data.Add("Quests", Info.Quests.Where(x => !x.Value.IsCompleted).Select(x => $"{(int)x.Key}~{x.Value.Step}~{x.Value.StepProgress}~{(x.Value.CurrentData ?? "")}").SerializeToJson());
 
-                if (Info.Quests.Count > 0)
-                    data.Add("Quests", Info.Quests.Where(x => !x.Value.IsCompleted).Select(x => $"{(int)x.Key}~{x.Value.Step}~{x.Value.StepProgress}~{(x.Value.CurrentData ?? "")}").SerializeToJson());
+            var rentedVehs = VehicleData.All.Values.Where(x => x.OwnerID == CID && (x.OwnerType == VehicleData.OwnerTypes.PlayerRent || x.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)).ToList();
 
-                var rentedVehs = VehicleData.All.Values.Where(x => x.OwnerID == CID && (x.OwnerType == VehicleData.OwnerTypes.PlayerRent || x.OwnerType == VehicleData.OwnerTypes.PlayerRentJob)).ToList();
+            if (rentedVehs.Count > 0)
+                data.Add("RV", JArray.FromObject(rentedVehs.Select(x => $"{x.Vehicle.Id}&{x.Info.ID}").ToList()));
 
-                if (rentedVehs.Count > 0)
-                    data.Add("RV", JArray.FromObject(rentedVehs.Select(x => $"{x.Vehicle.Id}&{x.Info.ID}").ToList()));
+            Player.SetAlpha(255);
 
-                Player.SetAlpha(255);
+            Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
 
-                Additional.AntiCheat.SetPlayerHealth(Player, LastData.Health);
+            Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
 
-                Player.TriggerEvent("Players::CharacterPreload", Settings.SettingsToClientStr, data);
-
-                Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Settings.HOUSE_DIMENSION_BASE);
-            }, 1000);
+            Player.Teleport(LastData.Position.Position, false, LastData.Dimension, LastData.Position.RotationZ, LastData.Dimension >= Settings.HOUSE_DIMENSION_BASE);
         }
 
         /// <summary>Метод раздевает игрока и надевает всю текущую одежду</summary>
@@ -794,6 +788,18 @@ namespace BCRPServer
             IsKnocked = false;
 
             Player.TriggerEvent("Player::Knocked", false);
+        }
+
+        public bool Uncuff()
+        {
+            var aData = AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.Cuffs || x.Type == Sync.AttachSystem.Types.CableCuffs).FirstOrDefault();
+
+            if (aData == null)
+                return false;
+
+            Player.DetachObject(aData.Type);
+
+            return true;
         }
     }
 }

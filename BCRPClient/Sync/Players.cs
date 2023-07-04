@@ -9,7 +9,6 @@ using System.Linq;
 
 namespace BCRPClient.Sync
 {
-    // Player.LocalPlayer.TaskFollowToOffsetOfEntity(Player.LocalPlayer.Handle, 0, -1f, 0f, 1f, -1, 1f, true);
     public class Players : Events.Script
     {
         /// <summary>Готов ли персонаж к игре?</summary>
@@ -41,10 +40,14 @@ namespace BCRPClient.Sync
 
         private static void AddDataHandler(string dataKey, Action<PlayerData, object, object> action)
         {
-            Events.AddDataHandler(dataKey, (Entity entity, object value, object oldValue) =>
+            Events.AddDataHandler(dataKey, async (Entity entity, object value, object oldValue) =>
             {
                 if (entity is Player player)
                 {
+                    // ugly fix rage bug when resetted data handler is ALWAYS triggered before setted data handlers (wrong order)
+                    if (value != null)
+                        await RAGE.Game.Invoker.WaitAsync(0);
+
                     var data = Sync.Players.GetData(player);
 
                     if (data == null)
@@ -706,6 +709,8 @@ namespace BCRPClient.Sync
                 {
                     x.Initialize();
                 }
+
+                Sync.AttachSystem.ReattachObjects(Player.LocalPlayer);
 
                 var carhash = RAGE.Util.Joaat.Hash("sandking2");
 
@@ -1707,6 +1712,7 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Anim::Other", (pData, value, oldValue) =>
             {
+                Utils.ConsoleOutput($"O {value?.ToString() ?? "null"}, {oldValue?.ToString() ?? "null"}");
                 var player = pData.Player;
 
                 var anim = (Sync.Animations.OtherTypes)((int?)value ?? -1);
@@ -1749,6 +1755,7 @@ namespace BCRPClient.Sync
 
             AddDataHandler("Anim::General", (pData, value, oldValue) =>
             {
+                Utils.ConsoleOutput($"G {value?.ToString() ?? "null"}, {oldValue?.ToString() ?? "null"}");
                 var player = pData.Player;
 
                 var anim = (Sync.Animations.GeneralTypes)((int?)value ?? -1);

@@ -306,7 +306,7 @@ namespace BCRPServer.Events
                     {
                         var fData = Game.Fractions.Fraction.Get(pData.Fraction);
 
-                        fractionSalary = fData.Salary[pData.Info.FractionRank];
+                        fractionSalary = fData.Ranks[pData.Info.FractionRank].Salary;
 
                         joblessBenefit = 0;
                     }

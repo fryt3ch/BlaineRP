@@ -3,6 +3,7 @@ using GTANetworkAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events.Players
@@ -33,7 +34,6 @@ namespace BCRPServer.Events.Players
                 cancel.Cancel = true;
         }
 
-        #region Player Connected
         [ServerEvent(Event.PlayerConnected)]
         private static async Task OnPlayerConnected(Player player)
         {
@@ -104,10 +104,7 @@ namespace BCRPServer.Events.Players
                 });
             });
         }
-        #endregion
 
-        #region Player Disconnected
-        [ServerEvent(Event.PlayerDisconnected)]
         private static void OnPlayerDisconnected(Player player, DisconnectionType type, string reason)
         {
             if (player?.Exists != true)
@@ -162,6 +159,28 @@ namespace BCRPServer.Events.Players
                 if (rentedMarketStall != null)
                 {
                     rentedMarketStall.SetCurrentRenter(rentedMarketStallIdx, null);
+                }
+
+                var attachedObjects = pData.AttachedObjects;
+
+                var cuffsAttachment = attachedObjects.Where(x => x.Type == AttachSystem.Types.Cuffs).FirstOrDefault();
+
+                if (cuffsAttachment != null)
+                {
+                    pData.Info.GetTempData<Timer>("CuffedQuitTimer")?.Dispose();
+
+                    pData.Info.SetTempData("CuffedQuitTimer", new Timer((obj) =>
+                    {
+                        NAPI.Task.Run(() =>
+                        {
+                            var activePunishment = pData.Info.Punishments.Where(x => x.Type == Punishment.Types.Arrest || x.Type == Punishment.Types.FederalPrison || x.Type == Punishment.Types.NRPPrison).FirstOrDefault();
+
+                            if (activePunishment != null)
+                                return;
+
+
+                        });
+                    }, null, 300_000, Timeout.Infinite));
                 }
 
                 player.DetachAllObjects();
@@ -270,7 +289,6 @@ namespace BCRPServer.Events.Players
                 pData.Remove();
             }
         }
-        #endregion
 
         [RemoteEvent("Players::ArmourBroken")]
         private static void ArmourBroken(Player player)

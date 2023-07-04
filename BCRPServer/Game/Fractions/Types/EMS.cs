@@ -93,10 +93,15 @@ namespace BCRPServer.Game.Fractions
             }
         }
 
-        public bool IsPlayerInAnyUniform(PlayerData pData)
+        public bool IsPlayerInAnyUniform(PlayerData pData, bool notifyIfNot = false)
         {
             if (pData.CurrentUniform is Customization.UniformTypes uType)
                 return UniformTypes.Contains(uType);
+
+            if (notifyIfNot)
+            {
+                pData.Player.Notify("Fraction::NIUF");
+            }
 
             return false;
         }

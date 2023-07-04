@@ -69,12 +69,6 @@ namespace BCRPServer.Game.Fractions
                     { "mis_gpstr", 10 },
                 },
 
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
                 ItemTag = "BCPD",
             };
 
@@ -133,12 +127,6 @@ namespace BCRPServer.Game.Fractions
                     { "w_pistol", 100 },
                 },
 
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
                 ItemTag = "LSPD",
             };
 
@@ -162,12 +150,6 @@ namespace BCRPServer.Game.Fractions
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
 
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
                 },
 
                 ItemTag = "WZLN",
@@ -215,12 +197,6 @@ namespace BCRPServer.Game.Fractions
 
                 },
 
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
                 ItemTag = "BCEMS",
 
                 AfterDeathSpawnPositions = new Utils.Vector4[]
@@ -263,12 +239,6 @@ namespace BCRPServer.Game.Fractions
 
                 },
 
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
-                },
-
                 ItemTag = "LSEMS",
 
                 AfterDeathSpawnPositions = new Utils.Vector4[]
@@ -307,12 +277,6 @@ namespace BCRPServer.Game.Fractions
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
 
-                },
-
-                Salary = new List<uint>()
-                {
-                    1_000,
-                    2_000,
                 },
 
                 ItemTag = "LSGOV",

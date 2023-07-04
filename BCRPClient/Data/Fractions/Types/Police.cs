@@ -4,6 +4,7 @@ using RAGE.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -92,8 +93,6 @@ namespace BCRPClient.Data.Fractions
 
             SetCurrentData("Arrests", ((JArray)args[8]).ToObject<List<string>>().Select(x => { var d = x.Split('_'); return new ArrestInfo() { Id = uint.Parse(d[0]), TargetName = d[1], MemberName = d[2], Time = DateTimeOffset.FromUnixTimeSeconds(long.Parse(d[3])).DateTime, }; }).ToList());
 
-            SetCurrentData("ArrestsAmount", Utils.ToUInt32(args[9]));
-
             CEF.HUD.Menu.UpdateCurrentTypes(true, CEF.HUD.Menu.Types.Fraction_Police_TabletPC);
 
             KeyBinds.CurrentExtraAction0 = () => PlayerCuff(BCRPClient.Interaction.CurrentEntity as Player, null);
@@ -120,6 +119,7 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "cuffs", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, null); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "police_escort", (entity) => { var player = entity as Player; if (player == null) return; PlayerEscort(player, null); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "prison", (entity) => { var player = entity as Player; if (player == null) return; PlayerArrest(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "police_search", (entity) => { var player = entity as Player; if (player == null) return; PlayerSearch(player, null); });
 
             SetCurrentData("LastCuffed", DateTime.MinValue);
 
@@ -179,10 +179,13 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 19, null);
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 0, null);
 
+            CEF.PoliceTabletPC.Close();
+            CEF.ArrestsMenu.Close();
+
             base.OnEndMembership();
         }
 
-        public static async void ShowPoliceTabletPc()
+        public async static void ShowPoliceTabletPc()
         {
             var pData = Sync.Players.GetData(Player.LocalPlayer);
 
@@ -198,9 +201,15 @@ namespace BCRPClient.Data.Fractions
 
             var finesAmount = (uint)(fData.GetCurrentData<List<FineInfo>>("Fines")?.Where(x => x.Member.StartsWith(pName)).Count() ?? 0);
 
-            var isOnDuty = fData.GetCurrentData<bool>("IsOnDuty");
+            var res = ((string)await Events.CallRemoteProc("Police::TPCS"))?.Split('_');
 
-            await CEF.PoliceTabletPC.Show(fData, isOnDuty, AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0, finesAmount, fData.GetCurrentData<uint>("ArrestsAmount"));
+            if (res == null)
+                return;
+
+            var isOnDuty = res[0] == "1";
+            var arrestsAmount = uint.Parse(res[1]);
+
+            await CEF.PoliceTabletPC.Show(fData, isOnDuty, AllMembers.GetValueOrDefault(pData.CID)?.Rank ?? 0, finesAmount, arrestsAmount);
         }
 
         public async void PlayerCuff(Player player, bool? state)
@@ -417,7 +426,14 @@ namespace BCRPClient.Data.Fractions
                     CEF.Documents.Close();
                 }
                 else
+                {
+                    if (rType == 77)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("POLICE_ARREST_E_5"), Locale.Get("POLICE_ARREST_E_3"), -1);
+                    }
+
                     return;
+                }
             });
         }
 
@@ -592,6 +608,105 @@ namespace BCRPClient.Data.Fractions
 
                         return;
                     }
+                }
+            }, null);
+        }
+
+        public async void PlayerSearch(Player player, List<(string, string)> items = null)
+        {
+            bool playerOk() => player?.Exists == true && Sync.Players.GetData(player)?.IsCuffed == true && player.Position.DistanceTo(Player.LocalPlayer.Position) < Settings.ENTITY_INTERACTION_MAX_DISTANCE;
+
+            if (Sync.Players.GetData(player)?.IsCuffed != true)
+            {
+                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
+
+                return;
+            }
+
+            await CEF.ActionBox.ShowSelect("PolicePlayerSearchOptSelect", Locale.Get("POLICE_PSEARCH_L_0", player.GetName(true, false, true)), new (decimal Id, string Text)[] { (0, Locale.Get("POLICE_PSEARCH_L_O_0")), (1, Locale.Get("POLICE_PSEARCH_L_O_1")) }, null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            {
+                if (rType != CEF.ActionBox.ReplyTypes.OK || !playerOk())
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                var res = await Events.CallRemoteProc("Police::PlayerSearch", player, id);
+
+                if (res == null)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                if (id == 0)
+                {
+                    CEF.ActionBox.Close(false);
+
+                    await CEF.ActionBox.ShowSelect("PolicePlayerSearchDocs", Locale.Get("POLICE_PSEARCH_L_1", player.GetName(true, false, true)), ((JArray)res).ToObject<List<int>>().Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_D_{x}"))).ToArray(), "Посмотреть", "Назад", CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+                    {
+                        if (!playerOk())
+                        {
+                            CEF.ActionBox.Close(true);
+
+                            return;
+                        }
+
+                        if (rType != CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            CEF.ActionBox.Close(false);
+
+                            PlayerSearch(player);
+
+                            return;
+                        }
+
+                        res = await Events.CallRemoteProc("Police::PlayerSearchSD", player, (int)id);
+
+                        if (res != null)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    }, null);
+                }
+                else if (id == 1)
+                {
+                    var items = ((JArray)res).ToObject<List<string>>().Select(x => { var d = x.Split('^'); return (decimal.Parse(d[0]), d[1], int.Parse(d[2]), d[3]); }).ToList();
+
+                    if (items.Count == 0)
+                    {
+                        return;
+                    }
+
+                    CEF.ActionBox.Close(false);
+
+                    await CEF.ActionBox.ShowSelect("PolicePlayerSearchItems", Locale.Get("POLICE_PSEARCH_L_2", player.GetName(true, false, true)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), "Изъять", "Назад", CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+                    {
+                        if (!playerOk())
+                        {
+                            CEF.ActionBox.Close(true);
+
+                            return;
+                        }
+
+                        if (rType != CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            CEF.ActionBox.Close(false);
+
+                            PlayerSearch(player);
+
+                            return;
+                        }
+
+                        res = await Events.CallRemoteProc("Police::PlayerSearchRI", player, (uint)id);
+
+                        if (res == null)
+                        {
+                            CEF.ActionBox.Close(true);
+                        }
+                    }, null);
                 }
             }, null);
         }

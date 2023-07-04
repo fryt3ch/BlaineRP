@@ -52,17 +52,7 @@ namespace BCRPServer.Events.Fractions
                         return 3;
                 }
 
-                if (tData.IsAttachedToEntity is Entity entity)
-                {
-                    entity.DetachEntity(tData.Player);
-                }
-
-                tData.Player.DetachAllEntities();
-                tData.Player.DetachAllObjectsInHand();
-
                 tData.Player.AttachObject(Sync.AttachSystem.Models.Cuffs, Sync.AttachSystem.Types.Cuffs, -1, null);
-
-                tData.PlayAnim(Sync.Animations.GeneralTypes.CuffedStatic0);
 
                 tData.Player.NotifyWithPlayer("Cuffs::0_0", player);
             }
@@ -74,18 +64,10 @@ namespace BCRPServer.Events.Fractions
                 if (cuffAttach.Type != Sync.AttachSystem.Types.Cuffs)
                     return 3;
 
-                if (tData.IsAttachedToEntity is Entity entity)
-                {
-                    entity.DetachEntity(tData.Player);
-                }
-
                 if (tData.Player.DetachObject(Sync.AttachSystem.Types.Cuffs))
                 {
                     tData.Player.NotifyWithPlayer("Cuffs::0_1", player);
                 }
-
-                if (tData.GeneralAnim == Sync.Animations.GeneralTypes.CuffedStatic0)
-                    tData.StopGeneralAnim();
             }
 
             return byte.MaxValue;
@@ -251,7 +233,7 @@ namespace BCRPServer.Events.Fractions
                 }
                 else
                 {
-                    return 0;
+                    return 77;
                 }
             }
 
@@ -687,6 +669,24 @@ namespace BCRPServer.Events.Fractions
             }
         }
 
+        [RemoteProc("Police::TPCS")]
+        private static object PoliceTabletPCShow(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            return $"{(fData.IsPlayerInAnyUniform(pData) ? 1 : 0)}_{Game.Fractions.Police.GetPlayerArrestAmount(pData.Info)}";
+        }
+
         [RemoteProc("Police::ARGI")]
         private static object PoliceArrestGetInfo(Player player, int fractionTypeNum, byte menuPosIdx, uint punishmentId)
         {
@@ -769,7 +769,7 @@ namespace BCRPServer.Events.Fractions
             if (tInfo == null)
                 return false;
 
-            arrestInfo.PunishmentData.OnFinish(tInfo, 1, pData);
+            arrestInfo.PunishmentData.OnFinish(tInfo, 1, pData, reason);
 
             arrestInfo.PunishmentData.AmnestyInfo = new Sync.Punishment.Amnesty() { CID = pData.CID, Date = Utils.GetCurrentTime(), Reason = reason, };
 
@@ -843,7 +843,7 @@ namespace BCRPServer.Events.Fractions
                     return null;
                 }
 
-                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) уменьшил срок в СИЗО на {timeChange} мин. по делу #{arrestInfo.PunishmentData.Id} ({reason})");
+                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) уменьшил срок в СИЗО на {-timeChange} мин. по делу #{arrestInfo.PunishmentData.Id} ({reason})");
             }
             else
             {
@@ -867,7 +867,7 @@ namespace BCRPServer.Events.Fractions
 
             if (tInfo.PlayerData != null)
             {
-                tInfo.PlayerData.Player.TriggerEvent("Player::Punish", arrestInfo.PunishmentData.Id, 0, ushort.MaxValue, timeStamp, null);
+                tInfo.PlayerData.Player.TriggerEvent("Player::Punish", arrestInfo.PunishmentData.Id, arrestInfo.PunishmentData.Type, pData.Player.Id, timeStamp, reason);
             }
 
             return timeStamp;
@@ -975,6 +975,51 @@ namespace BCRPServer.Events.Fractions
 
                 return 255;
             }
+        }
+
+        [RemoteProc("Police::PlayerSearch")]
+        private static object PolicePlayerSearch(Player player, Player target, int sType)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return null;
+
+            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+                return null;
+
+            if (sType == 0)
+            {
+                var docTypes = new HashSet<byte>() { 0, 1, };
+
+                if (tData.Info.MedicalCard != null)
+                    docTypes.Add(2);
+
+                // todo
+
+                return docTypes;
+            }
+            else if (sType == 1)
+            {
+                return null;
+            }
+
+            return null;
         }
     }
 }

@@ -248,9 +248,9 @@ namespace BCRPClient.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В NONRP-ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Utils.DrawText(Locale.Get("PUNISHMENT_L_R0_NRPP"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Utils.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         private static void ArrestRender()
@@ -267,9 +267,9 @@ namespace BCRPClient.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В СИЗО", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Utils.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP1"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Utils.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         private static void FederalPrisonRender()
@@ -286,9 +286,9 @@ namespace BCRPClient.Sync
 
             var timeLeft = TimeSpan.FromSeconds(jailData.EndDate.GetUnixTimestamp() - long.Parse(strData[0]));
 
-            Utils.DrawText($"ВЫ НАХОДИТЕСЬ В ФЕДЕРАЛЬНОЙ ТЮРЬМЕ", 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Utils.DrawText(Locale.Get("PUNISHMENT_L_R0_RPP2"), 0.5f, 0.025f, 255, 0, 0, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
 
-            Utils.DrawText($"ОСТАЛОСЬ ВРЕМЕНИ: {timeLeft.GetBeautyString()}", 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
+            Utils.DrawText(Locale.Get("PUNISHMENT_L_R1_DEF", timeLeft.GetBeautyString()), 0.5f, 0.055f, 255, 255, 255, 255, 0.5f, RAGE.Game.Font.ChaletComprimeCologne, true, true);
         }
 
         public Punishment()
@@ -319,76 +319,95 @@ namespace BCRPClient.Sync
 
                 var addData = args.Length > 5 ? (string)args[5] : null;
 
+                string getAdminStr() => $"{admin.Name} #{admin.GetSharedData<object>("CID", 0)}";
+
                 if (endDateL >= 0)
                 {
                     var endDate = DateTimeOffset.FromUnixTimeSeconds(endDateL).DateTime;
 
-                    if (reason == null)
+                    var mData = Punishment.All.Where(x => x.Id == id).FirstOrDefault();
+
+                    if (mData != null)
                     {
-                        var data = Punishment.All.Where(x => x.Id == id).FirstOrDefault();
+                        var endDateDiff = endDate.Subtract(mData.EndDate);
 
-                        if (data == null)
-                            return;
+                        if (type == Punishment.Types.Arrest)
+                        {
+                            if (endDateDiff >= TimeSpan.Zero)
+                            {
+                                var timeStr = endDateDiff.GetBeautyString();
 
-                        data.EndDate = endDate;
+                                CEF.Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? Locale.Get("PUNISHMENT_U0_RPP1") : Locale.Get("PUNISHMENT_U1_RPP1", getAdminStr(), timeStr, reason));
+                            }
+                            else
+                            {
+                                var timeStr = endDateDiff.Negate().GetBeautyString();
+
+                                CEF.Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? Locale.Get("PUNISHMENT_D0_RPP1") : Locale.Get("PUNISHMENT_D1_RPP1", getAdminStr(), timeStr, reason));
+                            }
+                        }
+
+                        mData.EndDate = endDate;
 
                         return;
                     }
-
-                    var mData = new Sync.Punishment() { Type = type, EndDate = endDate, Id = id, AdditionalData = addData };
-
-                    Sync.Punishment.AddPunishment(mData);
-
-                    var timeStr = endDate.Subtract(Sync.World.ServerTime).GetBeautyString();
-
-                    if (type == Punishment.Types.Mute)
+                    else
                     {
-                        CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_MUTE"), admin == null ? $"Вам был выдан мут (запрет на использование текстового и голосового чатов) на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование текстового и голосового чатов) на {timeStr}\n\nПричина: {reason}");
-                    }
-                    else if (type == Punishment.Types.NRPPrison)
-                    {
-                        var strData = mData.AdditionalData?.Split('_');
+                        mData = new Sync.Punishment() { Type = type, EndDate = endDate, Id = id, AdditionalData = addData };
 
-                        if (strData == null)
-                            return;
+                        Sync.Punishment.AddPunishment(mData);
 
-                        timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+                        var timeStr = endDate.Subtract(Sync.World.ServerTime).GetBeautyString();
 
-                        CEF.Notification.Show(Notification.Types.Jail1, Locale.Get("PUNISHMENT_L_NRPP"), admin == null ? $"Вы были посажены в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в NonRP-тюрьму на {timeStr}\n\nПричина: {reason}");
-                    }
-                    else if (type == Punishment.Types.Warn)
-                    {
-                        CEF.Notification.Show(Notification.Types.Warn, Locale.Get("PUNISHMENT_L_WARN"), admin == null ? $"Вам было выдано предупреждение!\n\nПричина: {reason}" : $"Администратор {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам предупреждение\n\nПричина: {reason}");
-                    }
-                    else if (type == Punishment.Types.FractionMute)
-                    {
-                        CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_FMUTE"), admin == null ? $"Вам был выдан мут (запрет на использование чата фракции) на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование чата фракции) на {timeStr}\n\nПричина: {reason}");
-                    }
-                    else if (type == Punishment.Types.OrganisationMute)
-                    {
-                        CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_OMUTE"), admin == null ? $"Вам был выдан мут (запрет на использование чата организации) на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} выдал Вам мут (запрет на использование чата организации) на {timeStr}\n\nПричина: {reason}");
-                    }
-                    else if (type == Punishment.Types.Arrest)
-                    {
-                        var strData = mData.AdditionalData?.Split('_');
+                        if (type == Punishment.Types.Mute)
+                        {
+                            CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_MUTE"), admin == null ? Locale.Get("PUNISHMENT_S0_MUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_MUTE", getAdminStr(), timeStr, reason));
+                        }
+                        else if (type == Punishment.Types.NRPPrison)
+                        {
+                            var strData = mData.AdditionalData?.Split('_');
 
-                        if (strData == null)
-                            return;
+                            if (strData == null)
+                                return;
 
-                        timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+                            timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
 
-                        CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? $"Вы были арестованы и посажены в СИЗО на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в СИЗО на {timeStr}\n\nПричина: {reason}");
-                    }
-                    else if (type == Punishment.Types.FederalPrison)
-                    {
-                        var strData = mData.AdditionalData?.Split('_');
+                            CEF.Notification.Show(Notification.Types.Jail1, Locale.Get("PUNISHMENT_L_NRPP"), admin == null ? Locale.Get("PUNISHMENT_S0_NRPP", timeStr, reason) : Locale.Get("PUNISHMENT_S1_NRPP", getAdminStr(), timeStr, reason));
+                        }
+                        else if (type == Punishment.Types.Warn)
+                        {
+                            CEF.Notification.Show(Notification.Types.Warn, Locale.Get("PUNISHMENT_L_WARN"), admin == null ? Locale.Get("PUNISHMENT_S0_WARN", reason) : Locale.Get("PUNISHMENT_S1_WARN", getAdminStr(), reason));
+                        }
+                        else if (type == Punishment.Types.FractionMute)
+                        {
+                            CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_FMUTE"), admin == null ? Locale.Get("PUNISHMENT_S0_FMUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_FMUTE", getAdminStr(), timeStr, reason));
+                        }
+                        else if (type == Punishment.Types.OrganisationMute)
+                        {
+                            CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_OMUTE"), admin == null ? Locale.Get("PUNISHMENT_S0_OMUTE", timeStr, reason) : Locale.Get("PUNISHMENT_S1_OMUTE", getAdminStr(), timeStr, reason));
+                        }
+                        else if (type == Punishment.Types.Arrest)
+                        {
+                            var strData = mData.AdditionalData?.Split('_');
 
-                        if (strData == null)
-                            return;
+                            if (strData == null)
+                                return;
 
-                        timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+                            timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
 
-                        CEF.Notification.Show(Notification.Types.Mute, Locale.Get("PUNISHMENT_L_RPP2"), admin == null ? $"Вы были арестованы и посажены в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}" : $"Сотрудник {admin.Name} #{admin.GetSharedData<object>("CID", 0)} посадил Вас в Федеральную тюрьму на {timeStr}\n\nПричина: {reason}");
+                            CEF.Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP1"), admin == null ? Locale.Get("PUNISHMENT_S0_RPP1", timeStr, reason) : Locale.Get("PUNISHMENT_S1_RPP1", getAdminStr(), timeStr, reason));
+                        }
+                        else if (type == Punishment.Types.FederalPrison)
+                        {
+                            var strData = mData.AdditionalData?.Split('_');
+
+                            if (strData == null)
+                                return;
+
+                            timeStr = TimeSpan.FromSeconds(endDate.GetUnixTimestamp() - long.Parse(strData[0])).GetBeautyString();
+
+                            CEF.Notification.Show(Notification.Types.Jail2, Locale.Get("PUNISHMENT_L_RPP2"), admin == null ? Locale.Get("PUNISHMENT_S0_RPP2", timeStr, reason) : Locale.Get("PUNISHMENT_S1_RPP2", getAdminStr(), timeStr, reason));
+                        }
                     }
                 }
                 else
@@ -402,23 +421,23 @@ namespace BCRPClient.Sync
 
                     if (type == Punishment.Types.FractionMute)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_FMUTE"), endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила Вашей фракции!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_FMUTE"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_FRAC") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
                     }
                     else if (type == Punishment.Types.OrganisationMute)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_OMUTE"), endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила Вашей организации!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_OMUTE"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_ORG") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
                     }
                     else if (type == Punishment.Types.Arrest)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_RPP1"), endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать закон!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_RPP1"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_LAW") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
                     }
                     else if (type == Punishment.Types.FederalPrison)
                     {
-                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_RPP2"), endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать закон!" : $"Сотрудник {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                        CEF.Notification.Show(Notification.Types.Information, Locale.Get("PUNISHMENT_L_RPP2"), endDateL == -2 ? Locale.Get("PUNISHMENT_F0_LAW") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
                     }
                     else
                     {
-                        CEF.Notification.Show(Notification.Types.Information, type == Punishment.Types.Mute ? Locale.Get("PUNISHMENT_L_MUTE") : type == Punishment.Types.NRPPrison ? Locale.Get("PUNISHMENT_L_NRPP") : type == Punishment.Types.Warn ? Locale.Get("PUNISHMENT_L_WARN") : "???", endDateL == -2 ? $"Срок наказания истёк, старайтесь больше не нарушать правила нашего сервера!" : $"Администратор {(admin?.Name ?? "null")} #{(admin?.GetSharedData<object>("CID", 0) ?? 0)} амнистировал Вас!\n\nПричина: {reason}");
+                        CEF.Notification.Show(Notification.Types.Information, type == Punishment.Types.Mute ? Locale.Get("PUNISHMENT_L_MUTE") : type == Punishment.Types.NRPPrison ? Locale.Get("PUNISHMENT_L_NRPP") : type == Punishment.Types.Warn ? Locale.Get("PUNISHMENT_L_WARN") : "???", endDateL == -2 ? Locale.Get("PUNISHMENT_F0_DEF") : Locale.Get("PUNISHMENT_F1_DEF", admin == null ? "null" : getAdminStr(), reason));
                     }
                 }
             });

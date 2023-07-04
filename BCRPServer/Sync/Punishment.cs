@@ -167,8 +167,9 @@ namespace BCRPServer.Sync
                     else if (finishType == 1)
                     {
                         var tData = (PlayerData)args[1];
+                        var reason = args.Length > 2 && args[2] is string str ? str : null;
 
-                        pInfo.PlayerData.Player.TriggerEvent("Player::Punish", Id, (int)Type, tData.Player.Id, -1, null);
+                        pInfo.PlayerData.Player.TriggerEvent("Player::Punish", Id, (int)Type, tData.Player.Id, -1, reason);
                     }
 
                     fData.SetPlayerFromPrison(pInfo.PlayerData);

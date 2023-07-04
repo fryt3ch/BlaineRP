@@ -847,6 +847,63 @@ namespace BCRPServer.Sync
                     },
                 }
             },
+
+            {
+                Types.Cuffs,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                {
+                    {
+                        true,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                if (player.GetEntityIsAttachedTo() is Entity entityAttachedTo)
+                                {
+                                    entityAttachedTo.DetachEntity(player);
+                                }
+
+                                pData.Player.DetachAllEntities();
+                                pData.Player.DetachAllObjectsInHand();
+
+                                pData.UnequipActiveWeapon();
+
+                                pData.PlayAnim(Animations.GeneralTypes.CuffedStatic0);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (entity, entity2, type, args) =>
+                        {
+                            if (entity is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                if (player.GetEntityIsAttachedTo() is Entity entityAttachedTo)
+                                {
+                                    entityAttachedTo.DetachEntity(player);
+                                }
+
+                                if (pData.GeneralAnim == Animations.GeneralTypes.CuffedStatic0)
+                                    pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
         };
 
         private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type)
