@@ -354,7 +354,7 @@ namespace BCRPServer.Events.Players
 
             var result = offer.TradeData.Execute(offer.Sender, offer.Receiver);
 
-            if (result.Result == Game.Items.Inventory.Results.Success)
+            if (result.Result == Game.Items.Inventory.ResultTypes.Success)
             {
                 offer.Cancel(true, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
@@ -366,7 +366,7 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                if (result.Result == Game.Items.Inventory.Results.Error)
+                if (result.Result == Game.Items.Inventory.ResultTypes.Error)
                 {
                     offer.Cancel(false, false, Sync.Offers.ReplyTypes.AutoCancel, false);
 
@@ -376,7 +376,7 @@ namespace BCRPServer.Events.Players
                     tData.Player.Notify("Trade::Error");
                     tData.Player.CloseAll(true);
                 }
-                else if (result.Result == Game.Items.Inventory.Results.NotEnoughMoney)
+                else if (result.Result == Game.Items.Inventory.ResultTypes.NotEnoughMoney)
                 {
                     if (pData == result.PlayerError)
                     {
@@ -389,7 +389,7 @@ namespace BCRPServer.Events.Players
                         tData.Player.Notify("Trade::NotEnoughMoney");
                     }
                 }
-                else if (result.Result == Game.Items.Inventory.Results.NoSpace)
+                else if (result.Result == Game.Items.Inventory.ResultTypes.NoSpace)
                 {
                     if (pData == result.PlayerError)
                     {
@@ -805,8 +805,8 @@ namespace BCRPServer.Events.Players
                         offer.TradeData.ReceiverItems[slotFrom] = iData;
                     }
 
-                    pData.Player.TriggerEvent("Inventory::Update", 10, -1, slotFrom, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
-                    tData.Player.TriggerEvent("Inventory::Update", 12, slotFrom, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+                    pData.Player.TriggerEvent("Inventory::Update", 10, -1, slotFrom, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Items));
+                    tData.Player.TriggerEvent("Inventory::Update", 12, slotFrom, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Items));
                 }
                 else
                 {

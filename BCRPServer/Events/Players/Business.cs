@@ -39,7 +39,7 @@ namespace BCRPServer.Events.Players
 
                     weapon.Delete();
 
-                    Game.Items.Inventory.ClearSlot(pData, Game.Items.Inventory.Groups.Weapons, 0);
+                    Game.Items.Inventory.ClearSlot(pData, Game.Items.Inventory.GroupTypes.Weapons, 0);
                 }
             }
 

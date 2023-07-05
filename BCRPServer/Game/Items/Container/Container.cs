@@ -356,6 +356,6 @@ namespace BCRPServer.Game.Items
 
         public Player[] GetPlayersObservingArray() => PlayersObserving.Select(x => x.Player).ToArray();
 
-        public string ToClientJson() => $"{(int)ContainerType}&{MaxWeight}|{string.Join('|', Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Container)))}";
+        public string ToClientJson() => $"{(int)ContainerType}&{MaxWeight}|{string.Join('|', Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.GroupTypes.Container)))}";
     }
 }

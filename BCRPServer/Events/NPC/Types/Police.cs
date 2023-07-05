@@ -91,7 +91,7 @@ namespace BCRPServer.Events.NPC.Types
             {
                 if (pData.Items[i] == numberplateItem)
                 {
-                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, i, numberplateItem.ToClientJson(Game.Items.Inventory.Groups.Items));
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, i, numberplateItem.ToClientJson(Game.Items.Inventory.GroupTypes.Items));
                 }
             }
 

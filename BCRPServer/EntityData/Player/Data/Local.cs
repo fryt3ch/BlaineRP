@@ -24,21 +24,21 @@ namespace BCRPServer
 
         /// <summary>Текущее оружие</summary>
         /// <value>Объект класса Game.Items.Weapon, null - если ничего</value>
-        public (Game.Items.Weapon WeaponItem, Game.Items.Inventory.Groups Group, int Slot)? ActiveWeapon
+        public (Game.Items.Weapon WeaponItem, Game.Items.Inventory.GroupTypes Group, int Slot)? ActiveWeapon
         {
             get
             {
                 if (Weapons[0]?.Equiped == true)
                 {
-                    return (Weapons[0], Game.Items.Inventory.Groups.Weapons, 0);
+                    return (Weapons[0], Game.Items.Inventory.GroupTypes.Weapons, 0);
                 }
                 else if (Weapons[1]?.Equiped == true)
                 {
-                    return (Weapons[1], Game.Items.Inventory.Groups.Weapons, 1);
+                    return (Weapons[1], Game.Items.Inventory.GroupTypes.Weapons, 1);
                 }
                 else if (Holster?.Items[0] is Game.Items.Weapon weapon && weapon.Equiped)
                 {
-                    return (weapon, Game.Items.Inventory.Groups.Holster, 2);
+                    return (weapon, Game.Items.Inventory.GroupTypes.Holster, 2);
                 }
 
                 return null;
@@ -184,7 +184,7 @@ namespace BCRPServer
         public List<Game.Estates.Furniture> Furniture { get => Info.Furniture; set => Info.Furniture = value; }
 
         /// <summary>Текущие предметы игрока, которые времено забрал сервер</summary>
-        public List<(Game.Items.Item Item, Game.Items.Inventory.Groups Group, int Slot)> TempItems { get => Player.GetData<List<(Game.Items.Item, Game.Items.Inventory.Groups, int)>>("TempItems"); set { if (value == null) Player.ResetData("TempItems"); else Player.SetData("TempItems", value); } }
+        public List<(Game.Items.Item Item, Game.Items.Inventory.GroupTypes Group, int Slot)> TempItems { get => Player.GetData<List<(Game.Items.Item, Game.Items.Inventory.GroupTypes, int)>>("TempItems"); set { if (value == null) Player.ResetData("TempItems"); else Player.SetData("TempItems", value); } }
 
         public bool InventoryBlocked { get => Player.GetData<bool?>("Inventory::Blocked") == true; set { if (!value) Player.ResetData("Inventory::Blocked"); else Player.SetData("Inventory::Blocked", value); } }
         #endregion

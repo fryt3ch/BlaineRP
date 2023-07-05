@@ -141,14 +141,14 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            if (!Enum.IsDefined(typeof(Game.Items.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), fromStr))
+            if (!Enum.IsDefined(typeof(Game.Items.Inventory.GroupTypes), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.GroupTypes), fromStr))
                 return;
 
             if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
                 return;
 
-            var to = (Game.Items.Inventory.Groups)toStr;
-            var from = (Game.Items.Inventory.Groups)fromStr;
+            var to = (Game.Items.Inventory.GroupTypes)toStr;
+            var from = (Game.Items.Inventory.GroupTypes)fromStr;
 
             if (!wb.IsNear(pData) || !wb.IsAccessableFor(pData))
             {
@@ -191,12 +191,12 @@ namespace BCRPServer.Events.Players
             if (amount < 1 || slot < 0)
                 return;
 
-            if (!Enum.IsDefined(typeof(Game.Items.Inventory.Groups), groupNum))
+            if (!Enum.IsDefined(typeof(Game.Items.Inventory.GroupTypes), groupNum))
                 return;
 
-            var group = (Game.Items.Inventory.Groups)groupNum;
+            var group = (Game.Items.Inventory.GroupTypes)groupNum;
 
-            if (group != Groups.CraftItems && group != Groups.CraftResult)
+            if (group != GroupTypes.CraftItems && group != GroupTypes.CraftResult)
                 return;
 
             var wb = pData.CurrentWorkbench;
@@ -220,7 +220,7 @@ namespace BCRPServer.Events.Players
             if (wb.CurrentPendingCraftData != null)
                 return;
 
-            var item = group == Groups.CraftItems ? wb.Items[slot] : wb.ResultItem;
+            var item = group == GroupTypes.CraftItems ? wb.Items[slot] : wb.ResultItem;
 
             if (item == null || item is Game.Items.WorkbenchTool)
                 return;
@@ -238,7 +238,7 @@ namespace BCRPServer.Events.Players
                 {
                     itemStackable.Amount = curAmount;
 
-                    if (group == Groups.CraftItems)
+                    if (group == GroupTypes.CraftItems)
                         wb.Items[slot] = item;
                     else
                         wb.ResultItem = item;
@@ -248,7 +248,7 @@ namespace BCRPServer.Events.Players
                 }
                 else
                 {
-                    if (group == Groups.CraftItems)
+                    if (group == GroupTypes.CraftItems)
                         wb.Items[slot] = null;
                     else
                         wb.ResultItem = null;
@@ -256,13 +256,13 @@ namespace BCRPServer.Events.Players
             }
             else
             {
-                if (group == Groups.CraftItems)
+                if (group == GroupTypes.CraftItems)
                     wb.Items[slot] = null;
                 else
                     wb.ResultItem = null;
             }
 
-            var upd = Game.Items.Item.ToClientJson(group == Groups.CraftItems ? wb.Items[slot] : wb.ResultItem, group);
+            var upd = Game.Items.Item.ToClientJson(group == GroupTypes.CraftItems ? wb.Items[slot] : wb.ResultItem, group);
 
             var players = wb.GetPlayersObservingArray();
 

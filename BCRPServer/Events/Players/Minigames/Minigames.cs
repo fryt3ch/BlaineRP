@@ -51,7 +51,7 @@ namespace BCRPServer.Events.Players
             if (fRod == null)
                 return;
 
-            fRod.StopUse(pData, Game.Items.Inventory.Groups.Items, curItem.Value.Slot, true);
+            fRod.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, curItem.Value.Slot, true);
 
             if (success)
             {
@@ -87,7 +87,7 @@ namespace BCRPServer.Events.Players
             if (shovel == null)
                 return;
 
-            shovel.StopUse(pData, Game.Items.Inventory.Groups.Items, curItem.Value.Slot, true);
+            shovel.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, curItem.Value.Slot, true);
 
             var rItem = Game.Items.Shovel.ItemData.GetRandomItem();
 

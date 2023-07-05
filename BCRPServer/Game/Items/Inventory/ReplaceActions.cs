@@ -6,15 +6,15 @@ namespace BCRPServer.Game.Items
 {
     public partial class Inventory
     {
-        private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, int, int, int, Results>>>()
+        private static Dictionary<GroupTypes, Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>> ReplaceActions = new Dictionary<GroupTypes, Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>>()
         {
             {
-                Groups.Items,
+                GroupTypes.Items,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -23,10 +23,10 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
@@ -34,12 +34,12 @@ namespace BCRPServer.Game.Items
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
                             {
                                 if (toItem.IsTemp || fromItem.IsTemp)
-                                    return Results.TempItem;
+                                    return ResultTypes.TempItem;
 
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount >= maxStack)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -74,7 +74,7 @@ namespace BCRPServer.Game.Items
                             else if (fromItem is Game.Items.IStackable targetItem && toItem == null && amount != -1 && amount < targetItem.Amount) // split to new item
                             {
                                 if (fromItem.IsTemp)
-                                    return Results.TempItem;
+                                    return ResultTypes.TempItem;
 
                                 targetItem.Amount -= amount;
                                 fromItem.Update();
@@ -92,17 +92,17 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items);
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, upd1, Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, upd1, GroupTypes.Items, slotTo, upd2);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -111,18 +111,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (fromItem is Game.Items.Bag)
-                                return Results.PlaceRestricted;
+                                return ResultTypes.PlaceRestricted;
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             float curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
                             float maxWeight = pData.Bag.Data.MaxWeight;
@@ -133,7 +133,7 @@ namespace BCRPServer.Game.Items
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount >= maxStack)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -143,7 +143,7 @@ namespace BCRPServer.Game.Items
                                     amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Results.NoSpace;
+                                        return ResultTypes.NoSpace;
                                 }
 
                                 if (toStackable.Amount + amount > maxStack)
@@ -180,7 +180,7 @@ namespace BCRPServer.Game.Items
                                     amount = (int)Math.Floor((maxWeight - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Results.NoSpace;
+                                        return ResultTypes.NoSpace;
                                 }
 
                                 targetItem.Amount -= amount;
@@ -198,30 +198,30 @@ namespace BCRPServer.Game.Items
                                 var addWeightBag = fromItem.Weight;
 
                                 if (addWeightBag - addWeightItems + curWeight > maxWeight || addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Items[slotFrom] = toItem;
                                 pData.Bag.Items[slotTo] = fromItem;
 
                                 if (fromItem is Game.Items.IUsable fromItemU && fromItemU.InUse)
-                                    fromItemU.StopUse(pData, Groups.Bag, slotTo, false);
+                                    fromItemU.StopUse(pData, GroupTypes.Bag, slotTo, false);
 
                                 pData.Bag.Update();
                                 MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag);
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, upd1, Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, upd1, GroupTypes.Bag, slotTo, upd2);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Weapons,
+                        GroupTypes.Weapons,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -230,10 +230,10 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Weapons[slotTo];
 
@@ -241,7 +241,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
                                 if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Weapons[slotTo] = fromWeapon;
                                 pData.Items[slotFrom] = toItem;
@@ -252,7 +252,7 @@ namespace BCRPServer.Game.Items
                             else if (fromItem is Game.Items.WeaponComponent wc)
                             {
                                 if (toItem == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 var wcData = wc.Data;
 
@@ -260,7 +260,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WWC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
 
                                 var wcIdx = (int)wcData.Type;
@@ -269,7 +269,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WHTC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
                                 else
                                 {
@@ -277,7 +277,7 @@ namespace BCRPServer.Game.Items
 
                                     pData.Items[slotFrom] = null;
 
-                                    player.InventoryUpdate(Groups.Weapons, slotTo, toItem.ToClientJson(Groups.Weapons), Groups.Items, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Items));
+                                    player.InventoryUpdate(GroupTypes.Weapons, slotTo, toItem.ToClientJson(GroupTypes.Weapons), GroupTypes.Items, slotFrom, Game.Items.Item.ToClientJson(null, GroupTypes.Items));
 
                                     toItem.UpdateWeaponComponents(pData);
 
@@ -285,7 +285,7 @@ namespace BCRPServer.Game.Items
 
                                     MySQL.CharacterItemsUpdate(pData.Info);
 
-                                    return Results.Success;
+                                    return ResultTypes.Success;
                                 }
                             }
                             #endregion
@@ -298,7 +298,7 @@ namespace BCRPServer.Game.Items
                                     amount = fromAmmo.Amount;
 
                                 if (toItem.Ammo == maxAmount)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (toItem.Ammo + amount > maxAmount)
                                 {
@@ -327,7 +327,7 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
@@ -351,14 +351,14 @@ namespace BCRPServer.Game.Items
                                 pData.Weapons[slotTo].Wear(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items), Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items), GroupTypes.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], GroupTypes.Weapons));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Holster,
+                        GroupTypes.Holster,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -367,24 +367,24 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Holster == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             #region Replace
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
                                 if (fromWeapon.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                                    return Results.PlaceRestricted;
+                                    return ResultTypes.PlaceRestricted;
 
                                 if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Holster.Items[0] = fromWeapon;
                                 pData.Items[slotFrom] = toItem;
@@ -395,7 +395,7 @@ namespace BCRPServer.Game.Items
                             else if (fromItem is Game.Items.WeaponComponent wc)
                             {
                                 if (toItem == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 var wcData = wc.Data;
 
@@ -403,7 +403,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WWC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
 
                                 var wcIdx = (int)wcData.Type;
@@ -412,7 +412,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WHTC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
                                 else
                                 {
@@ -420,7 +420,7 @@ namespace BCRPServer.Game.Items
 
                                     pData.Items[slotFrom] = null;
 
-                                    player.InventoryUpdate(Groups.Holster, 2, toItem.ToClientJson(Groups.Holster), Groups.Items, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Items));
+                                    player.InventoryUpdate(GroupTypes.Holster, 2, toItem.ToClientJson(GroupTypes.Holster), GroupTypes.Items, slotFrom, Game.Items.Item.ToClientJson(null, GroupTypes.Items));
 
                                     toItem.UpdateWeaponComponents(pData);
 
@@ -428,7 +428,7 @@ namespace BCRPServer.Game.Items
 
                                     MySQL.CharacterItemsUpdate(pData.Info);
 
-                                    return Results.Success;
+                                    return ResultTypes.Success;
                                 }
                             }
                             #endregion
@@ -438,7 +438,7 @@ namespace BCRPServer.Game.Items
                                 var maxAmount = toItem.Data.MaxAmmo;
 
                                 if (toItem.Ammo == maxAmount)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromAmmo.Amount)
                                     amount = fromAmmo.Amount;
@@ -470,7 +470,7 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
@@ -494,14 +494,14 @@ namespace BCRPServer.Game.Items
                                 ((Game.Items.Weapon)pData.Holster.Items[0]).Wear(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Items, slotFrom,  Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items), Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom,  Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items), GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], GroupTypes.Holster));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Clothes,
+                        GroupTypes.Clothes,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -510,26 +510,26 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Clothes.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Clothes[slotTo];
 
                             if (!(fromItem is Game.Items.Clothes fromClothes))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             int actualSlot;
 
                             if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Clothes[slotTo] = fromClothes;
                             pData.Items[slotFrom] = toItem;
@@ -537,20 +537,20 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterClothesUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], GroupTypes.Clothes);
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, upd1, Groups.Clothes, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, upd1, GroupTypes.Clothes, slotTo, upd2);
 
                             (pData.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Clothes[slotTo].Wear(pData);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Accessories,
+                        GroupTypes.Accessories,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -559,26 +559,26 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Accessories.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Accessories[slotTo];
 
                             if (!(fromItem is Game.Items.Clothes fromClothes))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             int actualSlot;
 
                             if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Accessories[slotTo] = fromClothes;
                             pData.Items[slotFrom] = toItem;
@@ -586,20 +586,20 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterAccessoriesUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], GroupTypes.Accessories);
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, upd1, Groups.Accessories, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, upd1, GroupTypes.Accessories, slotTo, upd2);
 
                             (pData.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Accessories[slotTo].Wear(pData);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.HolsterItem,
+                        GroupTypes.HolsterItem,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -608,18 +608,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Holster;
 
                             if (!(fromItem is Game.Items.Holster fromHolster))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (fromItem.IsTemp || toItem?.Items[0]?.IsTemp == true)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Holster = fromHolster;
                             pData.Items[slotFrom] = toItem;
@@ -637,14 +637,14 @@ namespace BCRPServer.Game.Items
                                 ((Game.Items.Weapon)pData.Holster.Items[0])?.Equip(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items), Groups.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items), GroupTypes.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, GroupTypes.HolsterItem));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.BagItem,
+                        GroupTypes.BagItem,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -653,18 +653,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag;
 
                             if (!(fromItem is Game.Items.Bag fromBag))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Bag = fromBag;
                             pData.Items[slotFrom] = toItem;
@@ -672,20 +672,20 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterBagUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag, GroupTypes.BagItem);
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, upd1, Groups.BagItem, 0, upd2);
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, upd1, GroupTypes.BagItem, 0, upd2);
 
                             (pData.Items[slotFrom] as Game.Items.Bag)?.Unwear(pData);
                             pData.Bag.Wear(pData);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Armour,
+                        GroupTypes.Armour,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -694,18 +694,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Items.Length <= slotFrom ? null : pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Armour;
 
                             if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                                return Results.Wounded;
+                                return ResultTypes.Wounded;
 
                             if (!(fromItem is Game.Items.Armour fromArmour))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && (pData.Items.Sum(x => x?.Weight ?? 0f) + toItem.Weight - fromItem.Weight) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Armour = fromArmour;
                             pData.Items[slotFrom] = toItem;
@@ -713,41 +713,41 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterArmourUpdate(pData.Info);
 
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Armour, GroupTypes.Armour);
 
                             (pData.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
                             pData.Armour.Wear(pData);
 
-                            player.InventoryUpdate(Groups.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], Groups.Items), Groups.Armour, 0, upd2);
+                            player.InventoryUpdate(GroupTypes.Items, slotFrom, Game.Items.Item.ToClientJson(pData.Items[slotFrom], GroupTypes.Items), GroupTypes.Armour, 0, upd2);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.Bag,
+                GroupTypes.Bag,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
@@ -757,7 +757,7 @@ namespace BCRPServer.Game.Items
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > toStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -807,37 +807,37 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag);
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1, Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, upd1, GroupTypes.Bag, slotTo, upd2);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (toItem is Game.Items.Bag)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             float curWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
 
@@ -847,7 +847,7 @@ namespace BCRPServer.Game.Items
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -857,7 +857,7 @@ namespace BCRPServer.Game.Items
                                     amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Results.NoSpace;
+                                        return ResultTypes.NoSpace;
                                 }
 
                                 if (toStackable.Amount + amount > maxStack)
@@ -894,7 +894,7 @@ namespace BCRPServer.Game.Items
                                     amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Results.NoSpace;
+                                        return ResultTypes.NoSpace;
                                 }
 
                                 targetItem.Amount -= amount;
@@ -912,7 +912,7 @@ namespace BCRPServer.Game.Items
                                 var addWeightBag = fromItem.Weight;
 
                                 if (addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT || addWeightItems - addWeightBag + pData.Bag.Weight - pData.Bag.BaseWeight > pData.Bag.Data.MaxWeight)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Bag.Items[slotFrom] = toItem;
                                 pData.Items[slotTo] = fromItem;
@@ -922,32 +922,32 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items);
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1, Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, upd1, GroupTypes.Items, slotTo, upd2);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Weapons,
+                        GroupTypes.Weapons,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Weapons[slotTo];
 
@@ -955,7 +955,7 @@ namespace BCRPServer.Game.Items
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
                                 if (toItem != null && pData.Bag.Weight - pData.Bag.BaseWeight + toItem.Weight - fromItem.Weight > pData.Bag.Data.MaxWeight)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Weapons[slotTo] = fromWeapon;
                                 pData.Bag.Items[slotFrom] = toItem;
@@ -966,7 +966,7 @@ namespace BCRPServer.Game.Items
                             else if (fromItem is Game.Items.WeaponComponent wc)
                             {
                                 if (toItem == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 var wcData = wc.Data;
 
@@ -974,7 +974,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WWC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
 
                                 var wcIdx = (int)wcData.Type;
@@ -983,7 +983,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WHTC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
                                 else
                                 {
@@ -991,7 +991,7 @@ namespace BCRPServer.Game.Items
 
                                     pData.Bag.Items[slotFrom] = null;
 
-                                    player.InventoryUpdate(Groups.Weapons, slotTo, toItem.ToClientJson(Groups.Weapons), Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Bag));
+                                    player.InventoryUpdate(GroupTypes.Weapons, slotTo, toItem.ToClientJson(GroupTypes.Weapons), GroupTypes.Bag, slotFrom, Game.Items.Item.ToClientJson(null, GroupTypes.Bag));
 
                                     toItem.UpdateWeaponComponents(pData);
 
@@ -999,7 +999,7 @@ namespace BCRPServer.Game.Items
 
                                     pData.Bag.Update();
 
-                                    return Results.Success;
+                                    return ResultTypes.Success;
                                 }
                             }
                             #endregion
@@ -1009,7 +1009,7 @@ namespace BCRPServer.Game.Items
                                 var maxAmount = toItem.Data.MaxAmmo;
 
                                 if (toItem.Ammo == maxAmount)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromAmmo.Amount)
                                     amount = fromAmmo.Amount;
@@ -1041,7 +1041,7 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
@@ -1065,29 +1065,29 @@ namespace BCRPServer.Game.Items
                                 pData.Weapons[slotTo].Wear(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag), Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag), GroupTypes.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], GroupTypes.Weapons));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Holster,
+                        GroupTypes.Holster,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Holster == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
@@ -1095,10 +1095,10 @@ namespace BCRPServer.Game.Items
                             if (fromItem is Game.Items.Weapon fromWeapon)
                             {
                                 if (fromWeapon.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                                    return Results.PlaceRestricted;
+                                    return ResultTypes.PlaceRestricted;
 
                                 if (toItem != null && pData.Bag.Weight - pData.Bag.BaseWeight + toItem.Weight - fromItem.Weight > pData.Bag.Data.MaxWeight)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Holster.Items[0] = fromWeapon;
                                 pData.Bag.Items[slotFrom] = toItem;
@@ -1109,7 +1109,7 @@ namespace BCRPServer.Game.Items
                             else if (fromItem is Game.Items.WeaponComponent wc)
                             {
                                 if (toItem == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 var wcData = wc.Data;
 
@@ -1117,7 +1117,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WWC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
 
                                 var wcIdx = (int)wcData.Type;
@@ -1126,7 +1126,7 @@ namespace BCRPServer.Game.Items
                                 {
                                     pData.Player.Notify("Inventory::WHTC");
 
-                                    return Results.Error;
+                                    return ResultTypes.Error;
                                 }
                                 else
                                 {
@@ -1134,7 +1134,7 @@ namespace BCRPServer.Game.Items
 
                                     pData.Bag.Items[slotFrom] = null;
 
-                                    player.InventoryUpdate(Groups.Holster, 2, toItem.ToClientJson(Groups.Holster), Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(null, Groups.Bag));
+                                    player.InventoryUpdate(GroupTypes.Holster, 2, toItem.ToClientJson(GroupTypes.Holster), GroupTypes.Bag, slotFrom, Game.Items.Item.ToClientJson(null, GroupTypes.Bag));
 
                                     toItem.UpdateWeaponComponents(pData);
 
@@ -1142,7 +1142,7 @@ namespace BCRPServer.Game.Items
 
                                     pData.Bag.Update();
 
-                                    return Results.Success;
+                                    return ResultTypes.Success;
                                 }
                             }
                             #endregion
@@ -1152,7 +1152,7 @@ namespace BCRPServer.Game.Items
                                 var maxAmount = toItem.Data.MaxAmmo;
 
                                 if (toItem.Ammo == maxAmount)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromAmmo.Amount)
                                     amount = fromAmmo.Amount;
@@ -1184,7 +1184,7 @@ namespace BCRPServer.Game.Items
                             }
                             #endregion
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Bag.Items[slotFrom] is Game.Items.Weapon weapon)
                             {
@@ -1208,53 +1208,53 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster.Items[0] as Game.Items.Weapon).Wear(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag), Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag), GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], GroupTypes.Holster));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Clothes,
+                        GroupTypes.Clothes,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Clothes.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Clothes[slotTo];
 
                             if (!(fromItem is Game.Items.Clothes fromClothes))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             int actualSlot;
 
                             if (!ClothesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Clothes[slotTo] = fromClothes;
                             pData.Bag.Items[slotFrom] = toItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], Groups.Clothes);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Clothes[slotTo], GroupTypes.Clothes);
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1, Groups.Clothes, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, upd1, GroupTypes.Clothes, slotTo, upd2);
 
                             (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Clothes[slotTo].Wear(pData);
@@ -1262,51 +1262,51 @@ namespace BCRPServer.Game.Items
                             pData.Bag.Update();
                             MySQL.CharacterClothesUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Accessories,
+                        GroupTypes.Accessories,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Accessories.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Accessories[slotTo];
 
                             if (!(fromItem is Game.Items.Clothes fromClothes))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             int actualSlot;
 
                             if (!AccessoriesSlots.TryGetValue(fromItem.Type, out actualSlot) || slotTo != actualSlot)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromClothes is Items.Clothes.IProp ? fromClothes.Slot + 1000 : fromClothes.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Accessories[slotTo] = fromClothes;
                             pData.Bag.Items[slotFrom] = toItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], Groups.Accessories);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Accessories[slotTo], GroupTypes.Accessories);
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, upd1, Groups.Accessories, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, upd1, GroupTypes.Accessories, slotTo, upd2);
 
                             (pData.Bag.Items[slotFrom] as Game.Items.Clothes)?.Unwear(pData);
                             pData.Accessories[slotTo].Wear(pData);
@@ -1314,32 +1314,32 @@ namespace BCRPServer.Game.Items
                             pData.Bag.Update();
                             MySQL.CharacterAccessoriesUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.HolsterItem,
+                        GroupTypes.HolsterItem,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Holster;
 
                             if (!(fromItem is Game.Items.Holster fromHolster))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Holster = fromHolster;
                             pData.Bag.Items[slotFrom] = toItem;
@@ -1353,82 +1353,82 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag), Groups.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag), GroupTypes.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, GroupTypes.HolsterItem));
 
                             pData.Bag.Update();
                             MySQL.CharacterHolsterUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Armour,
+                        GroupTypes.Armour,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Bag == null || slotFrom >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Bag.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                                return Results.Wounded;
+                                return ResultTypes.Wounded;
 
                             var toItem = pData.Armour;
 
                             if (!(fromItem is Game.Items.Armour fromArmour))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (toItem != null && toItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - fromItem.Weight > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Armour = fromArmour;
                             pData.Bag.Items[slotFrom] = toItem;
 
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Armour, GroupTypes.Armour);
 
                             (pData.Bag.Items[slotFrom] as Game.Items.Armour)?.Unwear(pData);
                             pData.Armour.Wear(pData);
 
-                            player.InventoryUpdate(Groups.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], Groups.Bag), Groups.Armour, 0, upd2);
+                            player.InventoryUpdate(GroupTypes.Bag, slotFrom, Game.Items.Item.ToClientJson(pData.Bag.Items[slotFrom], GroupTypes.Bag), GroupTypes.Armour, 0, upd2);
 
                             pData.Bag.Update();
                             MySQL.CharacterArmourUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.Weapons,
+                GroupTypes.Weapons,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Weapons,
+                        GroupTypes.Weapons,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Weapons[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Weapons[slotTo];
 
@@ -1442,37 +1442,37 @@ namespace BCRPServer.Game.Items
                                 pData.Weapons[slotTo].Equip(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons), Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons));
+                            player.InventoryUpdate(GroupTypes.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], GroupTypes.Weapons), GroupTypes.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], GroupTypes.Weapons));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Holster,
+                        GroupTypes.Holster,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Weapons[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Holster == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
                             if (fromItem.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                                return Results.PlaceRestricted;
+                                return ResultTypes.PlaceRestricted;
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             pData.Holster.Items[0] = fromItem;
                             pData.Weapons[slotFrom] = toItem;
@@ -1487,33 +1487,33 @@ namespace BCRPServer.Game.Items
                                 fromItem.Wear(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons), Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(GroupTypes.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], GroupTypes.Weapons), GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], GroupTypes.Holster));
 
                             pData.Holster.Update();
 
                             MySQL.CharacterWeaponsUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Weapons[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
@@ -1523,10 +1523,10 @@ namespace BCRPServer.Game.Items
                             if (amount != -1 || extractToExisting) // extract ammo from weapon
                             {
                                 if (fromItem.IsTemp)
-                                    return Results.TempItem;
+                                    return ResultTypes.TempItem;
 
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
@@ -1545,7 +1545,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     if (toAmmo.Amount + amount > maxStack)
@@ -1569,7 +1569,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     fromItem.Ammo -= amount;
@@ -1585,7 +1585,7 @@ namespace BCRPServer.Game.Items
                             else if (toItem == null || toItem is Game.Items.Weapon)
                             {
                                 if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Items[slotTo] = fromItem;
                                 pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
@@ -1594,7 +1594,7 @@ namespace BCRPServer.Game.Items
                                 MySQL.CharacterWeaponsUpdate(pData.Info);
                             }
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
                             #endregion
 
                             if (pData.Items[slotTo] is Game.Items.Weapon weapon)
@@ -1622,34 +1622,34 @@ namespace BCRPServer.Game.Items
                                 }
                             }
 
-                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items), Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.InventoryUpdate(GroupTypes.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items), GroupTypes.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], GroupTypes.Weapons));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Weapons.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Weapons[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             bool extractToExisting = toItem is Game.Items.Ammo && toItem.ID == fromItem.Data.AmmoID;
 
@@ -1657,7 +1657,7 @@ namespace BCRPServer.Game.Items
                             if (amount != -1 || extractToExisting)
                             {
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
@@ -1678,7 +1678,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     if (toAmmo.Amount + amount > maxStack)
@@ -1702,7 +1702,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     fromItem.Ammo -= amount;
@@ -1718,7 +1718,7 @@ namespace BCRPServer.Game.Items
                             else if (toItem == null || toItem is Game.Items.Weapon)
                             {
                                 if ((pData.Bag.Weight - pData.Bag.BaseWeight + fromItem.Weight - (toItem?.Weight ?? 0) > pData.Bag.Data.MaxWeight))
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Bag.Items[slotTo] = fromItem;
                                 pData.Weapons[slotFrom] = (Game.Items.Weapon)toItem;
@@ -1727,7 +1727,7 @@ namespace BCRPServer.Game.Items
                                 MySQL.CharacterWeaponsUpdate(pData.Info);
                             }
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
                             #endregion
 
                             if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
@@ -1756,41 +1756,41 @@ namespace BCRPServer.Game.Items
                             }
 
 
-                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag), Groups.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], Groups.Weapons));
+                            player.InventoryUpdate(GroupTypes.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag), GroupTypes.Weapons, slotFrom, Game.Items.Item.ToClientJson(pData.Weapons[slotFrom], GroupTypes.Weapons));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.Holster,
+                GroupTypes.Holster,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Weapons,
+                        GroupTypes.Weapons,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Holster == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Weapons.Length)
-                                return Results.PlaceRestricted;
+                                return ResultTypes.PlaceRestricted;
 
                             var toItem = pData.Weapons[slotTo];
 
                             if (toItem != null && toItem.Data.TopType != Game.Items.Weapon.ItemData.TopTypes.HandGun)
-                                return Results.PlaceRestricted;
+                                return ResultTypes.PlaceRestricted;
 
                             pData.Holster.Items[0] = toItem;
                             pData.Weapons[slotTo] = fromItem;
@@ -1803,33 +1803,33 @@ namespace BCRPServer.Game.Items
                             else
                                 pData.Weapons[slotTo].Unwear(pData);
 
-                            player.InventoryUpdate(Groups.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], Groups.Weapons), Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(GroupTypes.Weapons, slotTo, Game.Items.Item.ToClientJson(pData.Weapons[slotTo], GroupTypes.Weapons), GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], GroupTypes.Holster));
 
                             pData.Holster.Update();
 
                             MySQL.CharacterWeaponsUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Holster == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
@@ -1839,7 +1839,7 @@ namespace BCRPServer.Game.Items
                             if (amount != -1 || extractToExisting)
                             {
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
@@ -1858,7 +1858,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     if (toAmmo.Amount + amount > maxStack)
@@ -1882,7 +1882,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     fromItem.Ammo -= amount;
@@ -1898,7 +1898,7 @@ namespace BCRPServer.Game.Items
                             else if (toItem == null || toItem is Game.Items.Weapon)
                             {
                                 if (pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0) > Settings.MAX_INVENTORY_WEIGHT)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Items[slotTo] = fromItem;
                                 pData.Holster.Items[0] = (Game.Items.Weapon)toItem;
@@ -1907,7 +1907,7 @@ namespace BCRPServer.Game.Items
                                 pData.Holster.Update();
                             }
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
                             #endregion
 
                             if (pData.Items[slotTo] is Game.Items.Weapon weapon)
@@ -1935,29 +1935,29 @@ namespace BCRPServer.Game.Items
                                 }
                             }
 
-                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items), Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(GroupTypes.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items), GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], GroupTypes.Holster));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (pData.Holster == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = (Game.Items.Weapon)pData.Holster.Items[0];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
@@ -1967,7 +1967,7 @@ namespace BCRPServer.Game.Items
                             if (amount != -1 || extractToExisting)
                             {
                                 if (fromItem.Ammo == 0 || fromItem.Data.AmmoID == null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 if (amount == -1)
                                     amount = fromItem.Ammo;
@@ -1988,7 +1988,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     if (toAmmo.Amount + amount > maxStack)
@@ -2012,7 +2012,7 @@ namespace BCRPServer.Game.Items
                                         amount = (int)Math.Floor((maxWeight - curWeight) / ammoWeight);
 
                                         if (amount <= 0)
-                                            return Results.NoSpace;
+                                            return ResultTypes.NoSpace;
                                     }
 
                                     fromItem.Ammo -= amount;
@@ -2028,7 +2028,7 @@ namespace BCRPServer.Game.Items
                             else if (toItem == null || toItem is Game.Items.Weapon)
                             {
                                 if ((pData.Bag.Weight - pData.Bag.BaseWeight + fromItem.Weight - (toItem?.Weight ?? 0)) > pData.Bag.Data.MaxWeight)
-                                    return Results.NoSpace;
+                                    return ResultTypes.NoSpace;
 
                                 pData.Bag.Items[slotTo] = fromItem;
                                 pData.Holster.Items[0] = (Game.Items.Weapon)toItem;
@@ -2037,7 +2037,7 @@ namespace BCRPServer.Game.Items
                                 pData.Holster.Update();
                             }
                             else
-                                return Results.Error;
+                                return ResultTypes.Error;
                             #endregion
 
                             if (pData.Bag.Items[slotTo] is Game.Items.Weapon weapon)
@@ -2066,21 +2066,21 @@ namespace BCRPServer.Game.Items
                             }
 
 
-                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag), Groups.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], Groups.Holster));
+                            player.InventoryUpdate(GroupTypes.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag), GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(pData.Holster.Items[0], GroupTypes.Holster));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.Armour,
+                GroupTypes.Armour,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -2089,21 +2089,21 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Armour;
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                                return Results.Wounded;
+                                return ResultTypes.Wounded;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (toItem != null && (!(toItem is Game.Items.Armour)))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Armour = (Game.Items.Armour)toItem;
                             pData.Items[slotTo] = fromItem;
@@ -2111,19 +2111,19 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterArmourUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Armour, GroupTypes.Armour);
 
                             (pData.Items[slotTo] as Game.Items.Armour).Unwear(pData);
                             pData.Armour?.Wear(pData);
 
-                            player.InventoryUpdate(Groups.Armour, 0, upd1, Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items));
+                            player.InventoryUpdate(GroupTypes.Armour, 0, upd1, GroupTypes.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -2132,80 +2132,80 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Armour;
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Utils.GetCurrentTime().Subtract(pData.LastDamageTime).TotalMilliseconds < Settings.WOUNDED_USE_TIMEOUT)
-                                return Results.Wounded;
+                                return ResultTypes.Wounded;
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             if (pData.Bag == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (toItem != null && (!(toItem is Game.Items.Armour)))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((pData.Bag.Weight - pData.Bag.BaseWeight + fromItem.Weight - (toItem?.Weight ?? 0f)) > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Armour = (Game.Items.Armour)toItem;
                             pData.Bag.Items[slotTo] = fromItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Armour, Groups.Armour);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Armour, GroupTypes.Armour);
 
                             (pData.Bag.Items[slotTo] as Game.Items.Armour).Unwear(pData);
                             pData.Armour?.Wear(pData);
 
-                            player.InventoryUpdate(Groups.Armour, 0, upd1, Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag));
+                            player.InventoryUpdate(GroupTypes.Armour, 0, upd1, GroupTypes.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag));
 
                             pData.Bag.Update();
                             MySQL.CharacterArmourUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.Clothes,
+                GroupTypes.Clothes,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Clothes.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Clothes[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (toItem != null && toItem.Type != fromItem.Type)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Items[slotTo] = fromItem;
                             pData.Clothes[slotFrom] = (Game.Items.Clothes)toItem;
@@ -2213,63 +2213,63 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterClothesUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], GroupTypes.Clothes);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items);
 
-                            player.InventoryUpdate(Groups.Clothes, slotFrom, upd1, Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Clothes, slotFrom, upd1, GroupTypes.Items, slotTo, upd2);
 
                             (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             pData.Clothes[slotFrom]?.Wear(pData);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Clothes.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Clothes[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             if (pData.Bag == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (toItem != null && toItem.Type != fromItem.Type)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
                             var maxWeight = pData.Bag.Data.MaxWeight;
 
                             if ((curWeight + fromItem.Weight - (toItem?.Weight ?? 0f)) > maxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Bag.Items[slotTo] = fromItem;
                             pData.Clothes[slotFrom] = (Game.Items.Clothes)toItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], Groups.Clothes);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Clothes[slotFrom], GroupTypes.Clothes);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag);
 
-                            player.InventoryUpdate(Groups.Clothes, slotFrom, upd1, Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Clothes, slotFrom, upd1, GroupTypes.Bag, slotTo, upd2);
 
                             (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             pData.Clothes[slotFrom]?.Wear(pData);
@@ -2277,45 +2277,45 @@ namespace BCRPServer.Game.Items
                             pData.Bag.Update();
                             MySQL.CharacterClothesUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.Accessories,
+                GroupTypes.Accessories,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Accessories.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Accessories[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (toItem != null && toItem.Type != fromItem.Type)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((pData.Items.Sum(x => x?.Weight ?? 0f) + fromItem.Weight - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Items[slotTo] = fromItem;
                             pData.Accessories[slotFrom] = (Game.Items.Clothes)toItem;
@@ -2323,63 +2323,63 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterAccessoriesUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], GroupTypes.Accessories);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items);
 
-                            player.InventoryUpdate(Groups.Accessories, slotFrom, upd1, Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Accessories, slotFrom, upd1, GroupTypes.Items, slotTo, upd2);
 
                             (pData.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             (pData.Accessories[slotFrom])?.Wear(pData);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Accessories.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var fromItem = pData.Accessories[slotFrom];
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (fromItem.IsTemp)
-                                return Results.TempItem;
+                                return ResultTypes.TempItem;
 
                             if (pData.Bag == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (toItem != null && toItem.Type != fromItem.Type)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (Game.Data.Customization.IsUniformElementActive(pData, fromItem is Items.Clothes.IProp ? fromItem.Slot + 1000 : fromItem.Slot, true))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var curWeight = pData.Bag.Weight - pData.Bag.BaseWeight;
                             var maxWeight = pData.Bag.Data.MaxWeight;
 
                             if ((curWeight + fromItem.Weight - (toItem?.Weight ?? 0f)) > maxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Bag.Items[slotTo] = fromItem;
                             pData.Accessories[slotFrom] = (Game.Items.Clothes)toItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], Groups.Accessories);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Accessories[slotFrom], GroupTypes.Accessories);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag);
 
-                            player.InventoryUpdate(Groups.Accessories, slotFrom, upd1, Groups.Bag, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.Accessories, slotFrom, upd1, GroupTypes.Bag, slotTo, upd2);
 
                             (pData.Bag.Items[slotTo] as Game.Items.Clothes).Unwear(pData);
                             pData.Accessories[slotFrom]?.Wear(pData);
@@ -2387,19 +2387,19 @@ namespace BCRPServer.Game.Items
                             pData.Bag.Update();
                             MySQL.CharacterAccessoriesUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.BagItem,
+                GroupTypes.BagItem,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -2408,18 +2408,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Bag;
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (toItem != null && !(toItem is Game.Items.Bag))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Bag = (Game.Items.Bag)toItem;
                             pData.Items[slotTo] = fromItem;
@@ -2427,27 +2427,27 @@ namespace BCRPServer.Game.Items
                             MySQL.CharacterItemsUpdate(pData.Info);
                             MySQL.CharacterBagUpdate(pData.Info);
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag, Groups.BagItem);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Bag, GroupTypes.BagItem);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items);
 
-                            player.InventoryUpdate(Groups.BagItem, 0, upd1, Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(GroupTypes.BagItem, 0, upd1, GroupTypes.Items, slotTo, upd2);
 
                             (pData.Items[slotTo] as Game.Items.Bag).Unwear(pData);
                             pData.Bag?.Wear(pData);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }
             },
 
             {
-                Groups.HolsterItem,
+                GroupTypes.HolsterItem,
 
-                new Dictionary<Groups, Func<PlayerData, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -2456,18 +2456,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Holster;
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (toItem != null && !(toItem is Game.Items.Holster))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((fromItem.Weight + pData.Items.Sum(x => x?.Weight ?? 0f) - (toItem?.Weight ?? 0f)) > Settings.MAX_INVENTORY_WEIGHT)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Holster = (Game.Items.Holster)toItem;
                             pData.Items[slotTo] = fromItem;
@@ -2484,14 +2484,14 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], Groups.Items), Groups.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(GroupTypes.Items, slotTo, Game.Items.Item.ToClientJson(pData.Items[slotTo], GroupTypes.Items), GroupTypes.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, GroupTypes.HolsterItem));
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.Bag,
+                        GroupTypes.Bag,
 
                         (pData, slotTo, slotFrom, amount) =>
                         {
@@ -2500,18 +2500,18 @@ namespace BCRPServer.Game.Items
                             var fromItem = pData.Holster;
 
                             if (fromItem == null)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if (pData.Bag == null || slotTo >= pData.Bag.Items.Length)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             var toItem = pData.Bag.Items[slotTo];
 
                             if (toItem != null && !(toItem is Game.Items.Holster))
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             if ((fromItem.Weight + pData.Bag.Weight - pData.Bag.BaseWeight - (toItem?.Weight ?? 0f)) > pData.Bag.Data.MaxWeight)
-                                return Results.NoSpace;
+                                return ResultTypes.NoSpace;
 
                             pData.Holster = (Game.Items.Holster)toItem;
                             pData.Bag.Items[slotTo] = fromItem;
@@ -2525,12 +2525,12 @@ namespace BCRPServer.Game.Items
                                 (pData.Holster?.Items[0] as Game.Items.Weapon)?.Equip(pData);
                             }
 
-                            player.InventoryUpdate(Groups.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], Groups.Bag), Groups.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, Groups.HolsterItem));
+                            player.InventoryUpdate(GroupTypes.Bag, slotTo, Game.Items.Item.ToClientJson(pData.Bag.Items[slotTo], GroupTypes.Bag), GroupTypes.HolsterItem, 0, Game.Items.Item.ToClientJson(pData.Holster, GroupTypes.HolsterItem));
 
                             pData.Bag.Update();
                             MySQL.CharacterHolsterUpdate(pData.Info);
 
-                            return Results.Success;
+                            return ResultTypes.Success;
                         }
                     },
                 }

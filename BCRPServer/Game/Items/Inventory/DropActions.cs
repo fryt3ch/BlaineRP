@@ -5,10 +5,10 @@ namespace BCRPServer.Game.Items
 {
     public partial class Inventory
     {
-        private static Dictionary<Groups, Func<PlayerData, int, int, Game.Items.Item>> DropActions = new Dictionary<Groups, Func<PlayerData, int, int, Game.Items.Item>>()
+        private static Dictionary<GroupTypes, Func<PlayerData, int, int, Game.Items.Item>> DropActions = new Dictionary<GroupTypes, Func<PlayerData, int, int, Game.Items.Item>>()
         {
             {
-                Groups.Items,
+                GroupTypes.Items,
 
                 (pData, slot, amount) =>
                 {
@@ -47,12 +47,12 @@ namespace BCRPServer.Game.Items
                         pData.Items[slot] = null;
 
                         if (item is Game.Items.IUsable itemU && itemU.InUse)
-                            itemU.StopUse(pData, Groups.Items, -1, false);
+                            itemU.StopUse(pData, GroupTypes.Items, -1, false);
                     }
 
-                    var upd = Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items);
+                    var upd = Game.Items.Item.ToClientJson(pData.Items[slot], GroupTypes.Items);
 
-                    player.InventoryUpdate(Groups.Items, slot, upd);
+                    player.InventoryUpdate(GroupTypes.Items, slot, upd);
 
                     MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -61,7 +61,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.Bag,
+                GroupTypes.Bag,
 
                 (pData, slot, amount) =>
                 {
@@ -98,9 +98,9 @@ namespace BCRPServer.Game.Items
                     else
                         pData.Bag.Items[slot] = null;
 
-                    var upd = Game.Items.Item.ToClientJson(pData.Bag.Items[slot], Groups.Bag);
+                    var upd = Game.Items.Item.ToClientJson(pData.Bag.Items[slot], GroupTypes.Bag);
 
-                    player.InventoryUpdate(Groups.Bag, slot, upd);
+                    player.InventoryUpdate(GroupTypes.Bag, slot, upd);
 
                     pData.Bag.Update();
 
@@ -109,7 +109,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.Weapons,
+                GroupTypes.Weapons,
 
                 (pData, slot, amount) =>
                 {
@@ -123,7 +123,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.InventoryUpdate(Groups.Weapons, slot, Game.Items.Item.ToClientJson(null, Groups.Weapons));
+                    player.InventoryUpdate(GroupTypes.Weapons, slot, Game.Items.Item.ToClientJson(null, GroupTypes.Weapons));
 
                     if (item.Equiped)
                         item.Unequip(pData, false);
@@ -139,7 +139,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.Holster,
+                GroupTypes.Holster,
 
                 (pData, slot, amount) =>
                 {
@@ -153,7 +153,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.InventoryUpdate(Groups.Holster, 2, Game.Items.Item.ToClientJson(null, Groups.Holster));
+                    player.InventoryUpdate(GroupTypes.Holster, 2, Game.Items.Item.ToClientJson(null, GroupTypes.Holster));
 
                     if (item.Equiped)
                         item.Unequip(pData, false);
@@ -169,7 +169,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.Clothes,
+                GroupTypes.Clothes,
 
                 (pData, slot, amount) =>
                 {
@@ -186,7 +186,7 @@ namespace BCRPServer.Game.Items
                     if (Game.Data.Customization.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
                         return null;
 
-                    player.InventoryUpdate(Groups.Clothes, slot, Game.Items.Item.ToClientJson(null, Groups.Clothes));
+                    player.InventoryUpdate(GroupTypes.Clothes, slot, Game.Items.Item.ToClientJson(null, GroupTypes.Clothes));
 
                     item.Unwear(pData);
 
@@ -199,7 +199,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.Accessories,
+                GroupTypes.Accessories,
 
                 (pData, slot, amount) =>
                 {
@@ -216,7 +216,7 @@ namespace BCRPServer.Game.Items
                     if (Game.Data.Customization.IsUniformElementActive(pData, item is Items.Clothes.IProp ? item.Slot + 1000 : item.Slot, true))
                         return null;
 
-                    player.InventoryUpdate(Groups.Accessories, slot, Game.Items.Item.ToClientJson(null, Groups.Accessories));
+                    player.InventoryUpdate(GroupTypes.Accessories, slot, Game.Items.Item.ToClientJson(null, GroupTypes.Accessories));
 
                     item.Unwear(pData);
 
@@ -229,7 +229,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.BagItem,
+                GroupTypes.BagItem,
 
                 (pData, slot, amount) =>
                 {
@@ -240,7 +240,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.InventoryUpdate(Groups.BagItem, Game.Items.Item.ToClientJson(null, Groups.BagItem));
+                    player.InventoryUpdate(GroupTypes.BagItem, Game.Items.Item.ToClientJson(null, GroupTypes.BagItem));
 
                     item.Unwear(pData);
 
@@ -253,7 +253,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.HolsterItem,
+                GroupTypes.HolsterItem,
 
                 (pData, slot, amount) =>
                 {
@@ -264,7 +264,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.InventoryUpdate(Groups.HolsterItem, Game.Items.Item.ToClientJson(null, Groups.HolsterItem));
+                    player.InventoryUpdate(GroupTypes.HolsterItem, Game.Items.Item.ToClientJson(null, GroupTypes.HolsterItem));
 
                     item.Unwear(pData);
 
@@ -279,7 +279,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Groups.Armour,
+                GroupTypes.Armour,
 
                 (pData, slot, amount) =>
                 {
@@ -290,7 +290,7 @@ namespace BCRPServer.Game.Items
                     if (item == null)
                         return null;
 
-                    player.InventoryUpdate(Groups.Armour, Game.Items.Item.ToClientJson(null, Groups.Armour));
+                    player.InventoryUpdate(GroupTypes.Armour, Game.Items.Item.ToClientJson(null, GroupTypes.Armour));
 
                     item.Unwear(pData);
 

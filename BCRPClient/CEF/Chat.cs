@@ -46,11 +46,6 @@ namespace BCRPClient.CEF
             /// <summary>/amsg</summary>
             Admin,
 
-            /// <summary>/me над игроком</summary>
-            MePlayer,
-            /// <summary>/try над игроком</summary>
-            TryPlayer,
-
             Ban,
             BanHard,
             Kick,
@@ -202,7 +197,10 @@ namespace BCRPClient.CEF
 
                 var name = player != Player.LocalPlayer ? Utils.GetPlayerName(player, true, false, false) : Player.LocalPlayer.Name;
 
-                var name2 = player2 != null ? Utils.GetPlayerName(player2, true, false, true) : "null";
+                var name2 = player2 != null ? Utils.GetPlayerName(player2, true, false, true) : null;
+
+                if (name2 != null)
+                    message = string.Format(message, name2);
 
                 if (Settings.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');
@@ -217,10 +215,6 @@ namespace BCRPClient.CEF
                     AddToQueue("Messages.showOOC", timeStr, name, player.RemoteId, message);
                 else if (type == Type.Me)
                     AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message);
-                else if (type == Type.MePlayer)
-                    AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message + " " + name2);
-                else if (type == Type.TryPlayer)
-                    AddToQueue("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')) + " " + name2, message.Substring(message.IndexOf('*') + 1) == "1");
                 else if (type == Type.Do)
                     AddToQueue("Messages.showDo", timeStr, name, player.RemoteId, message);
                 else if (type == Type.Todo)

@@ -72,11 +72,11 @@ namespace BCRPServer.Events.Commands
 
             if (tData == null)
             {
-                Utils.MsgToAdmins(string.Format(Locale.Chat.Admin.SilentKick, $"{pData.Name} {pData.Surname} #{pData.CID}", $"NOT_AUTH ({target.Id})", reason));
+                Utils.MsgToAdmins(Language.Strings.Get("CHAT_ADMIN_KICK_SILENT_0", $"{pData.Name} {pData.Surname} #{pData.CID}", $"NOT_AUTH ({target.Id})", reason));
             }
             else
             {
-                Utils.MsgToAdmins(string.Format(Locale.Chat.Admin.SilentKick, $"{pData.Name} {pData.Surname} #{pData.CID}", $"{tData.Name} {tData.Surname} #{tData.CID}", reason));
+                Utils.MsgToAdmins(Language.Strings.Get("CHAT_ADMIN_KICK_SILENT_0", $"{pData.Name} {pData.Surname} #{pData.CID}", $"{tData.Name} {tData.Surname} #{tData.CID}", reason));
             }
 
             target.Notify("KickA", $"{pData.Name} {pData.Surname} #{pData.CID}", reason);

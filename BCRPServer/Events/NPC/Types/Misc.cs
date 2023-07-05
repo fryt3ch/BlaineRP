@@ -162,7 +162,7 @@ namespace BCRPServer.Events.NPC
                     pData.SetCash(newBalance);
 
                 foreach (var x in slotsToUpdate)
-                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, x, Game.Items.Item.ToClientJson(pData.Items[x], Game.Items.Inventory.Groups.Items));
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, x, Game.Items.Item.ToClientJson(pData.Items[x], Game.Items.Inventory.GroupTypes.Items));
 
                 return byte.MaxValue;
             }
@@ -228,7 +228,7 @@ namespace BCRPServer.Events.NPC
                     pData.SetCash(newBalance);
 
                 foreach (var x in slotsToUpdate)
-                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, x, Game.Items.Item.ToClientJson(pData.Items[x], Game.Items.Inventory.Groups.Items));
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, x, Game.Items.Item.ToClientJson(pData.Items[x], Game.Items.Inventory.GroupTypes.Items));
 
                 return byte.MaxValue;
             }

@@ -278,7 +278,7 @@ namespace BCRPServer.Game.Items.Craft
                 var str = CurrentPendingCraftData.CreationDate.ToString();
 
                 for (int j = 0; j < players1.Length; j++)
-                    players1[j].InventoryUpdate(Inventory.Groups.CraftResult, str);
+                    players1[j].InventoryUpdate(Inventory.GroupTypes.CraftResult, str);
 
                 return;
             }
@@ -343,14 +343,14 @@ namespace BCRPServer.Game.Items.Craft
 
             for (int i = 0; i < updateIdxes.Count; i++)
             {
-                var upd = Game.Items.Item.ToClientJson(Items[updateIdxes[i]], Inventory.Groups.CraftItems);
+                var upd = Game.Items.Item.ToClientJson(Items[updateIdxes[i]], Inventory.GroupTypes.CraftItems);
 
-                Utils.InventoryUpdate(Inventory.Groups.CraftItems, updateIdxes[i], upd, players);
+                Utils.InventoryUpdate(Inventory.GroupTypes.CraftItems, updateIdxes[i], upd, players);
             }
 
-            var upd1 = Game.Items.Item.ToClientJson(ResultItem, Inventory.Groups.CraftResult);
+            var upd1 = Game.Items.Item.ToClientJson(ResultItem, Inventory.GroupTypes.CraftResult);
 
-            Utils.InventoryUpdate(Inventory.Groups.CraftResult, upd1, players);
+            Utils.InventoryUpdate(Inventory.GroupTypes.CraftResult, upd1, players);
         }
 
         public void CancelCraft()
@@ -363,9 +363,9 @@ namespace BCRPServer.Game.Items.Craft
 
                 var players = GetPlayersObservingArray();
 
-                var upd = Game.Items.Item.ToClientJson(ResultItem, Inventory.Groups.CraftResult);
+                var upd = Game.Items.Item.ToClientJson(ResultItem, Inventory.GroupTypes.CraftResult);
 
-                Utils.InventoryUpdate(Inventory.Groups.CraftResult, upd, players);
+                Utils.InventoryUpdate(Inventory.GroupTypes.CraftResult, upd, players);
             }
         }
 
@@ -394,7 +394,7 @@ namespace BCRPServer.Game.Items.Craft
 
         public Player[] GetPlayersObservingArray() => PlayersObserving.Where(x => x.Player?.Exists == true).Select(x => x.Player).ToArray();
 
-        public string ToClientJson() => $"{(int)WorkbenchType}^{string.Join('|', Items.Select(x => Item.ToClientJson(x, Inventory.Groups.CraftItems)))}^{string.Join('|', StaticData.Tools.Select(x => Item.ToClientJson(x, Inventory.Groups.CraftTools)))}^{Item.ToClientJson(ResultItem, Inventory.Groups.CraftResult)}^{(CurrentPendingCraftData != null ? CurrentPendingCraftData.CreationDate.GetUnixTimestamp().ToString() : "")}";
+        public string ToClientJson() => $"{(int)WorkbenchType}^{string.Join('|', Items.Select(x => Item.ToClientJson(x, Inventory.GroupTypes.CraftItems)))}^{string.Join('|', StaticData.Tools.Select(x => Item.ToClientJson(x, Inventory.GroupTypes.CraftTools)))}^{Item.ToClientJson(ResultItem, Inventory.GroupTypes.CraftResult)}^{(CurrentPendingCraftData != null ? CurrentPendingCraftData.CreationDate.GetUnixTimestamp().ToString() : "")}";
     }
 
     public class ItemWorkbench : Workbench

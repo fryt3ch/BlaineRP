@@ -18,13 +18,13 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Groups), to) || !Enum.IsDefined(typeof(Groups), from))
+            if (!Enum.IsDefined(typeof(GroupTypes), to) || !Enum.IsDefined(typeof(GroupTypes), from))
                 return;
 
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            Replace(pData, (Groups)to, slotTo, (Groups)from, slotFrom, amount);
+            Replace(pData, (GroupTypes)to, slotTo, (GroupTypes)from, slotFrom, amount);
         }
 
         [RemoteEvent("Inventory::Action")]
@@ -40,13 +40,13 @@ namespace BCRPServer.Events.Players
             if (data == null)
                 return;
 
-            if (!Enum.IsDefined(typeof(Groups), group) || slot < 0 || action < 5)
+            if (!Enum.IsDefined(typeof(GroupTypes), group) || slot < 0 || action < 5)
                 return;
 
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            Action(pData, (Groups)group, slot, action, data.Split('&'));
+            Action(pData, (GroupTypes)group, slot, action, data.Split('&'));
         }
 
         [RemoteEvent("Inventory::Drop")]
@@ -59,13 +59,13 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (!Enum.IsDefined(typeof(Groups), slotStr) || slot < 0)
+            if (!Enum.IsDefined(typeof(GroupTypes), slotStr) || slot < 0)
                 return;
 
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            Drop(pData, (Groups)slotStr, slot, amount);
+            Drop(pData, (GroupTypes)slotStr, slot, amount);
         }
 
         [RemoteEvent("Inventory::Take")]
@@ -192,7 +192,7 @@ namespace BCRPServer.Events.Players
                 }
             }
 
-            player.InventoryUpdate(Groups.Items, freeIdx, pData.Items[freeIdx].ToClientJson(Groups.Items));
+            player.InventoryUpdate(GroupTypes.Items, freeIdx, pData.Items[freeIdx].ToClientJson(GroupTypes.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
         }
@@ -371,7 +371,7 @@ namespace BCRPServer.Events.Players
 
             pData.Items[freeIdx] = ws;
 
-            player.InventoryUpdate(Groups.Items, freeIdx, ws.ToClientJson(Groups.Items));
+            player.InventoryUpdate(GroupTypes.Items, freeIdx, ws.ToClientJson(GroupTypes.Items));
 
             player.TriggerEvent("Player::WSkins::Update", false, ws.ID);
 
@@ -409,7 +409,7 @@ namespace BCRPServer.Events.Players
             if (item == null)
                 return;
 
-            item.Value.Item.StopUse(pData, Groups.Items, item.Value.Slot, true);
+            item.Value.Item.StopUse(pData, GroupTypes.Items, item.Value.Slot, true);
         }
 
         [RemoteEvent("Player::ParachuteS")]
@@ -428,13 +428,13 @@ namespace BCRPServer.Events.Players
                 {
                     if (pData.Items[slot] is Game.Items.Parachute parachute && parachute.InUse)
                     {
-                        if (parachute.StopUse(pData, Groups.Items, slot, false, "DONT_CANCEL_TASK_CLIENT"))
+                        if (parachute.StopUse(pData, GroupTypes.Items, slot, false, "DONT_CANCEL_TASK_CLIENT"))
                         {
                             parachute.Delete();
 
                             pData.Items[slot] = null;
 
-                            player.InventoryUpdate(Groups.Items, slot, Game.Items.Item.ToClientJson(pData.Items[slot], Groups.Items));
+                            player.InventoryUpdate(GroupTypes.Items, slot, Game.Items.Item.ToClientJson(pData.Items[slot], GroupTypes.Items));
 
                             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -461,19 +461,19 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            if (slot < 0 || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), invGroupNum))
+            if (slot < 0 || !Enum.IsDefined(typeof(Game.Items.Inventory.GroupTypes), invGroupNum))
                 return false;
 
-            var invGroup = (Game.Items.Inventory.Groups)invGroupNum;
+            var invGroup = (Game.Items.Inventory.GroupTypes)invGroupNum;
 
-            if (invGroup != Groups.Items && invGroup != Groups.Bag)
+            if (invGroup != GroupTypes.Items && invGroup != GroupTypes.Bag)
                 return false;
 
             // text check
 
             Game.Items.Note note;
 
-            if (invGroup == Groups.Items)
+            if (invGroup == GroupTypes.Items)
             {
                 if (slot >= pData.Items.Length)
                     return false;

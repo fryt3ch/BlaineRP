@@ -29,7 +29,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public bool StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        public bool StartUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (InUse)
                 return false;
@@ -54,7 +54,7 @@ namespace BCRPServer.Game.Items
             return true;
         }
 
-        public bool StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        public bool StopUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (!InUse)
                 return false;

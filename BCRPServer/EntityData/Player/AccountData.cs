@@ -61,7 +61,7 @@ namespace BCRPServer
                 this.AdminID = AdminID;
             }
 
-            public override string ToString() => string.Format(Locale.General.GlobalBan.NotificationText, ID, Locale.General.GlobalBan.TypesNames[Type], Date.ToString(), Reason, AdminID);
+            public override string ToString() => Language.Strings.Get("GEN_BAN_GLOBAL_NTEXT_0", ID, Language.Strings.Get($"GEN_BAN_GLOBAL_BTYPES_{(int)Type}"), Date.ToString(), Reason, AdminID);
         }
     }
 }

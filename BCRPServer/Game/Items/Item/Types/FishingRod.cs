@@ -84,7 +84,7 @@ namespace BCRPServer.Game.Items
         [JsonIgnore]
         public bool InUse { get; set; }
 
-        public bool StartUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        public bool StartUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (InUse)
                 return false;
@@ -138,13 +138,13 @@ namespace BCRPServer.Game.Items
 
             if (needUpdate && slot >= 0)
             {
-                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group), Groups.Items, baitIdx, Game.Items.Item.ToClientJson(pData.Items[baitIdx], Groups.Items));
+                pData.Player.InventoryUpdate(group, slot, this.ToClientJson(group), GroupTypes.Items, baitIdx, Game.Items.Item.ToClientJson(pData.Items[baitIdx], GroupTypes.Items));
             }
 
             return true;
         }
 
-        public bool StopUse(PlayerData pData, Inventory.Groups group, int slot, bool needUpdate, params object[] args)
+        public bool StopUse(PlayerData pData, Inventory.GroupTypes group, int slot, bool needUpdate, params object[] args)
         {
             if (!InUse)
                 return false;

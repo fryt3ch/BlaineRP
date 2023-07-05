@@ -59,13 +59,13 @@ namespace BCRPServer.Sync
                 public bool SenderReady { get; set; }
                 public bool ReceiverReady { get; set; }
 
-                public (Game.Items.Inventory.Results Result, PlayerData PlayerError) Execute(PlayerData pData, PlayerData tData)
+                public (Game.Items.Inventory.ResultTypes Result, PlayerData PlayerError) Execute(PlayerData pData, PlayerData tData)
                 {
                     if (pData.Cash < SenderMoney)
-                        return (Game.Items.Inventory.Results.NotEnoughMoney, pData);
+                        return (Game.Items.Inventory.ResultTypes.NotEnoughMoney, pData);
 
                     if (tData.Cash < ReceiverMoney)
-                        return (Game.Items.Inventory.Results.NotEnoughMoney, tData);
+                        return (Game.Items.Inventory.ResultTypes.NotEnoughMoney, tData);
 
                     var senderFreeSlots = pData.Items.Where(x => x == null).Count();
 
@@ -76,12 +76,12 @@ namespace BCRPServer.Sync
                     var receiverRemoveSlots = receiverItems.Where(x => (((x.ItemRoot as Game.Items.IStackable)?.Amount ?? 1) - x.Amount) == 0).Count();
 
                     if (senderFreeSlots + senderRemoveSlots < receiverItems.Count)
-                        return (Game.Items.Inventory.Results.NoSpace, pData);
+                        return (Game.Items.Inventory.ResultTypes.NoSpace, pData);
 
                     var receiverFreeSlots = tData.Items.Where(x => x == null).Count();
 
                     if (receiverFreeSlots + receiverRemoveSlots < senderItems.Count)
-                        return (Game.Items.Inventory.Results.NoSpace, pData);
+                        return (Game.Items.Inventory.ResultTypes.NoSpace, pData);
 
                     var senderCurrentWeight = pData.Items.Sum(x => x?.Weight ?? 0f);
 
@@ -89,35 +89,35 @@ namespace BCRPServer.Sync
                     var receiverRemoveWeight = receiverItems.Sum(x => x.Amount * x.ItemRoot.BaseWeight);
 
                     if (senderCurrentWeight - senderRemoveWeight + receiverRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
-                        return (Game.Items.Inventory.Results.NoSpace, pData);
+                        return (Game.Items.Inventory.ResultTypes.NoSpace, pData);
 
                     var receiverCurrentWeight = tData.Items.Sum(x => x?.Weight ?? 0f);
 
                     if (receiverCurrentWeight - receiverRemoveWeight + senderRemoveWeight > Settings.MAX_INVENTORY_WEIGHT)
-                        return (Game.Items.Inventory.Results.NoSpace, tData);
+                        return (Game.Items.Inventory.ResultTypes.NoSpace, tData);
 
                     foreach (var x in SenderVehicles)
                     {
                         if (x.OwnerID != pData.CID)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
                     }
 
                     foreach (var x in ReceiverVehicles)
                     {
                         if (x.OwnerID != tData.CID)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
                     }
 
                     foreach (var x in SenderBusinesses)
                     {
                         if (x.Owner != pData.Info)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
                     }
 
                     foreach (var x in ReceiverBusinesses)
                     {
                         if (x.Owner != pData.Info)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
                     }
 
                     var sHCount = 0;
@@ -125,7 +125,7 @@ namespace BCRPServer.Sync
                     foreach (var x in SenderHouseBases)
                     {
                         if (x.Owner != pData.Info)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
 
                         if (x.Type == Game.Estates.HouseBase.Types.House)
                             sHCount++;
@@ -136,7 +136,7 @@ namespace BCRPServer.Sync
                     foreach (var x in ReceiverHouseBases)
                     {
                         if (x.Owner != pData.Info)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
 
                         if (x.Type == Game.Estates.HouseBase.Types.House)
                             rHCount++;
@@ -145,13 +145,13 @@ namespace BCRPServer.Sync
                     foreach (var x in SenderGarages)
                     {
                         if (x.Owner != pData.Info)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
                     }
 
                     foreach (var x in ReceiverGarages)
                     {
                         if (x.Owner != pData.Info)
-                            return (Game.Items.Inventory.Results.Error, null);
+                            return (Game.Items.Inventory.ResultTypes.Error, null);
                     }
 
                     var pFreeVehSlots = pData.VehicleSlots;
@@ -164,7 +164,7 @@ namespace BCRPServer.Sync
                         pData.Player.Notify("Trade::MVOW", pData.OwnedVehicles.Count);
                         tData.Player.Notify("Trade::EOP");
 
-                        return (Game.Items.Inventory.Results.NotEnoughVehicleSlots, pData);
+                        return (Game.Items.Inventory.ResultTypes.NotEnoughVehicleSlots, pData);
                     }
 
                     var tFreeVehSlots = tData.VehicleSlots;
@@ -177,7 +177,7 @@ namespace BCRPServer.Sync
                         tData.Player.Notify("Trade::MVOW", tData.OwnedVehicles.Count);
                         pData.Player.Notify("Trade::EOP");
 
-                        return (Game.Items.Inventory.Results.NotEnoughVehicleSlots, tData);
+                        return (Game.Items.Inventory.ResultTypes.NotEnoughVehicleSlots, tData);
                     }
 
                     if (ReceiverBusinesses.Count > 0)
@@ -186,7 +186,7 @@ namespace BCRPServer.Sync
                         {
                             tData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NoBusinessLicense, pData);
+                            return (Game.Items.Inventory.ResultTypes.NoBusinessLicense, pData);
                         }
 
                         if ((pData.BusinessesSlots + SenderBusinesses.Count - ReceiverBusinesses.Count) < 0)
@@ -194,7 +194,7 @@ namespace BCRPServer.Sync
                             pData.Player.Notify("Trade::MBOW", pData.OwnedBusinesses.Count);
                             tData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NotEnoughBusinessSlots, pData);
+                            return (Game.Items.Inventory.ResultTypes.NotEnoughBusinessSlots, pData);
                         }
                     }
 
@@ -204,7 +204,7 @@ namespace BCRPServer.Sync
                         {
                             pData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NoBusinessLicense, tData);
+                            return (Game.Items.Inventory.ResultTypes.NoBusinessLicense, tData);
                         }
 
                         if ((tData.BusinessesSlots + ReceiverBusinesses.Count - SenderBusinesses.Count) < 0)
@@ -212,7 +212,7 @@ namespace BCRPServer.Sync
                             tData.Player.Notify("Trade::MBOW", tData.OwnedBusinesses.Count);
                             pData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NotEnoughBusinessSlots, tData);
+                            return (Game.Items.Inventory.ResultTypes.NotEnoughBusinessSlots, tData);
                         }
                     }
 
@@ -221,7 +221,7 @@ namespace BCRPServer.Sync
                         pData.Player.Notify("Trade::MGOW", pData.OwnedGarages.Count);
                         tData.Player.Notify("Trade::EOP");
 
-                        return (Game.Items.Inventory.Results.NotEnoughGarageSlots, pData);
+                        return (Game.Items.Inventory.ResultTypes.NotEnoughGarageSlots, pData);
                     }
 
                     if (SenderGarages.Count > 0 && (tData.GaragesSlots + ReceiverGarages.Count - SenderGarages.Count) < 0)
@@ -229,7 +229,7 @@ namespace BCRPServer.Sync
                         tData.Player.Notify("Trade::MGOW", tData.OwnedGarages.Count);
                         pData.Player.Notify("Trade::EOP");
 
-                        return (Game.Items.Inventory.Results.NotEnoughGarageSlots, tData);
+                        return (Game.Items.Inventory.ResultTypes.NotEnoughGarageSlots, tData);
                     }
 
                     if (rHCount > 0)
@@ -239,7 +239,7 @@ namespace BCRPServer.Sync
                             pData.Player.Notify("Trade::ASH");
                             tData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.SettledToHouse, pData);
+                            return (Game.Items.Inventory.ResultTypes.SettledToHouse, pData);
                         }
 
                         if ((pData.HouseSlots + sHCount - rHCount) < 0)
@@ -247,7 +247,7 @@ namespace BCRPServer.Sync
                             pData.Player.Notify("Trade::MHOW", pData.OwnedHouses.Count);
                             tData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NotEnoughHouseSlots, pData);
+                            return (Game.Items.Inventory.ResultTypes.NotEnoughHouseSlots, pData);
                         }
                     }
 
@@ -258,7 +258,7 @@ namespace BCRPServer.Sync
                             tData.Player.Notify("Trade::ASH");
                             pData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.SettledToHouse, tData);
+                            return (Game.Items.Inventory.ResultTypes.SettledToHouse, tData);
                         }
 
                         if ((tData.HouseSlots + rHCount - sHCount) < 0)
@@ -266,7 +266,7 @@ namespace BCRPServer.Sync
                             tData.Player.Notify("Trade::MHOW", tData.OwnedHouses.Count);
                             pData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NotEnoughHouseSlots, tData);
+                            return (Game.Items.Inventory.ResultTypes.NotEnoughHouseSlots, tData);
                         }
                     }
 
@@ -280,7 +280,7 @@ namespace BCRPServer.Sync
                             pData.Player.Notify("Trade::ASA");
                             tData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.SettledToApartments, pData);
+                            return (Game.Items.Inventory.ResultTypes.SettledToApartments, pData);
                         }
 
                         if ((pData.ApartmentsSlots + sHCount - rHCount) < 0)
@@ -288,7 +288,7 @@ namespace BCRPServer.Sync
                             pData.Player.Notify("Trade::MAOW", pData.OwnedApartments.Count);
                             tData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NotEnoughApartmentsSlots, pData);
+                            return (Game.Items.Inventory.ResultTypes.NotEnoughApartmentsSlots, pData);
                         }
                     }
 
@@ -299,7 +299,7 @@ namespace BCRPServer.Sync
                             tData.Player.Notify("Trade::ASA");
                             pData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.SettledToApartments, tData);
+                            return (Game.Items.Inventory.ResultTypes.SettledToApartments, tData);
                         }
 
                         if ((tData.ApartmentsSlots + rHCount - sHCount) < 0)
@@ -307,7 +307,7 @@ namespace BCRPServer.Sync
                             tData.Player.Notify("Trade::MAOW", tData.OwnedApartments.Count);
                             pData.Player.Notify("Trade::EOP");
 
-                            return (Game.Items.Inventory.Results.NotEnoughApartmentsSlots, tData);
+                            return (Game.Items.Inventory.ResultTypes.NotEnoughApartmentsSlots, tData);
                         }
                     }
 
@@ -389,7 +389,7 @@ namespace BCRPServer.Sync
                                 {
                                     senderItemS.Amount -= senderItems[i].Amount;
 
-                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
+                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.GroupTypes.Items)));
 
                                     break;
                                 }
@@ -397,7 +397,7 @@ namespace BCRPServer.Sync
                             senderItems[i].ItemRoot = Game.Items.Stuff.CreateItem(senderItems[i].ItemRoot.ID, 0, senderItems[i].Amount, false);
 
                             if (senderItems[i].ItemRoot == null)
-                                return (Game.Items.Inventory.Results.Error, null);
+                                return (Game.Items.Inventory.ResultTypes.Error, null);
                         }
                         else
                         {
@@ -406,7 +406,7 @@ namespace BCRPServer.Sync
                                 {
                                     pData.Items[j] = null;
 
-                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
+                                    senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.GroupTypes.Items)));
 
                                     break;
                                 }
@@ -422,7 +422,7 @@ namespace BCRPServer.Sync
                                 {
                                     receiverItemS.Amount -= receiverItems[i].Amount;
 
-                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
+                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.GroupTypes.Items)));
 
                                     break;
                                 }
@@ -430,7 +430,7 @@ namespace BCRPServer.Sync
                             receiverItems[i].ItemRoot = Game.Items.Stuff.CreateItem(receiverItems[i].ItemRoot.ID, 0, receiverItems[i].Amount, false);
 
                             if (receiverItems[i].ItemRoot == null)
-                                return (Game.Items.Inventory.Results.Error, null);
+                                return (Game.Items.Inventory.ResultTypes.Error, null);
                         }
                         else
                         {
@@ -439,7 +439,7 @@ namespace BCRPServer.Sync
                                 {
                                     tData.Items[j] = null;
 
-                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
+                                    receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.GroupTypes.Items)));
 
                                     break;
                                 }
@@ -454,7 +454,7 @@ namespace BCRPServer.Sync
                             {
                                 tData.Items[j] = senderItems[i].ItemRoot;
 
-                                receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.Groups.Items)));
+                                receiverSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(tData.Items[j], Game.Items.Inventory.GroupTypes.Items)));
 
                                 break;
                             }
@@ -469,7 +469,7 @@ namespace BCRPServer.Sync
                             {
                                 pData.Items[j] = receiverItems[i].ItemRoot;
 
-                                senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.Groups.Items)));
+                                senderSlotsToUpdate.Add((j, Game.Items.Item.ToClientJson(pData.Items[j], Game.Items.Inventory.GroupTypes.Items)));
 
                                 break;
                             }
@@ -481,31 +481,31 @@ namespace BCRPServer.Sync
 
                     if (senderSlotsToUpdate.Count % 2 != 0)
                     {
-                        pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[0].Item1, senderSlotsToUpdate[0].Item2);
+                        pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, senderSlotsToUpdate[0].Item1, senderSlotsToUpdate[0].Item2);
 
                         for (int i = 1; i < senderSlotsToUpdate.Count; i += 2)
-                            pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i + 1].Item1, senderSlotsToUpdate[i + 1].Item2);
+                            pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2, Game.Items.Inventory.GroupTypes.Items, senderSlotsToUpdate[i + 1].Item1, senderSlotsToUpdate[i + 1].Item2);
                     }
                     else
                     {
                         for (int i = 0; i < senderSlotsToUpdate.Count; i += 2)
-                            pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, senderSlotsToUpdate[i + 1].Item1, senderSlotsToUpdate[i + 1].Item2);
+                            pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, senderSlotsToUpdate[i].Item1, senderSlotsToUpdate[i].Item2, Game.Items.Inventory.GroupTypes.Items, senderSlotsToUpdate[i + 1].Item1, senderSlotsToUpdate[i + 1].Item2);
                     }
 
                     if (receiverSlotsToUpdate.Count % 2 != 0)
                     {
-                        tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[0].Item1, receiverSlotsToUpdate[0].Item2);
+                        tData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, receiverSlotsToUpdate[0].Item1, receiverSlotsToUpdate[0].Item2);
 
                         for (int i = 1; i < receiverSlotsToUpdate.Count; i += 2)
-                            tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i + 1].Item1, receiverSlotsToUpdate[i + 1].Item2);
+                            tData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2, Game.Items.Inventory.GroupTypes.Items, receiverSlotsToUpdate[i + 1].Item1, receiverSlotsToUpdate[i + 1].Item2);
                     }
                     else
                     {
                         for (int i = 0; i < receiverSlotsToUpdate.Count; i += 2)
-                            tData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2, Game.Items.Inventory.Groups.Items, receiverSlotsToUpdate[i + 1].Item1, receiverSlotsToUpdate[i + 1].Item2);
+                            tData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, receiverSlotsToUpdate[i].Item1, receiverSlotsToUpdate[i].Item2, Game.Items.Inventory.GroupTypes.Items, receiverSlotsToUpdate[i + 1].Item1, receiverSlotsToUpdate[i + 1].Item2);
                     }
 
-                    return (Game.Items.Inventory.Results.Success, null);
+                    return (Game.Items.Inventory.ResultTypes.Success, null);
                 }
 
                 public Trade()

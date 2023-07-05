@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using GTANetworkAPI;
+using Newtonsoft.Json;
 using System;
 
 namespace BCRPServer
@@ -34,6 +35,11 @@ namespace BCRPServer
                 this.DoctorName = $"{DoctorInfo.Name} {DoctorInfo.Surname}";
 
                 this.Diagnose = Diagnose;
+            }
+
+            public void Show(Player target, PlayerData.PlayerInfo holder)
+            {
+                target.TriggerEvent("Documents::Show", 3, holder.Name, holder.Surname, Diagnose, IssueFraction, DoctorName, IssueDate.SerializeToJson());
             }
         }
     }

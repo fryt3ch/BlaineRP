@@ -276,7 +276,7 @@ namespace BCRPServer.Events.Players.Misc
 
             if (sItem.ItemRoot is Game.Items.IUsable usable && usable.InUse)
             {
-                usable.StopUse(rData, Game.Items.Inventory.Groups.Items, rItemIdx, false);
+                usable.StopUse(rData, Game.Items.Inventory.GroupTypes.Items, rItemIdx, false);
             }
 
             if (!pData.TryGiveExistingItem(sItem.ItemRoot, amount, true, true))
@@ -309,7 +309,7 @@ namespace BCRPServer.Events.Players.Misc
                 stall.Items.RemoveAt(itemIdx);
             }
 
-            rData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Items, rItemIdx, Game.Items.Item.ToClientJson(rData.Items[rItemIdx], Game.Items.Inventory.Groups.Items));
+            rData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, rItemIdx, Game.Items.Item.ToClientJson(rData.Items[rItemIdx], Game.Items.Inventory.GroupTypes.Items));
 
             rData.Player.TriggerEvent("MarketStall::ATBH", itemUid, sItem.ItemRoot.ID, amount, totalMoney);
 

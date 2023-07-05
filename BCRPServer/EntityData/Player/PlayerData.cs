@@ -502,13 +502,13 @@ namespace BCRPServer
 
                     new JArray()
                     {
-                        Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Weapons)).SerializeToJson(),
-                        Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.Groups.Armour),
-                        Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Items)).SerializeToJson(),
-                        Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Clothes)).SerializeToJson(),
-                        Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.Groups.Accessories)).SerializeToJson(),
-                        Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.Groups.BagItem),
-                        Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.Groups.HolsterItem),
+                        Weapons.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.GroupTypes.Weapons)).SerializeToJson(),
+                        Game.Items.Item.ToClientJson(Armour, Game.Items.Inventory.GroupTypes.Armour),
+                        Items.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.GroupTypes.Items)).SerializeToJson(),
+                        Clothes.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.GroupTypes.Clothes)).SerializeToJson(),
+                        Accessories.Select(x => Game.Items.Item.ToClientJson(x, Game.Items.Inventory.GroupTypes.Accessories)).SerializeToJson(),
+                        Game.Items.Item.ToClientJson(Bag, Game.Items.Inventory.GroupTypes.BagItem),
+                        Game.Items.Item.ToClientJson(Holster, Game.Items.Inventory.GroupTypes.HolsterItem),
                     }
                 },
 
@@ -800,6 +800,16 @@ namespace BCRPServer
             Player.DetachObject(aData.Type);
 
             return true;
+        }
+
+        public void ShowPassport(Player target)
+        {
+            target.TriggerEvent("Documents::Show", 0, Name, Surname, Sex, BirthDate.SerializeToJson(), null, CID, CreationDate.SerializeToJson(), false, Info.LosSantosAllowed);
+        }
+
+        public void ShowLicences(Player target)
+        {
+            target.TriggerEvent("Documents::Show", 1, Name, Surname, Licenses);
         }
     }
 }

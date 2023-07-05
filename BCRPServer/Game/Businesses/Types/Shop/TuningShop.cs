@@ -302,7 +302,7 @@ namespace BCRPServer.Game.Businesses
 
                         keyItem.Update();
 
-                        pData.Player.InventoryUpdate(Items.Inventory.Groups.Items, keyItemIdx, keyItem.ToClientJson(Items.Inventory.Groups.Items));
+                        pData.Player.InventoryUpdate(Items.Inventory.GroupTypes.Items, keyItemIdx, keyItem.ToClientJson(Items.Inventory.GroupTypes.Items));
                     }
                     else
                     {

@@ -7,35 +7,35 @@ namespace BCRPServer.Game.Items.Craft
 {
     public abstract partial class Workbench
     {
-        private static Dictionary<Groups, Dictionary<Groups, Func<PlayerData, Workbench, int, int, int, Results>>> ReplaceActions = new Dictionary<Groups, Dictionary<Groups, Func<PlayerData, Workbench, int, int, int, Results>>>()
+        private static Dictionary<GroupTypes, Dictionary<GroupTypes, Func<PlayerData, Workbench, int, int, int, ResultTypes>>> ReplaceActions = new Dictionary<GroupTypes, Dictionary<GroupTypes, Func<PlayerData, Workbench, int, int, int, ResultTypes>>>()
         {
             {
-                Groups.Items,
+                GroupTypes.Items,
 
-                new Dictionary<Groups, Func<PlayerData, Workbench, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, Workbench, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.CraftItems,
+                        GroupTypes.CraftItems,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= pData.Items.Length || slotTo >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = pData.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = wb.Items[slotTo];
 
                             if (fromItem.IsTemp)
-                                return Game.Items.Inventory.Results.TempItem;
+                                return Game.Items.Inventory.ResultTypes.TempItem;
 
                             if (toItem is WorkbenchTool)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
 /*                            if (!wb.IsItemAllowed(fromItem))
                                 return Game.Items.Inventory.Results.Error;*/
@@ -46,7 +46,7 @@ namespace BCRPServer.Game.Items.Craft
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Game.Items.Inventory.Results.Error;
+                                    return Game.Items.Inventory.ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -93,61 +93,61 @@ namespace BCRPServer.Game.Items.Craft
                                 var addWeightBag = fromItem.Weight;
 
                                 if ((addWeightItems - addWeightBag + pData.Items.Sum(x => x?.Weight ?? 0f) > Settings.MAX_INVENTORY_WEIGHT))
-                                    return Game.Items.Inventory.Results.NoSpace;
+                                    return Game.Items.Inventory.ResultTypes.NoSpace;
 
                                 pData.Items[slotFrom] = toItem;
                                 wb.Items[slotTo] = fromItem;
 
                                 if (fromItem is Game.Items.IUsable fromItemU && fromItemU.InUse)
-                                    fromItemU.StopUse(pData, Game.Items.Inventory.Groups.CraftItems, slotTo, false);
+                                    fromItemU.StopUse(pData, Game.Items.Inventory.GroupTypes.CraftItems, slotTo, false);
 
                                 MySQL.CharacterItemsUpdate(pData.Info);
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Game.Items.Inventory.Groups.Items);
-                            var upd2 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.Groups.CraftItems);
+                            var upd1 = Game.Items.Item.ToClientJson(pData.Items[slotFrom], Game.Items.Inventory.GroupTypes.Items);
+                            var upd2 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.GroupTypes.CraftItems);
 
-                            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slotFrom, upd1);
+                            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, slotFrom, upd1);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftItems, slotTo, upd2, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftItems, slotTo, upd2, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     }
                 }
             },
 
             {
-                Groups.CraftItems,
+                GroupTypes.CraftItems,
 
-                new Dictionary<Groups, Func<PlayerData, Workbench, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, Workbench, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = wb.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
                             if (fromItem is WorkbenchTool)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
 /*                            if (!wb.IsItemAllowed(toItem))
                                 return Game.Items.Inventory.Results.Error;*/
@@ -160,7 +160,7 @@ namespace BCRPServer.Game.Items.Craft
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Game.Items.Inventory.Results.Error;
+                                    return Game.Items.Inventory.ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -170,7 +170,7 @@ namespace BCRPServer.Game.Items.Craft
                                     amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Game.Items.Inventory.Results.NoSpace;
+                                        return Game.Items.Inventory.ResultTypes.NoSpace;
                                 }
 
                                 if (toStackable.Amount + amount > maxStack)
@@ -205,7 +205,7 @@ namespace BCRPServer.Game.Items.Craft
                                     amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Game.Items.Inventory.Results.NoSpace;
+                                        return Game.Items.Inventory.ResultTypes.NoSpace;
                                 }
 
                                 targetItem.Amount -= amount;
@@ -223,7 +223,7 @@ namespace BCRPServer.Game.Items.Craft
                                 var addWeightBag = fromItem.Weight;
 
                                 if ((addWeightBag - addWeightItems + curWeight > Settings.MAX_INVENTORY_WEIGHT))
-                                    return Game.Items.Inventory.Results.NoSpace;
+                                    return Game.Items.Inventory.ResultTypes.NoSpace;
 
                                 wb.Items[slotFrom] = toItem;
                                 pData.Items[slotTo] = fromItem;
@@ -232,37 +232,37 @@ namespace BCRPServer.Game.Items.Craft
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotFrom], Game.Items.Inventory.Groups.CraftItems);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Game.Items.Inventory.Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotFrom], Game.Items.Inventory.GroupTypes.CraftItems);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Game.Items.Inventory.GroupTypes.Items);
 
-                            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, slotTo, upd2);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftItems, slotFrom, upd1, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftItems, slotFrom, upd1, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.CraftItems,
+                        GroupTypes.CraftItems,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = wb.Items[slotFrom];
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             if (slotTo >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = wb.Items[slotTo];
 
@@ -272,7 +272,7 @@ namespace BCRPServer.Game.Items.Craft
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Game.Items.Inventory.Results.Error;
+                                    return Game.Items.Inventory.ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -318,37 +318,37 @@ namespace BCRPServer.Game.Items.Craft
                             }
                             #endregion
 
-                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotFrom], Game.Items.Inventory.Groups.CraftItems);
-                            var upd2 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.Groups.CraftItems);
+                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotFrom], Game.Items.Inventory.GroupTypes.CraftItems);
+                            var upd2 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.GroupTypes.CraftItems);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftItems, slotTo, upd2, Game.Items.Inventory.Groups.CraftItems, slotFrom, upd1, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftItems, slotTo, upd2, Game.Items.Inventory.GroupTypes.CraftItems, slotFrom, upd1, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.CraftTools,
+                        GroupTypes.CraftTools,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = wb.Items[slotFrom] as WorkbenchTool;
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var wbData = wb.StaticData;
 
                             if (slotTo >= wbData.Tools.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = wbData.Tools[slotTo];
 
@@ -357,26 +357,26 @@ namespace BCRPServer.Game.Items.Craft
                             else
                                 wb.Items[slotFrom] = toItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotFrom], Game.Items.Inventory.Groups.CraftItems);
+                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotFrom], Game.Items.Inventory.GroupTypes.CraftItems);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftItems, slotFrom, upd1, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftItems, slotFrom, upd1, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     }
                 }
             },
 
             {
-                Groups.CraftTools,
+                GroupTypes.CraftTools,
 
-                new Dictionary<Groups, Func<PlayerData, Workbench, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, Workbench, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.CraftItems,
+                        GroupTypes.CraftItems,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
@@ -385,58 +385,58 @@ namespace BCRPServer.Game.Items.Craft
                             var wbData = wb.StaticData;
 
                             if (slotFrom >= wbData.Tools.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = wbData.Tools[slotFrom];
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             if (slotTo >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = wb.Items[slotTo] as WorkbenchTool;
 
                             if (wb.Items[slotTo] != null && toItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             wb.Items[slotTo] = fromItem;
 
-                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.Groups.CraftItems);
+                            var upd1 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.GroupTypes.CraftItems);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftItems, slotTo, upd1, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftItems, slotTo, upd1, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     }
                 }
             },
 
             {
-                Groups.CraftResult,
+                GroupTypes.CraftResult,
 
-                new Dictionary<Groups, Func<PlayerData, Workbench, int, int, int, Results>>()
+                new Dictionary<GroupTypes, Func<PlayerData, Workbench, int, int, int, ResultTypes>>()
                 {
                     {
-                        Groups.Items,
+                        GroupTypes.Items,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom > 0)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = wb.ResultItem;
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             if (slotTo >= pData.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = pData.Items[slotTo];
 
@@ -451,7 +451,7 @@ namespace BCRPServer.Game.Items.Craft
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Game.Items.Inventory.Results.Error;
+                                    return Game.Items.Inventory.ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -461,7 +461,7 @@ namespace BCRPServer.Game.Items.Craft
                                     amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Game.Items.Inventory.Results.NoSpace;
+                                        return Game.Items.Inventory.ResultTypes.NoSpace;
                                 }
 
                                 if (toStackable.Amount + amount > maxStack)
@@ -496,7 +496,7 @@ namespace BCRPServer.Game.Items.Craft
                                     amount = (int)Math.Floor((Settings.MAX_INVENTORY_WEIGHT - curWeight) / fromItem.BaseWeight);
 
                                     if (amount <= 0)
-                                        return Game.Items.Inventory.Results.NoSpace;
+                                        return Game.Items.Inventory.ResultTypes.NoSpace;
                                 }
 
                                 targetItem.Amount -= amount;
@@ -510,7 +510,7 @@ namespace BCRPServer.Game.Items.Craft
                             else
                             {
                                 if (pData.Items[slotTo] != null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 pData.Items[slotTo] = fromItem;
                                 wb.ResultItem = null;
@@ -518,42 +518,42 @@ namespace BCRPServer.Game.Items.Craft
                                 MySQL.CharacterItemsUpdate(pData.Info);
                             }
 
-                            var upd1 = Game.Items.Item.ToClientJson(wb.ResultItem, Game.Items.Inventory.Groups.CraftResult);
-                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Game.Items.Inventory.Groups.Items);
+                            var upd1 = Game.Items.Item.ToClientJson(wb.ResultItem, Game.Items.Inventory.GroupTypes.CraftResult);
+                            var upd2 = Game.Items.Item.ToClientJson(pData.Items[slotTo], Game.Items.Inventory.GroupTypes.Items);
 
-                            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slotTo, upd2);
+                            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, slotTo, upd2);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftResult, upd1, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftResult, upd1, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     },
 
                     {
-                        Groups.CraftItems,
+                        GroupTypes.CraftItems,
 
                         (pData, wb, slotTo, slotFrom, amount) =>
                         {
                             var player = pData.Player;
 
                             if (slotFrom > 0)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var fromItem = wb.ResultItem;
 
                             if (fromItem == null)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             if (slotTo >= wb.Items.Length)
-                                return Game.Items.Inventory.Results.Error;
+                                return Game.Items.Inventory.ResultTypes.Error;
 
                             var toItem = wb.Items[slotTo];
 
                             if (toItem is WorkbenchTool)
-                                return Results.Error;
+                                return ResultTypes.Error;
 
                             #region Unite
                             if (toItem != null && toItem.ID == fromItem.ID && fromItem is Game.Items.IStackable fromStackable && toItem is Game.Items.IStackable toStackable)
@@ -561,7 +561,7 @@ namespace BCRPServer.Game.Items.Craft
                                 int maxStack = toStackable.MaxAmount;
 
                                 if (toStackable.Amount == maxStack)
-                                    return Game.Items.Inventory.Results.Error;
+                                    return Game.Items.Inventory.ResultTypes.Error;
 
                                 if (amount == -1 || amount > fromStackable.Amount)
                                     amount = fromStackable.Amount;
@@ -602,7 +602,7 @@ namespace BCRPServer.Game.Items.Craft
                             else
                             {
                                 if (pData.Items[slotTo] != null)
-                                    return Results.Error;
+                                    return ResultTypes.Error;
 
                                 pData.Items[slotTo] = fromItem;
                                 wb.ResultItem = null;
@@ -610,21 +610,21 @@ namespace BCRPServer.Game.Items.Craft
                                 MySQL.CharacterItemsUpdate(pData.Info);
                             }
 
-                            var upd1 = Game.Items.Item.ToClientJson(wb.ResultItem, Game.Items.Inventory.Groups.CraftResult);
-                            var upd2 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.Groups.CraftItems);
+                            var upd1 = Game.Items.Item.ToClientJson(wb.ResultItem, Game.Items.Inventory.GroupTypes.CraftResult);
+                            var upd2 = Game.Items.Item.ToClientJson(wb.Items[slotTo], Game.Items.Inventory.GroupTypes.CraftItems);
 
                             var players = wb.GetPlayersObservingArray();
 
                             if (players.Length > 0)
-                                Utils.InventoryUpdate(Game.Items.Inventory.Groups.CraftResult, 0, upd1, Game.Items.Inventory.Groups.CraftItems, slotTo, upd2, players);
+                                Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.CraftResult, 0, upd1, Game.Items.Inventory.GroupTypes.CraftItems, slotTo, upd2, players);
 
-                            return Game.Items.Inventory.Results.Success;
+                            return Game.Items.Inventory.ResultTypes.Success;
                         }
                     },
                 }
             },
         };
 
-        public static Func<PlayerData, Workbench, int, int, int, Game.Items.Inventory.Results> GetReplaceAction(Game.Items.Inventory.Groups from, Game.Items.Inventory.Groups to) => ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
+        public static Func<PlayerData, Workbench, int, int, int, Game.Items.Inventory.ResultTypes> GetReplaceAction(Game.Items.Inventory.GroupTypes from, Game.Items.Inventory.GroupTypes to) => ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
     }
 }

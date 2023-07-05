@@ -1,0 +1,276 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CHAT_ADMIN_AC_TP_0" xml:space="preserve">
+    <value>[BAC] Игрок {0} подозревается в телепорте! Дистанция: {1}</value>
+  </data>
+  <data name="CHAT_ADMIN_KICK_SILENT_0" xml:space="preserve">
+    <value>[SKick] {0} выгнал игрока {1} с сервера. Причина: {2}</value>
+  </data>
+  <data name="CHAT_PLAYER_CUFFS_OFF" xml:space="preserve">
+    <value>снял(а) наручники с {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_CUFFS_ON" xml:space="preserve">
+    <value>надел(а) наручники на {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_ESCORT_OFF" xml:space="preserve">
+    <value>ослабил(а) хватку и отпустил(а) {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_ESCORT_ON" xml:space="preserve">
+    <value>заломал(а) {0} и повел(а) за собой</value>
+  </data>
+  <data name="CHAT_PLAYER_FP_0" xml:space="preserve">
+    <value>показал(а) пальцем на {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_FP_1" xml:space="preserve">
+    <value>показал(а) пальцем на человека</value>
+  </data>
+  <data name="CHAT_PLAYER_HEADSORTAILS_0" xml:space="preserve">
+    <value>подбросил(а) монетку</value>
+  </data>
+  <data name="CHAT_PLAYER_HEADSORTAILS_1" xml:space="preserve">
+    <value>На подброшенной монетке выпал орёл.</value>
+  </data>
+  <data name="CHAT_PLAYER_HEADSORTAILS_2" xml:space="preserve">
+    <value>На подброшенной монетке выпала решка.</value>
+  </data>
+  <data name="CHAT_PLAYER_PHONE_OFF" xml:space="preserve">
+    <value>убрал(а) телефон</value>
+  </data>
+  <data name="CHAT_PLAYER_PHONE_ON" xml:space="preserve">
+    <value>достал(а) телефон</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_CONFISCATE_0" xml:space="preserve">
+    <value>При обыске обнаружен {0}.</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_CONFISCATE_1" xml:space="preserve">
+    <value>конфисковал(а) предмет у {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_FOUND" xml:space="preserve">
+    <value>При обыске {0} обнаружено {1} документов.</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_0" xml:space="preserve">
+    <value>взял(а) в руки и просмотрел(а) паспорт {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_1" xml:space="preserve">
+    <value>взял(а) в руки и просмотрел(а) лицензии {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_2" xml:space="preserve">
+    <value>взял(а) в руки и просмотрел(а) мед. карту {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_3" xml:space="preserve">
+    <value>взял(а) в руки и просмотрел(а) удостоверение {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_4" xml:space="preserve">
+    <value>взял(а) в руки и просмотрел(а) трудовую книжку {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND" xml:space="preserve">
+    <value>При обыске {0} в карманах обнаружено {1} потенциально нелегальных предметов</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_ITEMS_1_FOUND" xml:space="preserve">
+    <value>При обыске {0} в сумке обнаружено {1} потенциально нелегальных предметов</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_ITEMS_2_FOUND" xml:space="preserve">
+    <value>При обыске {0} обнаружено {1} потенциально нелегальных предметов</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_ITEMS_3_FOUND" xml:space="preserve">
+    <value>При обыске {0} в кобуре обнаружено {1} потенциально нелегальных предметов</value>
+  </data>
+  <data name="CHAT_PLAYER_PSEARCH_START" xml:space="preserve">
+    <value>надел(а) одноразовые перчатки и приступил(а) к обыску {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_TAKEN" xml:space="preserve">
+    <value>подобрал(а) {0}</value>
+  </data>
+  <data name="CHAT_SERVER_WORLD_CLEARITEMS_0" xml:space="preserve">
+    <value>Через {0} секунд будет произведена очистка предметов, лежащих на земле!</value>
+  </data>
+  <data name="CHAT_SERVER_WORLD_CLEARITEMS_1" xml:space="preserve">
+    <value>Было удалено {0} предметов!</value>
+  </data>
+  <data name="CHAT_SERVER_WORLD_CLEARITEMS_2" xml:space="preserve">
+    <value>Удаление предметов было отменено!</value>
+  </data>
+  <data name="CHAT_VEHICLE_BELT_OFF" xml:space="preserve">
+    <value>отстегнул(а) ремень безопасности</value>
+  </data>
+  <data name="CHAT_VEHICLE_BELT_ON" xml:space="preserve">
+    <value>пристегнул(а) ремень безопасности</value>
+  </data>
+  <data name="CHAT_VEHICLE_DOORS_LOCKED" xml:space="preserve">
+    <value>заблокировал(а) двери</value>
+  </data>
+  <data name="CHAT_VEHICLE_DOORS_UNLOCKED" xml:space="preserve">
+    <value>разблокировал(а) двери</value>
+  </data>
+  <data name="CHAT_VEHICLE_ENGINE_BROKEN_0" xml:space="preserve">
+    <value>Двигатель заглох.</value>
+  </data>
+  <data name="CHAT_VEHICLE_ENGINE_BROKEN_1" xml:space="preserve">
+    <value>Двигатель не заводится.</value>
+  </data>
+  <data name="CHAT_VEHICLE_ENGINE_OFF" xml:space="preserve">
+    <value>заглушил(а) двигатель</value>
+  </data>
+  <data name="CHAT_VEHICLE_ENGINE_ON" xml:space="preserve">
+    <value>запустил(а) двигатель</value>
+  </data>
+  <data name="CHAT_VEHICLE_FUEL_OUTOF" xml:space="preserve">
+    <value>Топливо закончилось.</value>
+  </data>
+  <data name="CHAT_VEHICLE_HOOD_LOCKED" xml:space="preserve">
+    <value>закрыл(а) капот</value>
+  </data>
+  <data name="CHAT_VEHICLE_HOOD_UNLOCKED" xml:space="preserve">
+    <value>открыл(а) капот</value>
+  </data>
+  <data name="CHAT_VEHICLE_NP_NONE" xml:space="preserve">
+    <value>без номерного знака</value>
+  </data>
+  <data name="CHAT_VEHICLE_PSGR_KICKED" xml:space="preserve">
+    <value>вышвырнул(а) {0}</value>
+  </data>
+  <data name="CHAT_VEHICLE_TRUNK_LOCKED" xml:space="preserve">
+    <value>закрыл(а) багажник</value>
+  </data>
+  <data name="CHAT_VEHICLE_TRUNK_UNLOCKED" xml:space="preserve">
+    <value>открыл(а) багажник</value>
+  </data>
+  <data name="GEN_BAN_GLOBAL_BTYPES_0" xml:space="preserve">
+    <value>IP-адрес</value>
+  </data>
+  <data name="GEN_BAN_GLOBAL_BTYPES_1" xml:space="preserve">
+    <value>Серийный номер</value>
+  </data>
+  <data name="GEN_BAN_GLOBAL_BTYPES_2" xml:space="preserve">
+    <value>Social Club</value>
+  </data>
+  <data name="GEN_BAN_GLOBAL_BTYPES_3" xml:space="preserve">
+    <value>ЧС проекта</value>
+  </data>
+  <data name="GEN_BAN_GLOBAL_NTEXT_0" xml:space="preserve">
+    <value>ID блокировки: {0}\nТип: {1}\nДата: {2}\nПричина: {3}\nID администратора: #{4}</value>
+  </data>
+  <data name="CHAT_PLAYER_POLICE_TABLETPC_ON" xml:space="preserve">
+    <value>достал(а) служебный планшет</value>
+  </data>
+  <data name="CHAT_PLAYER_POLICE_TABLETPC_OFF" xml:space="preserve">
+    <value>убрал(а) служебный планшет</value>
+  </data>
+</root>

@@ -4,7 +4,6 @@ namespace BCRPServer.Sync
 {
     class Chat
     {
-        #region All Types
         public enum Types
         {
             /// <summary>/say</summary>
@@ -34,11 +33,6 @@ namespace BCRPServer.Sync
             /// <summary>/amsg</summary>
             Admin,
 
-            /// <summary>/me над игроком</summary>
-            MePlayer,
-            /// <summary>/try над игроком</summary>
-            TryPlayer,
-
             Ban,
             BanHard,
             Kick,
@@ -52,7 +46,6 @@ namespace BCRPServer.Sync
             News,
             Advert,
         }
-        #endregion
 
         #region Send Global
         /// <summary>Метод для отправки глобального сообщения в чат со стороны игрока</summary>
@@ -92,7 +85,7 @@ namespace BCRPServer.Sync
         {
             var range = type == Types.Whisper ? Settings.CHAT_MAX_RANGE_WHISPER : type == Types.Shout ? Settings.CHAT_MAX_RANGE_LOUD : Settings.CHAT_MAX_RANGE_DEFAULT;
 
-            if (type != Types.Try && type != Types.TryPlayer)
+            if (type != Types.Try)
             {
                 if (target != null)
                 {

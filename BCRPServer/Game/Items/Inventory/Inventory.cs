@@ -31,7 +31,7 @@ namespace BCRPServer.Game.Items
         };
 
         /// <summary>Секции инвентаря</summary>
-        public enum Groups
+        public enum GroupTypes
         {
             /// <summary>Карманы</summary>
             Items = 0,
@@ -60,7 +60,7 @@ namespace BCRPServer.Game.Items
         }
 
         /// <summary>Типы результатов</summary>
-        public enum Results
+        public enum ResultTypes
         {
             /// <summary>Успешно</summary>
             Success = 0,
@@ -91,37 +91,37 @@ namespace BCRPServer.Game.Items
             NoBusinessLicense,
         }
 
-        public static Dictionary<Results, string> ResultsNotifications = new Dictionary<Results, string>()
+        public static Dictionary<ResultTypes, string> ResultsNotifications = new Dictionary<ResultTypes, string>()
         {
-            { Results.NoSpace, "Inventory::NoSpace" },
-            { Results.PlaceRestricted, "Inventory::PlaceRestricted" },
-            { Results.Wounded, "Inventory::Wounded" },
-            { Results.TempItem, "Inventory::ItemIsTemp" },
+            { ResultTypes.NoSpace, "Inventory::NoSpace" },
+            { ResultTypes.PlaceRestricted, "Inventory::PlaceRestricted" },
+            { ResultTypes.Wounded, "Inventory::Wounded" },
+            { ResultTypes.TempItem, "Inventory::ItemIsTemp" },
         };
         #endregion
 
-        private static Dictionary<Groups, Func<PlayerData, int, Game.Items.Item>> PlayerDataGroups = new Dictionary<Groups, Func<PlayerData, int, Game.Items.Item>>
+        private static Dictionary<GroupTypes, Func<PlayerData, int, Game.Items.Item>> PlayerDataGroups = new Dictionary<GroupTypes, Func<PlayerData, int, Game.Items.Item>>
         {
-            { Groups.Items, (pData, slot) => pData.Items.Length <= slot ? null : pData.Items[slot] },
+            { GroupTypes.Items, (pData, slot) => pData.Items.Length <= slot ? null : pData.Items[slot] },
 
-            { Groups.Bag, (pData, slot) => pData.Bag == null ? null : pData.Bag.Items.Length <= slot ? null : pData.Bag.Items[slot] },
+            { GroupTypes.Bag, (pData, slot) => pData.Bag == null ? null : pData.Bag.Items.Length <= slot ? null : pData.Bag.Items[slot] },
 
-            { Groups.Weapons, (pData, slot) =>  pData.Weapons.Length <= slot ? null : pData.Weapons[slot] },
+            { GroupTypes.Weapons, (pData, slot) =>  pData.Weapons.Length <= slot ? null : pData.Weapons[slot] },
 
-            { Groups.Holster, (pData, slot) =>  pData.Holster == null ? null : pData.Holster.Items[0] },
+            { GroupTypes.Holster, (pData, slot) =>  pData.Holster == null ? null : pData.Holster.Items[0] },
 
-            { Groups.Armour, (pData, slot) =>  pData.Armour },
+            { GroupTypes.Armour, (pData, slot) =>  pData.Armour },
 
-            { Groups.BagItem, (pData, slot) =>  pData.Bag },
+            { GroupTypes.BagItem, (pData, slot) =>  pData.Bag },
 
-            { Groups.HolsterItem, (pData, slot) =>  pData.Holster },
+            { GroupTypes.HolsterItem, (pData, slot) =>  pData.Holster },
 
-            { Groups.Clothes, (pData, slot) =>  pData.Clothes.Length <= slot ? null : pData.Clothes[slot] },
+            { GroupTypes.Clothes, (pData, slot) =>  pData.Clothes.Length <= slot ? null : pData.Clothes[slot] },
 
-            { Groups.Accessories, (pData, slot) =>  pData.Accessories.Length <= slot ? null : pData.Accessories[slot] },
+            { GroupTypes.Accessories, (pData, slot) =>  pData.Accessories.Length <= slot ? null : pData.Accessories[slot] },
         };
 
-        public static Game.Items.Item GetPlayerItem(PlayerData pData, Groups group, int slot = 0)
+        public static Game.Items.Item GetPlayerItem(PlayerData pData, GroupTypes group, int slot = 0)
         {
             var res = PlayerDataGroups.GetValueOrDefault(group);
 
@@ -136,16 +136,16 @@ namespace BCRPServer.Game.Items
         /// <param name="from">Группа, откуда переместить</param>
         /// <param name="slotFrom">Слот, откуда переместить</param>
         /// <param name="amount">Кол-во для перемещения (-1 - предмет целиком)</param>
-        public static Results Replace(PlayerData pData, Groups to, int slotTo, Groups from, int slotFrom, int amount)
+        public static ResultTypes Replace(PlayerData pData, GroupTypes to, int slotTo, GroupTypes from, int slotFrom, int amount)
         {
             var player = pData.Player;
 
             if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
-                return Results.Error;
+                return ResultTypes.Error;
 
             var action = ReplaceActions.GetValueOrDefault(from)?.GetValueOrDefault(to);
 
-            var res = Results.Error;
+            var res = ResultTypes.Error;
 
             if (action != null)
                 res = action.Invoke(pData, slotTo, slotFrom, amount);
@@ -167,19 +167,19 @@ namespace BCRPServer.Game.Items
         /// <param name="group">Группа</param>
         /// <param name="slot">Слот</param>
         /// <param name="action">Действие (минимум - 5)</param>
-        public static Results Action(PlayerData pData, Groups group, int slot, int action = 5, params string[] args)
+        public static ResultTypes Action(PlayerData pData, GroupTypes group, int slot, int action = 5, params string[] args)
         {
             var player = pData.Player;
 
             var item = GetPlayerItem(pData, group, slot);
 
             if (item == null)
-                return Results.Error;
+                return ResultTypes.Error;
 
             var func = Actions.Where(x => x.Key == item.Type || x.Key.IsAssignableFrom(item.Type)).Select(x => x.Value).FirstOrDefault()?.GetValueOrDefault(action);
 
             if (func == null)
-                return Results.Error;
+                return ResultTypes.Error;
 
             return func.Invoke(pData, item, group, slot, args);
         }
@@ -191,7 +191,7 @@ namespace BCRPServer.Game.Items
         /// <param name="group">Группа</param>
         /// <param name="slot">Слот</param>
         /// <param name="amount">Кол-во (минимум - 1, -1 - предмет целиком)</param>
-        public static void Drop(PlayerData pData, Groups group, int slot, int amount)
+        public static void Drop(PlayerData pData, GroupTypes group, int slot, int amount)
         {
             if (pData == null)
                 return;
@@ -318,18 +318,18 @@ namespace BCRPServer.Game.Items
                 }
             }
 
-            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], Groups.Items);
+            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], GroupTypes.Items);
 
             if (notifyOnSuccess)
                 pData.Player.TriggerEvent("Item::Added", item.ID, amount);
 
-            pData.Player.InventoryUpdate(Groups.Items, freeIdx, upd);
+            pData.Player.InventoryUpdate(GroupTypes.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
             return true;
         }
 
-        public static void ClearSlot(PlayerData pData, Groups group, int slot) => pData.Player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+        public static void ClearSlot(PlayerData pData, GroupTypes group, int slot) => pData.Player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Items));
     }
 }

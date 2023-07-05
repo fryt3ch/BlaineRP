@@ -48,22 +48,22 @@ namespace BCRPServer.Game.Items
             }
         }
 
-        private static Dictionary<Game.Items.Inventory.Groups, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.Groups, Func<Item, string>>()
+        private static Dictionary<Game.Items.Inventory.GroupTypes, Func<Item, string>> ClientJsonFuncs = new Dictionary<Game.Items.Inventory.GroupTypes, Func<Item, string>>()
         {
-            { Game.Items.Inventory.Groups.Items, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}&{((item is IUsable itemU && itemU.InUse) ? 1 : 0)}" },
+            { Game.Items.Inventory.GroupTypes.Items, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}&{((item is IUsable itemU && itemU.InUse) ? 1 : 0)}" },
 
-            { Game.Items.Inventory.Groups.Bag, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { Game.Items.Inventory.GroupTypes.Bag, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.Groups.Container, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { Game.Items.Inventory.GroupTypes.Container, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.Groups.CraftItems, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { Game.Items.Inventory.GroupTypes.CraftItems, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
-            { Game.Items.Inventory.Groups.CraftTools, (item) => $"{item.ID}" },
+            { Game.Items.Inventory.GroupTypes.CraftTools, (item) => $"{item.ID}" },
 
-            { Game.Items.Inventory.Groups.CraftResult, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
+            { Game.Items.Inventory.GroupTypes.CraftResult, (item) => $"{item.ID}&{Stuff.GetItemAmount(item)}&{(item is IStackable ? item.BaseWeight : item.Weight)}&{Stuff.GetItemTag(item)}" },
 
             {
-                Game.Items.Inventory.Groups.Weapons,
+                Game.Items.Inventory.GroupTypes.Weapons,
 
                 (item) =>
                 {
@@ -74,7 +74,7 @@ namespace BCRPServer.Game.Items
             },
 
             {
-                Game.Items.Inventory.Groups.Holster,
+                Game.Items.Inventory.GroupTypes.Holster,
 
                 (item) =>
                 {
@@ -84,31 +84,31 @@ namespace BCRPServer.Game.Items
                 }
             },
 
-            { Game.Items.Inventory.Groups.Armour, (item) => $"{item.ID}&{((Armour)item).Strength}" },
+            { Game.Items.Inventory.GroupTypes.Armour, (item) => $"{item.ID}&{((Armour)item).Strength}" },
 
             {
-                Game.Items.Inventory.Groups.BagItem,
+                Game.Items.Inventory.GroupTypes.BagItem,
 
                 (item) =>
                 {
                     var bag = (Bag)item;
 
-                    return $"{item.ID}&{bag.Data.MaxWeight}|{string.Join('|', bag.Items.Select(x => ToClientJson(x, Game.Items.Inventory.Groups.Bag)))}";
+                    return $"{item.ID}&{bag.Data.MaxWeight}|{string.Join('|', bag.Items.Select(x => ToClientJson(x, Game.Items.Inventory.GroupTypes.Bag)))}";
                 }
             },
 
-            { Game.Items.Inventory.Groups.Clothes, (item) => $"{item.ID}" },
+            { Game.Items.Inventory.GroupTypes.Clothes, (item) => $"{item.ID}" },
 
-            { Game.Items.Inventory.Groups.Accessories, (item) => $"{item.ID}" },
+            { Game.Items.Inventory.GroupTypes.Accessories, (item) => $"{item.ID}" },
 
             {
-                Game.Items.Inventory.Groups.HolsterItem,
+                Game.Items.Inventory.GroupTypes.HolsterItem,
 
                 (item) =>
                 {
                     var holster = (Holster)item;
 
-                    return $"{item.ID}|{ToClientJson(holster.Items[0], Game.Items.Inventory.Groups.Holster)}";
+                    return $"{item.ID}|{ToClientJson(holster.Items[0], Game.Items.Inventory.GroupTypes.Holster)}";
                 }
             },
         };
@@ -229,7 +229,7 @@ namespace BCRPServer.Game.Items
             MySQL.ItemUpdate(this);
         }
 
-        public string ToClientJson(Game.Items.Inventory.Groups group)
+        public string ToClientJson(Game.Items.Inventory.GroupTypes group)
         {
             var func = ClientJsonFuncs.GetValueOrDefault(group);
 
@@ -239,7 +239,7 @@ namespace BCRPServer.Game.Items
             return func.Invoke(this);
         }
 
-        public static string ToClientJson(Item item, Game.Items.Inventory.Groups group) => item == null ? "" : item.ToClientJson(group);
+        public static string ToClientJson(Item item, Game.Items.Inventory.GroupTypes group) => item == null ? "" : item.ToClientJson(group);
 
         public Item(string ID, ItemData Data, Type Type)
         {

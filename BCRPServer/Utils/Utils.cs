@@ -476,14 +476,14 @@ namespace BCRPServer
         /// <inheritdoc cref="Additional.AntiSpam.CheckTemp(Player, int)"/>
         public static (bool IsSpammer, TempData Data) CheckSpamAttackTemp(this Player player, int decreaseDelay = 250) => Additional.AntiSpam.CheckTemp(player, decreaseDelay);
 
-        /// <inheritdoc cref="Game.Items.Inventory.Replace(PlayerData, Game.Items.Inventory.Groups, int, Game.Items.Inventory.Groups, int, int)"/>
-        public static Game.Items.Inventory.Results InventoryReplace(this PlayerData pData, Game.Items.Inventory.Groups to, int slotTo, Game.Items.Inventory.Groups from, int slotFrom, int amount = -1) => Game.Items.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
+        /// <inheritdoc cref="Game.Items.Inventory.Replace(PlayerData, Game.Items.Inventory.GroupTypes, int, Game.Items.Inventory.GroupTypes, int, int)"/>
+        public static Game.Items.Inventory.ResultTypes InventoryReplace(this PlayerData pData, Game.Items.Inventory.GroupTypes to, int slotTo, Game.Items.Inventory.GroupTypes from, int slotFrom, int amount = -1) => Game.Items.Inventory.Replace(pData, to, slotTo, from, slotFrom, amount);
 
-        /// <inheritdoc cref="Game.Items.Inventory.Action(PlayerData, Game.Items.Inventory.Groups, int, int, object[])"/>
-        public static Game.Items.Inventory.Results InventoryAction(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int action = 5, params string[] args) => Game.Items.Inventory.Action(pData, slotStr, slot, action, args);
+        /// <inheritdoc cref="Game.Items.Inventory.Action(PlayerData, Game.Items.Inventory.GroupTypes, int, int, object[])"/>
+        public static Game.Items.Inventory.ResultTypes InventoryAction(this PlayerData pData, Game.Items.Inventory.GroupTypes slotStr, int slot, int action = 5, params string[] args) => Game.Items.Inventory.Action(pData, slotStr, slot, action, args);
 
-        /// <inheritdoc cref="Game.Items.Inventory.Drop(PlayerData, Game.Items.Inventory.Groups, int, int)"/>
-        public static void InventoryDrop(this PlayerData pData, Game.Items.Inventory.Groups slotStr, int slot, int amount) => Game.Items.Inventory.Drop(pData, slotStr, slot, amount);
+        /// <inheritdoc cref="Game.Items.Inventory.Drop(PlayerData, Game.Items.Inventory.GroupTypes, int, int)"/>
+        public static void InventoryDrop(this PlayerData pData, Game.Items.Inventory.GroupTypes slotStr, int slot, int amount) => Game.Items.Inventory.Drop(pData, slotStr, slot, amount);
 
         public static bool TryGiveExistingItem(this PlayerData pData, Game.Items.Item item, int amount, bool notifyOnFail = false, bool notifyOnSuccess = false) => Game.Items.Inventory.GiveExisting(pData, item, amount, notifyOnFail, notifyOnSuccess);
 
@@ -500,7 +500,7 @@ namespace BCRPServer
         {
             pData.UnequipActiveWeapon();
 
-            var updList = new List<(Game.Items.Inventory.Groups Group, int Slot)>();
+            var updList = new List<(Game.Items.Inventory.GroupTypes Group, int Slot)>();
 
             for (int i = 0; i < pData.Weapons.Length; i++)
             {
@@ -512,7 +512,7 @@ namespace BCRPServer
 
                     pData.Weapons[i] = null;
 
-                    updList.Add((Game.Items.Inventory.Groups.Weapons, i));
+                    updList.Add((Game.Items.Inventory.GroupTypes.Weapons, i));
                 }
             }
 
@@ -522,7 +522,7 @@ namespace BCRPServer
             {
                 pData.Holster.Items[0].Delete();
 
-                updList.Add((Game.Items.Inventory.Groups.Holster, 2));
+                updList.Add((Game.Items.Inventory.GroupTypes.Holster, 2));
 
                 pData.Holster.Update();
             }
@@ -537,7 +537,7 @@ namespace BCRPServer
 
                         pData.Items[i] = null;
 
-                        updList.Add((Game.Items.Inventory.Groups.Items, i));
+                        updList.Add((Game.Items.Inventory.GroupTypes.Items, i));
                     }
                 }
 
@@ -554,7 +554,7 @@ namespace BCRPServer
 
                         pData.Bag.Items[i] = null;
 
-                        updList.Add((Game.Items.Inventory.Groups.Bag, i));
+                        updList.Add((Game.Items.Inventory.GroupTypes.Bag, i));
                     }
                 }
 
@@ -583,14 +583,14 @@ namespace BCRPServer
                 return false;
         }
 
-        public static List<(Game.Items.Item Item, Game.Items.Inventory.Groups Group, int Slot)> TakeWeapons(this PlayerData pData)
+        public static List<(Game.Items.Item Item, Game.Items.Inventory.GroupTypes Group, int Slot)> TakeWeapons(this PlayerData pData)
         {
             pData.UnequipActiveWeapon();
 
             var tempItems = pData.TempItems;
 
             if (tempItems == null)
-                tempItems = new List<(Game.Items.Item, Game.Items.Inventory.Groups, int)>();
+                tempItems = new List<(Game.Items.Item, Game.Items.Inventory.GroupTypes, int)>();
 
             for (int i = 0; i < pData.Weapons.Length; i++)
             {
@@ -598,9 +598,9 @@ namespace BCRPServer
                 {
                     pData.Weapons[i] = null;
 
-                    tempItems.Add((weapon, Game.Items.Inventory.Groups.Weapons, i));
+                    tempItems.Add((weapon, Game.Items.Inventory.GroupTypes.Weapons, i));
 
-                    pData.Player.InventoryUpdate(Game.Items.Inventory.Groups.Weapons, i, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Weapons));
+                    pData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Weapons, i, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Weapons));
                 }
             }
 
@@ -621,7 +621,7 @@ namespace BCRPServer
 
             foreach (var x in takenItems)
             {
-                if (x.Group == Game.Items.Inventory.Groups.Weapons)
+                if (x.Group == Game.Items.Inventory.GroupTypes.Weapons)
                 {
                     pData.Weapons[x.Slot] = x.Item as Game.Items.Weapon;
                 }
@@ -644,7 +644,7 @@ namespace BCRPServer
             if (ammo < 0)
                 weapon.Ammo = -1;
 
-            pData.InventoryAction(Game.Items.Inventory.Groups.Weapons, 0, 5);
+            pData.InventoryAction(Game.Items.Inventory.GroupTypes.Weapons, 0, 5);
 
             return weapon;
         }
@@ -1249,17 +1249,17 @@ namespace BCRPServer
             return $"{secs} сек.";
         }
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group, int slot, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, slot, updStr);
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group1, int slot1, string updStr1, Game.Items.Inventory.Groups group2, int slot2, string updStr2) => player.TriggerEvent("Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group1, int slot1, string updStr1, Game.Items.Inventory.GroupTypes group2, int slot2, string updStr2) => player.TriggerEvent("Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
 
-        public static void InventoryUpdate(Game.Items.Inventory.Groups group1, int slot1, string updStr1, Game.Items.Inventory.Groups group2, int slot2, string updStr2, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
+        public static void InventoryUpdate(Game.Items.Inventory.GroupTypes group1, int slot1, string updStr1, Game.Items.Inventory.GroupTypes group2, int slot2, string updStr2, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group1, slot1, updStr1, (int)group2, slot2, updStr2);
 
-        public static void InventoryUpdate(Game.Items.Inventory.Groups group, int slot, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, slot, updStr);
+        public static void InventoryUpdate(Game.Items.Inventory.GroupTypes group, int slot, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, slot, updStr);
 
-        public static void InventoryUpdate(this Player player, Game.Items.Inventory.Groups group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, 0, updStr);
+        public static void InventoryUpdate(this Player player, Game.Items.Inventory.GroupTypes group, string updStr) => player.TriggerEvent("Inventory::Update", (int)group, 0, updStr);
 
-        public static void InventoryUpdate(Game.Items.Inventory.Groups group, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, 0, updStr);
+        public static void InventoryUpdate(Game.Items.Inventory.GroupTypes group, string updStr, Player[] players) => NAPI.ClientEvent.TriggerClientEventToPlayers(players, "Inventory::Update", (int)group, 0, updStr);
 
         public static void WarpToVehicleSeat(this Player player, Vehicle veh, int seatId, int timeout = 5000) => player.TriggerEvent("Vehicles::WTS", veh.Id, seatId, timeout);
 
@@ -1274,7 +1274,7 @@ namespace BCRPServer
             if (curItem == null)
                 return false;
 
-            curItem.Value.Item.StopUse(pData, Game.Items.Inventory.Groups.Items, curItem.Value.Slot, true);
+            curItem.Value.Item.StopUse(pData, Game.Items.Inventory.GroupTypes.Items, curItem.Value.Slot, true);
 
             return true;
         }

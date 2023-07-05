@@ -118,12 +118,11 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            Sync.Chat.SendLocal(Chat.Types.Me, sPlayer, Locale.Chat.Player.HeadsOrTails1);
-                            Sync.Chat.SendLocal(Chat.Types.Me, tPlayer, Locale.Chat.Player.HeadsOrTails1);
+                            Sync.Chat.SendLocal(Chat.Types.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
 
                             var res = SRandom.NextInt32(0, 2) == 0;
 
-                            Sync.Chat.SendLocal(Chat.Types.Do, sPlayer, res ? Locale.Chat.Player.HeadsOrTails2 : Locale.Chat.Player.HeadsOrTails3);
+                            Sync.Chat.SendLocal(Chat.Types.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
                         }
                     }
                 }
@@ -578,9 +577,8 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            tPlayer.TriggerEvent("Documents::Show", 0, pData.Name, pData.Surname, pData.Sex, pData.BirthDate.SerializeToJson(), null, pData.CID, pData.CreationDate.SerializeToJson(), false, pData.Info.LosSantosAllowed);
+                            pData.ShowPassport(tPlayer);
 
-                            pData.AddFamiliar(tData.Info);
                             tData.AddFamiliar(pData.Info);
                         }
                     }
@@ -611,9 +609,8 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            tPlayer.TriggerEvent("Documents::Show", 1, pData.Name, pData.Surname, pData.Licenses);
+                            pData.ShowLicences(tPlayer);
 
-                            pData.AddFamiliar(tData.Info);
                             tData.AddFamiliar(pData.Info);
                         }
                     }
@@ -683,7 +680,9 @@ namespace BCRPServer.Sync
                             if (pData.Info.MedicalCard == null)
                                 return;
 
-                            tPlayer.TriggerEvent("Documents::Show", 3, pData.Name, pData.Surname, pData.Info.MedicalCard.Diagnose, pData.Info.MedicalCard.IssueFraction, pData.Info.MedicalCard.DoctorName, pData.Info.MedicalCard.IssueDate.SerializeToJson());
+                            pData.Info.MedicalCard.Show(tPlayer, pData.Info);
+
+                            tData.AddFamiliar(pData.Info);
                         }
                     }
                 }

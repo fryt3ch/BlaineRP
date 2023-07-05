@@ -236,7 +236,7 @@ namespace BCRPServer.Sync
             if (ClearItemsTimer != null)
                 ClearItemsTimer.Dispose();
 
-            Sync.Chat.SendServer(string.Format(Locale.Chat.Server.ClearItemsSoon, delay));
+            Sync.Chat.SendServer(string.Format(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_0"), delay));
 
             ClearItemsTimer = new Timer((obj) =>
             {
@@ -258,7 +258,7 @@ namespace BCRPServer.Sync
                         counter++;
                     }
 
-                    Sync.Chat.SendServer(string.Format(Locale.Chat.Server.ClearItems, counter));
+                    Sync.Chat.SendServer(string.Format(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_1"), counter));
                 });
             }, null, delay * 1000, Timeout.Infinite);
         }
@@ -271,7 +271,7 @@ namespace BCRPServer.Sync
 
                 ClearItemsTimer = null;
 
-                Sync.Chat.SendServer(Locale.Chat.Server.ClearItemsCancelled);
+                Sync.Chat.SendServer(Language.Strings.Get("CHAT_SERVER_WORLD_CLEARITEMS_2"));
             }
         }
 

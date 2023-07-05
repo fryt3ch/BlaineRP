@@ -61,14 +61,14 @@ namespace BCRPServer.Events.Players
             if (!pData.CanUseInventory(true) || pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
                 return;
 
-            if (!Enum.IsDefined(typeof(Game.Items.Inventory.Groups), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.Groups), fromStr))
+            if (!Enum.IsDefined(typeof(Game.Items.Inventory.GroupTypes), toStr) || !Enum.IsDefined(typeof(Game.Items.Inventory.GroupTypes), fromStr))
                 return;
 
             if (slotFrom < 0 || slotTo < 0 || amount < -1 || amount == 0)
                 return;
 
-            var to = (Game.Items.Inventory.Groups)toStr;
-            var from = (Game.Items.Inventory.Groups)fromStr;
+            var to = (Game.Items.Inventory.GroupTypes)toStr;
+            var from = (Game.Items.Inventory.GroupTypes)fromStr;
 
             if (!cont.IsNear(pData) || !cont.IsAccessableFor(pData))
             {
@@ -148,12 +148,12 @@ namespace BCRPServer.Events.Players
             else
                 cont.Items[slot] = null;
 
-            var upd = Game.Items.Item.ToClientJson(cont.Items[slot], Game.Items.Inventory.Groups.Container);
+            var upd = Game.Items.Item.ToClientJson(cont.Items[slot], Game.Items.Inventory.GroupTypes.Container);
 
             var players = cont.GetPlayersObservingArray();
 
             if (players.Length > 0)
-                Utils.InventoryUpdate(Groups.Container, slot, upd, players);
+                Utils.InventoryUpdate(GroupTypes.Container, slot, upd, players);
 
             cont.Update();
 

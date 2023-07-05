@@ -455,6 +455,14 @@ namespace BCRPServer.Game.Fractions
 
         public ArrestInfo GetArrestInfoById(uint id) => ActiveArrests.GetValueOrDefault(id);
 
+        public static bool IsItemConfiscatable(Game.Items.Item item)
+        {
+            if (item is Game.Items.Weapon || item is Game.Items.Ammo || item is Game.Items.Armour)
+                return true;
+
+            return false;
+        }
+
         public class CallInfo
         {
             public byte Type { get; set; }

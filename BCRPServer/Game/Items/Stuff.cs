@@ -103,7 +103,7 @@ namespace BCRPServer.Game.Items
 
                         pData.Items[x.Slot].Update();
 
-                        player.InventoryUpdate(Inventory.Groups.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.Groups.Items));
+                        player.InventoryUpdate(Inventory.GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.GroupTypes.Items));
                     });
 
                     if (amountExceed > 0)
@@ -114,7 +114,7 @@ namespace BCRPServer.Game.Items
 
                             pData.Items[freeIdx] = item;
 
-                            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items));
+                            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
 
                             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -167,7 +167,7 @@ namespace BCRPServer.Game.Items
                 {
                     pData.Items[freeIdx] = item;
 
-                    player.InventoryUpdate(Game.Items.Inventory.Groups.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items));
+                    player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
 
                     MySQL.CharacterItemsUpdate(pData.Info);
                 }
@@ -276,7 +276,7 @@ namespace BCRPServer.Game.Items
 
                     pData.Items[x.Slot].Update();
 
-                    player.InventoryUpdate(Inventory.Groups.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.Groups.Items));
+                    player.InventoryUpdate(Inventory.GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.GroupTypes.Items));
                 });
 
                 if (amountExceed <= 0)
@@ -335,7 +335,7 @@ namespace BCRPServer.Game.Items
             if (notifyOnSuccess)
                 player.TriggerEvent("Item::Added", item.ID, amountInFact);
 
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -436,7 +436,7 @@ namespace BCRPServer.Game.Items
 
                     pData.Items[x.Slot].Update();
 
-                    player.InventoryUpdate(Inventory.Groups.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.Groups.Items));
+                    player.InventoryUpdate(Inventory.GroupTypes.Items, x.Slot, Item.ToClientJson(pData.Items[x.Slot], Inventory.GroupTypes.Items));
                 });
 
                 if (amountExceed <= 0)
@@ -499,7 +499,7 @@ namespace BCRPServer.Game.Items
             if (notifyOnSuccess)
                 player.TriggerEvent("Item::Added", item.ID, amountInFact);
 
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, freeIdx, Game.Items.Item.ToClientJson(item, Game.Items.Inventory.GroupTypes.Items));
 
             return true;
         }
@@ -597,12 +597,12 @@ namespace BCRPServer.Game.Items
                 }
             }
 
-            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], Groups.Items);
+            var upd = Game.Items.Item.ToClientJson(pData.Items[freeIdx], GroupTypes.Items);
 
             if (notifyOnSuccess)
                 pData.Player.TriggerEvent("Item::Added", item.ID, amount);
 
-            pData.Player.InventoryUpdate(Groups.Items, freeIdx, upd);
+            pData.Player.InventoryUpdate(GroupTypes.Items, freeIdx, upd);
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -678,7 +678,7 @@ namespace BCRPServer.Game.Items
         public static string GetItemTag(Game.Items.Item item)
         {
             if (item is Weapon weapon)
-                return weapon.Ammo > 0 ? weapon.Ammo.ToString() : null;
+                return weapon.Ammo > 0 ? weapon.Ammo.ToString() : string.Empty;
 
             if (item is Armour armour)
                 return armour.Strength.ToString();
@@ -689,7 +689,22 @@ namespace BCRPServer.Game.Items
             if (item is ITagged tagged)
                 return tagged.Tag;
 
-            return "";
+            return string.Empty;
+        }
+
+        public static string GetItemNameWithTag(Game.Items.Item item, string tag, out string baseName)
+        {
+            baseName = item.Data.Name;
+
+            if (tag == null || tag.Length == 0)
+                return baseName;
+
+            if (typeof(ITaggedFull).IsAssignableFrom(item.Type))
+            {
+                return tag;
+            }
+
+            return $"{baseName} [{tag}]";
         }
 
         public static Type GetType(string id, bool checkFullId = true)

@@ -1,11 +1,10 @@
 ﻿using GTANetworkAPI;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Asn1.Tsp;
-using Org.BouncyCastle.Security;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using static BCRPServer.Game.Items.Weapon.ItemData;
 
 namespace BCRPServer.Events.Fractions
 {
@@ -55,6 +54,8 @@ namespace BCRPServer.Events.Fractions
                 tData.Player.AttachObject(Sync.AttachSystem.Models.Cuffs, Sync.AttachSystem.Types.Cuffs, -1, null);
 
                 tData.Player.NotifyWithPlayer("Cuffs::0_0", player);
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_ON"), target);
             }
             else
             {
@@ -67,6 +68,8 @@ namespace BCRPServer.Events.Fractions
                 if (tData.Player.DetachObject(Sync.AttachSystem.Types.Cuffs))
                 {
                     tData.Player.NotifyWithPlayer("Cuffs::0_1", player);
+
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_OFF"), target);
                 }
             }
 
@@ -116,6 +119,8 @@ namespace BCRPServer.Events.Fractions
 
                 player.AttachEntity(target, Sync.AttachSystem.Types.PoliceEscort);
 
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_ON"), target);
+
                 return 255;
             }
             else
@@ -134,6 +139,69 @@ namespace BCRPServer.Events.Fractions
 
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.PoliceEscort0)
                     pData.StopGeneralAnim();
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_OFF"), target);
+
+                return 255;
+            }
+        }
+
+        [RemoteProc("Police::FPTV")]
+        private static byte ForcePlayerToVehicle(Player player, Vehicle veh, byte seatIdx)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsFrozen || pData.IsKnocked || pData.IsCuffed)
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return 0;
+
+            var attachData = pData.AttachedEntities.Where(x => (x.Type == Sync.AttachSystem.Types.PoliceEscort || x.Type == Sync.AttachSystem.Types.Hostage) && x.EntityType == EntityType.Player).FirstOrDefault();
+
+            if (attachData == null)
+                return 0;
+
+            var target = Utils.GetPlayerByID(attachData.Id);
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return 0;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return 0;
+
+            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+                return 0;
+
+            if (!vData.Vehicle.AreEntitiesNearby(player, 10f))
+                return 0;
+
+            if (seatIdx == 0)
+            {
+                if (vData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk || x.Type == Sync.AttachSystem.Types.VehicleTrunkForced).Any())
+                    return 0;
+
+                vData.Vehicle.AttachEntity(target, Sync.AttachSystem.Types.VehicleTrunkForced);
+
+                return 255;
+            }
+            else
+            {
+                if (seatIdx >= vData.Vehicle.MaxPassengers - 1 || vData.Vehicle.GetEntityInVehicleSeat(seatIdx) != null)
+                    return 0;
+
+                target.WarpToVehicleSeat(veh, seatIdx, 500);
 
                 return 255;
             }
@@ -637,7 +705,7 @@ namespace BCRPServer.Events.Fractions
                 gpsTracker = null;
             }
 
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, slot, Game.Items.Item.ToClientJson(gpsTracker, Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, slot, Game.Items.Item.ToClientJson(gpsTracker, Game.Items.Inventory.GroupTypes.Items));
 
             var id = Game.Fractions.Police.AddGPSTracker(new Game.Fractions.Police.GPSTrackerInfo() { VID = vData.VID, FractionType = allDepsSee ? Game.Fractions.Types.None : fData.Type, InstallerStr = $"{pData.Player.Name}", VehicleStr = $"{vData.Data.Name} [{vData.Info.RegisteredNumberplate ?? string.Empty}]" });
 
@@ -1003,7 +1071,27 @@ namespace BCRPServer.Events.Fractions
             if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
                 return null;
 
-            if (sType == 0)
+            if (!tData.IsCuffed)
+                return null;
+
+            if (sType == -1 || sType == -2)
+            {
+                var types = new HashSet<byte>() { 0, 1, 2, };
+
+                if (tData.Bag != null)
+                    types.Add(3);
+
+                if (tData.Holster != null)
+                    types.Add(4);
+
+                if (sType == -1)
+                {
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_START"), target);
+                }
+
+                return types;
+            }
+            else if (sType == 0)
             {
                 var docTypes = new HashSet<byte>() { 0, 1, };
 
@@ -1012,14 +1100,349 @@ namespace BCRPServer.Events.Fractions
 
                 // todo
 
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_FOUND", "{0}", docTypes.Count), target);
+
                 return docTypes;
             }
             else if (sType == 1)
             {
-                return null;
+                if (!tData.CanUseInventory(false))
+                    return 1;
+
+                var items = new List<string>();
+
+                for (int i = 0; i < tData.Weapons.Length; i++)
+                {
+                    var x = tData.Weapons[i];
+
+                    if (x != null && Game.Fractions.Police.IsItemConfiscatable(x))
+                    {
+                        items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
+                    }
+                }
+
+                if (tData.Armour != null && Game.Fractions.Police.IsItemConfiscatable(tData.Armour))
+                {
+                    var x = tData.Armour;
+
+                    items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
+                }
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_2_FOUND", "{0}", items.Count), target);
+
+                return items;
+            }
+            else if (sType == 2)
+            {
+                if (!tData.CanUseInventory(false))
+                    return 1;
+
+                var items = new List<string>();
+
+                for (int i = 0; i < tData.Items.Length; i++)
+                {
+                    var x = tData.Items[i];
+
+                    if (x != null && Game.Fractions.Police.IsItemConfiscatable(x))
+                    {
+                        items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
+                    }
+                }
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND", "{0}", items.Count), target);
+
+                return items;
+            }
+            else if (sType == 3)
+            {
+                if (!tData.CanUseInventory(false))
+                    return 1;
+
+                if (tData.Bag == null)
+                    return 2;
+
+                var items = new List<string>();
+
+                for (int i = 0; i < tData.Bag.Items.Length; i++)
+                {
+                    var x = tData.Bag.Items[i];
+
+                    if (x != null && Game.Fractions.Police.IsItemConfiscatable(x))
+                    {
+                        items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
+                    }
+                }
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_1_FOUND", "{0}", items.Count), target);
+
+                return items;
+            }
+            else if (sType == 4)
+            {
+                if (!tData.CanUseInventory(false))
+                    return 1;
+
+                if (tData.Holster == null)
+                    return 2;
+
+                var items = new List<string>();
+
+                if (tData.Holster.Items[0] != null && Game.Fractions.Police.IsItemConfiscatable(tData.Holster.Items[0]))
+                {
+                    var x = tData.Holster.Items[0];
+
+                    items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
+                }
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_3_FOUND", "{0}", items.Count));
+
+                return items;
             }
 
             return null;
+        }
+
+        [RemoteProc("Police::PlayerSearchSD")]
+        private static object PolicePlayerSearchShowDocs(Player player, Player target, int dType)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return null;
+
+            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+                return null;
+
+            if (!tData.IsCuffed)
+                return null;
+
+            if (dType == 0)
+            {
+                tData.ShowPassport(pData.Player);
+
+                pData.AddFamiliar(tData.Info);
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_0"), target);
+
+                return true;
+            }
+            else if (dType == 1)
+            {
+                tData.ShowLicences(pData.Player);
+
+                pData.AddFamiliar(tData.Info);
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_1"), target);
+
+                return true;
+            }
+            else if (dType == 2)
+            {
+                if (tData.Info.MedicalCard == null)
+                    return false;
+
+                tData.Info.MedicalCard.Show(pData.Player, tData.Info);
+
+                pData.AddFamiliar(tData.Info);
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_2"), target);
+
+                return true;
+            }
+
+            // todo
+
+            return null;
+        }
+
+        [RemoteProc("Police::PlayerSearchIC")]
+        private static byte PolicePlayerSearchItemConfiscate(Player player, Player target, int cType, uint itemUid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return 0;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return 0;
+
+            if (!pData.Player.AreEntitiesNearby(tData.Player, 7.5f))
+                return 0;
+
+            if (!tData.IsCuffed)
+                return 0;
+
+            if (!tData.CanUseInventory())
+                return 0;
+
+            Game.Items.Item item = null;
+            int itemIdx = -1;
+
+            var gType = Game.Items.Inventory.GroupTypes.Items;
+
+            if (cType == 1)
+            {
+                if (tData.Armour?.UID == itemUid)
+                {
+                    itemIdx = 0;
+
+                    item = tData.Armour;
+
+                    gType = Game.Items.Inventory.GroupTypes.Armour;
+                }
+                else
+                {
+                    for (int i = 0; i < tData.Weapons.Length; i++)
+                    {
+                        if (tData.Weapons[i] != null && tData.Weapons[i].UID == itemUid)
+                        {
+                            item = tData.Weapons[i];
+
+                            itemIdx = i;
+
+                            gType = Game.Items.Inventory.GroupTypes.Weapons;
+
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (cType == 2)
+            {
+                gType = Game.Items.Inventory.GroupTypes.Items;
+
+                for (int i = 0; i < tData.Items.Length; i++)
+                {
+                    if (tData.Items[i] != null && tData.Items[i].UID == itemUid)
+                    {
+                        item = tData.Items[i];
+
+                        itemIdx = i;
+
+                        break;
+                    }
+                }
+            }
+            else if (cType == 3)
+            {
+                gType = Game.Items.Inventory.GroupTypes.Bag;
+
+                if (tData.Bag == null)
+                    return 2;
+
+                for (int i = 0; i < tData.Bag.Items.Length; i++)
+                {
+                    if (tData.Bag.Items[i] != null && tData.Bag.Items[i].UID == itemUid)
+                    {
+                        item = tData.Bag.Items[i];
+
+                        itemIdx = i;
+
+                        break;
+                    }
+                }
+            }
+            else if (cType == 4)
+            {
+                gType = Game.Items.Inventory.GroupTypes.Holster;
+
+                if (tData.Holster == null)
+                    return 2;
+
+                if (tData.Holster.Items[0] != null && tData.Holster.Items[0].UID == itemUid)
+                {
+                    item = tData.Holster.Items[0];
+
+                    itemIdx = 0;
+                }
+            }
+
+            if (item == null)
+                return 1;
+
+            if (!Game.Fractions.Police.IsItemConfiscatable(item))
+                return 3;
+
+            var amount = Game.Items.Stuff.GetItemAmount(item);
+
+            if (!pData.TryGiveExistingItem(item, amount, true, true))
+                return 4;
+
+            if (cType == 1)
+            {
+                if (gType == Game.Items.Inventory.GroupTypes.Weapons)
+                {
+                    tData.Weapons[itemIdx] = null;
+
+                    MySQL.CharacterWeaponsUpdate(tData.Info);
+
+                    target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Weapons[itemIdx], gType));
+                }
+                else if (gType == Game.Items.Inventory.GroupTypes.Armour)
+                {
+                    tData.Armour = null;
+
+                    MySQL.CharacterArmourUpdate(tData.Info);
+
+                    target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Armour, gType));
+                }
+            }
+            else if (cType == 2)
+            {
+                tData.Items[itemIdx] = null;
+
+                MySQL.CharacterItemsUpdate(tData.Info);
+
+                target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Items[itemIdx], gType));
+            }
+            else if (cType == 3)
+            {
+                tData.Bag.Items[itemIdx] = null;
+
+                tData.Bag.Update();
+
+                target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Items[itemIdx], gType));
+            }
+            else if (cType == 4)
+            {
+                tData.Holster.Items[itemIdx] = null;
+
+                tData.Holster.Update();
+
+                target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Holster.Items[itemIdx], gType));
+            }
+
+            Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_1"), target);
+
+            return 255;
         }
     }
 }

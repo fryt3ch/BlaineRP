@@ -309,7 +309,7 @@ namespace BCRPServer.Events.Players
 
             arm.Unwear(pData);
 
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Armour, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Armour));
+            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Armour, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Armour));
 
             MySQL.CharacterArmourUpdate(pData.Info);
 
@@ -461,11 +461,11 @@ namespace BCRPServer.Events.Players
                 {
                     for (int i = 0; i < pData.Weapons.Length; i++)
                         if (pData.Weapons[i] != null)
-                            pData.InventoryDrop(Game.Items.Inventory.Groups.Weapons, i, 1);
+                            pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Weapons, i, 1);
                 }
 
                 if (pData.Holster?.Items[0] != null)
-                    pData.InventoryDrop(Game.Items.Inventory.Groups.Holster, 0, 1);
+                    pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Holster, 0, 1);
 
                 if (Settings.PERCENT_OF_AMMO_TO_DROP_AFTER_DEATH > 0f && Settings.MAX_AMMO_TO_DROP_AFTER_DEATH > 0)
                 {
@@ -482,7 +482,7 @@ namespace BCRPServer.Events.Players
                             if (ammoToDrop == 0)
                                 break;
 
-                            pData.InventoryDrop(Game.Items.Inventory.Groups.Items, i, ammoToDrop);
+                            pData.InventoryDrop(Game.Items.Inventory.GroupTypes.Items, i, ammoToDrop);
 
                             droppedAmmo += ammoToDrop;
 
@@ -570,7 +570,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(veh, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, $"{Locale.Chat.Player.PointsAt} {vData.Data.Name} [{vData.Numberplate?.Tag ?? Locale.Chat.Vehicle.NoNumberplate}]", null);
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", $"{vData.Data.Name} [{vData.Numberplate?.Tag ?? Language.Strings.Get("CHAT_VEHICLE_NP_NONE")}]"), null);
         }
 
         [RemoteEvent("Players::FingerPoint::Player")]
@@ -589,7 +589,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(target, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.MePlayer, player, Locale.Chat.Player.PointsAt, target);
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0"), target);
         }
 
         [RemoteEvent("Players::FingerPoint::Ped")]
@@ -602,7 +602,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.MePlayer, player, Locale.Chat.Player.PointsAtPerson, null);
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_1", null));
         }
         #endregion
 
@@ -738,7 +738,7 @@ namespace BCRPServer.Events.Players
             {
                 //player.SetClothes(5, 81, 0);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOn);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_ON"));
             }
             else
             {
@@ -754,7 +754,7 @@ namespace BCRPServer.Events.Players
                         player.SetClothes(5, 0, 0);
                 }*/
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.BeltOff);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_OFF"));
             }
         }
         #endregion
@@ -823,7 +823,7 @@ namespace BCRPServer.Events.Players
 
                 if (curStateType == Sync.Players.PhoneStateTypes.Off)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Player.PhoneOn);
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_ON"));
 
                     player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.PhoneSync, -1, null);
                 }

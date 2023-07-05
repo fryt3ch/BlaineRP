@@ -35,7 +35,7 @@ namespace BCRPServer.Events.Vehicles
                 if (!vData.EngineOn)
                     return;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Locale.Chat.Vehicle.EngineBroken);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_0"));
 
                 vData.EngineOn = false;
 
@@ -77,7 +77,7 @@ namespace BCRPServer.Events.Vehicles
             {
                 if (vData.IsDead || vData.Vehicle.Health <= -4000f)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Locale.Chat.Vehicle.EngineStartFault);
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
                     player.Notify("Engine::SF");
 
@@ -88,13 +88,13 @@ namespace BCRPServer.Events.Vehicles
                 {
                     vData.EngineOn = true;
 
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOn);
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_ON"));
 
                     player.Notify("Engine::On");
                 }
                 else
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Locale.Chat.Vehicle.EngineStartFault);
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
                     player.Notify("Engine::OutOfFuel");
                 }
@@ -103,7 +103,7 @@ namespace BCRPServer.Events.Vehicles
             {
                 vData.EngineOn = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.EngineOff);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_OFF"));
 
                 player.Notify("Engine::Off");
             }
@@ -144,12 +144,14 @@ namespace BCRPServer.Events.Vehicles
 
             if (newState)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.Locked);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_LOCKED"));
+
                 player.Notify("Doors::Locked");
             }
             else
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.Unlocked);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_UNLOCKED"));
+
                 player.Notify("Doors::Unlocked");
             }
 
@@ -310,12 +312,12 @@ namespace BCRPServer.Events.Vehicles
 
             if (newState)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.TrunkOff);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
                 player.Notify("Trunk::Locked");
             }
             else
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.TrunkOn);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
                 player.Notify("Trunk::Unlocked");
             }
 
@@ -368,12 +370,14 @@ namespace BCRPServer.Events.Vehicles
 
             if (newState)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.HoodOff);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
+
                 player.Notify("Hood::Locked");
             }
             else
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Locale.Chat.Vehicle.HoodOn);
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
+
                 player.Notify("Hood::Unlocked");
             }
 
@@ -427,7 +431,7 @@ namespace BCRPServer.Events.Vehicles
                     {
                         vData.EngineOn = false;
 
-                        Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Locale.Chat.Vehicle.OutOfFuel);
+                        Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_FUEL_OUTOF"));
 
                         player.Notify("Engine::OutOfFuel");
                     }

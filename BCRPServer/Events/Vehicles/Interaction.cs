@@ -82,7 +82,7 @@ namespace BCRPServer.Events.Vehicles
 
             pData.Items[npIdx] = null;
 
-            player.InventoryUpdate(Groups.Items, npIdx, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(GroupTypes.Items, npIdx, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Items));
 
             MySQL.CharacterItemsUpdate(pData.Info);
 
@@ -195,7 +195,7 @@ namespace BCRPServer.Events.Vehicles
                 rKit.Update();
             }
 
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, idx, Game.Items.Item.ToClientJson(rKit, Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, idx, Game.Items.Item.ToClientJson(rKit, Game.Items.Inventory.GroupTypes.Items));
         }
 
         [RemoteEvent("Vehicles::JerrycanUse")]
@@ -252,7 +252,7 @@ namespace BCRPServer.Events.Vehicles
                 jerrycanItem.Update();
             }
 
-            player.InventoryUpdate(Game.Items.Inventory.Groups.Items, itemIdx, Game.Items.Item.ToClientJson(pData.Items[itemIdx], Game.Items.Inventory.Groups.Items));
+            player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Items, itemIdx, Game.Items.Item.ToClientJson(pData.Items[itemIdx], Game.Items.Inventory.GroupTypes.Items));
 
             player.Notify(vDataData.FuelType == Game.Data.Vehicles.Vehicle.FuelTypes.Petrol ? "Vehicle::JCUSP" : "Vehicle::JCUSE");
         }
@@ -327,7 +327,7 @@ namespace BCRPServer.Events.Vehicles
             if (target.Vehicle != player.Vehicle)
                 return;
 
-            if (Sync.Chat.SendLocal(Sync.Chat.Types.TryPlayer, player, Locale.Chat.Vehicle.Kick, target))
+            if (Sync.Chat.SendLocal(Sync.Chat.Types.Try, player, Language.Strings.Get("CHAT_VEHICLE_PSGR_KICKED"), target))
             {
                 target.WarpOutOfVehicle();
             }

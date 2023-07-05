@@ -17,6 +17,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Resources\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MySql.Data" Version="8.0.33" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
@@ -29,6 +35,22 @@
 
   <ItemGroup>
     <Folder Include="Game\Map\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Language.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Language.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Language.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Language.Designer.cs</LastGenOutput>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
