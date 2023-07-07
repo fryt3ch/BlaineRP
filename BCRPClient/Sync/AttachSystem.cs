@@ -106,8 +106,7 @@ namespace BCRPClient.Sync
 
             TractorTrailFarmHarv,
 
-            PushVehicleFront,
-            PushVehicleBack,
+            PushVehicle,
 
             Carry,
             PiggyBack,
@@ -115,7 +114,7 @@ namespace BCRPClient.Sync
 
             PoliceEscort,
 
-            VehicleTrunk, VehicleTrunkForced,
+            VehicleTrunk,
 
             #endregion
         }
@@ -172,7 +171,6 @@ namespace BCRPClient.Sync
             StreamedAttachments.Remove(toHandle);
         }
 
-        #region Classes
         public class AttachmentData
         {
             public int BoneID;
@@ -246,6 +244,9 @@ namespace BCRPClient.Sync
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
+            [JsonProperty(PropertyName = "D")]
+            public string SyncData { get; set; }
+
             public AttachmentEntityNet()
             {
 
@@ -299,7 +300,6 @@ namespace BCRPClient.Sync
                 this.Type = Type;
             }
         }
-        #endregion
 
         private static Dictionary<uint, Dictionary<Types, AttachmentData>> ModelDependentAttachments = new Dictionary<string, Dictionary<Types, AttachmentData>>()
         {
@@ -328,8 +328,7 @@ namespace BCRPClient.Sync
 
         public static Dictionary<Types, AttachmentData> Attachments = new Dictionary<Types, AttachmentData>()
         {
-            { Types.PushVehicleFront, new AttachmentData(6286, new Vector3(0f, 0.35f, 0.95f), new Vector3(0f, 0f, 180f), false, true, true, 2, true) },
-            { Types.PushVehicleBack, new AttachmentData(6286, new Vector3(0f, -0.6f, 0.95f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
+            { Types.PushVehicle, new AttachmentData(6286, new Vector3(0f, 0f, 0.95f), new Vector3(0f, 0f, 0f), false, true, true, 2, true) },
             { Types.PhoneSync, new AttachmentData(28422, new Vector3(0f, 0f, 0f), new Vector3(0f, 0f, 30f), false, false, false, 2, true) },
             { Types.VehKey, new AttachmentData(6286, new Vector3(0.08f, 0.04f, -0.015f), new Vector3(175f, -115f, -90f), false, false, false, 2, true) },
             { Types.ParachuteSync, new AttachmentData(1_000_000 + 57717, new Vector3(0f, 0f, 3f), new Vector3(0f, 0f, 0f), false, false, false, 0, true) },
@@ -344,7 +343,6 @@ namespace BCRPClient.Sync
             { Types.Hostage, new AttachmentData(0, new Vector3(-0.24f, 0.11f, 0f), new Vector3(0.5f, 0.5f, 0f), false, false, false, 2, true) },
 
             { Types.VehicleTrunk, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
-            { Types.VehicleTrunkForced, new AttachmentData(-1, new Vector3(0f, 0.5f, 0.4f), new Vector3(0f, 0f, 0f), false, false, false, 2, true) },
 
             { Types.TrailerObjOnBoat, new AttachmentData(20, new Vector3(0f, -1f, 0.25f), new Vector3(0f, 0f, 0f), false, true, false, 2, true) },
 
@@ -524,7 +522,7 @@ namespace BCRPClient.Sync
             var listEntitiesNet = Utils.ConvertJArrayToList<AttachmentEntityNet>(entities);
 
             foreach (var x in listEntitiesNet)
-                await AttachEntity(entity, x.Type, x.Id, x.EntityType);
+                await AttachEntity(entity, x.Type, x.Id, x.EntityType, x.SyncData);
         }
 
         public static async System.Threading.Tasks.Task OnEntityStreamOut(Entity entity)
@@ -609,7 +607,7 @@ namespace BCRPClient.Sync
                         if (currentListEntitiesNet.Contains(x))
                             continue;
                         else
-                            AttachEntity(entity, x.Type, x.Id, x.EntityType);
+                            AttachEntity(entity, x.Type, x.Id, x.EntityType, x.SyncData);
                     }
                     else
                         DetachEntity(entity, x.Type, x.Id, x.EntityType);
@@ -646,7 +644,7 @@ namespace BCRPClient.Sync
         }
 
         #region Entity Methods
-        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType)
+        public static async System.Threading.Tasks.Task AttachEntity(Entity entity, Types type, ushort remoteId, RAGE.Elements.Type eType, string syncData)
         {
             GameEntity gTarget = null;
             var gEntity = Utils.GetGameEntity(entity);
@@ -682,6 +680,8 @@ namespace BCRPClient.Sync
 
             var positionBase = Vector3.Zero;
 
+            var props = Attachments.GetValueOrDefault(type);
+
             if (entity is Vehicle veh)
             {
                 if (type == Types.VehicleTrailer)
@@ -692,27 +692,31 @@ namespace BCRPClient.Sync
                 {
                     (Vector3 Min, Vector3 Max) vehSize = entity.GetModelDimensions();
 
-                    if (type == Types.PushVehicleFront || type == Types.PushVehicleBack)
+                    if (type == Types.PushVehicle)
                     {
-                        if (type == Types.PushVehicleFront)
+                        if (syncData == "1")
                         {
                             positionBase.Y = vehSize.Max.Y;
                             positionBase.Z = vehSize.Min.Z;
+
+                            props.PositionOffset.Y = 0.35f;
+                            props.Rotation.Z = 180f;
                         }
                         else
                         {
                             positionBase.Y = vehSize.Min.Y;
                             positionBase.Z = vehSize.Min.Z;
+
+                            props.PositionOffset.Y = -0.6f;
+                            props.Rotation.Z = 0f;
                         }
                     }
-                    else if (type == Types.VehicleTrunk || type == Types.VehicleTrunkForced)
+                    else if (type == Types.VehicleTrunk)
                     {
                         positionBase.Y = -(vehSize.Max.Y - vehSize.Min.Y) / 2f;
                     }
                 }
             }
-
-            var props = Attachments.GetValueOrDefault(type);
 
             if (props != null)
             {
@@ -1060,8 +1064,6 @@ namespace BCRPClient.Sync
 
         private static Dictionary<Types, Types> SameActionsTypes = new Dictionary<Types, Types>()
         {
-            { Types.PushVehicleBack, Types.PushVehicleFront },
-
             { Types.ItemCig1Hand, Types.ItemCigHand },
             { Types.ItemCig2Hand, Types.ItemCigHand },
             { Types.ItemCig3Hand, Types.ItemCigHand },
@@ -1074,7 +1076,7 @@ namespace BCRPClient.Sync
         private static Dictionary<Types, (Action On, Action Off, Action Loop)?> TargetActions = new Dictionary<Types, (Action On, Action Off, Action Loop)?>()
         {
             {
-                Types.PushVehicleFront,
+                Types.PushVehicle,
 
                 (
                     new Action(() =>
@@ -1133,11 +1135,18 @@ namespace BCRPClient.Sync
 
                     new Action(() =>
                     {
+                        var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                        if (pData == null)
+                            return;
+
                         var root = Player.LocalPlayer.GetData<Entity>("IsAttachedTo::Entity") as Vehicle;
 
                         var bind = KeyBinds.Get(KeyBinds.Types.CancelAnimation);
 
-                        if (root?.Exists != true || bind.IsPressed || Vector3.Distance(Player.LocalPlayer.Position, root.GetRealPosition()) > Settings.ENTITY_INTERACTION_MAX_DISTANCE)
+                        var isForced = pData.IsKnocked || pData.IsCuffed;
+
+                        if (root?.Exists != true || (!isForced && bind.IsPressed))
                         {
                             if (Sync.Animations.LastSent.IsSpam(500, false, false))
                                 return;
@@ -1148,7 +1157,8 @@ namespace BCRPClient.Sync
                         }
                         else
                         {
-                            Utils.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
+                            if (!isForced)
+                                Utils.DrawText(string.Format(Locale.General.Animations.CancelTextInTrunk, bind.GetKeyString()), 0.5f, 0.95f, 255, 255, 255, 255, 0.45f, RAGE.Game.Font.ChaletComprimeCologne, false, true);
                         }
                     })
                 )
@@ -1643,7 +1653,10 @@ namespace BCRPClient.Sync
 
                     () =>
                     {
-
+                        if (Player.LocalPlayer.IsInAnyVehicle(false))
+                        {
+                            GameEvents.DisableMoveRender();
+                        }
                     }
                 )
             },

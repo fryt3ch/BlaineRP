@@ -49,25 +49,33 @@ namespace BCRPServer.Events.Players.Misc
             }
         }
 
-        [RemoteEvent("Players::GoToTrunk")]
-        public static void GoToTrunk(Player player, Vehicle vehicle)
+        [RemoteProc("Players::GoToTrunk")]
+        public static byte GoToTrunk(Player player, Vehicle vehicle)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.HasAnyHandAttachedObject || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn())
-                return;
+                return 0;
 
             var vData = vehicle.GetMainData();
 
             if (vData == null)
-                return;
+                return 0;
 
-            vehicle.AttachEntity(player, Sync.AttachSystem.Types.VehicleTrunk);
+            if (vData.TrunkLocked)
+                return 1;
+
+            if (vData.AttachedObjects.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk).Any())
+                return 2;
+
+            vehicle.AttachEntity(player, Sync.AttachSystem.Types.VehicleTrunk, null);
+
+            return 255;
         }
 
         [RemoteEvent("Players::StopInTrunk")]
@@ -88,6 +96,9 @@ namespace BCRPServer.Events.Players.Misc
             var atData = atVeh.GetAttachmentData(player);
 
             if (atData == null || atData.Type != Sync.AttachSystem.Types.VehicleTrunk)
+                return;
+
+            if (pData.IsKnocked || pData.IsCuffed)
                 return;
 
             atVeh.DetachEntity(player);

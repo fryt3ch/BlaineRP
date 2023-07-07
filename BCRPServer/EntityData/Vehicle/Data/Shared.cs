@@ -22,7 +22,7 @@ namespace BCRPServer
 
         /// <summary>Включён ли двигатель?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool EngineOn { get => Vehicle.GetSharedData<bool>("Engine::On"); set { Vehicle.SetSharedData("Engine::On", value); Vehicle.EngineStatus = value; } }
+        public bool EngineOn { get => Vehicle.GetSharedData<bool>("Engine::On"); set { Vehicle.SetSharedData("Engine::On", value); } }
 
         /// <summary>Заблокированы ли двери?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -34,11 +34,8 @@ namespace BCRPServer
 
         /// <summary>Включён ли левый поворотник?</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool LeftIndicatorOn { get => Vehicle.GetSharedData<bool>("Indicators::LeftOn"); set { Vehicle.SetSharedData("Indicators::LeftOn", value); } }
+        public byte IndicatorsState { get => (byte)Vehicle.GetSharedData<int>("Inds"); set { Vehicle.SetSharedData("Inds", value); } }
 
-        /// <summary>Включён ли правый поворотник?</summary>
-        /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public bool RightIndicatorOn { get => Vehicle.GetSharedData<bool>("Indicators::RightOn"); set { Vehicle.SetSharedData("Indicators::RightOn", value); } }
 
         /// <summary>Текущая радиостанция</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>

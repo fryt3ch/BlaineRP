@@ -1,30 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AssemblyName>BCRPServer</AssemblyName>
-    <RootNamespace>BCRPServer</RootNamespace>
-    <BaseOutputPath>C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP\dotnet\resources\BCRPMode</BaseOutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
-    <OutputPath>C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP\dotnet\resources\BCRPMode\</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Resources\**" />
-    <EmbeddedResource Remove="Resources\**" />
-    <None Remove="Resources\**" />
+    <Content Include="meta.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MySql.Data" Version="8.0.33" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Resources.ResourceManager" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Game\Map\" />
+    <ProjectReference Include="..\BCRPClient\BCRPClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,5 +46,12 @@
       <CustomToolNamespace></CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	<PropertyGroup>
+		<RAGEResourceOutputPath>C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP\dotnet\resources\BCRPMode\</RAGEResourceOutputPath>
+	</PropertyGroup>
+    <Exec Command="del &quot;$(RAGEResourceOutputPath)&quot; /S /Q&#xD;&#xA;rmdir &quot;$(RAGEResourceOutputPath)&quot; /S /Q&#xD;&#xA;mkdir &quot;$(RAGEResourceOutputPath)&quot;&#xD;&#xA;&#xD;&#xA;xcopy &quot;$(OutDir)*&quot; &quot;$(RAGEResourceOutputPath)&quot; /E /Y" />
+  </Target>
 
 </Project>

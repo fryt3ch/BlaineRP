@@ -756,7 +756,7 @@ namespace BCRPClient
             Add(new ExtraBind(Types.Engine, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.Engine();
+                    Sync.Vehicles.ToggleEngine(Player.LocalPlayer.Vehicle, null);
             }, true, true)
             { Description = "Двигатель Т/С" });
 
@@ -804,7 +804,7 @@ namespace BCRPClient
             Add(new ExtraBind(Types.LeftArrow, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.ToggleIndicator(1);
+                    Sync.Vehicles.ToggleIndicator(Player.LocalPlayer.Vehicle, 1);
             }, true, true)
             { Description = "Левый поворотник" });
 
@@ -812,7 +812,7 @@ namespace BCRPClient
             Add(new ExtraBind(Types.RightArrow, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.ToggleIndicator(0);
+                    Sync.Vehicles.ToggleIndicator(Player.LocalPlayer.Vehicle, 0);
             }, true, true)
             { Description = "Правый поворотник" });
 
@@ -820,7 +820,7 @@ namespace BCRPClient
             Add(new ExtraBind(Types.BothArrows, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.ToggleIndicator(2);
+                    Sync.Vehicles.ToggleIndicator(Player.LocalPlayer.Vehicle, 2);
             }, true, true)
             { Description = "Аварийка" });
 
@@ -828,7 +828,7 @@ namespace BCRPClient
             Add(new ExtraBind(Types.Lights, () =>
             {
                 if (Utils.CanShowCEF(true, true))
-                    Sync.Vehicles.ToggleLights();
+                    Sync.Vehicles.ToggleLights(Player.LocalPlayer.Vehicle);
             }, true, true)
             { Description = "Фары" });
 

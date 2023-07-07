@@ -4,45 +4,10 @@ namespace BCRPClient
 {
     public static partial class Locale
     {
-        public class Language
-        {
-            private Dictionary<string, string> Texts { get; set; }
+        // restricted chars for regex _|&^
 
-            public Language((string Key, string Value)[] Texts)
-            {
-                this.Texts = new Dictionary<string, string>();
-
-                for (int i = 0; i < Texts.Length; i++)
-                {
-                    var x = Texts[i];
-
-                    Add(x.Key, x.Value);
-                }
-            }
-
-            public string Get(string key, string otherwise, params object[] formatArfs)
-            {
-                var text = Texts.GetValueOrDefault(key, otherwise);
-
-                if (text != null && formatArfs.Length > 0)
-                    text = string.Format(text, formatArfs);
-
-                return text;
-            }
-
-            public void Add(string key, string value)
-            {
-                if (!this.Texts.TryAdd(key, value))
-                    this.Texts[key] = value;
-            }
-        }
-
-        private static Language CurrentLanguage { get; } = Settings.LANGUAGE == "ru" ? RussianLanguage : RussianLanguage;
-
-        public static string Get(string key, params object[] formatArgs) => CurrentLanguage.Get(key, key, formatArgs);
-        public static string? GetNullOtherwise(string key, params object[] formatArgs) => CurrentLanguage.Get(key, null, formatArgs);
-
-        public static void Add(string key, string value) => CurrentLanguage.Add(key, value);
+        public static string Get(string key, params object[] formatArgs) => Language.Strings.Get(key, formatArgs);
+        public static string? GetNullOtherwise(string key, params object[] formatArgs) => Language.Strings.GetNullOtherwise(key);
 
         #region General
         public static partial class General

@@ -247,6 +247,52 @@ namespace BCRPClient.CEF
             OutVehicleInteractionInfo.AddAction("hood", "close", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.ToggleHoodLock(true, veh); });
             OutVehicleInteractionInfo.AddAction("hood", "", OutVehicleInteractionInfo.GetAction("hood", "look"));
 
+            OutVehicleInteractionInfo.AddAction("seat", "", (entity) =>
+            {
+                var veh = entity as Vehicle; if (veh == null) return;
+
+                var freeSeats = new List<(decimal, string)>();
+
+                for (int i = -1; i < veh.GetMaxNumberOfPassengers(); i++)
+                {
+                    if (veh.IsSeatFree(i, 0))
+                        freeSeats.Add((i + 1, Locale.Get("POLICE_PTOVEH_L_0", i + 2)));
+                }
+
+                if (Player.LocalPlayer.Vehicle != veh)
+                {
+                    var trunkAttach = Sync.AttachSystem.GetEntityEntityAttachments(veh)?.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk).FirstOrDefault();
+
+                    if (trunkAttach == null && veh.DoesHaveDoor(5) > 0)
+                        freeSeats.Add((int.MaxValue, Locale.Get("POLICE_PTOVEH_L_1")));
+                }
+
+                if (freeSeats.Count == 0)
+                {
+                    CEF.Notification.ShowError(Locale.Get("VEHICLE_SEAT_E_0"));
+                }
+                else if (freeSeats.Count == 1)
+                {
+                    Sync.Vehicles.SeatTo((int)freeSeats[0].Item1, veh);
+                }
+                else
+                {
+                    CEF.ActionBox.ShowSelect("PlayerInteractVehicleSeatToSelect", Locale.Get("POLICE_PTOVEH_L_2"), freeSeats.ToArray(), null, null, CEF.ActionBox.DefaultBindAction, (rType, id) =>
+                    {
+                        if (rType != CEF.ActionBox.ReplyTypes.OK)
+                        {
+                            CEF.ActionBox.Close(true);
+
+                            return;
+                        }
+
+                        var seatIdx = (int)id;
+
+                        Sync.Vehicles.SeatTo(seatIdx, veh);
+                    }, null);
+                }
+            });
+
             OutVehicleInteractionInfo.AddAction("seat", "s_one", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(0, veh); });
             OutVehicleInteractionInfo.AddAction("seat", "s_two", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(1, veh); });
             OutVehicleInteractionInfo.AddAction("seat", "s_three", (entity) => { var veh = entity as Vehicle; if (veh == null) return; Sync.Vehicles.SeatTo(2, veh); });
@@ -279,6 +325,8 @@ namespace BCRPClient.CEF
 
             InVehicleInteractionInfo.AddAction("hood", "open", OutVehicleInteractionInfo.GetAction("hood", "open"));
             InVehicleInteractionInfo.AddAction("hood", "close", OutVehicleInteractionInfo.GetAction("hood", "close"));
+
+            InVehicleInteractionInfo.AddAction("seat", "", OutVehicleInteractionInfo.GetAction("seat", ""));
 
             InVehicleInteractionInfo.AddAction("seat", "s_one", OutVehicleInteractionInfo.GetAction("seat", "s_one"));
             InVehicleInteractionInfo.AddAction("seat", "s_two", OutVehicleInteractionInfo.GetAction("seat", "s_two"));
@@ -509,7 +557,7 @@ namespace BCRPClient.CEF
             // If no Passengers
             if (players.Count == 0)
             {
-                Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Vehicles.Passengers.None);
+                CEF.Notification.ShowError(Locale.Get("VEHICLE_SEAT_E_1"));
 
                 return;
             }

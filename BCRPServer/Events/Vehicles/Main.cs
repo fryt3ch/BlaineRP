@@ -23,7 +23,7 @@ namespace BCRPServer.Events.Vehicles
             if (vData == null)
                 return;
 
-            if (pData.IsFrozen || pData.IsCuffed || pData.IsKnocked)
+            if (pData.IsFrozen || ((pData.IsCuffed || pData.IsKnocked) && seatId < 1))
             {
                 player.WarpOutOfVehicle();
 
@@ -213,7 +213,7 @@ namespace BCRPServer.Events.Vehicles
                         if (!tData.CanManipulate(pData, true))
                             return;
 
-                        if (trailer.AttachEntity(veh, AttachSystem.Types.VehicleTrailerObjBoat))
+                        if (trailer.AttachEntity(veh, AttachSystem.Types.VehicleTrailerObjBoat, null))
                         {
                             Console.WriteLine("trailer attached");
                         }

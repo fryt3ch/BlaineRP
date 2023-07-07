@@ -107,8 +107,7 @@ namespace BCRPServer.Sync
 
             TractorTrailFarmHarv,
 
-            PushVehicleFront,
-            PushVehicleBack,
+            PushVehicle,
 
             Carry,
             PiggyBack,
@@ -116,7 +115,7 @@ namespace BCRPServer.Sync
 
             PoliceEscort,
 
-            VehicleTrunk, VehicleTrunkForced,
+            VehicleTrunk,
 
             #endregion
         }
@@ -139,11 +138,11 @@ namespace BCRPServer.Sync
             [JsonProperty(PropertyName = "M")]
             public uint Model { get; set; }
 
-            [JsonProperty(PropertyName = "D", NullValueHandling = NullValueHandling.Ignore)]
-            public string SyncData { get; set; }
-
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
+
+            [JsonProperty(PropertyName = "D", NullValueHandling = NullValueHandling.Ignore)]
+            public string SyncData { get; set; }
 
             public AttachmentObjectNet(uint Model, Types Type, string SyncData = null)
             {
@@ -165,12 +164,17 @@ namespace BCRPServer.Sync
             [JsonProperty(PropertyName = "T")]
             public Types Type { get; set; }
 
-            public AttachmentEntityNet(ushort Id, EntityType EntityType, Types Type)
+            [JsonProperty(PropertyName = "D", NullValueHandling = NullValueHandling.Ignore)]
+            public string SyncData { get; set; }
+
+            public AttachmentEntityNet(ushort Id, EntityType EntityType, Types Type, string SyncData)
             {
                 this.Id = Id;
                 this.EntityType = EntityType;
 
                 this.Type = Type;
+
+                this.SyncData = SyncData;
             }
         }
 
@@ -185,17 +189,17 @@ namespace BCRPServer.Sync
             { Types.ItemCig3Mouth, Types.ItemCigMouth },
         };
 
-        private static Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>> Actions = new Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, object[]>>>()
+        private static Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>> Actions = new Dictionary<Types, Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>>()
         {
             {
                 Types.TrailerObjOnBoat,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
 
                         }
@@ -204,7 +208,7 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (root is Vehicle veh)
                             {
@@ -219,14 +223,14 @@ namespace BCRPServer.Sync
             },
 
             {
-                Types.PushVehicleBack,
+                Types.PushVehicle,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (target is Player player)
                             {
@@ -245,6 +249,12 @@ namespace BCRPServer.Sync
                                     var baseSpeed = Settings.PUSHING_VEHICLE_STRENGTH_MIN;
                                     var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
 
+                                    if (syncData == "1")
+                                    {
+                                        baseSpeed = -baseSpeed;
+                                        strengthCoef = -strengthCoef;
+                                    }
+
                                     vData.ForcedSpeed = baseSpeed + strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
 
                                     pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
@@ -256,7 +266,7 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (target is Player player)
                             {
@@ -264,71 +274,8 @@ namespace BCRPServer.Sync
 
                                 if (pData != null)
                                 {
-                                    pData.StopGeneralAnim();
-                                }
-                            }
-
-                            if (root is Vehicle veh)
-                            {
-                                var vData = veh.GetMainData();
-
-                                if (vData != null)
-                                {
-                                    vData.ForcedSpeed = 0f;
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-
-            {
-                Types.PushVehicleFront,
-
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
-                {
-                    {
-                        true,
-
-                        (Entity root, Entity target, Types type, object[] args) =>
-                        {
-                            if (target is Player player)
-                            {
-                                var pData = player.GetMainData();
-
-                                if (pData == null)
-                                    return;
-
-                                if (root is Vehicle veh)
-                                {
-                                    var vData = veh.GetMainData();
-
-                                    if (vData == null)
-                                        return;
-
-                                    var baseSpeed = -Settings.PUSHING_VEHICLE_STRENGTH_MIN;
-                                    var strengthCoef = pData.Skills[PlayerData.SkillTypes.Strength] / (float)PlayerData.MaxSkills[PlayerData.SkillTypes.Strength];
-
-                                    vData.ForcedSpeed = baseSpeed - strengthCoef * (Settings.PUSHING_VEHICLE_STRENGTH_MAX - Settings.PUSHING_VEHICLE_STRENGTH_MIN);
-
-                                    pData.PlayAnim(Animations.GeneralTypes.PushingVehicle);
-                                }
-                            }
-                        }
-                    },
-
-                    {
-                        false,
-
-                        (Entity root, Entity target, Types type, object[] args) =>
-                        {
-                            if (target is Player player)
-                            {
-                                var pData = player.GetMainData();
-
-                                if (pData != null)
-                                {
-                                    pData.StopGeneralAnim();
+                                    if (pData.GeneralAnim == Animations.GeneralTypes.PushingVehicle)
+                                        pData.StopGeneralAnim();
                                 }
                             }
 
@@ -349,12 +296,12 @@ namespace BCRPServer.Sync
             {
                 Types.VehicleTrunk,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (target is Player player)
                             {
@@ -371,7 +318,7 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (target is Player player)
                             {
@@ -380,7 +327,17 @@ namespace BCRPServer.Sync
                                 if (pData == null)
                                     return;
 
-                                pData.StopGeneralAnim();
+                                if (pData.GeneralAnim == Animations.GeneralTypes.LieInTrunk)
+                                {
+                                    if (pData.IsCuffed)
+                                    {
+                                        pData.PlayAnim(Animations.GeneralTypes.CuffedStatic0);
+                                    }
+                                    else
+                                    {
+                                        pData.StopGeneralAnim();
+                                    }
+                                }
                             }
                         }
                     }
@@ -390,12 +347,12 @@ namespace BCRPServer.Sync
             {
                 Types.Carry,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
 
                             if (target is Player tPlayer)
@@ -422,7 +379,7 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (Entity root, Entity target, Types type, object[] args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (target is Player tPlayer)
                             {
@@ -430,7 +387,8 @@ namespace BCRPServer.Sync
 
                                 if (tData != null)
                                 {
-                                    tData.StopGeneralAnim();
+                                    if (tData.GeneralAnim == Animations.GeneralTypes.CarryA)
+                                        tData.StopGeneralAnim();
                                 }
                             }
 
@@ -440,7 +398,8 @@ namespace BCRPServer.Sync
 
                                 if (pData != null)
                                 {
-                                    pData.StopGeneralAnim();
+                                    if (pData.GeneralAnim == Animations.GeneralTypes.CarryB)
+                                        pData.StopGeneralAnim();
                                 }
                             }
                         }
@@ -451,12 +410,12 @@ namespace BCRPServer.Sync
             {
                 Types.ItemCigMouth,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (args.Length == 0)
                                 return;
@@ -464,7 +423,7 @@ namespace BCRPServer.Sync
                             int maxTime = (int)args[0];
                             int maxPuffs = (int)args[1];
 
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("Player::Smoke::Start", maxTime, maxPuffs);
                             }
@@ -474,11 +433,11 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (args.Length == 0)
                             {
-                                if (entity is Player player)
+                                if (root is Player player)
                                 {
                                     player.TriggerEvent("Player::Smoke::Stop");
                                 }
@@ -491,12 +450,12 @@ namespace BCRPServer.Sync
             {
                 Types.ItemCigHand,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (args.Length == 0)
                                 return;
@@ -504,7 +463,7 @@ namespace BCRPServer.Sync
                             int maxTime = (int)args[0];
                             int maxPuffs = (int)args[1];
 
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("Player::Smoke::Start", maxTime, maxPuffs);
                             }
@@ -514,11 +473,11 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
                             if (args.Length == 0)
                             {
-                                if (entity is Player player)
+                                if (root is Player player)
                                 {
                                     player.TriggerEvent("Player::Smoke::Stop");
                                 }
@@ -531,14 +490,14 @@ namespace BCRPServer.Sync
             {
                 Types.ItemFishingRodG,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("MG::F::S", args);
                             }
@@ -548,9 +507,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("MG::F::S");
                             }
@@ -562,14 +521,14 @@ namespace BCRPServer.Sync
             {
                 Types.ItemFishG,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("MG::F::S", args);
                             }
@@ -581,14 +540,14 @@ namespace BCRPServer.Sync
             {
                 Types.ItemShovel,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("MG::SHOV::S", args);
                             }
@@ -598,9 +557,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 player.TriggerEvent("MG::SHOV::S");
                             }
@@ -612,14 +571,14 @@ namespace BCRPServer.Sync
             {
                 Types.FarmPlantSmallShovel,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -634,9 +593,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -663,14 +622,14 @@ namespace BCRPServer.Sync
             {
                 Types.FarmWateringCan,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -685,9 +644,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -704,7 +663,8 @@ namespace BCRPServer.Sync
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentOrangeTreeInfo(pData, out idx))
                                     Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pData);
 
-                                pData.StopGeneralAnim();
+                                if (pData.GeneralAnim == Animations.GeneralTypes.WateringCan0)
+                                    pData.StopGeneralAnim();
                             }
                         }
                     },
@@ -714,14 +674,14 @@ namespace BCRPServer.Sync
             {
                 Types.FarmOrangeBoxCarry,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -736,9 +696,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -755,7 +715,8 @@ namespace BCRPServer.Sync
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentOrangeTreeInfo(pData, out idx))
                                     Game.Jobs.Farmer.ResetPlayerCurrentOrangeTreeInfo(pData);
 
-                                pData.StopGeneralAnim();
+                                if (pData.GeneralAnim == Animations.GeneralTypes.BoxCarry0)
+                                    pData.StopGeneralAnim();
                             }
                         }
                     },
@@ -765,14 +726,14 @@ namespace BCRPServer.Sync
             {
                 Types.FarmMilkBucketCarry,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -790,9 +751,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -809,7 +770,8 @@ namespace BCRPServer.Sync
                                 if (Game.Jobs.Farmer.TryGetPlayerCurrentCowInfo(pData, out idx))
                                     Game.Jobs.Farmer.ResetPlayerCurrentCowInfo(pData);
 
-                                pData.StopGeneralAnim();
+                                if (pData.GeneralAnim == Animations.GeneralTypes.BucketCarryOneHand0)
+                                    pData.StopGeneralAnim();
                             }
                         }
                     },
@@ -819,14 +781,14 @@ namespace BCRPServer.Sync
             {
                 Types.EmsHealingBedFakeAttach,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -841,7 +803,8 @@ namespace BCRPServer.Sync
                                     ems.SetBedAsFree(bedIdx);
                                 }
 
-                                pData.StopGeneralAnim();
+                                if (pData.GeneralAnim == Animations.GeneralTypes.BedLie0)
+                                    pData.StopGeneralAnim();
                             }
                         }
                     },
@@ -851,14 +814,14 @@ namespace BCRPServer.Sync
             {
                 Types.Cuffs,
 
-                new Dictionary<bool, Action<Entity, Entity, Types, object[]>>()
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
                 {
                     {
                         true,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -870,10 +833,12 @@ namespace BCRPServer.Sync
                                     entityAttachedTo.DetachEntity(player);
                                 }
 
-                                pData.Player.DetachAllEntities();
-                                pData.Player.DetachAllObjectsInHand();
+                                pData.StopUseCurrentItem();
 
                                 pData.UnequipActiveWeapon();
+
+                                pData.Player.DetachAllEntities();
+                                pData.Player.DetachAllObjectsInHand();
 
                                 pData.PlayAnim(Animations.GeneralTypes.CuffedStatic0);
                             }
@@ -883,9 +848,9 @@ namespace BCRPServer.Sync
                     {
                         false,
 
-                        (entity, entity2, type, args) =>
+                        (root, target, type, syncData, args) =>
                         {
-                            if (entity is Player player)
+                            if (root is Player player)
                             {
                                 var pData = player.GetMainData();
 
@@ -904,9 +869,51 @@ namespace BCRPServer.Sync
                     },
                 }
             },
+
+            {
+                Types.PoliceEscort,
+
+                new Dictionary<bool, Action<Entity, Entity, Types, string, object[]>>()
+                {
+                    {
+                        true,
+
+                        (root, target, type, syncData, args) =>
+                        {
+                            if (root is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                pData.PlayAnim(Animations.GeneralTypes.PoliceEscort0);
+                            }
+                        }
+                    },
+
+                    {
+                        false,
+
+                        (root, target, type, syncData, args) =>
+                        {
+                            if (root is Player player)
+                            {
+                                var pData = player.GetMainData();
+
+                                if (pData == null)
+                                    return;
+
+                                if (pData.GeneralAnim == Animations.GeneralTypes.PoliceEscort0)
+                                    pData.StopGeneralAnim();
+                            }
+                        }
+                    },
+                }
+            },
         };
 
-        private static Action<Entity, Entity, Types, object[]> GetOffAction(Types type)
+        private static Action<Entity, Entity, Types, string, object[]> GetOffAction(Types type)
         {
             var action = Actions.GetValueOrDefault(type);
 
@@ -923,7 +930,7 @@ namespace BCRPServer.Sync
             return action.GetValueOrDefault(false);
         }
 
-        private static Action<Entity, Entity, Types, object[]> GetOnAction(Types type)
+        private static Action<Entity, Entity, Types, string, object[]> GetOnAction(Types type)
         {
             var action = Actions.GetValueOrDefault(type);
 
@@ -952,7 +959,7 @@ namespace BCRPServer.Sync
         /// <param name="entity">Сущность, к которой прикрепляем</param>
         /// <param name="target">Сущность, которую прикрепляем</param>
         /// <param name="type">Тип прикрепления</param>
-        public static bool AttachEntity(Entity entity, Entity target, Types type)
+        public static bool AttachEntity(Entity entity, Entity target, Types type, string syncData, params object[] args)
         {
             var list = entity.GetSharedData<Newtonsoft.Json.Linq.JArray>(AttachedEntitiesKey)?.ToList<AttachmentEntityNet>();
 
@@ -962,13 +969,13 @@ namespace BCRPServer.Sync
             if (target.GetEntityIsAttachedTo() is Entity attachedToEntity)
                 DetachEntity(attachedToEntity, target);
 
-            var newAttachment = new AttachmentEntityNet(target.Id, target.Type, type);
+            var newAttachment = new AttachmentEntityNet(target.Id, target.Type, type, syncData);
             list.Add(newAttachment);
 
             entity.SetSharedData(AttachedEntitiesKey, list);
             target.SetData(EntityIsAttachedToKey, entity);
 
-            GetOnAction(type)?.Invoke(entity, target, type, EmptyArgs);
+            GetOnAction(type)?.Invoke(entity, target, type, syncData, args);
 
             return true;
         }
@@ -994,7 +1001,7 @@ namespace BCRPServer.Sync
             entity.SetSharedData(AttachedEntitiesKey, list);
             target.ResetData(EntityIsAttachedToKey);
 
-            GetOffAction(item.Type)?.Invoke(entity, target, item.Type, EmptyArgs);
+            GetOffAction(item.Type)?.Invoke(entity, target, item.Type, item.SyncData, EmptyArgs);
 
             return true;
         }
@@ -1018,7 +1025,7 @@ namespace BCRPServer.Sync
                     target.ResetData(EntityIsAttachedToKey);
                 }
 
-                GetOffAction(x.Type)?.Invoke(entity, target, x.Type, EmptyArgs);
+                GetOffAction(x.Type)?.Invoke(entity, target, x.Type, x.SyncData, EmptyArgs);
             }
 
             list.Clear();
@@ -1051,7 +1058,7 @@ namespace BCRPServer.Sync
 
             list.Add(newAttachment);
 
-            GetOnAction(type)?.Invoke(entity, null, type, args);
+            GetOnAction(type)?.Invoke(entity, null, type, syncData, args);
 
             entity.SetSharedData(AttachedObjectsKey, list);
 
@@ -1105,7 +1112,7 @@ namespace BCRPServer.Sync
 
             entity.SetSharedData(AttachedObjectsKey, list);
 
-            GetOffAction(item.Type)?.Invoke(entity, null, item.Type, args);
+            GetOffAction(item.Type)?.Invoke(entity, null, item.Type, item.SyncData, args);
 
             return true;
         }
@@ -1127,7 +1134,7 @@ namespace BCRPServer.Sync
                 if (timers.GetValueOrDefault(x.Type) is Timer timer)
                     timer.Dispose();
 
-                GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
+                GetOffAction(x.Type)?.Invoke(entity, null, x.Type, x.SyncData, EmptyArgs);
             }
 
             timers.Clear();
@@ -1163,7 +1170,7 @@ namespace BCRPServer.Sync
                     timers.Remove(x.Type);
                 }
 
-                GetOffAction(x.Type)?.Invoke(entity, null, x.Type, EmptyArgs);
+                GetOffAction(x.Type)?.Invoke(entity, null, x.Type, x.SyncData, EmptyArgs);
 
                 list.Remove(x);
             });

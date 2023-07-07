@@ -19,6 +19,8 @@ namespace BCRPServer
 
         public const string DIR_BASE_PATH = @"C:\Users\fryte\OneDrive\Documents\My Projects\BlaineRP";
 
+        public const string DIR_RESOURCES_PATH = DIR_BASE_PATH + @"\dotnet\resources\BCRPMode";
+
         public const string DIR_SOURCES_PATH = DIR_BASE_PATH + @"\backend\BCRPMode";
 
         public const string DIR_CLIENT_PACKAGES_PATH = DIR_BASE_PATH + @"\client_packages";
@@ -32,6 +34,7 @@ namespace BCRPServer
         public const string DIR_CLIENT_LOCATIONS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Data\Locations\Locations.cs";
         public const string DIR_CLIENT_DOOR_SYSTEM_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\DoorSystem.cs";
         public const string DIR_CLIENT_SYNC_HOUSE_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Sync\House.cs";
+        public const string DIR_CLIENT_LANGUAGE_STRINGS_DATA_PATH = DIR_CLIENT_PACKAGES_CS_PATH + @"\Language\Strings.cs";
 
         /// <summary>Основное игровое измерение</summary>
         public const uint MAIN_DIMENSION = 7;

@@ -453,14 +453,14 @@ namespace BCRPClient
             }
         }
 
-        private static void DisableAllControlsRender()
+        public static void DisableAllControlsRender()
         {
             RAGE.Game.Pad.DisableAllControlActions(0);
             RAGE.Game.Pad.DisableAllControlActions(1);
             RAGE.Game.Pad.DisableAllControlActions(2);
         }
 
-        private static void DisableMoveRender()
+        public static void DisableMoveRender()
         {
             RAGE.Game.Pad.DisableAllControlActions(0);
             RAGE.Game.Pad.DisableAllControlActions(2);

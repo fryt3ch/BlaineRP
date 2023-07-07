@@ -570,7 +570,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(veh, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", $"{vData.Data.Name} [{vData.Numberplate?.Tag ?? Language.Strings.Get("CHAT_VEHICLE_NP_NONE")}]"), null);
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", vData.GetName(1)), null);
         }
 
         [RemoteEvent("Players::FingerPoint::Player")]
@@ -662,15 +662,24 @@ namespace BCRPServer.Events.Players
             if (pData.IsKnocked || pData.IsCuffed || pData.IsFrozen || pData.IsAttachedToEntity != null || pData.IsAnyAnimOn() || pData.HasAnyHandAttachedObject)
                 return;
 
-            var vehData = veh.GetMainData();
-
-            if (veh?.Exists != true || veh.EngineStatus || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+            if (player.Vehicle != null)
                 return;
 
-            if (vehData.ForcedSpeed != 0f)
+            var vData = veh.GetMainData();
+
+            if (vData == null)
                 return;
 
-            veh.AttachEntity(player, isInFront ? AttachSystem.Types.PushVehicleFront : AttachSystem.Types.PushVehicleBack);
+            if (vData.EngineOn || !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                return;
+
+            if (vData.ForcedSpeed != 0f)
+                return;
+
+            if (isInFront)
+                veh.AttachEntity(player, AttachSystem.Types.PushVehicle, "1");
+            else
+                veh.AttachEntity(player, AttachSystem.Types.PushVehicle, "0");
         }
 
         [RemoteEvent("Players::StopPushingVehicleSync")]
@@ -693,7 +702,7 @@ namespace BCRPServer.Events.Players
             if (attachData == null)
                 return;
 
-            if (attachData.Type != AttachSystem.Types.PushVehicleFront && attachData.Type != AttachSystem.Types.PushVehicleBack)
+            if (attachData.Type != AttachSystem.Types.PushVehicle)
                 return;
 
             atVeh.DetachEntity(player);

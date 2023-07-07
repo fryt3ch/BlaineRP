@@ -184,8 +184,7 @@ namespace BCRPServer
             Locked = false;
 
             LightsOn = false;
-            LeftIndicatorOn = false;
-            RightIndicatorOn = false;
+            IndicatorsState = 0;
 
             TrunkLocked = true;
             HoodLocked = true;
@@ -764,7 +763,7 @@ namespace BCRPServer
 
         public bool CanUseTrunk(PlayerData pData, bool notify = true)
         {
-            if (!TrunkLocked)
+            if (!TrunkLocked && !Locked)
                 return true;
 
             return CanManipulate(pData, notify);

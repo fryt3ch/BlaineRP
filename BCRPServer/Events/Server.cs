@@ -1,9 +1,11 @@
 ﻿using GTANetworkAPI;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,32 +46,36 @@ namespace BCRPServer.Events
 
             Utils.ConsoleOutput();
 
-            try
+            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_resources...");
+
+            var ClientCSPackagesTarget = new DirectoryInfo(Settings.DIR_CLIENT_PACKAGES_CS_PATH);
+            var ClientCSPackagesSource = new DirectoryInfo(Settings.DIR_CLIENT_SOURCES_PATH);
+
+            ClientCSPackagesTarget.Delete(true);
+            ClientCSPackagesTarget.Create();
+
+            foreach (var script in ClientCSPackagesSource.GetFiles("*.cs"))
+                File.Copy(script.FullName, ClientCSPackagesTarget.FullName + "\\" + script.Name, true);
+
+            foreach (var dir in ClientCSPackagesSource.GetDirectories().Where(x => x.Name != "bin" && x.Name != "obj" && x.Name != "Properties"))
             {
-                Utils.ConsoleOutput("~Red~[BRPMode]~/~ Copying .cs files to client_resources...");
+                var newDir = new DirectoryInfo(ClientCSPackagesTarget.FullName + "\\" + dir.Name);
 
-                var ClientCSPackagesTarget = new DirectoryInfo(Settings.DIR_CLIENT_PACKAGES_CS_PATH);
-                var ClientCSPackagesSource = new DirectoryInfo(Settings.DIR_CLIENT_SOURCES_PATH);
+                newDir.Create();
 
-                ClientCSPackagesTarget.Delete(true);
-                ClientCSPackagesTarget.Create();
-
-                foreach (var script in ClientCSPackagesSource.GetFiles("*.cs"))
-                    File.Copy(script.FullName, ClientCSPackagesTarget.FullName + "\\" + script.Name, true);
-
-                foreach (var dir in ClientCSPackagesSource.GetDirectories().Where(x => x.Name != "bin" && x.Name != "obj"))
-                {
-                    var newDir = new DirectoryInfo(ClientCSPackagesTarget.FullName + "\\" + dir.Name);
-
-                    newDir.Create();
-
-                    Utils.CloneDirectory(dir, newDir);
-                }
+                Utils.CloneDirectory(dir, newDir);
             }
-            catch (Exception ex)
-            {
 
-            }
+            var clientLangResManager = new ResourceManager("BCRPClient.Properties.Language", System.Reflection.Assembly.LoadFrom(Settings.DIR_RESOURCES_PATH + @"\BCRPClient.dll"));
+
+            Console.WriteLine(clientLangResManager.GetString("TEST") ?? "null");
+
+            var langStrings = new Dictionary<string, string>();
+
+            foreach (DictionaryEntry x in clientLangResManager.GetResourceSet(Properties.Language.Culture ?? CultureInfo.CurrentCulture, false, true))
+                langStrings.Add((string)x.Key, (string)x.Value);
+
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LANGUAGE_STRINGS_DATA_PATH, "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", @\"{x.Value}\" }},").ToList());
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Establishing connection with databases");
             Utils.ConsoleOutput($" | {(MySQL.InitConnection() ? "~Green~Success~/~" : "~Red~Error~/~")}", false);

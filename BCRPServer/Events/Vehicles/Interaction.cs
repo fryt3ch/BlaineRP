@@ -327,7 +327,7 @@ namespace BCRPServer.Events.Vehicles
             if (target.Vehicle != player.Vehicle)
                 return;
 
-            if (Sync.Chat.SendLocal(Sync.Chat.Types.Try, player, Language.Strings.Get("CHAT_VEHICLE_PSGR_KICKED"), target))
+            if (Sync.Chat.SendLocal(Sync.Chat.Types.Try, player, Language.Strings.Get("CHAT_VEHICLE_PSGR_KICKED"), target, tData.IsKnocked || tData.IsCuffed ? true : (object)null))
             {
                 target.WarpOutOfVehicle();
             }

@@ -33,5 +33,15 @@ namespace BCRPServer
         public LastVehicleData LastData { get => Info.LastData; set => Info.LastData = value; }
 
         public Game.Jobs.Job Job { get => Game.Jobs.Job.Get(Vehicle.GetData<int>("JID")); set { if (value == null) Vehicle.ResetData("JID"); else Vehicle.SetData("JID", value.Id); } }
+
+        public string GetName(byte type = 0)
+        {
+            if (type == 0)
+                return Data.Name;
+            else if (type == 1)
+                return $"{Data.Name} [{(Vehicle.NumberPlate == null || Vehicle.NumberPlate.Length == 0 ? Language.Strings.Get("CHAT_VEHICLE_NP_NONE") : Vehicle.NumberPlate)}]";
+
+            return string.Empty;
+        }
     }
 }

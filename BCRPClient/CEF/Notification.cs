@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace BCRPClient.CEF
 {
@@ -112,19 +113,6 @@ namespace BCRPClient.CEF
 
             { "Auth::SPWC", new Instance(Types.Error, Locale.Get("AUTH_STARTPLACE_FAULT"), Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
 
-            { "Engine::On", new Instance(Types.Success, Locale.Notifications.Vehicles.Engine.On, Locale.Notifications.Vehicles.Header) },
-            { "Engine::Off", new Instance(Types.Success, Locale.Notifications.Vehicles.Engine.Off, Locale.Notifications.Vehicles.Header) },
-            { "Engine::OutOfFuel", new Instance(Types.Information, Locale.Notifications.Vehicles.Engine.OutOfFuel, Locale.Notifications.Vehicles.Header) },
-            { "Engine::SF", new Instance(Types.Information, Locale.Notifications.Vehicles.Engine.WasBroken, Locale.Notifications.Vehicles.Header) },
-
-            { "Doors::Locked", new Instance(Types.Success, Locale.Notifications.Vehicles.Doors.Locked, Locale.Notifications.Vehicles.Header) },
-            { "Doors::Unlocked", new Instance(Types.Success, Locale.Notifications.Vehicles.Doors.Unlocked, Locale.Notifications.Vehicles.Header) },
-
-            { "Trunk::Locked", new Instance(Types.Success, Locale.Notifications.Vehicles.Trunk.Locked, Locale.Notifications.Vehicles.Header) },
-            { "Trunk::Unlocked", new Instance(Types.Success, Locale.Notifications.Vehicles.Trunk.Unlocked, Locale.Notifications.Vehicles.Header) },
-
-            { "Hood::Locked", new Instance(Types.Success, Locale.Notifications.Vehicles.Hood.Locked, Locale.Notifications.Vehicles.Header) },
-            { "Hood::Unlocked", new Instance(Types.Success, Locale.Notifications.Vehicles.Hood.Unlocked, Locale.Notifications.Vehicles.Header) },
 
             { "NP::Set", new Instance(Types.Success, Locale.Notifications.Vehicles.PlateInstalled, Locale.Notifications.Vehicles.Header) },
             { "NP::NFNRN", new Instance(Types.Error, "На данный момент нет свободных номерных знаков!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
@@ -362,6 +350,8 @@ namespace BCRPClient.CEF
             { "Police::APB::NYD", new Instance(Types.Error, "Вы не можете исполнить (удалить) эту ориентировку, т.к. она была создана сотрудником другого департамента!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "Police::GPSTR::NYD", new Instance(Types.Error, "Вы не можете отключить этот GPS-трекер, т.к. он был активирован сотрудником другого департамента!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
 
+            { "Police::PMASKOFF_0", new Instance(Types.Error, Locale.Get("POLICE_PMASKOFF_S_1"), Locale.Get("NOTIFICATION_HEADER_ERROR")) },
+
             { "DriveS::NPTT", new Instance(Types.Error, "Вы не проходили теоритический тест для этого типа транспорта, чтобы сдавать практический!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "DriveS::AHPT", new Instance(Types.Error, "Вы уже сдали теоретическую часть одного теста, завершите его практическую часть, чтобы начать сдавать другой!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
             { "DriveS::AHTL", new Instance(Types.Error, "Вы уже владеете лицензией этого типа!", Locale.Get("NOTIFICATION_HEADER_ERROR")) },
@@ -485,6 +475,26 @@ namespace BCRPClient.CEF
                 return;
 
             Browser.Window.ExecuteJs("Notific.draw", timeout, Types.Offer.ToString(), Locale.Notifications.Offers.Header, Utils.ReplaceNewLineHtml(content), MaxNotifications, true);
+        }
+
+        public static void ShowError(string content, int timeout = -1)
+        {
+            Show(Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), content, timeout);
+        }
+
+        public static void ShowErrorDefault()
+        {
+            Show(Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_ACTION_RESTRICTED_NOW"), -1);
+        }
+
+        public static void ShowSuccess(string content, int timeout = -1)
+        {
+            Show(Types.Success, Locale.Get("NOTIFICATION_HEADER_DEF"), content, timeout);
+        }
+
+        public static void ShowInfo(string content, int timeout = -1)
+        {
+            Show(Types.Information, Locale.Get("NOTIFICATION_HEADER_DEF"), content, timeout);
         }
         #endregion
 

@@ -160,6 +160,33 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на сорвал(а) маску с {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_MASKOFF_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_MASKOFF_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на вытащил(а) {0} из {1}.
+        /// </summary>
+        public static string CHAT_PLAYER_OUTOFVEH_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_OUTOFVEH_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на вытащил(а) {0} из багажника {1}.
+        /// </summary>
+        public static string CHAT_PLAYER_OUTOFVEH_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_OUTOFVEH_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на убрал(а) телефон.
         /// </summary>
         public static string CHAT_PLAYER_PHONE_OFF {
@@ -313,11 +340,47 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на посадил(а) {0} в {1}.
+        /// </summary>
+        public static string CHAT_PLAYER_PUSHTOVEH_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_PUSHTOVEH_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на затолкнул(а) {0} в багажник {1}.
+        /// </summary>
+        public static string CHAT_PLAYER_PUSHTOVEH_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_PUSHTOVEH_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на подобрал(а) {0}.
         /// </summary>
         public static string CHAT_PLAYER_TAKEN {
             get {
                 return ResourceManager.GetString("CHAT_PLAYER_TAKEN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на При обыске {0} в багажнике обнаружено {1} потенциально нелегальных предметов.
+        /// </summary>
+        public static string CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на надел(а) одноразовые перчатки и приступил(а) к обыску {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_VSEARCH_START {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_VSEARCH_START", resourceCulture);
             }
         }
         
@@ -448,6 +511,42 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на убрал(а) шасси.
+        /// </summary>
+        public static string CHAT_VEHICLE_LGEAR_OFF {
+            get {
+                return ResourceManager.GetString("CHAT_VEHICLE_LGEAR_OFF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на выпустил(а) шасси.
+        /// </summary>
+        public static string CHAT_VEHICLE_LGEAR_ON {
+            get {
+                return ResourceManager.GetString("CHAT_VEHICLE_LGEAR_ON", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на выключил(а) свет фар.
+        /// </summary>
+        public static string CHAT_VEHICLE_LIGHTS_OFF {
+            get {
+                return ResourceManager.GetString("CHAT_VEHICLE_LIGHTS_OFF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на включил(а) свет фар.
+        /// </summary>
+        public static string CHAT_VEHICLE_LIGHTS_ON {
+            get {
+                return ResourceManager.GetString("CHAT_VEHICLE_LIGHTS_ON", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на без номерного знака.
         /// </summary>
         public static string CHAT_VEHICLE_NP_NONE {
@@ -457,7 +556,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на вышвырнул(а) {0}.
+        ///   Ищет локализованную строку, похожую на вышвырнул(а) {0} из транспорта.
         /// </summary>
         public static string CHAT_VEHICLE_PSGR_KICKED {
             get {

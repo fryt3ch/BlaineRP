@@ -154,7 +154,7 @@ namespace BCRPServer.Sync
 
                             if (tPlayer.Vehicle == null && sPlayer.Vehicle == null && pData.CanPlayAnimNow() && tData.CanPlayAnimNow())
                             {
-                                sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry);
+                                sPlayer.AttachEntity(tPlayer, AttachSystem.Types.Carry, null);
                             }
                         }
                     }

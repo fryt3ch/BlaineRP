@@ -133,7 +133,7 @@ namespace BCRPServer.Game.Misc
                     Additional.AntiCheat.TeleportPeds(elevatorTo.Position.Position, false, elevatorTo.Dimension, elevatorTo.Position.RotationZ, null, ped);
                 }
 
-                pData.Player.AttachEntity(entity, x.Type);
+                pData.Player.AttachEntity(entity, x.Type, x.SyncData);
             }
         }
     }

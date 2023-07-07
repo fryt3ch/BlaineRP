@@ -548,8 +548,29 @@ namespace BCRPClient.CEF
 
                 if (data.EngineOn)
                 {
-                    SwitchArrowIcon(true, data.LeftIndicatorOn);
-                    SwitchArrowIcon(false, data.RightIndicatorOn);
+                    var indState = data.IndicatorsState;
+
+                    if (indState == 0)
+                    {
+                        SwitchArrowIcon(true, false);
+                        SwitchArrowIcon(false, false);
+                    }
+                    else if (indState == 1)
+                    {
+                        SwitchArrowIcon(true, true);
+                        SwitchArrowIcon(false, false);
+                    }
+                    else if (indState == 2)
+                    {
+                        SwitchArrowIcon(true, false);
+                        SwitchArrowIcon(false, true);
+                    }
+                    else if (indState == 3)
+                    {
+                        SwitchArrowIcon(true, true);
+                        SwitchArrowIcon(false, true);
+                    }
+
                     SwitchLightsIcon(data.LightsOn);
 
                     if (!BeltOffSoundOn)
@@ -562,11 +583,8 @@ namespace BCRPClient.CEF
 
                     await RAGE.Game.Invoker.WaitAsync(500);
 
-                    if (data.LeftIndicatorOn)
-                        SwitchArrowIcon(true, false);
-
-                    if (data.RightIndicatorOn)
-                        SwitchArrowIcon(false, false);
+                    SwitchArrowIcon(true, false);
+                    SwitchArrowIcon(false, false);
 
                     await RAGE.Game.Invoker.WaitAsync(500);
                 }

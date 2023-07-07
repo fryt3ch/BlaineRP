@@ -85,7 +85,7 @@ namespace BCRPClient.Sync
 
                 if (data.EngineOn)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_DEF"), Locale.Notifications.Vehicles.Push.EngineOn);
+                    CEF.Notification.ShowError(Locale.Get("VEHICLE_ENGINE_ON_E_2"));
 
                     return;
                 }

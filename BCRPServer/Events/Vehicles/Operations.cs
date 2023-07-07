@@ -7,52 +7,48 @@ namespace BCRPServer.Events.Vehicles
 {
     internal class Operations : Script
     {
-        [RemoteEvent("Vehicles::ET")]
-        private static void ToggleEngineRemote(Player player, byte state)
+        [RemoteProc("Vehicles::ET")]
+        private static byte ToggleEngineRemote(Player player, Vehicle veh, byte state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
-                return;
-
-            var veh = player.Vehicle;
+                return 0;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
+                return 0;
 
             if (player.VehicleSeat != 0)
-                return;
+                return 0;
 
             if (state == 2)
             {
                 if (!vData.EngineOn)
-                    return;
+                    return 1;
 
                 Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_0"));
 
                 vData.EngineOn = false;
 
-                player.Notify("Engine::SF");
-
-                return;
+                return 255;
             }
 
             if (!vData.CanManipulate(pData, true))
-                return;
+                return 2;
 
             if (vData.Info.LastData.GarageSlot >= 0)
             {
                 if (pData.CurrentHouse is Game.Estates.House house)
                 {
                     if (house.GarageOutside == null)
-                        return;
+                        return 3;
 
                     veh.Teleport(house.GarageOutside.Position, Settings.MAIN_DIMENSION, house.GarageOutside.RotationZ, true, Additional.AntiCheat.VehicleTeleportTypes.OnlyDriver);
                 }
@@ -64,14 +60,14 @@ namespace BCRPServer.Events.Vehicles
                 }
                 else
                 {
-                    return;
+                    return 3;
                 }
             }
 
             var newState = state == 1;
 
             if (vData.EngineOn == newState)
-                return;
+                return 4;
 
             if (newState)
             {
@@ -79,9 +75,7 @@ namespace BCRPServer.Events.Vehicles
                 {
                     Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
-                    player.Notify("Engine::SF");
-
-                    return;
+                    return 5;
                 }
 
                 if (vData.FuelLevel > 0f)
@@ -90,13 +84,13 @@ namespace BCRPServer.Events.Vehicles
 
                     Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_ON"));
 
-                    player.Notify("Engine::On");
+                    return 255;
                 }
                 else
                 {
                     Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
-                    player.Notify("Engine::OutOfFuel");
+                    return 6;
                 }
             }
             else
@@ -105,35 +99,36 @@ namespace BCRPServer.Events.Vehicles
 
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_OFF"));
 
-                player.Notify("Engine::Off");
+                return 255;
             }
         }
 
-        [RemoteEvent("Vehicles::TDL")]
-        public static void ToggleDoorsLock(Player player, Vehicle veh)
+        [RemoteProc("Vehicles::TDL")]
+        public static byte ToggleDoorsLock(Player player, Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
-                return;
+                return 0;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
+                return 0;
 
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                return;
+                return 0;
 
             if (!vData.CanManipulate(pData, true))
-                return;
+                return 1;
 
-            var newState = !vData.Locked;
+            if (state == vData.Locked)
+                return 2;
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
@@ -142,106 +137,91 @@ namespace BCRPServer.Events.Vehicles
                 pData.PlayAnim(Sync.Animations.FastTypes.VehLocking);
             }
 
-            if (newState)
+            if (state)
             {
+                vData.Locked = true;
+
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_LOCKED"));
-
-                player.Notify("Doors::Locked");
             }
             else
             {
+                vData.Locked = false;
+
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_UNLOCKED"));
-
-                player.Notify("Doors::Unlocked");
             }
 
-            vData.Locked = newState;
+            return 255;
         }
 
-        [RemoteEvent("Vehicles::TIND")]
-        public static void ToggleIndicator(Player player, int type)
+        [RemoteProc("Vehicles::TIND")]
+        public static byte ToggleIndicatorsState(Player player, Vehicle veh, byte state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
-                return;
-
-            var veh = player.Vehicle;
+                return 0;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
+                return 0;
 
-            if (player.VehicleSeat != 0 || type < 0 || type > 2 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
-                return;
+            if (player.Vehicle != veh || player.VehicleSeat != 0 || state < 0 || state > 3 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
+                return 0;
 
-            bool leftOn = vData.LeftIndicatorOn;
-            bool rightOn = vData.RightIndicatorOn;
+            var oldState = vData.IndicatorsState;
 
-            if (type != 2)
+            if (oldState == state)
+                return 1;
+
+            vData.IndicatorsState = state;
+
+            return 255;
+        }
+
+        [RemoteProc("Vehicles::TLI")]
+        public static byte ToggleLights(Player player, Vehicle veh, bool state)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
+                return 0;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return 0;
+
+            if (player.Vehicle != veh || player.VehicleSeat != 0 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
+                return 0;
+
+            if (vData.LightsOn == state)
+                return 1;
+
+            if (state)
             {
-                if (type == 1)
-                {
-                    if (rightOn)
-                        vData.RightIndicatorOn = false;
+                vData.LightsOn = true;
 
-                    if (!(rightOn && leftOn))
-                        vData.LeftIndicatorOn = !leftOn;
-                }
-                else
-                {
-                    if (leftOn)
-                        vData.LeftIndicatorOn = false;
-
-                    if (!(rightOn && leftOn))
-                        vData.RightIndicatorOn = !rightOn;
-                }
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_ON"));
             }
             else
             {
-                if (leftOn && rightOn)
-                {
-                    vData.LeftIndicatorOn = false;
-                    vData.RightIndicatorOn = false;
-                }
-                else
-                {
-                    vData.LeftIndicatorOn = true;
-                    vData.RightIndicatorOn = true;
-                }
+                vData.LightsOn = false;
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_OFF"));
             }
-        }
 
-        [RemoteEvent("Vehicles::TLI")]
-        public static void ToggleLights(Player player)
-        {
-            var sRes = player.CheckSpamAttack();
-
-            if (sRes.IsSpammer)
-                return;
-
-            var pData = sRes.Data;
-
-            if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
-                return;
-
-            var veh = player.Vehicle;
-
-            var vData = veh.GetMainData();
-
-            if (vData == null)
-                return;
-
-            if (player.VehicleSeat != 0 || (vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Car && vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Motorcycle))
-                return;
-
-            vData.LightsOn = !vData.LightsOn;
+            return 255;
         }
 
         [RemoteEvent("Vehicles::SetRadio")]
@@ -277,31 +257,32 @@ namespace BCRPServer.Events.Vehicles
             vData.Radio = stationType;
         }
 
-        [RemoteEvent("Vehicles::TTL")]
-        public static void ToggleTrunk(Player player, Vehicle veh)
+        [RemoteProc("Vehicles::TTL")]
+        public static byte ToggleTrunk(Player player, Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
-                return;
+                return 0;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
+                return 0;
 
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                return;
+                return 0;
 
             if (!vData.CanManipulate(pData, true))
-                return;
+                return 1;
 
-            var newState = !vData.TrunkLocked;
+            if (vData.TrunkLocked == state)
+                return 2;
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
@@ -310,56 +291,55 @@ namespace BCRPServer.Events.Vehicles
                 pData.PlayAnim(Sync.Animations.FastTypes.VehLocking);
             }
 
-            if (newState)
+            if (state)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
-                player.Notify("Trunk::Locked");
-            }
-            else
-            {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
-                player.Notify("Trunk::Unlocked");
-            }
+                vData.TrunkLocked = true;
 
-            vData.TrunkLocked = newState;
-
-            // Clear All Trunk Observers If Closed
-            if (newState)
-            {
                 var cont = Game.Items.Container.Get(vData.TID);
 
                 if (cont != null)
                 {
                     cont.ClearAllWrongObservers();
                 }
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
             }
+            else
+            {
+                vData.TrunkLocked = false;
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
+            }
+
+            return 255;
         }
 
-        [RemoteEvent("Vehicles::THL")]
-        public static void ToggleHood(Player player, Vehicle veh)
+        [RemoteProc("Vehicles::THL")]
+        public static byte ToggleHood(Player player, Vehicle veh, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsKnocked || pData.IsFrozen || pData.IsCuffed)
-                return;
+                return 0;
 
             var vData = veh.GetMainData();
 
             if (vData == null)
-                return;
+                return 0;
 
             if (player.Vehicle != veh && !player.AreEntitiesNearby(veh, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
-                return;
+                return 0;
 
             if (!vData.CanManipulate(pData, true))
-                return;
+                return 1;
 
-            var newState = !vData.HoodLocked;
+            if (vData.HoodLocked == state)
+                return 2;
 
             if (player.Vehicle == null && pData.CanPlayAnimNow() && pData.ActiveWeapon == null)
             {
@@ -368,20 +348,20 @@ namespace BCRPServer.Events.Vehicles
                 pData.PlayAnim(Sync.Animations.FastTypes.VehLocking);
             }
 
-            if (newState)
+            if (state)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
+                vData.HoodLocked = true;
 
-                player.Notify("Hood::Locked");
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
             }
             else
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
+                vData.HoodLocked = false;
 
-                player.Notify("Hood::Unlocked");
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
             }
 
-            vData.HoodLocked = newState;
+            return 255;
         }
 
         [RemoteEvent("Vehicles::Sync")]
@@ -432,8 +412,6 @@ namespace BCRPServer.Events.Vehicles
                         vData.EngineOn = false;
 
                         Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_FUEL_OUTOF"));
-
-                        player.Notify("Engine::OutOfFuel");
                     }
                 }
             }
@@ -484,29 +462,40 @@ namespace BCRPServer.Events.Vehicles
         }
 
         [RemoteProc("Vehicles::SPSOS")]
-        private static bool SetPlaneChassisOffState(Player player, bool state)
+        private static byte SetPlaneLandingGearState(Player player, bool state)
         {
             var sRes = player.CheckSpamAttack();
 
             if (sRes.IsSpammer)
-                return false;
+                return 0;
 
             var pData = sRes.Data;
 
             if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
-                return false;
+                return 0;
 
             var vData = player.Vehicle?.GetMainData();
 
             if (vData == null || vData.Data.Type != Game.Data.Vehicles.Vehicle.Types.Plane || pData.VehicleSeat != 0)
-                return false;
+                return 0;
 
             if (state == vData.IsPlaneChassisOff)
-                return false;
+                return 1;
 
-            vData.IsPlaneChassisOff = state;
+            if (state)
+            {
+                vData.IsPlaneChassisOff = true;
 
-            return true;
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_OFF"));
+            }
+            else
+            {
+                vData.IsPlaneChassisOff = false;
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_ON"));
+            }
+
+            return 255;
         }
     }
 }

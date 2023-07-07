@@ -981,7 +981,7 @@ namespace BCRPServer
         public static bool DetachObject(this Entity entity, Sync.AttachSystem.Types type, params object[] args) => Sync.AttachSystem.DetachObject(entity, type, args);
 
         /// <inheritdoc cref="Sync.AttachSystem.AttachEntity(Entity, int, Sync.AttachSystem.Types)"/>
-        public static bool AttachEntity(this Entity entity, Entity target, Sync.AttachSystem.Types type) => Sync.AttachSystem.AttachEntity(entity, target, type);
+        public static bool AttachEntity(this Entity entity, Entity target, Sync.AttachSystem.Types type, string syncData, params object[] args) => Sync.AttachSystem.AttachEntity(entity, target, type, syncData, args);
 
         /// <inheritdoc cref="Sync.AttachSystem.DetachEntity(Entity, int)"/>
         public static bool DetachEntity(this Entity entity, Entity target) => Sync.AttachSystem.DetachEntity(entity, target);

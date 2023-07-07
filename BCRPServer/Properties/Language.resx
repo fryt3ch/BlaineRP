@@ -244,7 +244,7 @@
     <value>без номерного знака</value>
   </data>
   <data name="CHAT_VEHICLE_PSGR_KICKED" xml:space="preserve">
-    <value>вышвырнул(а) {0}</value>
+    <value>вышвырнул(а) {0} из транспорта</value>
   </data>
   <data name="CHAT_VEHICLE_TRUNK_LOCKED" xml:space="preserve">
     <value>закрыл(а) багажник</value>
@@ -272,5 +272,38 @@
   </data>
   <data name="CHAT_PLAYER_POLICE_TABLETPC_OFF" xml:space="preserve">
     <value>убрал(а) служебный планшет</value>
+  </data>
+  <data name="CHAT_PLAYER_MASKOFF_0" xml:space="preserve">
+    <value>сорвал(а) маску с {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_OUTOFVEH_0" xml:space="preserve">
+    <value>вытащил(а) {0} из {1}</value>
+  </data>
+  <data name="CHAT_PLAYER_OUTOFVEH_1" xml:space="preserve">
+    <value>вытащил(а) {0} из багажника {1}</value>
+  </data>
+  <data name="CHAT_PLAYER_PUSHTOVEH_0" xml:space="preserve">
+    <value>посадил(а) {0} в {1}</value>
+  </data>
+  <data name="CHAT_PLAYER_PUSHTOVEH_1" xml:space="preserve">
+    <value>затолкнул(а) {0} в багажник {1}</value>
+  </data>
+  <data name="CHAT_PLAYER_VSEARCH_START" xml:space="preserve">
+    <value>надел(а) одноразовые перчатки и приступил(а) к обыску {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0" xml:space="preserve">
+    <value>При обыске {0} в багажнике обнаружено {1} потенциально нелегальных предметов</value>
+  </data>
+  <data name="CHAT_VEHICLE_LGEAR_ON" xml:space="preserve">
+    <value>выпустил(а) шасси</value>
+  </data>
+  <data name="CHAT_VEHICLE_LGEAR_OFF" xml:space="preserve">
+    <value>убрал(а) шасси</value>
+  </data>
+  <data name="CHAT_VEHICLE_LIGHTS_ON" xml:space="preserve">
+    <value>включил(а) свет фар</value>
+  </data>
+  <data name="CHAT_VEHICLE_LIGHTS_OFF" xml:space="preserve">
+    <value>выключил(а) свет фар</value>
   </data>
 </root>

@@ -115,6 +115,8 @@ namespace BCRPClient.Data.Fractions
 
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "gps_tracker", (entity) => { var veh = entity as Vehicle; if (veh == null) return; GPSTrackerVehicleInstall(veh); });
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
+            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });
+
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fine", (entity) => { var player = entity as Player; if (player == null) return; PlayerFine(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "take_license", (entity) => { var player = entity as Player; if (player == null) return; PlayerRemoveLicense(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "cuffs", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, null); });
@@ -811,7 +813,32 @@ namespace BCRPClient.Data.Fractions
 
         public async void PlayerMaskOff(Player player)
         {
+            var tData = Sync.Players.GetData(player);
 
+            if (tData == null)
+                return;
+
+            if (!tData.IsMasked)
+            {
+                CEF.Notification.ShowError(Locale.Get("POLICE_PMASKOFF_E_0"));
+
+                return;
+            }
+
+            if (!tData.IsCuffed)
+            {
+                CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_0"));
+
+                return;
+            }
+
+            var res = (int)await Events.CallRemoteProc("Police::PMaskOff", player);
+
+            if (res == 255)
+            {
+                CEF.Notification.ShowSuccess(Locale.Get("POLICE_PMASKOFF_S_0", player.GetName(true, true, true)));
+                return;
+            }
         }
 
         public async void PlayerToVehicle(Vehicle vehicle)
@@ -826,10 +853,12 @@ namespace BCRPClient.Data.Fractions
             if (pData == null)
                 return;
 
-            var attachData = pData.AttachedEntities?.Where(x => (x.Type == Sync.AttachSystem.Types.PoliceEscort || x.Type == Sync.AttachSystem.Types.Hostage) && x.EntityType == RAGE.Elements.Type.Player).FirstOrDefault();
+            var attachData = pData.AttachedEntities?.Where(x => (x.Type == Sync.AttachSystem.Types.PoliceEscort || x.Type == Sync.AttachSystem.Types.Hostage || x.Type == Sync.AttachSystem.Types.Carry) && x.EntityType == RAGE.Elements.Type.Player).FirstOrDefault();
 
             if (attachData == null)
             {
+                CEF.Notification.ShowError(Locale.Get("POLICE_PTOVEH_E_1"));
+
                 return;
             }
 
@@ -838,24 +867,128 @@ namespace BCRPClient.Data.Fractions
             for (int i = 0; i < vehicle.GetMaxNumberOfPassengers(); i++)
             {
                 if (vehicle.IsSeatFree(i, 0))
-                    freeSeats.Add((i, $"Место #{i + 2}"));
+                    freeSeats.Add((i + 1, Locale.Get("POLICE_PTOVEH_L_0", i + 2)));
             }
 
-            if (Sync.AttachSystem.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk || x.Type == Sync.AttachSystem.Types.VehicleTrunkForced).Any() != true)
-                freeSeats.Add((0, "Багажник"));
+            var trunkAttach = Sync.AttachSystem.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk).FirstOrDefault();
+
+            if (trunkAttach == null && vehicle.DoesHaveDoor(5) > 0)
+                freeSeats.Add((255, Locale.Get("POLICE_PTOVEH_L_1")));
 
             if (freeSeats.Count == 0)
             {
+                CEF.Notification.ShowError(Locale.Get("POLICE_PTOVEH_E_0"));
+
                 return;
             }
 
-            await CEF.ActionBox.ShowSelect("PolicePlayerToVehicleSeatSelect", "Выбор места в транспорте", freeSeats.ToArray(), null, null, CEF.ActionBox.DefaultBindAction, (rType, id) =>
+            await CEF.ActionBox.ShowSelect("PolicePlayerToVehicleSeatSelect", Locale.Get("POLICE_PTOVEH_L_2"), freeSeats.ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
             {
                 if (rType != CEF.ActionBox.ReplyTypes.OK)
                 {
                     CEF.ActionBox.Close(true);
 
                     return;
+                }
+
+                var seatIdx = (int)id;
+
+                var res = (int)await Events.CallRemoteProc("Police::FPTV", vehicle, (byte)seatIdx);
+                
+                if (res == 255)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+                else if (res == 0)
+                {
+                    CEF.Notification.ShowErrorDefault();
+
+                    return;
+                }
+                else if (res == 1)
+                {
+                    CEF.Notification.ShowError(Locale.Get("VEHICLE_DOORS_LOCKED_E_0"));
+                }
+                else if (res == 2)
+                {
+                    CEF.Notification.ShowError(Locale.Get("VEHICLE_TRUNK_LOCKED_E_0"));
+                }
+            }, null);
+        }
+
+        public async void PlayerFromVehicle(Vehicle vehicle)
+        {
+            var vData = Sync.Vehicles.GetData(vehicle);
+
+            if (vData == null)
+                return;
+
+            var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+            if (pData == null)
+                return;
+
+            var players = new List<Player>();
+
+            for (int i = 0; i < vehicle.GetMaxNumberOfPassengers(); i++)
+            {
+                var player = Utils.GetPlayerByHandle(vehicle.GetPedInSeat(i, 0));
+
+                if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
+                    players.Add(player);
+            }
+
+            var trunkAttach = Sync.AttachSystem.GetEntityEntityAttachments(vehicle)?.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk && x.EntityType == RAGE.Elements.Type.Player).FirstOrDefault();
+
+            if (trunkAttach != null)
+            {
+                var player = Utils.GetPlayerByRemoteId(trunkAttach.RemoteID);
+
+                if (player?.Exists == true && player != Player.LocalPlayer && (Sync.Players.GetData(player)?.IsCuffed == true || Sync.Players.GetData(player)?.IsKnocked == true))
+                    players.Add(player);
+            }
+
+            if (players.Count == 0)
+            {
+                CEF.Notification.ShowError(Locale.Get("POLICE_PFROMVEH_E_0"));
+
+                return;
+            }
+
+            await CEF.ActionBox.ShowSelect("PolicePlayerFromVehicleSeatSelect", Locale.Get("POLICE_PFROMVEH_L_0"), players.Select(x => ((decimal)players.IndexOf(x), x.GetName(true, false, true))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            {
+                if (rType != CEF.ActionBox.ReplyTypes.OK)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                var player = players[(int)id];
+
+                var res = (int)await Events.CallRemoteProc("Police::FPFV", vehicle, player);
+
+                if (res == 255)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+                else if (res == 0)
+                {
+                    CEF.Notification.ShowErrorDefault();
+
+                    return;
+                }
+                else if (res == 1)
+                {
+                    CEF.Notification.ShowError(Locale.Get("VEHICLE_DOORS_LOCKED_E_0"));
+                }
+                else if (res == 2)
+                {
+                    CEF.Notification.ShowError(Locale.Get("VEHICLE_TRUNK_LOCKED_E_0"));
                 }
             }, null);
         }

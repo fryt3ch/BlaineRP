@@ -81,7 +81,7 @@ namespace BCRPServer.Sync
         /// <param name="message">Сообщение</param>
         /// <param name="target">Сущность цели</param>
         /// <returns>true/false если type = Try, true - в любом другом случае</returns>
-        public static bool SendLocal(Types type, Player sender, string message, Player target = null)
+        public static bool SendLocal(Types type, Player sender, string message, Player target = null, params object[] args)
         {
             var range = type == Types.Whisper ? Settings.CHAT_MAX_RANGE_WHISPER : type == Types.Shout ? Settings.CHAT_MAX_RANGE_LOUD : Settings.CHAT_MAX_RANGE_DEFAULT;
 
@@ -98,7 +98,7 @@ namespace BCRPServer.Sync
             }
             else
             {
-                var result = SRandom.NextInt32(0, 2) != 0;
+                var result = args.Length > 0 && args[0] is bool resultB ? resultB : SRandom.NextInt32(0, 2) != 0;
 
                 if (target != null)
                     sender.TriggerEventInDistance(range, "Chat::SCM", sender.Id, (int)type, message + $"*{(result ? 1 : 0)}", target.Id);

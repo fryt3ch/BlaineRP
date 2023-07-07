@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using static BCRPServer.Game.Items.Weapon.ItemData;
@@ -117,7 +118,7 @@ namespace BCRPServer.Events.Fractions
 
                 pData.PlayAnim(Sync.Animations.GeneralTypes.PoliceEscort0);
 
-                player.AttachEntity(target, Sync.AttachSystem.Types.PoliceEscort);
+                player.AttachEntity(target, Sync.AttachSystem.Types.PoliceEscort, null);
 
                 Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_ON"), target);
 
@@ -187,24 +188,152 @@ namespace BCRPServer.Events.Fractions
             if (!vData.Vehicle.AreEntitiesNearby(player, 10f))
                 return 0;
 
-            if (seatIdx == 0)
+            if (seatIdx == 255)
             {
-                if (vData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk || x.Type == Sync.AttachSystem.Types.VehicleTrunkForced).Any())
+                if (vData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk).Any())
                     return 0;
 
-                vData.Vehicle.AttachEntity(target, Sync.AttachSystem.Types.VehicleTrunkForced);
+                if (vData.TrunkLocked)
+                    return 2;
+
+                vData.Vehicle.AttachEntity(target, Sync.AttachSystem.Types.VehicleTrunk, null);
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PUSHTOVEH_1", "{0}", vData.GetName(1)), target);
 
                 return 255;
             }
             else
             {
-                if (seatIdx >= vData.Vehicle.MaxPassengers - 1 || vData.Vehicle.GetEntityInVehicleSeat(seatIdx) != null)
+                if (seatIdx < 1 || seatIdx >= vData.Vehicle.MaxOccupants || vData.Vehicle.GetEntityInVehicleSeat(seatIdx) != null)
                     return 0;
+
+                if (vData.Locked)
+                    return 1;
+
+                player.DetachEntity(target);
 
                 target.WarpToVehicleSeat(veh, seatIdx, 500);
 
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PUSHTOVEH_0", "{0}", vData.GetName(1)), target);
+
                 return 255;
             }
+        }
+
+        [RemoteProc("Police::FPFV")]
+        private static byte ForcePlayerFromVehicle(Player player, Vehicle veh, Player target)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsFrozen || pData.IsKnocked || pData.IsCuffed || pData.IsAttachedToEntity != null || pData.AttachedEntities.Any() || pData.HasAnyHandAttachedObject)
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return 0;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return 0;
+
+            var vData = veh.GetMainData();
+
+            if (vData == null)
+                return 0;
+
+            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+                return 0;
+
+            if (!vData.Vehicle.AreEntitiesNearby(player, 10f))
+                return 0;
+
+            if (!tData.IsKnocked && !tData.IsCuffed)
+                return 0;
+
+            if (target.Vehicle == veh)
+            {
+                if (tData.VehicleSeat < 1)
+                    return 0;
+
+                if (vData.Locked)
+                    return 1;
+
+                target.WarpOutOfVehicle();
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_OUTOFVEH_0", "{0}", vData.GetName(1)), target);
+
+                return 255;
+            }
+            else
+            {
+                var attachData = vData.AttachedEntities.Where(x => x.Type == Sync.AttachSystem.Types.VehicleTrunk && x.Id == target.Id && x.EntityType == EntityType.Player).FirstOrDefault();
+
+                if (attachData == null)
+                    return 0;
+
+                if (vData.TrunkLocked)
+                    return 2;
+
+                veh.DetachEntity(target);
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_OUTOFVEH_1", "{0}", vData.GetName(1)), target);
+
+                return 255;
+            }
+        }
+
+        [RemoteProc("Police::PMaskOff")]
+        private static byte PolicePlayerMaskOff(Player player, Player target)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsFrozen || pData.IsKnocked || pData.IsCuffed || pData.IsAttachedToEntity != null || pData.AttachedEntities.Any() || pData.HasAnyHandAttachedObject)
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return 0;
+
+            var tData = target.GetMainData();
+
+            if (tData == null || tData == pData)
+                return 0;
+
+            if (!tData.Player.AreEntitiesNearby(player, 7.5f))
+                return 0;
+
+            if (!tData.IsCuffed)
+                return 0;
+
+            var currentMask = tData.WearedMask;
+
+            if (currentMask == null)
+                return 1;
+
+            currentMask.Unwear(tData);
+
+            currentMask.Delete();
+
+            tData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Accessories, 1, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Accessories));
+
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_MASKOFF_0"), target);
+
+            tData.Player.NotifyWithPlayer("Police::PMASKOFF_0", player);
+
+            return 255;
         }
 
         [RemoteProc("Police::Arrest")]
@@ -1441,6 +1570,160 @@ namespace BCRPServer.Events.Fractions
 
             Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
             Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_1"), target);
+
+            return 255;
+        }
+
+        [RemoteProc("Police::VehicleSearch")]
+        private static object PoliceVehicleSearch(Player player, Vehicle target, int sType)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return null;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return null;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return null;
+
+            var tData = target.GetMainData();
+
+            if (tData == null)
+                return null;
+
+            if (!pData.Player.AreEntitiesNearby(target, 10f))
+                return null;
+
+            if (sType == -1 || sType == -2)
+            {
+                var types = new HashSet<byte>() { 0, };
+
+                if (sType == -1)
+                {
+                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_START", tData.GetName(1)));
+                }
+
+                return types;
+            }
+            else if (sType == 0)
+            {
+                if (tData.Info.TID == 0)
+                    return 0;
+
+                var trunk = Game.Items.Container.Get(tData.Info.TID);
+
+                if (trunk == null)
+                    return null;
+
+                if (!tData.CanUseTrunk(pData, true))
+                    return null;
+
+                var items = new List<string>();
+
+                for (int i = 0; i < trunk.Items.Length; i++)
+                {
+                    var x = trunk.Items[i];
+
+                    if (x != null && Game.Fractions.Police.IsItemConfiscatable(x))
+                    {
+                        items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
+                    }
+                }
+
+                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0", tData.GetName(1), items.Count));
+
+                return items;
+            }
+
+            return null;
+        }
+
+        [RemoteProc("Police::VehicleSearchIC")]
+        private static byte PoliceVehicleSearchItemConfiscate(Player player, Vehicle target, int cType, uint itemUid)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return 0;
+
+            var pData = sRes.Data;
+
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+                return 0;
+
+            var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
+
+            if (fData == null)
+                return 0;
+
+            var tData = target.GetMainData();
+
+            if (tData == null)
+                return 0;
+
+            if (!pData.Player.AreEntitiesNearby(tData.Vehicle, 7.5f))
+                return 0;
+
+            if (tData.Info.TID == 0)
+                return 0;
+
+            var trunk = Game.Items.Container.Get(tData.Info.TID);
+
+            if (trunk == null)
+                return 0;
+
+            if (!tData.CanUseTrunk(pData, true))
+                return 0;
+
+            Game.Items.Item item = null;
+            int itemIdx = -1;
+
+            if (cType == 0)
+            {
+                for (int i = 0; i < trunk.Items.Length; i++)
+                {
+                    if (trunk.Items[i] != null && trunk.Items[i].UID == itemUid)
+                    {
+                        item = trunk.Items[i];
+
+                        itemIdx = i;
+
+                        break;
+                    }
+                }
+            }
+
+            if (item == null)
+                return 1;
+
+            if (!Game.Fractions.Police.IsItemConfiscatable(item))
+                return 3;
+
+            var amount = Game.Items.Stuff.GetItemAmount(item);
+
+            if (!pData.TryGiveExistingItem(item, amount, true, true))
+                return 4;
+
+            if (cType == 0)
+            {
+                trunk.Items[itemIdx] = null;
+
+                trunk.Update();
+
+                var players = trunk.GetPlayersObservingArray();
+
+                if (players.Length > 0)
+                    Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.Container, itemIdx, Game.Items.Item.ToClientJson(trunk.Items[itemIdx], Game.Items.Inventory.GroupTypes.Container), players);
+            }
+
+            Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
+            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_1", tData.GetName(1)));
 
             return 255;
         }

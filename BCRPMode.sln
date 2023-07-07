@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BCRPServer", "BCRPServer\BCRPServer.csproj", "{3FBC7D96-175F-46DC-AA14-D273C700F2BE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6C79C366-BE6A-4C2C-874D-3B597F961A0C} = {6C79C366-BE6A-4C2C-874D-3B597F961A0C}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BCRPClient", "BCRPClient\BCRPClient.csproj", "{6C79C366-BE6A-4C2C-874D-3B597F961A0C}"
 EndProject
@@ -26,6 +29,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+		RESX_NeutralResourcesLanguage = ru-RU
 		SolutionGuid = {9945D55C-A4FB-4FA3-B127-6B39B1619298}
 	EndGlobalSection
 EndGlobal
