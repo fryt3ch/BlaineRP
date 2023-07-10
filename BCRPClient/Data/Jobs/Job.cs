@@ -38,7 +38,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JTR1)?.Step > 0)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -50,7 +50,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -73,7 +73,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JCL1)?.Step > 0)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -85,7 +85,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -108,7 +108,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (cabbieJob.GetCurrentData<Cabbie.OrderInfo>("CO") != null)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -120,7 +120,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }
@@ -143,7 +143,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Sync.Quest.GetPlayerQuest(pData, Sync.Quest.QuestData.Types.JBD1)?.Step > 0)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderMenuHasOrder);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobOrderMenuHasOrder);
 
                             return;
                         }
@@ -155,7 +155,7 @@ namespace BCRPClient.Data.Jobs
 
                         if (Player.LocalPlayer.Vehicle != jobVehicle || jobVehicle.GetPedInSeat(-1, 0) != Player.LocalPlayer.Handle)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
+                            CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                             return;
                         }

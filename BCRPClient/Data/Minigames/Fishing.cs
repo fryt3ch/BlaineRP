@@ -40,7 +40,7 @@ namespace BCRPClient.Data.Minigames
 
                                                         if (waterPos == null)
                                                         {
-                                                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.FishingNotAllowedHere);
+                                                            CEF.Notification.ShowError(Locale.Notifications.Inventory.FishingNotAllowedHere);
 
                                                             Events.CallRemote("Player::SUCI");
 

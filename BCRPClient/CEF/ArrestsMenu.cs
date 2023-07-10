@@ -119,7 +119,7 @@ namespace BCRPClient.CEF
 
                                 if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$")).IsMatch(str))
                                 {
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_2"));
+                                    CEF.Notification.ShowError(Locale.Get("ARRESTMENU_E_2"));
 
                                     return;
                                 }
@@ -191,7 +191,7 @@ namespace BCRPClient.CEF
 
                                 if (strD.Length < 2 || !long.TryParse(strD[0], out minsU))
                                 {
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_0"));
+                                    CEF.Notification.ShowError(Locale.Get("ARRESTMENU_E_0"));
 
                                     return;
                                 }
@@ -201,7 +201,7 @@ namespace BCRPClient.CEF
 
                                 if (minsU == 0)
                                 {
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_1"));
+                                    CEF.Notification.ShowError(Locale.Get("ARRESTMENU_E_1"));
 
                                     return;
                                 }
@@ -209,7 +209,7 @@ namespace BCRPClient.CEF
 
                                 if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$")).IsMatch(reasonStr))
                                 {
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_2"));
+                                    CEF.Notification.ShowError(Locale.Get("ARRESTMENU_E_2"));
 
                                     return;
                                 }

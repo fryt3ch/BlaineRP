@@ -1438,7 +1438,7 @@ namespace BCRPClient.CEF
 
                                     if (text == null || !(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s]{1,18}$")).IsMatch(text))
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_TEXT_NOTMATCH_0"), -1);
+                                        CEF.Notification.ShowError(Locale.Get("GEN_TEXT_NOTMATCH_0"), -1);
 
                                         return;
                                     }

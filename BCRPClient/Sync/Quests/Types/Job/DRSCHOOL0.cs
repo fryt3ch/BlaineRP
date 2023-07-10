@@ -103,7 +103,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
 
                                     if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }
@@ -188,7 +188,7 @@ namespace BCRPClient.Sync.Quests.Types.Job
                                 {
                                     if (veh?.Exists != true || Player.LocalPlayer.Vehicle != veh)
                                     {
-                                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobVehicleNotInVeh);
+                                        CEF.Notification.ShowError(Locale.Notifications.General.JobVehicleNotInVeh);
 
                                         return;
                                     }

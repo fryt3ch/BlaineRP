@@ -174,10 +174,10 @@
   <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_2" xml:space="preserve">
     <value>взял(а) в руки и просмотрел(а) мед. карту {0}</value>
   </data>
-  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_3" xml:space="preserve">
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_4" xml:space="preserve">
     <value>взял(а) в руки и просмотрел(а) удостоверение {0}</value>
   </data>
-  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_4" xml:space="preserve">
+  <data name="CHAT_PLAYER_PSEARCH_DOCS_LOOK_3" xml:space="preserve">
     <value>взял(а) в руки и просмотрел(а) трудовую книжку {0}</value>
   </data>
   <data name="CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND" xml:space="preserve">

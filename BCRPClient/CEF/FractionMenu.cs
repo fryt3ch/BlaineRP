@@ -63,7 +63,7 @@ namespace BCRPClient.CEF
 
                     if (Sync.Vehicles.GetData(Player.LocalPlayer.Vehicle)?.VID == vid)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.QuitThisVehicle);
+                        CEF.Notification.ShowError(Locale.Notifications.General.QuitThisVehicle);
 
                         return;
                     }
@@ -113,7 +113,7 @@ namespace BCRPClient.CEF
 
                 if (vData.MinRank == newMinRank)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"Этот ранг уже установлен в качестве минимального для данного транспорта!");
+                    CEF.Notification.ShowError($"Этот ранг уже установлен в качестве минимального для данного транспорта!");
 
                     return;
                 }
@@ -164,7 +164,7 @@ namespace BCRPClient.CEF
                 {
                     if (mData.Rank >= fData.MaxRank)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Этот сотрудник уже имеет максимально возможную должность!");
+                        CEF.Notification.ShowError("Этот сотрудник уже имеет максимально возможную должность!");
 
                         return;
                     }
@@ -182,7 +182,7 @@ namespace BCRPClient.CEF
                 {
                     if (mData.Rank <= 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Этот сотрудник уже имеет минимально возможную должность!");
+                        CEF.Notification.ShowError("Этот сотрудник уже имеет минимально возможную должность!");
 
                         return;
                     }
@@ -339,7 +339,7 @@ namespace BCRPClient.CEF
 
                     if (text.Where(x => x == '\n').Count() > NEWS_TEXT_MAX_NL)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), string.Format(Locale.Notifications.General.MaximalNewLineCharacterCount, NEWS_TEXT_MAX_NL), -1);
+                        CEF.Notification.ShowError(string.Format(Locale.Notifications.General.MaximalNewLineCharacterCount, NEWS_TEXT_MAX_NL), -1);
 
                         return;
                     }
@@ -469,7 +469,7 @@ namespace BCRPClient.CEF
 
                 if (!RankNamePattern.IsMatch(name))
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Название ранга должно быть от 2х до 12ти букв, цифр или знака пробел!");
+                    CEF.Notification.ShowError("Название ранга должно быть от 2х до 12ти букв, цифр или знака пробел!");
 
                     return;
                 }
@@ -486,7 +486,7 @@ namespace BCRPClient.CEF
 
                 if (fData.GetRankName(rankToEdit) == name)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Эта должность уже имеет такое название!");
+                    CEF.Notification.ShowError("Эта должность уже имеет такое название!");
 
                     return;
                 }
@@ -496,9 +496,9 @@ namespace BCRPClient.CEF
                     if (fData.GetRankName(i) == name)
                     {
                         if (i == rankToEdit)
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Эта должность уже имеет такое название!");
+                            CEF.Notification.ShowError("Эта должность уже имеет такое название!");
                         else
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Одна из должностей уже имеет такое название!");
+                            CEF.Notification.ShowError("Одна из должностей уже имеет такое название!");
 
                         return;
                     }

@@ -1,5 +1,4 @@
-﻿using BCRPClient.CEF;
-using RAGE;
+﻿using RAGE;
 using RAGE.Elements;
 using System;
 using System.Collections.Generic;
@@ -789,7 +788,7 @@ namespace BCRPClient.Additional
                         {
                             var toId = (uint)idD;
 
-                            if (rType == ActionBox.ReplyTypes.OK)
+                            if (rType == CEF.ActionBox.ReplyTypes.OK)
                             {
                                 if (CEF.ActionBox.LastSent.IsSpam(500, false, true))
                                     return;
@@ -900,7 +899,7 @@ namespace BCRPClient.Additional
 
                     if (notOwnedLics.Count == 0)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уже владеете всеми лицензиями для транспорта, так держать!", -1);
+                        CEF.Notification.ShowError("Вы уже владеете всеми лицензиями для транспорта, так держать!", -1);
 
                         return;
                     }
@@ -1037,7 +1036,7 @@ namespace BCRPClient.Additional
                     
                     if (fData.CreationWorkbenchPrices.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "На данный момент здесь нельзя создать ни один предмет!");
+                        CEF.Notification.ShowError("На данный момент здесь нельзя создать ни один предмет!");
 
                         return;
                     }
@@ -1051,7 +1050,7 @@ namespace BCRPClient.Additional
                         if (Utils.IsAnyCefActive(true))
                             return;
 
-                        CEF.MaterialWorkbench.Show(MaterialWorkbench.Types.Fraction, fData.CreationWorkbenchPrices, fData.Materials, fData.Type, wbIdx);
+                        CEF.MaterialWorkbench.Show(CEF.MaterialWorkbench.Types.Fraction, fData.CreationWorkbenchPrices, fData.Materials, fData.Type, wbIdx);
                     }
                 }
             },
@@ -1391,7 +1390,7 @@ namespace BCRPClient.Additional
 
                         var shell = aRoot.Shell;
 
-                        CEF.Elevator.Show(shell.StartFloor + shell.FloorsAmount - 1, null, Elevator.ContextTypes.ApartmentsRoot);
+                        CEF.Elevator.Show(shell.StartFloor + shell.FloorsAmount - 1, null, CEF.Elevator.ContextTypes.ApartmentsRoot);
                     }
                 }
             },
@@ -1675,7 +1674,7 @@ namespace BCRPClient.Additional
 
                             Player.LocalPlayer.SetData("InGreenZone", true);
 
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.GreenZone, true);
+                            CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.GreenZone, true);
                         }
                     },
 
@@ -1688,7 +1687,7 @@ namespace BCRPClient.Additional
 
                             Player.LocalPlayer.ResetData("InGreenZone");
 
-                            CEF.HUD.SwitchStatusIcon(HUD.StatusTypes.GreenZone, false);
+                            CEF.HUD.SwitchStatusIcon(CEF.HUD.StatusTypes.GreenZone, false);
                         }
                     },
                 }
@@ -1885,7 +1884,7 @@ namespace BCRPClient.Additional
                                 blip.Destroy();
 
                                 if (Player.LocalPlayer.Vehicle != null)
-                                    CEF.Notification.Show(Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.ReachedGPS);
+                                    CEF.Notification.Show(CEF.Notification.Types.Success, Locale.Notifications.Blip.Header, Locale.Notifications.Blip.ReachedGPS);
                             }
                         }
                     },

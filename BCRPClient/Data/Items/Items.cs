@@ -891,7 +891,7 @@ namespace BCRPClient.Data
 
                 if (!res)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.ActionRestricted);
+                    CEF.Notification.ShowError(Locale.Notifications.Inventory.ActionRestricted);
 
                     return null;
                 }
@@ -900,7 +900,7 @@ namespace BCRPClient.Data
 
                 if (waterPos == null)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.FishingNotAllowedHere);
+                    CEF.Notification.ShowError(Locale.Notifications.Inventory.FishingNotAllowedHere);
 
                     return null;
                 }
@@ -918,7 +918,7 @@ namespace BCRPClient.Data
 
                 if (!res)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.ActionRestricted);
+                    CEF.Notification.ShowError(Locale.Notifications.Inventory.ActionRestricted);
 
                     return null;
                 }
@@ -929,7 +929,7 @@ namespace BCRPClient.Data
                 {
                     Utils.ConsoleOutput(material);
 
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.DiggingNotAllowedHere);
+                    CEF.Notification.ShowError(Locale.Notifications.Inventory.DiggingNotAllowedHere);
 
                     return null;
                 }

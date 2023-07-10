@@ -52,7 +52,7 @@ namespace BCRPClient.Data
             {
                 if (!Player.LocalPlayer.HasData("VehicleDestruction::Id"))
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы должны находиться на свалке и рядом с местом сдачи транспорта!");
+                    CEF.Notification.ShowError("Вы должны находиться на свалке и рядом с местом сдачи транспорта!");
 
                     return;
                 }

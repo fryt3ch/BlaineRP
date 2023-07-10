@@ -57,7 +57,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (res.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не владеете ни одним транспортом, который не стоит на учёте и на который установлен какой-либо гос. номер!");
+                        CEF.Notification.ShowError("Вы не владеете ни одним транспортом, который не стоит на учёте и на который установлен какой-либо гос. номер!");
 
                         return;
                     }
@@ -164,7 +164,7 @@ namespace BCRPClient.Data.NPCs.Dialogues
 
                     if (res.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы не владеете ни одним транспортом, который стоит на гос. учёте!");
+                        CEF.Notification.ShowError("Вы не владеете ни одним транспортом, который стоит на гос. учёте!");
 
                         return;
                     }

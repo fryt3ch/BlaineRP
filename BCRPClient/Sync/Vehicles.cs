@@ -993,11 +993,11 @@ namespace BCRPClient.Sync
 
                                 if (res == 1)
                                 {
-                                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobRentVehicleAlreadyRented0);
+                                    CEF.Notification.ShowError(Locale.Notifications.General.JobRentVehicleAlreadyRented0);
                                 }
                                 else if (res == 2)
                                 {
-                                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobRentVehicleAlreadyRented1);
+                                    CEF.Notification.ShowError(Locale.Notifications.General.JobRentVehicleAlreadyRented1);
                                 }
                             }
                         }
@@ -1777,7 +1777,7 @@ namespace BCRPClient.Sync
             }
             else
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.House.NotNearGarage);
+                CEF.Notification.ShowError(Locale.Notifications.House.NotNearGarage);
 
                 return;
             }
@@ -1947,7 +1947,7 @@ namespace BCRPClient.Sync
 
             if (plateText == null || plateText.Length == 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.NoPlate);
+                CEF.Notification.ShowError(Locale.Notifications.Vehicles.NoPlate);
 
                 return;
             }
@@ -1969,7 +1969,7 @@ namespace BCRPClient.Sync
 
             if (plateText != null && plateText.Length > 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.PlateExists);
+                CEF.Notification.ShowError(Locale.Notifications.Vehicles.PlateExists);
 
                 return;
             }
@@ -2191,7 +2191,7 @@ namespace BCRPClient.Sync
 
             if (wpPos == null)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Commands.Teleport.NoWaypoint);
+                CEF.Notification.ShowError(Locale.Notifications.Commands.Teleport.NoWaypoint);
 
                 return;
             }
@@ -2233,7 +2233,7 @@ namespace BCRPClient.Sync
                                     }
                                     else
                                     {
-                                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
+                                        CEF.Notification.ShowError(Locale.Notifications.Vehicles.BoatTrailerNotNearWater);
 
                                         return;
                                     }

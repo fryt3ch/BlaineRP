@@ -2123,7 +2123,7 @@ namespace BCRPClient.Sync
 
             if (wSkins.Count == 0)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Inventory.NoWeaponSkins);
+                CEF.Notification.ShowError(Locale.Notifications.Inventory.NoWeaponSkins);
 
                 return;
             }

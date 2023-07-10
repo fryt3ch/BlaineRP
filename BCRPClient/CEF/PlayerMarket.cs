@@ -52,7 +52,7 @@ namespace BCRPClient.CEF
                         {
                             var y = (object[])CEF.Inventory.ItemsData[idx][0];
 
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_MG_ITEMCH_0", y[1], 1, int.MaxValue));
+                            CEF.Notification.ShowError(Locale.Get("MARKETSTALL_MG_ITEMCH_0", y[1], 1, int.MaxValue));
     
                             return;
                         }
@@ -71,7 +71,7 @@ namespace BCRPClient.CEF
                     {
                         Close();
 
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_MG_ITEMCH_1"));
+                        CEF.Notification.ShowError(Locale.Get("MARKETSTALL_MG_ITEMCH_1"));
 
                         return;
                     }
@@ -93,7 +93,7 @@ namespace BCRPClient.CEF
 
                 if (d[0] == "MARKETSTALL@BUYER")
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_TRY_ERROR_0"), -1);
+                    CEF.Notification.ShowError(Locale.Get("MARKETSTALL_TRY_ERROR_0"), -1);
 
                     return;
 
@@ -201,7 +201,7 @@ namespace BCRPClient.CEF
         {
             Close();
 
-            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_MG_ITEMCH_2"));
+            CEF.Notification.ShowError(Locale.Get("MARKETSTALL_MG_ITEMCH_2"));
         }
 
         private static void RenderMarketStallSeller()

@@ -150,42 +150,42 @@ namespace BCRPClient.CEF
 
                 if (login.Length < 6 || login.Length > 12)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), login.Length > 12 ? Locale.Notifications.Auth.LoginTooLong : Locale.Notifications.Auth.LoginTooShort);
+                    CEF.Notification.ShowError(login.Length > 12 ? Locale.Notifications.Auth.LoginTooLong : Locale.Notifications.Auth.LoginTooShort);
 
                     return;
                 }
 
                 if (!Utils.IsLoginValid(login))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Auth.InvalidLogin);
+                    CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidLogin);
 
                     return;
                 }
 
                 if (!Utils.IsMailValid(mail))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Auth.InvalidMail);
+                    CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidMail);
 
                     return;
                 }
 
                 if (pass1.Length < 6 || pass1.Length > 64)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), pass1.Length > 64 ? Locale.Notifications.Auth.PasswordTooLong : Locale.Notifications.Auth.PasswordTooShort);
+                    CEF.Notification.ShowError(pass1.Length > 64 ? Locale.Notifications.Auth.PasswordTooLong : Locale.Notifications.Auth.PasswordTooShort);
 
                     return;
                 }
 
                 if (!Utils.IsPasswordValid(pass1))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Auth.InvalidPassword);
+                    CEF.Notification.ShowError(Locale.Notifications.Auth.InvalidPassword);
 
                     return;
                 }
 
                 if (!pass1.Equals(pass2))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Auth.PassNotMatch);
+                    CEF.Notification.ShowError(Locale.Notifications.Auth.PassNotMatch);
 
                     return;
                 }

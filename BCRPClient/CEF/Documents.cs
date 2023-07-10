@@ -10,13 +10,6 @@ namespace BCRPClient.CEF
     {
         public static bool IsActive { get => CEF.Browser.IsActive(Browser.IntTypes.Documents); }
 
-        public enum ReplyTypes
-        {
-            OK = 0, Cancel = 1,
-        }
-
-        private static DateTime LastSent;
-
         private static int EscBindIdx { get; set; } = -1;
 
         private static Action<object[]> CurrentPoliceBlankAction { get; set; }
@@ -170,7 +163,7 @@ namespace BCRPClient.CEF
 
             await ReadyDefault();
 
-            CEF.Browser.Window.ExecuteJs("Docs.show", false, 3, new object[] { null, null, GetFractionDocsData(name, surname, fData, fRank) });
+            CEF.Browser.Window.ExecuteJs("Docs.show", false, 3, new object[] { null, null, null, GetFractionDocsData(name, surname, fData, fRank) });
         }
 
         public static async System.Threading.Tasks.Task ShowVehiclePassport(string vName, string oName, string oSurname, uint vid, uint oCount, string plate, DateTime dateOfIssue)

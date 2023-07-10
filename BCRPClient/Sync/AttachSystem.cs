@@ -1527,7 +1527,7 @@ namespace BCRPClient.Sync
 
                             Sync.Animations.LastSent = Sync.World.ServerTime;
 
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уронили коробку с апельсинами!");
+                            CEF.Notification.ShowError("Вы уронили коробку с апельсинами!");
 
                             Events.CallRemote("Job::FARM::SOTP");
                         }
@@ -1588,7 +1588,7 @@ namespace BCRPClient.Sync
 
                             Sync.Animations.LastSent = Sync.World.ServerTime;
 
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уронили ведро с молоком!");
+                            CEF.Notification.ShowError("Вы уронили ведро с молоком!");
 
                             Events.CallRemote("Job::FARM::SCOWP");
                         }

@@ -798,7 +798,7 @@ namespace BCRPClient.Data
 
                         if (sameBet != null)
                         {
-                            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), "Вы уже сделали ставку на этот сектор!", -1);
+                            CEF.Notification.ShowError("Вы уже сделали ставку на этот сектор!", -1);
 
                             return;
                         }
@@ -806,7 +806,7 @@ namespace BCRPClient.Data
 
                     if (bet < roulette.MinBet || bet > roulette.MaxBet)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"На этом столе разрешены ставки от {Utils.ToStringWithWhitespace(CurrentRoulette.MinBet.ToString())} до {Utils.ToStringWithWhitespace(CurrentRoulette.MaxBet.ToString())} фишек!", -1);
+                        CEF.Notification.ShowError($"На этом столе разрешены ставки от {Utils.ToStringWithWhitespace(CurrentRoulette.MinBet.ToString())} до {Utils.ToStringWithWhitespace(CurrentRoulette.MaxBet.ToString())} фишек!", -1);
 
                         return;
                     }

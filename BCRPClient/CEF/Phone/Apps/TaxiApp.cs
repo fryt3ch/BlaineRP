@@ -145,7 +145,7 @@ namespace BCRPClient.CEF.PhoneApps
                         }
                         else
                         {
-                            CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.TaxiError);
+                            CEF.Notification.ShowError(Locale.Notifications.General.TaxiError);
                         }
                     }
                 }

@@ -45,7 +45,7 @@ namespace BCRPServer.Game.Fractions
         /// <summary>Является ли фракция государственной?</summary>
         IsGov = 1 << 0,
         /// <summary>Имеют ли члены фракции удостоверения?</summary>
-        MembersHaveDocs = 2 << 1,
+        MembersHaveDocs = 1 << 1,
     }
 
     public interface IUniformable

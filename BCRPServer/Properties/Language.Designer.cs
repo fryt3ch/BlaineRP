@@ -286,7 +286,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на взял(а) в руки и просмотрел(а) удостоверение {0}.
+        ///   Ищет локализованную строку, похожую на взял(а) в руки и просмотрел(а) трудовую книжку {0}.
         /// </summary>
         public static string CHAT_PLAYER_PSEARCH_DOCS_LOOK_3 {
             get {
@@ -295,7 +295,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на взял(а) в руки и просмотрел(а) трудовую книжку {0}.
+        ///   Ищет локализованную строку, похожую на взял(а) в руки и просмотрел(а) удостоверение {0}.
         /// </summary>
         public static string CHAT_PLAYER_PSEARCH_DOCS_LOOK_4 {
             get {

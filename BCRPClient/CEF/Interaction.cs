@@ -712,14 +712,14 @@ namespace BCRPClient.CEF
 
             if (currentHouse == null)
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.House.NotInAnyHouseOrApartments);
+                CEF.Notification.ShowError(Locale.Notifications.House.NotInAnyHouseOrApartments);
 
                 return;
             }
 
             if (!pData.OwnedHouses.Contains(currentHouse))
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.House.NotAllowed);
+                CEF.Notification.ShowError(Locale.Notifications.House.NotAllowed);
 
                 return;
             }
@@ -738,7 +738,7 @@ namespace BCRPClient.CEF
             {
                 if (pData.OwnedVehicles.Count == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.NoOwnedVehicles);
+                    CEF.Notification.ShowError(Locale.Notifications.Vehicles.NoOwnedVehicles);
 
                     return;
                 }
@@ -749,7 +749,7 @@ namespace BCRPClient.CEF
             {
                 if (pData.OwnedBusinesses.Count == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedBusiness);
+                    CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedBusiness);
 
                     return;
                 }
@@ -760,7 +760,7 @@ namespace BCRPClient.CEF
             {
                 if (pData.OwnedApartments.Count == 0 && pData.OwnedHouses.Count == 0 && pData.OwnedGarages.Count == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoOwnedEstate);
+                    CEF.Notification.ShowError(Locale.Notifications.General.NoOwnedEstate);
 
                     return;
                 }
@@ -780,7 +780,7 @@ namespace BCRPClient.CEF
             {
                 if (pData.MedicalCard == null)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.NoMedicalCard);
+                    CEF.Notification.ShowError(Locale.Notifications.General.NoMedicalCard);
 
                     return;
                 }
@@ -797,7 +797,7 @@ namespace BCRPClient.CEF
 
                 if (allVehs.Count == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Vehicles.NoOwnedVehicles);
+                    CEF.Notification.ShowError(Locale.Notifications.Vehicles.NoOwnedVehicles);
 
                     return;
                 }

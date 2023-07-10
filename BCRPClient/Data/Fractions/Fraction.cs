@@ -45,7 +45,7 @@ namespace BCRPClient.Data.Fractions
         None = 0,
 
         IsGov = 1 << 0,
-        MembersHaveDocs = 2 << 0,
+        MembersHaveDocs = 1 << 1,
     }
 
     public class MemberData
@@ -491,11 +491,11 @@ namespace BCRPClient.Data.Fractions
             {
                 if (tData.Fraction == Type)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("FRACTION_INV_E_1"));
+                    CEF.Notification.ShowError(Locale.Get("FRACTION_INV_E_1"));
                 }
                 else
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("FRACTION_INV_E_0"));
+                    CEF.Notification.ShowError(Locale.Get("FRACTION_INV_E_0"));
                 }
 
                 return;

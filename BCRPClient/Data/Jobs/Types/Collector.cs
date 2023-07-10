@@ -127,11 +127,11 @@ namespace BCRPClient.Data.Jobs
                         {
                             if (res == 2)
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderAlreadyTaken);
+                                CEF.Notification.ShowError(Locale.Notifications.General.JobOrderAlreadyTaken);
                             }
                             else
                             {
-                                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.JobOrderTakeError);
+                                CEF.Notification.ShowError(Locale.Notifications.General.JobOrderTakeError);
                             }
                         }
                     }

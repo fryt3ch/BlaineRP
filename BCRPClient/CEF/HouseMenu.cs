@@ -458,7 +458,7 @@ namespace BCRPClient.CEF
 
             if (!Player.LocalPlayer.HasData("House::CurrentHouse"))
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.House.NotInAnyHouse);
+                CEF.Notification.ShowError(Locale.Notifications.House.NotInAnyHouse);
 
                 return;
             }
@@ -696,7 +696,7 @@ namespace BCRPClient.CEF
 
                     if (curFloor == floor)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.ElevatorCurrentFloor);
+                        CEF.Notification.ShowError(Locale.Notifications.General.ElevatorCurrentFloor);
 
                         return;
                     }

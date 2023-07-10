@@ -237,13 +237,13 @@ namespace BCRPClient.Data.Fractions
                 {
                     if (cuffAttach.Type == Sync.AttachSystem.Types.Cuffs)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_CUFFS_E_0"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_CUFFS_E_0"), -1);
 
                         return;
                     }
                     else
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_CUFFS_E_2"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_CUFFS_E_2"), -1);
 
                         return;
                     }
@@ -253,7 +253,7 @@ namespace BCRPClient.Data.Fractions
             {
                 if (cuffAttach == null || cuffAttach.Type != Sync.AttachSystem.Types.Cuffs)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_CUFFS_E_1"), -1);
+                    CEF.Notification.ShowError(Locale.Get("POLICE_CUFFS_E_1"), -1);
 
                     return;
                 }
@@ -299,7 +299,7 @@ namespace BCRPClient.Data.Fractions
             {
                 if (!tData.IsCuffed)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
+                    CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_0"), -1);
 
                     return;
                 }
@@ -308,11 +308,11 @@ namespace BCRPClient.Data.Fractions
                 {
                     if (tData.IsAttachedTo != Player.LocalPlayer)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_2"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_2"), -1);
                     }
                     else
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_3"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_3"), -1);
                     }
 
                     return;
@@ -325,7 +325,7 @@ namespace BCRPClient.Data.Fractions
             {
                 if (escortAttach == null || escortAttach.Type != Sync.AttachSystem.Types.PoliceEscort || tData.IsAttachedTo != Player.LocalPlayer)
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_1"), -1);
+                    CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_1"), -1);
 
                     return;
                 }
@@ -362,7 +362,7 @@ namespace BCRPClient.Data.Fractions
 
             if (!tData.IsCuffed)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
+                CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_0"), -1);
 
                 return;
             }
@@ -373,7 +373,7 @@ namespace BCRPClient.Data.Fractions
 
             if (fData == null)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_0"), -1);
+                CEF.Notification.ShowError(Locale.Get("POLICE_ARREST_E_0"), -1);
 
                 return;
             }
@@ -404,14 +404,14 @@ namespace BCRPClient.Data.Fractions
 
                     if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$")).IsMatch(reason1Str))
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_1"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_ARREST_E_1"), -1);
 
                         return;
                     }
 
                     if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{0,100}$")).IsMatch(reason2Str))
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_2"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_ARREST_E_2"), -1);
 
                         return;
                     }
@@ -420,7 +420,7 @@ namespace BCRPClient.Data.Fractions
 
                     if (!ulong.TryParse(timeStr, out time))
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ARREST_E_3"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_ARREST_E_3"), -1);
 
                         return;
                     }
@@ -528,7 +528,7 @@ namespace BCRPClient.Data.Fractions
 
                 if (strD.Length < 2 || !int.TryParse(strD[0], out fineSum))
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_0"));
+                    CEF.Notification.ShowError(Locale.Get("ARRESTMENU_E_0"));
 
                     return;
                 }
@@ -542,7 +542,7 @@ namespace BCRPClient.Data.Fractions
 
                 if (!(new Regex(@"^[0-9a-zA-Zа-яА-Я\-\s,()!.?:+]{1,18}$").IsMatch(reason)))
                 {
-                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("ARRESTMENU_E_2"));
+                    CEF.Notification.ShowError(Locale.Get("ARRESTMENU_E_2"));
 
                     return;
                 }
@@ -569,7 +569,7 @@ namespace BCRPClient.Data.Fractions
 
             if (licenses.Count == 0)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_E_2"), -1);
+                CEF.Notification.ShowError(Locale.Get("POLICE_RMLIC_E_2"), -1);
 
                 CEF.ActionBox.Close(true);
 
@@ -604,7 +604,7 @@ namespace BCRPClient.Data.Fractions
                 {
                     if (resI == 255)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_S_0", player.GetName(true, false, true), Locale.General.Players.LicenseNames.GetValueOrDefault(licType)), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_RMLIC_S_0", player.GetName(true, false, true), Locale.General.Players.LicenseNames.GetValueOrDefault(licType)), -1);
 
                         licenses.Remove(licType);
 
@@ -614,7 +614,7 @@ namespace BCRPClient.Data.Fractions
                     }
                     else if (resI == 1)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_E_1"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_RMLIC_E_1"), -1);
 
                         licenses.Remove(licType);
 
@@ -624,7 +624,7 @@ namespace BCRPClient.Data.Fractions
                     }
                     else if (resI == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_RMLIC_E_0"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_RMLIC_E_0"), -1);
 
                         return;
                     }
@@ -636,7 +636,7 @@ namespace BCRPClient.Data.Fractions
         {
             if (Sync.Players.GetData(player)?.IsCuffed != true)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
+                CEF.Notification.ShowError(Locale.Get("POLICE_ESCORT_E_0"), -1);
 
                 return;
             }
@@ -720,7 +720,7 @@ namespace BCRPClient.Data.Fractions
                             }
                             else
                             {
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_0"), -1);
+                                CEF.Notification.ShowError(Locale.Get("POLICE_PSEARCH_E_0"), -1);
                             }
                         }
                     }, null);
@@ -753,14 +753,14 @@ namespace BCRPClient.Data.Fractions
                             if (resB == 1)
                                 CEF.Notification.ShowErrorDefault();
                             else if (resB == 2)
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_2"), -1);
+                                CEF.Notification.ShowError(Locale.Get("POLICE_PSEARCH_E_2"), -1);
                         }
                         else if (id == 4)
                         {
                             if (resB == 1)
                                 CEF.Notification.ShowErrorDefault();
                             else if (resB == 2)
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_3"), -1);
+                                CEF.Notification.ShowError(Locale.Get("POLICE_PSEARCH_E_3"), -1);
                         }
 
                         return;
@@ -770,7 +770,7 @@ namespace BCRPClient.Data.Fractions
 
                     if (items.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_1"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_PSEARCH_E_1"), -1);
 
                         return;
                     }
@@ -892,7 +892,7 @@ namespace BCRPClient.Data.Fractions
 
                     if (items.Count == 0)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_1"), -1);
+                        CEF.Notification.ShowError(Locale.Get("POLICE_PSEARCH_E_1"), -1);
 
                         return;
                     }

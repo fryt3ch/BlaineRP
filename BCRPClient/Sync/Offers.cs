@@ -233,7 +233,7 @@ namespace BCRPClient.Sync
         {
             if (CurrentTarget != null)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Offers.PlayerHasOffer);
+                CEF.Notification.ShowError(Locale.Notifications.Offers.PlayerHasOffer);
 
                 return;
             }

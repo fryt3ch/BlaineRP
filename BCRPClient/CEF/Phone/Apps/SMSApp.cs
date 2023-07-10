@@ -46,7 +46,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (args == null || args.Length < 1)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.WrongCoordsSms);
+                    CEF.Notification.ShowError(Locale.Notifications.General.WrongCoordsSms);
 
                     return;
                 }
@@ -55,7 +55,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (coordsData.Length < 2)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.WrongCoordsSms);
+                    CEF.Notification.ShowError(Locale.Notifications.General.WrongCoordsSms);
 
                     return;
                 }
@@ -64,7 +64,7 @@ namespace BCRPClient.CEF.PhoneApps
 
                 if (!float.TryParse(coordsData[0], out x) || !float.TryParse(coordsData[1], out y))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.WrongCoordsSms);
+                    CEF.Notification.ShowError(Locale.Notifications.General.WrongCoordsSms);
 
                     return;
                 }
@@ -137,7 +137,7 @@ namespace BCRPClient.CEF.PhoneApps
                 }
                 else if (smsStrData.Length == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.SmsCantBeSentNow);
+                    CEF.Notification.ShowError(Locale.Notifications.General.SmsCantBeSentNow);
 
                     return;
                 }

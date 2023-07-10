@@ -42,7 +42,7 @@ namespace BCRPClient.CEF.PhoneApps
                 {
                     if (!char.IsLetterOrDigit(name[i]) && !char.IsWhiteSpace(name[i]))
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.StringOnlyLettersNumbersW);
+                        CEF.Notification.ShowError(Locale.Notifications.General.StringOnlyLettersNumbersW);
 
                         return;
                     }

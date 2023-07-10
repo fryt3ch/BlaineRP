@@ -197,7 +197,7 @@ namespace BCRPClient.Data.Fractions
 
             if (health > 80)
             {
-                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), $"Для того, чтобы пройти лечение в больнице, кол-во Вашего здоровья должно быть не более, чем 80 ед., Ваше здоровье - {health} ед.");
+                CEF.Notification.ShowError($"Для того, чтобы пройти лечение в больнице, кол-во Вашего здоровья должно быть не более, чем 80 ед., Ваше здоровье - {health} ед.");
 
                 return;
             }

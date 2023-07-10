@@ -162,9 +162,9 @@ namespace BCRPClient.CEF.PhoneApps
                             else
                             {
                                 if (res == 1)
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("PHONE_ECALL_E_1"));
+                                    CEF.Notification.ShowError(Locale.Get("PHONE_ECALL_E_1"));
                                 else if (res == 0)
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("PHONE_ECALL_E_0"));
+                                    CEF.Notification.ShowError(Locale.Get("PHONE_ECALL_E_0"));
                             }
                         },
 
@@ -506,7 +506,7 @@ namespace BCRPClient.CEF.PhoneApps
 
             if (add && blacklist.Contains(number))
             {
-                CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.General.AlreadyInPhoneBlacklist);
+                CEF.Notification.ShowError(Locale.Notifications.General.AlreadyInPhoneBlacklist);
 
                 return;
             }
@@ -564,13 +564,13 @@ namespace BCRPClient.CEF.PhoneApps
                     }
                     else if (res == 1)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Players.PhoneNumberWrong1);
+                        CEF.Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong1);
 
                         CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
                     }
                     else if (res == 2)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Players.PhoneNumberWrong2);
+                        CEF.Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong2);
 
                         CallHistory.Add((numNumber, EndedCallStatusTypes.OutgoingError));
                     }
@@ -579,7 +579,7 @@ namespace BCRPClient.CEF.PhoneApps
                 }
             }
 
-            CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.Players.PhoneNumberWrong0);
+            CEF.Notification.ShowError(Locale.Notifications.Players.PhoneNumberWrong0);
         }
 
         public static void ShowDefault(string number = null)

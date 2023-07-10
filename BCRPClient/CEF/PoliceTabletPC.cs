@@ -39,14 +39,14 @@ namespace BCRPClient.CEF
 
                     if (curCallInfo == null)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICETABLET_CALL_NOTAKEN"));
+                        CEF.Notification.ShowError(Locale.Get("POLICETABLET_CALL_NOTAKEN"));
 
                         return;
                     }
 
                     if (curCallInfo.Position.DistanceTo(Player.LocalPlayer.Position) > 10f)
                     {
-                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICETABLET_CALL_FINISH_0", 10));
+                        CEF.Notification.ShowError(Locale.Get("POLICETABLET_CALL_FINISH_0", 10));
 
                         return;
                     }
@@ -399,7 +399,7 @@ namespace BCRPClient.CEF
 
                     if (callInfo == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICETABLET_CALL_NOTEXISTS"));
+                        CEF.Notification.ShowError(Locale.Get("POLICETABLET_CALL_NOTEXISTS"));
 
                         return;
                     }
@@ -418,7 +418,7 @@ namespace BCRPClient.CEF
 
                     if (gpsTrackerInfo == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICETABLET_GPSTR_NOTEXISTS"));
+                        CEF.Notification.ShowError(Locale.Get("POLICETABLET_GPSTR_NOTEXISTS"));
 
                         return;
                     }
@@ -512,7 +512,7 @@ namespace BCRPClient.CEF
 
                     if (gpsTrackerInfo == null)
                     {
-                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICETABLET_GPSTR_NOTEXISTS"));
+                        CEF.Notification.ShowError(Locale.Get("POLICETABLET_GPSTR_NOTEXISTS"));
 
                         return;
                     }

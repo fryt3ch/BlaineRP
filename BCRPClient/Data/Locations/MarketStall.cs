@@ -236,7 +236,7 @@ namespace BCRPClient.Data
 
                                     if (items.Count == 0)
                                     {
-                                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_NOITEMS_SELL"));
+                                        CEF.Notification.ShowError(Locale.Get("MARKETSTALL_NOITEMS_SELL"));
 
                                         return;
                                     }
@@ -277,7 +277,7 @@ namespace BCRPClient.Data
 
                                     if (sellHist == null || sellHist.Count == 0)
                                     {
-                                        CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_MG_HISTEMPTY"));
+                                        CEF.Notification.ShowError(Locale.Get("MARKETSTALL_MG_HISTEMPTY"));
 
                                         return;
                                     }
@@ -398,7 +398,7 @@ namespace BCRPClient.Data
 
                 if (resList == null || resList.Count == 0)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("MARKETSTALL_NOITEMS_BUY"));
+                    CEF.Notification.ShowError(Locale.Get("MARKETSTALL_NOITEMS_BUY"));
 
                     return;
                 }

@@ -85,14 +85,14 @@ namespace BCRPClient.CEF
 
                 if (!Utils.IsNameValid(name))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.CharacterCreation.WrongName);
+                    CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongName);
 
                     return;
                 }
 
                 if (!Utils.IsNameValid(surname))
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.CharacterCreation.WrongSurname);
+                    CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongSurname);
 
                     return;
                 }
@@ -101,7 +101,7 @@ namespace BCRPClient.CEF
 
                 if (age.Length < 1 || !int.TryParse(age, out numAge) || numAge < 18 || numAge > 99)
                 {
-                    CEF.Notification.Show(Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Notifications.CharacterCreation.WrongAge);
+                    CEF.Notification.ShowError(Locale.Notifications.CharacterCreation.WrongAge);
 
                     return;
                 }
