@@ -496,6 +496,24 @@ namespace BCRPClient
                 return name;
         }
 
+        public static string GetVehicleName(Vehicle veh, byte type = 0)
+        {
+            var data = Data.Vehicles.GetByModel(veh.Model);
+
+            if (type == 0)
+            {
+                return data?.Name ?? string.Empty;
+            }
+            else if (type == 1)
+            {
+                var np = veh.GetNumberplateText();
+
+                return $"{data?.Name ?? string.Empty} [{(np == null || np.Length == 0 ? Locale.Get("VEHICLE_NP_NONE") : np)}]";
+            }
+
+            return string.Empty;
+        }
+
         public static bool IsCar(Vehicle vehicle)
         {
             int type = vehicle.GetClass();

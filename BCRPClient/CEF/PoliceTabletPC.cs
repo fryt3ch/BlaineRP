@@ -202,7 +202,8 @@ namespace BCRPClient.CEF
                     var sex = (bool)res["G"];
                     var losSantosAllowed = (bool)res["LA"];
                     var phoneNumber = Utils.ToDecimal(res["PN"]);
-                    var fractionData = Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.ToInt32(res["F"]));
+                    var fractionData = res.ContainsKey("FT") ? Data.Fractions.Fraction.Get((Data.Fractions.Types)Utils.ToInt32(res["FT"])) : null;
+                    var fractionRank = res.ContainsKey("FR") ? Utils.ToByte(res["FT"]) : (byte)0;
 
                     var houseData = res.ContainsKey("H") ? Data.Locations.House.All[Utils.ToUInt32(res["H"])] : null;
                     var apsData = res.ContainsKey("A") ? Data.Locations.Apartments.All[Utils.ToUInt32(res["A"])] : null;
@@ -219,6 +220,7 @@ namespace BCRPClient.CEF
                         { "LosSantosAllowed", losSantosAllowed },
                         { "PhoneNumber", phoneNumber },
                         { "FractionData", fractionData },
+                        { "FractionRank", fractionRank },
                         { "HouseData", houseData },
                         { "ApsData", apsData },
                         { "Vehicles", vehicles },
@@ -242,7 +244,7 @@ namespace BCRPClient.CEF
                         houseData == null ? null : $"#{houseData.Id}, {Utils.GetStreetName(houseData.Position)}",
                         apsData == null ? null : $"#{apsData.Id}, {Data.Locations.ApartmentsRoot.All[apsData.RootId].Name}",
                         null, // organisation
-                        fractionData == null ? null : fractionData.Name, // only gov frac here
+                        fractionData == null ? null : $"{fractionData.Name} | {fractionData.GetRankName(fractionRank)}",
                         vehicles.Select(x => new object[] { x.Item1.Name, x.Item2 == null || x.Item2.Length == 0 ? null : x.Item2, x.Item3.HEXNoAlpha })
                     );
                 }

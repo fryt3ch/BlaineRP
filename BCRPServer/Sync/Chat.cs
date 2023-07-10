@@ -1,10 +1,11 @@
 ﻿using GTANetworkAPI;
+using System.Text.RegularExpressions;
 
 namespace BCRPServer.Sync
 {
     class Chat
     {
-        public enum Types
+        public enum MessageTypes
         {
             /// <summary>/say</summary>
             Say,
@@ -47,6 +48,10 @@ namespace BCRPServer.Sync
             Advert,
         }
 
+        public static Regex MessageTodoRegex { get; } = new Regex(@".+\*.+");
+
+        public static Regex MessageRegex { get; } = new Regex(@".{1,150}");
+
         #region Send Global
         /// <summary>Метод для отправки глобального сообщения в чат со стороны игрока</summary>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
@@ -55,7 +60,7 @@ namespace BCRPServer.Sync
         /// <param name="message">Сообщение</param>
         /// <param name="targetStr">Строка цели</param>
         /// <param name="time">Время (для наказаний)</param>
-        public static void SendGlobal(Types type, string senderStr, string message, string targetStr = null, string time = null)
+        public static void SendGlobal(MessageTypes type, string senderStr, string message, string targetStr = null, string time = null)
         {
             NAPI.ClientEvent.TriggerClientEventForAll("Chat::ShowGlobalMessage", senderStr, (int)type, message, targetStr, time);
         }
@@ -81,11 +86,11 @@ namespace BCRPServer.Sync
         /// <param name="message">Сообщение</param>
         /// <param name="target">Сущность цели</param>
         /// <returns>true/false если type = Try, true - в любом другом случае</returns>
-        public static bool SendLocal(Types type, Player sender, string message, Player target = null, params object[] args)
+        public static bool SendLocal(MessageTypes type, Player sender, string message, Player target = null, params object[] args)
         {
-            var range = type == Types.Whisper ? Settings.CHAT_MAX_RANGE_WHISPER : type == Types.Shout ? Settings.CHAT_MAX_RANGE_LOUD : Settings.CHAT_MAX_RANGE_DEFAULT;
+            var range = type == MessageTypes.Whisper ? Settings.CHAT_MAX_RANGE_WHISPER : type == MessageTypes.Shout ? Settings.CHAT_MAX_RANGE_LOUD : Settings.CHAT_MAX_RANGE_DEFAULT;
 
-            if (type != Types.Try)
+            if (type != MessageTypes.Try)
             {
                 if (target != null)
                 {

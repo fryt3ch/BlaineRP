@@ -288,6 +288,8 @@ namespace BCRPClient.CEF
 
                         var seatIdx = (int)id;
 
+                        CEF.ActionBox.Close(true);
+
                         Sync.Vehicles.SeatTo(seatIdx, veh);
                     }, null);
                 }

@@ -68,14 +68,12 @@ namespace BCRPServer.Events
 
             var clientLangResManager = new ResourceManager("BCRPClient.Properties.Language", System.Reflection.Assembly.LoadFrom(Settings.DIR_RESOURCES_PATH + @"\BCRPClient.dll"));
 
-            Console.WriteLine(clientLangResManager.GetString("TEST") ?? "null");
-
             var langStrings = new Dictionary<string, string>();
 
-            foreach (DictionaryEntry x in clientLangResManager.GetResourceSet(Properties.Language.Culture ?? CultureInfo.CurrentCulture, false, true))
+            foreach (DictionaryEntry x in clientLangResManager.GetResourceSet(Properties.Language.Culture ?? CultureInfo.CurrentCulture, true, true))
                 langStrings.Add((string)x.Key, (string)x.Value);
 
-            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LANGUAGE_STRINGS_DATA_PATH, "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", @\"{x.Value}\" }},").ToList());
+            Utils.FillFileToReplaceRegion(Settings.DIR_CLIENT_LANGUAGE_STRINGS_DATA_PATH, "TEXTS_TO_REPLACE", langStrings.Select(x => $"{{ \"{x.Key}\", \"{x.Value}\" }},").ToList());
 
             Utils.ConsoleOutput("~Red~[BRPMode]~/~ Establishing connection with databases");
             Utils.ConsoleOutput($" | {(MySQL.InitConnection() ? "~Green~Success~/~" : "~Red~Error~/~")}", false);

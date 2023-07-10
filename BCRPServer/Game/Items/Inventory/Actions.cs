@@ -51,6 +51,8 @@ namespace BCRPServer.Game.Items
                                     weapon.Unequip(pData);
 
                                     player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(weapon, group));
+
+                                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_UNEQUIP_0", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                 }
                                 else
                                 {
@@ -78,6 +80,8 @@ namespace BCRPServer.Game.Items
                                         weapon.Equip(pData);
 
                                         player.InventoryUpdate(group, slot, Game.Items.Item.ToClientJson(weapon, group));
+
+                                        Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_EQUIP_0", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                     }
                                 }
 
@@ -90,6 +94,8 @@ namespace BCRPServer.Game.Items
                                     weapon.Unequip(pData);
 
                                     player.InventoryUpdate(group, 2, Game.Items.Item.ToClientJson(weapon, group));
+
+                                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_UNEQUIP_1", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                 }
                                 else
                                 {
@@ -106,6 +112,8 @@ namespace BCRPServer.Game.Items
                                     weapon.Equip(pData);
 
                                     player.InventoryUpdate(group, 2, Game.Items.Item.ToClientJson(weapon, group));
+
+                                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_WEAPON_EQUIP_1", Game.Items.Stuff.GetItemNameWithTag(weapon, null, out _)));
                                 }
 
                                 return ResultTypes.Success;

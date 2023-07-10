@@ -205,6 +205,15 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Сведения о человеке найдены в служебном планшете..
+        /// </summary>
+        public static string CHAT_PLAYER_POLICE_TABLETPC_FOUND {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_POLICE_TABLETPC_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на убрал(а) служебный планшет.
         /// </summary>
         public static string CHAT_PLAYER_POLICE_TABLETPC_OFF {
@@ -295,7 +304,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на При обыске {0} в карманах обнаружено {1} потенциально нелегальных предметов.
+        ///   Ищет локализованную строку, похожую на При обыске {0} в карманах обнаружено {1} потенциально нелегальных предметов..
         /// </summary>
         public static string CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND {
             get {
@@ -304,7 +313,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на При обыске {0} в сумке обнаружено {1} потенциально нелегальных предметов.
+        ///   Ищет локализованную строку, похожую на При обыске {0} в сумке обнаружено {1} потенциально нелегальных предметов..
         /// </summary>
         public static string CHAT_PLAYER_PSEARCH_ITEMS_1_FOUND {
             get {
@@ -313,7 +322,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на При обыске {0} обнаружено {1} потенциально нелегальных предметов.
+        ///   Ищет локализованную строку, похожую на При обыске {0} обнаружено {1} потенциально нелегальных предметов..
         /// </summary>
         public static string CHAT_PLAYER_PSEARCH_ITEMS_2_FOUND {
             get {
@@ -322,7 +331,7 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на При обыске {0} в кобуре обнаружено {1} потенциально нелегальных предметов.
+        ///   Ищет локализованную строку, похожую на При обыске {0} в кобуре обнаружено {1} потенциально нелегальных предметов..
         /// </summary>
         public static string CHAT_PLAYER_PSEARCH_ITEMS_3_FOUND {
             get {
@@ -367,7 +376,25 @@ namespace BCRPServer.Properties {
         }
         
         /// <summary>
-        ///   Ищет локализованную строку, похожую на При обыске {0} в багажнике обнаружено {1} потенциально нелегальных предметов.
+        ///   Ищет локализованную строку, похожую на При обыске обнаружен {0}..
+        /// </summary>
+        public static string CHAT_PLAYER_VSEARCH_CONFISCATE_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_VSEARCH_CONFISCATE_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на конфисковал(а) предмет из багажника {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_VSEARCH_CONFISCATE_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_VSEARCH_CONFISCATE_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на При обыске {0} в багажнике обнаружено {1} потенциально нелегальных предметов..
         /// </summary>
         public static string CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0 {
             get {
@@ -381,6 +408,69 @@ namespace BCRPServer.Properties {
         public static string CHAT_PLAYER_VSEARCH_START {
             get {
                 return ResourceManager.GetString("CHAT_PLAYER_VSEARCH_START", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на достал(а) {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_WEAPON_EQUIP_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_WEAPON_EQUIP_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на достал(а) из кобуры {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_WEAPON_EQUIP_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_WEAPON_EQUIP_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на убрал(а) {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_WEAPON_UNEQUIP_0 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_WEAPON_UNEQUIP_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на убрал(а) в кобуру {0}.
+        /// </summary>
+        public static string CHAT_PLAYER_WEAPON_UNEQUIP_1 {
+            get {
+                return ResourceManager.GetString("CHAT_PLAYER_WEAPON_UNEQUIP_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} уменьшил(а) срок в СИЗО на {1} мин. по делу {2).
+        /// </summary>
+        public static string CHAT_POLICE_ARRESTCHANGE_0 {
+            get {
+                return ResourceManager.GetString("CHAT_POLICE_ARRESTCHANGE_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} увеличил(а) срок в СИЗО на {1} мин. по делу {2).
+        /// </summary>
+        public static string CHAT_POLICE_ARRESTCHANGE_1 {
+            get {
+                return ResourceManager.GetString("CHAT_POLICE_ARRESTCHANGE_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на {0} закрыл(а) дело {1} и выпустил(а) из СИЗО {2} ({3}).
+        /// </summary>
+        public static string CHAT_POLICE_ARRESTCHANGE_2 {
+            get {
+                return ResourceManager.GetString("CHAT_POLICE_ARRESTCHANGE_2", resourceCulture);
             }
         }
         
@@ -579,6 +669,159 @@ namespace BCRPServer.Properties {
         public static string CHAT_VEHICLE_TRUNK_UNLOCKED {
             get {
                 return ResourceManager.GetString("CHAT_VEHICLE_TRUNK_UNLOCKED", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Армия.
+        /// </summary>
+        public static string FRACTION_ARMY_FZ_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_ARMY_FZ_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Полиция Округа Блэйн.
+        /// </summary>
+        public static string FRACTION_COP_BLAINE_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_COP_BLAINE_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Полиция Лос-Сантоса.
+        /// </summary>
+        public static string FRACTION_COP_LS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_COP_LS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Больница Округа Блэйн.
+        /// </summary>
+        public static string FRACTION_EMS_BLAINE_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_EMS_BLAINE_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Больница Лос-Сантоса.
+        /// </summary>
+        public static string FRACTION_EMS_LS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_EMS_LS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на F.I.B..
+        /// </summary>
+        public static string FRACTION_FIB_LS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_FIB_LS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на The Ballas Gang.
+        /// </summary>
+        public static string FRACTION_GANG_BALS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_GANG_BALS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на The Families.
+        /// </summary>
+        public static string FRACTION_GANG_FAMS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_GANG_FAMS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Marabunta Grande.
+        /// </summary>
+        public static string FRACTION_GANG_MARA_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_GANG_MARA_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Los Santos Vagos.
+        /// </summary>
+        public static string FRACTION_GANG_VAGS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_GANG_VAGS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Правительство Лос-Сантоса.
+        /// </summary>
+        public static string FRACTION_GOV_LS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_GOV_LS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на La Cosa Nostra.
+        /// </summary>
+        public static string FRACTION_MAFIA_ITA_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_MAFIA_ITA_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Yakuza.
+        /// </summary>
+        public static string FRACTION_MAFIA_JAP_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_MAFIA_JAP_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Русская Мафия.
+        /// </summary>
+        public static string FRACTION_MAFIA_RUS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_MAFIA_RUS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Weazel News.
+        /// </summary>
+        public static string FRACTION_MEDIA_LS_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_MEDIA_LS_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на S.A.S.P.A..
+        /// </summary>
+        public static string FRACTION_PRISON_BB_NAME {
+            get {
+                return ResourceManager.GetString("FRACTION_PRISON_BB_NAME", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Федеральная тюрьма.
+        /// </summary>
+        public static string FRACTION_PRISON_BB_NAME_PLACE {
+            get {
+                return ResourceManager.GetString("FRACTION_PRISON_BB_NAME_PLACE", resourceCulture);
             }
         }
         

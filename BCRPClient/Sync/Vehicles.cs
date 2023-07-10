@@ -1,6 +1,5 @@
 ﻿using BCRPClient.CEF;using Newtonsoft.Json.Linq;using RAGE;using RAGE.Elements;using System;using System.Collections.Generic;using System.Linq;
 using System.Reflection;
-using static BCRPClient.Additional.Camera;
 
 namespace BCRPClient.Sync
 {
@@ -614,14 +613,7 @@ namespace BCRPClient.Sync
                     HUD.SwitchDoorsIcon(state);
             });
 
-            AddDataHandler("Indicators::LeftOn", (vData, value, oldValue) =>
-            {
-                var veh = vData.Vehicle;
-
-                veh.SetIndicatorLights(1, (bool)value);
-            });
-
-            AddDataHandler("Indicators::RightOn", (vData, value, oldValue) =>
+            AddDataHandler("Inds", (vData, value, oldValue) =>
             {
                 var veh = vData.Vehicle;
 
@@ -1285,7 +1277,7 @@ namespace BCRPClient.Sync
 
             LastEngineToggled = Sync.World.ServerTime;
 
-            var res = (int)await Events.CallRemoteProc("Vehicles::ET", veh, (byte)(state ? 0 : 1));
+            var res = (int)await Events.CallRemoteProc("Vehicles::ET", veh, (byte)(state ? 1 : 0));
 
             if (res == 255)
             {
@@ -1884,7 +1876,7 @@ namespace BCRPClient.Sync
                 CurrentDriverSyncTask?.Cancel();
 
                 CurrentDriverSyncTask = null;
-            }, 0, true, 0);
+            }, 0, false, 0);
 
             CurrentDriverSyncTask.Run();
         }

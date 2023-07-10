@@ -33,6 +33,8 @@ namespace BCRPClient.Sync
             ShowVehiclePassport,
             /// <summary>Показать резюме</summary>
             ShowResume,
+            /// <summary>Показать удостоверение</summary>
+            ShowFractionDocs,
             /// <summary>Продажа имущества</summary>
             PropertySell,
             /// <summary>Поделиться меткой</summary>
@@ -82,6 +84,29 @@ namespace BCRPClient.Sync
             Utils.Actions.InWater,
             Utils.Actions.Shooting, Utils.Actions.Reloading, //Utils.Actions.HasWeapon,
             Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, //Utils.Actions.OnFoot,
+        };
+
+        public static Dictionary<Sync.Offers.Types, string> TypesStrings => new Dictionary<Sync.Offers.Types, string>()
+        {
+            { Sync.Offers.Types.Handshake, "OFFER_HANDSHAKE_NAME" },
+            { Sync.Offers.Types.HeadsOrTails, "OFFER_HEADSORTAILS_NAME" },
+            { Sync.Offers.Types.Exchange, "OFFER_EXCHANGE_NAME" },
+            { Sync.Offers.Types.SellEstate, "OFFER_SELLESTATE_NAME" },
+            { Sync.Offers.Types.SellVehicle, "OFFER_SELLVEHICLE_NAME" },
+            { Sync.Offers.Types.SellBusiness, "OFFER_SELLBUSINESS_NAME" },
+            { Sync.Offers.Types.Settle, "OFFER_SETTLE_NAME" },
+            { Sync.Offers.Types.Carry, "OFFER_CARRY_NAME" },
+            { Sync.Offers.Types.Cash, "OFFER_CASH_NAME" },
+            { Sync.Offers.Types.WaypointShare, "OFFER_WAYPOINTSHARE_NAME" },
+            { Sync.Offers.Types.ShowPassport, "OFFER_SHOWPASSPORT_NAME" },
+            { Sync.Offers.Types.ShowMedicalCard, "OFFER_SHOWMEDICALCARD_NAME" },
+            { Sync.Offers.Types.ShowVehiclePassport, "OFFER_SHOWVEHICLEPASSPORT_NAME" },
+            { Sync.Offers.Types.ShowLicenses, "OFFER_SHOWLICENSES_NAME" },
+            { Sync.Offers.Types.ShowResume, "OFFER_SHOWRESUME_NAME" },
+            { Sync.Offers.Types.InviteFraction, "OFFER_INVITEFRACTION_NAME" },
+            { Sync.Offers.Types.InviteOrganisation, "OFFER_INVITEORGANISATION_NAME" },
+            { Sync.Offers.Types.ShowFractionDocs, "OFFER_SHOWFRACTIONDOCS_NAME" },
+            { Sync.Offers.Types.PoliceFine, "OFFER_POLICEFINE_NAME" },
         };
 
         private static List<int> TempBinds { get; set; }
@@ -155,19 +180,19 @@ namespace BCRPClient.Sync
 
             var name = player.GetName(true, false, true);
 
-            string text = null;
+            var text = Locale.Get(TypesStrings.GetValueOrDefault(type) ?? "null");
 
             if (type == Types.Settle)
             {
                 var pType = (int)data;
 
-                text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, pType == 0 ? Locale.Notifications.Offers.OfferSettleHouse : Locale.Notifications.Offers.OfferSettleApartments);
+                text = string.Format(text, name, pType == 0 ? Locale.Notifications.Offers.OfferSettleHouse : Locale.Notifications.Offers.OfferSettleApartments);
             }
             else if (type == Types.PoliceFine)
             {
                 var d = ((string)data).Split('_');
 
-                text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, Utils.GetPriceString(decimal.Parse(d[0])), d[1]);
+                text = string.Format(text, name, Utils.GetPriceString(decimal.Parse(d[0])), d[1]);
             }
             else if (type == Types.InviteFraction)
             {
@@ -176,11 +201,11 @@ namespace BCRPClient.Sync
                 if (fData == null)
                     return;
 
-                text = string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, fData.Name);
+                text = string.Format(text, name, fData.Name);
             }
             else
             {
-                text = data == null ? string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type), name) : string.Format(Locale.Notifications.Offers.Types.GetValueOrDefault(type) ?? "null", name, data);
+                text = data == null ? string.Format(text, name) : string.Format(text, name, data);
             }
 
             CEF.Notification.ShowOffer(text);

@@ -39,6 +39,15 @@ namespace BCRPClient.Data.Fractions
         PRISON_BB = 90,
     }
 
+    [Flags]
+    public enum MetaFlagTypes
+    {
+        None = 0,
+
+        IsGov = 1 << 0,
+        MembersHaveDocs = 2 << 0,
+    }
+
     public class MemberData
     {
         public bool IsOnline { get; set; }
@@ -151,7 +160,9 @@ namespace BCRPClient.Data.Fractions
 
         public Dictionary<string, uint> CreationWorkbenchPrices { get; set; }
 
-        public Fraction(Types Type, string Name, uint StorageContainerId, string ContainerPositionsStr, string CreationWorkbenchPositionsStr, byte MaxRank, Dictionary<string, uint> CreationWorkbenchPrices)
+        public MetaFlagTypes MetaFlags { get; set; }
+
+        public Fraction(Types Type, string Name, uint StorageContainerId, string ContainerPositionsStr, string CreationWorkbenchPositionsStr, byte MaxRank, Dictionary<string, uint> CreationWorkbenchPrices, uint MetaFlags)
         {
             this.Type = Type;
 
@@ -162,6 +173,8 @@ namespace BCRPClient.Data.Fractions
             this.MaxRank = MaxRank;
 
             this.CreationWorkbenchPrices = CreationWorkbenchPrices;
+
+            this.MetaFlags = (MetaFlagTypes)MetaFlags;
 
             var contPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(ContainerPositionsStr);
             var wbPoses = RAGE.Util.Json.Deserialize<Utils.Vector4[]>(CreationWorkbenchPositionsStr);
@@ -414,6 +427,7 @@ namespace BCRPClient.Data.Fractions
             CEF.Menu.SetFraction(Type);
 
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fraction_invite", (entity) => { var player = entity as Player; if (player == null) return; PlayerInvite(player); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("documents", "fraction_docs", (entity) => { var player = entity as Player; if (player == null) return; PlayerShowDocs(player); });
         }
 
         public virtual void OnEndMembership()
@@ -442,14 +456,6 @@ namespace BCRPClient.Data.Fractions
         }
 
         public string GetRankName(byte rank) => Sync.World.GetSharedData<string>($"FRAC::RN_{(int)Type}_{rank}", "null");
-
-        public static bool IsFractionPolice(Fraction fraction) => fraction is Police;
-
-        public static bool IsFractionMedical(Fraction fraction) => false;
-
-        public static bool IsFractionArmy(Fraction fraction) => false;
-
-        public static bool IsFractionMassMedia(Fraction fraction) => false;
 
         private Dictionary<string, object> CurrentData { get; set; }
 
@@ -496,6 +502,14 @@ namespace BCRPClient.Data.Fractions
             }
 
             Sync.Offers.Request(player, Sync.Offers.Types.InviteFraction, null);
+        }
+
+        public void PlayerShowDocs(Player player)
+        {
+            if (!MetaFlags.HasFlag(MetaFlagTypes.MembersHaveDocs))
+                return;
+
+            Sync.Offers.Request(player, Sync.Offers.Types.ShowFractionDocs, null);
         }
     }
 

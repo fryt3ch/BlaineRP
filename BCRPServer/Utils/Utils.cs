@@ -1201,7 +1201,7 @@ namespace BCRPServer
             using (var sw = new StreamWriter(fPath))
             {
                 foreach (var x in lines)
-                    sw.WriteLine(x);
+                    sw.WriteLine(x.Replace(System.Environment.NewLine, @"\r\n"));
             }
         }
 

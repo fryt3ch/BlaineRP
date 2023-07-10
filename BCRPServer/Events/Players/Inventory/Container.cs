@@ -38,7 +38,7 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            string result = cont.ToClientJson();
+            var result = cont.ToClientJson();
 
             player.TriggerEvent("Inventory::Show", 1, result);
         }

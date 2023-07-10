@@ -74,6 +74,8 @@ namespace BCRPClient.Data
         /// <param name="args">Аргументы</param>
         public static void Execute(string cmdName, params string[] args)
         {
+            cmdName = cmdName.ToLower();
+
             var inst = All.Where(x => x.Attribute.Name == cmdName || x.Attribute.Aliases.Contains(cmdName)).FirstOrDefault();
 
             if (inst == null || inst.Attribute.AdminOnly && (Sync.Players.GetData(Player.LocalPlayer)?.AdminLevel ?? -1) < 0)

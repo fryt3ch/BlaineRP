@@ -181,16 +181,16 @@
     <value>взял(а) в руки и просмотрел(а) трудовую книжку {0}</value>
   </data>
   <data name="CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND" xml:space="preserve">
-    <value>При обыске {0} в карманах обнаружено {1} потенциально нелегальных предметов</value>
+    <value>При обыске {0} в карманах обнаружено {1} потенциально нелегальных предметов.</value>
   </data>
   <data name="CHAT_PLAYER_PSEARCH_ITEMS_1_FOUND" xml:space="preserve">
-    <value>При обыске {0} в сумке обнаружено {1} потенциально нелегальных предметов</value>
+    <value>При обыске {0} в сумке обнаружено {1} потенциально нелегальных предметов.</value>
   </data>
   <data name="CHAT_PLAYER_PSEARCH_ITEMS_2_FOUND" xml:space="preserve">
-    <value>При обыске {0} обнаружено {1} потенциально нелегальных предметов</value>
+    <value>При обыске {0} обнаружено {1} потенциально нелегальных предметов.</value>
   </data>
   <data name="CHAT_PLAYER_PSEARCH_ITEMS_3_FOUND" xml:space="preserve">
-    <value>При обыске {0} в кобуре обнаружено {1} потенциально нелегальных предметов</value>
+    <value>При обыске {0} в кобуре обнаружено {1} потенциально нелегальных предметов.</value>
   </data>
   <data name="CHAT_PLAYER_PSEARCH_START" xml:space="preserve">
     <value>надел(а) одноразовые перчатки и приступил(а) к обыску {0}</value>
@@ -292,7 +292,7 @@
     <value>надел(а) одноразовые перчатки и приступил(а) к обыску {0}</value>
   </data>
   <data name="CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0" xml:space="preserve">
-    <value>При обыске {0} в багажнике обнаружено {1} потенциально нелегальных предметов</value>
+    <value>При обыске {0} в багажнике обнаружено {1} потенциально нелегальных предметов.</value>
   </data>
   <data name="CHAT_VEHICLE_LGEAR_ON" xml:space="preserve">
     <value>выпустил(а) шасси</value>
@@ -305,5 +305,86 @@
   </data>
   <data name="CHAT_VEHICLE_LIGHTS_OFF" xml:space="preserve">
     <value>выключил(а) свет фар</value>
+  </data>
+  <data name="CHAT_PLAYER_VSEARCH_CONFISCATE_0" xml:space="preserve">
+    <value>При обыске обнаружен {0}.</value>
+  </data>
+  <data name="CHAT_PLAYER_VSEARCH_CONFISCATE_1" xml:space="preserve">
+    <value>конфисковал(а) предмет из багажника {0}</value>
+  </data>
+  <data name="CHAT_POLICE_ARRESTCHANGE_0" xml:space="preserve">
+    <value>{0} уменьшил(а) срок в СИЗО на {1} мин. по делу {2)</value>
+  </data>
+  <data name="CHAT_POLICE_ARRESTCHANGE_1" xml:space="preserve">
+    <value>{0} увеличил(а) срок в СИЗО на {1} мин. по делу {2)</value>
+  </data>
+  <data name="CHAT_POLICE_ARRESTCHANGE_2" xml:space="preserve">
+    <value>{0} закрыл(а) дело {1} и выпустил(а) из СИЗО {2} ({3})</value>
+  </data>
+  <data name="CHAT_PLAYER_POLICE_TABLETPC_FOUND" xml:space="preserve">
+    <value>Сведения о человеке найдены в служебном планшете.</value>
+  </data>
+  <data name="FRACTION_COP_BLAINE_NAME" xml:space="preserve">
+    <value>Полиция Округа Блэйн</value>
+  </data>
+  <data name="FRACTION_COP_LS_NAME" xml:space="preserve">
+    <value>Полиция Лос-Сантоса</value>
+  </data>
+  <data name="FRACTION_MEDIA_LS_NAME" xml:space="preserve">
+    <value>Weazel News</value>
+  </data>
+  <data name="FRACTION_EMS_BLAINE_NAME" xml:space="preserve">
+    <value>Больница Округа Блэйн</value>
+  </data>
+  <data name="FRACTION_EMS_LS_NAME" xml:space="preserve">
+    <value>Больница Лос-Сантоса</value>
+  </data>
+  <data name="FRACTION_GOV_LS_NAME" xml:space="preserve">
+    <value>Правительство Лос-Сантоса</value>
+  </data>
+  <data name="FRACTION_GANG_MARA_NAME" xml:space="preserve">
+    <value>Marabunta Grande</value>
+  </data>
+  <data name="FRACTION_GANG_FAMS_NAME" xml:space="preserve">
+    <value>The Families</value>
+  </data>
+  <data name="FRACTION_GANG_BALS_NAME" xml:space="preserve">
+    <value>The Ballas Gang</value>
+  </data>
+  <data name="FRACTION_GANG_VAGS_NAME" xml:space="preserve">
+    <value>Los Santos Vagos</value>
+  </data>
+  <data name="FRACTION_MAFIA_ITA_NAME" xml:space="preserve">
+    <value>La Cosa Nostra</value>
+  </data>
+  <data name="FRACTION_MAFIA_RUS_NAME" xml:space="preserve">
+    <value>Русская Мафия</value>
+  </data>
+  <data name="FRACTION_MAFIA_JAP_NAME" xml:space="preserve">
+    <value>Yakuza</value>
+  </data>
+  <data name="FRACTION_FIB_LS_NAME" xml:space="preserve">
+    <value>F.I.B.</value>
+  </data>
+  <data name="FRACTION_PRISON_BB_NAME" xml:space="preserve">
+    <value>S.A.S.P.A.</value>
+  </data>
+  <data name="FRACTION_PRISON_BB_NAME_PLACE" xml:space="preserve">
+    <value>Федеральная тюрьма</value>
+  </data>
+  <data name="FRACTION_ARMY_FZ_NAME" xml:space="preserve">
+    <value>Армия</value>
+  </data>
+  <data name="CHAT_PLAYER_WEAPON_EQUIP_0" xml:space="preserve">
+    <value>достал(а) {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_WEAPON_UNEQUIP_0" xml:space="preserve">
+    <value>убрал(а) {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_WEAPON_EQUIP_1" xml:space="preserve">
+    <value>достал(а) из кобуры {0}</value>
+  </data>
+  <data name="CHAT_PLAYER_WEAPON_UNEQUIP_1" xml:space="preserve">
+    <value>убрал(а) в кобуру {0}</value>
   </data>
 </root>

@@ -70,7 +70,7 @@ namespace BCRPServer.Sync
 
             player.DetachObject(AttachSystem.Types.PhoneSync);
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_OFF"));
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_OFF"));
         }
 
         public static void ExitFromBuiness(PlayerData pData, bool teleport = true)

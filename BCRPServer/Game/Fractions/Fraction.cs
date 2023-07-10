@@ -37,6 +37,17 @@ namespace BCRPServer.Game.Fractions
         PRISON_BB = 90,
     }
 
+    [Flags]
+    public enum MetaFlagTypes : uint
+    {
+        None = 0,
+
+        /// <summary>Является ли фракция государственной?</summary>
+        IsGov = 1 << 0,
+        /// <summary>Имеют ли члены фракции удостоверения?</summary>
+        MembersHaveDocs = 2 << 1,
+    }
+
     public interface IUniformable
     {
         public List<Game.Data.Customization.UniformTypes> UniformTypes { get; set; }
@@ -126,6 +137,8 @@ namespace BCRPServer.Game.Fractions
         public abstract string ClientData { get; }
 
         public string ItemTag { get; set; }
+
+        public MetaFlagTypes MetaFlags { get; set; }
 
         public void SetRankName(byte rank, string rankName, bool updateDb)
         {

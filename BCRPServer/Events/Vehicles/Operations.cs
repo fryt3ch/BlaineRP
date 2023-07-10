@@ -33,7 +33,7 @@ namespace BCRPServer.Events.Vehicles
                 if (!vData.EngineOn)
                     return 1;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_0"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_0"));
 
                 vData.EngineOn = false;
 
@@ -73,7 +73,7 @@ namespace BCRPServer.Events.Vehicles
             {
                 if (vData.IsDead || vData.Vehicle.Health <= -4000f)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
                     return 5;
                 }
@@ -82,13 +82,13 @@ namespace BCRPServer.Events.Vehicles
                 {
                     vData.EngineOn = true;
 
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_ON"));
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_ON"));
 
                     return 255;
                 }
                 else
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_BROKEN_1"));
 
                     return 6;
                 }
@@ -97,7 +97,7 @@ namespace BCRPServer.Events.Vehicles
             {
                 vData.EngineOn = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_OFF"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_ENGINE_OFF"));
 
                 return 255;
             }
@@ -141,13 +141,13 @@ namespace BCRPServer.Events.Vehicles
             {
                 vData.Locked = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_LOCKED"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_LOCKED"));
             }
             else
             {
                 vData.Locked = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_UNLOCKED"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_DOORS_UNLOCKED"));
             }
 
             return 255;
@@ -212,13 +212,13 @@ namespace BCRPServer.Events.Vehicles
             {
                 vData.LightsOn = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_ON"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_ON"));
             }
             else
             {
                 vData.LightsOn = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_OFF"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LIGHTS_OFF"));
             }
 
             return 255;
@@ -302,13 +302,13 @@ namespace BCRPServer.Events.Vehicles
                     cont.ClearAllWrongObservers();
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_LOCKED"));
             }
             else
             {
                 vData.TrunkLocked = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_TRUNK_UNLOCKED"));
             }
 
             return 255;
@@ -352,13 +352,13 @@ namespace BCRPServer.Events.Vehicles
             {
                 vData.HoodLocked = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_LOCKED"));
             }
             else
             {
                 vData.HoodLocked = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_HOOD_UNLOCKED"));
             }
 
             return 255;
@@ -411,7 +411,7 @@ namespace BCRPServer.Events.Vehicles
                     {
                         vData.EngineOn = false;
 
-                        Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_VEHICLE_FUEL_OUTOF"));
+                        Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_VEHICLE_FUEL_OUTOF"));
                     }
                 }
             }
@@ -486,13 +486,13 @@ namespace BCRPServer.Events.Vehicles
             {
                 vData.IsPlaneChassisOff = true;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_OFF"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_OFF"));
             }
             else
             {
                 vData.IsPlaneChassisOff = false;
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_ON"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_LGEAR_ON"));
             }
 
             return 255;

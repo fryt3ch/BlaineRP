@@ -36,6 +36,8 @@ namespace BCRPServer.Sync
             ShowVehiclePassport,
             /// <summary>Показать резюме</summary>
             ShowResume,
+            /// <summary>Показать удостоверение</summary>
+            ShowFractionDocs,
             /// <summary>Продажа имущества</summary>
             PropertySell,
             /// <summary>Поделиться меткой</summary>
@@ -118,11 +120,11 @@ namespace BCRPServer.Sync
                             if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
                                 return;
 
-                            Sync.Chat.SendLocal(Chat.Types.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
+                            Sync.Chat.SendLocal(Chat.MessageTypes.Me, sPlayer, Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_0"));
 
                             var res = SRandom.NextInt32(0, 2) == 0;
 
-                            Sync.Chat.SendLocal(Chat.Types.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
+                            Sync.Chat.SendLocal(Chat.MessageTypes.Do, sPlayer, res ? Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_1") : Language.Strings.Get("CHAT_PLAYER_HEADSORTAILS_2"));
                         }
                     }
                 }
@@ -776,6 +778,43 @@ namespace BCRPServer.Sync
                                 return;
 
                             fData.SetPlayerFraction(tData.Info, 0);
+                        }
+                    }
+                }
+            },
+
+            {
+                Types.ShowFractionDocs,
+
+                new Dictionary<bool, Action<PlayerData, PlayerData, Offer>>()
+                {
+                    {
+                        true,
+
+                        (pData, tData, offer) =>
+                        {
+                            offer.Cancel(true, false, ReplyTypes.AutoCancel, false);
+
+                            if (pData == null || tData == null)
+                                return;
+
+                            var sPlayer = pData.Player;
+                            var tPlayer = tData.Player;
+
+                            if (sPlayer?.Exists != true || tPlayer?.Exists != true)
+                                return;
+
+                            if (!sPlayer.AreEntitiesNearby(tPlayer, Settings.ENTITY_INTERACTION_MAX_DISTANCE))
+                                return;
+
+                            var fData = Game.Fractions.Fraction.Get(pData.Fraction);
+
+                            if (fData == null || fData.Type != (Game.Fractions.Types)offer.Data)
+                                return;
+
+                            pData.ShowFractionDocs(tPlayer, fData, pData.Info.FractionRank);
+
+                            tData.AddFamiliar(pData.Info);
                         }
                     }
                 }

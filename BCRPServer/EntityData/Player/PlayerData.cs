@@ -811,5 +811,10 @@ namespace BCRPServer
         {
             target.TriggerEvent("Documents::Show", 1, Name, Surname, Licenses);
         }
+
+        public void ShowFractionDocs(Player target, Game.Fractions.Fraction fData, byte fRank)
+        {
+            target.TriggerEvent("Documents::Show", 4, Name, Surname, fData.Type, fRank);
+        }
     }
 }

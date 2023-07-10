@@ -8,7 +8,6 @@
             {
                 public static string Header = "Транспорт";
 
-
                 public static class Additional
                 {
                     public static string HeaderCruise = "Круиз-контроль";
@@ -33,15 +32,6 @@
 
                     public static string TakeOffToLeave = "Вы пристегнуты!\nОтстегните ремень, чтобы выйти";
                     public static string TakeOffToSeat = "Вы пристегнуты!\nОтстегните ремень, чтобы пересесть";
-                }
-
-                public static class Passengers
-                {
-                    public static string None = "Нет ни одного пассажира!";
-                    public static string SomeoneSeating = "Кто-то уже сидит на этом месте!";
-                    public static string IsDriver = "Пересаживаться могут только пассажиры!";
-
-                    public static string NotEnterable = "В этот транспорт нельзя садиться!";
                 }
 
                 public static class Park

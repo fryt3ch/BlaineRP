@@ -7,7 +7,7 @@ namespace BCRPServer.Game.Data
 {
     public class Customization
     {
-        public const int MASKS_1_MALE_COMP_IDX_BASE_OFFSET = 216;
+        public const int MASKS_1_MALE_COMP_IDX_BASE_OFFSET = 226;
         public const int MASKS_1_FEMALE_COMP_IDX_BASE_OFFSET = 0;
 
         public const int HAIRS_2_MALE_COMP_IDX_BASE_OFFSET = 0;
@@ -22,10 +22,10 @@ namespace BCRPServer.Game.Data
         public const int BAGS_5_MALE_COMP_IDX_BASE_OFFSET = 111;
         public const int BAGS_5_FEMALE_COMP_IDX_BASE_OFFSET = 111;
 
-        public const int SHOES_6_MALE_COMP_IDX_BASE_OFFSET = 126;
+        public const int SHOES_6_MALE_COMP_IDX_BASE_OFFSET = 135;
         public const int SHOES_6_FEMALE_COMP_IDX_BASE_OFFSET = 130;
 
-        public const int ACCS_7_MALE_COMP_IDX_BASE_OFFSET = 167;
+        public const int ACCS_7_MALE_COMP_IDX_BASE_OFFSET = 175;
         public const int ACCS_7_FEMALE_COMP_IDX_BASE_OFFSET = 0;
 
         public const int UNDERS_8_MALE_COMP_IDX_BASE_OFFSET = 0;
@@ -34,10 +34,10 @@ namespace BCRPServer.Game.Data
         public const int ARMOURS_9_MALE_COMP_IDX_BASE_OFFSET = 0;
         public const int ARMOURS_9_FEMALE_COMP_IDX_BASE_OFFSET = 0;
 
-        public const int DECLS_10_MALE_COMP_IDX_BASE_OFFSET = 146;
+        public const int DECLS_10_MALE_COMP_IDX_BASE_OFFSET = 174;
         public const int DECLS_10_FEMALE_COMP_IDX_BASE_OFFSET = 158;
 
-        public const int TOPS_11_MALE_COMP_IDX_BASE_OFFSET = 442;
+        public const int TOPS_11_MALE_COMP_IDX_BASE_OFFSET = 495;
         public const int TOPS_11_FEMALE_COMP_IDX_BASE_OFFSET = 473;
 
         public enum ClothesTypes

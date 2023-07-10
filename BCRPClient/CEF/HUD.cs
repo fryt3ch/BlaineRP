@@ -552,23 +552,23 @@ namespace BCRPClient.CEF
 
                     if (indState == 0)
                     {
-                        SwitchArrowIcon(true, false);
                         SwitchArrowIcon(false, false);
+                        SwitchArrowIcon(true, false);
                     }
                     else if (indState == 1)
                     {
-                        SwitchArrowIcon(true, true);
-                        SwitchArrowIcon(false, false);
+                        SwitchArrowIcon(false, true);
+                        SwitchArrowIcon(true, false);
                     }
                     else if (indState == 2)
                     {
-                        SwitchArrowIcon(true, false);
-                        SwitchArrowIcon(false, true);
+                        SwitchArrowIcon(false, false);
+                        SwitchArrowIcon(true, true);
                     }
                     else if (indState == 3)
                     {
-                        SwitchArrowIcon(true, true);
                         SwitchArrowIcon(false, true);
+                        SwitchArrowIcon(true, true);
                     }
 
                     SwitchLightsIcon(data.LightsOn);

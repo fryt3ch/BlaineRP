@@ -1111,4 +1111,86 @@ CID: #{2} | ID: {3}</value>
     <value>Вы пристегнуты!
 Отстегните ремень, чтобы пересесть</value>
   </data>
+  <data name="POLICE_VSEARCH_L_0" xml:space="preserve">
+    <value>Обыск {0}</value>
+  </data>
+  <data name="POLICE_VSEARCH_L_O_0" xml:space="preserve">
+    <value>Предметы (багажник)</value>
+  </data>
+  <data name="VEHICLE_NP_NONE" xml:space="preserve">
+    <value>без номерного знака</value>
+  </data>
+  <data name="POLICE_VSEARCH_L_1" xml:space="preserve">
+    <value>Предметы {0}</value>
+  </data>
+  <data name="ACTIONBOX_BTN_CONFISCATE_0" xml:space="preserve">
+    <value>Изъять</value>
+  </data>
+  <data name="ACTIONBOX_BTN_BACK_0" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="ACTIONBOX_BTN_DOCSLOOK_0" xml:space="preserve">
+    <value>Посмотреть</value>
+  </data>
+  <data name="OFFER_HANDSHAKE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам поздороваться</value>
+  </data>
+  <data name="OFFER_HEADSORTAILS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам сыграть в орел и решку</value>
+  </data>
+  <data name="OFFER_EXCHANGE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам обменяться</value>
+  </data>
+  <data name="OFFER_SELLESTATE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам продажу недвижимости</value>
+  </data>
+  <data name="OFFER_SELLVEHICLE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам продажу транспорта</value>
+  </data>
+  <data name="OFFER_SELLBUSINESS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам продажу бизнеса</value>
+  </data>
+  <data name="OFFER_SETTLE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам подселиться {1}</value>
+  </data>
+  <data name="OFFER_CARRY_TEXT" xml:space="preserve">
+    <value>{0} предлагает понести вас</value>
+  </data>
+  <data name="OFFER_CASH_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам ${1}</value>
+  </data>
+  <data name="OFFER_WAYPOINTSHARE_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам свою метку</value>
+  </data>
+  <data name="OFFER_SHOWPASSPORT_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть паспорт</value>
+  </data>
+  <data name="OFFER_SHOWMEDICALCARD_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть мед. карту</value>
+  </data>
+  <data name="OFFER_SHOWVEHICLEPASSPORT_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть тех. паспорт</value>
+  </data>
+  <data name="OFFER_SHOWLICENSES_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть лицензии</value>
+  </data>
+  <data name="OFFER_SHOWRESUME_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть трудовую книжку</value>
+  </data>
+  <data name="OFFER_INVITEFRACTION_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам вступить во фракцию {1}</value>
+  </data>
+  <data name="OFFER_INVITEORGANISATION_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам вступить в организацию {1}</value>
+  </data>
+  <data name="OFFER_SHOWFRACTIONDOCS_TEXT" xml:space="preserve">
+    <value>{0} предлагает вам посмотреть удостоверение</value>
+  </data>
+  <data name="OFFER_POLICEFINE_TEXT" xml:space="preserve">
+    <value>{0} выписал Вам штраф в размере {1}. Причина: {2}. Будете оплачивать?</value>
+  </data>
+  <data name="CHAT_MSG_TODO_E_0" xml:space="preserve">
+    <value>Сообщение должно быть в следующем виде:
+/todo Фраза*Действие</value>
+  </data>
 </root>

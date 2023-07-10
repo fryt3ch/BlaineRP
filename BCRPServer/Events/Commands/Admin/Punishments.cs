@@ -34,11 +34,11 @@ namespace BCRPServer.Events.Commands
 
             if (tData == null)
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"NOT_AUTH ({target.Id})");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"NOT_AUTH ({target.Id})");
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tData.Name} {tData.Surname} ({target.Id})");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Kick, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tData.Name} {tData.Surname} ({target.Id})");
             }
 
             target.Notify("KickA", $"{pData.Name} {pData.Surname} #{pData.CID}", reason);
@@ -143,11 +143,11 @@ namespace BCRPServer.Events.Commands
 
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Mute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
             }
         }
 
@@ -197,11 +197,11 @@ namespace BCRPServer.Events.Commands
 
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualMute.Id, (int)actualMute.Type, pData.Player.Id, -1, reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.Types.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnMute, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
         }
 
@@ -262,13 +262,13 @@ namespace BCRPServer.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason, punishment.AdditionalData);
 
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{mins}");
 
                 Utils.Demorgan.SetToDemorgan(tInfo.PlayerData, false);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Jail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{mins}");
             }
 
             if (tInfo.Fraction != Game.Fractions.Types.None)
@@ -323,13 +323,13 @@ namespace BCRPServer.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualJail.Id, (int)actualJail.Type, pData.Player.Id, -1, reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.Types.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
 
                 Utils.Demorgan.SetFromDemorgan(tInfo.PlayerData);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnJail, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
 
             if (tInfo.Fraction != Game.Fractions.Types.None)
@@ -397,11 +397,11 @@ namespace BCRPServer.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", punishment.Id, (int)punishment.Type, pData.Player.Id, punishment.EndDate.GetUnixTimestamp(), reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Warn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
         }
 
@@ -449,11 +449,11 @@ namespace BCRPServer.Events.Commands
             {
                 tInfo.PlayerData.Player.TriggerEvent("Player::Punish", actualWarn.Id, (int)actualWarn.Type, pData.Player.Id, -1, reason);
 
-                Sync.Chat.SendGlobal(Sync.Chat.Types.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", null);
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnWarn, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
             }
         }
 
@@ -512,7 +512,7 @@ namespace BCRPServer.Events.Commands
 
             if (tInfo.PlayerData != null)
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{days}");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.PlayerData.Player.Name} ({tInfo.PlayerData.Player.Id})", $"{days}");
 
                 tInfo.PlayerData.Player.Notify("KickB", $"{pData.Player.Name} #{pData.CID}", reason, punishment.EndDate.ToString("dd.MM.yyyy HH:mm:ss"));
 
@@ -520,7 +520,7 @@ namespace BCRPServer.Events.Commands
             }
             else
             {
-                Sync.Chat.SendGlobal(Sync.Chat.Types.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{days}");
+                Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.Ban, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", $"{days}");
             }
 
             if (tInfo.Fraction != Game.Fractions.Types.None)
@@ -571,7 +571,7 @@ namespace BCRPServer.Events.Commands
 
             MySQL.UpdatePunishmentAmnesty(actualBan);
 
-            Sync.Chat.SendGlobal(Sync.Chat.Types.UnBan, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
+            Sync.Chat.SendGlobal(Sync.Chat.MessageTypes.UnBan, $"{pData.Player.Name} ({pData.Player.Id})", reason, $"{tInfo.Name} {tInfo.Surname} #{tInfo.CID}", null);
 
             if (tInfo.Fraction != Game.Fractions.Types.None)
             {

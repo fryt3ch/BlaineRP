@@ -11,7 +11,7 @@ namespace BCRPServer.Game.Fractions
         {
             Game.Items.Container.AllSIDs.Add("f_storage", new Items.Container.Data(125, 100_000f, Items.Container.AllowedItemTypes.All, Items.Container.ContainerTypes.Storage));
 
-            new Police(Types.COP_BLAINE, "Полиция Округа Блэйн")
+            new Police(Types.COP_BLAINE, Language.Strings.Get("FRACTION_COP_BLAINE_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -70,9 +70,11 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "BCPD",
+
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
             };
 
-            new Police(Types.COP_LS, "Полиция Лос-Сантоса")
+            new Police(Types.COP_LS, Language.Strings.Get("FRACTION_COP_LS_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -128,9 +130,11 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "LSPD",
+
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
             };
 
-            new WeazelNews(Types.MEDIA_LS, "Weazel News")
+            new WeazelNews(Types.MEDIA_LS, Language.Strings.Get("FRACTION_MEDIA_LS_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -153,9 +157,11 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "WZLN",
+
+                MetaFlags = MetaFlagTypes.MembersHaveDocs,
             };
 
-            new EMS(Types.EMS_BLAINE, "Больница Округа Блэйн")
+            new EMS(Types.EMS_BLAINE, Language.Strings.Get("FRACTION_EMS_BLAINE_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -199,6 +205,8 @@ namespace BCRPServer.Game.Fractions
 
                 ItemTag = "BCEMS",
 
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
+
                 AfterDeathSpawnPositions = new Utils.Vector4[]
                 {
                     new Utils.Vector4(-249.0699f, 6314.924f, 32.42727f, 39.13411f),
@@ -207,7 +215,7 @@ namespace BCRPServer.Game.Fractions
                 },
             };
 
-            new EMS(Types.EMS_LS, "Больница Лос-Сантоса")
+            new EMS(Types.EMS_LS, Language.Strings.Get("FRACTION_EMS_LS_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -241,13 +249,15 @@ namespace BCRPServer.Game.Fractions
 
                 ItemTag = "LSEMS",
 
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
+
                 AfterDeathSpawnPositions = new Utils.Vector4[]
                 {
                     new Utils.Vector4(321.2299f, -584.1389f, 43.28405f, 66.56934f),
                 },
             };
 
-            new Government(Types.GOV_LS, "Правительство Лос-Сантоса")
+            new Government(Types.GOV_LS, Language.Strings.Get("FRACTION_GOV_LS_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -280,199 +290,26 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "LSGOV",
+
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
             };
 
-            new Gang(Types.GANG_MARA, "Marabunta Grande")
+            new FIB(Types.FIB_LS, Language.Strings.Get("FRACTION_FIB_LS_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-25.54851f, -1397.775f, 29.51251f, 214.8488f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-30.51058f, -1412.792f, 28.51252f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-29.67174f, -1408.475f, 28.51251f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "MARAG",
-            };
-
-            new Gang(Types.GANG_FAMS, "The Families")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-155.9873f, -1602.842f, 35.04389f, 341.8835f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-134.8378f, -1610.609f, 34.03021f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-136.8921f, -1609.587f, 34.03021f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "FAMS",
-            };
-
-            new Gang(Types.GANG_BALS, "The Ballas")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(80.45615f, -1969.136f, 20.74941f, 4.675246f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(83.94167f, -1964.139f, 17.04321f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(78.93073f, -1962.453f, 17.04321f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "BALS",
-            };
-
-            new Gang(Types.GANG_VAGS, "Los Santos Vagos")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(315.2158f, -2050.231f, 20.97667f, 277.3596f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(319.178f, -2056.716f, 23.00942f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(323.7132f, -2057.552f, 23.03697f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "VAGS",
-            };
-
-            new Mafia(Types.MAFIA_ITALY, "La Cosa Nostra")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(420.0956f, -1484.346f, 33.80732f, 117.6836f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(414.901f, -1505.713f, 32.80729f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(417.7353f, -1503.774f, 32.80729f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "LCN",
-            };
-
-            new Mafia(Types.MAFIA_RUSSIA, "Русская Мафия")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-75.15957f, 1000.613f, 239.4772f, 111.7685f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-79.53702f, 1004.585f, 238.5072f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-76.85577f, 1007.711f, 238.4774f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "RUS",
-            };
-
-            new Mafia(Types.MAFIA_JAPAN, "Yakuza")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-1510.689f, 113.2561f, 60.79906f, 41.29203f),
-                },
-
-                CreationWorkbenchPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-1519.416f, 109.8969f, 59.79875f, 1.5f),
-                },
-
-                ContainerPositions = new Utils.Vector4[]
-                {
-                    new Utils.Vector4(-1515.389f, 105.9638f, 59.79875f, 1f),
-                },
-
-                CreationWorkbenchPrices = new Dictionary<string, uint>()
-                {
-
-                },
-
-                ItemTag = "YKZ",
-            };
-
-            new FIB(Types.FIB_LS, "F.I.B.")
-            {
-                SpawnPositions = new Utils.Vector4[]
-                {
+    {
                     new Utils.Vector4(125.2087f, -765.3222f, 242.1521f, 342.1197f),
-                },
+    },
 
                 CreationWorkbenchPositions = new Utils.Vector4[]
-                {
+    {
                     new Utils.Vector4(145.053f, -767.7247f, 241.1521f, 1.5f),
-                },
+    },
 
                 ContainerPositions = new Utils.Vector4[]
-                {
+    {
                     new Utils.Vector4(148.1316f, -763.9494f, 241.1521f, 1f),
-                },
+    },
 
                 CreationWorkbenchPrices = new Dictionary<string, uint>()
                 {
@@ -480,9 +317,9 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 LockerRoomPositions = new Vector3[]
-                {
+    {
                     new Vector3(146.2185f, -771.2402f, 241.1521f),
-                },
+    },
 
                 UniformTypes = new List<Data.Customization.UniformTypes>()
                 {
@@ -490,9 +327,11 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "FIB",
+
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
             };
 
-            new Prison(Types.PRISON_BB, "S.A.S.P.A.")
+            new Prison(Types.PRISON_BB, Language.Strings.Get("FRACTION_PRISON_BB_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -525,9 +364,11 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "SASPA",
+
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
             };
 
-            new Army(Types.ARMY_FZ, "Армия")
+            new Army(Types.ARMY_FZ, Language.Strings.Get("FRACTION_ARMY_FZ_NAME"))
             {
                 SpawnPositions = new Utils.Vector4[]
                 {
@@ -560,6 +401,197 @@ namespace BCRPServer.Game.Fractions
                 },
 
                 ItemTag = "ARMY",
+
+                MetaFlags = MetaFlagTypes.IsGov | MetaFlagTypes.MembersHaveDocs,
+            };
+
+            new Gang(Types.GANG_MARA, Language.Strings.Get("FRACTION_GANG_MARA_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-25.54851f, -1397.775f, 29.51251f, 214.8488f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-30.51058f, -1412.792f, 28.51252f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-29.67174f, -1408.475f, 28.51251f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "MARAG",
+
+                MetaFlags = MetaFlagTypes.None,
+            };
+
+            new Gang(Types.GANG_FAMS, Language.Strings.Get("FRACTION_GANG_FAMS_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-155.9873f, -1602.842f, 35.04389f, 341.8835f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-134.8378f, -1610.609f, 34.03021f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-136.8921f, -1609.587f, 34.03021f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "FAMS",
+
+                MetaFlags = MetaFlagTypes.None,
+            };
+
+            new Gang(Types.GANG_BALS, Language.Strings.Get("FRACTION_GANG_BALS_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(80.45615f, -1969.136f, 20.74941f, 4.675246f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(83.94167f, -1964.139f, 17.04321f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(78.93073f, -1962.453f, 17.04321f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "BALS",
+
+                MetaFlags = MetaFlagTypes.None,
+            };
+
+            new Gang(Types.GANG_VAGS, Language.Strings.Get("FRACTION_GANG_VAGS_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(315.2158f, -2050.231f, 20.97667f, 277.3596f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(319.178f, -2056.716f, 23.00942f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(323.7132f, -2057.552f, 23.03697f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "VAGS",
+
+                MetaFlags = MetaFlagTypes.None,
+            };
+
+            new Mafia(Types.MAFIA_ITALY, Language.Strings.Get("FRACTION_MAFIA_ITA_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(420.0956f, -1484.346f, 33.80732f, 117.6836f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(414.901f, -1505.713f, 32.80729f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(417.7353f, -1503.774f, 32.80729f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "LCN",
+
+                MetaFlags = MetaFlagTypes.None,
+            };
+
+            new Mafia(Types.MAFIA_RUSSIA, Language.Strings.Get("FRACTION_MAFIA_RUS_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-75.15957f, 1000.613f, 239.4772f, 111.7685f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-79.53702f, 1004.585f, 238.5072f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-76.85577f, 1007.711f, 238.4774f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "RUS",
+
+                MetaFlags = MetaFlagTypes.None,
+            };
+
+            new Mafia(Types.MAFIA_JAPAN, Language.Strings.Get("FRACTION_MAFIA_JAP_NAME"))
+            {
+                SpawnPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-1510.689f, 113.2561f, 60.79906f, 41.29203f),
+                },
+
+                CreationWorkbenchPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-1519.416f, 109.8969f, 59.79875f, 1.5f),
+                },
+
+                ContainerPositions = new Utils.Vector4[]
+                {
+                    new Utils.Vector4(-1515.389f, 105.9638f, 59.79875f, 1f),
+                },
+
+                CreationWorkbenchPrices = new Dictionary<string, uint>()
+                {
+
+                },
+
+                ItemTag = "YKZ",
+
+                MetaFlags = MetaFlagTypes.None,
             };
 
             Events.NPC.NPC.AddNpc($"cop0_{(int)Game.Fractions.Types.COP_BLAINE}", new Vector3(-448.2888f, 6012.634f, 31.71635f)); // cop0_1

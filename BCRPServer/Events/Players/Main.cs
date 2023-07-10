@@ -570,7 +570,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(veh, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", vData.GetName(1)), null);
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0", vData.GetName(1)), null);
         }
 
         [RemoteEvent("Players::FingerPoint::Player")]
@@ -589,7 +589,7 @@ namespace BCRPServer.Events.Players
             if (!player.AreEntitiesNearby(target, 10f))
                 return;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0"), target);
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_0"), target);
         }
 
         [RemoteEvent("Players::FingerPoint::Ped")]
@@ -602,7 +602,7 @@ namespace BCRPServer.Events.Players
 
             var pData = sRes.Data;
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_1", null));
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_FP_1", null));
         }
         #endregion
 
@@ -747,7 +747,7 @@ namespace BCRPServer.Events.Players
             {
                 //player.SetClothes(5, 81, 0);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_ON"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_ON"));
             }
             else
             {
@@ -763,7 +763,7 @@ namespace BCRPServer.Events.Players
                         player.SetClothes(5, 0, 0);
                 }*/
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_OFF"));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_VEHICLE_BELT_OFF"));
             }
         }
         #endregion
@@ -832,7 +832,7 @@ namespace BCRPServer.Events.Players
 
                 if (curStateType == Sync.Players.PhoneStateTypes.Off)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_ON"));
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PHONE_ON"));
 
                     player.AttachObject(Sync.AttachSystem.Models.Phone, AttachSystem.Types.PhoneSync, -1, null);
                 }

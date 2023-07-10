@@ -12,7 +12,7 @@ namespace BCRPClient.Data.Fractions
 {
     public class Police : Fraction, IUniformable
     {
-        public Police(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string LockerRoomPositionsStr, string CreationWorkbenchPricesJs, string ArrestCellsPositionsJs, string ArrestMenuPositionsStr) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs))
+        public Police(Types Type, string Name, uint StorageContainerId, string ContainerPos, string CWbPos, byte MaxRank, string LockerRoomPositionsStr, string CreationWorkbenchPricesJs, uint MetaFlags, string ArrestCellsPositionsJs, string ArrestMenuPositionsStr) : base(Type, Name, StorageContainerId, ContainerPos, CWbPos, MaxRank, RAGE.Util.Json.Deserialize<Dictionary<string, uint>>(CreationWorkbenchPricesJs), MetaFlags)
         {
             var lockerPoses = RAGE.Util.Json.Deserialize<Vector3[]>(LockerRoomPositionsStr);
 
@@ -102,11 +102,12 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 10, "fraction_invite");
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 11, "police_search");
             CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 12, "cuffs");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, "police_escort");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, "prison");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, "fine");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, "take_license");
-            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 1, "mask_off");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 13, "uncuff_any");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 14, "police_escort");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 15, "prison");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 0, "fine");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 1, "take_license");
+            CEF.Interaction.CharacterInteractionInfo.ReplaceExtraLabel("char_job", 2, "mask_off");
 
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 16, "gps_tracker");
             CEF.Interaction.OutVehicleInteractionInfo.ReplaceExtraLabel("job", 17, "police_search");
@@ -116,10 +117,12 @@ namespace BCRPClient.Data.Fractions
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "gps_tracker", (entity) => { var veh = entity as Vehicle; if (veh == null) return; GPSTrackerVehicleInstall(veh); });
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_to_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerToVehicle(veh); });
             CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "player_from_veh", (entity) => { var veh = entity as Vehicle; if (veh == null) return; PlayerFromVehicle(veh); });
+            CEF.Interaction.OutVehicleInteractionInfo.AddAction("job", "police_search", (entity) => { var veh = entity as Vehicle; if (veh == null) return; VehicleSearch(veh, null); });
 
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "fine", (entity) => { var player = entity as Player; if (player == null) return; PlayerFine(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "take_license", (entity) => { var player = entity as Player; if (player == null) return; PlayerRemoveLicense(player); });
-            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "cuffs", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, null); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "cuffs", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, true); });
+            CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "uncuff_any", (entity) => { var player = entity as Player; if (player == null) return; PlayerCuff(player, false); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "police_escort", (entity) => { var player = entity as Player; if (player == null) return; PlayerEscort(player, null); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "prison", (entity) => { var player = entity as Player; if (player == null) return; PlayerArrest(player); });
             CEF.Interaction.CharacterInteractionInfo.AddAction("char_job", "police_search", (entity) => { var player = entity as Player; if (player == null) return; PlayerSearch(player, null); });
@@ -314,6 +317,9 @@ namespace BCRPClient.Data.Fractions
 
                     return;
                 }
+
+                if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.InVehicle, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                    return;
             }
             else
             {
@@ -371,6 +377,9 @@ namespace BCRPClient.Data.Fractions
 
                 return;
             }
+
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+                return;
 
             await CEF.Documents.ShowPoliceBlank(true, $"{fData.Name}", $"{player.Name}", $"{Player.LocalPlayer.Name}", Sync.World.ServerTime.ToString("dd.MM.yyyy HH:mm"), new string[] { "", "", "", Locale.Get(fData is Data.Fractions.Prison ? "POLICE_ARREST_TIME_L_1" : "POLICE_ARREST_TIME_L_0") }, async (args) =>
             {
@@ -467,6 +476,9 @@ namespace BCRPClient.Data.Fractions
                 return;
             }
 
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed, Utils.Actions.OtherAnimation, Utils.Actions.Animation, Utils.Actions.Scenario, Utils.Actions.FastAnimation, Utils.Actions.Shooting, Utils.Actions.Reloading, Utils.Actions.Climbing, Utils.Actions.Falling, Utils.Actions.Ragdoll, Utils.Actions.Jumping, Utils.Actions.NotOnFoot, Utils.Actions.IsSwimming, Utils.Actions.HasItemInHands, Utils.Actions.IsAttachedTo))
+                return;
+
             await CEF.ActionBox.ShowSelect("PoliceGPSTrackerDepSelect", Locale.Get("POLICE_GPSTR_0"), new (decimal Id, string Text)[] { (0, Locale.Get("POLICE_GPSTR_1")), (1, Locale.Get("POLICE_GPSTR_2")) }, null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
             {
                 if (rType == CEF.ActionBox.ReplyTypes.Cancel || vehicle?.Exists != true || vehicle.Position.DistanceTo(Player.LocalPlayer.Position) > 10f || CEF.Inventory.ItemsParams[itemIdx]?.Id != gpsTrackerItemId)
@@ -498,6 +510,9 @@ namespace BCRPClient.Data.Fractions
 
         public async void PlayerFine(Player player)
         {
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+                return;
+
             await CEF.ActionBox.ShowInputWithText("PolicePlayerFine", "Выписать штраф", "Введите сумму, на которую вы хотите оштрафовать гражданина и причину.\n\nПример: 500, Езда по встречной полосе", 100, "", null, null, CEF.ActionBox.DefaultBindAction, (rType, str) =>
             {
                 if (rType == CEF.ActionBox.ReplyTypes.Cancel)
@@ -541,6 +556,9 @@ namespace BCRPClient.Data.Fractions
 
         public async void PlayerRemoveLicense(Player player, List<Sync.Players.LicenseTypes> licenses = null)
         {
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+                return;
+
             if (licenses == null)
             {
                 licenses = (await Events.CallRemoteProc("Police::RmLic", player, string.Empty) as JArray)?.ToObject<List<int>>().Select(x => (Sync.Players.LicenseTypes)x).ToList();
@@ -616,8 +634,6 @@ namespace BCRPClient.Data.Fractions
 
         public async void PlayerSearch(Player player, object[] args = null)
         {
-            bool playerOk() => player?.Exists == true && Sync.Players.GetData(player)?.IsCuffed == true && player.Position.DistanceTo(Player.LocalPlayer.Position) < Settings.ENTITY_INTERACTION_MAX_DISTANCE;
-
             if (Sync.Players.GetData(player)?.IsCuffed != true)
             {
                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_ESCORT_E_0"), -1);
@@ -625,14 +641,25 @@ namespace BCRPClient.Data.Fractions
                 return;
             }
 
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+                return;
+
             var res = await Events.CallRemoteProc("Police::PlayerSearch", player, args == null ? -1 : -2);
 
-            if (res == null)
+            if (res is int resB)
+            {
                 return;
+            }
+            else if (res == null)
+            {
+                CEF.Notification.ShowErrorDefault();
+
+                return;
+            }
 
             await CEF.ActionBox.ShowSelect("PolicePlayerSearchOptSelect", Locale.Get("POLICE_PSEARCH_L_0", player.GetName(true, false, true)), ((JArray)res).ToObject<List<int>>().OrderBy(x => x).Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_O_{x}"))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
             {
-                if (rType != CEF.ActionBox.ReplyTypes.OK || !playerOk())
+                if (rType != CEF.ActionBox.ReplyTypes.OK)
                 {
                     CEF.ActionBox.Close(true);
 
@@ -650,8 +677,14 @@ namespace BCRPClient.Data.Fractions
 
                 if (id == 0)
                 {
-                    if (res == null)
+                    if (res is int resB)
                     {
+                        return;
+                    }
+                    else if (res == null)
+                    {
+                        CEF.Notification.ShowErrorDefault();
+
                         CEF.ActionBox.Close(true);
 
                         return;
@@ -659,15 +692,8 @@ namespace BCRPClient.Data.Fractions
 
                     CEF.ActionBox.Close(false);
 
-                    await CEF.ActionBox.ShowSelect("PolicePlayerSearchDocs", Locale.Get("POLICE_PSEARCH_L_1", player.GetName(true, false, true)), ((JArray)res).ToObject<List<int>>().Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_D_{x}"))).ToArray(), "Посмотреть", "Назад", CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+                    await CEF.ActionBox.ShowSelect("PolicePlayerSearchDocs", Locale.Get("POLICE_PSEARCH_L_1", player.GetName(true, false, true)), ((JArray)res).ToObject<List<int>>().Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_D_{x}"))).ToArray(), Locale.Get("ACTIONBOX_BTN_DOCSLOOK_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), CEF.ActionBox.DefaultBindAction, async (rType, id) =>
                     {
-                        if (!playerOk())
-                        {
-                            CEF.ActionBox.Close(true);
-
-                            return;
-                        }
-
                         if (rType != CEF.ActionBox.ReplyTypes.OK)
                         {
                             CEF.ActionBox.Close(false);
@@ -703,6 +729,8 @@ namespace BCRPClient.Data.Fractions
                 {
                     if (res == null)
                     {
+                        CEF.Notification.ShowErrorDefault();
+
                         CEF.ActionBox.Close(true);
 
                         return;
@@ -713,24 +741,24 @@ namespace BCRPClient.Data.Fractions
                         if (id == 1)
                         {
                             if (resB == 1)
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_ACTION_RESTRICTED_NOW"), -1);
+                                CEF.Notification.ShowErrorDefault();
                         }
                         else if (id == 2)
                         {
                             if (resB == 1)
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_ACTION_RESTRICTED_NOW"), -1);
+                                CEF.Notification.ShowErrorDefault();
                         }
                         else if (id == 3)
                         {
                             if (resB == 1)
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_ACTION_RESTRICTED_NOW"), -1);
+                                CEF.Notification.ShowErrorDefault();
                             else if (resB == 2)
                                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_2"), -1);
                         }
                         else if (id == 4)
                         {
                             if (resB == 1)
-                                CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_ACTION_RESTRICTED_NOW"), -1);
+                                CEF.Notification.ShowErrorDefault();
                             else if (resB == 2)
                                 CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_3"), -1);
                         }
@@ -751,15 +779,8 @@ namespace BCRPClient.Data.Fractions
 
                     async void showSelectItemToConfiscate()
                     {
-                        await CEF.ActionBox.ShowSelect("PolicePlayerSearchItems", Locale.Get("POLICE_PSEARCH_L_2", player.GetName(true, false, true)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), "Изъять", "Назад", CEF.ActionBox.DefaultBindAction, async (rType, itemUid) =>
+                        await CEF.ActionBox.ShowSelect("PolicePlayerSearchItems", Locale.Get("POLICE_PSEARCH_L_2", player.GetName(true, false, true)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), CEF.ActionBox.DefaultBindAction, async (rType, itemUid) =>
                         {
-                            if (!playerOk())
-                            {
-                                CEF.ActionBox.Close(true);
-
-                                return;
-                            }
-
                             if (rType != CEF.ActionBox.ReplyTypes.OK)
                             {
                                 CEF.ActionBox.Close(false);
@@ -769,12 +790,14 @@ namespace BCRPClient.Data.Fractions
                                 return;
                             }
 
-                            res = (int)await Events.CallRemoteProc("Police::PlayerSearchIC", player, id, (uint)itemUid);
+                            res = await Events.CallRemoteProc("Police::PlayerSearchIC", player, id, (uint)itemUid);
 
                             if (res is int resB)
                             {
                                 if (resB == 0)
                                 {
+                                    CEF.Notification.ShowErrorDefault();
+
                                     CEF.ActionBox.Close(true);
                                 }
                                 else if (resB == 255)
@@ -796,12 +819,130 @@ namespace BCRPClient.Data.Fractions
                                 }
                                 else
                                 {
-                                    CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("GEN_ACTION_RESTRICTED_NOW"), -1);
+
                                 }
                             }
-                            else
+                        }, null);
+                    }
+
+                    showSelectItemToConfiscate();
+                }
+            }, null);
+        }
+
+        public async void VehicleSearch(Vehicle vehicle, object[] args = null)
+        {
+            if (!Utils.CanDoSomething(true, Utils.Actions.Knocked, Utils.Actions.Frozen, Utils.Actions.Cuffed))
+                return;
+
+            var res = await Events.CallRemoteProc("Police::VehicleSearch", vehicle, args == null ? -1 : -2);
+
+            if (res is int resB)
+            {
+                return;
+            }
+            else if (res == null)
+            {
+                CEF.Notification.ShowErrorDefault();
+
+                return;
+            }
+
+            await CEF.ActionBox.ShowSelect("PoliceVehicleSearchOptSelect", Locale.Get("POLICE_VSEARCH_L_0", Utils.GetVehicleName(vehicle, 1)), ((JArray)res).ToObject<List<int>>().OrderBy(x => x).Select(x => ((decimal)x, Locale.Get($"POLICE_PSEARCH_L_O_{x}"))).ToArray(), null, null, CEF.ActionBox.DefaultBindAction, async (rType, id) =>
+            {
+                if (rType != CEF.ActionBox.ReplyTypes.OK)
+                {
+                    CEF.ActionBox.Close(true);
+
+                    return;
+                }
+
+                var lastSent = GetCurrentData<DateTime>("PSearchLastSent");
+
+                if (lastSent.IsSpam(1000, false, true))
+                    return;
+
+                SetCurrentData("PSearchLastSent", Sync.World.ServerTime);
+
+                res = await Events.CallRemoteProc("Police::VehicleSearch", vehicle, id);
+
+                if (id == 0)
+                {
+                    if (res == null)
+                    {
+                        CEF.Notification.ShowErrorDefault();
+
+                        CEF.ActionBox.Close(true);
+
+                        return;
+                    }
+
+                    if (res is int resB)
+                    {
+                        if (id == 0)
+                        {
+                            if (resB == 0)
+                                CEF.Notification.ShowErrorDefault();
+                        }
+
+                        return;
+                    }
+
+                    var items = ((JArray)res).ToObject<List<string>>().Select(x => { var d = x.Split('^'); return (decimal.Parse(d[0]), d[1], int.Parse(d[2]), d[3]); }).ToList();
+
+                    if (items.Count == 0)
+                    {
+                        CEF.Notification.Show(CEF.Notification.Types.Error, Locale.Get("NOTIFICATION_HEADER_ERROR"), Locale.Get("POLICE_PSEARCH_E_1"), -1);
+
+                        return;
+                    }
+
+                    CEF.ActionBox.Close(false);
+
+                    async void showSelectItemToConfiscate()
+                    {
+                        await CEF.ActionBox.ShowSelect("PoliceVehicleSearchItems", Locale.Get("POLICE_VSEARCH_L_1", Utils.GetVehicleName(vehicle, 1)), items.Select(x => { var iType = Data.Items.GetType(x.Item2, true); return (x.Item1, Data.Items.GetNameWithTag(x.Item2, iType, x.Item4, out _) + $" x{x.Item3}"); }).ToArray(), Locale.Get("ACTIONBOX_BTN_CONFISCATE_0"), Locale.Get("ACTIONBOX_BTN_BACK_0"), CEF.ActionBox.DefaultBindAction, async (rType, itemUid) =>
+                        {
+                            if (rType != CEF.ActionBox.ReplyTypes.OK)
                             {
-                                CEF.ActionBox.Close(true);
+                                CEF.ActionBox.Close(false);
+
+                                VehicleSearch(vehicle, new object[] { });
+
+                                return;
+                            }
+
+                            res = await Events.CallRemoteProc("Police::VehicleSearchIC", vehicle, id, (uint)itemUid);
+
+                            if (res is int resB)
+                            {
+                                if (resB == 0)
+                                {
+                                    CEF.Notification.ShowErrorDefault();
+
+                                    CEF.ActionBox.Close(true);
+                                }
+                                else if (resB == 255)
+                                {
+                                    var t = items.Where(x => x.Item1 == itemUid).FirstOrDefault();
+
+                                    items.Remove(t);
+
+                                    CEF.ActionBox.Close(false);
+
+                                    if (items.Count == 0)
+                                    {
+                                        VehicleSearch(vehicle, new object[] { });
+                                    }
+                                    else
+                                    {
+                                        showSelectItemToConfiscate();
+                                    }
+                                }
+                                else
+                                {
+
+                                }
                             }
                         }, null);
                     }
@@ -837,6 +978,13 @@ namespace BCRPClient.Data.Fractions
             if (res == 255)
             {
                 CEF.Notification.ShowSuccess(Locale.Get("POLICE_PMASKOFF_S_0", player.GetName(true, true, true)));
+
+                return;
+            }
+            else if (res == 0)
+            {
+                CEF.Notification.ShowErrorDefault();
+
                 return;
             }
         }

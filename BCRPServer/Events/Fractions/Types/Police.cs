@@ -26,7 +26,7 @@ namespace BCRPServer.Events.Fractions
             if (tData == null || tData == pData)
                 return 0;
 
-            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked)
+            if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAttachedToEntity != null || pData.HasAnyHandAttachedObject || pData.AttachedEntities.Any())
                 return 0;
 
             var fData = Game.Fractions.Fraction.Get(pData.Fraction) as Game.Fractions.Police;
@@ -56,7 +56,7 @@ namespace BCRPServer.Events.Fractions
 
                 tData.Player.NotifyWithPlayer("Cuffs::0_0", player);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_ON"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_ON"), target);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace BCRPServer.Events.Fractions
                 {
                     tData.Player.NotifyWithPlayer("Cuffs::0_1", player);
 
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_OFF"), target);
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_CUFFS_OFF"), target);
                 }
             }
 
@@ -94,7 +94,7 @@ namespace BCRPServer.Events.Fractions
                 if (tData == null || tData == pData)
                     return 0;
 
-                if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAttachedToEntity != null || pData.HasAnyHandAttachedObject || pData.AttachedEntities.Count > 0)
+                if (pData.IsCuffed || pData.IsFrozen || pData.IsKnocked || pData.IsAttachedToEntity != null || pData.HasAnyHandAttachedObject || pData.AttachedEntities.Any())
                     return 0;
 
                 if (!tData.Player.AreEntitiesNearby(player, 7.5f))
@@ -120,7 +120,7 @@ namespace BCRPServer.Events.Fractions
 
                 player.AttachEntity(target, Sync.AttachSystem.Types.PoliceEscort, null);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_ON"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_ON"), target);
 
                 return 255;
             }
@@ -141,7 +141,7 @@ namespace BCRPServer.Events.Fractions
                 if (pData.GeneralAnim == Sync.Animations.GeneralTypes.PoliceEscort0)
                     pData.StopGeneralAnim();
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_OFF"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_ESCORT_OFF"), target);
 
                 return 255;
             }
@@ -198,7 +198,7 @@ namespace BCRPServer.Events.Fractions
 
                 vData.Vehicle.AttachEntity(target, Sync.AttachSystem.Types.VehicleTrunk, null);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PUSHTOVEH_1", "{0}", vData.GetName(1)), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PUSHTOVEH_1", "{0}", vData.GetName(1)), target);
 
                 return 255;
             }
@@ -214,7 +214,7 @@ namespace BCRPServer.Events.Fractions
 
                 target.WarpToVehicleSeat(veh, seatIdx, 500);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PUSHTOVEH_0", "{0}", vData.GetName(1)), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PUSHTOVEH_0", "{0}", vData.GetName(1)), target);
 
                 return 255;
             }
@@ -267,7 +267,7 @@ namespace BCRPServer.Events.Fractions
 
                 target.WarpOutOfVehicle();
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_OUTOFVEH_0", "{0}", vData.GetName(1)), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_OUTOFVEH_0", "{0}", vData.GetName(1)), target);
 
                 return 255;
             }
@@ -283,7 +283,7 @@ namespace BCRPServer.Events.Fractions
 
                 veh.DetachEntity(target);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_OUTOFVEH_1", "{0}", vData.GetName(1)), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_OUTOFVEH_1", "{0}", vData.GetName(1)), target);
 
                 return 255;
             }
@@ -329,7 +329,7 @@ namespace BCRPServer.Events.Fractions
 
             tData.Player.InventoryUpdate(Game.Items.Inventory.GroupTypes.Accessories, 1, Game.Items.Item.ToClientJson(null, Game.Items.Inventory.GroupTypes.Accessories));
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_MASKOFF_0"), target);
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_MASKOFF_0"), target);
 
             tData.Player.NotifyWithPlayer("Police::PMASKOFF_0", player);
 
@@ -515,10 +515,17 @@ namespace BCRPServer.Events.Fractions
                 { "G", tInfo.Sex },
                 { "LA", tInfo.LosSantosAllowed },
                 { "PN", tInfo.PhoneNumber },
-                { "F", (int)tInfo.Fraction },
 
                 { "V", JArray.FromObject(tInfo.OwnedVehicles.Select(x => $"{x.ID}&{x.RegisteredNumberplate ?? string.Empty}&{x.Tuning.Colour1.HEX}").ToList()) },
             };
+
+            var tFData = Game.Fractions.Fraction.Get(tInfo.Fraction);
+
+            if (tFData != null && tFData.MetaFlags.HasFlag(Game.Fractions.MetaFlagTypes.MembersHaveDocs))
+            {
+                obj.Add("FT", (int)tFData.Type);
+                obj.Add("FR", tInfo.FractionRank);
+            }
 
             if (tInfo.OwnedHouses.FirstOrDefault() is Game.Estates.House house)
             {
@@ -530,7 +537,7 @@ namespace BCRPServer.Events.Fractions
                 obj.Add("A", aps.Id);
             }
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, "Сведения о человеке найдены в служебном планшете.", null);
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_POLICE_TABLETPC_FOUND"), null);
 
             return obj;
         }
@@ -858,11 +865,11 @@ namespace BCRPServer.Events.Fractions
 
             if (actionNum == 0)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, "достал(а) служебный планшет", null);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_POLICE_TABLETPC_ON"), null);
             }
             else if (actionNum == 1)
             {
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, "убрал(а) служебный планшет", null);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_POLICE_TABLETPC_OFF"), null);
             }
         }
 
@@ -972,7 +979,7 @@ namespace BCRPServer.Events.Fractions
 
             MySQL.UpdatePunishmentAmnesty(arrestInfo.PunishmentData);
 
-            fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) закрыл дело #{arrestInfo.PunishmentData.Id} и выпустил из СИЗО {tInfo.Name} {tInfo.Surname} ({reason})");
+            fData.SendFractionChatMessage(Language.Strings.Get("CHAT_POLICE_ARRESTCHANGE_2", $"{pData.Player.Name} ({pData.Player.Id})", $"#{arrestInfo.PunishmentData.Id}", $"{tInfo.Name} {tInfo.Surname}", reason));
 
             return true;
         }
@@ -1040,7 +1047,7 @@ namespace BCRPServer.Events.Fractions
                     return null;
                 }
 
-                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) уменьшил срок в СИЗО на {-timeChange} мин. по делу #{arrestInfo.PunishmentData.Id} ({reason})");
+                fData.SendFractionChatMessage(Language.Strings.Get("CHAT_POLICE_ARRESTCHANGE_0", $"{pData.Player.Name} ({pData.Player.Id})", $"{-timeChange}", $"#{arrestInfo.PunishmentData.Id} ({reason})"));
             }
             else
             {
@@ -1053,7 +1060,7 @@ namespace BCRPServer.Events.Fractions
                     return null;
                 }
 
-                fData.SendFractionChatMessage($"{pData.Player.Name} ({pData.Player.Id}) увеличил срок в СИЗО на {timeChange} мин. по делу #{arrestInfo.PunishmentData.Id} ({reason})");
+                fData.SendFractionChatMessage(Language.Strings.Get("CHAT_POLICE_ARRESTCHANGE_1", $"{pData.Player.Name} ({pData.Player.Id})", $"{timeChange}", $"#{arrestInfo.PunishmentData.Id} ({reason})"));
             }
 
             arrestInfo.PunishmentData.EndDate = arrestInfo.PunishmentData.EndDate.AddMinutes(timeChange);
@@ -1215,7 +1222,7 @@ namespace BCRPServer.Events.Fractions
 
                 if (sType == -1)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_START"), target);
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_START"), target);
                 }
 
                 return types;
@@ -1227,9 +1234,17 @@ namespace BCRPServer.Events.Fractions
                 if (tData.Info.MedicalCard != null)
                     docTypes.Add(2);
 
-                // todo
+                // add resume (3)
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_FOUND", "{0}", docTypes.Count), target);
+                var tFData = Game.Fractions.Fraction.Get(tData.Fraction);
+
+                if (tFData != null)
+                {
+                    if (tFData.MetaFlags.HasFlag(Game.Fractions.MetaFlagTypes.MembersHaveDocs))
+                        docTypes.Add(4);
+                }
+
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_FOUND", "{0}", docTypes.Count), target);
 
                 return docTypes;
             }
@@ -1257,7 +1272,7 @@ namespace BCRPServer.Events.Fractions
                     items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_2_FOUND", "{0}", items.Count), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_2_FOUND", "{0}", items.Count), target);
 
                 return items;
             }
@@ -1278,7 +1293,7 @@ namespace BCRPServer.Events.Fractions
                     }
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND", "{0}", items.Count), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_0_FOUND", "{0}", items.Count), target);
 
                 return items;
             }
@@ -1302,7 +1317,7 @@ namespace BCRPServer.Events.Fractions
                     }
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_1_FOUND", "{0}", items.Count), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_1_FOUND", "{0}", items.Count), target);
 
                 return items;
             }
@@ -1323,7 +1338,7 @@ namespace BCRPServer.Events.Fractions
                     items.Add($"{x.UID}^{x.ID}^{Game.Items.Stuff.GetItemAmount(x)}^{Game.Items.Stuff.GetItemTag(x)}");
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_3_FOUND", "{0}", items.Count));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_ITEMS_3_FOUND", "{0}", items.Count));
 
                 return items;
             }
@@ -1366,7 +1381,7 @@ namespace BCRPServer.Events.Fractions
 
                 pData.AddFamiliar(tData.Info);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_0"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_0"), target);
 
                 return true;
             }
@@ -1376,7 +1391,7 @@ namespace BCRPServer.Events.Fractions
 
                 pData.AddFamiliar(tData.Info);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_1"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_1"), target);
 
                 return true;
             }
@@ -1389,12 +1404,31 @@ namespace BCRPServer.Events.Fractions
 
                 pData.AddFamiliar(tData.Info);
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_2"), target);
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_2"), target);
 
                 return true;
             }
+            else if (dType == 3)
+            {
+                // resume
 
-            // todo
+                return null;
+            }
+            else if (dType == 4)
+            {
+                var tFData = Game.Fractions.Fraction.Get(tData.Fraction);
+
+                if (tFData == null || !tFData.MetaFlags.HasFlag(Game.Fractions.MetaFlagTypes.MembersHaveDocs))
+                    return false;
+
+                tData.ShowFractionDocs(player, tFData, tData.Info.FractionRank);
+
+                pData.AddFamiliar(tData.Info);
+
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_DOCS_LOOK_4"), target);
+
+                return true;
+            }
 
             return null;
         }
@@ -1568,8 +1602,8 @@ namespace BCRPServer.Events.Fractions
                 target.InventoryUpdate(gType, itemIdx, Game.Items.Item.ToClientJson(tData.Holster.Items[itemIdx], gType));
             }
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_1"), target);
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_PSEARCH_CONFISCATE_1"), target);
 
             return 255;
         }
@@ -1606,7 +1640,7 @@ namespace BCRPServer.Events.Fractions
 
                 if (sType == -1)
                 {
-                    Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_START", tData.GetName(1)));
+                    Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_START", tData.GetName(1)));
                 }
 
                 return types;
@@ -1636,7 +1670,7 @@ namespace BCRPServer.Events.Fractions
                     }
                 }
 
-                Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0", tData.GetName(1), items.Count));
+                Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_ITEMS_FOUND_0", tData.GetName(1), items.Count));
 
                 return items;
             }
@@ -1722,8 +1756,8 @@ namespace BCRPServer.Events.Fractions
                     Utils.InventoryUpdate(Game.Items.Inventory.GroupTypes.Container, itemIdx, Game.Items.Item.ToClientJson(trunk.Items[itemIdx], Game.Items.Inventory.GroupTypes.Container), players);
             }
 
-            Sync.Chat.SendLocal(Sync.Chat.Types.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
-            Sync.Chat.SendLocal(Sync.Chat.Types.Me, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_1", tData.GetName(1)));
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Do, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_0", $"{Game.Items.Stuff.GetItemNameWithTag(item, Game.Items.Stuff.GetItemTag(item), out _)} x{amount}"));
+            Sync.Chat.SendLocal(Sync.Chat.MessageTypes.Me, player, Language.Strings.Get("CHAT_PLAYER_VSEARCH_CONFISCATE_1", tData.GetName(1)));
 
             return 255;
         }

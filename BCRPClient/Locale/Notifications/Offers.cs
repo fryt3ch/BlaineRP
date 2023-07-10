@@ -14,37 +14,6 @@ namespace BCRPClient
                 public static string OfferSettleHouse = "в свой дом";
                 public static string OfferSettleApartments = "в свою квартиру";
 
-                public static Dictionary<Sync.Offers.Types, string> Types = new Dictionary<Sync.Offers.Types, string>()
-                {
-                    { Sync.Offers.Types.Handshake, "{0} предлагает вам поздороваться" },
-
-                    { Sync.Offers.Types.HeadsOrTails, "{0} предлагает вам сыграть в орел и решку" },
-
-                    { Sync.Offers.Types.Exchange, "{0} предлагает вам обменяться" },
-                    { Sync.Offers.Types.SellEstate, "{0} предлагает вам продажу недвижимости" },
-                    { Sync.Offers.Types.SellVehicle, "{0} предлагает вам продажу транспорта" },
-                    { Sync.Offers.Types.SellBusiness, "{0} предлагает вам продажу бизнеса" },
-
-                    { Sync.Offers.Types.Settle, "{0} предлагает вам подселиться {1}" },
-
-                    { Sync.Offers.Types.Carry, "{0} предлагает понести вас" },
-
-                    { Sync.Offers.Types.Cash, "{0} предлагает вам ${1}" },
-
-                    { Sync.Offers.Types.WaypointShare, "{0} предлагает вам свою метку" },
-
-                    { Sync.Offers.Types.ShowPassport, "{0} предлагает вам посмотреть паспорт" },
-                    { Sync.Offers.Types.ShowMedicalCard, "{0} предлагает вам посмотреть мед. карту" },
-                    { Sync.Offers.Types.ShowVehiclePassport, "{0} предлагает вам посмотреть тех. паспорт" },
-                    { Sync.Offers.Types.ShowLicenses, "{0} предлагает вам посмотреть лицензии" },
-                    { Sync.Offers.Types.ShowResume, "{0} предлагает вам посмотреть резюме" },
-
-                    { Sync.Offers.Types.InviteFraction, "{0} предлагает вам вступить во фракцию {1}" },
-                    { Sync.Offers.Types.InviteOrganisation, "{0} предлагает вам вступить в организацию {1}" },
-
-                    { Sync.Offers.Types.PoliceFine, "{0} выписал Вам штраф в размере {1}. Причина: {2}. Оплачиваете?" },
-                };
-
                 public static string Cancel = "Предложение было отменено!";
                 public static string CancelBy = "Игрок отменил предложение!";
 

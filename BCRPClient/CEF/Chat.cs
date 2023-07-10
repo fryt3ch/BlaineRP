@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BCRPClient.CEF
 {
@@ -14,10 +15,11 @@ namespace BCRPClient.CEF
 
         public static DateTime LastSent;
 
+        private static Regex TodoMessageRegex = new Regex(@".+\*.+");
+
         private static string TimeStr { get => Settings.Chat.ShowTime ? (Settings.Interface.UseServerTime ? "[" + Sync.World.ServerTime.ToString("HH:mm:ss") + "] " : "[" + Sync.World.LocalTime.ToString("HH:mm:ss") + "] ") : ""; }
 
-        #region All Types
-        public enum Type
+        public enum MessageTypes
         {
             /// <summary>/say</summary>
             Say,
@@ -59,7 +61,6 @@ namespace BCRPClient.CEF
             News,
             Advert,
         }
-        #endregion
 
         private static Queue<(string, object[])> Queue = new Queue<(string, object[])>();
 
@@ -71,7 +72,7 @@ namespace BCRPClient.CEF
         {
             #region Events
             #region Send
-            Events.Add("Chat::Send", (object[] args) =>
+            Events.Add("Chat::Send", async (args) =>
             {
                 if (!IsActive)
                     return;
@@ -82,13 +83,15 @@ namespace BCRPClient.CEF
 
                 Browser.Window.ExecuteCachedJs("Chat.tryScroll();");*/
 
-                var type = (Type)((int)args[0]);
+                var type = (MessageTypes)((int)args[0]);
                 var msg = (string)args[1];
 
-                if (msg.Length < 1 || char.IsWhiteSpace(msg[0]))
+                msg = msg.Trim();
+
+                if (msg.Length < 1)
                     return;
 
-                if (type == Type.Say && msg[0] == '/' && msg.Length > 1)
+                if (type == MessageTypes.Say && msg[0] == '/' && msg.Length > 1)
                 {
                     var endOfCmd = msg.IndexOf(' ');
 
@@ -161,10 +164,20 @@ namespace BCRPClient.CEF
                     return;
                 }
 
+                if (type == MessageTypes.Todo)
+                {
+                    if (!TodoMessageRegex.IsMatch(msg))
+                    {
+                        CEF.Notification.ShowError(Locale.Get("CHAT_MSG_TODO_E_0"));
+
+                        return;
+                    }
+                }
+
                 if (LastSent.IsSpam(500, false, true))
                     return;
 
-                var mute = type == Type.Fraction ? Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute || x.Type == Sync.Punishment.Types.FractionMute).FirstOrDefault() : Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute).FirstOrDefault(); ;
+                var mute = type == MessageTypes.Fraction ? Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute || x.Type == Sync.Punishment.Types.FractionMute).FirstOrDefault() : Sync.Punishment.All.Where(x => x.Type == Sync.Punishment.Types.Mute).FirstOrDefault(); ;
 
                 if (mute != null)
                 {
@@ -173,7 +186,10 @@ namespace BCRPClient.CEF
                     return;
                 }
 
-                Events.CallRemote("Chat::Send", (int)type, msg);
+                var res = (int)await Events.CallRemoteProc("Chat::Send", (int)type, msg);
+
+                if (res == 255)
+                    return;
             });
             #endregion
 
@@ -186,7 +202,7 @@ namespace BCRPClient.CEF
                 var timeStr = TimeStr;
 
                 var player = Entities.Players.GetAtRemote((ushort)(int)args[0]);
-                var type = (Type)((int)args[1]);
+                var type = (MessageTypes)((int)args[1]);
                 var message = (string)args[2];
                 var player2 = args.Length > 3 ? Entities.Players.GetAtRemote((ushort)(int)args[3]) : null;
 
@@ -205,21 +221,21 @@ namespace BCRPClient.CEF
                 if (Settings.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');
 
-                if (type == Type.Say)
+                if (type == MessageTypes.Say)
                     AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                else if (type == Type.Shout)
+                else if (type == MessageTypes.Shout)
                     AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                else if (type == Type.Whisper)
+                else if (type == MessageTypes.Whisper)
                     AddToQueue("Messages.showNormal", type, timeStr, name, player.RemoteId, message);
-                else if (type == Type.NonRP)
+                else if (type == MessageTypes.NonRP)
                     AddToQueue("Messages.showOOC", timeStr, name, player.RemoteId, message);
-                else if (type == Type.Me)
+                else if (type == MessageTypes.Me)
                     AddToQueue("Messages.showMe", timeStr, name, player.RemoteId, message);
-                else if (type == Type.Do)
+                else if (type == MessageTypes.Do)
                     AddToQueue("Messages.showDo", timeStr, name, player.RemoteId, message);
-                else if (type == Type.Todo)
+                else if (type == MessageTypes.Todo)
                     AddToQueue("Messages.showToDo", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1));
-                else if (type == Type.Try)
+                else if (type == MessageTypes.Try)
                     AddToQueue("Messages.showTry", timeStr, name, player.RemoteId, message.Substring(0, message.IndexOf('*')), message.Substring(message.IndexOf('*') + 1) == "1");
 
                 if (IsActive)
@@ -284,6 +300,56 @@ namespace BCRPClient.CEF
                 }
             });
 
+            Events.Add("Chat::SDM", (args) =>
+            {
+                if (!CEF.Browser.IsRendered(CEF.Browser.IntTypes.Chat))
+                    return;
+
+                var pData = Sync.Players.GetData(Player.LocalPlayer);
+
+                if (pData == null)
+                    return;
+
+                if (Data.Fractions.Fraction.AllMembers == null)
+                    return;
+
+                var fData = pData.CurrentFraction;
+
+                if (fData == null)
+                    return;
+
+                var timeStr = TimeStr;
+
+                var cid = Utils.ToUInt32(args[0]);
+                var rid = Utils.ToUInt16(args[1]);
+                var message = (string)args[2];
+                var fType = (Data.Fractions.Types)Utils.ToInt32(args[3]);
+                var fRank = Utils.ToByte(args[4]);
+
+                var tFData = Data.Fractions.Fraction.Get(fType);
+
+                if (tFData == null)
+                    return;
+
+                var player = Utils.GetPlayerByRemoteId(rid);
+
+                AddToQueue("Messages.showDepartment", timeStr, tFData.Name, $"{tFData.GetRankName(fRank)} [{fRank + 1}]", player?.Name ?? "null", rid, message);
+
+                if (IsActive)
+                {
+                    (string, object[]) t;
+
+                    if (Queue.TryDequeue(out t))
+                    {
+                        Browser.Window.ExecuteCachedJs("Chat.needScroll();");
+
+                        Browser.Window.ExecuteJs(t.Item1, t.Item2);
+
+                        Browser.Window.ExecuteCachedJs("Chat.tryScroll();");
+                    }
+                }
+            });
+
             #region Show Global Message
             Events.Add("Chat::ShowGlobalMessage", (object[] args) =>
             {
@@ -293,37 +359,37 @@ namespace BCRPClient.CEF
                 var timeStr = TimeStr;
 
                 var playerStr = (string)args[0];
-                var type = (Type)((int)args[1]);
+                var type = (MessageTypes)((int)args[1]);
                 var message = (string)args[2];
 
                 if (Settings.Chat.UseFilter)
                     message = Additional.StringFilter.Process(message, true, '♡');
 
-                if (type == Type.Admin)
+                if (type == MessageTypes.Admin)
                     AddToQueue("Messages.admin_message", timeStr, playerStr, message);
-                else if (type == Type.Goverment)
+                else if (type == MessageTypes.Goverment)
                     AddToQueue("Messages.government", timeStr, playerStr, message);
-                else if (type == Type.News)
+                else if (type == MessageTypes.News)
                     AddToQueue("Messages.news", timeStr, playerStr, message);
-                else if (type == Type.Advert)
+                else if (type == MessageTypes.Advert)
                 {
                     var targetStr = (string)args[3];
 
                     AddToQueue("Messages.advert", timeStr, playerStr, targetStr, message, ""); // phone number
                 }
-                else if (type == Type.Kick || type == Type.Ban || type == Type.BanHard || type == Type.Mute || type == Type.Jail || type == Type.Warn)
+                else if (type == MessageTypes.Kick || type == MessageTypes.Ban || type == MessageTypes.BanHard || type == MessageTypes.Mute || type == MessageTypes.Jail || type == MessageTypes.Warn)
                 {
                     var targetStr = (string)args[3];
 
-                    if (type == Type.BanHard)
+                    if (type == MessageTypes.BanHard)
                     {
                         AddToQueue("Messages.admin_ban_hard", timeStr, playerStr, targetStr, message);
                     }
-                    else if (type == Type.Kick)
+                    else if (type == MessageTypes.Kick)
                     {
                         AddToQueue("Messages.admin_kick", timeStr, playerStr, targetStr, message);
                     }
-                    else if (type == Type.Warn)
+                    else if (type == MessageTypes.Warn)
                     {
                         AddToQueue("Messages.admin_warn", timeStr, playerStr, targetStr, message);
                     }
@@ -331,25 +397,25 @@ namespace BCRPClient.CEF
                     {
                         var time = (string)args[4];
 
-                        if (type == Type.Ban)
+                        if (type == MessageTypes.Ban)
                             AddToQueue("Messages.admin_ban", timeStr, playerStr, targetStr, time, message);
-                        else if (type == Type.Mute)
+                        else if (type == MessageTypes.Mute)
                             AddToQueue("Messages.admin_mute", timeStr, playerStr, targetStr, time, message);
-                        else if (type == Type.Jail)
+                        else if (type == MessageTypes.Jail)
                             AddToQueue("Messages.admin_jail", timeStr, playerStr, targetStr, time, message);
                     }
                 }
-                else if (type == Type.UnBan || type == Type.UnMute || type == Type.UnJail || type == Type.UnWarn)
+                else if (type == MessageTypes.UnBan || type == MessageTypes.UnMute || type == MessageTypes.UnJail || type == MessageTypes.UnWarn)
                 {
                     var targetStr = (string)args[3];
 
-                    if (type == Type.UnBan)
+                    if (type == MessageTypes.UnBan)
                         AddToQueue("Messages.admin_unban", timeStr, playerStr, targetStr, message);
-                    else if (type == Type.UnMute)
+                    else if (type == MessageTypes.UnMute)
                         AddToQueue("Messages.admin_unmute", timeStr, playerStr, targetStr, message);
-                    else if (type == Type.UnJail)
+                    else if (type == MessageTypes.UnJail)
                         AddToQueue("Messages.admin_unjail", timeStr, playerStr, targetStr, message);
-                    else if (type == Type.UnWarn)
+                    else if (type == MessageTypes.UnWarn)
                         AddToQueue("Messages.admin_unwarn", timeStr, playerStr, targetStr, message);
                 }
 

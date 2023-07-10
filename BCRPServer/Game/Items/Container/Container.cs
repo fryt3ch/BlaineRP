@@ -145,10 +145,7 @@ namespace BCRPServer.Game.Items
                     if (vData == null)
                         return false;
 
-                    if (vData.CanUseTrunk(pData, true))
-                        return true;
-
-                    return !vData.TrunkLocked;
+                    return vData.CanUseTrunk(pData, true);
                 }
 
                 return false;
