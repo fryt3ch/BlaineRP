@@ -24,6 +24,13 @@ namespace BCRPServer.Events
 
         private static Timer PayDayTimer { get; set; }
 
+        public enum ServerTypes : byte
+        {
+            Sandy = 0,
+        }
+
+        public static ServerTypes ServerType { get; } = ServerTypes.Sandy;
+
         [ServerEvent(Event.ResourceStart)]
         public void OnResourceStart()
         {
@@ -91,8 +98,6 @@ namespace BCRPServer.Events
 
             NAPI.Server.SetLogCommandParamParserExceptions(false);
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
-
-            Utils.ConsoleOutput("~Red~[BRPMode]~/~ Setting global dimension weather");
 
             // Local Data Load Step
 
@@ -208,6 +213,8 @@ namespace BCRPServer.Events
             }, null, 1_000, 1_000);
 
             MySQL.StartService();
+
+            Web.Service.Connect().GetAwaiter().GetResult();
         }
 
         public static void DoPayDay(bool isAuto)

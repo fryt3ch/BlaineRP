@@ -37,6 +37,10 @@ namespace BCRPServer.Events.Players
         [ServerEvent(Event.PlayerConnected)]
         private static async Task OnPlayerConnected(Player player)
         {
+            var t1 = player?.Exists;
+            var t2 = player.GetTempData();
+            var t3 = player.GetMainData();
+
             if (player?.Exists != true || player.GetTempData() != null || player.GetMainData() != null)
                 return;
 
@@ -105,6 +109,7 @@ namespace BCRPServer.Events.Players
             });
         }
 
+        [ServerEvent(Event.PlayerDisconnected)]
         private static void OnPlayerDisconnected(Player player, DisconnectionType type, string reason)
         {
             if (player?.Exists != true)

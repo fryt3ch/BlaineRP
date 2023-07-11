@@ -1,12 +1,11 @@
 ﻿using GTANetworkAPI;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,12 +28,29 @@ namespace BCRPServer
 
         private static ConcurrentQueue<MySqlCommand> QueriesQueue { get; set; } = new ConcurrentQueue<MySqlCommand>();
 
-        public enum AuthResults
+        public enum AuthResultTypes : byte
         {
-            RegMailNotFree = 0,
-            RegLoginNotFree,
+            OK = 0,
 
-            RegOk,
+            RegMailNotFree = 1,
+            RegLoginNotFree = 2,
+
+            Unknown = 3,
+
+            RegConfirmationSent = 4,
+        }
+
+        public enum RegResultTypes : byte
+        {
+            OK = 0,
+
+            RegMailNotFree = 1,
+            RegLoginNotFree = 2,
+
+            RegConfirmationSent = 3,
+            RegConfirmationAlreadySent = 4,
+
+            Unknown = 255,
         }
 
         #region General

@@ -2009,10 +2009,7 @@ namespace BCRPClient.Sync
                     {
                         if (rType == CEF.ActionBox.ReplyTypes.OK)
                         {
-                            if (BCRPClient.Interaction.CurrentEntity is Vehicle veh)
-                            {
-                                Events.CallRemote("Vehicles::SetupPlate", veh, id);
-                            }
+                            Events.CallRemote("Vehicles::SetupPlate", veh, id);
                         }
 
                         CEF.ActionBox.Close(true);

@@ -51,7 +51,7 @@ namespace BCRPServer.Events.Players
 
                     tData.BlockRemoteCalls = false;
 
-                    if (aRes.Result == MySQL.AuthResults.RegOk)
+                    if (aRes.Item1 == MySQL.AuthResultTypes.OK)
                     {
                         if (tData.AuthTimer != null)
                         {
@@ -60,7 +60,7 @@ namespace BCRPServer.Events.Players
                             tData.AuthTimer = null;
                         }
 
-                        tData.AccountData = aRes.AccountData;
+                        tData.AccountData = aRes.Item2;
 
                         tData.ActualToken = GenerateToken(tData.AccountData, hwid);
 
@@ -74,13 +74,13 @@ namespace BCRPServer.Events.Players
                     }
                     else
                     {
-                        if (aRes.Result == MySQL.AuthResults.RegMailNotFree)
+                        if (aRes.Item1 == MySQL.AuthResultTypes.RegMailNotFree)
                         {
                             player.Notify("Auth::MailNotFree");
 
                             return;
                         }
-                        else if (aRes.Result == MySQL.AuthResults.RegLoginNotFree)
+                        else if (aRes.Item1 == MySQL.AuthResultTypes.RegLoginNotFree)
                         {
                             player.Notify("Auth::LoginNotFree");
 

@@ -1,5 +1,5 @@
 ﻿using GTANetworkAPI;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +20,8 @@ namespace BCRPServer
 
                     cmd.Parameters.AddWithValue("@ID", house.Id);
 
+                    var nextCmdStr = "";
+
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (!reader.HasRows)
@@ -28,7 +30,9 @@ namespace BCRPServer
                         reader.Read();
 
                         if (reader["CID"] is DBNull)
+                        {
                             house.UpdateOwner(null);
+                        }
                         else
                         {
                             var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
@@ -49,13 +53,11 @@ namespace BCRPServer
 
                         house.Furniture = ((string)reader["Furniture"]).DeserializeFromJson<List<uint>>().Select(x => Game.Estates.Furniture.Get(x)).Where(x => x != null).ToList();
 
-                        cmd.CommandText = "";
-
                         if (reader["Locker"] == DBNull.Value)
                         {
                             house.Locker = Game.Items.Container.Create("h_locker", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Locker={house.Locker} WHERE ID={house.Id};";
+                            nextCmdStr += $"UPDATE houses SET Locker={house.Locker} WHERE ID={house.Id};";
                         }
                         else
                             house.Locker = Convert.ToUInt32(reader["Locker"]);
@@ -64,7 +66,7 @@ namespace BCRPServer
                         {
                             house.Wardrobe = Game.Items.Container.Create("h_wardrobe", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Wardrobe={house.Wardrobe} WHERE ID={house.Id};";
+                            nextCmdStr += $"UPDATE houses SET Wardrobe={house.Wardrobe} WHERE ID={house.Id};";
                         }
                         else
                             house.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
@@ -73,7 +75,7 @@ namespace BCRPServer
                         {
                             house.Fridge = Game.Items.Container.Create("h_fridge", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Fridge={house.Fridge} WHERE ID={house.Id};";
+                            nextCmdStr += $"UPDATE houses SET Fridge={house.Fridge} WHERE ID={house.Id};";
                         }
                         else
                             house.Fridge = Convert.ToUInt32(reader["Fridge"]);
@@ -82,7 +84,7 @@ namespace BCRPServer
                         {
                             house.DoorsStates = new bool[house.StyleData.DoorsAmount];
 
-                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{house.DoorsStates.SerializeToJson()}' WHERE ID={house.Id};";
+                            nextCmdStr += $"UPDATE houses SET DoorsStates='{house.DoorsStates.SerializeToJson()}' WHERE ID={house.Id};";
                         }
                         else
                             house.DoorsStates = NAPI.Util.FromJson<bool[]>((string)reader["DoorsStates"]);
@@ -99,7 +101,7 @@ namespace BCRPServer
                                 house.LightsStates[i].State = true;
                             }
 
-                            cmd.CommandText += $"UPDATE houses SET LightsStates='{house.LightsStates.SerializeToJson()}' WHERE ID={house.Id};";
+                            nextCmdStr += $"UPDATE houses SET LightsStates='{house.LightsStates.SerializeToJson()}' WHERE ID={house.Id};";
                         }
                         else
                             house.LightsStates = NAPI.Util.FromJson<Game.Estates.HouseBase.Light[]>((string)reader["LightsStates"]);
@@ -123,6 +125,8 @@ namespace BCRPServer
 
                     cmd.Parameters.AddWithValue("@ID", apartments.Id);
 
+                    var nextCmdStr = "";
+
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (!reader.HasRows)
@@ -133,7 +137,9 @@ namespace BCRPServer
                         reader.Read();
 
                         if (reader["CID"] is DBNull)
+                        {
                             apartments.UpdateOwner(null);
+                        }
                         else
                         {
                             var pInfo = PlayerData.PlayerInfo.Get(Convert.ToUInt32(reader["CID"]));
@@ -154,13 +160,11 @@ namespace BCRPServer
 
                         apartments.Furniture = ((string)reader["Furniture"]).DeserializeFromJson<List<uint>>().Select(x => Game.Estates.Furniture.Get(x)).Where(x => x != null).ToList();
 
-                        cmd.CommandText = "";
-
                         if (reader["Locker"] == DBNull.Value)
                         {
                             apartments.Locker = Game.Items.Container.Create("a_locker", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Locker={apartments.Locker} WHERE ID={apartments.Id};";
+                            nextCmdStr += $"UPDATE houses SET Locker={apartments.Locker} WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.Locker = Convert.ToUInt32(reader["Locker"]);
@@ -169,7 +173,7 @@ namespace BCRPServer
                         {
                             apartments.Wardrobe = Game.Items.Container.Create("a_wardrobe", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Wardrobe={apartments.Wardrobe} WHERE ID={apartments.Id};";
+                            nextCmdStr += $"UPDATE houses SET Wardrobe={apartments.Wardrobe} WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.Wardrobe = Convert.ToUInt32(reader["Wardrobe"]);
@@ -178,7 +182,7 @@ namespace BCRPServer
                         {
                             apartments.Fridge = Game.Items.Container.Create("a_fridge", null).ID;
 
-                            cmd.CommandText += $"UPDATE houses SET Fridge={apartments.Fridge} WHERE ID={apartments.Id};";
+                            nextCmdStr += $"UPDATE houses SET Fridge={apartments.Fridge} WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.Fridge = Convert.ToUInt32(reader["Fridge"]);
@@ -187,7 +191,7 @@ namespace BCRPServer
                         {
                             apartments.DoorsStates = new bool[apartments.StyleData.DoorsAmount];
 
-                            cmd.CommandText += $"UPDATE houses SET DoorsStates='{apartments.DoorsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
+                            nextCmdStr += $"UPDATE houses SET DoorsStates='{apartments.DoorsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.DoorsStates = NAPI.Util.FromJson<bool[]>((string)reader["DoorsStates"]);
@@ -202,14 +206,18 @@ namespace BCRPServer
                                 apartments.LightsStates[i].State = true;
                             }
 
-                            cmd.CommandText += $"UPDATE houses SET LightsStates='{apartments.LightsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
+                            nextCmdStr += $"UPDATE houses SET LightsStates='{apartments.LightsStates.SerializeToJson()}' WHERE ID={apartments.Id};";
                         }
                         else
                             apartments.LightsStates = NAPI.Util.FromJson<Game.Estates.HouseBase.Light[]>((string)reader["LightsStates"]);
                     }
 
-                    if (cmd.CommandText.Length > 0)
+                    if (nextCmdStr.Length > 0)
+                    {
+                        cmd.CommandText = nextCmdStr;
+
                         cmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
