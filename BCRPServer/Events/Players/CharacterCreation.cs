@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace BCRPServer.Events.Players
 {
@@ -9,14 +10,16 @@ namespace BCRPServer.Events.Players
     {
         public static Vector3 Position = Utils.DefaultSpawnPosition;
 
-        #region Supported Clothes (on creation)
+        public static Regex CharacterNameRegex { get; } = new Regex(@"^[A-Z]{1}[a-zA-Z]{1,9}$", RegexOptions.Compiled);
+        public static Regex CharacterSurnameRegex { get; } = new Regex(@"^[A-Z]{1}[a-zA-Z]{1,9}$", RegexOptions.Compiled);
+
+        // Supported Clothes (on creation)
         private static Dictionary<bool, string[][]> DefaultClothes = new Dictionary<bool, string[][]>()
         {
             { true, new string[][] { new string[] { "hat_m_0", "hat_m_8", "hat_m_39" }, new string[] { "top_m_0", "under_m_2", "under_m_5" }, new string[] { "pants_m_0", "pants_m_2", "pants_m_11" }, new string[] { "shoes_m_5", "shoes_m_1", "shoes_m_3" } } },
 
             { false, new string[][] { new string[] { "hat_f_1", "hat_f_13", "hat_f_6" }, new string[] { "top_f_5", "under_f_2", "under_f_1" }, new string[] { "pants_f_0", "pants_f_4", "pants_f_7" }, new string[] { "shoes_f_0", "shoes_f_2", "shoes_f_5" } } },
         };
-        #endregion
 
         public static void StartNew(Player player)
         {
@@ -32,7 +35,6 @@ namespace BCRPServer.Events.Players
             player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.ToPlayer, true, "CharacterCreation::StartNew");
         }
 
-        #region Set Sex
         [RemoteEvent("CharacterCreation::SetSex")]
         public static void SetSex(Player player, bool sex)
         {
@@ -54,9 +56,7 @@ namespace BCRPServer.Events.Players
 
             Undress(player, sex);
         }
-        #endregion
 
-        #region Exit
         [RemoteEvent("CharacterCreation::Exit")]
         public static void Exit(Player player)
         {
@@ -74,35 +74,43 @@ namespace BCRPServer.Events.Players
 
             player.SetAlpha(0);
 
-            player.TriggerEvent("CharacterCreation::Close");
             player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.Move, true, "Auth::ShowCharacterChoosePage", false);
         }
-        #endregion
 
-        #region Create
         [RemoteEvent("CharacterCreation::Create")]
-        public static void Create(Player player, string name, string surname, int age, bool sex, byte eyeColor, string hBlendData, string hOverlaysData, string hStyleData, string fFeaturesData, string clothesData)
+        public static byte Create(Player player, string name, string surname, byte age, bool sex, byte eyeColor, string hBlendData, string hOverlaysData, string hStyleData, string fFeaturesData, string clothesData)
         {
             var sRes = player.CheckSpamAttackTemp();
 
             if (sRes.IsSpammer)
-                return;
+                return 0;
 
             var tData = sRes.Data;
 
-            if ((tData.StepType != TempData.StepTypes.CharacterCreation) || tData.AccountData == null)
-                return;
+            if (tData.StepType != TempData.StepTypes.CharacterCreation)
+                return 0;
 
             try
             {
+                if (age < 18 || age >= 100)
+                    return 2;
+
+                if (name == null || surname == null || !CharacterNameRegex.IsMatch(name) || !CharacterSurnameRegex.IsMatch(surname))
+                    return 0;
+
+                if (PlayerData.PlayerInfo.All.Where(x => x.Value.Name == name && x.Value.Surname == surname).Any())
+                    return 3;
+
                 var hBlend = NAPI.Util.FromJson<Game.Data.Customization.HeadBlend>(hBlendData);
                 var fFeatures = NAPI.Util.FromJson<float[]>(fFeaturesData);
                 var hOverlays = NAPI.Util.FromJson<Dictionary<int, Game.Data.Customization.HeadOverlay>>(hOverlaysData);
                 var hStyle = NAPI.Util.FromJson<Game.Data.Customization.HairStyle>(hStyleData);
                 var clothes = NAPI.Util.FromJson<string[]>(clothesData);
 
-                if (clothes.Length != 4 || !IsCustomizationValid(hBlend, hOverlays, fFeatures, hStyle, eyeColor) || name == null || surname == null || !Utils.IsNameValid(name) || !Utils.IsNameValid(surname) || age < 18 || age >= 100)
-                    return;
+                if (clothes.Length != 4 || !IsCustomizationValid(hBlend, hOverlays, fFeatures, hStyle, eyeColor))
+                {
+                    throw new Exception("Bad Request");
+                }
 
                 for (int i = 0; i < clothes.Length; i++)
                     if (clothes[i] != null && !DefaultClothes[sex][i].Contains(clothes[i]))
@@ -126,20 +134,19 @@ namespace BCRPServer.Events.Players
 
                 var pData = new PlayerData(player, tData.AccountData.ID, name, surname, age, sex, hBlend, hOverlays, fFeatures, eyeColor, hStyle, newClothes);
 
-                player.TriggerEvent("CharacterCreation::Close");
-
                 tData.Delete();
 
                 pData.SetReady();
+
+                return 255;
             }
             catch (Exception ex)
             {
                 Utils.Kick(player, ex.Message);
 
-                return;
+                return 1;
             }
         }
-        #endregion
 
         public static void Undress(Player player, bool sex)
         {

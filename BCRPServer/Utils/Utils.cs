@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -656,7 +654,9 @@ namespace BCRPServer
         /// <param name="text">Текст</param>
         /// <param name="timeout">Время показа в мс.</param>
         /// <exception cref="NonThreadSafeAPI">Только в основном потоке!</exception>
-        public static void Notify(this Player player, NotificationTypes type, string title, string text, int timeout = 2500) => player.TriggerEvent("Notify::Custom", (int)type, title, text, timeout);
+        public static void Notify(this Player player, NotificationTypes type, string title, string text, int timeout = -1) => player.TriggerEvent("Notify::Custom", (int)type, title, text, timeout);
+        public static void NotifyError(this Player player, string text, int timeout = -1) => player.TriggerEvent("Notify::CustomE", text, timeout);
+        public static void NotifySuccess(this Player player, string text, int timeout = -1) => player.TriggerEvent("Notify::CustomS", text, timeout);
 
         /// <summary>Выслать уведомление игроку (заготовленное)</summary>
         /// <param name="player">Сущность игрока</param>
@@ -778,111 +778,7 @@ namespace BCRPServer
 
         #endregion
 
-        #region Encryption Tools
-
-        /// <summary>Метод для получения зашифрованной строки из исходной</summary>
-        /// <param name="plainText">Строка, которую необходимо зашифровать</param>
-        /// <param name="key">Ключ дешифрования</param>
-        /// <returns>Зашифрованная строка в формате Base64</returns>
-        public static string EncryptString(string plainText, string key)
-        {
-            byte[] iv = new byte[16];
-            byte[] array;
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(key);
-                aes.IV = iv;
-
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
-                        {
-                            streamWriter.Write(plainText);
-                        }
-
-                        array = memoryStream.ToArray();
-                    }
-                }
-            }
-
-            return Convert.ToBase64String(array);
-        }
-
-        /// <summary>Метод для получения исходной строки из зашифрованной</summary>
-        /// <param name="cipherText">Строка, которую необходимо расшифровать</param>
-        /// <param name="key">Ключ дешифрования</param>
-        /// <returns>Расшифрованная строка</returns>
-        public static string DecryptString(string cipherText, string key)
-        {
-            byte[] iv = new byte[16];
-            byte[] buffer = Convert.FromBase64String(cipherText);
-
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = Encoding.UTF8.GetBytes(key);
-                aes.IV = iv;
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-
-                using (MemoryStream memoryStream = new MemoryStream(buffer))
-                {
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader streamReader = new StreamReader((Stream)cryptoStream))
-                        {
-                            return streamReader.ReadToEnd();
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>Метод для получения строки, зашифрованной алгоритмом MD5</summary>
-        /// <param name="input">Строка, которую необходимо зашифровать</param>
-        /// <returns>Зашифрованная строка в нижнем регистре</returns>
-        public static string ToMD5(string input)
-        {
-            using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
-            {
-                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
-                byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-                StringBuilder sb = new System.Text.StringBuilder();
-                for (int i = 0; i < hashBytes.Length; i++)
-                    sb.Append(hashBytes[i].ToString("X2"));
-
-                return sb.ToString().ToLower();
-            }
-        }
-
-        #endregion
-
-        private static Regex MailPattern = new Regex(@"^(?("")(""[^""]+?""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9]{2,17}))$", RegexOptions.Compiled);
-        private static Regex LoginPattern = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,12}$", RegexOptions.Compiled);
-        private static Regex NamePattern = new Regex(@"^[A-Z]{1}[a-zA-Z]{1,9}$", RegexOptions.Compiled);
-        private static Regex PasswordPattern = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,64}$", RegexOptions.Compiled);
-
         public static Regex NumberplatePattern { get; } = new Regex(@"^[A-Z0-9]{1,8}$", RegexOptions.Compiled);
-
-        /// <summary>Является ли имя верным (см. Utils.NamePattern)</summary>
-        /// <param name="str">Имя</param>
-        public static bool IsNameValid(string str) => NamePattern.IsMatch(str);
-
-        /// <summary>Является ли почта верной (см. Utils.MailPattern)</summary>
-        /// <param name="str">Почта</param>
-        public static bool IsMailValid(string str) => MailPattern.IsMatch(str);
-
-        /// <summary>Является ли логин верным (см. Utils.LoginPattern)</summary>
-        /// <param name="str">Логин</param>
-        public static bool IsLoginValid(string str) => LoginPattern.IsMatch(str);
-
-        /// <summary>Является ли пароль верным (см. Utils.PasswordPattern)</summary>
-        /// <param name="str">Пароль</param>
-        public static bool IsPasswordValid(string str) => PasswordPattern.IsMatch(str);
 
         /// <summary>Получить координату точки, которая находится напротив игрока</summary>
         /// <param name="player">Сущность игрока</param>
@@ -1032,8 +928,6 @@ namespace BCRPServer
         public static void CloseAll(this Player player, bool onlyInterfaces = false) => player.TriggerEvent("Player::CloseAll", onlyInterfaces);
 
         public static bool IsMainThread() => Thread.CurrentThread.ManagedThreadId == NAPI.MainThreadId;
-
-        public static void UpdateOnEnter(this AccountData aData) => MySQL.AccountUpdateOnEnter(aData);
 
         public static T GetRandom<T>(this List<T> list) => list.Count == 0 ? default(T) : list[(new Random()).Next(0, list.Count - 1)];
 

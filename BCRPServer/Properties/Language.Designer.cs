@@ -869,5 +869,95 @@ namespace BCRPServer.Properties {
                 return ResourceManager.GetString("GEN_BAN_GLOBAL_NTEXT_0", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Аккаунт с таким логином уже зарегистрирован на проекте!.
+        /// </summary>
+        public static string NTFC_AUTH_LOGINEXISTS_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_LOGINEXISTS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Аккаунт с такой почтой уже зарегистрирован на проекте!.
+        /// </summary>
+        public static string NTFC_AUTH_MAILEXISTS_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_MAILEXISTS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Письмо с ссылкой для подтверждения регистрации отправлено на {0}.
+        /// </summary>
+        public static string NTFC_AUTH_REGCONFIRM_SENT_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_REGCONFIRM_SENT_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы сможете запросить отправку нового письма с ссылкой для подтверждения регистрации не раньше, чем через {0}!.
+        /// </summary>
+        public static string NTFC_AUTH_REGCONFIRM_SENT_E_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_REGCONFIRM_SENT_E_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Вы подтвердили Вашу почту и успешно зарегистрировались на проекте! Войдите в свой аккаунт..
+        /// </summary>
+        public static string NTFC_AUTH_REGCONFIRMED_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_REGCONFIRMED_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Аккаунт с вашим SocialClubID уже зарегистрирован на проекте!.
+        /// </summary>
+        public static string NTFC_AUTH_SCIDEXISTS_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_SCIDEXISTS_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Неверный логин! Попыток осталось: {0}.
+        /// </summary>
+        public static string NTFC_AUTH_WRONGLOGIN_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_WRONGLOGIN_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Неверный пароль! Попыток осталось: {0}.
+        /// </summary>
+        public static string NTFC_AUTH_WRONGPASSWORD_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_WRONGPASSWORD_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Неверный токен, попробуйте использовать пароль! Попыток осталось: {0}.
+        /// </summary>
+        public static string NTFC_AUTH_WRONGTOKEN_0 {
+            get {
+                return ResourceManager.GetString("NTFC_AUTH_WRONGTOKEN_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Что-то пошло не так! {0}.
+        /// </summary>
+        public static string NTFC_GEN_ERROR_0 {
+            get {
+                return ResourceManager.GetString("NTFC_GEN_ERROR_0", resourceCulture);
+            }
+        }
     }
 }

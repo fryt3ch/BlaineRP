@@ -1,14 +1,18 @@
 ﻿using GTANetworkAPI;
 using System;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace BCRPServer.Events.Players
 {
     class Auth : Script
     {
-        #region Registration Attempt
+        public static Regex MailRegex { get; } = new Regex(@"^(?("")(""[^""]+?""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-\w]*[0-9a-z]*\.)+[a-z0-9]{2,17}))$", RegexOptions.Compiled);
+        public static Regex LoginRegex { get; } = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,12}$", RegexOptions.Compiled);
+        public static Regex PasswordRegex { get; } = new Regex(@"^(?=.*[a-zA-Z0-9])[0-9a-zA-Z!@#$%^&*]{6,64}$", RegexOptions.Compiled);
+
         [RemoteEvent("Auth::OnRegistrationAttempt")]
         private static async Task OnRegistrationAttempt(Player player, string login, string mail, string password)
         {
@@ -19,7 +23,7 @@ namespace BCRPServer.Events.Players
 
             var tData = sRes.Data;
 
-            if ((tData.StepType != TempData.StepTypes.None) || tData.AccountData != null)
+            if (tData.StepType != TempData.StepTypes.AuthRegistration)
                 return;
 
             if (password == null || login == null || password == null)
@@ -27,23 +31,25 @@ namespace BCRPServer.Events.Players
 
             mail = mail.ToLower();
 
-            if (!Utils.IsMailValid(mail) || !Utils.IsLoginValid(login) || !Utils.IsPasswordValid(password))
+            if (!MailRegex.IsMatch(mail) || !LoginRegex.IsMatch(login) || !PasswordRegex.IsMatch(password))
                 return;
 
             tData.BlockRemoteCalls = true;
 
             var hwid = player.Serial;
-            var scid = player.SocialClubId.ToString();
+            var scid = player.SocialClubId;
             var ip = player.Address;
 
-            await MySQL.WaitGlobal();
+            string confirmationHash;
 
-            await Task.Run(async () =>
+            var cts = new CancellationTokenSource(2_500);
+
+            try
             {
-                password = Utils.ToMD5(password);
-
-                var aRes = await MySQL.AccountAdd(scid, hwid, login, password, mail, Utils.GetCurrentTime(), ip);
-
+                confirmationHash = await Web.SocketIO.Methods.Account.Add(cts.Token, scid, hwid, login, password, mail, ip);
+            }
+            catch (Web.SocketIO.Exceptions.SocketIOResultException ioEx)
+            {
                 NAPI.Task.Run(() =>
                 {
                     if (player?.Exists != true)
@@ -51,52 +57,65 @@ namespace BCRPServer.Events.Players
 
                     tData.BlockRemoteCalls = false;
 
-                    if (aRes.Item1 == MySQL.AuthResultTypes.OK)
+                    var msg = ioEx.Message;
+
+                    if (msg == "SCIDExists")
                     {
-                        if (tData.AuthTimer != null)
-                        {
-                            tData.AuthTimer.Dispose();
-
-                            tData.AuthTimer = null;
-                        }
-
-                        tData.AccountData = aRes.Item2;
-
-                        tData.ActualToken = GenerateToken(tData.AccountData, hwid);
-
-                        tData.Characters = new PlayerData.PlayerInfo[3];
-
-                        var cData = new object[3];
-
-                        player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, tData.ActualToken);
-
-                        tData.StepType = TempData.StepTypes.CharacterSelection;
+                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_SCIDEXISTS_0"));
                     }
-                    else
+                    else if (msg == "MailExists")
                     {
-                        if (aRes.Item1 == MySQL.AuthResultTypes.RegMailNotFree)
-                        {
-                            player.Notify("Auth::MailNotFree");
+                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_MAILEXISTS_0"));
+                    }
+                    else if (msg == "LoginExists")
+                    {
+                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_LOGINEXISTS_0"));
+                    }
+                    else if (msg == "ConfirmSendTimeout")
+                    {
+                        TimeSpan nextSendTryTime;
 
-                            return;
-                        }
-                        else if (aRes.Item1 == MySQL.AuthResultTypes.RegLoginNotFree)
-                        {
-                            player.Notify("Auth::LoginNotFree");
+                        if (ioEx.Data["NextSendTryTime"] is TimeSpan ioExDataT)
+                            nextSendTryTime = ioExDataT;
+                        else
+                            nextSendTryTime = TimeSpan.Zero;
 
-                            return;
-                        }
+                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_REGCONFIRM_SENT_E_0", nextSendTryTime.GetBeautyString()));
                     }
                 });
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                NAPI.Task.Run(() =>
+                {
+                    if (player?.Exists != true)
+                        return;
+
+                    tData.BlockRemoteCalls = false;
+
+                    player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", ex.Message ?? ""));
+                });
+
+                return;
+            }
+
+            NAPI.Task.Run(() =>
+            {
+                if (player?.Exists != true)
+                    return;
+
+                tData.BlockRemoteCalls = false;
+
+                tData.RegistrationConfirmationHash = confirmationHash;
+
+                player.NotifySuccess(Language.Strings.Get("NTFC_AUTH_REGCONFIRM_SENT_0"));
             });
-
-            MySQL.ReleaseGlobal();
         }
-        #endregion
 
-        #region Login Attempt
         [RemoteEvent("Auth::OnLoginAttempt")]
-        private static async Task OnLoginAttempt(Player player, string login, string password)
+        private static async Task OnLoginAttempt(Player player, string login, string password, bool isPasswordToken)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -105,13 +124,20 @@ namespace BCRPServer.Events.Players
 
             var tData = sRes.Data;
 
-            if (tData.AccountData == null || (tData.StepType != TempData.StepTypes.None))
+            if (tData.StepType != TempData.StepTypes.AuthLogin)
                 return;
 
             if (login == null || password == null)
                 return;
 
             var hwid = player.Serial;
+            var scid = player.SocialClubId;
+            var ip = player.Address;
+
+            if (isPasswordToken)
+            {
+                password = DecryptToken(password, hwid.ToString());
+            }
 
             tData.LoginAttempts--;
 
@@ -122,61 +148,106 @@ namespace BCRPServer.Events.Players
                 return;
             }
 
-            if (login != tData.AccountData.Login)
-            {
-                player.Notify("Auth::WrongLogin", tData.LoginAttempts);
+            tData.BlockRemoteCalls = true;
 
-                return;
+            AccountData aData;
+
+            var cts = new CancellationTokenSource(2_500);
+
+            try
+            {
+                aData = await Web.SocketIO.Methods.Account.Login(cts.Token, scid, login, password, ip);
             }
-
-            if (password == tData.ActualToken)
-                password = DecryptToken(password, hwid);
-            else
-                password = Utils.ToMD5(password);
-
-            if (password != tData.AccountData.Password)
+            catch (Web.SocketIO.Exceptions.SocketIOResultException ioEx)
             {
-                player.Notify("Auth::WrongPassword", tData.LoginAttempts);
-
-                return;
-            }
-
-            if (tData.AuthTimer != null)
-            {
-                tData.AuthTimer.Dispose();
-
-                tData.AuthTimer = null;
-            }
-
-            tData.StepType = TempData.StepTypes.CharacterSelection;
-
-            tData.AccountData.LastIP = player.Address;
-
-            Task.Run(() =>
-            {
-                tData.AccountData.UpdateOnEnter();
-            });
-
-            var cData = new object[3];
-
-            for (int i = 0; i < cData.Length; i++)
-            {
-                if (tData.Characters[i] != null)
+                NAPI.Task.Run(() =>
                 {
-                    var lastBan = tData.Characters[i].Punishments.Where(x => x.Type == Sync.Punishment.Types.Ban && x.IsActive()).FirstOrDefault();
+                    if (player?.Exists != true)
+                        return;
+
+                    tData.BlockRemoteCalls = false;
+
+                    var message = ioEx.Message;
+
+                    if (message == "WrongLogin")
+                    {
+                        player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGLOGIN_0", tData.LoginAttempts));
+                    }
+                    else if (message == "WrongPassword")
+                    {
+                        if (isPasswordToken)
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGTOKEN_0", tData.LoginAttempts));
+                        else
+                            player.NotifyError(Language.Strings.Get("NTFC_AUTH_WRONGPASSWORD_0", tData.LoginAttempts));
+                    }
+                    else
+                    {
+                        player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", message ?? ""));
+                    }
+                });
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                NAPI.Task.Run(() =>
+                {
+                    if (player?.Exists != true)
+                        return;
+
+                    tData.BlockRemoteCalls = false;
+
+                    player.NotifyError(Language.Strings.Get("NTFC_GEN_ERROR_0", ex.Message ?? ""));
+                });
+
+                return;
+            }
+
+            NAPI.Task.Run(() =>
+            {
+                if (player?.Exists != true)
+                    return;
+
+                tData.BlockRemoteCalls = false;
+
+                tData.AccountData = aData;
+
+                if (tData.AuthTimer != null)
+                {
+                    tData.AuthTimer.Dispose();
+
+                    tData.AuthTimer = null;
+                }
+
+                tData.StepType = TempData.StepTypes.CharacterSelection;
+
+                //tData.AccountData.LastIP = player.Address;
+
+                var cData = new object[3];
+
+                int idx = 0;
+
+                foreach (var pInfo in PlayerData.PlayerInfo.GetAllByAID(aData.ID))
+                {
+                    if (idx >= tData.Characters.Length)
+                        break;
+
+                    tData.Characters[idx] = pInfo;
+
+                    var lastBan = pInfo.Punishments.Where(x => x.Type == Sync.Punishment.Types.Ban && x.IsActive()).FirstOrDefault();
 
                     var charArr = new object[14]
                     {
-                            $"{tData.Characters[i].Name} {tData.Characters[i].Surname}",
-                            tData.Characters[i].BankAccount == null ? 0 : tData.Characters[i].BankAccount.Balance,
-                            tData.Characters[i].Cash,
-                            tData.Characters[i].Sex,
-                            tData.Characters[i].BirthDate.GetTotalYears(),
-                            (int)tData.Characters[i].Fraction,
-                            tData.Characters[i].TimePlayed,
-                            tData.Characters[i].CID,
+                            $"{pInfo.Name} {pInfo.Surname}",
+                            pInfo.BankAccount == null ? 0 : pInfo.BankAccount.Balance,
+                            pInfo.Cash,
+                            pInfo.Sex,
+                            pInfo.BirthDate.GetTotalYears(),
+                            (int)pInfo.Fraction,
+                            pInfo.TimePlayed,
+                            pInfo.CID,
                             lastBan != null,
-                            tData.Characters[i].IsOnline,
+                            pInfo.IsOnline,
                             null,
                             null,
                             null,
@@ -191,19 +262,19 @@ namespace BCRPServer.Events.Players
                         charArr[13] = lastBan.EndDate.GetUnixTimestamp();
                     }
 
-                    cData[i] = charArr;
+                    cData[idx] = charArr;
+
+                    idx++;
                 }
-            }
 
-            var newToken = GenerateToken(tData.AccountData, hwid);
+                var newToken = GenerateToken(password, hwid);
 
-            player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, newToken);
+                player.TriggerEvent("Auth::ShowCharacterChoosePage", true, tData.AccountData.Login, tData.AccountData.RegistrationDate.GetUnixTimestamp(), tData.AccountData.BCoins, cData, newToken);
+            });
         }
-        #endregion
 
-        #region Character Choose Attempt
         [RemoteEvent("Auth::OnCharacterChooseAttempt")]
-        private static async Task OnCharacterChooseAttempt(Player player, byte charNum)
+        private static void OnCharacterChooseAttempt(Player player, byte charNum)
         {
             var sRes = player.CheckSpamAttackTemp();
 
@@ -285,7 +356,6 @@ namespace BCRPServer.Events.Players
                 CharacterCreation.StartNew(player);
             }
         }
-        #endregion
 
         [RemoteProc("Auth::StartPlace")]
         private static bool StartPlaceSelect(Player player, bool start, byte type)
@@ -416,10 +486,8 @@ namespace BCRPServer.Events.Players
             return true;
         }
 
-        #region Stuff
-        public static string GenerateToken(AccountData adata, string hwid) => Utils.EncryptString(adata.Password, Utils.ToMD5(hwid));
+        public static string GenerateToken(string password, string hwid) => Cryptography.AesEncryptString(password, Cryptography.MD5EncryptString(hwid));
 
-        private static string DecryptToken(string token, string hwid) => Utils.DecryptString(token, Utils.ToMD5(hwid));
-        #endregion
+        private static string DecryptToken(string token, string hwid) => Cryptography.AesDecryptString(token, Cryptography.MD5EncryptString(hwid));
     }
 }

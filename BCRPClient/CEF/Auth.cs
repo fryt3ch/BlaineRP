@@ -26,8 +26,6 @@ namespace BCRPClient.CEF
 
         public Auth()
         {
-            LastTime = Sync.World.ServerTime;
-
             #region Events
 
             Events.Add("Auth::SaveLastCharacter", (object[] args) => Additional.Storage.SetData("Auth::LastCharacter", (int)args[0] + 1));
@@ -138,7 +136,7 @@ namespace BCRPClient.CEF
             #region Attempt Managers
             Events.Add("Auth::RegistrationAttempt", (object[] args) =>
             {
-                if (LastTime.IsSpam(500, false, false))
+                if (LastTime.IsSpam(500, false, true))
                     return;
 
                 LastTime = Sync.World.ServerTime;
@@ -195,7 +193,7 @@ namespace BCRPClient.CEF
 
             Events.Add("Auth::LoginAttempt", (args) =>
             {
-                if (LastTime.IsSpam(500, false, false))
+                if (LastTime.IsSpam(500, false, true))
                     return;
 
                 var login = (string)args[0];
@@ -206,7 +204,7 @@ namespace BCRPClient.CEF
 
                 LastTime = Sync.World.ServerTime;
 
-                RAGE.Events.CallRemote("Auth::OnLoginAttempt", login, pass);
+                RAGE.Events.CallRemote("Auth::OnLoginAttempt", login, pass, pass == Additional.Storage.GetData<string>("Auth::Token"));
             });
 
             Events.Add("Auth::CharacterChooseAttempt", (args) =>

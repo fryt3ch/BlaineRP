@@ -99,6 +99,8 @@ namespace BCRPServer.Events
             NAPI.Server.SetLogCommandParamParserExceptions(false);
             NAPI.Server.SetLogRemoteEventParamParserExceptions(true);
 
+            Web.SocketIO.Service.Start("http://localhost:7777", "brp_server_1", "63c209c3-3505-443a-b234-91e3046e2894");
+
             // Local Data Load Step
 
             Game.Businesses.Business.LoadPrices();
@@ -213,8 +215,6 @@ namespace BCRPServer.Events
             }, null, 1_000, 1_000);
 
             MySQL.StartService();
-
-            Web.Service.Connect().GetAwaiter().GetResult();
         }
 
         public static void DoPayDay(bool isAuto)

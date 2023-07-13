@@ -6,13 +6,11 @@ namespace BCRPServer
     {
         public uint ID { get; set; }
 
-        public string SCID { get; set; }
+        public ulong SCID { get; set; }
 
         public string HWID { get; set; }
 
         public string Login { get; set; }
-
-        public string Password { get; set; }
 
         public string Mail { get; set; }
 
@@ -24,44 +22,36 @@ namespace BCRPServer
 
         public int AdminLevel { get; set; }
 
-        public int BCoins { get; set; }
+        public uint BCoins { get; set; }
 
         public AccountData() { }
 
         public class GlobalBan
         {
-            public enum Types
-            {
-                /// <summary>Блокировка по IP</summary>
-                IP = 0,
-                /// <summary>Блокировка по серийному номеру</summary>
-                HWID,
-                /// <summary>Блокировка по Social Club</summary>
-                SCID,
-                /// <summary>Черный список проекта</summary>
-                Blacklist,
-            }
-
-            public Types Type { get; set; }
-
             public DateTime Date { get; set; }
 
             public string Reason { get; set; }
 
-            public int AdminID { get; set; }
+            public uint AdminID { get; set; }
 
             public uint ID { get; set; }
 
-            public GlobalBan(uint ID, Types Type, DateTime Date, string Reason, int AdminID)
+            public string HWID { get; set; }
+
+            public ulong SCID { get; set; }
+
+            public GlobalBan(uint ID, DateTime Date, string Reason, uint AdminID, string HWID, ulong SCID)
             {
                 this.ID = ID;
-                this.Type = Type;
                 this.Date = Date;
                 this.Reason = Reason;
                 this.AdminID = AdminID;
+
+                this.HWID = HWID;
+                this.SCID = SCID;
             }
 
-            public override string ToString() => Language.Strings.Get("GEN_BAN_GLOBAL_NTEXT_0", ID, Language.Strings.Get($"GEN_BAN_GLOBAL_BTYPES_{(int)Type}"), Date.ToString(), Reason, AdminID);
+            //public override string ToString() => Language.Strings.Get("GEN_BAN_GLOBAL_NTEXT_0", ID, Language.Strings.Get($"GEN_BAN_GLOBAL_BTYPES_{(int)Type}"), Date.ToString(), Reason, AdminID);
         }
     }
 }

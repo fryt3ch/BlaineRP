@@ -1,31 +1,36 @@
-﻿using SocketIOClient;
+﻿using GTANetworkAPI;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using static BCRPServer.Events.Commands.Commands;
 
-namespace BCRPServer.Web
+namespace BCRPServer.Web.SocketIO
 {
     internal class Service
     {
-        private static SocketIO _connection;
+        private static SocketIOClient.SocketIO _connection;
 
-        public static SocketIO Connection => _connection;
+        public static SocketIOClient.SocketIO Connection => _connection;
 
-        public static async System.Threading.Tasks.Task Connect()
+        public static async void Start(string url, string user, string password)
         {
-            _connection = new SocketIO("http://localhost:7777", new SocketIOOptions()
+            _connection = new SocketIOClient.SocketIO(url, new SocketIOClient.SocketIOOptions()
             {
                 Path = "/socket.io",
                 Transport = SocketIOClient.Transport.TransportProtocol.WebSocket,
 
-                EIO = EngineIO.V4,
+                EIO = SocketIOClient.EngineIO.V4,
 
                 Reconnection = true,
 
                 ConnectionTimeout = TimeSpan.FromMilliseconds(5_000),
 
-                Auth = new { user = "brp_server_1", password = "63c209c3-3505-443a-b234-91e3046e2894", },
+                Auth = new { user = user, password = password, },
             });
 
             _connection.OnConnected += (sender, args) =>
@@ -52,21 +57,27 @@ namespace BCRPServer.Web
             {
                 try
                 {
-                    await _connection.ConnectAsync();
+                    _connection.ConnectAsync().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
                 {
-                    await Task.Delay(1_000);
+                    Task.Delay(1_000);
 
                     Console.WriteLine($"[Socket.IO | Server] Error, trying to reconnect... ({ex?.Message ?? "null"})");
                 }
             }
 
-            await _connection.EmitAsync("test_event_server", (resp) =>
+            foreach (var method in Assembly.GetExecutingAssembly().GetTypes().Where(x => x.IsClass && x.Namespace?.StartsWith("BCRPServer.Web.SocketIO.Events") == true).SelectMany(x => x.GetMethods(BindingFlags.NonPublic | BindingFlags.Static)))
             {
-                Console.WriteLine(resp.GetValue(0));
+                var attr = method.GetCustomAttribute<Web.SocketIO.Events.EventAttribute>();
 
-            }, (new { test_data1 = "PHP", test_data2 = "GOVNO" }));
+                if (attr == null)
+                    continue;
+
+                var deleg = (Action<SocketIOClient.SocketIOResponse>)method.CreateDelegate(typeof(Action<SocketIOClient.SocketIOResponse>));
+
+                _connection.On(attr.EventName, deleg);
+            }
         }
     }
 }

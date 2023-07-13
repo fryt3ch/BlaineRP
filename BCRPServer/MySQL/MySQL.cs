@@ -17,14 +17,11 @@ namespace BCRPServer
         private const string Host = "localhost";
         private const string User = "root";
         private const string Password = "";
-        private const string GlobalDatabase = "bcrp";
         private const string LocalDatabase = "bcrp-1";
 
-        private static string GlobalConnectionCredentials = $"SERVER={Host}; DATABASE={GlobalDatabase}; UID={User}; PASSWORD={Password}";
         private static string LocalConnectionCredentials = $"SERVER={Host}; DATABASE={LocalDatabase}; UID={User}; PASSWORD={Password}";
 
         private static SemaphoreSlim LocalConnectionSemaphore { get; set; }
-        private static SemaphoreSlim GlobalConnectionSemaphore { get; set; }
 
         private static ConcurrentQueue<MySqlCommand> QueriesQueue { get; set; } = new ConcurrentQueue<MySqlCommand>();
 
@@ -38,19 +35,6 @@ namespace BCRPServer
             Unknown = 3,
 
             RegConfirmationSent = 4,
-        }
-
-        public enum RegResultTypes : byte
-        {
-            OK = 0,
-
-            RegMailNotFree = 1,
-            RegLoginNotFree = 2,
-
-            RegConfirmationSent = 3,
-            RegConfirmationAlreadySent = 4,
-
-            Unknown = 255,
         }
 
         #region General
@@ -177,15 +161,12 @@ namespace BCRPServer
         #region Init Connection
         public static bool InitConnection()
         {
-            MySqlConnection globalConnection = new MySqlConnection(GlobalConnectionCredentials);
             MySqlConnection localConnection = new MySqlConnection(LocalConnectionCredentials);
 
-            GlobalConnectionSemaphore = new SemaphoreSlim(1, 1);
             LocalConnectionSemaphore = new SemaphoreSlim(1, 1);
 
             try
             {
-                globalConnection.Open();
                 localConnection.Open();
 
                 return true;
@@ -200,9 +181,6 @@ namespace BCRPServer
             }
         }
         #endregion
-
-        public static async Task WaitGlobal() => await GlobalConnectionSemaphore.WaitAsync();
-        public static void ReleaseGlobal() => GlobalConnectionSemaphore.Release();
 
         public static async Task Wait() => await LocalConnectionSemaphore.WaitAsync();
 

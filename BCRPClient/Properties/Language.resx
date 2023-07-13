@@ -1193,4 +1193,7 @@ CID: #{2} | ID: {3}</value>
     <value>Сообщение должно быть в следующем виде:
 /todo Фраза*Действие</value>
   </data>
+  <data name="AUTH_CHARCREATE_E_0" xml:space="preserve">
+    <value>Такая комбинация имени и фамилии уже используется кем-то!</value>
+  </data>
 </root>

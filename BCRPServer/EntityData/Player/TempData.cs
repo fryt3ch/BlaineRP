@@ -8,18 +8,21 @@ namespace BCRPServer
 {
     public class TempData
     {
-        private static Dictionary<Player, TempData> Players = new Dictionary<Player, TempData>();
+        public static Dictionary<Player, TempData> Players = new Dictionary<Player, TempData>();
 
-        public enum StepTypes
+        public enum StepTypes : byte
         {
             /// <summary>Регистрация/вход</summary>
-            None = -1,
+            None = 0,
             /// <summary>Выбор персонажа</summary>
             CharacterSelection,
             /// <summary>Создание персонажа</summary>
             CharacterCreation,
             /// <summary>Выбор места спавна</summary>
             StartPlace,
+
+            AuthRegistration,
+            AuthLogin,
         }
 
         public enum StartPlaceTypes : byte
@@ -91,8 +94,6 @@ namespace BCRPServer
 
         public int LoginAttempts { get; set; }
 
-        public string ActualToken { get; set; }
-
         public PlayerData.PlayerInfo[] Characters { get; set; }
 
         public AccountData AccountData { get; set; }
@@ -106,6 +107,8 @@ namespace BCRPServer
         public bool BlockRemoteCalls { get; set; }
 
         public byte SpamCounter { get; set; }
+
+        public string RegistrationConfirmationHash { get => Player.GetData<string>("TData::Reg::ConfirmHash"); set { if (value == null) Player.ResetData("TData::Reg::ConfirmHash"); else Player.SetData("TData::Reg::ConfirmHash", value); } }
 
         public TempData(Player Player)
         {

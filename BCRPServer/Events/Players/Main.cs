@@ -37,27 +37,35 @@ namespace BCRPServer.Events.Players
         [ServerEvent(Event.PlayerConnected)]
         private static async Task OnPlayerConnected(Player player)
         {
-            var t1 = player?.Exists;
-            var t2 = player.GetTempData();
-            var t3 = player.GetMainData();
-
             if (player?.Exists != true || player.GetTempData() != null || player.GetMainData() != null)
                 return;
 
-            var scId = player.SocialClubId;
+            var scid = player.SocialClubId;
             var ip = player.Address;
             var hwid = player.Serial;
 
-            var bans = await MySQL.GlobalBansGet(hwid, ip, scId);
+            AccountData.GlobalBan globalBan;
+
+            using (var cts = new CancellationTokenSource(2_500))
+            {
+                try
+                {
+                    globalBan = await Web.SocketIO.Methods.Misc.GetPlayerGlobalBan(cts.Token, hwid, scid);
+                }
+                catch (Exception ex)
+                {
+                    return;
+                }
+            }
 
             NAPI.Task.Run(async () =>
             {
                 if (player?.Exists != true)
                     return;
 
-                if (bans.Count > 0)
+                if (globalBan != null)
                 {
-                    Utils.Kick(player, bans[0].ToString());
+                    Utils.Kick(player, "todo");
 
                     return;
                 }
@@ -72,7 +80,27 @@ namespace BCRPServer.Events.Players
 
                 player.SkyCameraMove(Additional.SkyCamera.SwitchTypes.OutFromPlayer, true, "FadeScreen", false);
 
-                var account = await MySQL.AccountGet(scId);
+                uint aid;
+
+                using (var cts = new CancellationTokenSource(2_500))
+                {
+                    try
+                    {
+                        aid = await Web.SocketIO.Methods.Account.GetIdBySCID(cts.Token, scid);
+                    }
+                    catch (Exception ex)
+                    {
+                        NAPI.Task.Run(() =>
+                        {
+                            if (player?.Exists != true)
+                                return;
+
+                            tData.BlockRemoteCalls = false;
+                        });
+
+                        return;
+                    }
+                }
 
                 NAPI.Task.Run(() =>
                 {
@@ -81,27 +109,15 @@ namespace BCRPServer.Events.Players
 
                     tData.BlockRemoteCalls = false;
 
-                    if (account == null)
+                    if (aid == 0)
                     {
+                        tData.StepType = TempData.StepTypes.AuthRegistration;
+
                         player.TriggerEvent("Auth::ShowRegistrationPage", player.SocialClubName);
                     }
                     else
                     {
-                        int i = -1;
-
-                        foreach (var x in PlayerData.PlayerInfo.GetAllByAID(account.ID))
-                        {
-                            i++;
-
-                            if (i >= tData.Characters.Length)
-                                break;
-
-                            tData.Characters[i] = x;
-                        }
-
-                        tData.AccountData = account;
-
-                        tData.ActualToken = Events.Players.Auth.GenerateToken(account, hwid);
+                        tData.StepType = TempData.StepTypes.AuthLogin;
 
                         player.TriggerEvent("Auth::ShowLoginPage", player.SocialClubName);
                     }

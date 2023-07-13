@@ -387,4 +387,35 @@
   <data name="CHAT_PLAYER_WEAPON_UNEQUIP_1" xml:space="preserve">
     <value>убрал(а) в кобуру {0}</value>
   </data>
+  <data name="NTFC_AUTH_WRONGPASSWORD_0" xml:space="preserve">
+    <value>Неверный пароль! Попыток осталось: {0}</value>
+    <comment>Неверный пароль! Попыток осталось: {0}</comment>
+  </data>
+  <data name="NTFC_AUTH_WRONGLOGIN_0" xml:space="preserve">
+    <value>Неверный логин! Попыток осталось: {0}</value>
+  </data>
+  <data name="NTFC_GEN_ERROR_0" xml:space="preserve">
+    <value>Что-то пошло не так! {0}</value>
+  </data>
+  <data name="NTFC_AUTH_WRONGTOKEN_0" xml:space="preserve">
+    <value>Неверный токен, попробуйте использовать пароль! Попыток осталось: {0}</value>
+  </data>
+  <data name="NTFC_AUTH_SCIDEXISTS_0" xml:space="preserve">
+    <value>Аккаунт с вашим SocialClubID уже зарегистрирован на проекте!</value>
+  </data>
+  <data name="NTFC_AUTH_MAILEXISTS_0" xml:space="preserve">
+    <value>Аккаунт с такой почтой уже зарегистрирован на проекте!</value>
+  </data>
+  <data name="NTFC_AUTH_LOGINEXISTS_0" xml:space="preserve">
+    <value>Аккаунт с таким логином уже зарегистрирован на проекте!</value>
+  </data>
+  <data name="NTFC_AUTH_REGCONFIRMED_0" xml:space="preserve">
+    <value>Вы подтвердили Вашу почту и успешно зарегистрировались на проекте! Войдите в свой аккаунт.</value>
+  </data>
+  <data name="NTFC_AUTH_REGCONFIRM_SENT_0" xml:space="preserve">
+    <value>Письмо с ссылкой для подтверждения регистрации отправлено на {0}</value>
+  </data>
+  <data name="NTFC_AUTH_REGCONFIRM_SENT_E_0" xml:space="preserve">
+    <value>Вы сможете запросить отправку нового письма с ссылкой для подтверждения регистрации не раньше, чем через {0}!</value>
+  </data>
 </root>

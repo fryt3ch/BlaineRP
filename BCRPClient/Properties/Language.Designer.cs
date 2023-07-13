@@ -171,6 +171,15 @@ namespace BCRPClient.Properties {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Такая комбинация имени и фамилии уже используется кем-то!.
+        /// </summary>
+        public static string AUTH_CHARCREATE_E_0 {
+            get {
+                return ResourceManager.GetString("AUTH_CHARCREATE_E_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Вы не можете выбрать это место для появления!.
         /// </summary>
         public static string AUTH_STARTPLACE_CANNOT {

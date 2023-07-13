@@ -481,7 +481,7 @@ namespace BCRPServer.Events.Fractions
 
                 var name = nameArr[0]; var surname = nameArr[1];
 
-                if (!Utils.IsNameValid(name) || !Utils.IsNameValid(surname))
+                if (!Events.Players.CharacterCreation.CharacterNameRegex.IsMatch(name) || !Events.Players.CharacterCreation.CharacterSurnameRegex.IsMatch(surname))
                     return 0;
 
                 tInfo = PlayerData.PlayerInfo.All.Values.Where(x => x.Name == name && x.Surname == surname).FirstOrDefault();

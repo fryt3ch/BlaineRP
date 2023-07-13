@@ -366,5 +366,18 @@ namespace BCRPServer.Events.Players.Misc
 
             return true;
         }
+
+        [RemoteProc("Misc::GetPing")]
+        public static int GetPing(Player player)
+        {
+            var sRes = player.CheckSpamAttack();
+
+            if (sRes.IsSpammer)
+                return int.MinValue;
+
+            var pData = sRes.Data;
+
+            return player.Ping;
+        }
     }
 }

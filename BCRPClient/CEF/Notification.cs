@@ -107,10 +107,6 @@ namespace BCRPClient.CEF
             { "Auth::MailNotFree", new Instance(Types.Error, Locale.Notifications.Auth.MailNotFree, Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
             { "Auth::LoginNotFree", new Instance(Types.Error, Locale.Notifications.Auth.LoginNotFree, Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
 
-            { "Auth::WrongPassword", new Instance(Types.Error, Locale.Notifications.Auth.WrongPassword, Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
-            { "Auth::WrongLogin", new Instance(Types.Error, Locale.Notifications.Auth.WrongLogin, Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
-            { "Auth::WrongToken", new Instance(Types.Error, Locale.Notifications.Auth.WrongToken, Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
-
             { "Auth::SPWC", new Instance(Types.Error, Locale.Get("AUTH_STARTPLACE_FAULT"), Locale.Get("NOTIFICATION_HEADER_ERROR"), -1) },
 
 
@@ -399,8 +395,20 @@ namespace BCRPClient.CEF
         {
             LastAntiSpamShowed = Sync.World.ServerTime;
 
-            // 0 - type, 1 - title, 2 - text, 3 - timeout
-            Events.Add("Notify::Custom", (object[] args) => Show((Types)((int)args[0]), (string)args[1], (string)args[2], args.Length > 3 ? (int)args[3] : -1));
+            Events.Add("Notify::Custom", (args) =>
+            {
+                Show((Types)((int)args[0]), (string)args[1], (string)args[2], Utils.ToInt32(args[3]));
+            });
+
+            Events.Add("Notify::CustomE", (args) =>
+            {
+                ShowError((string)args[0], Utils.ToInt32(args[1]));
+            });
+
+            Events.Add("Notify::CustomS", (args) =>
+            {
+                ShowSuccess((string)args[0], Utils.ToInt32(args[1]));
+            });
 
             Events.Add("Notify", (object[] args) =>
             {
